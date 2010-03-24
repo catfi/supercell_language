@@ -19,15 +19,4 @@
 # Contact Information: info@zillians.com
 #
 
-#ADD_SUBDIRECTORY(libzillians-framework-vw)
-#ADD_SUBDIRECTORY(libzillians-framework-vw-cal)
-IF(CUDA_FOUND AND CUDPP_FOUND)
-    ADD_SUBDIRECTORY(libzillians-framework-vw-cuda)
-ELSE()
-    MESSAGE(STATUS "CUDA or CUDPP not available, disabling build for libzillians-framework-vw-cuda")
-ENDIF()
-#ADD_SUBDIRECTORY(libzillians-framework-vw-tbb)
-ADD_SUBDIRECTORY(libzillians-framework-vw-naive)
-
-ADD_SUBDIRECTORY(libzillians-compiler)
-ADD_SUBDIRECTORY(zillians-compiler)
+ADD_SUBDIRECTORY(SymbolTableTest)
