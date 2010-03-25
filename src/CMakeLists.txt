@@ -31,3 +31,4 @@ ADD_SUBDIRECTORY(libzillians-framework-vw-naive)
 
 ADD_SUBDIRECTORY(libzillians-compiler)
 ADD_SUBDIRECTORY(zillians-compiler)
+ADD_SUBDIRECTORY(zillians-compiler-grammar)
