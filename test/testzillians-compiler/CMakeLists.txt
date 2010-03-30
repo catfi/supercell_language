@@ -21,3 +21,4 @@
 
 ADD_SUBDIRECTORY(SymbolTableTest)
 ADD_SUBDIRECTORY(TreeWalkerTest)
+ADD_SUBDIRECTORY(TypeTableTest)
