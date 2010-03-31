@@ -19,6 +19,7 @@
 # Contact Information: info@zillians.com
 #
 
+ADD_SUBDIRECTORY(SimpleGrammarTest)
 ADD_SUBDIRECTORY(SymbolTableTest)
 ADD_SUBDIRECTORY(TreeWalkerTest)
 ADD_SUBDIRECTORY(TypeTableTest)
