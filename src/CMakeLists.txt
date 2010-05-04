@@ -1,6 +1,6 @@
 # 
 # Zillians MMO
-# Copyright (C) 2007-2009 Zillians.com, Inc.
+# Copyright (C) 2007-2010 Zillians.com, Inc.
 # For more information see http:#www.zillians.com
 #
 # Zillians MMO is the library and runtime for massive multiplayer online game
@@ -29,7 +29,8 @@ ENDIF()
 #ADD_SUBDIRECTORY(libzillians-framework-vw-tbb)
 ADD_SUBDIRECTORY(libzillians-framework-vw-naive)
 
-ADD_SUBDIRECTORY(libzillians-compiler)
+ADD_SUBDIRECTORY(libzillians-framework-zscript-frontend)
+ADD_SUBDIRECTORY(libzillians-framework-zscript-backend)
 ADD_SUBDIRECTORY(zillians-compiler)
 ADD_SUBDIRECTORY(zillians-compiler-grammar)
 ADD_SUBDIRECTORY(zillians-ptx-parser-grammar)
