@@ -26,6 +26,7 @@ ELSE()
 ENDIF()
 
 ADD_SUBDIRECTORY(testzillians-compiler)
+ADD_SUBDIRECTORY(testbullet)
 ADD_SUBDIRECTORY(testzillians-framework-vw-naive)
 
 #ADD_SUBDIRECTORY(testzillians-compiler)
