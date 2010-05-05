@@ -28,6 +28,7 @@ ELSE()
 ENDIF()
 #ADD_SUBDIRECTORY(libzillians-framework-vw-tbb)
 ADD_SUBDIRECTORY(libzillians-framework-vw-naive)
+ADD_SUBDIRECTORY(libzillians-framework-vw-cpu)
 
 ADD_SUBDIRECTORY(libzillians-framework-zscript-frontend)
 ADD_SUBDIRECTORY(libzillians-framework-zscript-backend)
