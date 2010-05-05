@@ -25,8 +25,11 @@ ELSE()
     MESSAGE(STATUS "CUDA not available, disabling build for testcuda, testzillians-framework-vw-cuda")
 ENDIF()
 
+IF( BULLET_FOUND )
+	ADD_SUBDIRECTORY(testbullet)
+ENDIF()
+
 ADD_SUBDIRECTORY(testzillians-compiler)
-ADD_SUBDIRECTORY(testbullet)
 ADD_SUBDIRECTORY(testzillians-framework-vw-naive)
 
 #ADD_SUBDIRECTORY(testzillians-compiler)
