@@ -33,6 +33,7 @@ IF( BULLET_FOUND )
 ENDIF()
 
 ADD_SUBDIRECTORY(libzillians-framework-zscript-frontend)
+ADD_SUBDIRECTORY(libzillians-framework-zscript-midend)
 ADD_SUBDIRECTORY(libzillians-framework-zscript-backend)
 ADD_SUBDIRECTORY(zillians-compiler)
 ADD_SUBDIRECTORY(zillians-compiler-grammar)
