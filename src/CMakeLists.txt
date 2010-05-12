@@ -34,7 +34,7 @@ ENDIF()
 
 ADD_SUBDIRECTORY(libzillians-framework-zscript-frontend)
 
-if( LLVM_VERSION STREQUAL "2.7" )
+if( LLVM_VERSION STREQUAL "2.6" )
 	ADD_SUBDIRECTORY(libzillians-framework-zscript-midend)
 	ADD_SUBDIRECTORY(zillians-compiler)
 ENDIF()
