@@ -34,18 +34,14 @@ ENDIF()
 
 ADD_SUBDIRECTORY(libzillians-framework-zscript-frontend)
 
-if( LLVM_VERSION STREQUAL "2.6" )
-	ADD_SUBDIRECTORY(libzillians-framework-zscript-midend)
-	ADD_SUBDIRECTORY(zillians-compiler-grammar)
-	ADD_SUBDIRECTORY(zillians-compiler)
-ENDIF()
+ADD_SUBDIRECTORY(libzillians-framework-zscript-midend)
+ADD_SUBDIRECTORY(zillians-compiler-grammar)
+ADD_SUBDIRECTORY(zillians-compiler)
 
 ADD_SUBDIRECTORY(libzillians-framework-zscript-backend)
 
 ADD_SUBDIRECTORY(zillians-ptx-parser)
 ADD_SUBDIRECTORY(zillians-ptx-parser-grammar)
 
-if( LLVM_VERSION STREQUAL "2.6" )
-	ADD_SUBDIRECTORY(libptx-backend)
-	ADD_SUBDIRECTORY(zillians-llc)
-ENDIF()
+ADD_SUBDIRECTORY(libptx-backend)
+ADD_SUBDIRECTORY(zillians-llc)
