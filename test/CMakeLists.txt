@@ -20,7 +20,7 @@
 #
 IF(CUDA_FOUND AND CUDPP_FOUND)
     ADD_SUBDIRECTORY(testcuda)
-    ADD_SUBDIRECTORY(testzillians-framework-vw-cuda)
+    ADD_SUBDIRECTORY(testzillians-framework-vw)
 ELSE()
     MESSAGE(STATUS "CUDA not available, disabling build for testcuda, testzillians-framework-vw-cuda")
 ENDIF()
@@ -40,6 +40,6 @@ ELSE()
 ENDIF()
 
 ADD_SUBDIRECTORY(testzillians-compiler)
-ADD_SUBDIRECTORY(testzillians-framework-vw-naive)
+#ADD_SUBDIRECTORY(testzillians-framework-vw-naive)
 
 #ADD_SUBDIRECTORY(testzillians-compiler)
