@@ -22,14 +22,14 @@
 #ADD_SUBDIRECTORY(libzillians-framework-vw)
 #ADD_SUBDIRECTORY(libzillians-framework-vw-cal)
 IF(CUDA_FOUND AND CUDPP_FOUND)
-    ADD_SUBDIRECTORY(libzillians-framework-vw-cuda)
+    ADD_SUBDIRECTORY(libzillians-framework-vw)
 ELSE()
     MESSAGE(STATUS "CUDA or CUDPP not available, disabling build for libzillians-framework-vw-cuda")
 ENDIF()
 #ADD_SUBDIRECTORY(libzillians-framework-vw-tbb)
 #ADD_SUBDIRECTORY(libzillians-framework-vw-naive) # Not working as of 20100511
 IF( BULLET_FOUND )
-	ADD_SUBDIRECTORY(libzillians-framework-vw-cpu)
+#	ADD_SUBDIRECTORY(libzillians-framework-vw-cpu)
 ENDIF()
 
 ADD_SUBDIRECTORY(libzillians-framework-zscript-frontend)

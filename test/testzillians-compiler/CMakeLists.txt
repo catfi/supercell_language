@@ -1,6 +1,6 @@
 # 
 # Zillians MMO
-# Copyright (C) 2007-2009 Zillians.com, Inc.
+# Copyright (C) 2007-2010 Zillians.com, Inc.
 # For more information see http:#www.zillians.com
 #
 # Zillians MMO is the library and runtime for massive multiplayer online game
@@ -25,3 +25,7 @@ ADD_SUBDIRECTORY(PTXCodeGenTest)
 ADD_SUBDIRECTORY(PTXParserTest)
 ADD_SUBDIRECTORY(LLVM_IR_Test)
 ADD_SUBDIRECTORY(PTXParserTest-RealExecute)
+
+ADD_SUBDIRECTORY(CodeGenCommonTest)
+ADD_SUBDIRECTORY(PTXFunctionMapperBasicTest)
+ADD_SUBDIRECTORY(PTXFunctionMapperAdvanceTest)
