@@ -40,6 +40,7 @@ ELSE()
 ENDIF()
 
 ADD_SUBDIRECTORY(testzillians-compiler)
+ADD_SUBDIRECTORY(test_octree)
 #ADD_SUBDIRECTORY(testzillians-framework-vw-naive)
 
 #ADD_SUBDIRECTORY(testzillians-compiler)
