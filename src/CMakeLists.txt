@@ -26,11 +26,9 @@ IF(CUDA_FOUND AND CUDPP_FOUND)
 ELSE()
     MESSAGE(STATUS "CUDA or CUDPP not available, disabling build for libzillians-framework-vw-cuda")
 ENDIF()
-#ADD_SUBDIRECTORY(libzillians-framework-vw-tbb)
-#ADD_SUBDIRECTORY(libzillians-framework-vw-naive) # Not working as of 20100511
-IF( BULLET_FOUND )
-#	ADD_SUBDIRECTORY(libzillians-framework-vw-cpu)
-ENDIF()
+
+ADD_SUBDIRECTORY(libzillians-framework-vw-mapper-llvm)
+ADD_SUBDIRECTORY(libzillians-framework-vw-mapper-ptx)
 
 ADD_SUBDIRECTORY(libzillians-framework-zscript-frontend)
 
