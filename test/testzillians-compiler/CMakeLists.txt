@@ -27,5 +27,6 @@ ADD_SUBDIRECTORY(LLVM_IR_Test)
 ADD_SUBDIRECTORY(PTXParserTest-RealExecute)
 
 ADD_SUBDIRECTORY(CodeGenCommonTest)
+ADD_SUBDIRECTORY(LLVMFunctionMapperBasicTest)
 ADD_SUBDIRECTORY(PTXFunctionMapperBasicTest)
 ADD_SUBDIRECTORY(PTXFunctionMapperAdvanceTest)
