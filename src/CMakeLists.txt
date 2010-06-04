@@ -39,6 +39,7 @@ ADD_SUBDIRECTORY(libzillians-framework-zscript-frontend)
 ADD_SUBDIRECTORY(libzillians-framework-zscript-midend)
 ADD_SUBDIRECTORY(zillians-compiler-grammar)
 ADD_SUBDIRECTORY(zillians-compiler)
+ADD_SUBDIRECTORY(zillians-semantic-check)
 
 ADD_SUBDIRECTORY(libzillians-framework-zscript-backend)
 
