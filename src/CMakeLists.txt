@@ -19,6 +19,8 @@
 # Contact Information: info@zillians.com
 #
 
+ADD_SUBDIRECTORY(libzillians-framework-vw)
+
 IF(CUDA_FOUND AND CUDPP_FOUND)
     ADD_SUBDIRECTORY(libzillians-framework-vw-processors-fermi)
     ADD_SUBDIRECTORY(libzillians-framework-vw-services-fermi)
