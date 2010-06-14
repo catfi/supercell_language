@@ -31,3 +31,5 @@ ADD_SUBDIRECTORY(LLVMFunctionMapperBasicTest)
 ADD_SUBDIRECTORY(PTXFunctionMapperBasicTest)
 ADD_SUBDIRECTORY(PTXFunctionMapperAdvanceTest)
 
+ADD_SUBDIRECTORY(MidendStmtTest)
+
