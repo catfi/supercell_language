@@ -19,6 +19,8 @@
 # Contact Information: info@zillians.com
 #
 
+ADD_SUBDIRECTORY(libzillians-framework-vw)
+
 IF(CUDA_FOUND AND CUDPP_FOUND)
     ADD_SUBDIRECTORY(libzillians-framework-vw-processors-fermi)
     ADD_SUBDIRECTORY(libzillians-framework-vw-services-fermi)
@@ -26,6 +28,8 @@ IF(CUDA_FOUND AND CUDPP_FOUND)
 ELSE()
     MESSAGE(STATUS "CUDA or CUDPP not available, disabling build for libzillians-framework-vw-processors-fermi and libzillians-framework-vw-services-fermi")
 ENDIF()
+
+ADD_SUBDIRECTORY(libzillians-framework-vw-processors-st)
 
 ADD_SUBDIRECTORY(libzillians-framework-vw-processors-mt)
 ADD_SUBDIRECTORY(libzillians-framework-vw-services-mt)
