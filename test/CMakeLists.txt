@@ -45,3 +45,10 @@ ADD_SUBDIRECTORY(ray_trace)
 #ADD_SUBDIRECTORY(testzillians-framework-vw-naive)
 
 #ADD_SUBDIRECTORY(testzillians-compiler)
+
+IF(MONGO_FOUND)
+    ADD_SUBDIRECTORY(testmongo)
+	MESSAGE( "--- Enable TestMongo")
+ELSE()
+	MESSAGE( "--- Disable TestMongo")
+ENDIF()
