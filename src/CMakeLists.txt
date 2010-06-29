@@ -21,7 +21,7 @@
 
 ADD_SUBDIRECTORY(libzillians-framework-vw)
 
-IF(CUDA_FOUND AND CUDPP_FOUND)
+IF(CUDA_FOUND)
     ADD_SUBDIRECTORY(libzillians-framework-vw-processors-fermi)
     ADD_SUBDIRECTORY(libzillians-framework-vw-services-fermi)
     ADD_SUBDIRECTORY(libzillians-framework-vw-api-fermi)

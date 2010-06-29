@@ -18,7 +18,7 @@
 #
 # Contact Information: info@zillians.com
 #
-IF(CUDA_FOUND AND CUDPP_FOUND)
+IF(CUDA_FOUND)
     ADD_SUBDIRECTORY(testcuda)
     ADD_SUBDIRECTORY(testzillians-framework-vw)
 ELSE()
