@@ -33,9 +33,9 @@ ADD_SUBDIRECTORY(libzillians-framework-vw-processors-mt)
 ADD_SUBDIRECTORY(libzillians-framework-vw-services-mt)
 ADD_SUBDIRECTORY(libzillians-framework-vw-api-mt)
 
-ADD_SUBDIRECTORY(libzillians-framework-vw-processors-st)
-ADD_SUBDIRECTORY(libzillians-framework-vw-services-st)
-ADD_SUBDIRECTORY(libzillians-framework-vw-api-st)
+#ADD_SUBDIRECTORY(libzillians-framework-vw-processors-st)
+#ADD_SUBDIRECTORY(libzillians-framework-vw-services-st)
+#ADD_SUBDIRECTORY(libzillians-framework-vw-api-st)
 
 ADD_SUBDIRECTORY(libzillians-framework-vw-mapper-llvm)
 ADD_SUBDIRECTORY(libzillians-framework-vw-mapper-ptx)
