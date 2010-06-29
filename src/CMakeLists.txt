@@ -21,7 +21,7 @@
 
 ADD_SUBDIRECTORY(libzillians-framework-vw)
 
-IF(CUDA_FOUND AND CUDPP_FOUND)
+IF(CUDA_FOUND)
     ADD_SUBDIRECTORY(libzillians-framework-vw-processors-fermi)
     ADD_SUBDIRECTORY(libzillians-framework-vw-services-fermi)
     ADD_SUBDIRECTORY(libzillians-framework-vw-api-fermi)
@@ -33,9 +33,9 @@ ADD_SUBDIRECTORY(libzillians-framework-vw-processors-mt)
 ADD_SUBDIRECTORY(libzillians-framework-vw-services-mt)
 ADD_SUBDIRECTORY(libzillians-framework-vw-api-mt)
 
-ADD_SUBDIRECTORY(libzillians-framework-vw-processors-st)
-ADD_SUBDIRECTORY(libzillians-framework-vw-services-st)
-ADD_SUBDIRECTORY(libzillians-framework-vw-api-st)
+#ADD_SUBDIRECTORY(libzillians-framework-vw-processors-st)
+#ADD_SUBDIRECTORY(libzillians-framework-vw-services-st)
+#ADD_SUBDIRECTORY(libzillians-framework-vw-api-st)
 
 ADD_SUBDIRECTORY(libzillians-framework-vw-mapper-llvm)
 ADD_SUBDIRECTORY(libzillians-framework-vw-mapper-ptx)
