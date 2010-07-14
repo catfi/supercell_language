@@ -40,6 +40,7 @@ ADD_CUSTOM_TARGET( zcc-test-all ALL echo
 ADD_DEPENDENCIES( zcc-test-all 
 		zcc-test-llvm-all 
 		zcc-test-cond-all 
+		zcc-test-expr-all 
 		zcc-test-stmt-all 
 		zcc-test-object-all 
-		)
+		)	
