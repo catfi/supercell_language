@@ -29,6 +29,14 @@ ELSE()
     MESSAGE(STATUS "CUDA or CUDPP not available, disabling build for libzillians-framework-vw-processors-fermi and libzillians-framework-vw-services-fermi")
 ENDIF()
 
+IF(RDMA_FOUND)
+    ADD_SUBDIRECTORY(libzillians-framework-vw-processors-gateway)
+ENDIF()
+
+IF(THRIFT_FOUND)
+    ADD_SUBDIRECTORY(libzillians-framework-vw-processors-database)
+ENDIF()
+
 ADD_SUBDIRECTORY(libzillians-framework-vw-processors-mt)
 ADD_SUBDIRECTORY(libzillians-framework-vw-services-mt)
 ADD_SUBDIRECTORY(libzillians-framework-vw-api-mt)
