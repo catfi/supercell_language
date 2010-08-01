@@ -46,4 +46,5 @@ ADD_DEPENDENCIES( zcc-test-all
 		zcc-test-stmt-all 
 		zcc-test-object-all 
 		zcc-test-logical-stmt
+		zcc-test-unary
 		)	
