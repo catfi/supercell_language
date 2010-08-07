@@ -48,7 +48,7 @@ ADD_SUBDIRECTORY(libzillians-framework-vw-api-mt)
 #ADD_SUBDIRECTORY(libzillians-framework-vw-api-st)
 
 ADD_SUBDIRECTORY(libzillians-framework-vw-mapper-llvm)
-ADD_SUBDIRECTORY(libzillians-framework-vw-mapper-ptx)
+#ADD_SUBDIRECTORY(libzillians-framework-vw-mapper-ptx)
 
 ADD_SUBDIRECTORY(libzillians-framework-zscript-frontend)
 
