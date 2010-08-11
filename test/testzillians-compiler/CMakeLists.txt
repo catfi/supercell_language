@@ -19,7 +19,7 @@
 # Contact Information: info@zillians.com
 #
 
-ADD_SUBDIRECTORY(SimpleGrammarTest)
+#ADD_SUBDIRECTORY(SimpleGrammarTest) # NOTE 20100811 Nothing - Not used anymore as testing now all done by zcc, not directly linking with grammar and frontend.
 ADD_SUBDIRECTORY(PTXCodeGenTest)
 ADD_SUBDIRECTORY(PTXParserTest)
 ADD_SUBDIRECTORY(LLVM_IR_Test)
