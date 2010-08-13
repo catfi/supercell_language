@@ -53,6 +53,7 @@ ADD_SUBDIRECTORY(libzillians-framework-vw-mapper-ptx)
 ADD_SUBDIRECTORY(libzillians-framework-zscript-frontend)
 
 ADD_SUBDIRECTORY(libzillians-framework-zscript-midend)
+ADD_SUBDIRECTORY(libzillians-framework-zscript-midend-llvm)
 ADD_SUBDIRECTORY(zillians-compiler-grammar)
 ADD_SUBDIRECTORY(zillians-compiler)
 #ADD_SUBDIRECTORY(zillians-zs-parser)
