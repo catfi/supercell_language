@@ -54,8 +54,11 @@ ADD_SUBDIRECTORY(libzillians-framework-zscript-frontend)
 
 ADD_SUBDIRECTORY(libzillians-framework-zscript-midend)
 ADD_SUBDIRECTORY(libzillians-framework-zscript-midend-llvm)
-ADD_SUBDIRECTORY(zillians-compiler-grammar)
-ADD_SUBDIRECTORY(zillians-compiler)
+
+IF(ANTLR3_FOUND)
+	ADD_SUBDIRECTORY(zillians-compiler-grammar)
+	ADD_SUBDIRECTORY(zillians-compiler)
+ENDIF(ANTLR3_FOUND)
 #ADD_SUBDIRECTORY(zillians-zs-parser)
 
 ADD_SUBDIRECTORY(libzillians-framework-zscript-backend)
