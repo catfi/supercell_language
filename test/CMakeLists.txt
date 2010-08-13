@@ -39,6 +39,7 @@ ENDIF()
 #	MESSAGE( "--- Disable TestBulletGUI")
 #ENDIF()
 
+ADD_SUBDIRECTORY(testbackend-llvm-ptx)
 ADD_SUBDIRECTORY(testzillians-compiler)
 ADD_SUBDIRECTORY(test_octree)
 ADD_SUBDIRECTORY(ray_trace)
