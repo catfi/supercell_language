@@ -21,7 +21,7 @@
 
 ADD_SUBDIRECTORY(libzillians-framework-vw)
 
-IF(CUDA_FOUND)
+IF(CUDA_FOUND AND CUDPP_FOUND)
     ADD_SUBDIRECTORY(libzillians-framework-vw-processors-fermi)
     ADD_SUBDIRECTORY(libzillians-framework-vw-services-fermi)
     ADD_SUBDIRECTORY(libzillians-framework-vw-api-fermi)
@@ -53,8 +53,12 @@ ADD_SUBDIRECTORY(libzillians-framework-vw-mapper-ptx)
 ADD_SUBDIRECTORY(libzillians-framework-zscript-frontend)
 
 ADD_SUBDIRECTORY(libzillians-framework-zscript-midend)
-ADD_SUBDIRECTORY(zillians-compiler-grammar)
-ADD_SUBDIRECTORY(zillians-compiler)
+ADD_SUBDIRECTORY(libzillians-framework-zscript-midend-llvm)
+
+IF(ANTLR3_FOUND)
+	ADD_SUBDIRECTORY(zillians-compiler-grammar)
+	ADD_SUBDIRECTORY(zillians-compiler)
+ENDIF(ANTLR3_FOUND)
 #ADD_SUBDIRECTORY(zillians-zs-parser)
 
 ADD_SUBDIRECTORY(libzillians-framework-zscript-backend)
