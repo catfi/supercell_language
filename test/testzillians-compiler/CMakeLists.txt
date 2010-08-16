@@ -29,7 +29,7 @@ ADD_SUBDIRECTORY(RuntimeApiTest)
 #ADD_SUBDIRECTORY(CodeGenCommonTest)
 #ADD_SUBDIRECTORY(LLVMFunctionMapperBasicTest)
 #ADD_SUBDIRECTORY(PTXFunctionMapperBasicTest)
-#ADD_SUBDIRECTORY(PTXFunctionMapperAdvanceTest)
+ADD_SUBDIRECTORY(PTXFunctionMapperAdvanceTest)
 
 ADD_SUBDIRECTORY(ZccMidendTest)
 
