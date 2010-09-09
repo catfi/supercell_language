@@ -32,6 +32,7 @@ ADD_SUBDIRECTORY(RuntimeApiTest)
 ADD_SUBDIRECTORY(PTXFunctionMapperAdvanceTest)
 
 ADD_SUBDIRECTORY(ZccMidendTest)
+#ADD_SUBDIRECTORY(DebugApiTest)
 
 ADD_SUBDIRECTORY(SemanticCheckTest)
 
