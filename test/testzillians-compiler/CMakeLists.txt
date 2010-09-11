@@ -35,6 +35,7 @@ ADD_SUBDIRECTORY(ZccMidendTest)
 #ADD_SUBDIRECTORY(DebugApiTest)
 
 ADD_SUBDIRECTORY(SemanticCheckTest)
+ADD_SUBDIRECTORY(PTXBackendTest)
 
 
 ADD_CUSTOM_TARGET( zcc-test-all ALL echo
