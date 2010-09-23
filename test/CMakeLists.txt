@@ -44,6 +44,7 @@ ADD_SUBDIRECTORY(testzillians-compiler)
 ADD_SUBDIRECTORY(test_octree)
 ADD_SUBDIRECTORY(ray_trace)
 #ADD_SUBDIRECTORY(testmongo)
+ADD_SUBDIRECTORY(testzillians-dep)
 #ADD_SUBDIRECTORY(testzillians-framework-vw-naive)
 
 #ADD_SUBDIRECTORY(testzillians-compiler)
