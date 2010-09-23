@@ -18,40 +18,14 @@
 #
 # Contact Information: info@zillians.com
 #
+
 IF(CUDA_FOUND)
     ADD_SUBDIRECTORY(testcuda)
     ADD_SUBDIRECTORY(testzillians-framework-vw)
 ELSE()
     MESSAGE(STATUS "CUDA not available, disabling build for testcuda, testzillians-framework-vw-cuda")
 ENDIF()
-
-#IF( BULLET_FOUND )
-#	MESSAGE( "--- Enable TestBullet")
-#	ADD_SUBDIRECTORY(testbullet)
-#ELSE()
-#	MESSAGE( "--- Disable TestBullet")
-#ENDIF()
-#IF( BULLET_FOUND AND OPENGL_FOUND AND OPENGL_GLU_FOUND AND GLUT_FOUND )
-#	MESSAGE( "--- Enable TestBulletGUI")
-#	ADD_SUBDIRECTORY(testbullet_gui/BulletOpenGL_Support)
-#	ADD_SUBDIRECTORY(testbullet_gui/BulletBasicDemo)
-#ELSE()
-#	MESSAGE( "--- Disable TestBulletGUI")
-#ENDIF()
-
 ADD_SUBDIRECTORY(testbackend-llvm-ptx)
 ADD_SUBDIRECTORY(testzillians-compiler)
-ADD_SUBDIRECTORY(test_octree)
-ADD_SUBDIRECTORY(ray_trace)
-#ADD_SUBDIRECTORY(testmongo)
 ADD_SUBDIRECTORY(testzillians-dep)
 #ADD_SUBDIRECTORY(testzillians-framework-vw-naive)
-
-#ADD_SUBDIRECTORY(testzillians-compiler)
-
-IF(THRIFT_FOUND)
-    ADD_SUBDIRECTORY(testcassandra)
-	MESSAGE( "--- Enable TestCassandra")
-ELSE()
-	MESSAGE( "--- Disable TestCassandra")
-ENDIF()
