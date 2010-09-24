@@ -19,13 +19,13 @@
 # Contact Information: info@zillians.com
 #
 
+#ADD_SUBDIRECTORY(testzillians-framework-vw-naive)
+ADD_SUBDIRECTORY(testbackend-llvm-ptx)
 IF(CUDA_FOUND)
     ADD_SUBDIRECTORY(testcuda)
     ADD_SUBDIRECTORY(testzillians-framework-vw)
 ELSE()
     MESSAGE(STATUS "CUDA not available, disabling build for testcuda, testzillians-framework-vw-cuda")
 ENDIF()
-ADD_SUBDIRECTORY(testbackend-llvm-ptx)
 ADD_SUBDIRECTORY(testzillians-compiler)
 ADD_SUBDIRECTORY(testzillians-dep)
-#ADD_SUBDIRECTORY(testzillians-framework-vw-naive)
