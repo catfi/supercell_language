@@ -20,7 +20,7 @@
 #
 
 #ADD_SUBDIRECTORY(testzillians-framework-vw-naive)
-ADD_SUBDIRECTORY(testbackend-llvm-ptx)
+#ADD_SUBDIRECTORY(testbackend-llvm-ptx)
 IF(CUDA_FOUND)
     ADD_SUBDIRECTORY(testcuda)
     ADD_SUBDIRECTORY(testzillians-framework-vw)
