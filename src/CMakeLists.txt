@@ -46,22 +46,22 @@ ADD_SUBDIRECTORY(libzillians-framework-vw-api-mt)
 #ADD_SUBDIRECTORY(libzillians-framework-vw-services-st)
 #ADD_SUBDIRECTORY(libzillians-framework-vw-api-st)
 
-ADD_SUBDIRECTORY(libzillians-framework-vw-mapper-llvm)
+if( LLVM_FOUND )
+	ADD_SUBDIRECTORY(libzillians-framework-vw-mapper-llvm)
+endif()
 ADD_SUBDIRECTORY(libzillians-framework-vw-mapper-ptx)
 
 ADD_SUBDIRECTORY(libzillians-framework-zscript-frontend)
 
 ADD_SUBDIRECTORY(libzillians-framework-zscript-midend)
-ADD_SUBDIRECTORY(libzillians-framework-zscript-midend-llvm)
+
+if( LLVM_FOUND )
+	ADD_SUBDIRECTORY(libzillians-framework-zscript-midend-llvm)
+endif()
 
 IF(ANTLR3_FOUND )
-	if( LLVM_FOUND )
-		ADD_SUBDIRECTORY(zillians-compiler-grammar)
-		ADD_SUBDIRECTORY(zillians-compiler)
-		message( " -- enable zcc compilation" )
-	ELSE()
-		message( " -- disable zcc compilation" ) 
-	ENDIF()
+	ADD_SUBDIRECTORY(zillians-compiler-grammar)
+	ADD_SUBDIRECTORY(zillians-compiler)
 ENDIF(ANTLR3_FOUND )
 #ADD_SUBDIRECTORY(zillians-zs-parser)
 
