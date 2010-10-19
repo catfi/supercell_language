@@ -21,9 +21,6 @@
 
 #ADD_SUBDIRECTORY(testzillians-framework-vw-naive)
 #ADD_SUBDIRECTORY(testbackend-llvm-ptx)
-IF(LLVM_FOUND)
-    ADD_SUBDIRECTORY(testllvm)
-ENDIF()
 IF(CUDA_FOUND)
     ADD_SUBDIRECTORY(testcuda)
     ADD_SUBDIRECTORY(testzillians-framework-vw)
