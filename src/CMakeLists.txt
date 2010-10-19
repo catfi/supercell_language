@@ -51,7 +51,9 @@ if( LLVM_FOUND )
 endif()
 ADD_SUBDIRECTORY(libzillians-framework-vw-mapper-ptx)
 
-ADD_SUBDIRECTORY(libzillians-framework-zscript-frontend)
+IF(ICU_FOUND)
+    ADD_SUBDIRECTORY(libzillians-framework-zscript-frontend)
+ENDIF()
 
 ADD_SUBDIRECTORY(libzillians-framework-zscript-midend)
 
