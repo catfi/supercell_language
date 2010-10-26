@@ -34,7 +34,7 @@ IF(ANN_FOUND)
         ADD_SUBDIRECTORY(libzillians-framework-vw-processors-gateway)
     ENDIF()
 
-    IF(THRIFT_FOUND AND ANN_FOUND)
+    IF(THRIFT_FOUND)
         ADD_SUBDIRECTORY(libzillians-framework-vw-coordinators)
         ADD_SUBDIRECTORY(libzillians-framework-vw-processors-database)
     ENDIF()
