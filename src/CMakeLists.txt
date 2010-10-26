@@ -19,7 +19,11 @@
 # Contact Information: info@zillians.com
 #
 
-ADD_SUBDIRECTORY(libzillians-framework-vw)
+IF(ANN_FOUND)
+    ADD_SUBDIRECTORY(libzillians-framework-vw)
+ELSE()
+    MESSAGE(STATUS "ANN not available, disabling build for libzillians-framework-vw")
+ENDIF()
 
 IF(CUDA_FOUND AND CUDPP_FOUND)
     ADD_SUBDIRECTORY(libzillians-framework-vw-processors-fermi)
