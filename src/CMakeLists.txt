@@ -75,4 +75,4 @@ ADD_SUBDIRECTORY(zillians-ptx-parser-grammar)
 ADD_SUBDIRECTORY(libptx-backend)
 ADD_SUBDIRECTORY(zillians-llc)
 
-#ADD_SUBDIRECTORY(zillians-buffer-generator)
+ADD_SUBDIRECTORY(zillians-buffer-generator)
