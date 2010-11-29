@@ -25,9 +25,8 @@ IF(CUDA_FOUND AND CUDPP_FOUND)
     ADD_SUBDIRECTORY(libzillians-framework-vw-processors-fermi)
     ADD_SUBDIRECTORY(libzillians-framework-vw-services-fermi)
     ADD_SUBDIRECTORY(libzillians-framework-vw-api-fermi)
-    ADD_SUBDIRECTORY(libzillians-framework-vw-processors-mt)
-    ADD_SUBDIRECTORY(libzillians-framework-vw-services-mt)
     ADD_SUBDIRECTORY(libzillians-framework-vw-api-mt)
+
 ELSE()
     MESSAGE(STATUS "CUDA or CUDPP not available, disabling build for libzillians-framework-vw-processors-fermi and libzillians-framework-vw-services-fermi")
     MESSAGE(STATUS "CUDA or CUDPP not available, disabling build for libzillians-framework-vw-processors-mt and libzillians-framework-vw-services-mt")
@@ -42,10 +41,9 @@ IF(THRIFT_FOUND)
     ADD_SUBDIRECTORY(libzillians-framework-vw-processors-database)
 ENDIF()
 
-
-#ADD_SUBDIRECTORY(libzillians-framework-vw-processors-st)
-#ADD_SUBDIRECTORY(libzillians-framework-vw-services-st)
-#ADD_SUBDIRECTORY(libzillians-framework-vw-api-st)
+    ADD_SUBDIRECTORY(libzillians-framework-vw-processors-mt)
+    ADD_SUBDIRECTORY(libzillians-framework-vw-services-mt)
+    
 
 if( LLVM_FOUND )
 	ADD_SUBDIRECTORY(libzillians-framework-vw-mapper-llvm)
