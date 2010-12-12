@@ -21,7 +21,7 @@
 
 ADD_SUBDIRECTORY(libzillians-framework-vw)
 
-IF(CUDA_FOUND AND CUDPP_FOUND)
+IF(CUDA_FOUND AND CUDPP_FOUND AND ENABLE_FEATURE_CUDA)
     ADD_SUBDIRECTORY(libzillians-framework-vw-processors-fermi)
     ADD_SUBDIRECTORY(libzillians-framework-vw-services-fermi)
     ADD_SUBDIRECTORY(libzillians-framework-vw-api-fermi)
@@ -32,7 +32,7 @@ ELSE()
     MESSAGE(STATUS "CUDA or CUDPP not available, disabling build for libzillians-framework-vw-processors-mt and libzillians-framework-vw-services-mt")
 ENDIF()
 
-IF(RDMA_FOUND)
+IF(RDMA_FOUND AND ENABLE_FEATURE_RDMA)
     ADD_SUBDIRECTORY(libzillians-framework-vw-processors-gateway)
 ENDIF()
 
