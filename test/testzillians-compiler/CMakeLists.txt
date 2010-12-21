@@ -38,7 +38,7 @@ ADD_SUBDIRECTORY(RuntimeApiTest)
 ADD_SUBDIRECTORY(ZccMidendTest)
 #ADD_SUBDIRECTORY(DebugApiTest)
 
-ADD_SUBDIRECTORY(SemanticCheckTest)
+#ADD_SUBDIRECTORY(SemanticCheckTest)
 #ADD_SUBDIRECTORY(PTXBackendTest)
 
 
