@@ -28,7 +28,7 @@ ELSE()
     MESSAGE(STATUS "CUDA or CUDPP not available, disabling build for PTXCodeGenTest, PTXParserTest, PTXFunctionMapperAdvanceTest")
 ENDIF()
 ADD_SUBDIRECTORY(LLVM_IR_Test)
-ADD_SUBDIRECTORY(RuntimeApiTest)
+#ADD_SUBDIRECTORY(RuntimeApiTest)
 #ADD_SUBDIRECTORY(PTXParserTest-RealExecute)
 
 #ADD_SUBDIRECTORY(CodeGenCommonTest)
