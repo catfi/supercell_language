@@ -84,3 +84,5 @@ ADD_SUBDIRECTORY(zillians-llc)
 
 ADD_SUBDIRECTORY(zillians-buffer-generator)
 ADD_SUBDIRECTORY(zcc2)
+ADD_SUBDIRECTORY( zillians-zscript-compileto-stages )
+ADD_SUBDIRECTORY( zillians-zscript-compileto-tpl )
