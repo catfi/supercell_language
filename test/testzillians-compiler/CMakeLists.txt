@@ -23,13 +23,13 @@
 IF(CUDA_FOUND AND CUDPP_FOUND)
     ADD_SUBDIRECTORY(PTXCodeGenTest)
     ADD_SUBDIRECTORY(PTXParserTest)
+    ADD_SUBDIRECTORY(PTXParserTest-RealExecute)
 #    ADD_SUBDIRECTORY(PTXFunctionMapperAdvanceTest)
 ELSE()
     MESSAGE(STATUS "CUDA or CUDPP not available, disabling build for PTXCodeGenTest, PTXParserTest, PTXFunctionMapperAdvanceTest")
 ENDIF()
 ADD_SUBDIRECTORY(LLVM_IR_Test)
 ADD_SUBDIRECTORY(RuntimeApiTest)
-ADD_SUBDIRECTORY(PTXParserTest-RealExecute)
 
 #ADD_SUBDIRECTORY(CodeGenCommonTest)
 #ADD_SUBDIRECTORY(LLVMFunctionMapperBasicTest)
@@ -42,9 +42,8 @@ ADD_SUBDIRECTORY(SemanticCheckTest)
 ADD_SUBDIRECTORY(StubCodeGenTest)
 #ADD_SUBDIRECTORY(PTXBackendTest)
 
+ADD_CUSTOM_TARGET( zcc-test-all ALL echo )
 
-ADD_CUSTOM_TARGET( zcc-test-all ALL echo
-)
 ADD_DEPENDENCIES( zcc-test-all 
 		zcc-test-llvm-all 
 		zcc-test-cond-all 
