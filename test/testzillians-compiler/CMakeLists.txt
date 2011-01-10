@@ -23,7 +23,7 @@
 IF(CUDA_FOUND AND CUDPP_FOUND)
     ADD_SUBDIRECTORY(PTXCodeGenTest)
     ADD_SUBDIRECTORY(PTXParserTest)
-    #ADD_SUBDIRECTORY(PTXParserTest-RealExecute)
+    ADD_SUBDIRECTORY(PTXParserTest-RealExecute)
 #    ADD_SUBDIRECTORY(PTXFunctionMapperAdvanceTest)
 ELSE()
     MESSAGE(STATUS "CUDA or CUDPP not available, disabling build for PTXCodeGenTest, PTXParserTest, PTXFunctionMapperAdvanceTest")
