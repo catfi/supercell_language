@@ -86,3 +86,5 @@ ADD_SUBDIRECTORY(zillians-buffer-generator)
 ADD_SUBDIRECTORY( zillians-compiler-collection )
 ADD_SUBDIRECTORY( zillians-zscript-compileto-stages )
 ADD_SUBDIRECTORY( zillians-zscript-compileto-tpl )
+
+ADD_SUBDIRECTORY(zillians-crypto)
