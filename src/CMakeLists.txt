@@ -19,6 +19,8 @@
 # Contact Information: info@zillians.com
 #
 
+ADD_SUBDIRECTORY(zillians-buffer-generator)
+
 ADD_SUBDIRECTORY(libzillians-framework-vw)
 
 IF(CUDA_FOUND AND CUDPP_FOUND AND THRUST_FOUND AND ENABLE_FEATURE_CUDA)
@@ -82,7 +84,6 @@ ADD_SUBDIRECTORY(zillians-ptx-parser-grammar)
 ADD_SUBDIRECTORY(libptx-backend)
 ADD_SUBDIRECTORY(zillians-llc)
 
-ADD_SUBDIRECTORY(zillians-buffer-generator)
 ADD_SUBDIRECTORY( zillians-compiler-collection )
 ADD_SUBDIRECTORY( zillians-zscript-compileto-stages )
 ADD_SUBDIRECTORY( zillians-zscript-compileto-tpl )
