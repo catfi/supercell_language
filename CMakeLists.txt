@@ -21,5 +21,12 @@
 
 PROJECT(zillians-framework)
 
+configure_file(  include/vw/services/api/adt/ADTApi.zs ${ZILLIANS_INC}/ADTApi.zs )
+configure_file(  include/vw/services/api/debug/DebugApi.zs ${ZILLIANS_INC}/DebugApi.zs )
+configure_file(  include/vw/services/api/event/EventApi.zs ${ZILLIANS_INC}/EventApi.zs )
+configure_file(  include/vw/services/api/math/MathApi.zs ${ZILLIANS_INC}/MathApi.zs )
+configure_file(  include/vw/services/api/runtime/RuntimeApi.zs ${ZILLIANS_INC}/RuntimeApi.zs )
+configure_file(  include/vw/services/api/space/SpaceApi.zs ${ZILLIANS_INC}/SpaceApi.zs )
+
 ADD_SUBDIRECTORY(src)
 ADD_SUBDIRECTORY(test)
