@@ -23,6 +23,7 @@ ADD_SUBDIRECTORY(zillians-buffer-generator)
 
 ADD_SUBDIRECTORY(libzillians-framework-vw)
 ADD_SUBDIRECTORY(libzillians-framework-vw-api-internal)
+ADD_SUBDIRECTORY(libzillians-framework-vw-api-mt)
 
 IF(CUDA_FOUND AND CUDPP_FOUND AND THRUST_FOUND AND ENABLE_FEATURE_CUDA)
     ADD_SUBDIRECTORY(libzillians-framework-vw-processors-fermi)
@@ -35,7 +36,6 @@ ELSE()
 ENDIF()
 
 IF(CUDA_FOUND AND ENABLE_FEATURE_CUDA)
-    ADD_SUBDIRECTORY(libzillians-framework-vw-api-mt)
     ADD_SUBDIRECTORY(zillians-gpu-tools)
 ELSE()
     MESSAGE(STATUS "disabling build for libzillians-framework-vw-api-mt")
