@@ -42,6 +42,6 @@ zillians_add_complex_test(
             runtest-zcc-s0-zcc-framework 
     #        runtest-zcc-s1-syntax 
     #        runtest-zcc-s2-semantic 
-            runtest-zcc-s3-exec 
+    #        runtest-zcc-s3-exec 
             runtest-zcc-s4-pass
     )
