@@ -59,17 +59,13 @@ if( LLVM_FOUND )
 endif()
 ADD_SUBDIRECTORY(libzillians-framework-vw-mapper-ptx)
 
-IF(ICU_FOUND)
-    ADD_SUBDIRECTORY(libzillians-framework-zscript-frontend)
-ENDIF()
-
-ADD_SUBDIRECTORY(libzillians-framework-zscript-midend)
-
-if( LLVM_FOUND )
-	ADD_SUBDIRECTORY(libzillians-framework-zscript-midend-llvm)
-endif()
-
 IF(ANTLR3_FOUND )
+	if( LLVM_FOUND )
+		ADD_SUBDIRECTORY(libzillians-framework-zscript-midend-llvm)
+	endif()
+
+	ADD_SUBDIRECTORY(libzillians-framework-zscript-midend)
+    ADD_SUBDIRECTORY(libzillians-framework-zscript-frontend)
 	ADD_SUBDIRECTORY(zillians-compiler-grammar)
 	ADD_SUBDIRECTORY(zillians-compiler)
 #ADD_SUBDIRECTORY(zillians-zs-parser)
