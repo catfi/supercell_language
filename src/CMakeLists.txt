@@ -60,33 +60,29 @@ if( LLVM_FOUND )
 endif()
 ADD_SUBDIRECTORY(libzillians-framework-vw-mapper-ptx)
 
-IF(ICU_FOUND)
-    ADD_SUBDIRECTORY(libzillians-framework-zscript-frontend)
-ENDIF()
-
-ADD_SUBDIRECTORY(libzillians-framework-zscript-midend)
-
-if( LLVM_FOUND )
-	ADD_SUBDIRECTORY(libzillians-framework-zscript-midend-llvm)
-endif()
-
 IF(ANTLR3_FOUND )
+	if( LLVM_FOUND )
+		ADD_SUBDIRECTORY(libzillians-framework-zscript-midend-llvm)
+	endif()
+
+	ADD_SUBDIRECTORY(libzillians-framework-zscript-midend)
+    ADD_SUBDIRECTORY(libzillians-framework-zscript-frontend)
 	ADD_SUBDIRECTORY(zillians-compiler-grammar)
 	ADD_SUBDIRECTORY(zillians-compiler)
-ENDIF(ANTLR3_FOUND )
 #ADD_SUBDIRECTORY(zillians-zs-parser)
+	ADD_SUBDIRECTORY(libzillians-framework-zscript-backend)
 
-ADD_SUBDIRECTORY(libzillians-framework-zscript-backend)
+	ADD_SUBDIRECTORY(zillians-llc)
+
+	ADD_SUBDIRECTORY( zillians-compiler-collection )
+	ADD_SUBDIRECTORY( zillians-zscript-compileto-stages )
+	ADD_SUBDIRECTORY( zillians-zscript-compileto-tpl )
+	ADD_SUBDIRECTORY( zillians-zscript-support )
+ENDIF(ANTLR3_FOUND )
 
 ADD_SUBDIRECTORY(zillians-ptx-parser)
 ADD_SUBDIRECTORY(zillians-ptx-parser-grammar)
 
 ADD_SUBDIRECTORY(libptx-backend)
-ADD_SUBDIRECTORY(zillians-llc)
-
-ADD_SUBDIRECTORY( zillians-compiler-collection )
-ADD_SUBDIRECTORY( zillians-zscript-compileto-stages )
-ADD_SUBDIRECTORY( zillians-zscript-compileto-tpl )
-ADD_SUBDIRECTORY( zillians-zscript-support )
 
 ADD_SUBDIRECTORY(zillians-crypto)
