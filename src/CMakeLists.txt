@@ -58,7 +58,7 @@ ADD_SUBDIRECTORY(libzillians-framework-vw-services-mt)
 if( LLVM_FOUND )
 	ADD_SUBDIRECTORY(libzillians-framework-vw-mapper-llvm)
 endif()
-ADD_SUBDIRECTORY(libzillians-framework-vw-mapper-ptx)
+#ADD_SUBDIRECTORY(libzillians-framework-vw-mapper-ptx)
 
 IF(ANTLR3_FOUND )
 	if( LLVM_FOUND )

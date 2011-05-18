@@ -21,9 +21,9 @@
 
 #ADD_SUBDIRECTORY(SimpleGrammarTest) # NOTE 20100811 Nothing - Not used anymore as testing now all done by zcc, not directly linking with grammar and frontend.
 IF(CUDA_FOUND)
-    ADD_SUBDIRECTORY(PTXCodeGenTest)
-    ADD_SUBDIRECTORY(PTXParserTest)
-    ADD_SUBDIRECTORY(PTXParserTest-RealExecute)
+    #ADD_SUBDIRECTORY(PTXCodeGenTest)
+    #ADD_SUBDIRECTORY(PTXParserTest)
+    #ADD_SUBDIRECTORY(PTXParserTest-RealExecute)
     #ADD_SUBDIRECTORY(PTXFunctionMapperAdvanceTest)
 ELSE()
     MESSAGE(STATUS "CUDA not available, disabling build for PTXCodeGenTest, PTXParserTest, PTXFunctionMapperAdvanceTest")
