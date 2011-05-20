@@ -27,6 +27,7 @@ configure_file(  include/vw/services/api/event/EventApi.zs ${ZILLIANS_INC}/Event
 configure_file(  include/vw/services/api/math/MathApi.zs ${ZILLIANS_INC}/MathApi.zs )
 configure_file(  include/vw/services/api/runtime/RuntimeApi.zs ${ZILLIANS_INC}/RuntimeApi.zs )
 configure_file(  include/vw/services/api/space/SpaceApi.zs ${ZILLIANS_INC}/SpaceApi.zs )
+configure_file(  include/vw/services/api/gameobject/GameObjectApi.zs ${ZILLIANS_INC}/GameObjectApi.zs )
 
 ADD_SUBDIRECTORY(src)
 ADD_SUBDIRECTORY(test)
