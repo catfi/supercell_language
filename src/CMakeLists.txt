@@ -24,6 +24,7 @@ ADD_SUBDIRECTORY(zillians-buffer-generator)
 ADD_SUBDIRECTORY(libzillians-framework-vw)
 ADD_SUBDIRECTORY(libzillians-framework-vw-api-internal)
 ADD_SUBDIRECTORY(libzillians-framework-vw-api-mt)
+ADD_SUBDIRECTORY(libzillians-framework-vw-processors-logger)
 
 IF(CUDA_FOUND AND THRUST_FOUND AND ENABLE_FEATURE_CUDA)
     ADD_SUBDIRECTORY(libzillians-framework-vw-processors-fermi)
