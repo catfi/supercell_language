@@ -30,6 +30,7 @@ configure_file(include/vw/services/api/space/SpaceApi.zs ${ZILLIANS_INC}/SpaceAp
 configure_file(include/vw/services/api/test/TestApi.zs ${ZILLIANS_INC}/TestApi.zs)
 configure_file(include/vw/services/api/gameobject/GameObjectApi.zs ${ZILLIANS_INC}/GameObjectApi.zs )
 configure_file(include/vw/services/api/logger/LoggerApi.zs ${ZILLIANS_INC}/LoggerApi.zs)
+configure_file(include/vw/services/api/database/DatabaseApi.zs ${ZILLIANS_INC}/DatabaseApi.zs)
 
 ADD_SUBDIRECTORY(src)
 ADD_SUBDIRECTORY(test)
