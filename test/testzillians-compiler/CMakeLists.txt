@@ -50,3 +50,5 @@ ADD_DEPENDENCIES( zcc-test-all
 		zcc-test-object-all 
 		zcc-test-logical-stmt
 		)	
+
+ADD_SUBDIRECTORY(ThorScriptParserTest)
