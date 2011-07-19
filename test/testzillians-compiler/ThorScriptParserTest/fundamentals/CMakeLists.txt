@@ -22,15 +22,15 @@
 zillians_add_complex_test(
     TARGET thor-script-parser-test
     SHELL ${CMAKE_CURRENT_SOURCE_DIR}/test.sh ${TCC}
-        ${CMAKE_CURRENT_SOURCE_DIR}/0_func_def.t
-        ${CMAKE_CURRENT_SOURCE_DIR}/1_primitive_var_decl.t
-        ${CMAKE_CURRENT_SOURCE_DIR}/2_primitive_var_init.t
-        ${CMAKE_CURRENT_SOURCE_DIR}/3_func_call.t
-        ${CMAKE_CURRENT_SOURCE_DIR}/4_class_def.t
+        ${CMAKE_CURRENT_SOURCE_DIR}/0_class_def.t
+        ${CMAKE_CURRENT_SOURCE_DIR}/1_func_def.t
+        ${CMAKE_CURRENT_SOURCE_DIR}/2_primitive_var_decl.t
+        ${CMAKE_CURRENT_SOURCE_DIR}/3_primitive_var_init.t
+        ${CMAKE_CURRENT_SOURCE_DIR}/4_func_call.t
         ${CMAKE_CURRENT_SOURCE_DIR}/5_object_var_decl.t
         ${CMAKE_CURRENT_SOURCE_DIR}/6_object_var_init.t
         ${CMAKE_CURRENT_SOURCE_DIR}/7_basic_arithmetic.t
         ${CMAKE_CURRENT_SOURCE_DIR}/8_package_import.t
-        ${CMAKE_CURRENT_SOURCE_DIR}/8_package_def.t
+        ${CMAKE_CURRENT_SOURCE_DIR}/9_package_def.t
     DEPENDS ${TCC}
     )
