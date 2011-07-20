@@ -4,6 +4,7 @@ class main_class
     function f():void
     {
     }
+
     function main_func():void
     {
     }

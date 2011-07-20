@@ -27,6 +27,7 @@ zillians_add_complex_test(
         ${CMAKE_CURRENT_SOURCE_DIR}/2_templates.t
         ${CMAKE_CURRENT_SOURCE_DIR}/3_annotations.t
         ${CMAKE_CURRENT_SOURCE_DIR}/4_exceptions.t
+        ${CMAKE_CURRENT_SOURCE_DIR}/5_containers.t
     DEPENDS ${TCC}
     )
 
