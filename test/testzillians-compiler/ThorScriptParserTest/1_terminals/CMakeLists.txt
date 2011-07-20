@@ -19,9 +19,18 @@
 # Contact Information: info@zillians.com
 #
 
-ADD_CUSTOM_TARGET(runtest-thor-script-parser-test-all)
+zillians_add_complex_test(
+    TARGET thor-script-parser-test-terminals
+    SHELL ${CMAKE_CURRENT_SOURCE_DIR}/../scripts/test.sh ${TCC}
+        ${CMAKE_CURRENT_SOURCE_DIR}/0_int_literal.t
+        ${CMAKE_CURRENT_SOURCE_DIR}/1_int_literal_hex.t
+        ${CMAKE_CURRENT_SOURCE_DIR}/2_float_literal.t
+        ${CMAKE_CURRENT_SOURCE_DIR}/3_string_literal.t
+        ${CMAKE_CURRENT_SOURCE_DIR}/4_string_literal_escaped.t
+        ${CMAKE_CURRENT_SOURCE_DIR}/5_ident.t
+        ${CMAKE_CURRENT_SOURCE_DIR}/6_ref.t
+        ${CMAKE_CURRENT_SOURCE_DIR}/7_null.t
+    DEPENDS ${TCC}
+    )
 
-ADD_SUBDIRECTORY(0_basic)
-ADD_SUBDIRECTORY(1_terminals)
-ADD_SUBDIRECTORY(2_control_structures)
-ADD_SUBDIRECTORY(3_advanced)
+ADD_DEPENDENCIES(runtest-thor-script-parser-test-all runtest-thor-script-parser-test-terminals)
