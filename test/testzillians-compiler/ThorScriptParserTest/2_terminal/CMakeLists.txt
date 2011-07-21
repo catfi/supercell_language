@@ -23,7 +23,7 @@ zillians_add_complex_test(
     TARGET thor-script-parser-test-terminals
     SHELL ${CMAKE_CURRENT_SOURCE_DIR}/../scripts/test.sh ${TCC}
         ${CMAKE_CURRENT_SOURCE_DIR}/0_datatype.t
-        ${CMAKE_CURRENT_SOURCE_DIR}/1_ref.t
+        #${CMAKE_CURRENT_SOURCE_DIR}/1_ref.t
     DEPENDS ${TCC}
     )
 
