@@ -2,5 +2,5 @@ function /* BLOCK COMMENT */ f():void // LINE COMMENT
 {
     var a:uint32 = 13;
     var b:float64 = 3.14159;
-    var c:String = "string literal";
+    var c:String = "hello world";
 }
