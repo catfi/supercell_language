@@ -4,7 +4,7 @@ function f():void
 
     foreach(var i:uint32 in 0...13)
     {
-        x = i;
+        x = x + i;
         break;
         continue;
     }
@@ -12,7 +12,7 @@ function f():void
     var j:uint32 = 0;
     foreach(j in 0...17)
     {
-        x = j;
+        x = x + j;
         break;
         continue;
     }

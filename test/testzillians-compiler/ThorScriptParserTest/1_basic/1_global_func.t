@@ -4,9 +4,9 @@ function f():void
     return;
 }
 
-function g(var x:uint32):uint32
+function g(var a:uint32, var b:float64):uint32
 {
-    g(13);
+    g(13, 3.14159);
     return 17;
-    return g(19);
+    return g(19, 3.14159);
 }

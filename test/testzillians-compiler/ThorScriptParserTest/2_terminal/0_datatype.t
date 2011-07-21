@@ -1,3 +1,7 @@
+function f():void
+{
+}
+
 var a:int8;
 var b:int16;
 var c:int32;
@@ -12,7 +16,6 @@ var k:boolean;
 var l:String; // NOTE: capitalization
 var m:Object; // NOTE: capitalization
 var n:function():void;
-var o:function(uint32, float64):void;
 
 // int literal
 var g2:uint32 = 13;

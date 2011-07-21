@@ -1,5 +1,9 @@
+class my_class
+{
+}
+
 function f():void
 {
-    var a:uint32;
-    var b:float64 = a as float32 as float64;
+    var a:Object = new my_class(); // NOTE: default constructor
+    var b:my_class = a as my_class;
 }
