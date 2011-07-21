@@ -1,3 +1,0 @@
-class main_class
-{
-}
