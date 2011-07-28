@@ -6,7 +6,7 @@ class my_class
         var a:uint32;
         var b:uint32 = 13;
         //f();
-        //return;
+        return;
     }
 
     //function g(var a:uint32, var b:float64):uint32
