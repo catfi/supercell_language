@@ -21,9 +21,9 @@
 
 zillians_add_complex_test(
     TARGET thor-script-parser-test-lexer
-    SHELL ${CMAKE_CURRENT_SOURCE_DIR}/../scripts/test.sh ${TCC}
-        ${CMAKE_CURRENT_SOURCE_DIR}/0_lexer.t
-    DEPENDS ${TCC}
+    SHELL ${CMAKE_CURRENT_SOURCE_DIR}/../scripts/test.sh ${TCC} ${SPIRIT_LOG_FILTER}
+            ${CMAKE_CURRENT_SOURCE_DIR}/0_lexer.t
+    DEPENDS ${TCC} ${SPIRIT_LOG_FILTER}
     )
 
 ADD_DEPENDENCIES(runtest-thor-script-parser-test-all runtest-thor-script-parser-test-lexer)

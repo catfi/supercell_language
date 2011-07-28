@@ -21,13 +21,13 @@
 
 zillians_add_complex_test(
     TARGET thor-script-parser-test-control-structures
-    SHELL ${CMAKE_CURRENT_SOURCE_DIR}/../scripts/test.sh ${TCC}
-        ${CMAKE_CURRENT_SOURCE_DIR}/0_if_elif_else.t
-        ${CMAKE_CURRENT_SOURCE_DIR}/1_switch_case_default.t
-        ${CMAKE_CURRENT_SOURCE_DIR}/2_while_dowhile.t
-        ${CMAKE_CURRENT_SOURCE_DIR}/3_foreach.t
-        ${CMAKE_CURRENT_SOURCE_DIR}/4_exception.t
-    DEPENDS ${TCC}
+    SHELL ${CMAKE_CURRENT_SOURCE_DIR}/../scripts/test.sh ${TCC} ${SPIRIT_LOG_FILTER}
+            ${CMAKE_CURRENT_SOURCE_DIR}/0_if_elif_else.t
+            ${CMAKE_CURRENT_SOURCE_DIR}/1_switch_case_default.t
+            ${CMAKE_CURRENT_SOURCE_DIR}/2_while_dowhile.t
+            ${CMAKE_CURRENT_SOURCE_DIR}/3_foreach.t
+            ${CMAKE_CURRENT_SOURCE_DIR}/4_exception.t
+    DEPENDS ${TCC} ${SPIRIT_LOG_FILTER}
     )
 
 ADD_DEPENDENCIES(runtest-thor-script-parser-test-all runtest-thor-script-parser-test-control-structures)

@@ -121,10 +121,10 @@ int main(int argc, char** argv)
 		completed = false;
 	}
 
-	if(completed)
-		std::cout << "parse completed" << std::endl;
-	else
-		std::cout << "parse failed" << std::endl;
+//	if(completed)
+//		std::cout << "parse completed" << std::endl;
+//	else
+//		std::cout << "parse failed" << std::endl;
 
 	return 0;
 }
