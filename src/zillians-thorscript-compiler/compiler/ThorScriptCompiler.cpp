@@ -99,7 +99,7 @@ int main(int argc, char** argv)
 		pos_iterator_type end;
 
 		grammar::ThorScript<pos_iterator_type> parser;
-		grammar::detail::white_space_parser<pos_iterator_type> skipper;
+		grammar::detail::WhiteSpace<pos_iterator_type> skipper;
 
 		completed = qi::phrase_parse(
 				begin, end,
@@ -121,10 +121,10 @@ int main(int argc, char** argv)
 		completed = false;
 	}
 
-//	if(completed)
-//		std::cout << "parse completed" << std::endl;
-//	else
-//		std::cout << "parse failed" << std::endl;
+	if(completed)
+		std::cout << "parse completed" << std::endl;
+	else
+		std::cout << "parse failed" << std::endl;
 
 	return 0;
 }
