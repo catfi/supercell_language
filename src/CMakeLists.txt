@@ -89,3 +89,5 @@ ADD_SUBDIRECTORY(lib-cuda-backend)
 
 ADD_SUBDIRECTORY(zillians-crypto)
 ADD_SUBDIRECTORY(zillians-stub-gen)
+
+ADD_SUBDIRECTORY(zillians-thorscript-compiler)
