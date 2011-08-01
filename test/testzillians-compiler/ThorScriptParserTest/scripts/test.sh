@@ -11,8 +11,8 @@ for ARG in "$@"; do
         echo "now testing file #$COUNTER.."
         if [ -f "$ARG" ]; then
             echo "$ARG"
-            $EXEC $ARG #>& $TEMP_FILE
-            #$POST_PROCESSOR $TEMP_FILE
+            $EXEC $ARG >& $TEMP_FILE
+            $POST_PROCESSOR $TEMP_FILE
         else
             echo "ERROR: file not found!"
         fi
