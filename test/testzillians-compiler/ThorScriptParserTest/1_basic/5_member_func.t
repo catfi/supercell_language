@@ -5,7 +5,7 @@ class my_class
     {
         var a:uint32;
         var b:uint32 = 13;
-        f();
+        x();
         return;
     }
 
@@ -14,5 +14,7 @@ class my_class
         g(13, 3.14159);
         return 17;
         return g(19, 3.14159);
+        //a.b[13].x(17).c;
+        a+=1;
     }
 }
