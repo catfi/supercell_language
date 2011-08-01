@@ -33,10 +33,12 @@ function f():void
     x &= true;
 
     x | true | true;
-    x |= true;
 
-    x << 13 << 13;
-    x >> 13 >> 13;
+//    x |= true;
+
+//    x << 13 << 13;
+//    x >> 13 >> 13;
+
     x <<= 13;
     x >>= 13;
 

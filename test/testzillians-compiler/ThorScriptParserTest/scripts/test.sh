@@ -1,6 +1,7 @@
 #!/bin/bash
 
 TEMP_FILE=`mktemp`
+TEMP_FILE_B=`mktemp`
 
 EXEC=$1
 POST_PROCESSOR=$2
