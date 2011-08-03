@@ -23,6 +23,6 @@ ADD_CUSTOM_TARGET(runtest-thor-script-parser-test-all)
 
 ADD_SUBDIRECTORY(0_lexer)
 ADD_SUBDIRECTORY(1_basic)
-ADD_SUBDIRECTORY(2_terminal)
+#ADD_SUBDIRECTORY(2_terminal)
 #ADD_SUBDIRECTORY(3_control_structure)
 #ADD_SUBDIRECTORY(4_advanced)
