@@ -51,7 +51,7 @@ void expand_tabs(const std::wstring& input, std::wstring& output, int number_of_
 int main(int argc, char** argv)
 {
 	// try to read a file
-    char const* filename;
+    std::string filename;
     if (argc > 1)
         filename = argv[1];
     else
@@ -95,7 +95,7 @@ int main(int argc, char** argv)
 	bool completed;
 	try
 	{
-		pos_iterator_type begin(source_code.begin(), source_code.end(), L"test");
+		pos_iterator_type begin(source_code.begin(), source_code.end(), s_to_ws(filename));
 		pos_iterator_type end;
 
 		grammar::ThorScript<pos_iterator_type> parser;
