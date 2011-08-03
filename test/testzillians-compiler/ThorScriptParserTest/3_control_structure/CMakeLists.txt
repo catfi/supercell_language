@@ -26,7 +26,7 @@ zillians_add_complex_test(
             ${CMAKE_CURRENT_SOURCE_DIR}/1_switch_case_default.t
             ${CMAKE_CURRENT_SOURCE_DIR}/2_while_dowhile.t
             ${CMAKE_CURRENT_SOURCE_DIR}/3_foreach.t
-            ${CMAKE_CURRENT_SOURCE_DIR}/4_exception.t
+            #${CMAKE_CURRENT_SOURCE_DIR}/4_exception.t
     DEPENDS ${TCC} ${SPIRIT_LOG_FILTER}
     )
 
