@@ -10,9 +10,8 @@ COUNTER=-1
 for ARG in "$@"; do
     if [ $COUNTER -gt -1 ]; then
         echo "now testing file #$COUNTER.."
-        echo "using temp file: $TEMP_FILE_B"
         if [ -f "$ARG" ]; then
-            echo "$ARG"
+            echo "parsing: $ARG"
             $EXEC $ARG >& $TEMP_FILE_A
 
             # NOTE: it is unfortunate that shift ops interfere with spirit xml log
@@ -46,6 +45,8 @@ for ARG in "$@"; do
             # replace all {LT} --> '<'
             cat $TEMP_FILE_A | sed "s/{GT}/>/g" | sed "s/{LT}/</g" > $TEMP_FILE_B
 
+            cat $TEMP_FILE_A | grep "parse"
+            echo "using temp file: $TEMP_FILE_B"
             $POST_PROCESSOR $TEMP_FILE_B
         else
             echo "ERROR: file not found!"
