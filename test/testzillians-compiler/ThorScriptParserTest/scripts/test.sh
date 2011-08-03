@@ -15,12 +15,13 @@ for ARG in "$@"; do
             $EXEC $ARG >& $TEMP_FILE_A
             ERROR_MESSAGE=`cat $TEMP_FILE_A | grep "error"`
             if [ -n "$ERROR_MESSAGE" ]; then
+                cat $TEMP_FILE_A
                 echo $ERROR_MESSAGE
                 echo "using temp file: $TEMP_FILE_A" # NOTE: useful for diagnosing error
                 break # NOTE: bail on first error
             fi
 
-            # NOTE: it is unfortunate that shift ops interfere with spirit xml log
+            # NOTE: it is unfortunate that '<' and '>' interfere with xml
 
             # =========================================================================================================
             # replace recognized tags to use curly-brace
@@ -30,7 +31,7 @@ for ARG in "$@"; do
             cat $TEMP_FILE_B | sed "s#<fail\/>#{fail\/}#g"                                                   > $TEMP_FILE_A
             # =========================================================================================================
 
-            # handle interfering shift ops
+            # handle interfering '<' and '>'
             cat $TEMP_FILE_A | sed "s/>>/{GTGT}/g" | sed "s/<</{LTLT}/g" > $TEMP_FILE_B
             cat $TEMP_FILE_B | sed "s/}>/}{_GT}/g" | sed "s/}</}{_LT}/g" > $TEMP_FILE_A
             cat $TEMP_FILE_A | sed "s/>{/}{_GT}/g" | sed "s/<{/{_LT}{/g" > $TEMP_FILE_B
