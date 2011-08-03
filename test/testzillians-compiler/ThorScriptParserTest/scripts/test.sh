@@ -15,7 +15,7 @@ for ARG in "$@"; do
             $EXEC $ARG >& $TEMP_FILE_A
             ERROR_MESSAGE=`cat $TEMP_FILE_A | grep "error"`
             if [ -n "$ERROR_MESSAGE" ]; then
-                cat $TEMP_FILE_A
+                cat $TEMP_FILE_A # NOTE: for convenience
                 echo $ERROR_MESSAGE
                 echo "using temp file: $TEMP_FILE_A" # NOTE: useful for diagnosing error
                 break # NOTE: bail on first error

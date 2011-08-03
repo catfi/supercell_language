@@ -19,8 +19,8 @@ var n:function():void;
 
 // int literal
 var g2:uint32 = 13;
-//var g3:uint32 = 0xFF;
-//var g4:uint32 = 0xff;
+var g3:uint32 = 0xFF;
+var g4:uint32 = 0xff;
 
 // float literal
 var i2:float32 = 3.14159f; // NOTE: suffix "f"
