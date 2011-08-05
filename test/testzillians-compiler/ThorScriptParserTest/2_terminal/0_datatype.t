@@ -23,8 +23,8 @@ var g3:uint32 = 0xFF;
 var g4:uint32 = 0xff;
 
 // float literal
-var i2:float32 = 3.14159f; // NOTE: postfix "f"
-var i3:float32 = 3.14159F; // NOTE: postfix "F"
+var i2:float32 = 3.14159f; // NOTE: suffix "f"
+var i3:float32 = 3.14159F; // NOTE: suffix "F"
 var j4:float64 = 3.14159;
 
 // bool literal
