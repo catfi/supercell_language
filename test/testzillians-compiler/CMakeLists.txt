@@ -52,3 +52,4 @@ ADD_DEPENDENCIES( zcc-test-all
 		)	
 
 ADD_SUBDIRECTORY(ThorScriptParserTest)
+ADD_SUBDIRECTORY(ThorScriptTreeTest)
