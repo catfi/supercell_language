@@ -32,11 +32,25 @@
 #include <boost/test/unit_test.hpp>
 
 using namespace zillians;
+using namespace zillians::compiler::tree;
 
 BOOST_AUTO_TEST_SUITE( ThorScriptTreeTest_BasicTreeGenerationTestSuite )
 
-BOOST_AUTO_TEST_CASE( ThorScriptTreeTest_BasicTreeGenerationTestCase1 )
+BOOST_AUTO_TEST_CASE( ThorScriptTreeTest_BasicTreeGenerationTestCase1_IsA )
 {
+	{
+		ASTNode *node = new Program();
+		BOOST_CHECK(isa<Program>(node));
+		BOOST_CHECK(!isa<Literal>(node));
+		SAFE_DELETE(node);
+	}
+
+	{
+		ASTNode *node = new BinaryExpr;
+		BOOST_CHECK(isa<Expression>(node));
+		BOOST_CHECK(isa<BinaryExpr>(node));
+		SAFE_DELETE(node);
+	}
 }
 
 BOOST_AUTO_TEST_SUITE_END()
