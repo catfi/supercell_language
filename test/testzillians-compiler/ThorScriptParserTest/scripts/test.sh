@@ -59,6 +59,7 @@ for ARG in "$@"; do
     cat $TEMP_FILE_A | sed "s/{GT}/>/g" | sed "s/{LT}/</g" > $TEMP_FILE_B
 
     $POST_PROCESSOR $TEMP_FILE_B # NOTE: dump result to stdout
+    echo "using temp file: $TEMP_FILE_A" # NOTE: useful for diagnosing error
     let COUNTER=$COUNTER+1;
     echo
 done
