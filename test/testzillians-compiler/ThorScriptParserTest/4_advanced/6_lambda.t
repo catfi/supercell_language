@@ -11,5 +11,5 @@ function g():void
         };
     h(13, 17);
     f(h);
-    f(function(x:uint32, y:uint32) { return x + y; }); // NOTE: infix function treated as ref
+    f(function(x:uint32, y:uint32) { return x + y; }); // NOTE: infix function treated as name
 }
