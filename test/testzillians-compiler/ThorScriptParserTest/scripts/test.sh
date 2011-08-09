@@ -27,8 +27,6 @@ for ARG in "$@"; do
         exit 1 # NOTE: bail on first error
     fi
 
-    # NOTE: it is unfortunate that '<' and '>' interfere with xml
-
     # =========================================================================================================
     # replace recognized tags to use curly-brace
     cat $TEMP_FILE_A | sed "s#<try>#{try}#g"               | sed "s#<\/try>#{\/try}#g"               > $TEMP_FILE_B
@@ -37,14 +35,9 @@ for ARG in "$@"; do
     cat $TEMP_FILE_B | sed "s#<fail\/>#{fail\/}#g"                                                   > $TEMP_FILE_A
     # =========================================================================================================
 
-    # handle interfering '<' and '>'
-    cat $TEMP_FILE_A | sed "s/>>/{GTGT}/g" | sed "s/<</{LTLT}/g" > $TEMP_FILE_B
-    cat $TEMP_FILE_B | sed "s/}>/}{_GT}/g" | sed "s/}</}{_LT}/g" > $TEMP_FILE_A
-    cat $TEMP_FILE_A | sed "s/>{/}{_GT}/g" | sed "s/<{/{_LT}{/g" > $TEMP_FILE_B
-
-    # replace: '>' --> {GT}
     # replace: '<' --> {LT}
-    cat $TEMP_FILE_B | sed "s/>/{GT}/g" | sed "s/</{LT}/g" > $TEMP_FILE_A
+    # replace: '>' --> {GT}
+    cat $TEMP_FILE_B | sed "s/</{LT}/g" | sed "s/>/{GT}/g" > $TEMP_FILE_A
 
     # =========================================================================================================
     # restore recognized xml tags
@@ -54,12 +47,12 @@ for ARG in "$@"; do
     cat $TEMP_FILE_B | sed "s#{fail\/}#<fail\/>#g"                                                   > $TEMP_FILE_A
     # =========================================================================================================
 
-    # replace: {GT} --> '>'
-    # replace: {LT} --> '<'
-    cat $TEMP_FILE_A | sed "s/{GT}/>/g" | sed "s/{LT}/</g" > $TEMP_FILE_B
+    # replace: leading  {LT} --> '<'
+    # replace: trailing {GT} --> '>'
+    cat $TEMP_FILE_A | sed 's/^[ \t]*//' | sed "s/^{LT}/</g" | sed "s/{GT}$/>/g" > $TEMP_FILE_B
 
     $POST_PROCESSOR $TEMP_FILE_B # NOTE: dump result to stdout
-    echo "using temp file: $TEMP_FILE_A" # NOTE: useful for diagnosing error
+    echo "using temp file: $TEMP_FILE_B" # NOTE: useful for diagnosing error
     let COUNTER=$COUNTER+1;
     echo
 done
