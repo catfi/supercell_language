@@ -26,6 +26,7 @@
 
 using namespace zillians;
 using namespace zillians::compiler;
+using namespace zillians::compiler::action;
 
 namespace {
 
@@ -98,7 +99,7 @@ int main(int argc, char** argv)
 		pos_iterator_type begin(source_code.begin(), source_code.end(), s_to_ws(filename));
 		pos_iterator_type end;
 
-		grammar::ThorScript<pos_iterator_type> parser;
+		grammar::ThorScript<pos_iterator_type, ThorScriptTreeAction> parser;
 		grammar::detail::WhiteSpace<pos_iterator_type> skipper;
 
 		completed = qi::phrase_parse(
