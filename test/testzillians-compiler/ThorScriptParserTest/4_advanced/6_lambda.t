@@ -1,4 +1,4 @@
-function f(var x:function(uint32, uint32):uint32):void
+function f(x:function(uint32, uint32):uint32):void
 {
 }
 
