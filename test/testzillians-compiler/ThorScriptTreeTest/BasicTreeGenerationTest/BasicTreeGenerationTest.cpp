@@ -49,7 +49,7 @@ BOOST_AUTO_TEST_CASE( ThorScriptTreeTest_BasicTreeGenerationTestCase1_IsA )
 	}
 
 	{
-		ASTNode *node = new BinaryExpr;
+		ASTNode *node = new BinaryExpr(BinaryExpr::ASSIGN, new SimpleIdentifier(L"abc"), new NumericLiteral(123L));
 		BOOST_CHECK(isa<Expression>(node));
 		BOOST_CHECK(isa<BinaryExpr>(node));
 		cleanup.visit(*node);
