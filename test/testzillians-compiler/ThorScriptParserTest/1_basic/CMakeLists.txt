@@ -30,7 +30,7 @@ zillians_add_complex_test(
             ${CMAKE_CURRENT_SOURCE_DIR}/5_member_func.t
             ${CMAKE_CURRENT_SOURCE_DIR}/6_package.t
             ${CMAKE_CURRENT_SOURCE_DIR}/7_expression.t
-            #${CMAKE_CURRENT_SOURCE_DIR}/8_enum.t
+            ${CMAKE_CURRENT_SOURCE_DIR}/8_enum.t
     DEPENDS ${TCC} ${SPIRIT_LOG_FILTER}
     )
 
