@@ -47,4 +47,6 @@ function f():void
 
     ++x;
     --x;
+
+    x ? 1 : 0;
 }
