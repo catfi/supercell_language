@@ -54,6 +54,12 @@ BOOST_AUTO_TEST_CASE( ThorScriptTreeTest_BasicTreeGenerationTestCase1_IsA )
 		BOOST_CHECK(isa<BinaryExpr>(node));
 		cleanup.visit(*node);
 	}
+
+	{
+		NestedIdentifier* node = new NestedIdentifier();
+		BOOST_CHECK(isa<Identifier>(node));
+		cleanup.visit(*node);
+	}
 }
 
 BOOST_AUTO_TEST_CASE( ThorScriptTreeTest_BasicTreeGenerationTestCase2 )
@@ -61,10 +67,10 @@ BOOST_AUTO_TEST_CASE( ThorScriptTreeTest_BasicTreeGenerationTestCase2 )
 	AllocationCleanupVisitor cleanup;
 
 	{
-		Package* root = new Package(L"");
+		Package* root = new Package(new SimpleIdentifier(L""));
 		Program* program = new Program(root);
 
-		BOOST_CHECK(program->root->name.empty());
+		BOOST_CHECK(program->root->id->toString().empty());
 
 		cleanup.visit(*program);
 	}
@@ -72,7 +78,7 @@ BOOST_AUTO_TEST_CASE( ThorScriptTreeTest_BasicTreeGenerationTestCase2 )
 	{
 		Program* program = new Program();
 
-		BOOST_CHECK(program->root->name.empty()); // the default package name is empty ""
+		BOOST_CHECK(program->root->id->toString().empty()); // the default package name is empty ""
 
 		cleanup.visit(*program);
 	}
@@ -83,7 +89,7 @@ BOOST_AUTO_TEST_CASE( ThorScriptTreeTest_BasicTreeGenerationTestCase3 )
 	AllocationCleanupVisitor cleanup;
 
 	Program* program = new Program();
-	BOOST_CHECK(program->root->ancestor == NULL);
+	BOOST_CHECK(program->root->parent == NULL);
 
 	cleanup.visit(*program);
 }
