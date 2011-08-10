@@ -23,7 +23,7 @@
 #include "core/Prerequisite.h"
 #include "utility/UnicodeUtil.h"
 #include "compiler/ThorScriptCompiler.h"
-#include "compiler/tree/visitor/PrettyPrintVisitor.h"
+#include "compiler/tree/visitor/general/PrettyPrintVisitor.h"
 
 #include <boost/program_options/options_description.hpp>
 #include <boost/program_options/variables_map.hpp>
@@ -35,6 +35,8 @@
 
 using namespace zillians;
 using namespace zillians::compiler;
+using namespace zillians::compiler::tree;
+using namespace zillians::compiler::tree::visitor;
 using namespace zillians::compiler::action;
 
 namespace qi = boost::spirit::qi;

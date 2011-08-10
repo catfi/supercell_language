@@ -23,7 +23,7 @@
 #include "core/Prerequisite.h"
 #include "compiler/tree/ASTNode.h"
 #include "compiler/tree/ASTNodeFactory.h"
-#include "compiler/tree/visitor/PrettyPrintVisitor.h"
+#include "compiler/tree/visitor/general/PrettyPrintVisitor.h"
 #include <iostream>
 #include <string>
 #include <limits>
@@ -34,6 +34,7 @@
 
 using namespace zillians;
 using namespace zillians::compiler::tree;
+using namespace zillians::compiler::tree::visitor;
 
 BOOST_AUTO_TEST_SUITE( ThorScriptTreeTest_PrettyPrintVisitorTestSuite )
 
