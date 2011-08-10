@@ -5,10 +5,11 @@ TEMP_FILE_B=`mktemp`
 
 EXEC=$1
 POST_PROCESSOR=$2
+MODE=$3
 
 COUNTER=1
 for ARG in "$@"; do
-    if [ $ARG == $EXEC -o $ARG == $POST_PROCESSOR ]; then
+    if [ $ARG == $EXEC -o $ARG == $POST_PROCESSOR -o $ARG == $MODE ]; then
         continue
     fi
     echo "file #$COUNTER.."
@@ -17,7 +18,11 @@ for ARG in "$@"; do
         exit 1
     fi
     echo "filename: $ARG"
-    $EXEC $ARG >& $TEMP_FILE_A
+    if [ $MODE -eq 1 ]; then
+        $EXEC $ARG -t
+        continue
+    fi
+    $EXEC $ARG -p >& $TEMP_FILE_A
     ERROR_MESSAGE=`cat $TEMP_FILE_A | grep "error"`
     if [ -n "$ERROR_MESSAGE" ]; then
         cat $TEMP_FILE_A # NOTE: for convenience

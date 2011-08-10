@@ -23,20 +23,28 @@
 #include "core/Prerequisite.h"
 #include "utility/UnicodeUtil.h"
 #include "compiler/ThorScriptCompiler.h"
+#include "compiler/tree/visitor/PrettyPrintVisitor.h"
+
+#include <boost/program_options/options_description.hpp>
+#include <boost/program_options/variables_map.hpp>
+#include <boost/program_options/parsers.hpp>
+#include <boost/program_options/value_semantic.hpp>
+
+#define STATUS_SUCCESS 0
+#define STATUS_ERROR 1
 
 using namespace zillians;
 using namespace zillians::compiler;
 using namespace zillians::compiler::action;
 
-namespace {
-
 namespace qi = boost::spirit::qi;
 namespace classic = boost::spirit::classic;
+namespace po = boost::program_options;
 
 // since '\t' may be printed in spaces and I don't know a way to change std::wcout, we simply replace the tab with desired number of spaces
 // so that we can have correct error pointing cursor
 // (note that because '\t' equals to 4 spaces reported by spirit, we have to make sure it's printed in the exact same way)
-void expand_tabs(const std::wstring& input, std::wstring& output, int number_of_space_for_tab = 4)
+static void _expand_tabs(const std::wstring& input, std::wstring& output, int number_of_space_for_tab = 4)
 {
 	for(std::wstring::const_iterator it = input.begin(); it != input.end(); ++it)
 	{
@@ -47,20 +55,8 @@ void expand_tabs(const std::wstring& input, std::wstring& output, int number_of_
 	}
 }
 
-}
-
-int main(int argc, char** argv)
+void do_parse(std::string filename, bool dump_parse, bool dump_ast)
 {
-	// try to read a file
-    std::string filename;
-    if (argc > 1)
-        filename = argv[1];
-    else
-    {
-        std::cerr << "Error: No input file provided." << std::endl;
-        return 1;
-    }
-
 	std::ifstream in(filename, std::ios_base::in);
 
     // ignore the BOM marking the beginning of a UTF-8 file in Windows
@@ -74,7 +70,7 @@ int main(int argc, char** argv)
         {
             std::cerr << "Error: Unexpected characters from input file: "
                 << filename << std::endl;
-            return 1;
+            return;
         }
     }
 
@@ -100,21 +96,28 @@ int main(int argc, char** argv)
 		pos_iterator_type end;
 
 		ThorScriptTreeAction::MemberContext c;
-		grammar::ThorScript<pos_iterator_type, ThorScriptTreeAction> parser;
+		grammar::ThorScript<pos_iterator_type, ThorScriptTreeAction> parser(dump_parse);
 		grammar::detail::WhiteSpace<pos_iterator_type> skipper;
 
 		completed = qi::phrase_parse(
 				begin, end,
 				parser(&c),
 				skipper);
+
+		if(dump_ast)
+		{
+			std::cout << "<pretty_print>" << std::endl;
+			PrettyPrintVisitor printer;
+			printer.visit(*c.program);
+			std::cout << "</pretty_print>" << std::endl;
+		}
 	}
 	catch (const qi::expectation_failure<pos_iterator_type>& e)
 	{
-		const classic::file_position_base<std::wstring>& pos =
-				e.first.get_position();
+		const classic::file_position_base<std::wstring>& pos = e.first.get_position();
 
 		std::wstring current_line;
-		expand_tabs(e.first.get_currentline(), current_line);
+		_expand_tabs(e.first.get_currentline(), current_line);
 		std::wcerr << L"parse error at file " << pos.file << L" line " << pos.line
 				<< L" column " << pos.column << std::endl
 				<< L"'" << current_line << L"'" << std::endl
@@ -127,6 +130,47 @@ int main(int argc, char** argv)
 		std::cout << "parse completed" << std::endl;
 	else
 		std::cout << "parse failed" << std::endl;
+}
 
-	return 0;
+int main(int argc, char** argv)
+{
+    po::options_description option_desc;
+    po::positional_options_description pos_options_desc;
+
+    option_desc.add_options()
+    ("help,h",                               "this help message")
+    ("dump-parse,p",                         "dump parse tree for debugging purpose")
+    ("dump-ast,t",                           "dump AST pretty-print for debugging purpose")
+    ("filename,f", po::value<std::string>(), "filename");
+    pos_options_desc.add("filename", -1);
+
+    try
+    {
+		po::variables_map args;
+		po::store(po::command_line_parser(argc, argv).options(option_desc).positional(pos_options_desc).run(), args);
+		po::notify(args);
+
+		std::string filename;
+		if(args.count("filename")>0)
+			filename = args["filename"].as<std::string>();
+		bool dump_parse = (args.count("dump-parse")>0);
+		bool dump_ast = (args.count("dump-ast")>0);
+		if(args.count("help"))
+			return STATUS_ERROR;
+
+		if(!filename.empty())
+		{
+			do_parse(filename, dump_parse, dump_ast);
+			return STATUS_SUCCESS;
+		}
+    }
+    catch(...)
+    {
+    	std::cout << "invalid options" << std::endl;
+    }
+
+	std::cout << "no option specified" << std::endl << std::endl;
+	std::cout << "command-line options:" << std::endl << std::endl;
+	std::cout << option_desc << std::endl;
+	return STATUS_ERROR;
 }
