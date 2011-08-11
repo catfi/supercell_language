@@ -44,7 +44,6 @@ BOOST_AUTO_TEST_CASE( ThorScriptTreeTest_BasicTreeGenerationTestCase1_IsA )
 		ASTNode *node = new Program(NULL);
 		BOOST_CHECK(isa<Program>(node));
 		BOOST_CHECK(!isa<Literal>(node));
-		ASTNodeGC::instance()->gc<GarbageCollectionVisitor<ASTNodeGC::ContainerT>>(node);
 	}
 
 	{
