@@ -23,7 +23,7 @@
 #include "core/Prerequisite.h"
 #include "compiler/tree/ASTNode.h"
 #include "compiler/tree/ASTNodeFactory.h"
-#include "compiler/tree/visitor/general/AllocationCleanupVisitor.h"
+#include "compiler/tree/visitor/general/GarbageCollectionVisitor.h"
 #include <iostream>
 #include <string>
 #include <limits>
@@ -40,59 +40,45 @@ BOOST_AUTO_TEST_SUITE( ThorScriptTreeTest_BasicTreeGenerationTestSuite )
 
 BOOST_AUTO_TEST_CASE( ThorScriptTreeTest_BasicTreeGenerationTestCase1_IsA )
 {
-	AllocationCleanupVisitor cleanup;
-
 	{
 		ASTNode *node = new Program(NULL);
 		BOOST_CHECK(isa<Program>(node));
 		BOOST_CHECK(!isa<Literal>(node));
-		cleanup.visit(*node);
+		ASTNodeGC::instance()->gc<GarbageCollectionVisitor<ASTNodeGC::ContainerT>>(node);
 	}
 
 	{
 		ASTNode *node = new BinaryExpr(BinaryExpr::ASSIGN, new SimpleIdentifier(L"abc"), new NumericLiteral(123L));
 		BOOST_CHECK(isa<Expression>(node));
 		BOOST_CHECK(isa<BinaryExpr>(node));
-		cleanup.visit(*node);
 	}
 
 	{
 		NestedIdentifier* node = new NestedIdentifier();
 		BOOST_CHECK(isa<Identifier>(node));
-		cleanup.visit(*node);
 	}
 }
 
 BOOST_AUTO_TEST_CASE( ThorScriptTreeTest_BasicTreeGenerationTestCase2 )
 {
-	AllocationCleanupVisitor cleanup;
-
 	{
 		Package* root = new Package(new SimpleIdentifier(L""));
 		Program* program = new Program(root);
 
 		BOOST_CHECK(program->root->id->toString().empty());
-
-		cleanup.visit(*program);
 	}
 
 	{
 		Program* program = new Program();
 
 		BOOST_CHECK(program->root->id->toString().empty()); // the default package name is empty ""
-
-		cleanup.visit(*program);
 	}
 }
 
 BOOST_AUTO_TEST_CASE( ThorScriptTreeTest_BasicTreeGenerationTestCase3 )
 {
-	AllocationCleanupVisitor cleanup;
-
 	Program* program = new Program();
 	BOOST_CHECK(program->root->parent == NULL);
-
-	cleanup.visit(*program);
 }
 
 BOOST_AUTO_TEST_SUITE_END()
