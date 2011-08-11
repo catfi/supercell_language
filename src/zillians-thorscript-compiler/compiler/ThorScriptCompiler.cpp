@@ -31,7 +31,7 @@
 #include <boost/program_options/value_semantic.hpp>
 
 #define STATUS_SUCCESS 0
-#define STATUS_ERROR 1
+#define STATUS_ERROR   1
 
 using namespace zillians;
 using namespace zillians::compiler;
@@ -57,7 +57,7 @@ static void _expand_tabs(const std::wstring& input, std::wstring& output, int nu
 	}
 }
 
-void do_parse(std::string filename, bool dump_parse, bool dump_ast)
+static void _do_parse(std::string filename, bool dump_parse, bool dump_ast)
 {
 	std::ifstream in(filename, std::ios_base::in);
 
@@ -108,10 +108,8 @@ void do_parse(std::string filename, bool dump_parse, bool dump_ast)
 
 		if(dump_ast)
 		{
-			std::cout << "<pretty_print>" << std::endl;
 			PrettyPrintVisitor printer;
 			printer.visit(*c.program);
-			std::cout << "</pretty_print>" << std::endl;
 		}
 	}
 	catch (const qi::expectation_failure<pos_iterator_type>& e)
@@ -162,7 +160,7 @@ int main(int argc, char** argv)
 
 		if(!filename.empty())
 		{
-			do_parse(filename, dump_parse, dump_ast);
+			_do_parse(filename, dump_parse, dump_ast);
 			return STATUS_SUCCESS;
 		}
     }
