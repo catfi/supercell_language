@@ -27,10 +27,6 @@
 #include "compiler/action/SemanticActions.h"
 #include "compiler/tree/visitor/general/PrettyPrintVisitor.h"
 
-namespace bsc = boost::spirit::classic;
-namespace bsq = boost::spirit::qi;
-namespace zca = zillians::compiler::action;
-
 // since '\t' may be printed in spaces and I don't know a way to change std::wcout, we simply replace the tab with desired number of spaces
 // so that we can have correct error pointing cursor
 // (note that because '\t' equals to 4 spaces reported by spirit, we have to make sure it's printed in the exact same way)
@@ -46,6 +42,10 @@ static void _expand_tabs(const std::wstring& input, std::wstring& output, int nu
 }
 
 namespace zillians { namespace compiler {
+
+namespace bsc = boost::spirit::classic;
+namespace bsq = boost::spirit::qi;
+namespace zca = zillians::compiler::action;
 
 ThorScriptCompiler::ThorScriptCompiler()
 {
