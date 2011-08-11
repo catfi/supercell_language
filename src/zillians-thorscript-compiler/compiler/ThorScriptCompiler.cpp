@@ -20,28 +20,16 @@
  * @date Jul 18, 2011 sdk - Initial version created.
  */
 
+#include "compiler/ThorScriptCompiler.h"
 #include "core/Prerequisite.h"
 #include "utility/UnicodeUtil.h"
-#include "compiler/ThorScriptCompiler.h"
+#include "compiler/grammar/ThorScript.h"
+#include "compiler/action/SemanticActions.h"
 #include "compiler/tree/visitor/general/PrettyPrintVisitor.h"
 
-#include <boost/program_options/options_description.hpp>
-#include <boost/program_options/variables_map.hpp>
-#include <boost/program_options/parsers.hpp>
-#include <boost/program_options/value_semantic.hpp>
-
-#define STATUS_SUCCESS 0
-#define STATUS_ERROR   1
-
-using namespace zillians;
-using namespace zillians::compiler;
-using namespace zillians::compiler::tree;
-using namespace zillians::compiler::tree::visitor;
-using namespace zillians::compiler::action;
-
-namespace qi = boost::spirit::qi;
-namespace classic = boost::spirit::classic;
-namespace po = boost::program_options;
+namespace bsc = boost::spirit::classic;
+namespace bsq = boost::spirit::qi;
+namespace zca = zillians::compiler::action;
 
 // since '\t' may be printed in spaces and I don't know a way to change std::wcout, we simply replace the tab with desired number of spaces
 // so that we can have correct error pointing cursor
@@ -57,13 +45,18 @@ static void _expand_tabs(const std::wstring& input, std::wstring& output, int nu
 	}
 }
 
-static void _do_parse(std::string filename, bool dump_parse, bool dump_ast)
+namespace zillians { namespace compiler {
+
+ThorScriptCompiler::ThorScriptCompiler()
+{
+}
+
+bool ThorScriptCompiler::do_parse(std::string filename, bool dump_parse, bool dump_ast)
 {
 	std::ifstream in(filename, std::ios_base::in);
 
     // ignore the BOM marking the beginning of a UTF-8 file in Windows
-	char c = in.peek();
-    if (c == '\xef')
+    if(in.peek() == '\xef')
     {
         char s[3];
         in >> s[0] >> s[1] >> s[2];
@@ -72,15 +65,13 @@ static void _do_parse(std::string filename, bool dump_parse, bool dump_ast)
         {
             std::cerr << "Error: Unexpected characters from input file: "
                 << filename << std::endl;
-            return;
+            return false;
         }
     }
 
-    std::string source_code_raw; // We will read the contents here.
-    {
-		in.unsetf(std::ios::skipws); // disable white space skipping
-		std::copy(std::istream_iterator<char>(in), std::istream_iterator<char>(), std::back_inserter(source_code_raw));
-    }
+    std::string source_code_raw;
+	in.unsetf(std::ios::skipws); // disable white space skipping
+	std::copy(std::istream_iterator<char>(in), std::istream_iterator<char>(), std::back_inserter(source_code_raw));
 
     // convert it from UTF8 into UCS4 as a string by using u8_to_u32_iterator
     std::wstring source_code;
@@ -90,31 +81,33 @@ static void _do_parse(std::string filename, bool dump_parse, bool dump_ast)
     enable_default_locale(std::wcout);
 
     // try to parse
-	typedef classic::position_iterator2<std::wstring::iterator> pos_iterator_type;
-	bool completed;
+	typedef bsc::position_iterator2<std::wstring::iterator> pos_iterator_type;
 	try
 	{
 		pos_iterator_type begin(source_code.begin(), source_code.end(), s_to_ws(filename));
 		pos_iterator_type end;
 
-		ThorScriptTreeAction::MemberContext c;
-		grammar::ThorScript<pos_iterator_type, ThorScriptTreeAction> parser(dump_parse);
+		zca::ThorScriptTreeAction::MemberContext c;
+		grammar::ThorScript<pos_iterator_type, zca::ThorScriptTreeAction> parser(dump_parse);
 		grammar::detail::WhiteSpace<pos_iterator_type> skipper;
 
-		completed = qi::phrase_parse(
+		if(!bsq::phrase_parse(
 				begin, end,
 				parser(&c),
-				skipper);
+				skipper))
+		{
+			return false;
+		}
 
 		if(dump_ast)
 		{
-			PrettyPrintVisitor printer;
+			zillians::compiler::tree::visitor::PrettyPrintVisitor printer;
 			printer.visit(*c.program);
 		}
 	}
-	catch (const qi::expectation_failure<pos_iterator_type>& e)
+	catch (const bsq::expectation_failure<pos_iterator_type>& e)
 	{
-		const classic::file_position_base<std::wstring>& pos = e.first.get_position();
+		const bsc::file_position_base<std::wstring>& pos = e.first.get_position();
 
 		std::wstring current_line;
 		_expand_tabs(e.first.get_currentline(), current_line);
@@ -123,54 +116,10 @@ static void _do_parse(std::string filename, bool dump_parse, bool dump_ast)
 				<< L"'" << current_line << L"'" << std::endl
 				<< std::setw(pos.column) << L" " << L"^- here" << std::endl;
 
-		completed = false;
+		return false;
 	}
 
-	if(completed)
-		std::cout << "parse completed" << std::endl;
-	else
-		std::cout << "parse failed" << std::endl;
+	return true;
 }
 
-int main(int argc, char** argv)
-{
-    po::options_description option_desc;
-    po::positional_options_description pos_options_desc;
-
-    option_desc.add_options()
-    ("help,h",                               "this help message")
-    ("dump-parse,p",                         "dump parse tree for debugging purpose")
-    ("dump-ast,t",                           "dump AST pretty-print for debugging purpose")
-    ("filename,f", po::value<std::string>(), "filename");
-    pos_options_desc.add("filename", -1);
-
-    try
-    {
-		po::variables_map args;
-		po::store(po::command_line_parser(argc, argv).options(option_desc).positional(pos_options_desc).run(), args);
-		po::notify(args);
-
-		std::string filename;
-		if(args.count("filename")>0)
-			filename = args["filename"].as<std::string>();
-		bool dump_parse = (args.count("dump-parse")>0);
-		bool dump_ast = (args.count("dump-ast")>0);
-		if(args.count("help"))
-			return STATUS_ERROR;
-
-		if(!filename.empty())
-		{
-			_do_parse(filename, dump_parse, dump_ast);
-			return STATUS_SUCCESS;
-		}
-    }
-    catch(...)
-    {
-    	std::cout << "invalid options" << std::endl;
-    }
-
-	std::cout << "no option specified" << std::endl << std::endl;
-	std::cout << "command-line options:" << std::endl << std::endl;
-	std::cout << option_desc << std::endl;
-	return STATUS_ERROR;
-}
+} }

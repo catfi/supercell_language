@@ -25,6 +25,7 @@ INCLUDE_DIRECTORIES(
     )
 
 ADD_EXECUTABLE(thorscript-compiler
+    main.cpp
     compiler/ThorScriptCompiler.cpp
     )
 
