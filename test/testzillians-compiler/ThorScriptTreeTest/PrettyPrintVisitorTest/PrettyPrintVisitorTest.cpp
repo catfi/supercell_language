@@ -57,19 +57,19 @@ BOOST_AUTO_TEST_CASE( ThorScriptTreeTest_PrettyPrintVisitorTestCase1 )
 							new SimpleIdentifier(L"some_member_function"),
 							NULL,
 							true,
-							MemberScope::PUBLIC,
-							StorageSpecifier::NONE);
+							Declaration::MemberScope::PUBLIC,
+							Declaration::StorageSpecifier::NONE);
 					class_decl->appendFunction(some_member_function);
 					{
 						Block* block = some_member_function->block;
 
 						{
-							DeclarativeStmt* stmt = new DeclarativeStmt(new SimpleIdentifier(L"a"), new SimpleIdentifier(L"int32"), StorageSpecifier::NONE);
+							DeclarativeStmt* stmt = new DeclarativeStmt(new SimpleIdentifier(L"a"), new SimpleIdentifier(L"int32"), Declaration::StorageSpecifier::NONE);
 							block->append(stmt);
 						}
 
 						{
-							DeclarativeStmt* stmt = new DeclarativeStmt(new SimpleIdentifier(L"b"), new SimpleIdentifier(L"int32"), StorageSpecifier::NONE);
+							DeclarativeStmt* stmt = new DeclarativeStmt(new SimpleIdentifier(L"b"), new SimpleIdentifier(L"int32"), Declaration::StorageSpecifier::NONE);
 							block->append(stmt);
 						}
 					}
@@ -78,8 +78,8 @@ BOOST_AUTO_TEST_CASE( ThorScriptTreeTest_PrettyPrintVisitorTestCase1 )
 							new SimpleIdentifier(L"some_member_variable1"),
 							new SimpleIdentifier(L"float64"),
 							true,
-							MemberScope::PUBLIC,
-							StorageSpecifier::STATIC
+							Declaration::MemberScope::PUBLIC,
+							Declaration::StorageSpecifier::STATIC
 							);
 					class_decl->appendVariable(some_member_variable1);
 
@@ -87,8 +87,8 @@ BOOST_AUTO_TEST_CASE( ThorScriptTreeTest_PrettyPrintVisitorTestCase1 )
 							new SimpleIdentifier(L"some_member_variable2"),
 							new SimpleIdentifier(L"float32"),
 							true,
-							MemberScope::PUBLIC,
-							StorageSpecifier::STATIC
+							Declaration::MemberScope::PUBLIC,
+							Declaration::StorageSpecifier::STATIC
 							);
 					class_decl->appendVariable(some_member_variable2);
 				}
