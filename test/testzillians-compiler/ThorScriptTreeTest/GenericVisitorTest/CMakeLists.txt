@@ -1,6 +1,6 @@
 # 
 # Zillians MMO
-# Copyright (C) 2007-2009 Zillians.com, Inc.
+# Copyright (C) 2007-2010 Zillians.com, Inc.
 # For more information see http:#www.zillians.com
 #
 # Zillians MMO is the library and runtime for massive multiplayer online game
@@ -19,6 +19,15 @@
 # Contact Information: info@zillians.com
 #
 
-ADD_SUBDIRECTORY(GenericVisitorTest)
-ADD_SUBDIRECTORY(BasicTreeGenerationTest)
-ADD_SUBDIRECTORY(PrettyPrintVisitorTest)
+INCLUDE_DIRECTORIES(
+    ${PROJECT_COMMON_SOURCE_DIR}/include/
+    ${PROJECT_FRAMEWORK_SOURCE_DIR}/include/
+    )
+
+ADD_EXECUTABLE(ThorScriptTreeTest_GenericVisitorTest GenericVisitorTest.cpp)
+
+TARGET_LINK_LIBRARIES(ThorScriptTreeTest_GenericVisitorTest
+    zillians-common-core
+    )
+
+zillians_add_simple_test(TARGET ThorScriptTreeTest_GenericVisitorTest)

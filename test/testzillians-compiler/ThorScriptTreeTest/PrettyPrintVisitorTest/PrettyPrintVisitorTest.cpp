@@ -24,6 +24,7 @@
 #include "compiler/tree/ASTNode.h"
 #include "compiler/tree/ASTNodeFactory.h"
 #include "compiler/tree/visitor/general/PrettyPrintVisitor.h"
+#include "../ASTNodeSamples.h"
 #include <iostream>
 #include <string>
 #include <limits>
@@ -42,59 +43,7 @@ BOOST_AUTO_TEST_CASE( ThorScriptTreeTest_PrettyPrintVisitorTestCase1 )
 {
 	PrettyPrintVisitor printer;
 
-	Program* program = new Program();
-	{
-		Package* com_package = new Package(new SimpleIdentifier(L"com"));
-		program->root->addPackage(com_package);
-		{
-			Package* zillians_package = new Package(new SimpleIdentifier(L"zillians"));
-			com_package->addPackage(zillians_package);
-			{
-				ClassDecl* class_decl = new ClassDecl(new SimpleIdentifier(L"some_class"));
-				zillians_package->addObject(class_decl);
-				{
-					FunctionDecl* some_member_function = new FunctionDecl(
-							new SimpleIdentifier(L"some_member_function"),
-							NULL,
-							true,
-							Declaration::MemberScope::PUBLIC,
-							Declaration::StorageSpecifier::NONE);
-					class_decl->appendFunction(some_member_function);
-					{
-						Block* block = some_member_function->block;
-
-						{
-							DeclarativeStmt* stmt = new DeclarativeStmt(new SimpleIdentifier(L"a"), new SimpleIdentifier(L"int32"), Declaration::StorageSpecifier::NONE);
-							block->append(stmt);
-						}
-
-						{
-							DeclarativeStmt* stmt = new DeclarativeStmt(new SimpleIdentifier(L"b"), new SimpleIdentifier(L"int32"), Declaration::StorageSpecifier::NONE);
-							block->append(stmt);
-						}
-					}
-
-					VariableDecl* some_member_variable1 = new VariableDecl(
-							new SimpleIdentifier(L"some_member_variable1"),
-							new SimpleIdentifier(L"float64"),
-							true,
-							Declaration::MemberScope::PUBLIC,
-							Declaration::StorageSpecifier::STATIC
-							);
-					class_decl->appendVariable(some_member_variable1);
-
-					VariableDecl* some_member_variable2 = new VariableDecl(
-							new SimpleIdentifier(L"some_member_variable2"),
-							new SimpleIdentifier(L"float32"),
-							true,
-							Declaration::MemberScope::PUBLIC,
-							Declaration::StorageSpecifier::STATIC
-							);
-					class_decl->appendVariable(some_member_variable2);
-				}
-			}
-		}
-	}
+	ASTNode* program = createSample1();
 	printer.visit(*program);
 }
 
