@@ -41,7 +41,7 @@ BOOST_AUTO_TEST_SUITE( ThorScriptTreeTest_BasicTreeGenerationTestSuite )
 BOOST_AUTO_TEST_CASE( ThorScriptTreeTest_BasicTreeGenerationTestCase1_IsA )
 {
 	{
-		ASTNode *node = new Program(NULL);
+		ASTNode *node = new Program(new Package(new SimpleIdentifier(L"")));
 		BOOST_CHECK(isa<Program>(node));
 		BOOST_CHECK(!isa<Literal>(node));
 	}
@@ -61,8 +61,7 @@ BOOST_AUTO_TEST_CASE( ThorScriptTreeTest_BasicTreeGenerationTestCase1_IsA )
 BOOST_AUTO_TEST_CASE( ThorScriptTreeTest_BasicTreeGenerationTestCase2 )
 {
 	{
-		Package* root = new Package(new SimpleIdentifier(L""));
-		Program* program = new Program(root);
+		Program* program = new Program(new Package(new SimpleIdentifier(L"")));
 		BOOST_CHECK(program->root->id->toString().empty());
 	}
 
@@ -74,8 +73,6 @@ BOOST_AUTO_TEST_CASE( ThorScriptTreeTest_BasicTreeGenerationTestCase2 )
 
 BOOST_AUTO_TEST_CASE( ThorScriptTreeTest_BasicTreeGenerationTestCase3 )
 {
-	Program* program = new Program();
-	BOOST_CHECK(program->root->parent == NULL);
 }
 
 BOOST_AUTO_TEST_SUITE_END()

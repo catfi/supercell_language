@@ -62,6 +62,11 @@ ASTNode* createSample1()
 							DeclarativeStmt* stmt = new DeclarativeStmt(new SimpleIdentifier(L"b"), new SimpleIdentifier(L"int32"), Declaration::StorageSpecifier::NONE);
 							block->append(stmt);
 						}
+
+						{
+							ExpressionStmt* stmt = new ExpressionStmt(new BinaryExpr(BinaryExpr::OpCode::ASSIGN, new SimpleIdentifier(L"a"), new SimpleIdentifier(L"b")));
+							block->append(stmt);
+						}
 					}
 
 					VariableDecl* some_member_variable1 = new VariableDecl(
