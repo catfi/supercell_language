@@ -25,6 +25,7 @@
 #include <boost/program_options/variables_map.hpp>
 #include <boost/program_options/parsers.hpp>
 #include <boost/program_options/value_semantic.hpp>
+#include <iostream>
 
 #define STATUS_SUCCESS 0
 #define STATUS_ERROR   1
