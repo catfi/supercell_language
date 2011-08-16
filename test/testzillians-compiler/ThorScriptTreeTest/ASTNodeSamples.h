@@ -71,7 +71,7 @@ ASTNode* createSample1()
 
 					VariableDecl* some_member_variable1 = new VariableDecl(
 							new SimpleIdentifier(L"some_member_variable1"),
-							new SimpleIdentifier(L"float64"),
+							new TypeSpecifier(new SimpleIdentifier(L"float64")),
 							true,
 							Declaration::VisibilitySpecifier::PUBLIC,
 							Declaration::StorageSpecifier::STATIC
@@ -80,7 +80,7 @@ ASTNode* createSample1()
 
 					VariableDecl* some_member_variable2 = new VariableDecl(
 							new SimpleIdentifier(L"some_member_variable2"),
-							new SimpleIdentifier(L"float32"),
+							new TypeSpecifier(new SimpleIdentifier(L"float32")),
 							true,
 							Declaration::VisibilitySpecifier::PUBLIC,
 							Declaration::StorageSpecifier::STATIC
