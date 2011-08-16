@@ -24,6 +24,7 @@
 #include "compiler/tree/ASTNode.h"
 #include "compiler/tree/ASTNodeFactory.h"
 #include "compiler/tree/visitor/general/GenericVisitor.h"
+#include "compiler/tree/visitor/general/GenericDoubleVisitor.h"
 #include "../ASTNodeSamples.h"
 #include <iostream>
 #include <string>
@@ -37,13 +38,13 @@ using namespace zillians;
 using namespace zillians::compiler::tree;
 using namespace zillians::compiler::tree::visitor;
 
-struct DummyCountVisitor : GenericVisitor
+struct DummyCountVisitor : GenericDoubleVisitor
 {
 	CREATE_INVOKER(countInvoker, count);
 
 	DummyCountVisitor() : total_count(0L)
 	{
-		registerInvoker<DummyCountVisitor, countInvoker>(this);
+		REGISTER_ALL_VISITABLE_ASTNODE(countInvoker)
 	}
 
 	//////////////////////////////////////////////////////////////////////
@@ -51,159 +52,7 @@ struct DummyCountVisitor : GenericVisitor
 
 	void count(const ASTNode& node)
 	{
-		++total_count; apply(node);
-	}
-
-	void count(const Annotation& node)
-	{
-		++total_count; apply(node);
-	}
-
-	void count(const Annotations& node)
-	{
-		++total_count; apply(node);
-	}
-
-	void count(const Block& node)
-	{
-		++total_count; apply(node);
-	}
-
-	void count(const SimpleIdentifier& node)
-	{
-		++total_count; apply(node);
-	}
-
-	void count(const NestedIdentifier& node)
-	{
-		++total_count; apply(node);
-	}
-
-	void count(const TemplatedIdentifier& node)
-	{
-		++total_count; apply(node);
-	}
-
-	//////////////////////////////////////////////////////////////////////
-	/// Module
-
-	void count(const Program& node)
-	{
-		++total_count; apply(node);
-	}
-
-	void count(const Package& node)
-	{
-		++total_count; apply(node);
-	}
-
-	void count(const Import& node)
-	{
-		++total_count; apply(node);
-	}
-
-	//////////////////////////////////////////////////////////////////////
-	/// Declaration
-
-	void count(const ClassDecl& node)
-	{
-		++total_count; apply(node);
-	}
-
-	void count(const EnumDecl& node)
-	{
-		++total_count; apply(node);
-	}
-
-	void count(const FunctionDecl& node)
-	{
-		++total_count; apply(node);
-	}
-
-	void count(const InterfaceDecl& node)
-	{
-		++total_count; apply(node);
-	}
-
-	void count(const TypedefDecl& node)
-	{
-		++total_count; apply(node);
-	}
-
-	void count(const VariableDecl& node)
-	{
-		++total_count; apply(node);
-	}
-
-	//////////////////////////////////////////////////////////////////////
-	/// Statement
-
-	void count(const DeclarativeStmt& node)
-	{
-		++total_count; apply(node);
-	}
-
-	void count(const ExpressionStmt& node)
-	{
-		++total_count; apply(node);
-	}
-
-	void count(const ForeachStmt& node)
-	{
-		++total_count; apply(node);
-	}
-
-	void count(const WhileStmt& node)
-	{
-		++total_count; apply(node);
-	}
-
-	void count(const IfElseStmt& node)
-	{
-		++total_count; apply(node);
-	}
-
-	void count(const SwitchStmt& node)
-	{
-		++total_count; apply(node);
-	}
-
-	void count(const BranchStmt& node)
-	{
-		++total_count; apply(node);
-	}
-
-	//////////////////////////////////////////////////////////////////////
-	/// Expression
-
-	void count(const UnaryExpr& node)
-	{
-		++total_count; apply(node);
-	}
-
-	void count(const BinaryExpr& node)
-	{
-		++total_count; apply(node);
-	}
-
-	void count(const TernaryExpr& node)
-	{
-		++total_count; apply(node);
-	}
-
-	void count(const MemberExpr& node)
-	{
-		++total_count; apply(node);
-	}
-
-	void count(const CallExpr& node)
-	{
-		++total_count; apply(node);
-	}
-
-	void count(const CastExpr& node)
-	{
-		++total_count; apply(node);
+		++total_count; revisit(node);
 	}
 
 	std::size_t total_count;
