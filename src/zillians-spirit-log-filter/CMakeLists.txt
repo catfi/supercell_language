@@ -23,17 +23,17 @@ INCLUDE_DIRECTORIES(
     ${TICPP_INCLUDE_DIR}
     )
 
-ADD_EXECUTABLE(spiritlog-filter
+ADD_EXECUTABLE(spirit-log-filter
     main.cpp
     )
     
-TARGET_LINK_LIBRARIES(spiritlog-filter
+TARGET_LINK_LIBRARIES(spirit-log-filter
     ${TICPP_LIBRARIES}
     zillians-common-core
     )
     
 zillians_add_complex_test( 
-    TARGET spiritlog-filter
-    SHELL ${EXECUTABLE_OUTPUT_PATH}/spiritlog-filter
+    TARGET spirit-log-filter
+    SHELL ${EXECUTABLE_OUTPUT_PATH}/spirit-log-filter
             ${CMAKE_CURRENT_SOURCE_DIR}/data/spiritlog.xml
     )
