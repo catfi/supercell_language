@@ -33,6 +33,29 @@ using namespace zillians::compiler::tree;
 ASTNode* createSample1()
 {
 	Program* program = new Program();
+	return program;
+}
+
+ASTNode* createSample2()
+{
+	Program* program = new Program();
+	{
+		Package* com_package = new Package(new SimpleIdentifier(L"com"));
+		program->root->addPackage(com_package);
+		{
+			Package* supercell_package = new Package(new SimpleIdentifier(L"supercell"));
+			com_package->addPackage(supercell_package);
+
+			Package* zillians_package = new Package(new SimpleIdentifier(L"zillians"));
+			com_package->addPackage(zillians_package);
+		}
+	}
+	return program;
+}
+
+ASTNode* createSample3()
+{
+	Program* program = new Program();
 	{
 		Package* com_package = new Package(new SimpleIdentifier(L"com"));
 		program->root->addPackage(com_package);

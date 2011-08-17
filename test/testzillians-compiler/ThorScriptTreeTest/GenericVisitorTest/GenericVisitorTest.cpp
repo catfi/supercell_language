@@ -25,6 +25,7 @@
 #include "compiler/tree/ASTNodeFactory.h"
 #include "compiler/tree/visitor/general/GenericVisitor.h"
 #include "compiler/tree/visitor/general/GenericDoubleVisitor.h"
+#include "compiler/tree/visitor/general/GenericComposableVisitor.h"
 #include "../ASTNodeSamples.h"
 #include <iostream>
 #include <string>
@@ -47,12 +48,29 @@ struct DummyCountVisitor : GenericDoubleVisitor
 		REGISTER_ALL_VISITABLE_ASTNODE(countInvoker)
 	}
 
-	//////////////////////////////////////////////////////////////////////
-	/// Basic
+	void count(const ASTNode& node)
+	{
+		++total_count;
+		revisit(node); // use parent's revisit so that we will walk through entire AST tree hierarchy
+	}
+
+	std::size_t total_count;
+};
+
+struct DummyComposedCountVisitor : Visitor<const ASTNode, void>
+{
+	CREATE_INVOKER(countInvoker, count);
+
+	DummyComposedCountVisitor() : total_count(0L)
+	{
+		REGISTER_ALL_VISITABLE_ASTNODE(countInvoker)
+	}
 
 	void count(const ASTNode& node)
 	{
-		++total_count; revisit(node);
+		++total_count;
+		// here we don't have to revisit but just implement action on specific AST node types
+		// (because the GenericComposableVisitor will handle revisit for us)
 	}
 
 	std::size_t total_count;
@@ -67,7 +85,30 @@ BOOST_AUTO_TEST_CASE( ThorScriptTreeTest_GenericVisitorTestCase1 )
 	ASTNode* program = createSample1();
 	counter.visit(*program);
 
+	BOOST_CHECK(counter.total_count == 3);
+
 	std::cout << "total node count = " << counter.total_count << std::endl;
+}
+
+BOOST_AUTO_TEST_CASE( ThorScriptTreeTest_GenericVisitorTestCase2 )
+{
+	DummyComposedCountVisitor counter1;
+	DummyComposedCountVisitor counter2;
+
+	// create a visitor composed by multiple composable visitor
+	// note that in composable visitor we basically don't have to call revisit() or visit() because the GenericComposableVisitor will walk through the entire AST tree
+	// (of course we can still do so if we need some custom traversal)
+	GenericComposableVisitor<DummyComposedCountVisitor&, DummyComposedCountVisitor&> composed_counter(counter1, counter2);
+
+	ASTNode* program = createSample1();
+	composed_counter.visit(*program);
+
+	BOOST_CHECK(counter1.total_count == 3);
+	BOOST_CHECK(counter2.total_count == 3);
+
+	std::cout << "total node count (counter1) = " << counter1.total_count << std::endl;
+	std::cout << "total node count (counter2) = " << counter2.total_count << std::endl;
+
 }
 
 BOOST_AUTO_TEST_SUITE_END()
