@@ -19,14 +19,14 @@
 # Contact Information: info@zillians.com
 #
 
-#ADD_SUBDIRECTORY(testbackend-llvm-ptx)
-#ADD_SUBDIRECTORY(zcc-testsuite)
+zillians_create_test_subject(SUBJECT framework)
+
+zillians_create_test_subject(SUBJECT framework-critical)
+zillians_add_subject_to_subject(PARENT framework CHILD framework-critical)
+
+zillians_create_test_subject(SUBJECT framework-misc)
+zillians_add_subject_to_subject(PARENT framework CHILD framework-misc)
+
 ADD_SUBDIRECTORY(testzillians-3rd-party)
 ADD_SUBDIRECTORY(testzillians-compiler)
 ADD_SUBDIRECTORY(testzillians-framework-vw)
-
-#zillians_add_complex_test(
-#    TARGET  zcc-related-all
-#    SHELL   make -C ${CMAKE_BINARY_DIR} runtest-zcc-llvm-all runtest-zcc-semantic-check-all runtest-zcc-s0-zcc-framework runtest-zcc-s1-syntax runtest-zcc-s2-semantic runtest-zcc-s3-exec runtest-zcc-s4-pass runtest-zcc-runtime-all
-#    DEPENDS zcc zcc-bc zcc-flex zcc-client zcc-client-old
-#    )

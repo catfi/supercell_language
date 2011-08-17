@@ -31,3 +31,4 @@ TARGET_LINK_LIBRARIES(ThorScriptTreeTest_GarbageCollectionVisitorTest
     )
 
 zillians_add_simple_test(TARGET ThorScriptTreeTest_GarbageCollectionVisitorTest)
+zillians_add_test_to_subject(SUBJECT ThorScriptTreeTestAll TARGET ThorScriptTreeTest_GarbageCollectionVisitorTest)

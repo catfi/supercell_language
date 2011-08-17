@@ -19,6 +19,10 @@
 # Contact Information: info@zillians.com
 #
 
+zillians_create_test_subject(SUBJECT ThorScriptTreeTestAll)
+
+zillians_add_subject_to_subject(PARENT framework-compiler-critical CHILD ThorScriptTreeTestAll)
+
 ADD_SUBDIRECTORY(GenericVisitorTest)
 ADD_SUBDIRECTORY(GarbageCollectionVisitorTest)
 ADD_SUBDIRECTORY(BasicTreeGenerationTest)

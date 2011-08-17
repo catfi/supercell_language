@@ -1,0 +1,370 @@
+<start>
+  <try>// FIX-ME! -- tempor</try>
+  <package_decl>
+    <try>// FIX-ME! -- tempor</try>
+    <fail/>
+  </package_decl>
+  <import_decl>
+    <try>// FIX-ME! -- tempor</try>
+    <fail/>
+  </import_decl>
+  <class_decl>
+    <try>// FIX-ME! -- tempor</try>
+    <extends_decl>
+      <try>\n{\n    function /* B</try>
+      <fail/>
+    </extends_decl>
+    <implements_decl>
+      <try>\n{\n    function /* B</try>
+      <fail/>
+    </implements_decl>
+    <member_function_decl>
+      <try>\n    function /* BLO</try>
+      <visibility_specifier>
+        <try>\n    function /* BLO</try>
+        <fail/>
+      </visibility_specifier>
+      <storage_specifier>
+        <try>\n    function /* BLO</try>
+        <fail/>
+      </storage_specifier>
+      <parameter_list>
+        <try>):void // LINE COMME</try>
+        <fail/>
+      </parameter_list>
+      <type_specifier>
+        <try>:void // LINE COMMEN</try>
+        <success> // LINE COMMENT\n   </success>
+        <attributes>[]</attributes>
+      </type_specifier>
+      <compound_statement>
+        <try> // LINE COMMENT\n   </try>
+        <statement>
+          <try>\n        var a:uint3</try>
+          <compound_statement>
+            <try>\n        var a:uint3</try>
+            <fail/>
+          </compound_statement>
+          <expression_statement>
+            <try>\n        var a:uint3</try>
+            <expression>
+              <try>\n        var a:uint3</try>
+              <assignment_expression>
+                <try>\n        var a:uint3</try>
+                <unary_expression>
+                  <try>\n        var a:uint3</try>
+                  <postfix_expression>
+                    <try>\n        var a:uint3</try>
+                    <primary_expression>
+                      <try>\n        var a:uint3</try>
+                      <fail/>
+                    </primary_expression>
+                    <fail/>
+                  </postfix_expression>
+                  <unary_operator>
+                    <try>\n        var a:uint3</try>
+                    <fail/>
+                  </unary_operator>
+                  <fail/>
+                </unary_expression>
+                <fail/>
+              </assignment_expression>
+              <fail/>
+            </expression>
+            <fail/>
+          </expression_statement>
+          <selection_statement>
+            <try>\n        var a:uint3</try>
+            <fail/>
+          </selection_statement>
+          <iteration_statement>
+            <try>\n        var a:uint3</try>
+            <fail/>
+          </iteration_statement>
+          <fail/>
+        </statement>
+        <declaration>
+          <try>\n        var a:uint3</try>
+          <type_specifier>
+            <try>:uint32 = 13;\n      </try>
+            <success> = 13;\n        var b</success>
+            <attributes>[]</attributes>
+          </type_specifier>
+          <initializer_list>
+            <try> = 13;\n        var b</try>
+            <unary_expression>
+              <try> 13;\n        var b:f</try>
+              <postfix_expression>
+                <try> 13;\n        var b:f</try>
+                <primary_expression>
+                  <try> 13;\n        var b:f</try>
+                  <success>;\n        var b:floa</success>
+                  <attributes>[]</attributes>
+                </primary_expression>
+                <postfix_expression_helper>
+                  <try>;\n        var b:floa</try>
+                  <success>;\n        var b:floa</success>
+                  <attributes>[]</attributes>
+                </postfix_expression_helper>
+                <success>;\n        var b:floa</success>
+                <attributes>[]</attributes>
+              </postfix_expression>
+              <success>;\n        var b:floa</success>
+              <attributes>[]</attributes>
+            </unary_expression>
+            <success>;\n        var b:floa</success>
+            <attributes>[]</attributes>
+          </initializer_list>
+          <success>\n        var b:float</success>
+          <attributes>[]</attributes>
+        </declaration>
+        <statement>
+          <try>\n        var b:float</try>
+          <compound_statement>
+            <try>\n        var b:float</try>
+            <fail/>
+          </compound_statement>
+          <expression_statement>
+            <try>\n        var b:float</try>
+            <expression>
+              <try>\n        var b:float</try>
+              <assignment_expression>
+                <try>\n        var b:float</try>
+                <unary_expression>
+                  <try>\n        var b:float</try>
+                  <postfix_expression>
+                    <try>\n        var b:float</try>
+                    <primary_expression>
+                      <try>\n        var b:float</try>
+                      <fail/>
+                    </primary_expression>
+                    <fail/>
+                  </postfix_expression>
+                  <unary_operator>
+                    <try>\n        var b:float</try>
+                    <fail/>
+                  </unary_operator>
+                  <fail/>
+                </unary_expression>
+                <fail/>
+              </assignment_expression>
+              <fail/>
+            </expression>
+            <fail/>
+          </expression_statement>
+          <selection_statement>
+            <try>\n        var b:float</try>
+            <fail/>
+          </selection_statement>
+          <iteration_statement>
+            <try>\n        var b:float</try>
+            <fail/>
+          </iteration_statement>
+          <fail/>
+        </statement>
+        <declaration>
+          <try>\n        var b:float</try>
+          <type_specifier>
+            <try>:float64 = 3.14159;\n</try>
+            <success> = 3.14159;\n        </success>
+            <attributes>[]</attributes>
+          </type_specifier>
+          <initializer_list>
+            <try> = 3.14159;\n        </try>
+            <unary_expression>
+              <try> 3.14159;\n        va</try>
+              <postfix_expression>
+                <try> 3.14159;\n        va</try>
+                <primary_expression>
+                  <try> 3.14159;\n        va</try>
+                  <success>;\n        var c:Stri</success>
+                  <attributes>[]</attributes>
+                </primary_expression>
+                <postfix_expression_helper>
+                  <try>;\n        var c:Stri</try>
+                  <success>;\n        var c:Stri</success>
+                  <attributes>[]</attributes>
+                </postfix_expression_helper>
+                <success>;\n        var c:Stri</success>
+                <attributes>[]</attributes>
+              </postfix_expression>
+              <success>;\n        var c:Stri</success>
+              <attributes>[]</attributes>
+            </unary_expression>
+            <success>;\n        var c:Stri</success>
+            <attributes>[]</attributes>
+          </initializer_list>
+          <success>\n        var c:Strin</success>
+          <attributes>[]</attributes>
+        </declaration>
+        <statement>
+          <try>\n        var c:Strin</try>
+          <compound_statement>
+            <try>\n        var c:Strin</try>
+            <fail/>
+          </compound_statement>
+          <expression_statement>
+            <try>\n        var c:Strin</try>
+            <expression>
+              <try>\n        var c:Strin</try>
+              <assignment_expression>
+                <try>\n        var c:Strin</try>
+                <unary_expression>
+                  <try>\n        var c:Strin</try>
+                  <postfix_expression>
+                    <try>\n        var c:Strin</try>
+                    <primary_expression>
+                      <try>\n        var c:Strin</try>
+                      <fail/>
+                    </primary_expression>
+                    <fail/>
+                  </postfix_expression>
+                  <unary_operator>
+                    <try>\n        var c:Strin</try>
+                    <fail/>
+                  </unary_operator>
+                  <fail/>
+                </unary_expression>
+                <fail/>
+              </assignment_expression>
+              <fail/>
+            </expression>
+            <fail/>
+          </expression_statement>
+          <selection_statement>
+            <try>\n        var c:Strin</try>
+            <fail/>
+          </selection_statement>
+          <iteration_statement>
+            <try>\n        var c:Strin</try>
+            <fail/>
+          </iteration_statement>
+          <fail/>
+        </statement>
+        <declaration>
+          <try>\n        var c:Strin</try>
+          <type_specifier>
+            <try>:String = "hello wor</try>
+            <success> = "hello world";\n  </success>
+            <attributes>[]</attributes>
+          </type_specifier>
+          <initializer_list>
+            <try> = "hello world";\n  </try>
+            <unary_expression>
+              <try> "hello world";\n    </try>
+              <postfix_expression>
+                <try> "hello world";\n    </try>
+                <primary_expression>
+                  <try> "hello world";\n    </try>
+                  <success>;\n    }\n}\n</success>
+                  <attributes>[]</attributes>
+                </primary_expression>
+                <postfix_expression_helper>
+                  <try>;\n    }\n}\n</try>
+                  <success>;\n    }\n}\n</success>
+                  <attributes>[]</attributes>
+                </postfix_expression_helper>
+                <success>;\n    }\n}\n</success>
+                <attributes>[]</attributes>
+              </postfix_expression>
+              <success>;\n    }\n}\n</success>
+              <attributes>[]</attributes>
+            </unary_expression>
+            <success>;\n    }\n}\n</success>
+            <attributes>[]</attributes>
+          </initializer_list>
+          <success>\n    }\n}\n</success>
+          <attributes>[]</attributes>
+        </declaration>
+        <statement>
+          <try>\n    }\n}\n</try>
+          <compound_statement>
+            <try>\n    }\n}\n</try>
+            <fail/>
+          </compound_statement>
+          <expression_statement>
+            <try>\n    }\n}\n</try>
+            <expression>
+              <try>\n    }\n}\n</try>
+              <assignment_expression>
+                <try>\n    }\n}\n</try>
+                <unary_expression>
+                  <try>\n    }\n}\n</try>
+                  <postfix_expression>
+                    <try>\n    }\n}\n</try>
+                    <primary_expression>
+                      <try>\n    }\n}\n</try>
+                      <fail/>
+                    </primary_expression>
+                    <fail/>
+                  </postfix_expression>
+                  <unary_operator>
+                    <try>\n    }\n}\n</try>
+                    <fail/>
+                  </unary_operator>
+                  <fail/>
+                </unary_expression>
+                <fail/>
+              </assignment_expression>
+              <fail/>
+            </expression>
+            <fail/>
+          </expression_statement>
+          <selection_statement>
+            <try>\n    }\n}\n</try>
+            <fail/>
+          </selection_statement>
+          <iteration_statement>
+            <try>\n    }\n}\n</try>
+            <fail/>
+          </iteration_statement>
+          <fail/>
+        </statement>
+        <declaration>
+          <try>\n    }\n}\n</try>
+          <fail/>
+        </declaration>
+        <success>\n}\n</success>
+        <attributes>[]</attributes>
+      </compound_statement>
+      <success>\n}\n</success>
+      <attributes>[]</attributes>
+    </member_function_decl>
+    <member_function_decl>
+      <try>\n}\n</try>
+      <visibility_specifier>
+        <try>\n}\n</try>
+        <fail/>
+      </visibility_specifier>
+      <storage_specifier>
+        <try>\n}\n</try>
+        <fail/>
+      </storage_specifier>
+      <fail/>
+    </member_function_decl>
+    <member_variable_decl>
+      <try>\n}\n</try>
+      <visibility_specifier>
+        <try>\n}\n</try>
+        <fail/>
+      </visibility_specifier>
+      <storage_specifier>
+        <try>\n}\n</try>
+        <fail/>
+      </storage_specifier>
+      <fail/>
+    </member_variable_decl>
+    <success>\n</success>
+    <attributes>[]</attributes>
+  </class_decl>
+  <class_decl>
+    <try>\n</try>
+    <fail/>
+  </class_decl>
+  <interface_decl>
+    <try>\n</try>
+    <fail/>
+  </interface_decl>
+  <success>\n</success>
+  <attributes>[]</attributes>
+</start>

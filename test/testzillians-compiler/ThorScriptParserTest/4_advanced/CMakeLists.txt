@@ -51,4 +51,4 @@ zillians_add_complex_test(
     DEPENDS ${TCC} ${SPIRIT_LOG_FILTER}
     )
 
-ADD_DEPENDENCIES(runtest-thor-script-parser-test-all runtest-thor-script-parser-test-advanced)
+zillians_add_test_to_subject(SUBJECT thor-script-parser-test-all TARGET thor-script-parser-test-advanced)

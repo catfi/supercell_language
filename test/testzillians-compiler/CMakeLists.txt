@@ -19,34 +19,17 @@
 # Contact Information: info@zillians.com
 #
 
-#ADD_SUBDIRECTORY(SimpleGrammarTest) # NOTE 20100811 Nothing - Not used anymore as testing now all done by zcc, not directly linking with grammar and frontend.
-IF(CUDA_FOUND)
-    #ADD_SUBDIRECTORY(PTXCodeGenTest)
-    #ADD_SUBDIRECTORY(PTXParserTest)
-    #ADD_SUBDIRECTORY(PTXParserTest-RealExecute)
-    #ADD_SUBDIRECTORY(PTXFunctionMapperAdvanceTest)
-ELSE()
-    MESSAGE(STATUS "CUDA not available, disabling build for PTXCodeGenTest, PTXParserTest, PTXFunctionMapperAdvanceTest")
-ENDIF()
+zillians_create_test_subject(SUBJECT framework-compiler-critical)
+zillians_create_test_subject(SUBJECT framework-compiler-misc)
+
+zillians_add_subject_to_subject(PARENT framework-critical CHILD framework-compiler-critical)
+zillians_add_subject_to_subject(PARENT framework-misc CHILD framework-compiler-misc)
+
 ADD_SUBDIRECTORY(LLVM_IR_Test)
 ADD_SUBDIRECTORY(RuntimeApiTest)
 
-#ADD_SUBDIRECTORY(CodeGenCommonTest)
-#ADD_SUBDIRECTORY(LLVMFunctionMapperBasicTest)
-#ADD_SUBDIRECTORY(PTXFunctionMapperBasicTest)
-
 ADD_SUBDIRECTORY(SemanticCheckTest)
 ADD_SUBDIRECTORY(StubCodeGenTest)
-
-ADD_CUSTOM_TARGET( zcc-test-all ALL echo )
-
-ADD_DEPENDENCIES( zcc-test-all 
-		zcc-test-cond-all 
-		zcc-test-expr-all 
-		zcc-test-stmt-all 
-		zcc-test-object-all 
-		zcc-test-logical-stmt
-		)	
 
 ADD_SUBDIRECTORY(ThorScriptParserTest)
 ADD_SUBDIRECTORY(ThorScriptTreeTest)

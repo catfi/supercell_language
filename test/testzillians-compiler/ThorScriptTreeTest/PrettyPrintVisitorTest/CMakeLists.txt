@@ -31,3 +31,4 @@ TARGET_LINK_LIBRARIES(ThorScriptTreeTest_PrettyPrintVisitorTest
     )
 
 zillians_add_simple_test(TARGET ThorScriptTreeTest_PrettyPrintVisitorTest)
+zillians_add_test_to_subject(SUBJECT ThorScriptTreeTestAll TARGET ThorScriptTreeTest_PrettyPrintVisitorTest)
