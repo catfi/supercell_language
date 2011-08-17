@@ -38,16 +38,16 @@ zillians_add_complex_test(
 zillians_add_complex_test(
     TARGET thor-script-parser-test-ast-advanced
     SHELL ${CMAKE_CURRENT_SOURCE_DIR}/../scripts/test.sh ${TCC} ${SPIRIT_LOG_FILTER} 1
-            ${CMAKE_CURRENT_SOURCE_DIR}/0_modifier.t
-            ${CMAKE_CURRENT_SOURCE_DIR}/1_constructor.t
+            #${CMAKE_CURRENT_SOURCE_DIR}/0_modifier.t
+            #${CMAKE_CURRENT_SOURCE_DIR}/1_constructor.t
             ${CMAKE_CURRENT_SOURCE_DIR}/2_annotation.t
-            #${CMAKE_CURRENT_SOURCE_DIR}/3_as.t
-            ${CMAKE_CURRENT_SOURCE_DIR}/4_instanceof.t
-            ${CMAKE_CURRENT_SOURCE_DIR}/5_typedef.t
-            ${CMAKE_CURRENT_SOURCE_DIR}/6_lambda.t
-            ${CMAKE_CURRENT_SOURCE_DIR}/7_template.t
-            ${CMAKE_CURRENT_SOURCE_DIR}/8_container.t
-            ${CMAKE_CURRENT_SOURCE_DIR}/9_va_arg.t
+            ##${CMAKE_CURRENT_SOURCE_DIR}/3_as.t
+            #${CMAKE_CURRENT_SOURCE_DIR}/4_instanceof.t
+            #${CMAKE_CURRENT_SOURCE_DIR}/5_typedef.t
+            #${CMAKE_CURRENT_SOURCE_DIR}/6_lambda.t
+            #${CMAKE_CURRENT_SOURCE_DIR}/7_template.t
+            #${CMAKE_CURRENT_SOURCE_DIR}/8_container.t
+            #${CMAKE_CURRENT_SOURCE_DIR}/9_va_arg.t
     DEPENDS ${TCC} ${SPIRIT_LOG_FILTER}
     )
 
