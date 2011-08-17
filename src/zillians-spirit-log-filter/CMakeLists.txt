@@ -32,8 +32,8 @@ TARGET_LINK_LIBRARIES(spirit-log-filter
     zillians-common-core
     )
     
-zillians_add_complex_test( 
-    TARGET spirit-log-filter
-    SHELL ${EXECUTABLE_OUTPUT_PATH}/spirit-log-filter
-            ${CMAKE_CURRENT_SOURCE_DIR}/data/spiritlog.xml
-    )
+#zillians_add_complex_test( 
+#    TARGET spirit-log-filter
+#    SHELL ${EXECUTABLE_OUTPUT_PATH}/spirit-log-filter
+#            ${CMAKE_CURRENT_SOURCE_DIR}/data/spiritlog.xml
+#    )
