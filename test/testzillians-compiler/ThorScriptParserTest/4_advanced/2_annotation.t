@@ -16,6 +16,7 @@ class my_class
 }
 
 @tag { key = 29, key2 = "eee" }
+@tag2 { key = 31, key2 = "fff" }
 function g():void
 {
 }
