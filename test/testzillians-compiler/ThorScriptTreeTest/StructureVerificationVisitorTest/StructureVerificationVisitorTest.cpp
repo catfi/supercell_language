@@ -20,12 +20,14 @@
 #include "core/Prerequisite.h"
 #include "compiler/tree/ASTNode.h"
 #include "compiler/tree/ASTNodeFactory.h"
-#include "compiler/tree/visitor/general/GarbageCollectionVisitor.h"
+#include "compiler/tree/visitor/stage1/StructureVerificationVisitor.h"
+#include "compiler/tree/visitor/general/PrettyPrintVisitor.h"
+#include "../ASTNodeSamples.h"
 #include <iostream>
 #include <string>
 #include <limits>
 
-#define BOOST_TEST_MODULE ThorScriptTreeTest_BasicTreeGenerationTest
+#define BOOST_TEST_MODULE ThorScriptTreeTest_StructureVerificationVisitorTest
 #define BOOST_TEST_MAIN
 #include <boost/test/unit_test.hpp>
 
@@ -33,43 +35,32 @@ using namespace zillians;
 using namespace zillians::compiler::tree;
 using namespace zillians::compiler::tree::visitor;
 
-BOOST_AUTO_TEST_SUITE( ThorScriptTreeTest_BasicTreeGenerationTestSuite )
+BOOST_AUTO_TEST_SUITE( ThorScriptTreeTest_GenericVisitorTestSuite )
 
-BOOST_AUTO_TEST_CASE( ThorScriptTreeTest_BasicTreeGenerationTestCase1_IsA )
+BOOST_AUTO_TEST_CASE( ThorScriptTreeTest_GenericVisitorTestCase1 )
 {
-	{
-		ASTNode *node = new Program(new Package(new SimpleIdentifier(L"")));
-		BOOST_CHECK(isa<Program>(node));
-		BOOST_CHECK(!isa<Literal>(node));
-	}
+	stage1::StructureVerificationVisitor<Composed::FALSE> v;
 
-	{
-		ASTNode *node = new BinaryExpr(BinaryExpr::OpCode::ASSIGN, new SimpleIdentifier(L"abc"), new NumericLiteral((uint64)123L));
-		BOOST_CHECK(isa<Expression>(node));
-		BOOST_CHECK(isa<BinaryExpr>(node));
-	}
+	ASTNode* program = createSample3();
+	v.visit(*program);
 
-	{
-		NestedIdentifier* node = new NestedIdentifier();
-		BOOST_CHECK(isa<Identifier>(node));
-	}
+	BOOST_CHECK(v.passed == true);
 }
 
-BOOST_AUTO_TEST_CASE( ThorScriptTreeTest_BasicTreeGenerationTestCase2 )
+BOOST_AUTO_TEST_CASE( ThorScriptTreeTest_GenericVisitorTestCase2 )
 {
-	{
-		Program* program = new Program(new Package(new SimpleIdentifier(L"")));
-		BOOST_CHECK(program->root->id->toString().empty());
-	}
+	stage1::StructureVerificationVisitor<Composed::FALSE> v;
 
-	{
-		Program* program = new Program();
-		BOOST_CHECK(program->root->id->toString().empty()); // the default package name is empty ""
-	}
-}
+	ASTNode* program = createSample4();
+	v.visit(*program);
 
-BOOST_AUTO_TEST_CASE( ThorScriptTreeTest_BasicTreeGenerationTestCase3 )
-{
+	BOOST_CHECK(v.passed == false);
+	if(!v.passed)
+	{
+		PrettyPrintVisitor printer;
+		foreach(i, v.unspecified_nodes)
+			printer.visit(**i);
+	}
 }
 
 BOOST_AUTO_TEST_SUITE_END()

@@ -16,9 +16,6 @@
  * AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-/**
- * @date Sep 1, 2009 sdk - Initial version created.
- */
 
 #include "core/Prerequisite.h"
 #include "compiler/tree/ASTNode.h"
@@ -26,6 +23,7 @@
 #include "compiler/tree/visitor/general/GenericVisitor.h"
 #include "compiler/tree/visitor/general/GenericDoubleVisitor.h"
 #include "compiler/tree/visitor/general/GenericComposableVisitor.h"
+#include "compiler/tree/visitor/general/ObjectCountVisitor.h"
 #include "../ASTNodeSamples.h"
 #include <iostream>
 #include <string>
@@ -108,7 +106,26 @@ BOOST_AUTO_TEST_CASE( ThorScriptTreeTest_GenericVisitorTestCase2 )
 
 	std::cout << "total node count (counter1) = " << counter1.total_count << std::endl;
 	std::cout << "total node count (counter2) = " << counter2.total_count << std::endl;
+}
 
+BOOST_AUTO_TEST_CASE( ThorScriptTreeTest_GenericVisitorTestCase3 )
+{
+	ObjectCountVisitor<Composed::TRUE> counter1;
+	ObjectCountVisitor<Composed::TRUE> counter2;
+
+	// create a visitor composed by multiple composable visitor
+	// note that in composable visitor we basically don't have to call revisit() or visit() because the GenericComposableVisitor will walk through the entire AST tree
+	// (of course we can still do so if we need some custom traversal)
+	GenericComposableVisitor<ObjectCountVisitor<Composed::TRUE>&, ObjectCountVisitor<Composed::TRUE>&> composed_counter(counter1, counter2);
+
+	ASTNode* program = createSample1();
+	composed_counter.visit(*program);
+
+	BOOST_CHECK(counter1.get_count() == 3);
+	BOOST_CHECK(counter2.get_count() == 3);
+
+	std::cout << "total node count (counter1) = " << counter1.get_count() << std::endl;
+	std::cout << "total node count (counter2) = " << counter2.get_count() << std::endl;
 }
 
 BOOST_AUTO_TEST_SUITE_END()

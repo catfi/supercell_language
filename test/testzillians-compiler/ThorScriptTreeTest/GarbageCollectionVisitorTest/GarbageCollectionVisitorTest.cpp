@@ -16,9 +16,6 @@
  * AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-/**
- * @date Sep 1, 2009 sdk - Initial version created.
- */
 
 #include "core/Prerequisite.h"
 #include "compiler/tree/ASTNode.h"
@@ -46,20 +43,20 @@ BOOST_AUTO_TEST_CASE( ThorScriptTreeTest_GarbageCollectionVisitorTestCase1 )
 
 	int count_before_gc = 0;
 	{
-		ObjectCountVisitor counter;
+		ObjectCountVisitor<Composed::FALSE> counter;
 		counter.visit(*node);
 		count_before_gc = counter.get_count();
 	}
 
 	{
-		GarbageCollectionVisitor marker;
+		GarbageCollectionVisitor<Composed::FALSE> marker;
 		marker.visit(*node);
 		BOOST_CHECK(marker.get_sweep_count() == 0);
 	}
 
 	int count_after_gc = 0;
 	{
-		ObjectCountVisitor counter;
+		ObjectCountVisitor<Composed::FALSE> counter;
 		counter.visit(*node);
 		count_after_gc = counter.get_count();
 	}
@@ -75,20 +72,20 @@ BOOST_AUTO_TEST_CASE( ThorScriptTreeTest_GarbageCollectionVisitorTestCase2 )
 
 	int count_before_gc = 0;
 	{
-		ObjectCountVisitor counter;
+		ObjectCountVisitor<Composed::FALSE> counter;
 		counter.visit(*node);
 		count_before_gc = counter.get_count();
 	}
 
 	{
-		GarbageCollectionVisitor marker;
+		GarbageCollectionVisitor<Composed::FALSE> marker;
 		marker.visit(*node);
 		BOOST_CHECK(marker.get_sweep_count() == 0);
 	}
 
 	int count_after_gc = 0;
 	{
-		ObjectCountVisitor counter;
+		ObjectCountVisitor<Composed::FALSE> counter;
 		counter.visit(*node);
 		count_after_gc = counter.get_count();
 	}
@@ -103,20 +100,20 @@ BOOST_AUTO_TEST_CASE( ThorScriptTreeTest_GarbageCollectionVisitorTestCase3 )
 	ASTNode* node = createSample1();
 	int count_before_gc = 0;
 	{
-		ObjectCountVisitor counter;
+		ObjectCountVisitor<Composed::FALSE> counter;
 		counter.visit(*node);
 		count_before_gc = counter.get_count();
 	}
 
 	{
-		GarbageCollectionVisitor marker;
+		GarbageCollectionVisitor<Composed::FALSE> marker;
 		marker.visit(*node);
 		BOOST_CHECK(marker.get_sweep_count() == 0);
 	}
 
 	int count_after_gc = 0;
 	{
-		ObjectCountVisitor counter;
+		ObjectCountVisitor<Composed::FALSE> counter;
 		counter.visit(*node);
 		count_after_gc = counter.get_count();
 	}

@@ -16,9 +16,6 @@
  * AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-/**
- * @date Sep 1, 2009 sdk - Initial version created.
- */
 
 #include "core/Prerequisite.h"
 #include "compiler/tree/ASTNode.h"
