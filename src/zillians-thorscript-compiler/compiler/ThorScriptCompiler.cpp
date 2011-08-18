@@ -27,6 +27,12 @@
 #include "compiler/action/SemanticActions.h"
 #include "compiler/tree/visitor/general/PrettyPrintVisitor.h"
 
+namespace classic = boost::spirit::classic;
+namespace qi = boost::spirit::qi;
+namespace action = zillians::compiler::action;
+
+namespace {
+
 // since '\t' may be printed in spaces and I don't know a way to change std::wcout, we simply replace the tab with desired number of spaces
 // so that we can have correct error pointing cursor
 // (note that because '\t' equals to 4 spaces reported by spirit, we have to make sure it's printed in the exact same way)
@@ -41,11 +47,9 @@ static void _expand_tabs(const std::wstring& input, std::wstring& output, int nu
 	}
 }
 
-namespace zillians { namespace compiler {
+}
 
-namespace bsc = boost::spirit::classic;
-namespace bsq = boost::spirit::qi;
-namespace zca = zillians::compiler::action;
+namespace zillians { namespace compiler {
 
 ThorScriptCompiler::ThorScriptCompiler()
 {
@@ -81,17 +85,17 @@ bool ThorScriptCompiler::do_parse(std::string filename, bool dump_parse, bool du
     enable_default_locale(std::wcout);
 
     // try to parse
-	typedef bsc::position_iterator2<std::wstring::iterator> pos_iterator_type;
+	typedef classic::position_iterator2<std::wstring::iterator> pos_iterator_type;
 	try
 	{
 		pos_iterator_type begin(source_code.begin(), source_code.end(), s_to_ws(filename));
 		pos_iterator_type end;
 
-		zca::ThorScriptTreeAction::MemberContext c;
-		grammar::ThorScript<pos_iterator_type, zca::ThorScriptTreeAction> parser(dump_parse);
+		action::ThorScriptTreeAction::MemberContext c;
+		grammar::ThorScript<pos_iterator_type, action::ThorScriptTreeAction> parser(dump_parse);
 		grammar::detail::WhiteSpace<pos_iterator_type> skipper;
 
-		if(!bsq::phrase_parse(
+		if(!qi::phrase_parse(
 				begin, end,
 				parser(&c),
 				skipper))
@@ -105,9 +109,9 @@ bool ThorScriptCompiler::do_parse(std::string filename, bool dump_parse, bool du
 			printer.visit(*c.program);
 		}
 	}
-	catch (const bsq::expectation_failure<pos_iterator_type>& e)
+	catch (const qi::expectation_failure<pos_iterator_type>& e)
 	{
-		const bsc::file_position_base<std::wstring>& pos = e.first.get_position();
+		const classic::file_position_base<std::wstring>& pos = e.first.get_position();
 
 		std::wstring current_line;
 		_expand_tabs(e.first.get_currentline(), current_line);
