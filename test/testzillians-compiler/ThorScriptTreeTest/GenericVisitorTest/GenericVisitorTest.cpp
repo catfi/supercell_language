@@ -110,13 +110,13 @@ BOOST_AUTO_TEST_CASE( ThorScriptTreeTest_GenericVisitorTestCase2 )
 
 BOOST_AUTO_TEST_CASE( ThorScriptTreeTest_GenericVisitorTestCase3 )
 {
-	ObjectCountVisitor<Composed::TRUE> counter1;
-	ObjectCountVisitor<Composed::TRUE> counter2;
+	ObjectCountVisitor<Composable> counter1;
+	ObjectCountVisitor<Composable> counter2;
 
 	// create a visitor composed by multiple composable visitor
 	// note that in composable visitor we basically don't have to call revisit() or visit() because the GenericComposableVisitor will walk through the entire AST tree
 	// (of course we can still do so if we need some custom traversal)
-	GenericComposableVisitor<ObjectCountVisitor<Composed::TRUE>&, ObjectCountVisitor<Composed::TRUE>&> composed_counter(counter1, counter2);
+	GenericComposableVisitor<ObjectCountVisitor<Composable>&, ObjectCountVisitor<Composable>&> composed_counter(counter1, counter2);
 
 	ASTNode* program = createSample1();
 	composed_counter.visit(*program);

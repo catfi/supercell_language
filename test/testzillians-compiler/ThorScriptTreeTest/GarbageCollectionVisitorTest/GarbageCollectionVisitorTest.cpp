@@ -43,20 +43,20 @@ BOOST_AUTO_TEST_CASE( ThorScriptTreeTest_GarbageCollectionVisitorTestCase1 )
 
 	int count_before_gc = 0;
 	{
-		ObjectCountVisitor<Composed::FALSE> counter;
+		ObjectCountVisitor<> counter;
 		counter.visit(*node);
 		count_before_gc = counter.get_count();
 	}
 
 	{
-		GarbageCollectionVisitor<Composed::FALSE> marker;
+		GarbageCollectionVisitor<> marker;
 		marker.visit(*node);
 		BOOST_CHECK(marker.get_sweep_count() == 0);
 	}
 
 	int count_after_gc = 0;
 	{
-		ObjectCountVisitor<Composed::FALSE> counter;
+		ObjectCountVisitor<> counter;
 		counter.visit(*node);
 		count_after_gc = counter.get_count();
 	}
@@ -72,20 +72,20 @@ BOOST_AUTO_TEST_CASE( ThorScriptTreeTest_GarbageCollectionVisitorTestCase2 )
 
 	int count_before_gc = 0;
 	{
-		ObjectCountVisitor<Composed::FALSE> counter;
+		ObjectCountVisitor<> counter;
 		counter.visit(*node);
 		count_before_gc = counter.get_count();
 	}
 
 	{
-		GarbageCollectionVisitor<Composed::FALSE> marker;
+		GarbageCollectionVisitor<> marker;
 		marker.visit(*node);
 		BOOST_CHECK(marker.get_sweep_count() == 0);
 	}
 
 	int count_after_gc = 0;
 	{
-		ObjectCountVisitor<Composed::FALSE> counter;
+		ObjectCountVisitor<> counter;
 		counter.visit(*node);
 		count_after_gc = counter.get_count();
 	}
@@ -100,20 +100,20 @@ BOOST_AUTO_TEST_CASE( ThorScriptTreeTest_GarbageCollectionVisitorTestCase3 )
 	ASTNode* node = createSample1();
 	int count_before_gc = 0;
 	{
-		ObjectCountVisitor<Composed::FALSE> counter;
+		ObjectCountVisitor<> counter;
 		counter.visit(*node);
 		count_before_gc = counter.get_count();
 	}
 
 	{
-		GarbageCollectionVisitor<Composed::FALSE> marker;
+		GarbageCollectionVisitor<> marker;
 		marker.visit(*node);
 		BOOST_CHECK(marker.get_sweep_count() == 0);
 	}
 
 	int count_after_gc = 0;
 	{
-		ObjectCountVisitor<Composed::FALSE> counter;
+		ObjectCountVisitor<> counter;
 		counter.visit(*node);
 		count_after_gc = counter.get_count();
 	}

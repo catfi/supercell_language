@@ -39,7 +39,7 @@ BOOST_AUTO_TEST_SUITE( ThorScriptTreeTest_GenericVisitorTestSuite )
 
 BOOST_AUTO_TEST_CASE( ThorScriptTreeTest_GenericVisitorTestCase1 )
 {
-	stage1::StructureVerificationVisitor<Composed::FALSE> v;
+	stage1::StructureVerificationVisitor<> v;
 
 	ASTNode* program = createSample3();
 	v.visit(*program);
@@ -49,7 +49,7 @@ BOOST_AUTO_TEST_CASE( ThorScriptTreeTest_GenericVisitorTestCase1 )
 
 BOOST_AUTO_TEST_CASE( ThorScriptTreeTest_GenericVisitorTestCase2 )
 {
-	stage1::StructureVerificationVisitor<Composed::FALSE> v;
+	stage1::StructureVerificationVisitor<> v;
 
 	ASTNode* program = createSample4();
 	v.visit(*program);
