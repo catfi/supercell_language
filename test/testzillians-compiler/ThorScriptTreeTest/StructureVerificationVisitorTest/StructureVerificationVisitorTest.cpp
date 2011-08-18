@@ -44,7 +44,7 @@ BOOST_AUTO_TEST_CASE( ThorScriptTreeTest_GenericVisitorTestCase1 )
 	ASTNode* program = createSample3();
 	v.visit(*program);
 
-	BOOST_CHECK(v.passed == true);
+	BOOST_CHECK(v.passed == true && "since there's no unspecified type specifier in sample3, structure verification should pass");
 }
 
 BOOST_AUTO_TEST_CASE( ThorScriptTreeTest_GenericVisitorTestCase2 )
@@ -54,9 +54,10 @@ BOOST_AUTO_TEST_CASE( ThorScriptTreeTest_GenericVisitorTestCase2 )
 	ASTNode* program = createSample4();
 	v.visit(*program);
 
-	BOOST_CHECK(v.passed == false);
+	BOOST_CHECK(v.passed == false && "since there's unspecified type specifier in sample3, structure verification should fail");
 	if(!v.passed)
 	{
+		BOOST_CHECK(v.unspecified_nodes.size() == 4 && "that's the total number of unspecified type specifier in sample4");
 		PrettyPrintVisitor printer;
 		foreach(i, v.unspecified_nodes)
 			printer.visit(**i);
