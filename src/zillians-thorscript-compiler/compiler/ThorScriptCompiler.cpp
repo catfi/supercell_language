@@ -21,7 +21,6 @@
  */
 
 #include "compiler/ThorScriptCompiler.h"
-#include "core/Prerequisite.h"
 #include "utility/UnicodeUtil.h"
 #include "compiler/grammar/ThorScript.h"
 #include "compiler/action/SemanticActions.h"
@@ -29,7 +28,8 @@
 
 namespace classic = boost::spirit::classic;
 namespace qi = boost::spirit::qi;
-namespace action = zillians::compiler::action;
+
+namespace zillians { namespace compiler {
 
 namespace {
 
@@ -49,13 +49,11 @@ static void _expand_tabs(const std::wstring& input, std::wstring& output, int nu
 
 }
 
-namespace zillians { namespace compiler {
-
 ThorScriptCompiler::ThorScriptCompiler()
 {
 }
 
-bool ThorScriptCompiler::do_parse(std::string filename, bool dump_parse, bool dump_ast)
+bool ThorScriptCompiler::parse(std::string filename, bool parsing_only, bool dump_parse, bool dump_ast)
 {
 	std::ifstream in(filename, std::ios_base::in);
 
@@ -84,6 +82,9 @@ bool ThorScriptCompiler::do_parse(std::string filename, bool dump_parse, bool du
     // enable correct locale so that we can print UCS4 characters
     enable_default_locale(std::wcout);
 
+    action::ParserState::instance()->enable_semantic_action = !parsing_only;
+    action::ParserState::instance()->enable_debug = dump_parse;
+
     // try to parse
 	typedef classic::position_iterator2<std::wstring::iterator> pos_iterator_type;
 	try
@@ -91,13 +92,12 @@ bool ThorScriptCompiler::do_parse(std::string filename, bool dump_parse, bool du
 		pos_iterator_type begin(source_code.begin(), source_code.end(), s_to_ws(filename));
 		pos_iterator_type end;
 
-		action::ThorScriptTreeAction::MemberContext c;
-		grammar::ThorScript<pos_iterator_type, action::ThorScriptTreeAction> parser(dump_parse);
+		grammar::ThorScript<pos_iterator_type, action::ThorScriptTreeAction> parser;
 		grammar::detail::WhiteSpace<pos_iterator_type> skipper;
 
 		if(!qi::phrase_parse(
 				begin, end,
-				parser(&c),
+				parser,
 				skipper))
 		{
 			return false;
@@ -105,8 +105,8 @@ bool ThorScriptCompiler::do_parse(std::string filename, bool dump_parse, bool du
 
 		if(dump_ast)
 		{
-			zillians::compiler::tree::visitor::PrettyPrintVisitor printer;
-			printer.visit(*c.program);
+			tree::visitor::PrettyPrintVisitor printer;
+			printer.visit(*action::ParserState::instance()->program);
 		}
 	}
 	catch (const qi::expectation_failure<pos_iterator_type>& e)

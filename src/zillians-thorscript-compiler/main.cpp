@@ -27,9 +27,6 @@
 #include <boost/program_options/value_semantic.hpp>
 #include <iostream>
 
-#define STATUS_SUCCESS 0
-#define STATUS_ERROR   1
-
 namespace bp = boost::program_options;
 
 int main(int argc, char** argv)
@@ -39,6 +36,7 @@ int main(int argc, char** argv)
 
     option_desc.add_options()
     ("help,h",                               "this help message")
+    ("parsing-only",						 "check and parse against grammar only")
     ("dump-parse,p",                         "dump parse tree for debugging purpose")
     ("dump-ast,t",                           "dump AST pretty-print for debugging purpose")
     ("filename,f", bp::value<std::string>(), "filename");
@@ -58,25 +56,32 @@ int main(int argc, char** argv)
 	std::string filename;
 	if(args.count("filename")>0)
 		filename = args["filename"].as<std::string>();
+
+	bool parsing_only = (args.count("parsing-only") > 0);
 	bool dump_parse = (args.count("dump-parse")>0);
 	bool dump_ast = (args.count("dump-ast")>0);
+
 	if(args.count("help"))
-		return STATUS_ERROR;
+	{
+		std::cout << "command-line options:" << std::endl << std::endl;
+		std::cout << option_desc;
+		return 0;
+	}
 
 	if(!filename.empty())
 	{
 		zillians::compiler::ThorScriptCompiler compiler;
-		if(!compiler.do_parse(filename, dump_parse, dump_ast))
+		if(!compiler.parse(filename, true, dump_parse, dump_ast))
 		{
 			std::cout << "parse fail" << std::endl;
-			return STATUS_ERROR;
+			return -1;
 		}
 		std::cout << "parse success" << std::endl;
-		return STATUS_SUCCESS;
+		return 0;
 	}
 
 	std::cout << "no option specified" << std::endl << std::endl;
 	std::cout << "command-line options:" << std::endl << std::endl;
 	std::cout << option_desc << std::endl;
-	return STATUS_ERROR;
+	return -1;
 }
