@@ -21,7 +21,7 @@
 
 zillians_add_complex_test(
     TARGET thor-script-parser-test-advanced
-    SHELL ${CMAKE_CURRENT_SOURCE_DIR}/../scripts/test.sh ${TCC} ${SPIRIT_LOG_FILTER} 0
+    SHELL ${CMAKE_CURRENT_SOURCE_DIR}/../scripts/test.sh ${TCC_PARSER} ${SPIRIT_LOG_FILTER} 0
             ${CMAKE_CURRENT_SOURCE_DIR}/0_modifier.t
             ${CMAKE_CURRENT_SOURCE_DIR}/1_constructor.t
             ${CMAKE_CURRENT_SOURCE_DIR}/2_annotation.t
@@ -32,7 +32,7 @@ zillians_add_complex_test(
             ${CMAKE_CURRENT_SOURCE_DIR}/7_template.t
             ${CMAKE_CURRENT_SOURCE_DIR}/8_container.t
             ${CMAKE_CURRENT_SOURCE_DIR}/9_va_arg.t
-    DEPENDS ${TCC} ${SPIRIT_LOG_FILTER}
+    DEPENDS ${TCC_PARSER} ${SPIRIT_LOG_FILTER}
     )
 
 zillians_add_complex_test(

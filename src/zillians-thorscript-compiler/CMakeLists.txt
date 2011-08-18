@@ -24,11 +24,24 @@ INCLUDE_DIRECTORIES(
     ${PROJECT_FRAMEWORK_SOURCE_DIR}/include/
     )
 
+ADD_EXECUTABLE(thorscript-parser
+    main.cpp
+    compiler/ThorScriptCompiler.cpp
+    )
+TARGET_LINK_LIBRARIES(thorscript-parser
+    zillians-common-core
+    zillians-common-utility
+    )
+SET_PROPERTY(
+    TARGET thorscript-parser
+    PROPERTY COMPILE_DEFINITIONS
+        DISABLE_SEMANTIC_ACTIONS
+    )
+
 ADD_EXECUTABLE(thorscript-compiler
     main.cpp
     compiler/ThorScriptCompiler.cpp
     )
-
 TARGET_LINK_LIBRARIES(thorscript-compiler
     zillians-common-core
     zillians-common-utility
