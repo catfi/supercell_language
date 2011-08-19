@@ -53,7 +53,7 @@ ThorScriptCompiler::ThorScriptCompiler()
 {
 }
 
-bool ThorScriptCompiler::parse(std::string filename, bool parsing_only, bool dump_parse, bool dump_ast)
+bool ThorScriptCompiler::parse(std::string filename, bool dump_parse, bool dump_ast)
 {
 	std::ifstream in(filename, std::ios_base::in);
 
@@ -82,8 +82,8 @@ bool ThorScriptCompiler::parse(std::string filename, bool parsing_only, bool dum
     // enable correct locale so that we can print UCS4 characters
     enable_default_locale(std::wcout);
 
-    action::ParserState::instance()->enable_semantic_action = !parsing_only;
     action::ParserState::instance()->enable_debug = dump_parse;
+    action::ParserState::instance()->enable_semantic_action = dump_ast;
 
     // try to parse
 	typedef classic::position_iterator2<std::wstring::iterator> pos_iterator_type;

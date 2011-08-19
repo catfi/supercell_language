@@ -36,7 +36,6 @@ int main(int argc, char** argv)
 
     option_desc.add_options()
     ("help,h",                               "this help message")
-    ("parsing-only",						 "check and parse against grammar only")
     ("dump-parse,p",                         "dump parse tree for debugging purpose")
     ("dump-ast,t",                           "dump AST pretty-print for debugging purpose")
     ("filename,f", bp::value<std::string>(), "filename");
@@ -57,7 +56,6 @@ int main(int argc, char** argv)
 	if(args.count("filename")>0)
 		filename = args["filename"].as<std::string>();
 
-	bool parsing_only = (args.count("parsing-only") > 0);
 	bool dump_parse = (args.count("dump-parse")>0);
 	bool dump_ast = (args.count("dump-ast")>0);
 
@@ -71,7 +69,7 @@ int main(int argc, char** argv)
 	if(!filename.empty())
 	{
 		zillians::compiler::ThorScriptCompiler compiler;
-		if(!compiler.parse(filename, true, dump_parse, dump_ast))
+		if(!compiler.parse(filename, dump_parse, dump_ast))
 		{
 			std::cout << "parse fail" << std::endl;
 			return -1;
