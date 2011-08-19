@@ -21,7 +21,7 @@
 
 zillians_add_complex_test(
     TARGET thor-script-parser-test-basic
-    SHELL ${CMAKE_CURRENT_SOURCE_DIR}/../scripts/test.sh ${TCC_PARSER} ${SPIRIT_LOG_FILTER} 0
+    SHELL ${CMAKE_CURRENT_SOURCE_DIR}/../scripts/test.sh ${TCC} ${SPIRIT_LOG_FILTER} 0
             ${CMAKE_CURRENT_SOURCE_DIR}/0_global_var.t
             ${CMAKE_CURRENT_SOURCE_DIR}/1_global_func.t
             ${CMAKE_CURRENT_SOURCE_DIR}/2_class.t
@@ -31,21 +31,21 @@ zillians_add_complex_test(
             ${CMAKE_CURRENT_SOURCE_DIR}/6_package.t
             ${CMAKE_CURRENT_SOURCE_DIR}/7_expression.t
             ${CMAKE_CURRENT_SOURCE_DIR}/8_enum.t
-    DEPENDS ${TCC_PARSER} ${SPIRIT_LOG_FILTER}
+    DEPENDS ${TCC} ${SPIRIT_LOG_FILTER}
     )
 
 zillians_add_complex_test(
     TARGET thor-script-parser-test-ast-basic
     SHELL ${CMAKE_CURRENT_SOURCE_DIR}/../scripts/test.sh ${TCC} ${SPIRIT_LOG_FILTER} 1
             ${CMAKE_CURRENT_SOURCE_DIR}/0_global_var.t
-            ${CMAKE_CURRENT_SOURCE_DIR}/1_global_func.t
-            ${CMAKE_CURRENT_SOURCE_DIR}/2_class.t
-            ${CMAKE_CURRENT_SOURCE_DIR}/3_local_var.t
-            ${CMAKE_CURRENT_SOURCE_DIR}/4_member_var.t
-            ${CMAKE_CURRENT_SOURCE_DIR}/5_member_func.t
-            ${CMAKE_CURRENT_SOURCE_DIR}/6_package.t
-            ${CMAKE_CURRENT_SOURCE_DIR}/7_expression.t
-            ${CMAKE_CURRENT_SOURCE_DIR}/8_enum.t
+            #${CMAKE_CURRENT_SOURCE_DIR}/1_global_func.t
+            #${CMAKE_CURRENT_SOURCE_DIR}/2_class.t
+            #${CMAKE_CURRENT_SOURCE_DIR}/3_local_var.t
+            #${CMAKE_CURRENT_SOURCE_DIR}/4_member_var.t
+            #${CMAKE_CURRENT_SOURCE_DIR}/5_member_func.t
+            #${CMAKE_CURRENT_SOURCE_DIR}/6_package.t
+            #${CMAKE_CURRENT_SOURCE_DIR}/7_expression.t
+            #${CMAKE_CURRENT_SOURCE_DIR}/8_enum.t
     DEPENDS ${TCC} ${SPIRIT_LOG_FILTER}
     )
 
