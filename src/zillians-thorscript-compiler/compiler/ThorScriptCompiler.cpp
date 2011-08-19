@@ -36,7 +36,7 @@ namespace {
 // since '\t' may be printed in spaces and I don't know a way to change std::wcout, we simply replace the tab with desired number of spaces
 // so that we can have correct error pointing cursor
 // (note that because '\t' equals to 4 spaces reported by spirit, we have to make sure it's printed in the exact same way)
-static void _expand_tabs(const std::wstring& input, std::wstring& output, int number_of_space_for_tab = 4)
+static void expand_tabs(const std::wstring& input, std::wstring& output, int number_of_space_for_tab = 4)
 {
 	for(std::wstring::const_iterator it = input.begin(); it != input.end(); ++it)
 	{
@@ -114,7 +114,7 @@ bool ThorScriptCompiler::parse(std::string filename, bool dump_parse, bool dump_
 		const classic::file_position_base<std::wstring>& pos = e.first.get_position();
 
 		std::wstring current_line;
-		_expand_tabs(e.first.get_currentline(), current_line);
+		expand_tabs(e.first.get_currentline(), current_line);
 		std::wcerr << L"parse error at file " << pos.file << L" line " << pos.line
 				<< L" column " << pos.column << std::endl
 				<< L"'" << current_line << L"'" << std::endl
