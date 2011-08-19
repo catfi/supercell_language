@@ -87,7 +87,7 @@ ASTNode* createSample3()
 						}
 
 						{
-							ExpressionStmt* stmt = new ExpressionStmt(new BinaryExpr(BinaryExpr::OpCode::ASSIGN, new SimpleIdentifier(L"a"), new SimpleIdentifier(L"b")));
+							ExpressionStmt* stmt = new ExpressionStmt(new BinaryExpr(BinaryExpr::OpCode::ASSIGN, new PrimaryExpr(new SimpleIdentifier(L"a")), new PrimaryExpr(new SimpleIdentifier(L"b"))));
 							block->append(stmt);
 						}
 					}
@@ -151,7 +151,7 @@ ASTNode* createSample4()
 						}
 
 						{
-							ExpressionStmt* stmt = new ExpressionStmt(new BinaryExpr(BinaryExpr::OpCode::ASSIGN, new SimpleIdentifier(L"a"), new SimpleIdentifier(L"b")));
+							ExpressionStmt* stmt = new ExpressionStmt(new BinaryExpr(BinaryExpr::OpCode::ASSIGN, new PrimaryExpr(new SimpleIdentifier(L"a")), new PrimaryExpr(new SimpleIdentifier(L"b"))));
 							block->append(stmt);
 						}
 					}
@@ -215,7 +215,7 @@ ASTNode* createSample5()
 						}
 
 						{
-							ExpressionStmt* stmt = new ExpressionStmt(new BinaryExpr(BinaryExpr::OpCode::ASSIGN, new SimpleIdentifier(L"a"), new SimpleIdentifier(L"b")));
+							ExpressionStmt* stmt = new ExpressionStmt(new BinaryExpr(BinaryExpr::OpCode::ASSIGN, new PrimaryExpr(new SimpleIdentifier(L"a")), new PrimaryExpr(new SimpleIdentifier(L"b"))));
 							block->append(stmt);
 						}
 					}
