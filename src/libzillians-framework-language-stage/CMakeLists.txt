@@ -1,30 +1,36 @@
-# 
+#
 # Zillians MMO
-# Copyright (C) 2007-2009 Zillians.com, Inc.
+# Copyright (C) 2007-2011 Zillians.com, Inc.
 # For more information see http:#www.zillians.com
 #
 # Zillians MMO is the library and runtime for massive multiplayer online game
-# development in utility computing model, which runs as a service for every 
+# development in utility computing model, which runs as a service for every
 # developer to build their virtual world running on our GPU-assisted machines
 #
 # This is a close source library intended to be used solely within Zillians.com
-# 
+#
 # THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 # IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
 # FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
 # COPYRIGHT HOLDER(S) BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN
 # AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
-# CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. 
+# CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #
 # Contact Information: info@zillians.com
 #
 
-zillians_create_test_subject(SUBJECT thorscript-tree-test)
+include_directories(
+    ${PROJECT_COMMON_SOURCE_DIR}/include/
+    ${PROJECT_FRAMEWORK_SOURCE_DIR}/include/
+)
 
-zillians_add_subject_to_subject(PARENT framework-compiler-critical CHILD thorscript-tree-test)
+add_library(zillians-framework-language
+    language/stage/StageConductor.cpp
+    language/stage/basic/TreeDebugStage.cpp
+    language/stage/parser/ThorScriptParserStage.cpp
+	)
 
-ADD_SUBDIRECTORY(GenericVisitorTest)
-ADD_SUBDIRECTORY(GarbageCollectionVisitorTest)
-ADD_SUBDIRECTORY(BasicTreeGenerationTest)
-ADD_SUBDIRECTORY(PrettyPrintVisitorTest)
-ADD_SUBDIRECTORY(StructureVerificationVisitorTest)
+target_link_libraries(zillians-framework-language
+    zillians-common-core
+    zillians-common-utility
+    )

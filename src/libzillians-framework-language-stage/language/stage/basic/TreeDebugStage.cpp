@@ -1,6 +1,6 @@
 /**
  * Zillians MMO
- * Copyright (C) 2007-2010 Zillians.com, Inc.
+ * Copyright (C) 2007-2011 Zillians.com, Inc.
  * For more information see http://www.zillians.com
  *
  * Zillians MMO is the library and runtime for massive multiplayer online game
@@ -16,36 +16,46 @@
  * AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-/**
- * @date Jul 18, 2011 sdk - Initial version created.
- */
 
-#include "language/ThorScriptCompiler.h"
 #include "language/stage/basic/TreeDebugStage.h"
-#include "language/stage/parser/ThorScriptParserStage.h"
+#include "language/action/detail/ParserState.h"
+#include "language/tree/visitor/general/PrettyPrintVisitor.h"
 
-using namespace zillians::language::stage;
+namespace zillians { namespace language { namespace stage {
 
-namespace zillians { namespace language {
-
-ThorScriptCompiler::ThorScriptCompiler()
+TreeDebugStage::TreeDebugStage() : dump_tree(false)
 { }
 
-ThorScriptCompiler::~ThorScriptCompiler()
+TreeDebugStage::~TreeDebugStage()
 { }
 
-void ThorScriptCompiler::initialize()
+const char* TreeDebugStage::name()
 {
-	shared_ptr<Stage> parser(new ThorScriptParserStage());
-	shared_ptr<Stage> debug_tree(new TreeDebugStage());
-
-	appendStage(parser);
-	appendStage(debug_tree);
+	return "tree_debug_dump";
 }
 
-void ThorScriptCompiler::finalize()
+void TreeDebugStage::initializeOptions(po::options_description& option_desc, po::positional_options_description& positional_desc)
 {
-
+    option_desc.add_options()
+    ("dump-ast", "dump AST pretty-print for debugging purpose");
 }
 
-} }
+bool TreeDebugStage::parseOptions(po::variables_map& vm)
+{
+	dump_tree = (vm.count("dump-ast") > 0);
+
+	return true;
+}
+
+bool TreeDebugStage::execute()
+{
+	if(dump_tree)
+	{
+		tree::visitor::PrettyPrintVisitor printer;
+		printer.visit(*action::ParserState::instance()->program);
+	}
+
+	return true;
+}
+
+} } }

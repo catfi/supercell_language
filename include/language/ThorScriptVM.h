@@ -1,6 +1,6 @@
 /**
  * Zillians MMO
- * Copyright (C) 2007-2010 Zillians.com, Inc.
+ * Copyright (C) 2007-2011 Zillians.com, Inc.
  * For more information see http://www.zillians.com
  *
  * Zillians MMO is the library and runtime for massive multiplayer online game
@@ -16,36 +16,28 @@
  * AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-/**
- * @date Jul 18, 2011 sdk - Initial version created.
- */
 
-#include "language/ThorScriptCompiler.h"
-#include "language/stage/basic/TreeDebugStage.h"
-#include "language/stage/parser/ThorScriptParserStage.h"
+#ifndef ZILLIANS_LANGUAGE_THORSCRIPTVM_H_
+#define ZILLIANS_LANGUAGE_THORSCRIPTVM_H_
 
-using namespace zillians::language::stage;
+#include "core/Prerequisite.h"
+#include "language/tree/ASTNode.h"
+#include "stage/StageConductor.h"
 
 namespace zillians { namespace language {
 
-ThorScriptCompiler::ThorScriptCompiler()
-{ }
-
-ThorScriptCompiler::~ThorScriptCompiler()
-{ }
-
-void ThorScriptCompiler::initialize()
+class ThorScriptVM : public stage::StageConductor
 {
-	shared_ptr<Stage> parser(new ThorScriptParserStage());
-	shared_ptr<Stage> debug_tree(new TreeDebugStage());
+public:
+	ThorScriptVM();
+	virtual ~ThorScriptVM();
 
-	appendStage(parser);
-	appendStage(debug_tree);
-}
-
-void ThorScriptCompiler::finalize()
-{
-
-}
+public:
+	virtual void initialize();
+	virtual void finalize();
+};
 
 } }
+
+
+#endif /* ZILLIANS_LANGUAGE_THORSCRIPTVM_H_ */

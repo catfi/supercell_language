@@ -19,10 +19,10 @@ for ARG in "$@"; do
     fi
     echo "filename: $ARG"
     if [ $MODE -eq 1 ]; then
-        $EXEC $ARG -t
+        $EXEC $ARG --dump-ast
         continue
     fi
-    $EXEC $ARG -p >& $TEMP_FILE_A
+    $EXEC $ARG --dump-parse >& $TEMP_FILE_A
     ERROR_MESSAGE=`cat $TEMP_FILE_A | grep "error"`
     if [ -n "$ERROR_MESSAGE" ]; then
         cat $TEMP_FILE_A # NOTE: for convenience

@@ -16,26 +16,25 @@
  * AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-/**
- * @date Jul 18, 2011 sdk - Initial version created.
- */
 
 #ifndef ZILLIANS_LANGUAGE_THORSCRIPTCOMPILER_H_
 #define ZILLIANS_LANGUAGE_THORSCRIPTCOMPILER_H_
 
 #include "core/Prerequisite.h"
 #include "language/tree/ASTNode.h"
+#include "language/stage/StageConductor.h"
 
 namespace zillians { namespace language {
 
-class ThorScriptCompiler
+class ThorScriptCompiler : public stage::StageConductor
 {
 public:
 	ThorScriptCompiler();
+	virtual ~ThorScriptCompiler();
 
 public:
-	bool parse(std::string filename, bool dump_parse, bool dump_ast);
-
+	virtual void initialize();
+	virtual void finalize();
 };
 
 } }

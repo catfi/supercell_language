@@ -20,32 +20,10 @@
  * @date Jul 18, 2011 sdk - Initial version created.
  */
 
-#include "language/ThorScriptCompiler.h"
-#include "language/stage/basic/TreeDebugStage.h"
-#include "language/stage/parser/ThorScriptParserStage.h"
+#include "language/ThorScriptVM.h"
 
-using namespace zillians::language::stage;
-
-namespace zillians { namespace language {
-
-ThorScriptCompiler::ThorScriptCompiler()
-{ }
-
-ThorScriptCompiler::~ThorScriptCompiler()
-{ }
-
-void ThorScriptCompiler::initialize()
+int main(int argc, char** argv)
 {
-	shared_ptr<Stage> parser(new ThorScriptParserStage());
-	shared_ptr<Stage> debug_tree(new TreeDebugStage());
-
-	appendStage(parser);
-	appendStage(debug_tree);
+	zillians::language::ThorScriptVM vm;
+	return vm.main(argc, argv);
 }
-
-void ThorScriptCompiler::finalize()
-{
-
-}
-
-} }

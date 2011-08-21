@@ -19,8 +19,8 @@
 # Contact Information: info@zillians.com
 #
 
-zillians_create_test_subject(SUBJECT thor-script-parser-test-all)
-zillians_add_subject_to_subject(PARENT framework-compiler-critical CHILD thor-script-parser-test-all)
+zillians_create_test_subject(SUBJECT thorscript-parser-test-all)
+zillians_add_subject_to_subject(PARENT framework-compiler-critical CHILD thorscript-parser-test-all)
 
 ADD_SUBDIRECTORY(0_lexer)
 ADD_SUBDIRECTORY(1_basic)

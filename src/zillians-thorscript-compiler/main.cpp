@@ -21,65 +21,9 @@
  */
 
 #include "language/ThorScriptCompiler.h"
-#include <boost/program_options/options_description.hpp>
-#include <boost/program_options/variables_map.hpp>
-#include <boost/program_options/parsers.hpp>
-#include <boost/program_options/value_semantic.hpp>
-#include <iostream>
-
-namespace bp = boost::program_options;
 
 int main(int argc, char** argv)
 {
-    bp::options_description option_desc;
-    bp::positional_options_description pos_options_desc;
-
-    option_desc.add_options()
-    ("help,h",                               "this help message")
-    ("dump-parse,p",                         "dump parse tree for debugging purpose")
-    ("dump-ast,t",                           "dump AST pretty-print for debugging purpose")
-    ("filename,f", bp::value<std::string>(), "filename");
-    pos_options_desc.add("filename", -1);
-
-	bp::variables_map args;
-    try
-    {
-		bp::store(bp::command_line_parser(argc, argv).options(option_desc).positional(pos_options_desc).run(), args);
-		bp::notify(args);
-    }
-    catch(...)
-    {
-    	std::cout << "invalid options" << std::endl;
-    }
-
-	std::string filename;
-	if(args.count("filename")>0)
-		filename = args["filename"].as<std::string>();
-
-	bool dump_parse = (args.count("dump-parse")>0);
-	bool dump_ast = (args.count("dump-ast")>0);
-
-	if(args.count("help"))
-	{
-		std::cout << "command-line options:" << std::endl << std::endl;
-		std::cout << option_desc;
-		return 0;
-	}
-
-	if(!filename.empty())
-	{
-		zillians::language::ThorScriptCompiler compiler;
-		if(!compiler.parse(filename, dump_parse, dump_ast))
-		{
-			std::cout << "parse fail" << std::endl;
-			return -1;
-		}
-		std::cout << "parse success" << std::endl;
-		return 0;
-	}
-
-	std::cout << "no option specified" << std::endl << std::endl;
-	std::cout << "command-line options:" << std::endl << std::endl;
-	std::cout << option_desc << std::endl;
-	return -1;
+	zillians::language::ThorScriptCompiler compiler;
+	return compiler.main(argc, argv);
 }
