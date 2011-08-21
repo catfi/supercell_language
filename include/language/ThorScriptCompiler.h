@@ -16,32 +16,28 @@
  * AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
+/**
+ * @date Jul 18, 2011 sdk - Initial version created.
+ */
+
+#ifndef ZILLIANS_LANGUAGE_THORSCRIPTCOMPILER_H_
+#define ZILLIANS_LANGUAGE_THORSCRIPTCOMPILER_H_
 
 #include "core/Prerequisite.h"
 #include "language/tree/ASTNode.h"
-#include "language/tree/ASTNodeFactory.h"
-#include "language/tree/visitor/general/PrettyPrintVisitor.h"
-#include "../ASTNodeSamples.h"
-#include <iostream>
-#include <string>
-#include <limits>
 
-#define BOOST_TEST_MODULE ThorScriptTreeTest_PrettyPrintVisitorTest
-#define BOOST_TEST_MAIN
-#include <boost/test/unit_test.hpp>
+namespace zillians { namespace language {
 
-using namespace zillians;
-using namespace zillians::language::tree;
-using namespace zillians::language::tree::visitor;
-
-BOOST_AUTO_TEST_SUITE( ThorScriptTreeTest_PrettyPrintVisitorTestSuite )
-
-BOOST_AUTO_TEST_CASE( ThorScriptTreeTest_PrettyPrintVisitorTestCase1 )
+class ThorScriptCompiler
 {
-	PrettyPrintVisitor printer;
+public:
+	ThorScriptCompiler();
 
-	ASTNode* program = createSample1();
-	printer.visit(*program);
-}
+public:
+	bool parse(std::string filename, bool dump_parse, bool dump_ast);
 
-BOOST_AUTO_TEST_SUITE_END()
+};
+
+} }
+
+#endif /* ZILLIANS_LANGUAGE_THORSCRIPTCOMPILER_H_ */

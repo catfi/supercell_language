@@ -20,16 +20,16 @@
  * @date Jul 18, 2011 sdk - Initial version created.
  */
 
-#include "compiler/ThorScriptCompiler.h"
+#include "language/ThorScriptCompiler.h"
 #include "utility/UnicodeUtil.h"
-#include "compiler/grammar/ThorScript.h"
-#include "compiler/action/SemanticActions.h"
-#include "compiler/tree/visitor/general/PrettyPrintVisitor.h"
+#include "language/grammar/ThorScript.h"
+#include "language/action/SemanticActions.h"
+#include "language/tree/visitor/general/PrettyPrintVisitor.h"
 
 namespace classic = boost::spirit::classic;
 namespace qi = boost::spirit::qi;
 
-namespace zillians { namespace compiler {
+namespace zillians { namespace language {
 
 namespace {
 

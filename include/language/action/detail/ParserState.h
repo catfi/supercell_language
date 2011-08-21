@@ -1,6 +1,6 @@
 /**
  * Zillians MMO
- * Copyright (C) 2007-2010 Zillians.com, Inc.
+ * Copyright (C) 2007-2011 Zillians.com, Inc.
  * For more information see http://www.zillians.com
  *
  * Zillians MMO is the library and runtime for massive multiplayer online game
@@ -17,31 +17,26 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
+#ifndef ZILLIANS_LANGUAGE_ACTION_PARSERSTATE_H_
+#define ZILLIANS_LANGUAGE_ACTION_PARSERSTATE_H_
+
 #include "core/Prerequisite.h"
-#include "language/tree/ASTNode.h"
+#include "core/Singleton.h"
 #include "language/tree/ASTNodeFactory.h"
-#include "language/tree/visitor/general/PrettyPrintVisitor.h"
-#include "../ASTNodeSamples.h"
-#include <iostream>
-#include <string>
-#include <limits>
 
-#define BOOST_TEST_MODULE ThorScriptTreeTest_PrettyPrintVisitorTest
-#define BOOST_TEST_MAIN
-#include <boost/test/unit_test.hpp>
+namespace zillians { namespace language { namespace action {
 
-using namespace zillians;
-using namespace zillians::language::tree;
-using namespace zillians::language::tree::visitor;
-
-BOOST_AUTO_TEST_SUITE( ThorScriptTreeTest_PrettyPrintVisitorTestSuite )
-
-BOOST_AUTO_TEST_CASE( ThorScriptTreeTest_PrettyPrintVisitorTestCase1 )
+struct ParserState : Singleton<ParserState, SingletonInitialization::automatic>
 {
-	PrettyPrintVisitor printer;
+	ParserState() : enable_semantic_action(true), enable_debug(false), program(NULL), active_package(NULL)
+	{ }
 
-	ASTNode* program = createSample1();
-	printer.visit(*program);
-}
+	bool enable_semantic_action;
+	bool enable_debug;
+	tree::Program* program;
+	tree::Package* active_package;
+};
 
-BOOST_AUTO_TEST_SUITE_END()
+} } }
+
+#endif /* ZILLIANS_LANGUAGE_ACTION_PARSERSTATE_H_ */

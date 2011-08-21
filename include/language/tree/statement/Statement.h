@@ -16,32 +16,36 @@
  * AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
+/**
+ * @date Aug 5, 2011 sdk - Initial version created.
+ */
 
-#include "core/Prerequisite.h"
+#ifndef ZILLIANS_LANGUAGE_TREE_STATEMENT_H_
+#define ZILLIANS_LANGUAGE_TREE_STATEMENT_H_
+
 #include "language/tree/ASTNode.h"
-#include "language/tree/ASTNodeFactory.h"
-#include "language/tree/visitor/general/PrettyPrintVisitor.h"
-#include "../ASTNodeSamples.h"
-#include <iostream>
-#include <string>
-#include <limits>
+#include "language/tree/basic/Annotations.h"
 
-#define BOOST_TEST_MODULE ThorScriptTreeTest_PrettyPrintVisitorTest
-#define BOOST_TEST_MAIN
-#include <boost/test/unit_test.hpp>
+namespace zillians { namespace language { namespace tree {
 
-using namespace zillians;
-using namespace zillians::language::tree;
-using namespace zillians::language::tree::visitor;
-
-BOOST_AUTO_TEST_SUITE( ThorScriptTreeTest_PrettyPrintVisitorTestSuite )
-
-BOOST_AUTO_TEST_CASE( ThorScriptTreeTest_PrettyPrintVisitorTestCase1 )
+struct Statement : public ASTNode
 {
-	PrettyPrintVisitor printer;
+	DEFINE_VISITABLE();
+	DEFINE_HIERARCHY(Statement, (Statement)(ASTNode));
 
-	ASTNode* program = createSample1();
-	printer.visit(*program);
-}
+	Statement() : annotations(NULL)
+	{ }
 
-BOOST_AUTO_TEST_SUITE_END()
+	void setAnnotation(Annotations* anns)
+	{
+		if(annotations) annotations->parent = NULL;
+		anns->parent = this;
+		annotations = anns;
+	}
+
+	Annotations* annotations;
+};
+
+} } }
+
+#endif /* ZILLIANS_LANGUAGE_TREE_STATEMENT_H_ */

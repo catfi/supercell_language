@@ -20,7 +20,7 @@
  * @date Jul 18, 2011 sdk - Initial version created.
  */
 
-#include "compiler/ThorScriptCompiler.h"
+#include "language/ThorScriptCompiler.h"
 #include <boost/program_options/options_description.hpp>
 #include <boost/program_options/variables_map.hpp>
 #include <boost/program_options/parsers.hpp>
@@ -68,7 +68,7 @@ int main(int argc, char** argv)
 
 	if(!filename.empty())
 	{
-		zillians::compiler::ThorScriptCompiler compiler;
+		zillians::language::ThorScriptCompiler compiler;
 		if(!compiler.parse(filename, dump_parse, dump_ast))
 		{
 			std::cout << "parse fail" << std::endl;

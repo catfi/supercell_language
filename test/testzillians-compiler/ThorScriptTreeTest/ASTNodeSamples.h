@@ -24,11 +24,11 @@
 #define ASTNODESAMPLES_H_
 
 #include "core/Prerequisite.h"
-#include "compiler/tree/ASTNode.h"
-#include "compiler/tree/ASTNodeFactory.h"
+#include "language/tree/ASTNode.h"
+#include "language/tree/ASTNodeFactory.h"
 
 using namespace zillians;
-using namespace zillians::compiler::tree;
+using namespace zillians::language::tree;
 
 ASTNode* createSample1()
 {

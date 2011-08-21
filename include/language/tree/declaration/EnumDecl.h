@@ -16,32 +16,38 @@
  * AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
+/**
+ * @date Aug 5, 2011 sdk - Initial version created.
+ */
 
-#include "core/Prerequisite.h"
-#include "language/tree/ASTNode.h"
-#include "language/tree/ASTNodeFactory.h"
-#include "language/tree/visitor/general/PrettyPrintVisitor.h"
-#include "../ASTNodeSamples.h"
-#include <iostream>
-#include <string>
-#include <limits>
+#ifndef ZILLIANS_LANGUAGE_TREE_ENUMDECL_H_
+#define ZILLIANS_LANGUAGE_TREE_ENUMDECL_H_
 
-#define BOOST_TEST_MODULE ThorScriptTreeTest_PrettyPrintVisitorTest
-#define BOOST_TEST_MAIN
-#include <boost/test/unit_test.hpp>
+#include "language/tree/declaration/Declaration.h"
+#include "language/tree/basic/Identifier.h"
+#include "language/tree/expression/Expression.h"
 
-using namespace zillians;
-using namespace zillians::language::tree;
-using namespace zillians::language::tree::visitor;
+namespace zillians { namespace language { namespace tree {
 
-BOOST_AUTO_TEST_SUITE( ThorScriptTreeTest_PrettyPrintVisitorTestSuite )
-
-BOOST_AUTO_TEST_CASE( ThorScriptTreeTest_PrettyPrintVisitorTestCase1 )
+struct EnumDecl : public Declaration
 {
-	PrettyPrintVisitor printer;
+	DEFINE_VISITABLE();
+	DEFINE_HIERARCHY(EnumDecl, (EnumDecl)(Declaration)(ASTNode));
 
-	ASTNode* program = createSample1();
-	printer.visit(*program);
-}
+	explicit EnumDecl(Identifier* name) : name(name)
+	{ }
 
-BOOST_AUTO_TEST_SUITE_END()
+	void addEnumeration(SimpleIdentifier* tag, Expression* value = NULL)
+	{
+		tag->parent = this;
+		if(value) value->parent = this;
+		enumeration_list.push_back(std::make_pair(tag, value));
+	}
+
+	Identifier* name;
+	std::vector<std::pair<SimpleIdentifier*, Expression*>> enumeration_list;
+};
+
+} } }
+
+#endif /* ZILLIANS_LANGUAGE_TREE_ENUMDECL_H_ */

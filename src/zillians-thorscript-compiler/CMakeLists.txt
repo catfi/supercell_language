@@ -26,8 +26,9 @@ INCLUDE_DIRECTORIES(
 
 ADD_EXECUTABLE(thorscript-compiler
     main.cpp
-    compiler/ThorScriptCompiler.cpp
+    language/ThorScriptCompiler.cpp
     )
+    
 TARGET_LINK_LIBRARIES(thorscript-compiler
     zillians-common-core
     zillians-common-utility

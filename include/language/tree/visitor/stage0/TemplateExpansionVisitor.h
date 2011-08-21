@@ -16,32 +16,26 @@
  * AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
+/**
+ * @date Aug 10, 2011 sdk - Initial version created.
+ */
+
+#ifndef ZILLIANS_LANGUAGE_TREE_VISITOR_TEMPLATEEXPANSIONVISITOR_H_
+#define ZILLIANS_LANGUAGE_TREE_VISITOR_TEMPLATEEXPANSIONVISITOR_H_
 
 #include "core/Prerequisite.h"
-#include "language/tree/ASTNode.h"
+#include "core/Visitor.h"
+#include "utility/TemplateTricks.h"
 #include "language/tree/ASTNodeFactory.h"
-#include "language/tree/visitor/general/PrettyPrintVisitor.h"
-#include "../ASTNodeSamples.h"
-#include <iostream>
-#include <string>
-#include <limits>
 
-#define BOOST_TEST_MODULE ThorScriptTreeTest_PrettyPrintVisitorTest
-#define BOOST_TEST_MAIN
-#include <boost/test/unit_test.hpp>
+namespace zillians { namespace language { namespace tree { namespace visitor {
 
-using namespace zillians;
-using namespace zillians::language::tree;
-using namespace zillians::language::tree::visitor;
-
-BOOST_AUTO_TEST_SUITE( ThorScriptTreeTest_PrettyPrintVisitorTestSuite )
-
-BOOST_AUTO_TEST_CASE( ThorScriptTreeTest_PrettyPrintVisitorTestCase1 )
+struct TemplateExpansionVisitor : Visitor<const ASTNode, void>
 {
-	PrettyPrintVisitor printer;
+	TemplateExpansionVisitor()
+	{ }
+};
 
-	ASTNode* program = createSample1();
-	printer.visit(*program);
-}
+} } } }
 
-BOOST_AUTO_TEST_SUITE_END()
+#endif /* ZILLIANS_LANGUAGE_TREE_VISITOR_TEMPLATEEXPANSIONVISITOR_H_ */

@@ -18,12 +18,12 @@
  */
 
 #include "core/Prerequisite.h"
-#include "compiler/tree/ASTNode.h"
-#include "compiler/tree/ASTNodeFactory.h"
-#include "compiler/tree/visitor/general/GenericVisitor.h"
-#include "compiler/tree/visitor/general/GenericDoubleVisitor.h"
-#include "compiler/tree/visitor/general/GenericComposableVisitor.h"
-#include "compiler/tree/visitor/general/ObjectCountVisitor.h"
+#include "language/tree/ASTNode.h"
+#include "language/tree/ASTNodeFactory.h"
+#include "language/tree/visitor/general/GenericVisitor.h"
+#include "language/tree/visitor/general/GenericDoubleVisitor.h"
+#include "language/tree/visitor/general/GenericComposableVisitor.h"
+#include "language/tree/visitor/general/ObjectCountVisitor.h"
 #include "../ASTNodeSamples.h"
 #include <iostream>
 #include <string>
@@ -34,8 +34,8 @@
 #include <boost/test/unit_test.hpp>
 
 using namespace zillians;
-using namespace zillians::compiler::tree;
-using namespace zillians::compiler::tree::visitor;
+using namespace zillians::language::tree;
+using namespace zillians::language::tree::visitor;
 
 struct DummyCountVisitor : GenericDoubleVisitor
 {

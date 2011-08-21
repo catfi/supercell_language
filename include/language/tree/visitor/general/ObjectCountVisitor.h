@@ -16,32 +16,49 @@
  * AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
+/**
+ * @date Aug 11, 2011 sdk - Initial version created.
+ */
+
+#ifndef ZILLIANS_LANGUAGE_TREE_VISITOR_OBJECTCOUNTVISITOR_H_
+#define ZILLIANS_LANGUAGE_TREE_VISITOR_OBJECTCOUNTVISITOR_H_
 
 #include "core/Prerequisite.h"
-#include "language/tree/ASTNode.h"
-#include "language/tree/ASTNodeFactory.h"
-#include "language/tree/visitor/general/PrettyPrintVisitor.h"
-#include "../ASTNodeSamples.h"
-#include <iostream>
-#include <string>
-#include <limits>
+#include "language/tree/visitor/general/GenericDoubleVisitor.h"
 
-#define BOOST_TEST_MODULE ThorScriptTreeTest_PrettyPrintVisitorTest
-#define BOOST_TEST_MAIN
-#include <boost/test/unit_test.hpp>
+namespace zillians { namespace language { namespace tree { namespace visitor {
 
-using namespace zillians;
-using namespace zillians::language::tree;
-using namespace zillians::language::tree::visitor;
-
-BOOST_AUTO_TEST_SUITE( ThorScriptTreeTest_PrettyPrintVisitorTestSuite )
-
-BOOST_AUTO_TEST_CASE( ThorScriptTreeTest_PrettyPrintVisitorTestCase1 )
+template<bool Composed = false>
+struct ObjectCountVisitor : GenericDoubleVisitor
 {
-	PrettyPrintVisitor printer;
+	CREATE_INVOKER(countInvoker, count);
 
-	ASTNode* program = createSample1();
-	printer.visit(*program);
-}
+	ObjectCountVisitor() : total_count(0L)
+	{
+		REGISTER_ALL_VISITABLE_ASTNODE(countInvoker)
+	}
 
-BOOST_AUTO_TEST_SUITE_END()
+	void count(const ASTNode& node)
+	{
+		++total_count;
+		if(!Composed)
+			revisit(node);
+	}
+
+	std::size_t get_count()
+	{
+		return total_count;
+	}
+
+	void reset()
+	{
+		total_count = 0;
+	}
+
+protected:
+	std::size_t total_count;
+};
+
+} } } }
+
+#endif /* ZILLIANS_LANGUAGE_TREE_VISITOR_OBJECTCOUNTVISITOR_H_ */
