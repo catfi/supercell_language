@@ -28,11 +28,11 @@ namespace zillians { namespace language { namespace action {
 
 struct ParserState : Singleton<ParserState, SingletonInitialization::automatic>
 {
-	ParserState() : enable_semantic_action(true), enable_debug(false), program(NULL), active_package(NULL)
+	ParserState() : enable_semantic_action(true), enable_debug_parser(false), program(NULL), active_package(NULL)
 	{ }
 
 	bool enable_semantic_action;
-	bool enable_debug;
+	bool enable_debug_parser;
 	tree::Program* program;
 	tree::Package* active_package;
 };

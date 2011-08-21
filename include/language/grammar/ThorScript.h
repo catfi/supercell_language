@@ -115,7 +115,7 @@ struct Identifier : qi::grammar<Iterator, typename SA::identifier::attribute_typ
 		start_augmented = start [ typename SA::identifier::init() ];
 
 		start_augmented.name("IDENTIFIER");
-		if(action::ParserState::instance()->enable_debug)
+		if(action::ParserState::instance()->enable_debug_parser)
 			debug(start_augmented);
 	}
 
@@ -154,7 +154,7 @@ struct TypeName : qi::grammar<Iterator, typename SA::identifier::attribute_type,
 		start_augmented = start [ typename SA::identifier::init() ];
 
 		start_augmented.name("TYPENAME");
-		if(action::ParserState::instance()->enable_debug)
+		if(action::ParserState::instance()->enable_debug_parser)
 			debug(start_augmented);
 	}
 
@@ -176,7 +176,7 @@ struct IntegerLiteral : qi::grammar<Iterator, typename SA::integer_literal::attr
 		start_augmented = start [ typename SA::integer_literal::init() ];
 
 		start_augmented.name("INTEGER_LITERAL");
-		if(action::ParserState::instance()->enable_debug)
+		if(action::ParserState::instance()->enable_debug_parser)
 			debug(start_augmented);
 	}
 
@@ -198,7 +198,7 @@ struct FloatLiteral : qi::grammar<Iterator, typename SA::float_literal::attribut
 		start_augmented = start [ typename SA::float_literal::init() ];
 
 		start_augmented.name("FLOAT_LITERAL");
-		if(action::ParserState::instance()->enable_debug)
+		if(action::ParserState::instance()->enable_debug_parser)
 			debug(start_augmented);
 	}
 
@@ -236,7 +236,7 @@ struct StringLiteral : qi::grammar<Iterator, typename SA::string_literal::attrib
 		start_augmented = start [ typename SA::string_literal::init() ];
 
 		start_augmented.name("STRING_LITERAL");
-		if(action::ParserState::instance()->enable_debug)
+		if(action::ParserState::instance()->enable_debug_parser)
 			debug(start_augmented);
 	}
 
@@ -918,7 +918,7 @@ struct ThorScript : qi::grammar<Iterator, typename SA::start::attribute_type, de
 		program.name("program"); package_decl.name("package_decl"); import_decl.name("import_decl");
 		start.name("start");
 
-		if(action::ParserState::instance()->enable_debug)
+		if(action::ParserState::instance()->enable_debug_parser)
 		{
 			// keywords
 			debug(_TRUE); debug(_FALSE); debug(_NULL);

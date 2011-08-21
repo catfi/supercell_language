@@ -48,7 +48,7 @@ static void expand_tabs(const std::wstring& input, std::wstring& output, int num
 
 }
 
-ThorScriptParserStage::ThorScriptParserStage()
+ThorScriptParserStage::ThorScriptParserStage() : dump_parse(false)
 { }
 
 ThorScriptParserStage::~ThorScriptParserStage()
@@ -128,8 +128,8 @@ bool ThorScriptParserStage::parse(std::string filename)
     // enable correct locale so that we can print UCS4 characters
     enable_default_locale(std::wcout);
 
-    action::ParserState::instance()->enable_debug = dump_parse;
-    action::ParserState::instance()->enable_semantic_action = dump_ast;
+    action::ParserState::instance()->enable_debug_parser = dump_parse;
+    action::ParserState::instance()->enable_semantic_action = true;
 
     // try to parse
 	typedef classic::position_iterator2<std::wstring::iterator> pos_iterator_type;
@@ -147,12 +147,6 @@ bool ThorScriptParserStage::parse(std::string filename)
 				skipper))
 		{
 			return false;
-		}
-
-		if(dump_ast)
-		{
-			tree::visitor::PrettyPrintVisitor printer;
-			printer.visit(*action::ParserState::instance()->program);
 		}
 	}
 	catch (const qi::expectation_failure<pos_iterator_type>& e)

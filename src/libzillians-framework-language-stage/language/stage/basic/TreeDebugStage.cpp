@@ -51,8 +51,15 @@ bool TreeDebugStage::execute()
 {
 	if(dump_tree)
 	{
-		tree::visitor::PrettyPrintVisitor printer;
-		printer.visit(*action::ParserState::instance()->program);
+		if(action::ParserState::instance()->program)
+		{
+			tree::visitor::PrettyPrintVisitor printer;
+			printer.visit(*action::ParserState::instance()->program);
+		}
+		else
+		{
+			std::cerr << "empty program node" << std::endl;
+		}
 	}
 
 	return true;
