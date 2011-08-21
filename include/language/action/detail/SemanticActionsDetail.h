@@ -44,7 +44,7 @@
 			template<typename Attribute, typename Context> \
 			void operator()(Attribute& parser_attribute, Context& context, bool& passed) const \
 			{ \
-				if(!ParserState::instance()->enable_semantic_action) \
+				if(!CompilerState::instance()->enable_semantic_action) \
 					return;
 
 #define END_ACTION \

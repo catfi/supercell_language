@@ -17,52 +17,33 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#include "language/stage/basic/TreeDebugStage.h"
-#include "language/action/detail/CompilerState.h"
-#include "language/tree/visitor/general/PrettyPrintVisitor.h"
+#ifndef ZILLIANS_LANGUAGE_STAGE_STAGE_H_
+#define ZILLIANS_LANGUAGE_STAGE_STAGE_H_
+
+#include "core/Prerequisite.h"
+#include "core/ContextHub.h"
+#include <boost/program_options/options_description.hpp>
+#include <boost/program_options/variables_map.hpp>
+#include <boost/program_options/parsers.hpp>
+#include <boost/program_options/value_semantic.hpp>
 
 namespace zillians { namespace language { namespace stage {
 
-TreeDebugStage::TreeDebugStage() : dump_tree(false)
-{ }
+namespace po = boost::program_options;
 
-TreeDebugStage::~TreeDebugStage()
-{ }
+typedef ContextHub<ContextOwnership::transfer> StageContext;
 
-const char* TreeDebugStage::name()
+struct Stage
 {
-	return "tree_debug";
-}
+	Stage() { }
+	virtual ~Stage() { }
 
-void TreeDebugStage::initializeOptions(po::options_description& option_desc, po::positional_options_description& positional_desc)
-{
-    option_desc.add_options()
-    ("dump-ast", "dump AST pretty-print for debugging purpose");
-}
-
-bool TreeDebugStage::parseOptions(po::variables_map& vm)
-{
-	dump_tree = (vm.count("dump-ast") > 0);
-
-	return true;
-}
-
-bool TreeDebugStage::execute()
-{
-	if(dump_tree)
-	{
-		if(action::CompilerState::instance()->program)
-		{
-			tree::visitor::PrettyPrintVisitor printer;
-			printer.visit(*action::CompilerState::instance()->program);
-		}
-		else
-		{
-			std::cerr << "empty program node" << std::endl;
-		}
-	}
-
-	return true;
-}
+	virtual const char* name() = 0;
+	virtual void initializeOptions(po::options_description& option_desc, po::positional_options_description& positional_desc) = 0;
+	virtual bool parseOptions(po::variables_map& map) = 0;
+	virtual bool execute() = 0;
+};
 
 } } }
+
+#endif /* ZILLIANS_LANGUAGE_STAGE_STAGE_H_ */

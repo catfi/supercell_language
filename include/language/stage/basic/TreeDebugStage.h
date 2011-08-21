@@ -17,52 +17,29 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef ZILLIANS_LANGUAGE_ACTION_MODULE_PROGRAMACTIONS_H_
-#define ZILLIANS_LANGUAGE_ACTION_MODULE_PROGRAMACTIONS_H_
+#ifndef ZILLIANS_LANGUAGE_STAGE_BASIC_TREEDEBUGSTAGE_H_
+#define ZILLIANS_LANGUAGE_STAGE_BASIC_TREEDEBUGSTAGE_H_
 
-#include "language/action/detail/SemanticActionsDetail.h"
-#include "language/action/detail/CompilerState.h"
+#include "language/stage/Stage.h"
 
-namespace zillians { namespace language { namespace action {
+namespace zillians { namespace language { namespace stage {
 
-struct program
+class TreeDebugStage : public Stage
 {
-	DEFINE_ATTRIBUTES(Program*)
-	DEFINE_LOCALS()
+public:
+	TreeDebugStage();
+	virtual ~TreeDebugStage();
 
-	BEGIN_ACTION(init)
-	{
-		BOOST_MPL_ASSERT(( boost::is_same<_value_t, Program*&> ));
+public:
+	virtual const char* name();
+	virtual void initializeOptions(po::options_description& option_desc, po::positional_options_description& positional_desc);
+	virtual bool parseOptions(po::variables_map& vm);
+	virtual bool execute();
 
-		if(CompilerState::instance()->program)
-		{
-			_value = CompilerState::instance()->program;
-		}
-		else
-		{
-			_value = new Program();
-			CompilerState::instance()->program = _value;
-		}
-	}
-	END_ACTION
-
-	BEGIN_ACTION(append_package_decl)
-	{
-		CompilerState::instance()->active_package = _attr(0);
-	}
-	END_ACTION
-
-	BEGIN_ACTION(append_import_decl)
-	{
-	}
-	END_ACTION
-
-	BEGIN_ACTION(append_declaration)
-	{
-	}
-	END_ACTION
+private:
+	bool dump_tree;
 };
 
 } } }
 
-#endif /* ZILLIANS_LANGUAGE_ACTION_MODULE_PROGRAMACTIONS_H_ */
+#endif /* ZILLIANS_LANGUAGE_STAGE_BASIC_TREEDEBUGSTAGE_H_ */

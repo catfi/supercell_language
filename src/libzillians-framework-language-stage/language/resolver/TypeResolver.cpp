@@ -17,52 +17,9 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef ZILLIANS_LANGUAGE_ACTION_MODULE_PROGRAMACTIONS_H_
-#define ZILLIANS_LANGUAGE_ACTION_MODULE_PROGRAMACTIONS_H_
+#include "language/resolver/TypeResolver.h"
 
-#include "language/action/detail/SemanticActionsDetail.h"
-#include "language/action/detail/CompilerState.h"
+namespace zillians { namespace compiler { namespace resolver {
 
-namespace zillians { namespace language { namespace action {
-
-struct program
-{
-	DEFINE_ATTRIBUTES(Program*)
-	DEFINE_LOCALS()
-
-	BEGIN_ACTION(init)
-	{
-		BOOST_MPL_ASSERT(( boost::is_same<_value_t, Program*&> ));
-
-		if(CompilerState::instance()->program)
-		{
-			_value = CompilerState::instance()->program;
-		}
-		else
-		{
-			_value = new Program();
-			CompilerState::instance()->program = _value;
-		}
-	}
-	END_ACTION
-
-	BEGIN_ACTION(append_package_decl)
-	{
-		CompilerState::instance()->active_package = _attr(0);
-	}
-	END_ACTION
-
-	BEGIN_ACTION(append_import_decl)
-	{
-	}
-	END_ACTION
-
-	BEGIN_ACTION(append_declaration)
-	{
-	}
-	END_ACTION
-};
 
 } } }
-
-#endif /* ZILLIANS_LANGUAGE_ACTION_MODULE_PROGRAMACTIONS_H_ */

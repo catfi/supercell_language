@@ -17,52 +17,26 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef ZILLIANS_LANGUAGE_ACTION_MODULE_PROGRAMACTIONS_H_
-#define ZILLIANS_LANGUAGE_ACTION_MODULE_PROGRAMACTIONS_H_
+#ifndef ZILLIANS_LANGUAGE_ACTION_COMPILERSTATE_H_
+#define ZILLIANS_LANGUAGE_ACTION_COMPILERSTATE_H_
 
-#include "language/action/detail/SemanticActionsDetail.h"
-#include "language/action/detail/CompilerState.h"
+#include "core/Prerequisite.h"
+#include "core/Singleton.h"
+#include "language/tree/ASTNodeFactory.h"
 
 namespace zillians { namespace language { namespace action {
 
-struct program
+struct CompilerState : Singleton<CompilerState, SingletonInitialization::automatic>
 {
-	DEFINE_ATTRIBUTES(Program*)
-	DEFINE_LOCALS()
+	CompilerState() : enable_semantic_action(true), enable_debug_parser(false), program(NULL), active_package(NULL)
+	{ }
 
-	BEGIN_ACTION(init)
-	{
-		BOOST_MPL_ASSERT(( boost::is_same<_value_t, Program*&> ));
-
-		if(CompilerState::instance()->program)
-		{
-			_value = CompilerState::instance()->program;
-		}
-		else
-		{
-			_value = new Program();
-			CompilerState::instance()->program = _value;
-		}
-	}
-	END_ACTION
-
-	BEGIN_ACTION(append_package_decl)
-	{
-		CompilerState::instance()->active_package = _attr(0);
-	}
-	END_ACTION
-
-	BEGIN_ACTION(append_import_decl)
-	{
-	}
-	END_ACTION
-
-	BEGIN_ACTION(append_declaration)
-	{
-	}
-	END_ACTION
+	bool enable_semantic_action;
+	bool enable_debug_parser;
+	tree::Program* program;
+	tree::Package* active_package;
 };
 
 } } }
 
-#endif /* ZILLIANS_LANGUAGE_ACTION_MODULE_PROGRAMACTIONS_H_ */
+#endif /* ZILLIANS_LANGUAGE_ACTION_COMPILERSTATE_H_ */

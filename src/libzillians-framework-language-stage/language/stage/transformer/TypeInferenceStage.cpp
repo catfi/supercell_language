@@ -1,0 +1,92 @@
+/**
+ * Zillians MMO
+ * Copyright (C) 2007-2011 Zillians.com, Inc.
+ * For more information see http://www.zillians.com
+ *
+ * Zillians MMO is the library and runtime for massive multiplayer online game
+ * development in utility computing model, which runs as a service for every
+ * developer to build their virtual world running on our GPU-assisted machines.
+ *
+ * This is a close source library intended to be used solely within Zillians.com
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * COPYRIGHT HOLDER(S) BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN
+ * AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+ * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ */
+
+#include "language/stage/transformer/TypeInferenceStage.h"
+#include "language/action/detail/CompilerState.h"
+#include "language/resolver/TypeResolver.h"
+#include "language/tree/visitor/general/TypeInferenceVisitor.h"
+
+namespace zillians { namespace language { namespace stage {
+
+TypeInferenceStage::TypeInferenceStage() : disable_type_inference(false)
+{ }
+
+TypeInferenceStage::~TypeInferenceStage()
+{ }
+
+const char* TypeInferenceStage::name()
+{
+	return "type_inference";
+}
+
+void TypeInferenceStage::initializeOptions(po::options_description& option_desc, po::positional_options_description& positional_desc)
+{
+    option_desc.add_options()
+    ("no-type-inference", "disable type inference system so every type declaration must be made explicitly");
+}
+
+bool TypeInferenceStage::parseOptions(po::variables_map& vm)
+{
+	disable_type_inference = (vm.count("no-type-inference") > 0);
+
+	return true;
+}
+
+bool TypeInferenceStage::execute()
+{
+	if(!disable_type_inference)
+	{
+		if(action::CompilerState::instance()->program)
+		{
+			resolver::TypeResolver resolver;
+			tree::visitor::TypeInferenceVisitor visitor(resolver);
+
+			std::size_t last_unresolved_count = 0;
+			while(true)
+			{
+				visitor.visit(*action::CompilerState::instance()->program);
+				std::size_t unresolved_count = visitor.get_unresolved_count();
+
+				if(unresolved_count == 0 || unresolved_count == last_unresolved_count)
+				{
+					break;
+				}
+				else
+				{
+					BOOST_ASSERT(unresolved_count < last_unresolved_count && "make sure we are making progress");
+					last_unresolved_count = unresolved_count;
+				}
+			}
+
+			if(last_unresolved_count > 0)
+			{
+				// there's unresolved types, failed
+				std::cerr << "failed to resolve types" << std::endl;
+				return false;
+			}
+		}
+		else
+		{
+			std::cerr << "empty program node" << std::endl;
+		}
+	}
+	return true;
+}
+
+} } }

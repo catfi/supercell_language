@@ -128,8 +128,8 @@ bool ThorScriptParserStage::parse(std::string filename)
     // enable correct locale so that we can print UCS4 characters
     enable_default_locale(std::wcout);
 
-    action::ParserState::instance()->enable_debug_parser = dump_parse;
-    action::ParserState::instance()->enable_semantic_action = true;
+    action::CompilerState::instance()->enable_debug_parser = dump_parse;
+    action::CompilerState::instance()->enable_semantic_action = true;
 
     // try to parse
 	typedef classic::position_iterator2<std::wstring::iterator> pos_iterator_type;

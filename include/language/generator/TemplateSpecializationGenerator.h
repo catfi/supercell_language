@@ -17,26 +17,10 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef ZILLIANS_LANGUAGE_ACTION_PARSERSTATE_H_
-#define ZILLIANS_LANGUAGE_ACTION_PARSERSTATE_H_
+#ifndef TEMPLATESPECIALIZATIONGENERATOR_H_
+#define TEMPLATESPECIALIZATIONGENERATOR_H_
 
-#include "core/Prerequisite.h"
-#include "core/Singleton.h"
-#include "language/tree/ASTNodeFactory.h"
 
-namespace zillians { namespace language { namespace action {
 
-struct ParserState : Singleton<ParserState, SingletonInitialization::automatic>
-{
-	ParserState() : enable_semantic_action(true), enable_debug_parser(false), program(NULL), active_package(NULL)
-	{ }
 
-	bool enable_semantic_action;
-	bool enable_debug_parser;
-	tree::Program* program;
-	tree::Package* active_package;
-};
-
-} } }
-
-#endif /* ZILLIANS_LANGUAGE_ACTION_PARSERSTATE_H_ */
+#endif /* TEMPLATESPECIALIZATIONGENERATOR_H_ */

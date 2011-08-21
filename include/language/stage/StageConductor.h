@@ -17,52 +17,34 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef ZILLIANS_LANGUAGE_ACTION_MODULE_PROGRAMACTIONS_H_
-#define ZILLIANS_LANGUAGE_ACTION_MODULE_PROGRAMACTIONS_H_
+#ifndef ZILLIANS_LANGUAGE_STAGE_STAGECONDUCTOR_H_
+#define ZILLIANS_LANGUAGE_STAGE_STAGECONDUCTOR_H_
 
-#include "language/action/detail/SemanticActionsDetail.h"
-#include "language/action/detail/CompilerState.h"
+#include "core/Prerequisite.h"
+#include "language/stage/Stage.h"
 
-namespace zillians { namespace language { namespace action {
+namespace zillians { namespace language { namespace stage {
 
-struct program
+class StageConductor
 {
-	DEFINE_ATTRIBUTES(Program*)
-	DEFINE_LOCALS()
+public:
+	StageConductor();
+	virtual ~StageConductor();
 
-	BEGIN_ACTION(init)
-	{
-		BOOST_MPL_ASSERT(( boost::is_same<_value_t, Program*&> ));
+public:
+	virtual void initialize() = 0;
+	virtual void finalize() = 0;
 
-		if(CompilerState::instance()->program)
-		{
-			_value = CompilerState::instance()->program;
-		}
-		else
-		{
-			_value = new Program();
-			CompilerState::instance()->program = _value;
-		}
-	}
-	END_ACTION
+public:
+	void appendStage(shared_ptr<Stage> s);
 
-	BEGIN_ACTION(append_package_decl)
-	{
-		CompilerState::instance()->active_package = _attr(0);
-	}
-	END_ACTION
+public:
+	virtual int main(int argc, char** argv);
 
-	BEGIN_ACTION(append_import_decl)
-	{
-	}
-	END_ACTION
-
-	BEGIN_ACTION(append_declaration)
-	{
-	}
-	END_ACTION
+protected:
+	std::vector<shared_ptr<Stage>> mStages;
 };
 
 } } }
 
-#endif /* ZILLIANS_LANGUAGE_ACTION_MODULE_PROGRAMACTIONS_H_ */
+#endif /* ZILLIANS_LANGUAGE_STAGE_STAGECONDUCTOR_H_ */
