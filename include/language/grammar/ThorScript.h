@@ -508,20 +508,21 @@ struct ThorScript : qi::grammar<Iterator, typename SA::start::attribute_type, de
 
 		// primary expression
 		primary_expression
-			= template_arg_identifier [ typename SA::primary_expression::init_template_arg_identifier() ]
-			| INTEGER_LITERAL
-			| FLOAT_LITERAL
-			| STRING_LITERAL
-			| _TRUE
-			| _FALSE
-			| _NULL
-			| LEFT_PAREN >> expression >> RIGHT_PAREN
-			| lambda_expression
+			=	(template_arg_identifier
+				| INTEGER_LITERAL
+				| FLOAT_LITERAL
+				| STRING_LITERAL
+				| lambda_expression
+				)                                       [ typename SA::primary_expression::init() ]
+			| _TRUE                                     [ typename SA::primary_expression::init_true() ]
+			| _FALSE                                    [ typename SA::primary_expression::init_false() ]
+			| _NULL                                     [ typename SA::primary_expression::init_null() ]
+			| (LEFT_PAREN >> expression >> RIGHT_PAREN) [ typename SA::primary_expression::init_paren_expression() ]
 			;
 
 		lambda_expression
-			= FUNCTION > LEFT_PAREN > -typed_parameter_list > RIGHT_PAREN > -colon_type_specifier
-				> compound_statement
+			= (FUNCTION > LEFT_PAREN > -typed_parameter_list > RIGHT_PAREN > -colon_type_specifier
+				> compound_statement) [ typename SA::lambda_expression::init() ]
 			;
 
 		// postfix expression
@@ -1026,8 +1027,8 @@ struct ThorScript : qi::grammar<Iterator, typename SA::start::attribute_type, de
 		///////////////////////////////////////
 		// BEGIN EXPRESSION
 //		expression,
-			/*primary_expression,*/
-				lambda_expression,
+//			primary_expression,
+//				lambda_expression,
 //			postfix_expression,
 //			prefix_expression,
 //			multiplicative_expression,
@@ -1095,6 +1096,7 @@ struct ThorScript : qi::grammar<Iterator, typename SA::start::attribute_type, de
 	// expression
 	qi::rule<Iterator, typename SA::expression::attribute_type,                detail::WhiteSpace<Iterator>, typename SA::expression::local_type>                expression;
 	qi::rule<Iterator, typename SA::primary_expression::attribute_type,        detail::WhiteSpace<Iterator>, typename SA::primary_expression::local_type>        primary_expression;
+	qi::rule<Iterator, typename SA::lambda_expression::attribute_type,         detail::WhiteSpace<Iterator>, typename SA::lambda_expression::local_type>         lambda_expression;
 	qi::rule<Iterator, typename SA::postfix_expression::attribute_type,        detail::WhiteSpace<Iterator>, typename SA::postfix_expression::local_type>        postfix_expression;
 	qi::rule<Iterator, typename SA::prefix_expression::attribute_type,         detail::WhiteSpace<Iterator>, typename SA::prefix_expression::local_type>         prefix_expression;
 	qi::rule<Iterator, typename SA::multiplicative_expression::attribute_type, detail::WhiteSpace<Iterator>, typename SA::multiplicative_expression::local_type> multiplicative_expression;

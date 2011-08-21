@@ -81,6 +81,7 @@ struct ThorScriptTreeAction
 	// expression
 	typedef action::expression                expression;
 	typedef action::primary_expression        primary_expression;
+	typedef action::lambda_expression         lambda_expression;
 	typedef action::postfix_expression        postfix_expression;
 	typedef action::prefix_expression         prefix_expression;
 	typedef action::multiplicative_expression multiplicative_expression;

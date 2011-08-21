@@ -45,10 +45,50 @@ struct primary_expression
 	DEFINE_ATTRIBUTES(Expression*)
 	DEFINE_LOCALS()
 
-	BEGIN_ACTION(init_template_arg_identifier)
+	BEGIN_ACTION(init)
 	{
 		printf("primary_expression attr(0) type = %s\n", typeid(_attr_t(0)).name());
-//		_value = _attr(0);
+//		_value = new PrimaryExpr(_attr(0));
+	}
+	END_ACTION
+
+	BEGIN_ACTION(init_true)
+	{
+		printf("primary_expression::init_true attr(0) type = %s\n", typeid(_attr_t(0)).name());
+		_value = new PrimaryExpr(new NumericLiteral(true));
+	}
+	END_ACTION
+
+	BEGIN_ACTION(init_false)
+	{
+		printf("primary_expression::init_false attr(0) type = %s\n", typeid(_attr_t(0)).name());
+		_value = new PrimaryExpr(new NumericLiteral(false));
+	}
+	END_ACTION
+
+	BEGIN_ACTION(init_null)
+	{
+		printf("primary_expression::init_null attr(0) type = %s\n", typeid(_attr_t(0)).name());
+	}
+	END_ACTION
+
+	BEGIN_ACTION(init_paren_expression)
+	{
+		printf("primary_expression::init_paren_expression attr(0) type = %s\n", typeid(_attr_t(0)).name());
+		_value = _attr(0);
+	}
+	END_ACTION
+};
+
+struct lambda_expression
+{
+	DEFINE_ATTRIBUTES(Expression*)
+	DEFINE_LOCALS()
+
+	BEGIN_ACTION(init)
+	{
+		printf("lambda_expression attr(0) type = %s\n", typeid(_attr_t(0)).name());
+//		_value = new FunctionDecl(_attr(0));
 	}
 	END_ACTION
 };
@@ -68,6 +108,7 @@ struct postfix_expression
 	BEGIN_ACTION(init_postfix_array)
 	{
 		printf("postfix_expression::init_postfix_array attr(0) type = %s\n", typeid(_attr_t(0)).name());
+		_value = new BinaryExpr(BinaryExpr::OpCode::ARRAY_SUBSCRIPT, _value, _attr(0));
 	}
 	END_ACTION
 
