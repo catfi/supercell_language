@@ -146,7 +146,7 @@ struct annotation_specifiers
 	BEGIN_ACTION(append_annotation)
 	{
 		printf("annotation_specifiers::append_annotation attr(0) type = %s\n", typeid(_attr_t(0)).name());
-		_value->append(_attr(0));
+		_value->appendAnnotation(_attr(0));
 	}
 	END_ACTION
 };
@@ -167,7 +167,7 @@ struct annotation_specifier
 	{
 		printf("annotation_specifier::append_keyvalue attr(0) type = %s\n", typeid(_attr_t(0)).name());
 		printf("annotation_specifier::append_keyvalue attr(1) type = %s\n", typeid(_attr_t(1)).name());
-		_value->append(_attr(0), _attr(1));
+		_value->appendKeyValue(_attr(0), _attr(1));
 	}
 	END_ACTION
 };
