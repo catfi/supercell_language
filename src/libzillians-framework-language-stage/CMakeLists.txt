@@ -22,7 +22,6 @@
 include_directories(
     ${PROJECT_COMMON_SOURCE_DIR}/include/
     ${PROJECT_FRAMEWORK_SOURCE_DIR}/include/
-    ${LLVM_INCLUDE_DIR}
     )
 
 ADD_DEFINITIONS( ${LLVM_CPPFLAGS} )
