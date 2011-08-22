@@ -17,51 +17,45 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#include "language/stage/basic/TreeDebugStage.h"
-#include "language/action/detail/CompilerState.h"
-#include "language/tree/visitor/general/PrettyPrintVisitor.h"
+#include "language/stage/generator/LLVMGeneratorStage.h"
+#include "language/stage/generator/detail/LLVMForeach.h"
+#include "language/context/ParserContext.h"
+#include "language/context/GeneratorContext.h"
+
+#include <llvm/Module.h>
+#include <llvm/Function.h>
+#include <llvm/PassManager.h>
+#include <llvm/CallingConv.h>
+#include <llvm/Analysis/Verifier.h>
+#include <llvm/Assembly/PrintModulePass.h>
+#include <llvm/Support/IRBuilder.h>
 
 namespace zillians { namespace language { namespace stage {
 
-TreeDebugStage::TreeDebugStage() : dump_tree(false)
+LLVMGeneratorStage::LLVMGeneratorStage()
 { }
 
-TreeDebugStage::~TreeDebugStage()
+LLVMGeneratorStage::~LLVMGeneratorStage()
 { }
 
-const char* TreeDebugStage::name()
+const char* LLVMGeneratorStage::name()
 {
-	return "tree_debug";
+	return "llvm_generator";
 }
 
-void TreeDebugStage::initializeOptions(po::options_description& option_desc, po::positional_options_description& positional_desc)
+void LLVMGeneratorStage::initializeOptions(po::options_description& option_desc, po::positional_options_description& positional_desc)
 {
-    option_desc.add_options()
-    ("dump-ast", "dump AST pretty-print for debugging purpose");
+	//BOOST_ASSERT()
+	//llvm::Module* module = new llvm::Module("test", llvm::getGlobalContext());
 }
 
-bool TreeDebugStage::parseOptions(po::variables_map& vm)
+bool LLVMGeneratorStage::parseOptions(po::variables_map& vm)
 {
-	dump_tree = (vm.count("dump-ast") > 0);
-
 	return true;
 }
 
-bool TreeDebugStage::execute()
+bool LLVMGeneratorStage::execute()
 {
-	if(dump_tree)
-	{
-		if(action::CompilerState::instance()->program)
-		{
-			tree::visitor::PrettyPrintVisitor printer;
-			printer.visit(*action::CompilerState::instance()->program);
-		}
-		else
-		{
-			std::cerr << "empty program node" << std::endl;
-		}
-	}
-
 	return true;
 }
 

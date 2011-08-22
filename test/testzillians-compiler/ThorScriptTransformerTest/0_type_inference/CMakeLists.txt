@@ -28,7 +28,7 @@ ADD_EXECUTABLE(ThorScriptTransformerTest_TypeInferenceTest TypeInferenceTest.cpp
 
 TARGET_LINK_LIBRARIES(ThorScriptTransformerTest_TypeInferenceTest
     zillians-common-core
-    zillians-framework-language-stage
+    zillians-framework-language
     )
 
 zillians_add_simple_test(TARGET ThorScriptTransformerTest_TypeInferenceTest)

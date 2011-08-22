@@ -32,7 +32,6 @@
 
 // prerequisite
 #include "language/action/detail/SemanticActionsDetail.h"
-#include "language/action/detail/CompilerState.h"
 
 // basic
 #include "language/action/basic/IdentifierActions.h"

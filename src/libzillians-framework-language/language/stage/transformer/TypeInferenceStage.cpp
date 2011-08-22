@@ -18,9 +18,9 @@
  */
 
 #include "language/stage/transformer/TypeInferenceStage.h"
-#include "language/action/detail/CompilerState.h"
 #include "language/resolver/TypeResolver.h"
 #include "language/tree/visitor/general/TypeInferenceVisitor.h"
+#include "language/context/ParserContext.h"
 
 namespace zillians { namespace language { namespace stage {
 
@@ -52,7 +52,7 @@ bool TypeInferenceStage::execute()
 {
 	if(!disable_type_inference)
 	{
-		if(action::CompilerState::instance()->program)
+		if(getParserContext().program)
 		{
 			resolver::TypeResolver resolver;
 			tree::visitor::TypeInferenceVisitor visitor(resolver);
@@ -61,7 +61,7 @@ bool TypeInferenceStage::execute()
 			while(true)
 			{
 				visitor.reset_count();
-				visitor.visit(*action::CompilerState::instance()->program);
+				visitor.visit(*getParserContext().program);
 
 				total_resolved_count += visitor.get_resolved_count();
 				std::size_t unresolved_count = visitor.get_unresolved_count();

@@ -22,8 +22,10 @@
 
 #include "core/Prerequisite.h"
 #include "utility/TemplateTricks.h"
-#include <boost/spirit/include/qi.hpp>
+#include "language/GlobalContext.h"
+#include "language/context/ParserContext.h"
 #include "language/tree/ASTNodeFactory.h"
+
 #include <boost/mpl/bool.hpp>
 #include <boost/fusion/container/vector.hpp>
 #include <boost/type_traits/is_base_of.hpp>
@@ -44,7 +46,7 @@
 			template<typename ParserAttribute, typename ParserContext> \
 			void operator()(ParserAttribute& parser_attribute, ParserContext& context, bool& passed) const \
 			{ \
-				if(!CompilerState::instance()->enable_semantic_action) \
+				if(!getParserContext().enable_semantic_action) \
 					return;
 
 #define BEGIN_TEMPLATED_ACTION(name, ...) \
@@ -54,7 +56,7 @@
 			template<typename ParserAttribute, typename ParserContext> \
 			void operator()(ParserAttribute& parser_attribute, ParserContext& context, bool& passed) const \
 			{ \
-				if(!CompilerState::instance()->enable_semantic_action) \
+				if(!getParserContext().enable_semantic_action) \
 					return;
 
 #define END_ACTION \

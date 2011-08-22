@@ -17,45 +17,28 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef TRANSFORMERWRAPPER_H_
-#define TRANSFORMERWRAPPER_H_
+#ifndef ZILLIANS_LANGUAGE_GENERATORCONTEXT_H_
+#define ZILLIANS_LANGUAGE_GENERATORCONTEXT_H_
 
-#include "language/stage/StageConductor.h"
-#include "language/stage/basic/TreeDebugStage.h"
-#include "language/context/ParserContext.h"
+#include "core/Prerequisite.h"
+#include "language/GlobalContext.h"
 
-using namespace zillians::language::action;
-using namespace zillians::language::stage;
-using namespace zillians::language::tree;
+#include <llvm/Module.h>
 
-struct TransformerWrapper : public StageConductor
+namespace zillians { namespace language {
+
+struct GeneratorContext
 {
-	TransformerWrapper()
+	GeneratorContext() : current_module(NULL)
 	{ }
 
-	virtual ~TransformerWrapper()
-	{ }
-
-	virtual void initialize()
-	{
-		shared_ptr<TreeDebugStage> s1(new TreeDebugStage());
-		appendStage(s1);
-	}
-
-	virtual void finalize()
-	{ }
-
-	void setProgram(ASTNode* program)
-	{
-		getParserContext().program = cast<Program>(program);
-	}
-
-	int run()
-	{
-		const char* argv[] = { "TransformerWrapper", "--dump-ast" };
-		return main(2, argv);
-	}
+	llvm::Module* current_module;
+	std::vector<llvm::Module*> modules;
 };
 
+GeneratorContext& getGeneratorContext();
+void setGeneratorContext(GeneratorContext* context);
 
-#endif /* TRANSFORMERWRAPPER_H_ */
+} }
+
+#endif /* ZILLIANS_LANGUAGE_GENERATORCONTEXT_H_ */

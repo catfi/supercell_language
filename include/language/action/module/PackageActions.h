@@ -21,7 +21,6 @@
 #define ZILLIANS_LANGUAGE_ACTION_MODULE_PACKAGEACTIONS_H_
 
 #include "language/action/detail/SemanticActionsDetail.h"
-#include "language/action/detail/CompilerState.h"
 
 namespace zillians { namespace language { namespace action {
 
@@ -42,7 +41,7 @@ struct package_decl
 		BOOST_MPL_ASSERT(( boost::is_same<_attr_t(0), NestedIdentifier*&> ));
 
 		NestedIdentifier *nested_id = cast<NestedIdentifier>(_attr(0));
-		Package* last = CompilerState::instance()->program->root;
+		Package* last = getParserContext().program->root;
 		for(std::vector<Identifier*>::iterator id = nested_id->identifier_list.begin(); id != nested_id->identifier_list.end(); ++id)
 		{
 			Package *next = last->findPackage((*id)->toString());

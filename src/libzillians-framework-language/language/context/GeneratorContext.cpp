@@ -17,45 +17,18 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef TRANSFORMERWRAPPER_H_
-#define TRANSFORMERWRAPPER_H_
+#include "language/context/GeneratorContext.h"
 
-#include "language/stage/StageConductor.h"
-#include "language/stage/basic/TreeDebugStage.h"
-#include "language/context/ParserContext.h"
+namespace zillians { namespace language {
 
-using namespace zillians::language::action;
-using namespace zillians::language::stage;
-using namespace zillians::language::tree;
-
-struct TransformerWrapper : public StageConductor
+GeneratorContext& getGeneratorContext()
 {
-	TransformerWrapper()
-	{ }
+	return *GlobalContext::instance()->get<GeneratorContext>();
+}
 
-	virtual ~TransformerWrapper()
-	{ }
+void setGeneratorContext(GeneratorContext* context)
+{
+	GlobalContext::instance()->set<GeneratorContext>(context);
+}
 
-	virtual void initialize()
-	{
-		shared_ptr<TreeDebugStage> s1(new TreeDebugStage());
-		appendStage(s1);
-	}
-
-	virtual void finalize()
-	{ }
-
-	void setProgram(ASTNode* program)
-	{
-		getParserContext().program = cast<Program>(program);
-	}
-
-	int run()
-	{
-		const char* argv[] = { "TransformerWrapper", "--dump-ast" };
-		return main(2, argv);
-	}
-};
-
-
-#endif /* TRANSFORMERWRAPPER_H_ */
+} }

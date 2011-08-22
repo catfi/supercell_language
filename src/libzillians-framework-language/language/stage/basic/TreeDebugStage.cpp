@@ -17,45 +17,52 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef TRANSFORMERWRAPPER_H_
-#define TRANSFORMERWRAPPER_H_
-
-#include "language/stage/StageConductor.h"
 #include "language/stage/basic/TreeDebugStage.h"
+#include "language/tree/visitor/general/PrettyPrintVisitor.h"
 #include "language/context/ParserContext.h"
 
-using namespace zillians::language::action;
-using namespace zillians::language::stage;
-using namespace zillians::language::tree;
+namespace zillians { namespace language { namespace stage {
 
-struct TransformerWrapper : public StageConductor
+TreeDebugStage::TreeDebugStage() : dump_tree(false)
+{ }
+
+TreeDebugStage::~TreeDebugStage()
+{ }
+
+const char* TreeDebugStage::name()
 {
-	TransformerWrapper()
-	{ }
+	return "tree_debug";
+}
 
-	virtual ~TransformerWrapper()
-	{ }
+void TreeDebugStage::initializeOptions(po::options_description& option_desc, po::positional_options_description& positional_desc)
+{
+    option_desc.add_options()
+    ("dump-ast", "dump AST pretty-print for debugging purpose");
+}
 
-	virtual void initialize()
+bool TreeDebugStage::parseOptions(po::variables_map& vm)
+{
+	dump_tree = (vm.count("dump-ast") > 0);
+
+	return true;
+}
+
+bool TreeDebugStage::execute()
+{
+	if(dump_tree)
 	{
-		shared_ptr<TreeDebugStage> s1(new TreeDebugStage());
-		appendStage(s1);
+		if(getParserContext().program)
+		{
+			tree::visitor::PrettyPrintVisitor printer;
+			printer.visit(*getParserContext().program);
+		}
+		else
+		{
+			std::cerr << "empty program node" << std::endl;
+		}
 	}
 
-	virtual void finalize()
-	{ }
+	return true;
+}
 
-	void setProgram(ASTNode* program)
-	{
-		getParserContext().program = cast<Program>(program);
-	}
-
-	int run()
-	{
-		const char* argv[] = { "TransformerWrapper", "--dump-ast" };
-		return main(2, argv);
-	}
-};
-
-
-#endif /* TRANSFORMERWRAPPER_H_ */
+} } }

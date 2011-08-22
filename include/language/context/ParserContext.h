@@ -17,40 +17,29 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#include "language/stage/generator/LLVMGeneratorStage.h"
-#include "language/stage/generator/detail/LLVMForeach.h"
-#include "language/action/detail/CompilerState.h"
+#ifndef ZILLIANS_LANGUAGE_PARSERCONTEXT_H_
+#define ZILLIANS_LANGUAGE_PARSERCONTEXT_H_
 
-namespace zillians { namespace language { namespace stage {
+#include "core/Prerequisite.h"
+#include "language/tree/ASTNodeFactory.h"
+#include "language/GlobalContext.h"
 
-LLVMGeneratorStage::LLVMGeneratorStage()
-{ }
+namespace zillians { namespace language {
 
-LLVMGeneratorStage::~LLVMGeneratorStage()
-{ }
-
-const char* LLVMGeneratorStage::name()
+struct ParserContext
 {
-	return "llvm_generator";
-}
+	ParserContext() : enable_semantic_action(true), enable_debug_parser(false), program(NULL), active_package(NULL)
+	{ }
 
-void LLVMGeneratorStage::initializeOptions(po::options_description& option_desc, po::positional_options_description& positional_desc)
-{
-//	llvm::Function* f;// = llvm::Function::Create(llvm::FunctionType::get);
-//	foreach(i, f)
-//	{
-//
-//	}
-}
+	bool enable_semantic_action;
+	bool enable_debug_parser;
+	tree::Program* program;
+	tree::Package* active_package;
+};
 
-bool LLVMGeneratorStage::parseOptions(po::variables_map& vm)
-{
-	return true;
-}
+ParserContext& getParserContext();
+void setParserContext(ParserContext* context);
 
-bool LLVMGeneratorStage::execute()
-{
-	return true;
-}
+} }
 
-} } }
+#endif /* ZILLIANS_LANGUAGE_PARSERCONTEXT_H_ */

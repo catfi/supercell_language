@@ -21,7 +21,6 @@
 #define ZILLIANS_LANGUAGE_ACTION_MODULE_PROGRAMACTIONS_H_
 
 #include "language/action/detail/SemanticActionsDetail.h"
-#include "language/action/detail/CompilerState.h"
 
 namespace zillians { namespace language { namespace action {
 
@@ -34,21 +33,21 @@ struct program
 	{
 		BOOST_MPL_ASSERT(( boost::is_same<_value_t, Program*&> ));
 
-		if(CompilerState::instance()->program)
+		if(getParserContext().program)
 		{
-			_value = CompilerState::instance()->program;
+			_value = getParserContext().program;
 		}
 		else
 		{
 			_value = new Program();
-			CompilerState::instance()->program = _value;
+			getParserContext().program = _value;
 		}
 	}
 	END_ACTION
 
 	BEGIN_ACTION(append_package_decl)
 	{
-		CompilerState::instance()->active_package = _attr(0);
+		getParserContext().active_package = _attr(0);
 	}
 	END_ACTION
 

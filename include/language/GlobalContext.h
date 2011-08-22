@@ -17,26 +17,18 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef ZILLIANS_LANGUAGE_ACTION_COMPILERSTATE_H_
-#define ZILLIANS_LANGUAGE_ACTION_COMPILERSTATE_H_
+#ifndef ZILLIANS_LANGUAGE_GLOBALCONTEXT_H_
+#define ZILLIANS_LANGUAGE_GLOBALCONTEXT_H_
 
 #include "core/Prerequisite.h"
+#include "core/ContextHub.h"
 #include "core/Singleton.h"
-#include "language/tree/ASTNodeFactory.h"
 
-namespace zillians { namespace language { namespace action {
+namespace zillians { namespace language {
 
-struct CompilerState : Singleton<CompilerState, SingletonInitialization::automatic>
-{
-	CompilerState() : enable_semantic_action(true), enable_debug_parser(false), program(NULL), active_package(NULL)
-	{ }
+struct GlobalContext : ContextHub<ContextOwnership::transfer>, Singleton<GlobalContext, SingletonInitialization::automatic>
+{ };
 
-	bool enable_semantic_action;
-	bool enable_debug_parser;
-	tree::Program* program;
-	tree::Package* active_package;
-};
+} }
 
-} } }
-
-#endif /* ZILLIANS_LANGUAGE_ACTION_COMPILERSTATE_H_ */
+#endif /* ZILLIANS_LANGUAGE_GLOBALCONTEXT_H_ */

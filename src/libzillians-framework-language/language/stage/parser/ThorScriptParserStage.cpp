@@ -18,10 +18,11 @@
  */
 
 #include "language/stage/parser/ThorScriptParserStage.h"
-#include "language/ThorScriptCompiler.h"
+#include "language/context/ParserContext.h"
 #include "language/grammar/ThorScript.h"
 #include "language/action/SemanticActions.h"
 #include "language/tree/visitor/general/PrettyPrintVisitor.h"
+#include "language/ThorScriptCompiler.h"
 #include "utility/TemplateTricks.h"
 #include "utility/UnicodeUtil.h"
 
@@ -85,6 +86,8 @@ bool ThorScriptParserStage::parseOptions(po::variables_map& vm)
 
 bool ThorScriptParserStage::execute()
 {
+	setParserContext(new ParserContext());
+
 	if(inputs.size() > 0)
 	{
 		foreach(i, inputs)
@@ -128,8 +131,8 @@ bool ThorScriptParserStage::parse(std::string filename)
     // enable correct locale so that we can print UCS4 characters
     enable_default_locale(std::wcout);
 
-    action::CompilerState::instance()->enable_debug_parser = dump_parse;
-    action::CompilerState::instance()->enable_semantic_action = true;
+    getParserContext().enable_debug_parser = dump_parse;
+    getParserContext().enable_semantic_action = true;
 
     // try to parse
 	typedef classic::position_iterator2<std::wstring::iterator> pos_iterator_type;
