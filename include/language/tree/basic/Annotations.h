@@ -38,7 +38,7 @@ struct Annotation : public ASTNode
 		name->parent = this;
 	}
 
-	void append(SimpleIdentifier* key, ASTNode* value)
+	void appendKeyValue(SimpleIdentifier* key, ASTNode* value)
 	{
 		key->parent = this;
 		value->parent = this;
@@ -54,7 +54,7 @@ struct Annotations : public ASTNode
 	DEFINE_VISITABLE();
 	DEFINE_HIERARCHY(Annotations, (Annotations)(ASTNode));
 
-	void append(Annotation* annotation)
+	void appendAnnotation(Annotation* annotation)
 	{
 		annotation->parent = this;
 		annotation_list.push_back(annotation);
