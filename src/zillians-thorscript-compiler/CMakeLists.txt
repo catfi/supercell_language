@@ -32,5 +32,5 @@ ADD_EXECUTABLE(thorscript-compiler
 TARGET_LINK_LIBRARIES(thorscript-compiler
     zillians-common-core
     zillians-common-utility
-    zillians-framework-language
+    zillians-framework-language-stage
     )

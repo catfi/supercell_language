@@ -28,9 +28,9 @@ StageConductor::StageConductor()
 StageConductor::~StageConductor()
 { }
 
-void StageConductor::appendStage(shared_ptr<Stage> s)
+void StageConductor::appendStage(shared_ptr<Stage> stage)
 {
-	mStages.push_back(s);
+	mStages.push_back(stage);
 }
 
 int StageConductor::main(int argc, char** argv)

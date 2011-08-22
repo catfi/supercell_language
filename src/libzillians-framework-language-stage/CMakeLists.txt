@@ -24,7 +24,7 @@ include_directories(
     ${PROJECT_FRAMEWORK_SOURCE_DIR}/include/
 )
 
-add_library(zillians-framework-language
+add_library(zillians-framework-language-stage
     language/stage/StageConductor.cpp
     language/stage/basic/TreeDebugStage.cpp
     language/stage/parser/ThorScriptParserStage.cpp
@@ -32,7 +32,7 @@ add_library(zillians-framework-language
     language/stage/generator/LLVMGeneratorStage.cpp
 	)
 
-target_link_libraries(zillians-framework-language
+target_link_libraries(zillians-framework-language-stage
     zillians-common-core
     zillians-common-utility
     )
