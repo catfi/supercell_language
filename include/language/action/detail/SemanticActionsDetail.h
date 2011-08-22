@@ -41,8 +41,18 @@
 #define BEGIN_ACTION(name) \
 		struct name \
 		{ \
-			template<typename Attribute, typename Context> \
-			void operator()(Attribute& parser_attribute, Context& context, bool& passed) const \
+			template<typename ParserAttribute, typename ParserContext> \
+			void operator()(ParserAttribute& parser_attribute, ParserContext& context, bool& passed) const \
+			{ \
+				if(!CompilerState::instance()->enable_semantic_action) \
+					return;
+
+#define BEGIN_TEMPLATED_ACTION(name, ...) \
+		template<__VA_ARGS__> \
+		struct name \
+		{ \
+			template<typename ParserAttribute, typename ParserContext> \
+			void operator()(ParserAttribute& parser_attribute, ParserContext& context, bool& passed) const \
 			{ \
 				if(!CompilerState::instance()->enable_semantic_action) \
 					return;
@@ -54,8 +64,8 @@
 #define _value   boost::fusion::at_c<0>(context.attributes)
 #define _value_t decltype(boost::fusion::at_c<0>(context.attributes))
 
-#define _attr(i)   detail::attribute_accessor<i, Attribute>::get(parser_attribute)
-#define _attr_t(i) typename detail::attribute_accessor<i, Attribute>::result_type
+#define _attr(i)   detail::attribute_accessor<i, ParserAttribute>::get(parser_attribute)
+#define _attr_t(i) typename detail::attribute_accessor<i, ParserAttribute>::result_type
 
 #define _param(i)   boost::fusion::at_c<i+1>(context.attributes)
 #define _param_t(i) decltype(boost::fusion::at_c<i+1>(context.attributes))
