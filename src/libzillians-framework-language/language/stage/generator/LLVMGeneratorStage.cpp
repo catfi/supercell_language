@@ -70,6 +70,8 @@ bool LLVMGeneratorStage::parseOptions(po::variables_map& vm)
 
 bool LLVMGeneratorStage::execute()
 {
+	setGeneratorContext(new GeneratorContext());
+
 	llvm::Module* module = new llvm::Module(llvm_module_name, llvm::getGlobalContext());
 	// TODO make a visitor to walk through the entire tree and generate instructions accordingly
 	getGeneratorContext().modules.push_back(module);
