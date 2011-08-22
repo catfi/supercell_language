@@ -33,33 +33,33 @@ struct Identifier : public ASTNode
 	DEFINE_VISITABLE();
 	DEFINE_HIERARCHY(Identifier, (Identifier)(ASTNode));
 
-	struct Usage
-	{
-		enum type {
-			TYPE_DECLARATION,
-			TYPE_SPECIFIER,
-			SYMBOL,
-			UNSPECIFIED,
-		};
+//	struct Usage
+//	{
+//		enum type {
+//			TYPE_DECLARATION,
+//			TYPE_SPECIFIER,
+//			SYMBOL,
+//			UNSPECIFIED,
+//		};
+//
+//		static const wchar_t* toString(type t)
+//		{
+//			switch(t)
+//			{
+//			case TYPE_DECLARATION: return L"type-declaration";
+//			case TYPE_SPECIFIER: return L"type-specifier";
+//			case SYMBOL: return L"symbol";
+//			case UNSPECIFIED: return L"unspecified";
+//			}
+//		}
+//	};
 
-		static const wchar_t* toString(type t)
-		{
-			switch(t)
-			{
-			case TYPE_DECLARATION: return L"type-declaration";
-			case TYPE_SPECIFIER: return L"type-specifier";
-			case SYMBOL: return L"symbol";
-			case UNSPECIFIED: return L"unspecified";
-			}
-		}
-	};
-
-	Identifier() : usage(Usage::UNSPECIFIED)
+	Identifier() //: usage(Usage::UNSPECIFIED)
 	{ }
 
 	virtual const std::wstring& toString() const = 0;
 
-	Usage::type usage;
+//	Usage::type usage;
 };
 
 struct SimpleIdentifier : public Identifier

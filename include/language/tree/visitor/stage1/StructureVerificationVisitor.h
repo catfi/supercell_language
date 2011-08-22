@@ -35,13 +35,13 @@ struct StructureVerificationVisitor : GenericDoubleVisitor
 		REGISTER_ALL_VISITABLE_ASTNODE(verifyInvoker)
 	}
 
-	void verify(const ASTNode& node)
+	void verify(ASTNode& node)
 	{
 		if(!Composed)
 			revisit(node);
 	}
 
-	void verify(const TypeSpecifier& node)
+	void verify(TypeSpecifier& node)
 	{
 		if(node.type == TypeSpecifier::ReferredType::UNSPECIFIED)
 		{
@@ -52,7 +52,7 @@ struct StructureVerificationVisitor : GenericDoubleVisitor
 			revisit(node);
 	}
 
-	std::vector<const ASTNode*> unspecified_nodes;
+	std::vector<ASTNode*> unspecified_nodes;
 	bool passed;
 };
 

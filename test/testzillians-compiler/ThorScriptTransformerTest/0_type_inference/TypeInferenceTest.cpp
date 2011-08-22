@@ -37,9 +37,13 @@ BOOST_AUTO_TEST_SUITE( ThorScriptTransformerTest_TypeInferenceTestSuite )
 
 BOOST_AUTO_TEST_CASE( ThorScriptTransformerTest_TypeInferenceTestCase1 )
 {
-	TransformerWrapper<TypeInferenceStage> wrapper;
+	TransformerWrapper wrapper;
+	shared_ptr<TypeInferenceStage> stage(new TypeInferenceStage());
+	wrapper.appendStage(stage);
 	wrapper.setProgram(createSample4());
+
 	BOOST_CHECK(wrapper.run() == 0);
+	BOOST_CHECK(stage->get_resolved_count() == 4);
 }
 
 BOOST_AUTO_TEST_SUITE_END()

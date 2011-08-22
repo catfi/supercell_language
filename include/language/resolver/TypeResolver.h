@@ -44,32 +44,47 @@ struct TypeResolver
 	TypeResolver()
 	{ }
 
-	void enterScope(const tree::ASTNode& node)
+	void enterScope(tree::ASTNode& node)
 	{
 		current_scopes.insert(&node);
 	}
 
-	void leaveScope(const tree::ASTNode& node)
+	void leaveScope(tree::ASTNode& node)
 	{
-		__gnu_cxx::hash_set<const tree::ASTNode*>::iterator scope = current_scopes.find(&node);
+		__gnu_cxx::hash_set<tree::ASTNode*>::iterator scope = current_scopes.find(&node);
 		if(scope != current_scopes.end())
 			current_scopes.erase(scope);
 	}
 
-	bool resolve(const tree::TypeSpecifier& node)
+	bool resolve(tree::TypeSpecifier& node)
 	{
-		if(node.type == tree::TypeSpecifier::ReferredType::UNSPECIFIED)
+		using namespace zillians::language::tree;
+
+		if(node.type == TypeSpecifier::ReferredType::UNSPECIFIED)
 		{
 			type_visitor.target(node.referred.unspecified);
 
-			for(__gnu_cxx::hash_set<const tree::ASTNode*>::const_iterator scope = current_scopes.begin(); scope != current_scopes.end(); ++scope)
+			for(__gnu_cxx::hash_set<ASTNode*>::const_iterator scope = current_scopes.begin(); scope != current_scopes.end(); ++scope)
 			{
 				type_visitor.visit(**scope);
 			}
 
 			if(type_visitor.candidates.size() == 1)
 			{
-				// TODO update the link
+				// TODO update the link (postponed)
+				ASTNode* ref = type_visitor.candidates[0];
+
+				if(isa<ClassDecl>(ref))
+					node.update(cast<ClassDecl>(ref));
+				else if(isa<EnumDecl>(ref))
+					node.update(cast<EnumDecl>(ref));
+				else if(isa<TypedefDecl>(ref))
+					node.update(cast<TypedefDecl>(ref));
+				else
+				{
+					BOOST_ASSERT(false && "unknown type resolved");
+				}
+
 				type_visitor.reset();
 				return true;
 			}
@@ -96,7 +111,7 @@ struct TypeResolver
 		}
 	}
 
-	__gnu_cxx::hash_set<const tree::ASTNode*> current_scopes;
+	__gnu_cxx::hash_set<tree::ASTNode*> current_scopes;
 	tree::visitor::TypeResolutionVisitor type_visitor;
 };
 

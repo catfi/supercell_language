@@ -24,7 +24,7 @@
 
 namespace zillians { namespace language { namespace stage {
 
-TypeInferenceStage::TypeInferenceStage() : disable_type_inference(false)
+TypeInferenceStage::TypeInferenceStage() : disable_type_inference(false), total_resolved_count(0)
 { }
 
 TypeInferenceStage::~TypeInferenceStage()
@@ -60,7 +60,10 @@ bool TypeInferenceStage::execute()
 			std::size_t last_unresolved_count = 0;
 			while(true)
 			{
+				visitor.reset_count();
 				visitor.visit(*action::CompilerState::instance()->program);
+
+				total_resolved_count += visitor.get_resolved_count();
 				std::size_t unresolved_count = visitor.get_unresolved_count();
 
 				if(unresolved_count == 0 || unresolved_count == last_unresolved_count)
@@ -76,6 +79,8 @@ bool TypeInferenceStage::execute()
 
 			if(last_unresolved_count > 0)
 			{
+				total_unresolved_count += last_unresolved_count;
+				// TODO use log4cxx
 				// there's unresolved types, failed
 				std::cerr << "failed to resolve types" << std::endl;
 				return false;
@@ -88,5 +93,16 @@ bool TypeInferenceStage::execute()
 	}
 	return true;
 }
+
+std::size_t TypeInferenceStage::get_resolved_count()
+{
+	return total_resolved_count;
+}
+
+std::size_t TypeInferenceStage::get_unresolved_count()
+{
+	return total_unresolved_count;
+}
+
 
 } } }
