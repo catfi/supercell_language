@@ -62,10 +62,13 @@ struct TypeInferenceVisitor : GenericDoubleVisitor
 
 	void infer(TypeSpecifier& node)
 	{
-		if(type_resolver.resolve(node))
-			++resolved_count;
-		else
-			++unresolved_count;
+		if(node.type == TypeSpecifier::ReferredType::UNSPECIFIED)
+		{
+			if(type_resolver.resolve(node))
+				++resolved_count;
+			else
+				++unresolved_count;
+		}
 	}
 
 	std::size_t get_unresolved_count()

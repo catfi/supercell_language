@@ -28,7 +28,6 @@ using namespace zillians::language::action;
 using namespace zillians::language::stage;
 using namespace zillians::language::tree;
 
-//template<typename T>
 struct TransformerWrapper : public StageConductor
 {
 	TransformerWrapper()
@@ -39,9 +38,7 @@ struct TransformerWrapper : public StageConductor
 
 	virtual void initialize()
 	{
-//		shared_ptr<T> s0(new T());
 		shared_ptr<TreeDebugStage> s1(new TreeDebugStage());
-//		appendStage(s0);
 		appendStage(s1);
 	}
 

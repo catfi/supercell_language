@@ -35,7 +35,12 @@ void StageConductor::appendStage(shared_ptr<Stage> stage)
 
 int StageConductor::main(int argc, const char** argv)
 {
+	// prepare logger
+
+	// call implementation's initialize() to append stages
 	initialize();
+
+	if(true)
 	{
 		po::options_description option_desc;
 		po::positional_options_description positional_option_desc;
@@ -93,6 +98,8 @@ int StageConductor::main(int argc, const char** argv)
 			}
 		}
 	}
+
+	// call implementation's finalize() to remove stages or collect summary
 	finalize();
 
 	return 0;
