@@ -41,6 +41,7 @@
 				Literal,					\
 					NumericLiteral,			\
 					StringLiteral,			\
+					ObjectLiteral,			\
 				TypeSpecifier,				\
 				FunctionType,				\
 				/* module */				\
@@ -91,6 +92,7 @@
 				Literal,					\
 					NumericLiteral,			\
 					StringLiteral,			\
+					ObjectLiteral,			\
 				TypeSpecifier,				\
 				FunctionType,				\
 				/* module */				\

@@ -111,6 +111,7 @@ enum class ASTNodeType : int
 	Literal,
 		NumericLiteral,
 		StringLiteral,
+		ObjectLiteral,
 	TypeSpecifier,
 	FunctionType,
 

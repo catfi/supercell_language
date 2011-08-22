@@ -36,6 +36,35 @@ struct Literal : public ASTNode
 	DEFINE_HIERARCHY(Literal, (Literal)(ASTNode));
 };
 
+struct ObjectLiteral : public Literal
+{
+	DEFINE_VISITABLE();
+	DEFINE_HIERARCHY(ObjectLiteral, (ObjectLiteral)(Literal)(ASTNode));
+
+	struct LiteralType {
+		enum type {
+			NULL_OBJECT,
+			SELF_OBJECT,
+			GLOBAL_OBJECT,
+		};
+
+		static const wchar_t* toString(type t)
+		{
+			switch(t)
+			{
+			case NULL_OBJECT: return L"null";
+			case SELF_OBJECT: return L"self";
+			case GLOBAL_OBJECT: return L"global";
+			}
+		}
+	};
+
+	explicit ObjectLiteral(LiteralType::type t) : type(t)
+	{ }
+
+	LiteralType::type type;
+};
+
 struct NumericLiteral : public Literal
 {
 	DEFINE_VISITABLE();
