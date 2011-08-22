@@ -25,7 +25,6 @@ include_directories(
     )
 
 add_library(zillians-framework-language-stage
-    language/resolver/TypeResolver.cpp
     language/stage/StageConductor.cpp
     language/stage/basic/TreeDebugStage.cpp
     language/stage/parser/ThorScriptParserStage.cpp

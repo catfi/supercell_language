@@ -51,6 +51,9 @@ void Logger::initialize()
 	log4cxx::LayoutPtr layout(new log4cxx::PatternLayout(default_pattern));
 	log4cxx::AppenderPtr appender(new log4cxx::ConsoleAppender(layout));
 	root->addAppender(appender);
+
+	// log level: TRACE -> DEBUG -> INFO -> WARN -> ERROR -> FATAL
+	root->setLevel(log4cxx::Level::getInfo());
 }
 
 } }
