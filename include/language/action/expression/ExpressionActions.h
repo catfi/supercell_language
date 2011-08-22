@@ -48,7 +48,7 @@ struct primary_expression
 	BEGIN_ACTION(init)
 	{
 		printf("primary_expression attr(0) type = %s\n", typeid(_attr_t(0)).name());
-//		_value = new PrimaryExpr(_attr(0));
+		_value = new PrimaryExpr(_attr(0));
 	}
 	END_ACTION
 
@@ -69,6 +69,21 @@ struct primary_expression
 	BEGIN_ACTION(init_null)
 	{
 		printf("primary_expression::init_null attr(0) type = %s\n", typeid(_attr_t(0)).name());
+		_value = new PrimaryExpr(new ObjectLiteral(ObjectLiteral::LiteralType::NULL_OBJECT));
+	}
+	END_ACTION
+
+	BEGIN_ACTION(init_self)
+	{
+		printf("primary_expression::init_self attr(0) type = %s\n", typeid(_attr_t(0)).name());
+		_value = new PrimaryExpr(new ObjectLiteral(ObjectLiteral::LiteralType::SELF_OBJECT));
+	}
+	END_ACTION
+
+	BEGIN_ACTION(init_global)
+	{
+		printf("primary_expression::init_global attr(0) type = %s\n", typeid(_attr_t(0)).name());
+		_value = new PrimaryExpr(new ObjectLiteral(ObjectLiteral::LiteralType::GLOBAL_OBJECT));
 	}
 	END_ACTION
 
@@ -82,7 +97,7 @@ struct primary_expression
 
 struct lambda_expression
 {
-	DEFINE_ATTRIBUTES(Expression*)
+	DEFINE_ATTRIBUTES(FunctionDecl*)
 	DEFINE_LOCALS()
 
 	BEGIN_ACTION(init)
@@ -105,14 +120,14 @@ struct postfix_expression
 	}
 	END_ACTION
 
-	BEGIN_ACTION(init_postfix_array)
+	BEGIN_ACTION(append_postfix_array)
 	{
 		printf("postfix_expression::init_postfix_array attr(0) type = %s\n", typeid(_attr_t(0)).name());
 		_value = new BinaryExpr(BinaryExpr::OpCode::ARRAY_SUBSCRIPT, _value, _attr(0));
 	}
 	END_ACTION
 
-	BEGIN_ACTION(init_postfix_call)
+	BEGIN_ACTION(append_postfix_call)
 	{
 		printf("postfix_expression::init_postfix_call attr(0) type = %s\n", typeid(_attr_t(0)).name());
 //		CallExpr* call_expr = new CallExpr(_value);
@@ -125,21 +140,21 @@ struct postfix_expression
 	}
 	END_ACTION
 
-	BEGIN_ACTION(init_postfix_member)
+	BEGIN_ACTION(append_postfix_member)
 	{
 		printf("postfix_expression::init_postfix_member attr(0) type = %s\n", typeid(_attr_t(0)).name());
 		_value = new MemberExpr(_value, _attr(0));
 	}
 	END_ACTION
 
-	BEGIN_ACTION(init_postfix_inc)
+	BEGIN_ACTION(append_postfix_inc)
 	{
 		printf("postfix_expression::init_postfix_inc attr(0) type = %s\n", typeid(_attr_t(0)).name());
 		_value = new UnaryExpr(UnaryExpr::OpCode::POSTFIX_INCREMENT, _value);
 	}
 	END_ACTION
 
-	BEGIN_ACTION(init_postfix_dec)
+	BEGIN_ACTION(append_postfix_dec)
 	{
 		printf("postfix_expression::init_postfix_dec attr(0) type = %s\n", typeid(_attr_t(0)).name());
 		_value = new UnaryExpr(UnaryExpr::OpCode::POSTFIX_DECREMENT, _value);
@@ -325,7 +340,6 @@ struct ternary_expression
 	{
 		printf("ternary_expression attr(0) type = %s\n", typeid(_attr_t(0)).name());
 		printf("ternary_expression attr(1) type = %s\n", typeid(_attr_t(1)).name());
-		printf("ternary_expression attr(2) type = %s\n", typeid(_attr_t(2)).name());
 		if(!_attr(1).is_initialized())
 		{
 			_value = _attr(0);
