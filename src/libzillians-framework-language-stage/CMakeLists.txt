@@ -25,6 +25,8 @@ include_directories(
     ${LLVM_INCLUDE_DIR}
     )
 
+ADD_DEFINITIONS( ${LLVM_CPPFLAGS} )
+
 add_library(zillians-framework-language-stage
     language/stage/StageConductor.cpp
     language/stage/basic/TreeDebugStage.cpp
@@ -36,4 +38,5 @@ add_library(zillians-framework-language-stage
 target_link_libraries(zillians-framework-language-stage
     zillians-common-core
     zillians-common-utility
+    ${LLVM_ALL_LIBS}
     )
