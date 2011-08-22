@@ -96,7 +96,7 @@ struct Identifier : qi::grammar<Iterator, typename SA::identifier::attribute_typ
 			L"int8", L"uint8", L"int16", L"uint16", L"int32", L"uint32", L"int64", L"uint64",
 			L"float32", L"float64",
 #endif
-			L"true", L"false", L"null",
+			L"true", L"false", L"null", L"self", L"global",
 			L"const", L"static",
 			L"typedef", L"class", L"interface", L"enum",
 			L"public", L"protected", L"private",
@@ -135,7 +135,7 @@ struct TypeName : qi::grammar<Iterator, typename SA::identifier::attribute_type,
 			L"int8", L"uint8", L"int16", L"uint16", L"int32", L"uint32", L"int64", L"uint64",
 			L"float32", L"float64",
 #endif
-			L"true", L"false", L"null",
+			L"true", L"false", L"null", L"self", L"global",
 			L"const", L"static",
 			L"typedef", L"class", L"interface", L"enum",
 			L"public", L"protected", L"private",
@@ -357,6 +357,8 @@ struct ThorScript : qi::grammar<Iterator, typename SA::start::attribute_type, de
 			DECL_TOKEN(_TRUE, L"true");
 			DECL_TOKEN(_FALSE, L"false");
 			DECL_TOKEN(_NULL, L"null");
+			DECL_TOKEN(_SELF, L"self");
+			DECL_TOKEN(_GLOBAL, L"global");
 
 			DECL_TOKEN(CONST, L"const");
 			DECL_TOKEN(STATIC, L"static");
@@ -508,15 +510,16 @@ struct ThorScript : qi::grammar<Iterator, typename SA::start::attribute_type, de
 
 		// primary expression
 		primary_expression
-			=	(template_arg_identifier
-				| INTEGER_LITERAL
-				| FLOAT_LITERAL
-				| STRING_LITERAL
-				| lambda_expression
-				)                                       [ typename SA::primary_expression::init() ]
+			= template_arg_identifier                   [ typename SA::primary_expression::init() ]
+			| INTEGER_LITERAL                           [ typename SA::primary_expression::init() ]
+			| FLOAT_LITERAL                             [ typename SA::primary_expression::init() ]
+			| STRING_LITERAL                            [ typename SA::primary_expression::init() ]
+			| lambda_expression                         [ typename SA::primary_expression::init() ]
 			| _TRUE                                     [ typename SA::primary_expression::init_true() ]
 			| _FALSE                                    [ typename SA::primary_expression::init_false() ]
 			| _NULL                                     [ typename SA::primary_expression::init_null() ]
+			| _SELF                                     [ typename SA::primary_expression::init_self() ]
+			| _GLOBAL                                   [ typename SA::primary_expression::init_global() ]
 			| (LEFT_PAREN >> expression >> RIGHT_PAREN) [ typename SA::primary_expression::init_paren_expression() ]
 			;
 
@@ -530,11 +533,11 @@ struct ThorScript : qi::grammar<Iterator, typename SA::start::attribute_type, de
 		// rank: 0
 		postfix_expression
 			= primary_expression                                           [ typename SA::postfix_expression::init_primary_expression() ]
-				>>	*( (LEFT_BRACKET >> expression >> RIGHT_BRACKET)       [ typename SA::postfix_expression::init_postfix_array() ]
-					| (LEFT_PAREN >> -(expression % COMMA) >> RIGHT_PAREN) [ typename SA::postfix_expression::init_postfix_call() ]
-					| (DOT >> template_arg_identifier)                     [ typename SA::postfix_expression::init_postfix_member() ]
-					| INCREMENT                                            [ typename SA::postfix_expression::init_postfix_inc() ]
-					| DECREMENT                                            [ typename SA::postfix_expression::init_postfix_dec() ]
+				>>	*( (LEFT_BRACKET >> expression >> RIGHT_BRACKET)       [ typename SA::postfix_expression::append_postfix_array() ]
+					| (LEFT_PAREN >> -(expression % COMMA) >> RIGHT_PAREN) [ typename SA::postfix_expression::append_postfix_call() ]
+					| (DOT >> template_arg_identifier)                     [ typename SA::postfix_expression::append_postfix_member() ]
+					| INCREMENT                                            [ typename SA::postfix_expression::append_postfix_inc() ]
+					| DECREMENT                                            [ typename SA::postfix_expression::append_postfix_dec() ]
 					)
 			;
 
@@ -760,15 +763,18 @@ struct ThorScript : qi::grammar<Iterator, typename SA::start::attribute_type, de
 
 		// global declaration
 		declaration
-			= (-annotation_specifiers
-				>>	( -CONST >> variable_decl
-					| function_decl
-					| typedef_decl
-					| class_decl
-					| interface_decl
-					| enum_decl
+			= qi::eps [ qi::_a = NULL ]
+				>> -( annotation_specifiers [ typename SA::declaration::collect_annotation_specifiers() ] )
+				>>	(	(	-( CONST        [ typename SA::declaration::config_variable_decl_const() ] )
+						>>	variable_decl   [ typename SA::declaration::init() ]
+						)
+					| function_decl  [ typename SA::declaration::init() ]
+					| typedef_decl   [ typename SA::declaration::init() ]
+					| class_decl     [ typename SA::declaration::init() ]
+					| interface_decl [ typename SA::declaration::init() ]
+					| enum_decl      [ typename SA::declaration::init() ]
 					)
-				) [ typename SA::declaration::init() ]
+				>> qi::eps [ typename SA::declaration::finalize() ]
 			;
 
 		// variable declaration
@@ -991,7 +997,7 @@ struct ThorScript : qi::grammar<Iterator, typename SA::start::attribute_type, de
 
 	// keywords
 	qi::rule<Iterator, detail::WhiteSpace<Iterator> >
-		_TRUE, _FALSE, _NULL,
+		_TRUE, _FALSE, _NULL, _SELF, _GLOBAL,
 		CONST, STATIC,
 		INT8, UINT8, INT16, UINT16, INT32, UINT32, INT64, UINT64, FLOAT32, FLOAT64, VOID,
 		TYPEDEF, CLASS, INTERFACE, ENUM,

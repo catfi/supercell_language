@@ -27,16 +27,33 @@ namespace zillians { namespace language { namespace action {
 struct declaration
 {
 	DEFINE_ATTRIBUTES(Declaration*)
-	DEFINE_LOCALS()
+	DEFINE_LOCALS(Annotations*, bool)
+
+	BEGIN_ACTION(collect_annotation_specifiers)
+	{
+		printf("declaration::collect_annotation_specifiers attr(0) type = %s\n", typeid(_attr_t(0)).name());
+		_local(0) = _attr(0);
+	}
+	END_ACTION
+
+	BEGIN_ACTION(config_variable_decl_const)
+	{
+		printf("declaration::config_variable_decl_const attr(0) type = %s\n", typeid(_attr_t(0)).name());
+		_local(1) = true;
+	}
+	END_ACTION
 
 	BEGIN_ACTION(init)
 	{
-//		printf("declaration attr(0) type = %s\n", typeid(_attr_t(0)).name());
-//		printf("declaration attr(1) type = %s\n", typeid(_attr_t(1)).name());
-//		boost::variant<VariableDecl*, FunctionDecl*, Declaration*> &v = _attr(1);
-//		Declaration* decl = boost::get<Declaration*>(v);
-//		if(!!decl && _attr(0).is_initialized())
-//			decl->setAnnotation(*_attr(0));
+		printf("declaration attr(0) type = %s\n", typeid(_attr_t(0)).name());
+		_value = _attr(0);
+	}
+	END_ACTION
+
+	BEGIN_ACTION(finalize)
+	{
+//		if(!!_local(0))
+//			_value->setAnnotation(_local(0));
 	}
 	END_ACTION
 };
@@ -48,9 +65,9 @@ struct variable_decl
 
 	BEGIN_ACTION(init)
 	{
-//		printf("variable_decl attr(0) type = %s\n", typeid(_attr_t(0)).name());
-//		printf("variable_decl attr(1) type = %s\n", typeid(_attr_t(1)).name());
-//		printf("variable_decl attr(2) type = %s\n", typeid(_attr_t(2)).name());
+		printf("variable_decl attr(0) type = %s\n", typeid(_attr_t(0)).name());
+		printf("variable_decl attr(1) type = %s\n", typeid(_attr_t(1)).name());
+		printf("variable_decl attr(2) type = %s\n", typeid(_attr_t(2)).name());
 		Identifier*    name        = _attr(0);
 		TypeSpecifier* type        = _attr(1).is_initialized() ? *_attr(1) : NULL;
 		ASTNode*       initializer = NULL;
