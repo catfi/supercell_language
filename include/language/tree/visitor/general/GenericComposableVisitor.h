@@ -49,18 +49,18 @@ struct GenericComposableVisitor : GenericDoubleVisitor, boost::fusion::vector<BO
 
 	struct invoke_visit
 	{
-		invoke_visit(const ASTNode& node) : node(node) { }
+		invoke_visit(ASTNode& node) : node(node) { }
 
 	    template<typename VisitorImpl>
-	    void operator()(VisitorImpl& visitor) const
+	    void operator()(VisitorImpl& visitor)
 	    {
 	        visitor.visit(node);
 	    }
 
-	    const ASTNode& node;
+	    ASTNode& node;
 	};
 
-	void apply(const ASTNode& node)
+	void apply(ASTNode& node)
 	{
 		boost::fusion::for_each(*this, invoke_visit(node));
 		revisit(node);

@@ -30,42 +30,42 @@ struct TypeInferenceVisitor : GenericDoubleVisitor
 {
 	CREATE_INVOKER(inferInvoker, infer)
 
-	TypeInferenceVisitor(resolver::TypeResolver& type_resolver) : type_resolver(type_resolver), unresolved_count(0)
+	TypeInferenceVisitor(resolver::TypeResolver& type_resolver) : type_resolver(type_resolver), resolved_count(0), unresolved_count(0)
 	{
 		REGISTER_ALL_VISITABLE_ASTNODE(inferInvoker)
 	}
 
-	void infer(const ASTNode& node)
+	void infer(ASTNode& node)
 	{
 		revisit(node);
 	}
 
-	void infer(const Package& node)
-	{
-		type_resolver.enterScope(node);
-		revisit(node);
-		type_resolver.leaveScope(node);
-	}
-
-	void infer(const ClassDecl& node)
+	void infer(Package& node)
 	{
 		type_resolver.enterScope(node);
 		revisit(node);
 		type_resolver.leaveScope(node);
 	}
 
-	void infer(const Import& node)
+	void infer(ClassDecl& node)
+	{
+		type_resolver.enterScope(node);
+		revisit(node);
+		type_resolver.leaveScope(node);
+	}
+
+	void infer(Import& node)
 	{
 		//type_resolver.enterScope(node);
-		revisit(node);
+		//revisit(node);
 	}
 
-	void infer(const TypeSpecifier& node)
+	void infer(TypeSpecifier& node)
 	{
-		if(!type_resolver.resolve(node))
+		if(type_resolver.resolve(node))
+			++resolved_count;
+		else
 			++unresolved_count;
-
-		revisit(node);
 	}
 
 	std::size_t get_unresolved_count()
@@ -73,8 +73,14 @@ struct TypeInferenceVisitor : GenericDoubleVisitor
 		return unresolved_count;
 	}
 
-	void reset_unresolved_count()
+	std::size_t get_resolved_count()
 	{
+		return resolved_count;
+	}
+
+	void reset_count()
+	{
+		resolved_count = 0;
 		unresolved_count = 0;
 	}
 

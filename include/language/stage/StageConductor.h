@@ -39,7 +39,7 @@ public:
 	void appendStage(shared_ptr<Stage> s);
 
 public:
-	virtual int main(int argc, char** argv);
+	virtual int main(int argc, const char** argv);
 
 protected:
 	std::vector<shared_ptr<Stage>> mStages;

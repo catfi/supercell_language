@@ -24,18 +24,36 @@ include_directories(
     ${PROJECT_FRAMEWORK_SOURCE_DIR}/include/
     )
 
-ADD_DEFINITIONS( ${LLVM_CPPFLAGS} )
-
 add_library(zillians-framework-language-stage
     language/stage/StageConductor.cpp
     language/stage/basic/TreeDebugStage.cpp
     language/stage/parser/ThorScriptParserStage.cpp
     language/stage/transformer/TypeInferenceStage.cpp
-    language/stage/generator/LLVMGeneratorStage.cpp
 	)
 
-target_link_libraries(zillians-framework-language-stage
-    zillians-common-core
-    zillians-common-utility
-    ${LLVM_ALL_LIBS}
-    )
+if(LLVM_FOUND)
+    add_definitions( ${LLVM_CPPFLAGS} )
+    
+    add_library(zillians-framework-language-stage-llvm
+        language/stage/generator/LLVMGeneratorStage.cpp
+        )
+endif()
+
+if(LLVM_FOUND)
+    target_link_libraries(zillians-framework-language-stage
+        zillians-common-core
+        zillians-common-utility
+        zillians-framework-language-stage-llvm
+        )
+    
+    target_link_libraries(zillians-framework-language-stage-llvm
+        zillians-common-core
+        zillians-common-utility
+        ${LLVM_ALL_LIBS}
+        )
+else()
+    target_link_libraries(zillians-framework-language-stage
+        zillians-common-core
+        zillians-common-utility
+        )
+endif()

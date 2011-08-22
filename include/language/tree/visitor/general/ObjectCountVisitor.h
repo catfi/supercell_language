@@ -35,7 +35,7 @@ struct ObjectCountVisitor : GenericDoubleVisitor
 		REGISTER_ALL_VISITABLE_ASTNODE(countInvoker)
 	}
 
-	void count(const ASTNode& node)
+	void count(ASTNode& node)
 	{
 		++total_count;
 		if(!Composed)

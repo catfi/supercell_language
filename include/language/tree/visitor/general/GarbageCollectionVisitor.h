@@ -48,7 +48,7 @@ struct GarbageCollectionVisitor : GenericDoubleVisitor
 		return nonreachable_set.size();
 	}
 
-	void mark(const ASTNode& node)
+	void mark(ASTNode& node)
 	{
 		nonreachable_set.erase(&node);
 		if(!Composed)

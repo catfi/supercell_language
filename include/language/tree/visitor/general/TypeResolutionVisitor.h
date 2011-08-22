@@ -27,7 +27,7 @@
 
 namespace zillians { namespace language { namespace tree { namespace visitor {
 
-struct TypeResolutionVisitor : Visitor<const ASTNode, void, VisitorImplementation::recursive_dfs>
+struct TypeResolutionVisitor : Visitor<ASTNode, void, VisitorImplementation::recursive_dfs>
 {
 	CREATE_INVOKER(resolveInvoker, resolve)
 
@@ -36,17 +36,17 @@ struct TypeResolutionVisitor : Visitor<const ASTNode, void, VisitorImplementatio
 		REGISTER_ALL_VISITABLE_ASTNODE(resolveInvoker)
 	}
 
-	void resolve(const ASTNode& node)
+	void resolve(ASTNode& node)
 	{
 		// default dummy implementation
 	}
 
-	void resolve(const Program& node)
+	void resolve(Program& node)
 	{
 		visit(*node.root);
 	}
 
-	void resolve(const Package& node)
+	void resolve(Package& node)
 	{
 		bool is_template_partial_match = false;
 		if(compare(current, node.id, is_template_partial_match))
@@ -63,7 +63,7 @@ struct TypeResolutionVisitor : Visitor<const ASTNode, void, VisitorImplementatio
 		}
 	}
 
-	void resolve(const ClassDecl& node)
+	void resolve(ClassDecl& node)
 	{
 		bool is_template_partial_match = false;
 		if(compare(current, node.name, is_template_partial_match))
@@ -78,7 +78,7 @@ struct TypeResolutionVisitor : Visitor<const ASTNode, void, VisitorImplementatio
 		}
 	}
 
-	void resolve(const EnumDecl& node)
+	void resolve(EnumDecl& node)
 	{
 		bool is_template_partial_match = false;
 		if(compare(current, node.name, is_template_partial_match))
@@ -93,7 +93,7 @@ struct TypeResolutionVisitor : Visitor<const ASTNode, void, VisitorImplementatio
 		}
 	}
 
-	void resolve(const InterfaceDecl& node)
+	void resolve(InterfaceDecl& node)
 	{
 		bool is_template_partial_match = false;
 		if(compare(current, node.name, is_template_partial_match))
@@ -108,7 +108,7 @@ struct TypeResolutionVisitor : Visitor<const ASTNode, void, VisitorImplementatio
 		}
 	}
 
-	void resolve(const TypedefDecl& node)
+	void resolve(TypedefDecl& node)
 	{
 		bool is_template_partial_match = false;
 		if(compare(current, node.to, is_template_partial_match))
@@ -244,7 +244,7 @@ private:
 	bool allow_template_partial_match;
 
 public:
-	std::vector<const ASTNode*> candidates;
+	std::vector<ASTNode*> candidates;
 	std::vector<bool> partial_match_flags;
 };
 

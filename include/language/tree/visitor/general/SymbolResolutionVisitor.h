@@ -26,7 +26,7 @@
 
 namespace zillians { namespace language { namespace tree { namespace visitor {
 
-struct SymbolResolutionVisitor : Visitor<const ASTNode, void, VisitorImplementation::iterative_bfs>
+struct SymbolResolutionVisitor : Visitor<ASTNode, void, VisitorImplementation::iterative_bfs>
 {
 	CREATE_INVOKER(resolveInvoker, resolve)
 
@@ -35,23 +35,23 @@ struct SymbolResolutionVisitor : Visitor<const ASTNode, void, VisitorImplementat
 		REGISTER_ALL_VISITABLE_ASTNODE(resolveInvoker)
 	}
 
-	void resolve(const ASTNode& node)
+	void resolve(ASTNode& node)
 	{
 		// default dummy implementation
 	}
 
-	void resolve(const Block& node)
+	void resolve(Block& node)
 	{
 		foreach(i, node.objects)
 			visit(**i);
 	}
 
-	void resolve(const Program& node)
+	void resolve(Program& node)
 	{
 		visit(*node.root);
 	}
 
-	void resolve(const Package& node)
+	void resolve(Package& node)
 	{
 		bool is_template_partial_match = false;
 		if(compare(current, node.id, is_template_partial_match))
@@ -68,7 +68,7 @@ struct SymbolResolutionVisitor : Visitor<const ASTNode, void, VisitorImplementat
 		}
 	}
 
-	void resolve(const ClassDecl& node)
+	void resolve(ClassDecl& node)
 	{
 		bool is_template_partial_match = false;
 		if(compare(current, node.name, is_template_partial_match))
@@ -85,7 +85,7 @@ struct SymbolResolutionVisitor : Visitor<const ASTNode, void, VisitorImplementat
 		}
 	}
 
-	void resolve(const FunctionDecl& node)
+	void resolve(FunctionDecl& node)
 	{
 		bool is_template_partial_match = false;
 		if(compare(current, node.name, is_template_partial_match))
@@ -98,7 +98,7 @@ struct SymbolResolutionVisitor : Visitor<const ASTNode, void, VisitorImplementat
 		}
 	}
 
-	void resolve(const VariableDecl& node)
+	void resolve(VariableDecl& node)
 	{
 		bool is_template_partial_match = false;
 		if(compare(current, node.name, is_template_partial_match))
@@ -111,7 +111,7 @@ struct SymbolResolutionVisitor : Visitor<const ASTNode, void, VisitorImplementat
 		}
 	}
 
-	void resolve(const DeclarativeStmt& node)
+	void resolve(DeclarativeStmt& node)
 	{
 		bool is_template_partial_match = false;
 		if(compare(current, node.name, is_template_partial_match))

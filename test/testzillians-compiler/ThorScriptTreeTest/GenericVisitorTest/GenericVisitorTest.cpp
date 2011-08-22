@@ -46,7 +46,7 @@ struct DummyCountVisitor : GenericDoubleVisitor
 		REGISTER_ALL_VISITABLE_ASTNODE(countInvoker)
 	}
 
-	void count(const ASTNode& node)
+	void count(ASTNode& node)
 	{
 		++total_count;
 		revisit(node); // use parent's revisit so that we will walk through entire AST tree hierarchy
@@ -55,7 +55,7 @@ struct DummyCountVisitor : GenericDoubleVisitor
 	std::size_t total_count;
 };
 
-struct DummyComposedCountVisitor : Visitor<const ASTNode, void>
+struct DummyComposedCountVisitor : Visitor<ASTNode, void>
 {
 	CREATE_INVOKER(countInvoker, count);
 
@@ -64,7 +64,7 @@ struct DummyComposedCountVisitor : Visitor<const ASTNode, void>
 		REGISTER_ALL_VISITABLE_ASTNODE(countInvoker)
 	}
 
-	void count(const ASTNode& node)
+	void count(ASTNode& node)
 	{
 		++total_count;
 		// here we don't have to revisit but just implement action on specific AST node types
