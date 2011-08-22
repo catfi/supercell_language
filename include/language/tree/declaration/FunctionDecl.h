@@ -37,6 +37,8 @@ struct FunctionDecl : public Declaration
 
 	explicit FunctionDecl(Identifier* name, TypeSpecifier* type, bool is_member, Declaration::VisibilitySpecifier::type visibility, Declaration::StorageSpecifier::type storage, Block* block = NULL) : name(name), type(type), is_member(is_member), visibility(visibility), storage(storage), block( (block == NULL) ? new Block() : block )
 	{
+		BOOST_ASSERT(name && "null function name is not allowed");
+
 		name->parent = this;
 		if(type) type->parent = this;
 		if(block) block->parent = this;

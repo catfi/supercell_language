@@ -34,6 +34,8 @@ struct TypedefDecl : public Declaration
 
 	explicit TypedefDecl(TypeSpecifier* f, SimpleIdentifier* t) : from(f), to(t)
 	{
+		BOOST_ASSERT(f && t && "null \"from node\" or \"to node\" for typedef is not allowed");
+
 		from->parent = this;
 		to->parent = this;
 	}

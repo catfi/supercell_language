@@ -39,6 +39,8 @@ struct Import : public ASTNode
 
 	explicit Import(Identifier* _ns) : ns(_ns)
 	{
+		BOOST_ASSERT(_ns && "null identifier for import node is not allowed");
+
 		ns->parent = this;
 	}
 

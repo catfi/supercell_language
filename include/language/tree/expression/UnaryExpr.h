@@ -61,6 +61,8 @@ struct UnaryExpr : public Expression
 
 	explicit UnaryExpr(OpCode::type opcode, ASTNode* node) : opcode(opcode), node(node)
 	{
+		BOOST_ASSERT(node && "null node for unary expression is not allowed");
+
 		node->parent = this;
 	}
 

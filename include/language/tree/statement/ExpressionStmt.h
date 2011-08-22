@@ -35,6 +35,8 @@ struct ExpressionStmt : public Statement
 
 	explicit ExpressionStmt(Expression* expr) : expr(expr)
 	{
+		BOOST_ASSERT(expr && "null expression for expression statement is not allowed");
+
 		expr->parent = this;
 	}
 

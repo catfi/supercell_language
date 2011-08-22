@@ -33,31 +33,45 @@ struct ClassDecl : public Declaration
 	DEFINE_VISITABLE();
 	DEFINE_HIERARCHY(ClassDecl, (ClassDecl)(Declaration)(ASTNode));
 
-	explicit ClassDecl(Identifier* name) : name(name)
+	explicit ClassDecl(Identifier* name) : name(name), base(NULL)
 	{
+		BOOST_ASSERT(name && "null class name identifier is not allowed");
+
 		name->parent = this;
 	}
 
 	void appendFunction(FunctionDecl* func)
 	{
+		BOOST_ASSERT(name && "null member function declaration is not allowed");
+
 		func->parent = this;
 		member_functions.push_back(func);
 	}
 
 	void appendVariable(VariableDecl* var)
 	{
+		BOOST_ASSERT(name && "null member variable declaration is not allowed");
+
 		var->parent = this;
 		member_variables.push_back(var);
 	}
 
 	void setBase(ASTNode* extends_from)
 	{
+		BOOST_ASSERT(extends_from && "null base class is not allowed");
+
 		extends_from->parent = this;
+
+		if(base)
+			base->parent = NULL;
+
 		base = extends_from;
 	}
 
 	void addInterface(ASTNode* interface)
 	{
+		BOOST_ASSERT(interface && "null interface is not allowed");
+
 		interface->parent = this;
 		implements.push_back(interface);
 	}

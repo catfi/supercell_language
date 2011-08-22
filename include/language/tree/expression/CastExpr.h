@@ -35,6 +35,9 @@ struct CastExpr : public Expression
 
 	explicit CastExpr(Expression* node, TypeSpecifier* type) : node(node), type(type)
 	{
+		BOOST_ASSERT(node && "null node for cast expression is not allowed");
+		BOOST_ASSERT(type && "null type for cast expression is not allowed");
+
 		node->parent = this;
 		type->parent = this;
 	}

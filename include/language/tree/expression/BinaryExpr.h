@@ -89,6 +89,9 @@ struct BinaryExpr : public Expression
 
 	explicit BinaryExpr(OpCode::type opcode, Expression* left, Expression* right) : opcode(opcode), left(left), right(right)
 	{
+		BOOST_ASSERT(left && "null left child for binary expression is not allowed");
+		BOOST_ASSERT(right && "null right child for binary expression is not allowed");
+
 		left->parent = this;
 		right->parent = this;
 	}

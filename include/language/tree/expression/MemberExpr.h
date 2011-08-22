@@ -34,6 +34,9 @@ struct MemberExpr : public Expression
 
 	explicit MemberExpr(ASTNode* node, Identifier* member) : node(node), member(member)
 	{
+		BOOST_ASSERT(node && "null node for member expression is not allowed");
+		BOOST_ASSERT(member && "null identifier for member expression is not allowed");
+
 		node->parent = this;
 		member->parent = this;
 	}

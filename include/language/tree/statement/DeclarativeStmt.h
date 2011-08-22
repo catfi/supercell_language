@@ -36,6 +36,8 @@ struct DeclarativeStmt : public Statement
 
 	DeclarativeStmt(Identifier* name, TypeSpecifier* type, Declaration::StorageSpecifier::type storage, Expression* initializer = NULL) : name(name), type(type), storage(storage), initializer(initializer)
 	{
+		BOOST_ASSERT(name && "null name for declarative statement is not allowed");
+
 		name->parent = this;
 		if(type) type->parent = this;
 		if(initializer) initializer->parent = this;

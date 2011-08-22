@@ -33,10 +33,15 @@ struct Selection
 	{ }
 
 	Selection(Expression* cond) : cond(cond), block(new Block)
-	{ }
+	{
+		BOOST_ASSERT(cond && "null condition for selection statement is not allowed");
+	}
 
 	Selection(Expression* cond, Block* block) : cond(cond), block(block)
-	{ }
+	{
+		BOOST_ASSERT(cond && "null condition for selection statement is not allowed");
+		BOOST_ASSERT(block && "null block for selection statement is not allowed");
+	}
 
 	Selection(const Selection& s) : cond(s.cond), block(s.block)
 	{ }
@@ -98,13 +103,17 @@ struct SwitchStmt : public SelectionStmt
 
 	explicit SwitchStmt(Expression* node) : node(node)
 	{
+		BOOST_ASSERT(node && "null node for switch statement is not allowed");
+
 		node->parent = this;
 	}
 
 	void addCase(const Selection& branch)
 	{
+		BOOST_ASSERT(branch.cond && "null condition for selection statement is not allowed");
+
 		branch.cond->parent = this;
-		branch.block->parent = this;
+		if(branch.block) branch.block->parent = this;
 		cases.push_back(branch);
 	}
 

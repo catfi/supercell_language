@@ -31,11 +31,15 @@ struct CallExpr : public Expression
 
 	explicit CallExpr(ASTNode* node) : node(node)
 	{
+		BOOST_ASSERT(node && "null callee for call expression is not allowed");
+
 		node->parent = this;
 	}
 
 	void appendParameter(Expression* parameter)
 	{
+		BOOST_ASSERT(parameter && "null parameter for call expression is not allowed");
+
 		parameter->parent = this;
 		parameters.push_back(parameter);
 	}

@@ -40,6 +40,8 @@ struct Package : public ASTNode
 
 	explicit Package(SimpleIdentifier* _id) : id(_id)
 	{
+		BOOST_ASSERT(_id && "null identifier for package node is not allowed");
+
 		id->parent = this;
 	}
 
@@ -55,12 +57,16 @@ struct Package : public ASTNode
 
 	void addPackage(Package* package)
 	{
+		BOOST_ASSERT(package && "null child package for package node is not allowed");
+
 		package->parent = this;
 		children.push_back(package);
 	}
 
 	void addObject(ASTNode* object)
 	{
+		BOOST_ASSERT(object && "null child object for package node is not allowed");
+
 		object->parent = this;
 		objects.push_back(object);
 	}

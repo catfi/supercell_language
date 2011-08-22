@@ -42,6 +42,9 @@ struct ForeachStmt : public IterativeStmt
 
 	explicit ForeachStmt(Expression* iterator, Expression* range, Block* block = NULL) : iterator(iterator), range(range), block( (block == NULL) ? new Block() : block )
 	{
+		BOOST_ASSERT(iterator && "null iterator for foreach statement is not allowed");
+		BOOST_ASSERT(range && "null range for foreach statement is not allowed");
+
 		iterator->parent = this;
 		range->parent = this;
 		if(block) block->parent = this;
@@ -76,6 +79,8 @@ struct WhileStmt : public IterativeStmt
 
 	explicit WhileStmt(Expression* cond, Style::type style, Block* block = NULL) : cond(cond), style(style), block( (block == NULL) ? new Block() : block )
 	{
+		BOOST_ASSERT(cond && "null condition for while statement is not allowed");
+
 		cond->parent = this;
 		if(block) block->parent = this;
 	}

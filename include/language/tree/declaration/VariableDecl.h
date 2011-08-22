@@ -36,6 +36,8 @@ struct VariableDecl : public Declaration
 
 	explicit VariableDecl(Identifier* name, TypeSpecifier* type, bool is_member, Declaration::VisibilitySpecifier::type visibility, Declaration::StorageSpecifier::type storage, ASTNode* initializer = NULL) : name(name), type(type), is_member(is_member), visibility(visibility), storage(storage), initializer(initializer)
 	{
+		BOOST_ASSERT(name && "null variable name is not allowed");
+
 		name->parent = this;
 		if(type) type->parent = this;
 		if(initializer) initializer->parent = this;

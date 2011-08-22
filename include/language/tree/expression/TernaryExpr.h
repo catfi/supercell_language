@@ -35,6 +35,10 @@ struct TernaryExpr : public Expression
 	// so far there only one ternary expression: the conditional expression
 	TernaryExpr(Expression* cond, ASTNode* true_node, ASTNode* false_node) : cond(cond), true_node(true_node), false_node(false_node)
 	{
+		BOOST_ASSERT(cond && "null condition for ternary expression is not allowed");
+		BOOST_ASSERT(true_node && "null \"true node\" for ternary expression is not allowed");
+		BOOST_ASSERT(false_node && "null \"false node\" for ternary expression is not allowed");
+
 		cond->parent = this;
 		true_node->parent = this;
 		false_node->parent = this;

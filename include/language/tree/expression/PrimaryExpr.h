@@ -50,16 +50,25 @@ struct PrimaryExpr : public Expression
 
 	explicit PrimaryExpr(Identifier* identifier) : type(Catagory::IDENTIFIER)
 	{
+		BOOST_ASSERT(identifier && "null identifier for primary expression is not allowed");
+
+		identifier->parent = this;
 		value.identifier = identifier;
 	}
 
 	explicit PrimaryExpr(Literal* literal) : type(Catagory::LITERAL)
 	{
+		BOOST_ASSERT(literal && "null literal for primary expression is not allowed");
+
+		literal->parent = this;
 		value.literal = literal;
 	}
 
 	explicit PrimaryExpr(FunctionDecl* lambda) : type(Catagory::LAMBDA)
 	{
+		BOOST_ASSERT(lambda && "null lambda for primary expression is not allowed");
+
+		lambda->parent = this;
 		value.lambda = lambda;
 	}
 

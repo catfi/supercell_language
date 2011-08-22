@@ -35,6 +35,8 @@ struct InterfaceDecl : public Declaration
 
 	explicit InterfaceDecl(Identifier* name) : name(name)
 	{
+		BOOST_ASSERT(name && "null interface name is not allowed");
+
 		name->parent = this;
 	}
 

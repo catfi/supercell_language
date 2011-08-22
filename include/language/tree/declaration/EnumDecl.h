@@ -35,10 +35,14 @@ struct EnumDecl : public Declaration
 	DEFINE_HIERARCHY(EnumDecl, (EnumDecl)(Declaration)(ASTNode));
 
 	explicit EnumDecl(Identifier* name) : name(name)
-	{ }
+	{
+		BOOST_ASSERT(name && "null enumeration name is not allowed");
+	}
 
 	void addEnumeration(SimpleIdentifier* tag, Expression* value = NULL)
 	{
+		BOOST_ASSERT(tag && "null tag for enumeration is not allowed");
+
 		tag->parent = this;
 		if(value) value->parent = this;
 		enumeration_list.push_back(std::make_pair(tag, value));

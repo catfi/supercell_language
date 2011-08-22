@@ -40,7 +40,8 @@ struct Program : public ASTNode
 
 	Program(Package* root) : root(root)
 	{
-		BOOST_ASSERT(root && "null root is not allowed");
+		BOOST_ASSERT(root && "null root for program node is not allowed");
+
 		root->parent = this;
 	}
 
