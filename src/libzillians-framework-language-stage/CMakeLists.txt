@@ -29,6 +29,7 @@ add_library(zillians-framework-language
     language/stage/basic/TreeDebugStage.cpp
     language/stage/parser/ThorScriptParserStage.cpp
     language/stage/transformer/TypeInferenceStage.cpp
+    language/stage/generator/LLVMGeneratorStage.cpp
 	)
 
 target_link_libraries(zillians-framework-language

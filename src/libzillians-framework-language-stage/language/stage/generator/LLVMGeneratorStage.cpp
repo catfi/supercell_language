@@ -17,10 +17,42 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef TEMPLATESPECIALIZATIONGENERATOR_H_
-#define TEMPLATESPECIALIZATIONGENERATOR_H_
+#include "language/stage/generator/LLVMGeneratorStage.h"
+#include "language/stage/generator/detail/LLVMForeach.h"
+#include "language/action/detail/CompilerState.h"
+//#include "llvm/LinkAllVMCore.h"
+#include <stdint.h>
 
+namespace zillians { namespace language { namespace stage {
 
+LLVMGeneratorStage::LLVMGeneratorStage()
+{ }
 
+LLVMGeneratorStage::~LLVMGeneratorStage()
+{ }
 
-#endif /* TEMPLATESPECIALIZATIONGENERATOR_H_ */
+const char* LLVMGeneratorStage::name()
+{
+	return "llvm_generator";
+}
+
+void LLVMGeneratorStage::initializeOptions(po::options_description& option_desc, po::positional_options_description& positional_desc)
+{
+	llvm::Function* f;// = llvm::Function::Create(llvm::FunctionType::get);
+	foreach(i, f)
+	{
+
+	}
+}
+
+bool LLVMGeneratorStage::parseOptions(po::variables_map& vm)
+{
+	return true;
+}
+
+bool LLVMGeneratorStage::execute()
+{
+	return true;
+}
+
+} } }

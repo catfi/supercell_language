@@ -17,11 +17,26 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef ZILLIANS_LANGUAGE_GENERATOR_TYPEINFERENCEGENERATOR_H_
-#define ZILLIANS_LANGUAGE_GENERATOR_TYPEINFERENCEGENERATOR_H_
+#ifndef ZILLIANS_LANGUAGE_STAGE_GENERATOR_LLVMGENERATORSTAGE_H_
+#define ZILLIANS_LANGUAGE_STAGE_GENERATOR_LLVMGENERATORSTAGE_H_
 
-namespace zillians { namespace compiler { namespace generator {
+#include "language/stage/Stage.h"
+
+namespace zillians { namespace language { namespace stage {
+
+class LLVMGeneratorStage : public Stage
+{
+public:
+	LLVMGeneratorStage();
+	virtual ~LLVMGeneratorStage();
+
+public:
+	virtual const char* name();
+	virtual void initializeOptions(po::options_description& option_desc, po::positional_options_description& positional_desc);
+	virtual bool parseOptions(po::variables_map& vm);
+	virtual bool execute();
+};
 
 } } }
 
-#endif /* ZILLIANS_LANGUAGE_GENERATOR_TYPEINFERENCEGENERATOR_H_ */
+#endif /* ZILLIANS_LANGUAGE_STAGE_GENERATOR_LLVMGENERATORSTAGE_H_ */
