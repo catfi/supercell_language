@@ -71,15 +71,21 @@ struct TypeResolver
 
 			if(type_visitor.candidates.size() == 1)
 			{
-				// TODO update the link (postponed)
 				ASTNode* ref = type_visitor.candidates[0];
 
 				if(isa<ClassDecl>(ref))
+				{
+					LOG4CXX_DEBUG(Logger::Resolver, L"resolve identifier \"" << node.referred.unspecified->toString() << L"\" to \"" << cast<ClassDecl>(ref)->name->toString() << L"\"");
 					node.update(cast<ClassDecl>(ref));
+				}
 				else if(isa<EnumDecl>(ref))
+				{
 					node.update(cast<EnumDecl>(ref));
+				}
 				else if(isa<TypedefDecl>(ref))
+				{
 					node.update(cast<TypedefDecl>(ref));
+				}
 				else
 				{
 					BOOST_ASSERT(false && "unknown type resolved");

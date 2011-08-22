@@ -23,54 +23,19 @@
 #include "core/Prerequisite.h"
 #include "core/Singleton.h"
 
-namespace zillians { namespace compiler {
+namespace zillians { namespace language {
 
-template<typename Iterator, typename Code>
-struct Logger : Singleton<Logger<Iterator, Code>, SingletonInitialization::automatic>
+struct Logger
 {
-	struct Level
-	{
-		enum type {
-			FATAL   = 0,
-			ERROR   = 1,
-			WARNING = 2,
-			INFO    = 3,
-			DEBUG   = 4,
-		};
+	static void initialize();
 
-		static const wchar_t* toString(type t)
-		{
-			switch(t)
-			{
-			case FATAL: return L"fatal";
-			case ERROR: return L"error";
-			case WARNING: return L"warning";
-			case INFO: return L"info";
-			case DEBUG: return L"debug";
-			}
-		}
-	};
-
-	Logger()
-	{ }
-
-	void setLevel(Level::type level)
-	{
-		mCurrentLevel = level;
-	}
-
-	Logger<Iterator, Code>& operator() (Level::type level, Iterator& iterator, const std::wstring& message)
-	{
-		if(level <= mCurrentLevel)
-		{
-			mMessages.push_back(std::make_pair(iterator, message));
-		}
-		return *this;
-	}
-
-private:
-	Level::type mCurrentLevel;
-	std::vector<std::pair<Iterator, std::wstring> > mMessages;
+	static log4cxx::LoggerPtr Compiler;
+	static log4cxx::LoggerPtr Resolver;
+	static log4cxx::LoggerPtr BasicStage;
+	static log4cxx::LoggerPtr ParserStage;
+	static log4cxx::LoggerPtr TransformerStage;
+	static log4cxx::LoggerPtr GeneratorStage;
+	static log4cxx::LoggerPtr VM;
 };
 
 } }

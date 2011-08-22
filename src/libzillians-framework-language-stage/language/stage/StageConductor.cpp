@@ -18,6 +18,7 @@
  */
 
 #include "language/stage/StageConductor.h"
+#include "language/logging/Logger.h"
 #include "utility/TemplateTricks.h"
 
 namespace zillians { namespace language { namespace stage {
@@ -35,7 +36,15 @@ void StageConductor::appendStage(shared_ptr<Stage> stage)
 
 int StageConductor::main(int argc, const char** argv)
 {
-	// prepare logger
+	// prepare simple logger appender
+	if(true)
+	{
+
+	}
+	else
+	{
+		log4cxx::BasicConfigurator::configure();
+	}
 
 	// call implementation's initialize() to append stages
 	initialize();

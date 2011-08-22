@@ -25,6 +25,7 @@ include_directories(
     )
 
 add_library(zillians-framework-language-stage
+    language/resolver/TypeResolver.cpp
     language/stage/StageConductor.cpp
     language/stage/basic/TreeDebugStage.cpp
     language/stage/parser/ThorScriptParserStage.cpp
@@ -43,17 +44,20 @@ if(LLVM_FOUND)
     target_link_libraries(zillians-framework-language-stage
         zillians-common-core
         zillians-common-utility
+        zillians-framework-language
         zillians-framework-language-stage-llvm
         )
     
     target_link_libraries(zillians-framework-language-stage-llvm
         zillians-common-core
         zillians-common-utility
+        zillians-framework-language
         ${LLVM_ALL_LIBS}
         )
 else()
     target_link_libraries(zillians-framework-language-stage
         zillians-common-core
         zillians-common-utility
+        zillians-framework-language
         )
 endif()

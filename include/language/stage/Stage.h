@@ -22,6 +22,7 @@
 
 #include "core/Prerequisite.h"
 #include "core/ContextHub.h"
+#include "language/logging/Logger.h"
 #include <boost/program_options/options_description.hpp>
 #include <boost/program_options/variables_map.hpp>
 #include <boost/program_options/parsers.hpp>
