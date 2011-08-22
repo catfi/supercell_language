@@ -22,6 +22,7 @@
 #include "language/context/ParserContext.h"
 #include "language/context/GeneratorContext.h"
 
+#include <llvm/LLVMContext.h>
 #include <llvm/Module.h>
 #include <llvm/Function.h>
 #include <llvm/PassManager.h>
@@ -45,17 +46,33 @@ const char* LLVMGeneratorStage::name()
 
 void LLVMGeneratorStage::initializeOptions(po::options_description& option_desc, po::positional_options_description& positional_desc)
 {
-	//BOOST_ASSERT()
-	//llvm::Module* module = new llvm::Module("test", llvm::getGlobalContext());
+    option_desc.add_options()
+    ("llvm-module-name", po::value<std::string>(),	"llvm module name");
 }
 
 bool LLVMGeneratorStage::parseOptions(po::variables_map& vm)
 {
+	if(vm.count("llvm-module-name") == 0)
+	{
+		llvm_module_name = "default_module";
+	}
+	else if(vm.count("llvm-module-name") == 1)
+	{
+		llvm_module_name = vm["llvm-module-name"].as<std::string>();
+	}
+	else
+	{
+		return false;
+	}
+
 	return true;
 }
 
 bool LLVMGeneratorStage::execute()
 {
+	llvm::Module* module = new llvm::Module(llvm_module_name, llvm::getGlobalContext());
+	// TODO make a visitor to walk through the entire tree and generate instructions accordingly
+	getGeneratorContext().modules.push_back(module);
 	return true;
 }
 

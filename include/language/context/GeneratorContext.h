@@ -29,10 +29,9 @@ namespace zillians { namespace language {
 
 struct GeneratorContext
 {
-	GeneratorContext() : current_module(NULL)
+	GeneratorContext()
 	{ }
 
-	llvm::Module* current_module;
 	std::vector<llvm::Module*> modules;
 };
 

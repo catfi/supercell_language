@@ -17,14 +17,17 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef ZILLIANS_LANGUAGE_TREE_VISITOR_TYPEINFERENCEVISITOR_H_
-#define ZILLIANS_LANGUAGE_TREE_VISITOR_TYPEINFERENCEVISITOR_H_
+#ifndef ZILLIANS_LANGUAGE_STAGE_VISITOR_TYPEINFERENCEVISITOR_H_
+#define ZILLIANS_LANGUAGE_STAGE_VISITOR_TYPEINFERENCEVISITOR_H_
 
 #include "core/Prerequisite.h"
 #include "language/tree/visitor/general/GenericDoubleVisitor.h"
 #include "language/resolver/TypeResolver.h"
 
-namespace zillians { namespace language { namespace tree { namespace visitor {
+using namespace zillians::language::tree;
+using zillians::language::tree::visitor::GenericDoubleVisitor;
+
+namespace zillians { namespace language { namespace stage { namespace visitor {
 
 struct TypeInferenceVisitor : GenericDoubleVisitor
 {
