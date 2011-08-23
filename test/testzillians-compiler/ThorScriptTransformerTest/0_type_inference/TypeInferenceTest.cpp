@@ -31,6 +31,7 @@
 #include <boost/test/unit_test.hpp>
 
 using namespace zillians;
+using namespace zillians::language;
 using namespace zillians::language::stage;
 
 BOOST_AUTO_TEST_SUITE( ThorScriptTransformerTest_TypeInferenceTestSuite )
