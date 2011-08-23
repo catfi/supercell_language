@@ -27,40 +27,33 @@ namespace zillians { namespace language { namespace action {
 struct declaration
 {
 	DEFINE_ATTRIBUTES(Declaration*)
-	DEFINE_LOCALS(Annotations*, bool)
-
-	BEGIN_ACTION(set_annotation_specifiers)
-	{
-		printf("declaration::set_annotation_specifiers attr(0) type = %s\n", typeid(_attr_t(0)).name());
-		_local(0) = _attr(0);
-	}
-	END_ACTION
-
-	BEGIN_ACTION(set_variable_decl_const)
-	{
-		printf("declaration::set_variable_decl_const attr(0) type = %s\n", typeid(_attr_t(0)).name());
-		_local(1) = true;
-	}
-	END_ACTION
+	DEFINE_LOCALS()
 
 	BEGIN_ACTION(init)
 	{
 		printf("declaration attr(0) type = %s\n", typeid(_attr_t(0)).name());
-		_value = _attr(0);
-	}
-	END_ACTION
-
-	BEGIN_ACTION(finalize)
-	{
-//		if(!!_local(0))
-//			_value->setAnnotation(_local(0));
+		printf("declaration attr(1) type = %s\n", typeid(_attr_t(1)).name());
+		if(_attr(1).which() == 0)
+		{
+			typedef boost::fusion::vector2<boost::optional<bool>, zillians::language::tree::Declaration*> fusion_vector_t;
+			fusion_vector_t vec = boost::get<fusion_vector_t>(_attr(1));
+			bool is_const = boost::fusion::at_c<0>(vec).is_initialized();
+			Declaration* decl = boost::fusion::at_c<1>(vec);
+			if(is_const)
+				dynamic_cast<VariableDecl*>(decl)->storage = Declaration::StorageSpecifier::CONST;
+			_value = decl;
+		}
+		else
+			_value = boost::get<zillians::language::tree::Declaration*>(_attr(1));
+		if(_attr(0).is_initialized())
+			_value->setAnnotation(*_attr(0));
 	}
 	END_ACTION
 };
 
 struct variable_decl
 {
-	DEFINE_ATTRIBUTES(VariableDecl*)
+	DEFINE_ATTRIBUTES(Declaration*)
 	DEFINE_LOCALS()
 
 	BEGIN_ACTION(init)
@@ -85,7 +78,7 @@ struct variable_decl
 
 struct function_decl
 {
-	DEFINE_ATTRIBUTES(FunctionDecl*)
+	DEFINE_ATTRIBUTES(Declaration*)
 	DEFINE_LOCALS()
 
 	BEGIN_ACTION(init)

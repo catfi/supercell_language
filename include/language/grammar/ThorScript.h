@@ -756,18 +756,15 @@ struct ThorScript : qi::grammar<Iterator, typename SA::start::attribute_type, de
 
 		// global declaration
 		declaration
-			= qi::eps [ qi::_a = NULL ]
-				>> -( annotation_specifiers [ typename SA::declaration::set_annotation_specifiers() ] )
-				>>	(	(	-( CONST        [ typename SA::declaration::set_variable_decl_const() ] )
-						>>	variable_decl   [ typename SA::declaration::init() ]
+			=	(-annotation_specifiers
+					>>	( -( CONST >> qi::attr(true) ) >> variable_decl
+						| function_decl
+						| typedef_decl
+						| class_decl
+						| interface_decl
+						| enum_decl
 						)
-					| function_decl  [ typename SA::declaration::init() ]
-					| typedef_decl   [ typename SA::declaration::init() ]
-					| class_decl     [ typename SA::declaration::init() ]
-					| interface_decl [ typename SA::declaration::init() ]
-					| enum_decl      [ typename SA::declaration::init() ]
-					)
-				>> qi::eps [ typename SA::declaration::finalize() ]
+				) [ typename SA::declaration::init() ]
 			;
 
 		// variable declaration
