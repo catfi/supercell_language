@@ -562,64 +562,59 @@ struct ThorScript : qi::grammar<Iterator, typename SA::start::attribute_type, de
 		// associativity: left-to-right
 		// rank: 2
 		multiplicative_expression
-			= qi::eps [ qi::_a = tree::BinaryExpr::OpCode::INVALID ]
-				>>	(prefix_expression
-					%	( ARITHMETIC_MUL [ qi::_a = tree::BinaryExpr::OpCode::ARITHMETIC_MUL ]
-						| ARITHMETIC_DIV [ qi::_a = tree::BinaryExpr::OpCode::ARITHMETIC_DIV ]
-						| ARITHMETIC_MOD [ qi::_a = tree::BinaryExpr::OpCode::ARITHMETIC_MOD ]
-						)
-					) [ typename SA::multiplicative_expression::init() ]
+			=	(prefix_expression
+				%	( ARITHMETIC_MUL >> qi::attr(tree::BinaryExpr::OpCode::ARITHMETIC_MUL)
+					| ARITHMETIC_DIV >> qi::attr(tree::BinaryExpr::OpCode::ARITHMETIC_DIV)
+					| ARITHMETIC_MOD >> qi::attr(tree::BinaryExpr::OpCode::ARITHMETIC_MOD)
+					) [ typename SA::multiplicative_expression::append_op() ]
+				) [ typename SA::multiplicative_expression::init() ]
 			;
 
 		// additive expression
 		// associativity: left-to-right
 		// rank: 3
 		additive_expression
-			= qi::eps [ qi::_a = tree::BinaryExpr::OpCode::INVALID ]
-				>>	(multiplicative_expression
-					%	( ARITHMETIC_PLUS  [ qi::_a = tree::BinaryExpr::OpCode::ARITHMETIC_ADD ]
-						| ARITHMETIC_MINUS [ qi::_a = tree::BinaryExpr::OpCode::ARITHMETIC_SUB ]
-						)
-					) [ typename SA::additive_expression::init() ]
+			=	(multiplicative_expression
+				%	( ARITHMETIC_PLUS  >> qi::attr(tree::BinaryExpr::OpCode::ARITHMETIC_ADD)
+					| ARITHMETIC_MINUS >> qi::attr(tree::BinaryExpr::OpCode::ARITHMETIC_SUB)
+					) [ typename SA::additive_expression::append_op() ]
+				) [ typename SA::additive_expression::init() ]
 			;
 
 		// shift expression
 		// associativity: left-to-right
 		// rank: 4
 		shift_expression
-			= qi::eps [ qi::_a = tree::BinaryExpr::OpCode::INVALID ]
-				>>	(additive_expression
-					%	( RSHIFT [ qi::_a = tree::BinaryExpr::OpCode::BINARY_RSHIFT ]
-						| LSHIFT [ qi::_a = tree::BinaryExpr::OpCode::BINARY_LSHIFT ]
-						)
-					) [ typename SA::shift_expression::init() ]
+			=	(additive_expression
+				%	( RSHIFT >> qi::attr(tree::BinaryExpr::OpCode::BINARY_RSHIFT)
+					| LSHIFT >> qi::attr(tree::BinaryExpr::OpCode::BINARY_LSHIFT)
+					) [ typename SA::shift_expression::append_op() ]
+				) [ typename SA::shift_expression::init() ]
 			;
 
 		// rational expression
 		// associativity: left-to-right
 		// rank: 5
 		relational_expression
-			= qi::eps [ qi::_a = tree::BinaryExpr::OpCode::INVALID ]
-				>>	(shift_expression
-					%	( COMPARE_GT [ qi::_a = tree::BinaryExpr::OpCode::COMPARE_GT ]
-						| COMPARE_LT [ qi::_a = tree::BinaryExpr::OpCode::COMPARE_LT ]
-						| COMPARE_GE [ qi::_a = tree::BinaryExpr::OpCode::COMPARE_GE ]
-						| COMPARE_LE [ qi::_a = tree::BinaryExpr::OpCode::COMPARE_LE ]
-						| INSTANCEOF [ qi::_a = tree::BinaryExpr::OpCode::INSTANCEOF ]
-						)
-					) [ typename SA::relational_expression::init() ]
+			=	(shift_expression
+				%	( COMPARE_GT >> qi::attr(tree::BinaryExpr::OpCode::COMPARE_GT)
+					| COMPARE_LT >> qi::attr(tree::BinaryExpr::OpCode::COMPARE_LT)
+					| COMPARE_GE >> qi::attr(tree::BinaryExpr::OpCode::COMPARE_GE)
+					| COMPARE_LE >> qi::attr(tree::BinaryExpr::OpCode::COMPARE_LE)
+					| INSTANCEOF >> qi::attr(tree::BinaryExpr::OpCode::INSTANCEOF)
+					) [ typename SA::relational_expression::append_op() ]
+				) [ typename SA::relational_expression::init() ]
 			;
 
 		// equality expression
 		// associativity: left-to-right
 		// rank: 6
 		equality_expression
-			= qi::eps [ qi::_a = tree::BinaryExpr::OpCode::INVALID ]
-				>>	(relational_expression
-					%	( COMPARE_EQ [ qi::_a = tree::BinaryExpr::OpCode::COMPARE_EQ ]
-						| COMPARE_NE [ qi::_a = tree::BinaryExpr::OpCode::COMPARE_NE ]
-						)
-					) [ typename SA::equality_expression::init() ]
+			=	(relational_expression
+				%	( COMPARE_EQ >> qi::attr(tree::BinaryExpr::OpCode::COMPARE_EQ)
+					| COMPARE_NE >> qi::attr(tree::BinaryExpr::OpCode::COMPARE_NE)
+					) [ typename SA::equality_expression::append_op() ]
+				) [ typename SA::equality_expression::init() ]
 			;
 
 		// and expression
@@ -677,21 +672,20 @@ struct ThorScript : qi::grammar<Iterator, typename SA::start::attribute_type, de
 		// associativity: right-to-left
 		// rank: 14
 		expression
-			= qi::eps [ qi::_a = tree::BinaryExpr::OpCode::INVALID ]
-			    >>	(ternary_expression
-					%	( ASSIGN        [ qi::_a = tree::BinaryExpr::OpCode::ASSIGN ]
-						| RSHIFT_ASSIGN [ qi::_a = tree::BinaryExpr::OpCode::RSHIFT_ASSIGN ]
-						| LSHIFT_ASSIGN [ qi::_a = tree::BinaryExpr::OpCode::LSHIFT_ASSIGN ]
-						| PLUS_ASSIGN   [ qi::_a = tree::BinaryExpr::OpCode::ADD_ASSIGN ]
-						| MINUS_ASSIGN  [ qi::_a = tree::BinaryExpr::OpCode::SUB_ASSIGN ]
-						| MUL_ASSIGN    [ qi::_a = tree::BinaryExpr::OpCode::MUL_ASSIGN ]
-						| DIV_ASSIGN    [ qi::_a = tree::BinaryExpr::OpCode::DIV_ASSIGN ]
-						| MOD_ASSIGN    [ qi::_a = tree::BinaryExpr::OpCode::MOD_ASSIGN ]
-						| AND_ASSIGN    [ qi::_a = tree::BinaryExpr::OpCode::AND_ASSIGN ]
-						| OR_ASSIGN     [ qi::_a = tree::BinaryExpr::OpCode::OR_ASSIGN ]
-						| XOR_ASSIGN    [ qi::_a = tree::BinaryExpr::OpCode::XOR_ASSIGN ]
-						)
-					) [ typename SA::expression::init() ]
+			=	(ternary_expression
+				%	( ASSIGN        >> qi::attr(tree::BinaryExpr::OpCode::ASSIGN)
+					| RSHIFT_ASSIGN >> qi::attr(tree::BinaryExpr::OpCode::RSHIFT_ASSIGN)
+					| LSHIFT_ASSIGN >> qi::attr(tree::BinaryExpr::OpCode::LSHIFT_ASSIGN)
+					| PLUS_ASSIGN   >> qi::attr(tree::BinaryExpr::OpCode::ADD_ASSIGN)
+					| MINUS_ASSIGN  >> qi::attr(tree::BinaryExpr::OpCode::SUB_ASSIGN)
+					| MUL_ASSIGN    >> qi::attr(tree::BinaryExpr::OpCode::MUL_ASSIGN)
+					| DIV_ASSIGN    >> qi::attr(tree::BinaryExpr::OpCode::DIV_ASSIGN)
+					| MOD_ASSIGN    >> qi::attr(tree::BinaryExpr::OpCode::MOD_ASSIGN)
+					| AND_ASSIGN    >> qi::attr(tree::BinaryExpr::OpCode::AND_ASSIGN)
+					| OR_ASSIGN     >> qi::attr(tree::BinaryExpr::OpCode::OR_ASSIGN)
+					| XOR_ASSIGN    >> qi::attr(tree::BinaryExpr::OpCode::XOR_ASSIGN)
+					) [ typename SA::expression::append_op() ]
+				) [ typename SA::expression::init() ]
 			;
 
 		//
