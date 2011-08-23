@@ -565,8 +565,8 @@ struct ThorScript : qi::grammar<Iterator, typename SA::start::attribute_type, de
 				%	( ARITHMETIC_MUL >> qi::attr(tree::BinaryExpr::OpCode::ARITHMETIC_MUL)
 					| ARITHMETIC_DIV >> qi::attr(tree::BinaryExpr::OpCode::ARITHMETIC_DIV)
 					| ARITHMETIC_MOD >> qi::attr(tree::BinaryExpr::OpCode::ARITHMETIC_MOD)
-					) [ typename SA::multiplicative_expression::append_op() ]
-				) [ typename SA::multiplicative_expression::init() ]
+					) [ typename SA::left_to_right_binary_op_vec::append_op() ]
+				) [ typename SA::left_to_right_binary_op_vec::init() ]
 			;
 
 		// additive expression
@@ -576,8 +576,8 @@ struct ThorScript : qi::grammar<Iterator, typename SA::start::attribute_type, de
 			=	(multiplicative_expression
 				%	( ARITHMETIC_PLUS  >> qi::attr(tree::BinaryExpr::OpCode::ARITHMETIC_ADD)
 					| ARITHMETIC_MINUS >> qi::attr(tree::BinaryExpr::OpCode::ARITHMETIC_SUB)
-					) [ typename SA::additive_expression::append_op() ]
-				) [ typename SA::additive_expression::init() ]
+					) [ typename SA::left_to_right_binary_op_vec::append_op() ]
+				) [ typename SA::left_to_right_binary_op_vec::init() ]
 			;
 
 		// shift expression
@@ -587,8 +587,8 @@ struct ThorScript : qi::grammar<Iterator, typename SA::start::attribute_type, de
 			=	(additive_expression
 				%	( RSHIFT >> qi::attr(tree::BinaryExpr::OpCode::BINARY_RSHIFT)
 					| LSHIFT >> qi::attr(tree::BinaryExpr::OpCode::BINARY_LSHIFT)
-					) [ typename SA::shift_expression::append_op() ]
-				) [ typename SA::shift_expression::init() ]
+					) [ typename SA::left_to_right_binary_op_vec::append_op() ]
+				) [ typename SA::left_to_right_binary_op_vec::init() ]
 			;
 
 		// rational expression
@@ -601,8 +601,8 @@ struct ThorScript : qi::grammar<Iterator, typename SA::start::attribute_type, de
 					| COMPARE_GE >> qi::attr(tree::BinaryExpr::OpCode::COMPARE_GE)
 					| COMPARE_LE >> qi::attr(tree::BinaryExpr::OpCode::COMPARE_LE)
 					| INSTANCEOF >> qi::attr(tree::BinaryExpr::OpCode::INSTANCEOF)
-					) [ typename SA::relational_expression::append_op() ]
-				) [ typename SA::relational_expression::init() ]
+					) [ typename SA::left_to_right_binary_op_vec::append_op() ]
+				) [ typename SA::left_to_right_binary_op_vec::init() ]
 			;
 
 		// equality expression
@@ -612,43 +612,43 @@ struct ThorScript : qi::grammar<Iterator, typename SA::start::attribute_type, de
 			=	(relational_expression
 				%	( COMPARE_EQ >> qi::attr(tree::BinaryExpr::OpCode::COMPARE_EQ)
 					| COMPARE_NE >> qi::attr(tree::BinaryExpr::OpCode::COMPARE_NE)
-					) [ typename SA::equality_expression::append_op() ]
-				) [ typename SA::equality_expression::init() ]
+					) [ typename SA::left_to_right_binary_op_vec::append_op() ]
+				) [ typename SA::left_to_right_binary_op_vec::init() ]
 			;
 
 		// and expression
 		// associativity: left-to-right
 		// rank: 7
 		and_expression
-			= (equality_expression % BINARY_AND) [ typename SA::and_expression::init() ]
+			= (equality_expression % BINARY_AND) [ typename SA::left_to_right_binary_op::template init<tree::BinaryExpr::OpCode::BINARY_AND>() ]
 			;
 
 		// xor expression
 		// associativity: left-to-right
 		// rank: 8
 		xor_expression
-			= (and_expression % BINARY_XOR) [ typename SA::xor_expression::init() ]
+			= (and_expression % BINARY_XOR) [ typename SA::left_to_right_binary_op::template init<tree::BinaryExpr::OpCode::BINARY_XOR>() ]
 			;
 
 		// or expression
 		// associativity: left-to-right
 		// rank: 9
 		or_expression
-			= (xor_expression % BINARY_OR) [ typename SA::or_expression::init() ]
+			= (xor_expression % BINARY_OR) [ typename SA::left_to_right_binary_op::template init<tree::BinaryExpr::OpCode::BINARY_OR>() ]
 			;
 
 		// logical and expression
 		// associativity: left-to-right
 		// rank: 10
 		logical_and_expression
-			= (or_expression % LOGICAL_AND) [ typename SA::logical_and_expression::init() ]
+			= (or_expression % LOGICAL_AND) [ typename SA::left_to_right_binary_op::template init<tree::BinaryExpr::OpCode::LOGICAL_AND>() ]
 			;
 
 		// logical or expression
 		// associativity: left-to-right
 		// rank: 11
 		logical_or_expression
-			= (logical_and_expression % LOGICAL_OR) [ typename SA::logical_or_expression::init() ]
+			= (logical_and_expression % LOGICAL_OR) [ typename SA::left_to_right_binary_op::template init<tree::BinaryExpr::OpCode::LOGICAL_OR>() ]
 			;
 
 		// range expression
@@ -683,8 +683,8 @@ struct ThorScript : qi::grammar<Iterator, typename SA::start::attribute_type, de
 					| AND_ASSIGN    >> qi::attr(tree::BinaryExpr::OpCode::AND_ASSIGN)
 					| OR_ASSIGN     >> qi::attr(tree::BinaryExpr::OpCode::OR_ASSIGN)
 					| XOR_ASSIGN    >> qi::attr(tree::BinaryExpr::OpCode::XOR_ASSIGN)
-					) [ typename SA::expression::append_op() ]
-				) [ typename SA::expression::init() ]
+					) [ typename SA::right_to_left_binary_op_vec::append_op() ]
+				) [ typename SA::right_to_left_binary_op_vec::init() ]
 			;
 
 		//
@@ -1093,21 +1093,21 @@ struct ThorScript : qi::grammar<Iterator, typename SA::start::attribute_type, de
 	qi::rule<Iterator, typename SA::enum_decl::attribute_type,      detail::WhiteSpace<Iterator>, typename SA::enum_decl::local_type>      enum_decl;
 
 	// expression
-	qi::rule<Iterator, typename SA::expression::attribute_type,                detail::WhiteSpace<Iterator>, typename SA::expression::local_type>                expression;
+	qi::rule<Iterator, typename SA::right_to_left_binary_op_vec::attribute_type, detail::WhiteSpace<Iterator>, typename SA::right_to_left_binary_op_vec::local_type> expression;
 	qi::rule<Iterator, typename SA::primary_expression::attribute_type,        detail::WhiteSpace<Iterator>, typename SA::primary_expression::local_type>        primary_expression;
 	qi::rule<Iterator, typename SA::lambda_expression::attribute_type,         detail::WhiteSpace<Iterator>, typename SA::lambda_expression::local_type>         lambda_expression;
 	qi::rule<Iterator, typename SA::postfix_expression::attribute_type,        detail::WhiteSpace<Iterator>, typename SA::postfix_expression::local_type>        postfix_expression;
 	qi::rule<Iterator, typename SA::prefix_expression::attribute_type,         detail::WhiteSpace<Iterator>, typename SA::prefix_expression::local_type>         prefix_expression;
-	qi::rule<Iterator, typename SA::multiplicative_expression::attribute_type, detail::WhiteSpace<Iterator>, typename SA::multiplicative_expression::local_type> multiplicative_expression;
-	qi::rule<Iterator, typename SA::additive_expression::attribute_type,       detail::WhiteSpace<Iterator>, typename SA::additive_expression::local_type>       additive_expression;
-	qi::rule<Iterator, typename SA::shift_expression::attribute_type,          detail::WhiteSpace<Iterator>, typename SA::shift_expression::local_type>          shift_expression;
-	qi::rule<Iterator, typename SA::relational_expression::attribute_type,     detail::WhiteSpace<Iterator>, typename SA::relational_expression::local_type>     relational_expression;
-	qi::rule<Iterator, typename SA::equality_expression::attribute_type,       detail::WhiteSpace<Iterator>, typename SA::equality_expression::local_type>       equality_expression;
-	qi::rule<Iterator, typename SA::and_expression::attribute_type,            detail::WhiteSpace<Iterator>, typename SA::and_expression::local_type>            and_expression;
-	qi::rule<Iterator, typename SA::xor_expression::attribute_type,            detail::WhiteSpace<Iterator>, typename SA::xor_expression::local_type>            xor_expression;
-	qi::rule<Iterator, typename SA::or_expression::attribute_type,             detail::WhiteSpace<Iterator>, typename SA::or_expression::local_type>             or_expression;
-	qi::rule<Iterator, typename SA::logical_and_expression::attribute_type,    detail::WhiteSpace<Iterator>, typename SA::logical_and_expression::local_type>    logical_and_expression;
-	qi::rule<Iterator, typename SA::logical_or_expression::attribute_type,     detail::WhiteSpace<Iterator>, typename SA::logical_or_expression::local_type>     logical_or_expression;
+	qi::rule<Iterator, typename SA::left_to_right_binary_op_vec::attribute_type, detail::WhiteSpace<Iterator>, typename SA::left_to_right_binary_op_vec::local_type> multiplicative_expression;
+	qi::rule<Iterator, typename SA::left_to_right_binary_op_vec::attribute_type, detail::WhiteSpace<Iterator>, typename SA::left_to_right_binary_op_vec::local_type> additive_expression;
+	qi::rule<Iterator, typename SA::left_to_right_binary_op_vec::attribute_type, detail::WhiteSpace<Iterator>, typename SA::left_to_right_binary_op_vec::local_type> shift_expression;
+	qi::rule<Iterator, typename SA::left_to_right_binary_op_vec::attribute_type, detail::WhiteSpace<Iterator>, typename SA::left_to_right_binary_op_vec::local_type> relational_expression;
+	qi::rule<Iterator, typename SA::left_to_right_binary_op_vec::attribute_type, detail::WhiteSpace<Iterator>, typename SA::left_to_right_binary_op_vec::local_type> equality_expression;
+	qi::rule<Iterator, typename SA::left_to_right_binary_op::attribute_type, detail::WhiteSpace<Iterator>, typename SA::left_to_right_binary_op::local_type> and_expression;
+	qi::rule<Iterator, typename SA::left_to_right_binary_op::attribute_type, detail::WhiteSpace<Iterator>, typename SA::left_to_right_binary_op::local_type> xor_expression;
+	qi::rule<Iterator, typename SA::left_to_right_binary_op::attribute_type, detail::WhiteSpace<Iterator>, typename SA::left_to_right_binary_op::local_type> or_expression;
+	qi::rule<Iterator, typename SA::left_to_right_binary_op::attribute_type, detail::WhiteSpace<Iterator>, typename SA::left_to_right_binary_op::local_type> logical_and_expression;
+	qi::rule<Iterator, typename SA::left_to_right_binary_op::attribute_type, detail::WhiteSpace<Iterator>, typename SA::left_to_right_binary_op::local_type> logical_or_expression;
 	qi::rule<Iterator, typename SA::range_expression::attribute_type,          detail::WhiteSpace<Iterator>, typename SA::range_expression::local_type>          range_expression;
 	qi::rule<Iterator, typename SA::ternary_expression::attribute_type,        detail::WhiteSpace<Iterator>, typename SA::ternary_expression::local_type>        ternary_expression;
 

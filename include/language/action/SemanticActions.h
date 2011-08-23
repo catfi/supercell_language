@@ -78,23 +78,18 @@ struct ThorScriptTreeAction
 	/// Semantic Actions for Non-terminals
 
 	// expression
-	typedef action::expression                expression;
-	typedef action::primary_expression        primary_expression;
-	typedef action::lambda_expression         lambda_expression;
-	typedef action::postfix_expression        postfix_expression;
-	typedef action::prefix_expression         prefix_expression;
-	typedef action::multiplicative_expression multiplicative_expression;
-	typedef action::additive_expression       additive_expression;
-	typedef action::shift_expression          shift_expression;
-	typedef action::relational_expression     relational_expression;
-	typedef action::equality_expression       equality_expression;
-	typedef action::and_expression            and_expression;
-	typedef action::xor_expression            xor_expression;
-	typedef action::or_expression             or_expression;
-	typedef action::logical_and_expression    logical_and_expression;
-	typedef action::logical_or_expression     logical_or_expression;
-	typedef action::range_expression          range_expression;
-	typedef action::ternary_expression        ternary_expression;
+	typedef action::primary_expression          primary_expression;
+	typedef action::lambda_expression           lambda_expression;
+	typedef action::postfix_expression          postfix_expression;
+	typedef action::prefix_expression           prefix_expression;
+	typedef action::left_to_right_binary_op_vec left_to_right_binary_op_vec;
+	typedef action::right_to_left_binary_op_vec right_to_left_binary_op_vec;
+	typedef action::left_to_right_binary_op     left_to_right_binary_op;
+#if 0 // NOTE: unused
+	typedef action::right_to_left_binary_op     right_to_left_binary_op;
+#endif
+	typedef action::range_expression            range_expression;
+	typedef action::ternary_expression          ternary_expression;
 
 	// declaration
 	typedef action::declaration    declaration;
