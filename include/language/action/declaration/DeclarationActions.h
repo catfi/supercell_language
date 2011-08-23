@@ -29,16 +29,16 @@ struct declaration
 	DEFINE_ATTRIBUTES(Declaration*)
 	DEFINE_LOCALS(Annotations*, bool)
 
-	BEGIN_ACTION(collect_annotation_specifiers)
+	BEGIN_ACTION(set_annotation_specifiers)
 	{
-		printf("declaration::collect_annotation_specifiers attr(0) type = %s\n", typeid(_attr_t(0)).name());
+		printf("declaration::set_annotation_specifiers attr(0) type = %s\n", typeid(_attr_t(0)).name());
 		_local(0) = _attr(0);
 	}
 	END_ACTION
 
-	BEGIN_ACTION(config_variable_decl_const)
+	BEGIN_ACTION(set_variable_decl_const)
 	{
-		printf("declaration::config_variable_decl_const attr(0) type = %s\n", typeid(_attr_t(0)).name());
+		printf("declaration::set_variable_decl_const attr(0) type = %s\n", typeid(_attr_t(0)).name());
 		_local(1) = true;
 	}
 	END_ACTION

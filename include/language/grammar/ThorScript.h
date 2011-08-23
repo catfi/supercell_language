@@ -169,7 +169,7 @@ struct IntegerLiteral : qi::grammar<Iterator, typename SA::integer_literal::attr
 	IntegerLiteral() : IntegerLiteral::base_type(start_augmented)
 	{
 		start
-			%= distinct(qi::lit(L'.') | L'x' | no_case[L'e'])[qi::int_]
+			%= distinct(qi::lit(L'.') | L'x' | no_case[L'e'])[qi::uint_]
 			| qi::lit(L"0x") >> qi::hex
 			;
 
@@ -191,7 +191,7 @@ struct FloatLiteral : qi::grammar<Iterator, typename SA::float_literal::attribut
 	{
 		start
 			%=	( builtin_float_parser
-				| (qi::int_ | builtin_float_parser) >> no_case[L'e'] >> -qi::lit(L'-') >> qi::int_
+				| (qi::uint_ | builtin_float_parser) >> no_case[L'e'] >> -qi::lit(L'-') >> qi::uint_
 				) > -no_case[L'f']
 			;
 
@@ -275,7 +275,7 @@ struct ThorScript : qi::grammar<Iterator, typename SA::start::attribute_type, de
 
 			// assignments
 			{
-				ASSIGN        = distinct(L'=')[qi::lit(L'=')];
+				ASSIGN        = DISTINCT_NONASSIGN_OP(L'=');
 				RSHIFT_ASSIGN = qi::lit(L">>=");
 				LSHIFT_ASSIGN = qi::lit(L"<<=");
 				PLUS_ASSIGN   = qi::lit(L"+=");
@@ -296,8 +296,8 @@ struct ThorScript : qi::grammar<Iterator, typename SA::start::attribute_type, de
 
 			// arithmetic operators
 			{
-				ARITHMETIC_PLUS  = DISTINCT_NONASSIGN_OP(qi::lit(L'+'));
-				ARITHMETIC_MINUS = DISTINCT_NONASSIGN_OP(qi::lit(L'-'));
+				ARITHMETIC_PLUS  = distinct(qi::lit(L'+') | L'=')[qi::lit(L'+')];
+				ARITHMETIC_MINUS = distinct(qi::lit(L'-') | L'=')[qi::lit(L'-')];
 				ARITHMETIC_MUL   = DISTINCT_NONASSIGN_OP(qi::lit(L'*'));
 				ARITHMETIC_DIV   = DISTINCT_NONASSIGN_OP(qi::lit(L'/'));
 				ARITHMETIC_MOD   = DISTINCT_NONASSIGN_OP(qi::lit(L'%'));
@@ -515,11 +515,11 @@ struct ThorScript : qi::grammar<Iterator, typename SA::start::attribute_type, de
 			| FLOAT_LITERAL                             [ typename SA::primary_expression::init() ]
 			| STRING_LITERAL                            [ typename SA::primary_expression::init() ]
 			| lambda_expression                         [ typename SA::primary_expression::init() ]
-			| _TRUE                                     [ typename SA::primary_expression::init_true() ]
-			| _FALSE                                    [ typename SA::primary_expression::init_false() ]
-			| _NULL                                     [ typename SA::primary_expression::init_null() ]
-			| _SELF                                     [ typename SA::primary_expression::init_self() ]
-			| _GLOBAL                                   [ typename SA::primary_expression::init_global() ]
+			| _TRUE                                     [ typename SA::primary_expression::template init_bool<true>() ]
+			| _FALSE                                    [ typename SA::primary_expression::template init_bool<false>() ]
+			| _NULL                                     [ typename SA::primary_expression::template init_object_literal<tree::ObjectLiteral::LiteralType::NULL_OBJECT>() ]
+			| _SELF                                     [ typename SA::primary_expression::template init_object_literal<tree::ObjectLiteral::LiteralType::SELF_OBJECT>() ]
+			| _GLOBAL                                   [ typename SA::primary_expression::template init_object_literal<tree::ObjectLiteral::LiteralType::GLOBAL_OBJECT>() ]
 			| (LEFT_PAREN >> expression >> RIGHT_PAREN) [ typename SA::primary_expression::init_paren_expression() ]
 			;
 
@@ -536,8 +536,8 @@ struct ThorScript : qi::grammar<Iterator, typename SA::start::attribute_type, de
 				>>	*( (LEFT_BRACKET >> expression >> RIGHT_BRACKET)       [ typename SA::postfix_expression::append_postfix_array() ]
 					| (LEFT_PAREN >> -(expression % COMMA) >> RIGHT_PAREN) [ typename SA::postfix_expression::append_postfix_call() ]
 					| (DOT >> template_arg_identifier)                     [ typename SA::postfix_expression::append_postfix_member() ]
-					| INCREMENT                                            [ typename SA::postfix_expression::append_postfix_inc() ]
-					| DECREMENT                                            [ typename SA::postfix_expression::append_postfix_dec() ]
+					| INCREMENT                                            [ typename SA::postfix_expression::template append_postfix_step<tree::UnaryExpr::OpCode::POSTFIX_INCREMENT>() ]
+					| DECREMENT                                            [ typename SA::postfix_expression::template append_postfix_step<tree::UnaryExpr::OpCode::POSTFIX_DECREMENT>() ]
 					)
 			;
 
@@ -546,16 +546,15 @@ struct ThorScript : qi::grammar<Iterator, typename SA::start::attribute_type, de
 		// rank: 1
 		prefix_expression
 			= postfix_expression [ typename SA::prefix_expression::init_postfix_expression() ]
-			|	qi::eps [ qi::_a = tree::UnaryExpr::OpCode::INVALID ]
-				>>	(
-						( INCREMENT        [ qi::_a = tree::UnaryExpr::OpCode::PREFIX_INCREMENT ]
-						| DECREMENT        [ qi::_a = tree::UnaryExpr::OpCode::PREFIX_DECREMENT ]
-						| BINARY_NOT       [ qi::_a = tree::UnaryExpr::OpCode::BINARY_NOT ]
-						| LOGICAL_NOT      [ qi::_a = tree::UnaryExpr::OpCode::LOGICAL_NOT ]
-						| ARITHMETIC_MINUS [ qi::_a = tree::UnaryExpr::OpCode::ARITHMETIC_NEGATE ]
-						| NEW              [ qi::_a = tree::UnaryExpr::OpCode::NEW ]
-						) >> prefix_expression
-					) [ typename SA::prefix_expression::init() ]
+			|	(
+					( INCREMENT        >> qi::attr(tree::UnaryExpr::OpCode::PREFIX_INCREMENT)
+					| DECREMENT        >> qi::attr(tree::UnaryExpr::OpCode::PREFIX_DECREMENT)
+					| BINARY_NOT       >> qi::attr(tree::UnaryExpr::OpCode::BINARY_NOT)
+					| LOGICAL_NOT      >> qi::attr(tree::UnaryExpr::OpCode::LOGICAL_NOT)
+					| ARITHMETIC_MINUS >> qi::attr(tree::UnaryExpr::OpCode::ARITHMETIC_NEGATE)
+					| NEW              >> qi::attr(tree::UnaryExpr::OpCode::NEW)
+					) >> prefix_expression
+				) [ typename SA::prefix_expression::init() ]
 			;
 
 		// multiplicative expression
@@ -758,8 +757,8 @@ struct ThorScript : qi::grammar<Iterator, typename SA::start::attribute_type, de
 		// global declaration
 		declaration
 			= qi::eps [ qi::_a = NULL ]
-				>> -( annotation_specifiers [ typename SA::declaration::collect_annotation_specifiers() ] )
-				>>	(	(	-( CONST        [ typename SA::declaration::config_variable_decl_const() ] )
+				>> -( annotation_specifiers [ typename SA::declaration::set_annotation_specifiers() ] )
+				>>	(	(	-( CONST        [ typename SA::declaration::set_variable_decl_const() ] )
 						>>	variable_decl   [ typename SA::declaration::init() ]
 						)
 					| function_decl  [ typename SA::declaration::init() ]
