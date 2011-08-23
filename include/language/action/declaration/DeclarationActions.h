@@ -64,8 +64,8 @@ struct variable_decl
 		Identifier*    name        = _attr(0);
 		TypeSpecifier* type        = _attr(1).is_initialized() ? *_attr(1) : NULL;
 		ASTNode*       initializer = NULL;
-//		if(_attr(2).is_initialized())
-//			initializer = (*_attr(2))[0];
+		if(_attr(2).is_initialized())
+			initializer = *_attr(2);
 		Declaration::VisibilitySpecifier::type visibility = Declaration::VisibilitySpecifier::PUBLIC;
 		Declaration::StorageSpecifier::type    storage    = Declaration::StorageSpecifier::NONE;
 		bool is_member = false;
