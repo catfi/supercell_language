@@ -24,7 +24,7 @@
 #include "language/stage/basic/TreeDebugStage.h"
 #include "language/context/ParserContext.h"
 
-using namespace zillians::language::action;
+using namespace zillians::language;
 using namespace zillians::language::stage;
 using namespace zillians::language::tree;
 
