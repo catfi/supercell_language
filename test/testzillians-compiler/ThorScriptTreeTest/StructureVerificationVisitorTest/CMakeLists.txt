@@ -31,4 +31,4 @@ TARGET_LINK_LIBRARIES(ThorScriptTreeTest_StructureVerificationVisitorTest
     )
 
 zillians_add_simple_test(TARGET ThorScriptTreeTest_StructureVerificationVisitorTest)
-zillians_add_test_to_subject(SUBJECT ThorScriptTreeTestAll TARGET ThorScriptTreeTest_StructureVerificationVisitorTest)
+zillians_add_test_to_subject(SUBJECT thorscript-tree-test TARGET ThorScriptTreeTest_StructureVerificationVisitorTest)

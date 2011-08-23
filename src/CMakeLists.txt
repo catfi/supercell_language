@@ -91,4 +91,7 @@ ADD_SUBDIRECTORY(zillians-crypto)
 ADD_SUBDIRECTORY(zillians-stub-gen)
 
 ADD_SUBDIRECTORY(zillians-spirit-log-filter)
+
+ADD_SUBDIRECTORY(libzillians-framework-language)
 ADD_SUBDIRECTORY(zillians-thorscript-compiler)
+ADD_SUBDIRECTORY(zillians-thorscript-vm)

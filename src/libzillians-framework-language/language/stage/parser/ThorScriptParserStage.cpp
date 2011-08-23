@@ -1,6 +1,6 @@
 /**
  * Zillians MMO
- * Copyright (C) 2007-2010 Zillians.com, Inc.
+ * Copyright (C) 2007-2011 Zillians.com, Inc.
  * For more information see http://www.zillians.com
  *
  * Zillians MMO is the library and runtime for massive multiplayer online game
@@ -16,27 +16,27 @@
  * AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-/**
- * @date Jul 18, 2011 sdk - Initial version created.
- */
 
-#include "compiler/ThorScriptCompiler.h"
+#include "language/stage/parser/ThorScriptParserStage.h"
+#include "language/context/ParserContext.h"
+#include "language/grammar/ThorScript.h"
+#include "language/action/SemanticActions.h"
+#include "language/tree/visitor/general/PrettyPrintVisitor.h"
+#include "language/ThorScriptCompiler.h"
+#include "utility/TemplateTricks.h"
 #include "utility/UnicodeUtil.h"
-#include "compiler/grammar/ThorScript.h"
-#include "compiler/action/SemanticActions.h"
-#include "compiler/tree/visitor/general/PrettyPrintVisitor.h"
 
 namespace classic = boost::spirit::classic;
 namespace qi = boost::spirit::qi;
 
-namespace zillians { namespace compiler {
+namespace zillians { namespace language { namespace stage {
 
 namespace {
 
 // since '\t' may be printed in spaces and I don't know a way to change std::wcout, we simply replace the tab with desired number of spaces
 // so that we can have correct error pointing cursor
 // (note that because '\t' equals to 4 spaces reported by spirit, we have to make sure it's printed in the exact same way)
-static void _expand_tabs(const std::wstring& input, std::wstring& output, int number_of_space_for_tab = 4)
+static void expand_tabs(const std::wstring& input, std::wstring& output, int number_of_space_for_tab = 4)
 {
 	for(std::wstring::const_iterator it = input.begin(); it != input.end(); ++it)
 	{
@@ -49,11 +49,61 @@ static void _expand_tabs(const std::wstring& input, std::wstring& output, int nu
 
 }
 
-ThorScriptCompiler::ThorScriptCompiler()
+ThorScriptParserStage::ThorScriptParserStage() : dump_parse(false)
+{ }
+
+ThorScriptParserStage::~ThorScriptParserStage()
+{ }
+
+const char* ThorScriptParserStage::name()
 {
+	return "thorscript_parser";
 }
 
-bool ThorScriptCompiler::parse(std::string filename, bool dump_parse, bool dump_ast)
+void ThorScriptParserStage::initializeOptions(po::options_description& option_desc, po::positional_options_description& positional_desc)
+{
+    option_desc.add_options()
+    ("dump-parse",										"dump parse tree for debugging purpose")
+    ("input,i", po::value<std::vector<std::string>>(),	"thorscript files");
+
+    positional_desc.add("input", -1);
+}
+
+bool ThorScriptParserStage::parseOptions(po::variables_map& vm)
+{
+	dump_parse = (vm.count("dump-parse") > 0);
+
+	if(vm.count("input") > 0)
+	{
+		inputs = vm["input"].as<std::vector<std::string>>();
+		return true;
+	}
+	else
+	{
+		return false;
+	}
+}
+
+bool ThorScriptParserStage::execute()
+{
+	setParserContext(new ParserContext());
+
+	if(inputs.size() > 0)
+	{
+		foreach(i, inputs)
+		{
+			if(!parse(*i)) return false;
+		}
+
+		return true;
+	}
+	else
+	{
+		return true;
+	}
+}
+
+bool ThorScriptParserStage::parse(std::string filename)
 {
 	std::ifstream in(filename, std::ios_base::in);
 
@@ -65,8 +115,7 @@ bool ThorScriptCompiler::parse(std::string filename, bool dump_parse, bool dump_
         s[3] = '\0';
         if (s != std::string("\xef\xbb\xbf"))
         {
-            std::cerr << "Error: Unexpected characters from input file: "
-                << filename << std::endl;
+            std::cerr << "parser error: unexpected characters from input file: " << filename << std::endl;
             return false;
         }
     }
@@ -82,8 +131,8 @@ bool ThorScriptCompiler::parse(std::string filename, bool dump_parse, bool dump_
     // enable correct locale so that we can print UCS4 characters
     enable_default_locale(std::wcout);
 
-    action::ParserState::instance()->enable_debug = dump_parse;
-    action::ParserState::instance()->enable_semantic_action = dump_ast;
+    getParserContext().enable_debug_parser = dump_parse;
+    getParserContext().enable_semantic_action = true;
 
     // try to parse
 	typedef classic::position_iterator2<std::wstring::iterator> pos_iterator_type;
@@ -102,19 +151,14 @@ bool ThorScriptCompiler::parse(std::string filename, bool dump_parse, bool dump_
 		{
 			return false;
 		}
-
-		if(dump_ast)
-		{
-			tree::visitor::PrettyPrintVisitor printer;
-			printer.visit(*action::ParserState::instance()->program);
-		}
 	}
 	catch (const qi::expectation_failure<pos_iterator_type>& e)
 	{
 		const classic::file_position_base<std::wstring>& pos = e.first.get_position();
 
+		// TODO output error using Logger
 		std::wstring current_line;
-		_expand_tabs(e.first.get_currentline(), current_line);
+		expand_tabs(e.first.get_currentline(), current_line);
 		std::wcerr << L"parse error at file " << pos.file << L" line " << pos.line
 				<< L" column " << pos.column << std::endl
 				<< L"'" << current_line << L"'" << std::endl
@@ -126,4 +170,5 @@ bool ThorScriptCompiler::parse(std::string filename, bool dump_parse, bool dump_
 	return true;
 }
 
-} }
+} } }
+

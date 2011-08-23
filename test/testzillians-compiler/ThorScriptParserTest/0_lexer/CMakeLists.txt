@@ -20,17 +20,17 @@
 #
 
 zillians_add_complex_test(
-    TARGET thor-script-parser-test-lexer
-    SHELL ${CMAKE_CURRENT_SOURCE_DIR}/../scripts/test.sh ${TCC_PARSER} ${SPIRIT_LOG_FILTER} 0
+    TARGET thorscript-parser-test-lexer
+    SHELL ${CMAKE_CURRENT_SOURCE_DIR}/../scripts/test.sh ${TCC} ${SPIRIT_LOG_FILTER} 0
             ${CMAKE_CURRENT_SOURCE_DIR}/0_lexer.t
-    DEPENDS ${TCC_PARSER} ${SPIRIT_LOG_FILTER}
+    DEPENDS ${TCC} ${SPIRIT_LOG_FILTER}
     )
 
 zillians_add_complex_test(
-    TARGET thor-script-parser-test-ast-lexer
+    TARGET thorscript-parser-test-ast-lexer
     SHELL ${CMAKE_CURRENT_SOURCE_DIR}/../scripts/test.sh ${TCC} ${SPIRIT_LOG_FILTER} 1
             ${CMAKE_CURRENT_SOURCE_DIR}/0_lexer.t
     DEPENDS ${TCC} ${SPIRIT_LOG_FILTER}
     )
 
-zillians_add_test_to_subject(SUBJECT thor-script-parser-test-all TARGET thor-script-parser-test-lexer)
+zillians_add_test_to_subject(SUBJECT thorscript-parser-test-all TARGET thorscript-parser-test-lexer)

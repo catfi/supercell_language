@@ -18,10 +18,10 @@
  */
 
 #include "core/Prerequisite.h"
-#include "compiler/tree/ASTNode.h"
-#include "compiler/tree/ASTNodeFactory.h"
-#include "compiler/tree/visitor/stage1/StructureVerificationVisitor.h"
-#include "compiler/tree/visitor/general/PrettyPrintVisitor.h"
+#include "language/tree/ASTNode.h"
+#include "language/tree/ASTNodeFactory.h"
+#include "language/tree/visitor/stage1/StructureVerificationVisitor.h"
+#include "language/tree/visitor/general/PrettyPrintVisitor.h"
 #include "../ASTNodeSamples.h"
 #include <iostream>
 #include <string>
@@ -32,8 +32,8 @@
 #include <boost/test/unit_test.hpp>
 
 using namespace zillians;
-using namespace zillians::compiler::tree;
-using namespace zillians::compiler::tree::visitor;
+using namespace zillians::language::tree;
+using namespace zillians::language::tree::visitor;
 
 BOOST_AUTO_TEST_SUITE( ThorScriptTreeTest_GenericVisitorTestSuite )
 

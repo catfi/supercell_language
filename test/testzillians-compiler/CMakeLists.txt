@@ -32,4 +32,5 @@ ADD_SUBDIRECTORY(SemanticCheckTest)
 ADD_SUBDIRECTORY(StubCodeGenTest)
 
 ADD_SUBDIRECTORY(ThorScriptParserTest)
+ADD_SUBDIRECTORY(ThorScriptTransformerTest)
 ADD_SUBDIRECTORY(ThorScriptTreeTest)

@@ -1,0 +1,61 @@
+Semantic Check List
+
+// For "interface"
+- All methods in interface should have no member scope specifier
+- All methods in interface can have no function body
+- All types must be explicitly specified for member function in interface
+
+// For all global variables
+- The initializer must be constant expression (or can be deduced as constant expression)
+
+// For all local variables in function scope
+- The constant variable cannot be modified once it's set in the initializer
+
+// For all member variable in class scope
+- The static variables is just like global variable except it's within class scope
+- 
+
+// For all templated identifier
+- No parameter name conflict is allowed
+- The "..." type is only allowed once at the end of template parameter list
+
+// For all member function in either interface or class or local scope
+- The function parameters must be fully resolved
+- Except member function in interface, function must have body block (local anonymous function must be renamed beforehand)
+- The function name cannot conflict with other function or variable (name resolving conflict)
+ 
+// For class declaration
+- The class name cannot conflict with other class (name resolving conflict)
+- The identifiers for interface implementation must refer to an interface
+- There can be more than one new function
+- There should be a limit on how many member variables allowed in a single class
+
+// For enum declaration
+- The identifiers must not conflict with each other
+- The initialization list must be constant (just like global variable) and of integral type
+- 
+
+// For typedef declaration
+- The "from" node must refer to a type, and the "to" node must be an simple identifier 
+
+// For if/elseif/else statement
+- The condition expression must be able to cast into a boolean variable (and insert cast operation when necessary)
+- 
+
+// For foreach statement
+- the range expression must be a variable of Range<T> type
+- the iterator must be a variable
+
+// For while/do-while statement
+-
+
+// For annotations
+-
+
+// For unary expression
+- Check whether the type can be applied with specific unary operation (for example, ~ or ! cannot be used with floating number)
+
+// For binary expression 
+- Check the type compatibility between LHS and RHS
+- All expression must be fully resolved 
+ 

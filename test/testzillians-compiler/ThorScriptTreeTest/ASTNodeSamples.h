@@ -24,11 +24,11 @@
 #define ASTNODESAMPLES_H_
 
 #include "core/Prerequisite.h"
-#include "compiler/tree/ASTNode.h"
-#include "compiler/tree/ASTNodeFactory.h"
+#include "language/tree/ASTNode.h"
+#include "language/tree/ASTNodeFactory.h"
 
 using namespace zillians;
-using namespace zillians::compiler::tree;
+using namespace zillians::language::tree;
 
 ASTNode* createSample1()
 {
@@ -87,7 +87,7 @@ ASTNode* createSample3()
 						}
 
 						{
-							ExpressionStmt* stmt = new ExpressionStmt(new BinaryExpr(BinaryExpr::OpCode::ASSIGN, new SimpleIdentifier(L"a"), new SimpleIdentifier(L"b")));
+							ExpressionStmt* stmt = new ExpressionStmt(new BinaryExpr(BinaryExpr::OpCode::ASSIGN, new PrimaryExpr(new SimpleIdentifier(L"a")), new PrimaryExpr(new SimpleIdentifier(L"b"))));
 							block->append(stmt);
 						}
 					}
@@ -151,7 +151,7 @@ ASTNode* createSample4()
 						}
 
 						{
-							ExpressionStmt* stmt = new ExpressionStmt(new BinaryExpr(BinaryExpr::OpCode::ASSIGN, new SimpleIdentifier(L"a"), new SimpleIdentifier(L"b")));
+							ExpressionStmt* stmt = new ExpressionStmt(new BinaryExpr(BinaryExpr::OpCode::ASSIGN, new PrimaryExpr(new SimpleIdentifier(L"a")), new PrimaryExpr(new SimpleIdentifier(L"b"))));
 							block->append(stmt);
 						}
 					}
@@ -215,7 +215,7 @@ ASTNode* createSample5()
 						}
 
 						{
-							ExpressionStmt* stmt = new ExpressionStmt(new BinaryExpr(BinaryExpr::OpCode::ASSIGN, new SimpleIdentifier(L"a"), new SimpleIdentifier(L"b")));
+							ExpressionStmt* stmt = new ExpressionStmt(new BinaryExpr(BinaryExpr::OpCode::ASSIGN, new PrimaryExpr(new SimpleIdentifier(L"a")), new PrimaryExpr(new SimpleIdentifier(L"b"))));
 							block->append(stmt);
 						}
 					}

@@ -1,2 +1,2 @@
 var a:uint32;
-var b:uint32 = f(13);
+var b:uint32 = 13;
