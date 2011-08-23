@@ -80,9 +80,6 @@ bool TypeInferenceStage::execute()
 			if(last_unresolved_count > 0)
 			{
 				total_unresolved_count += last_unresolved_count;
-				// TODO use log4cxx
-				// there's unresolved types, failed
-				//std::cerr << "failed to resolve types" << std::endl;
 				LOG4CXX_ERROR(Logger::TransformerStage, L"failed to resolve types");
 				return false;
 			}
