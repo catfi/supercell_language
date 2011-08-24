@@ -44,4 +44,36 @@ BOOST_AUTO_TEST_CASE( ThorScriptTreeTest_PrettyPrintVisitorTestCase1 )
 	printer.visit(*program);
 }
 
+BOOST_AUTO_TEST_CASE( ThorScriptTreeTest_PrettyPrintVisitorTestCase2 )
+{
+	PrettyPrintVisitor printer;
+
+	ASTNode* program = createSample2();
+	printer.visit(*program);
+}
+
+BOOST_AUTO_TEST_CASE( ThorScriptTreeTest_PrettyPrintVisitorTestCase3 )
+{
+	PrettyPrintVisitor printer;
+
+	ASTNode* program = createSample3();
+	printer.visit(*program);
+}
+
+BOOST_AUTO_TEST_CASE( ThorScriptTreeTest_PrettyPrintVisitorTestCase4 )
+{
+	PrettyPrintVisitor printer;
+
+	ASTNode* program = createSample4();
+	printer.visit(*program);
+}
+
+BOOST_AUTO_TEST_CASE( ThorScriptTreeTest_PrettyPrintVisitorTestCase5 )
+{
+	PrettyPrintVisitor printer;
+
+	ASTNode* program = createSample5();
+	printer.visit(*program);
+}
+
 BOOST_AUTO_TEST_SUITE_END()

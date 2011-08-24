@@ -250,7 +250,7 @@ struct GenericVisitor : Visitor<const ASTNode, void, VisitorImplementation::recu
 	void apply(const FunctionDecl& node)
 	{
 		if(node.name) visit(*node.name);
-		foreach(i, node.arguments)
+		foreach(i, node.parameters)
 		{
 			if(i->first) visit(*i->first);
 			if(i->second) visit(*i->second);

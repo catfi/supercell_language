@@ -150,7 +150,7 @@ struct GenericDoubleVisitor : Visitor<ASTNode, void, VisitorImplementation::recu
 		void apply(FunctionDecl& node)
 		{
 			if(node.name) user_visitor->visit(*node.name);
-			foreach(i, node.arguments)
+			foreach(i, node.parameters)
 			{
 				if(i->first) user_visitor->visit(*i->first);
 				if(i->second) user_visitor->visit(*i->second);
