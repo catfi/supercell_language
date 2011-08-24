@@ -59,6 +59,12 @@ struct type_specifier
 	}
 	END_ACTION
 
+	BEGIN_TEMPLATED_ACTION(init_primitive_type, TypeSpecifier::PrimitiveType::type Type)
+	{
+		_value = new TypeSpecifier(Type);
+	}
+	END_ACTION
+
 	BEGIN_ACTION(init_function_type)
 	{
 		printf("type_specifier::init_function_type attr(0) type = %s\n", typeid(_attr_t(0)).name());
@@ -70,6 +76,7 @@ struct type_specifier
 	BEGIN_ACTION(init_ellipsis)
 	{
 //		printf("type_specifier::init_ellipsis attr(0) type = %s\n", typeid(_attr_t(0)).name());
+		_value = new tree::TypeSpecifier(TypeSpecifier::PrimitiveType::VARIADIC_ELLIPSIS);
 	}
 	END_ACTION
 };

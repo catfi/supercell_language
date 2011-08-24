@@ -91,11 +91,9 @@ struct Identifier : qi::grammar<Iterator, typename SA::identifier::attribute_typ
 	Identifier() : Identifier::base_type(start_augmented)
 	{
 		keyword_sym =
-#if 1
 			L"void",
 			L"int8", L"uint8", L"int16", L"uint16", L"int32", L"uint32", L"int64", L"uint64",
 			L"float32", L"float64",
-#endif
 			L"true", L"false", L"null", L"self", L"global", L"...",
 			L"const", L"static",
 			L"typedef", L"class", L"interface", L"enum",
@@ -115,45 +113,6 @@ struct Identifier : qi::grammar<Iterator, typename SA::identifier::attribute_typ
 		start_augmented = start [ typename SA::identifier::init() ];
 
 		start_augmented.name("IDENTIFIER");
-		if(getParserContext().enable_debug_parser)
-			debug(start_augmented);
-	}
-
-	qi::symbols<wchar_t const> keyword_sym;
-	qi::rule<Iterator, std::wstring()> keyword, start;
-	qi::rule<Iterator, typename SA::identifier::attribute_type, typename SA::identifier::local_type> start_augmented;
-};
-
-template <typename Iterator, typename SA>
-struct TypeName : qi::grammar<Iterator, typename SA::identifier::attribute_type, typename SA::identifier::local_type>
-{
-	TypeName() : TypeName::base_type(start_augmented)
-	{
-		keyword_sym =
-#if 0
-			L"void",
-			L"int8", L"uint8", L"int16", L"uint16", L"int32", L"uint32", L"int64", L"uint64",
-			L"float32", L"float64",
-#endif
-			L"true", L"false", L"null", L"self", L"global", L"...",
-			L"const", L"static",
-			L"typedef", L"class", L"interface", L"enum",
-			L"public", L"protected", L"private",
-			L"var", L"function",
-			L"if", L"elif", L"else",
-			L"switch", L"case", L"default",
-			L"foreach", L"in", L"do", L"while",
-			L"break", L"continue", L"return",
-			L"new", L"as", L"instanceof",
-			L"package", L"import",
-			L"extends", L"implements";
-		keyword = DISTINCT_IDENTIFIER(keyword_sym);
-
-		start %= qi::lexeme[ ((unicode::alpha | L'_') >> *(unicode::alnum | L'_')) - keyword ];
-
-		start_augmented = start [ typename SA::identifier::init() ];
-
-		start_augmented.name("TYPENAME");
 		if(getParserContext().enable_debug_parser)
 			debug(start_augmented);
 	}
@@ -432,7 +391,18 @@ struct ThorScript : qi::grammar<Iterator, typename SA::start::attribute_type, de
 			;
 
 		type_specifier
-			= (TYPENAME > -template_arg_specifier)                                                 [ typename SA::type_specifier::init_type() ]
+			= (IDENTIFIER > -template_arg_specifier)                                               [ typename SA::type_specifier::init_type() ]
+			| qi::lit(L"void")                                                                     [ typename SA::type_specifier::template init_primitive_type<tree::TypeSpecifier::PrimitiveType::VOID>() ]
+			| qi::lit(L"int8")                                                                     [ typename SA::type_specifier::template init_primitive_type<tree::TypeSpecifier::PrimitiveType::INT8>() ]
+			| qi::lit(L"uint8")                                                                    [ typename SA::type_specifier::template init_primitive_type<tree::TypeSpecifier::PrimitiveType::UINT8>() ]
+			| qi::lit(L"int16")                                                                    [ typename SA::type_specifier::template init_primitive_type<tree::TypeSpecifier::PrimitiveType::INT16>() ]
+			| qi::lit(L"uint16")                                                                   [ typename SA::type_specifier::template init_primitive_type<tree::TypeSpecifier::PrimitiveType::UINT16>() ]
+			| qi::lit(L"int32")                                                                    [ typename SA::type_specifier::template init_primitive_type<tree::TypeSpecifier::PrimitiveType::INT32>() ]
+			| qi::lit(L"uint32")                                                                   [ typename SA::type_specifier::template init_primitive_type<tree::TypeSpecifier::PrimitiveType::UINT32>() ]
+			| qi::lit(L"int64")                                                                    [ typename SA::type_specifier::template init_primitive_type<tree::TypeSpecifier::PrimitiveType::INT64>() ]
+			| qi::lit(L"uint64")                                                                   [ typename SA::type_specifier::template init_primitive_type<tree::TypeSpecifier::PrimitiveType::UINT64>() ]
+			| qi::lit(L"float32")                                                                  [ typename SA::type_specifier::template init_primitive_type<tree::TypeSpecifier::PrimitiveType::FLOAT32>() ]
+			| qi::lit(L"float64")                                                                  [ typename SA::type_specifier::template init_primitive_type<tree::TypeSpecifier::PrimitiveType::FLOAT64>() ]
 			| (FUNCTION > LEFT_PAREN > -type_list_specifier > RIGHT_PAREN > -colon_type_specifier) [ typename SA::type_specifier::init_function_type() ]
 			| ELLIPSIS                                                                             [ typename SA::type_specifier::init_ellipsis() ]
 			;
@@ -873,7 +843,6 @@ struct ThorScript : qi::grammar<Iterator, typename SA::start::attribute_type, de
 
 		// terminals
 		IDENTIFIER.name("IDENTIFIER.grammar");
-		TYPENAME.name("TYPENAME.grammar");
 		INTEGER_LITERAL.name("INTEGER_LITERAL.grammar");
 		FLOAT_LITERAL.name("FLOAT_LITERAL.grammar");
 		STRING_LITERAL.name("STRING_LITERAL.grammar");
@@ -925,7 +894,6 @@ struct ThorScript : qi::grammar<Iterator, typename SA::start::attribute_type, de
 			// terminals
 #if 0 // NOTE: grammars cannot have debug_handlers, only rules can
 			debug(IDENTIFIER);
-			debug(TYPENAME);
 			debug(INTEGER_LITERAL);
 			debug(FLOAT_LITERAL);
 			debug(STRING_LITERAL);
@@ -1006,7 +974,6 @@ struct ThorScript : qi::grammar<Iterator, typename SA::start::attribute_type, de
 
 	// terminals
 	detail::Identifier<Iterator, SA>     IDENTIFIER;
-	detail::TypeName<Iterator, SA>       TYPENAME;
 	detail::IntegerLiteral<Iterator, SA> INTEGER_LITERAL;
 	detail::FloatLiteral<Iterator, SA>   FLOAT_LITERAL;
 	detail::StringLiteral<Iterator, SA>  STRING_LITERAL;
