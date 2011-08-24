@@ -32,13 +32,14 @@
 #include <llvm/Assembly/PrintModulePass.h>
 #include <llvm/Support/IRBuilder.h>
 
-//using namespace zillians::language::tree;
-
 namespace zillians { namespace language { namespace stage { namespace visitor {
 
 struct LLVMHelper
 {
-	static bool buildType(llvm::LLVMContext &context, tree::TypeSpecifier& specifier, /*OUT*/ const llvm::Type*& result, /*OUT*/ llvm::Attributes& modifier)
+	LLVMHelper(llvm::LLVMContext& context, llvm::Module& module, llvm::IRBuilder<>& builder) : mContext(context), mModule(module), mBuilder(builder)
+	{ }
+
+	bool getType(tree::TypeSpecifier& specifier, /*OUT*/ const llvm::Type*& result, /*OUT*/ llvm::Attributes& modifier)
 	{
 		bool resolved = false;
 
@@ -49,7 +50,7 @@ struct LLVMHelper
 		{
 			// return generic pointer type, which is an unsigned int32
 			modifier |= llvm::Attribute::ZExt;
-			result = llvm::IntegerType::getInt32Ty(context);
+			result = llvm::IntegerType::getInt32Ty(mContext);
 			resolved = true; break;
 		}
 		case tree::TypeSpecifier::ReferredType::FUNCTION_DECL:
@@ -62,7 +63,7 @@ struct LLVMHelper
 		case tree::TypeSpecifier::ReferredType::ENUM_DECL:
 		{
 			modifier |= llvm::Attribute::ZExt;
-			result = llvm::IntegerType::getInt32Ty(context);
+			result = llvm::IntegerType::getInt32Ty(mContext);
 			resolved = true; break;
 		}
 		case tree::TypeSpecifier::ReferredType::PRIMITIVE:
@@ -73,7 +74,7 @@ struct LLVMHelper
 			{
 				// return generic pointer type, which is an unsigned int32
 				modifier |= llvm::Attribute::ZExt;
-				result = llvm::IntegerType::getInt32Ty(context);
+				result = llvm::IntegerType::getInt32Ty(mContext);
 				resolved = true; break;
 			}
 			case tree::TypeSpecifier::PrimitiveType::ANONYMOUS_FUNCTION:
@@ -84,65 +85,65 @@ struct LLVMHelper
 			}
 			case tree::TypeSpecifier::PrimitiveType::VOID:
 			{
-				result = llvm::Type::getVoidTy(context);
+				result = llvm::Type::getVoidTy(mContext);
 				resolved = true; break;
 			}
 			case tree::TypeSpecifier::PrimitiveType::INT8:
 			{
 				modifier |= llvm::Attribute::SExt;
-				result = llvm::IntegerType::getInt8Ty(context);
+				result = llvm::IntegerType::getInt8Ty(mContext);
 				resolved = true; break;
 			}
 			case tree::TypeSpecifier::PrimitiveType::UINT8:
 			{
 				modifier |= llvm::Attribute::ZExt;
-				result = llvm::IntegerType::getInt8Ty(context);
+				result = llvm::IntegerType::getInt8Ty(mContext);
 				resolved = true; break;
 			}
 			case tree::TypeSpecifier::PrimitiveType::INT16:
 			{
 				modifier |= llvm::Attribute::SExt;
-				result = llvm::IntegerType::getInt16Ty(context);
+				result = llvm::IntegerType::getInt16Ty(mContext);
 				resolved = true; break;
 			}
 			case tree::TypeSpecifier::PrimitiveType::UINT16:
 			{
 				modifier |= llvm::Attribute::ZExt;
-				result = llvm::IntegerType::getInt16Ty(context);
+				result = llvm::IntegerType::getInt16Ty(mContext);
 				resolved = true; break;
 			}
 			case tree::TypeSpecifier::PrimitiveType::INT32:
 			{
 				modifier |= llvm::Attribute::SExt;
-				result = llvm::IntegerType::getInt32Ty(context);
+				result = llvm::IntegerType::getInt32Ty(mContext);
 				resolved = true; break;
 			}
 			case tree::TypeSpecifier::PrimitiveType::UINT32:
 			{
 				modifier |= llvm::Attribute::ZExt;
-				result = llvm::IntegerType::getInt32Ty(context);
+				result = llvm::IntegerType::getInt32Ty(mContext);
 				resolved = true; break;
 			}
 			case tree::TypeSpecifier::PrimitiveType::INT64:
 			{
 				modifier |= llvm::Attribute::SExt;
-				result = llvm::IntegerType::getInt64Ty(context);
+				result = llvm::IntegerType::getInt64Ty(mContext);
 				resolved = true; break;
 			}
 			case tree::TypeSpecifier::PrimitiveType::UINT64:
 			{
 				modifier |= llvm::Attribute::ZExt;
-				result = llvm::IntegerType::getInt64Ty(context);
+				result = llvm::IntegerType::getInt64Ty(mContext);
 				resolved = true; break;
 			}
 			case tree::TypeSpecifier::PrimitiveType::FLOAT32:
 			{
-				result = llvm::Type::getFloatTy(context);
+				result = llvm::Type::getFloatTy(mContext);
 				resolved = true; break;
 			}
 			case tree::TypeSpecifier::PrimitiveType::FLOAT64:
 			{
-				result = llvm::Type::getDoubleTy(context);
+				result = llvm::Type::getDoubleTy(mContext);
 				resolved = true; break;
 			}
 			}
@@ -157,7 +158,7 @@ struct LLVMHelper
 		return resolved;
 	}
 
-	static bool buildFunctionType(llvm::LLVMContext &context, tree::FunctionDecl& ast_function, /*OUT*/ llvm::FunctionType* llvm_function_type, /*OUT*/ std::vector<llvm::AttributeWithIndex>& llvm_function_parameter_type_attributes, /*OUT*/ llvm::Attributes& llvm_function_return_type_attribute)
+	bool getFunctionType(tree::FunctionDecl& ast_function, /*OUT*/ llvm::FunctionType* llvm_function_type, /*OUT*/ std::vector<llvm::AttributeWithIndex>& llvm_function_parameter_type_attributes, /*OUT*/ llvm::Attributes& llvm_function_return_type_attribute)
 	{
 		// prepare LLVM function parameter type list
 		std::vector<const llvm::Type*> llvm_function_parameter_types;
@@ -168,7 +169,7 @@ struct LLVMHelper
 				llvm::Attributes attr = llvm::Attribute::None;
 				const llvm::Type* t = NULL;
 
-				if(!buildType(context, *i->second, t, attr))
+				if(!getType(*i->second, t, attr))
 					return false;
 
 				llvm_function_parameter_types.push_back(t);
@@ -181,7 +182,7 @@ struct LLVMHelper
 		// prepare LLVM function return type
 		const llvm::Type* llvm_function_return_type = NULL;
 		{
-			if(!buildType(context, *ast_function.type, llvm_function_return_type, llvm_function_return_type_attribute))
+			if(!getType(*ast_function.type, llvm_function_return_type, llvm_function_return_type_attribute))
 				return false;
 		}
 
@@ -190,18 +191,31 @@ struct LLVMHelper
 		return true;
 	}
 
-	static bool buildFunction(llvm::LLVMContext &context, llvm::Module& llvm_module, tree::FunctionDecl& ast_function, /*OUT*/ llvm::Function* llvm_function)
+	bool hasFunction(tree::FunctionDecl& ast_function)
 	{
+		if(ast_function.get<llvm::Function>())
+			return true;
+		else
+			return false;
+	}
+
+	bool getFunction(tree::FunctionDecl& ast_function, /*OUT*/ llvm::Function* llvm_function)
+	{
+		if(!!(llvm_function = ast_function.get<llvm::Function>()))
+			return true;
+
+		llvm::BasicBlock* bb;
+
 		llvm::FunctionType* llvm_function_type = NULL;
 		std::vector<llvm::AttributeWithIndex> llvm_function_parameter_type_attributes;
 		llvm::Attributes llvm_function_return_type_attribute;
 
 		// try to resolve function type
-		if(!buildFunctionType(context, ast_function, llvm_function_type, llvm_function_parameter_type_attributes, llvm_function_return_type_attribute))
+		if(!getFunctionType(ast_function, llvm_function_type, llvm_function_parameter_type_attributes, llvm_function_return_type_attribute))
 			return false;
 
 		// TODO we should provide some generator name manging helper
-		llvm_function = llvm::Function::Create(llvm_function_type, llvm::Function::ExternalLinkage, "test_function", &llvm_module);
+		llvm_function = llvm::Function::Create(llvm_function_type, llvm::Function::ExternalLinkage, "test_function", &mModule);
 
 		if(!llvm_function)
 			return false;
@@ -209,11 +223,64 @@ struct LLVMHelper
 		// set function attributes (modifiers)
 		llvm_function->setAttributes(llvm::AttrListPtr::get(llvm_function_parameter_type_attributes.begin(), llvm_function_parameter_type_attributes.end()));
 
+		// associate the LLVM function object with AST FunctionDecl object
+		ast_function.set<llvm::Function>(llvm_function);
+
+		return true;
+	}
+
+	llvm::BasicBlock* createBasicBlock(llvm::StringRef name = "", llvm::Function* parent = NULL, llvm::BasicBlock* before = NULL)
+	{
+		return llvm::BasicBlock::Create(mContext, "", parent, before);
+	}
+
+	bool startFunction(tree::FunctionDecl& ast_function, /*OUT*/ llvm::Function** llvm_function_ref = NULL)
+	{
+		llvm::Function* llvm_function = NULL;
+		if(!getFunction(ast_function, llvm_function))
+			return false;
+
+		// create basic entry blocks
+		mFunctionContext.entry_block = createBasicBlock("entry", llvm_function);
+		mBuilder.SetInsertPoint(mFunctionContext.entry_block);
+
+		// create dummy alloca insertion point (from clang & foster)
+		{
+			llvm::Value *undef = llvm::UndefValue::get(llvm::Type::getInt32Ty(mContext));
+			mAllocaInsertionPoint = new llvm::BitCastInst(undef, llvm::Type::getInt32Ty(mContext), "", mFunctionContext.entry_block);
+			if(mBuilder.isNamePreserving())
+				mAllocaInsertionPoint->setName("allocapt");
+		}
+
+		// create return block
+		mFunctionContext.return_block = createBasicBlock("return", llvm_function);
+
+		if(llvm_function_ref)
+			*llvm_function_ref = llvm_function;
+
+		return true;
+	}
+
+	bool finishFunction(tree::FunctionDecl& ast_function)
+	{
+		mAllocaInsertionPoint->eraseFromParent();
+		mAllocaInsertionPoint = NULL;
+
 		return true;
 	}
 
 private:
-	LLVMHelper() { }
+	llvm::LLVMContext &mContext;
+	llvm::IRBuilder<>& mBuilder;
+	llvm::Module& mModule;
+
+	struct {
+		llvm::Function* function;
+		llvm::BasicBlock* entry_block;
+		llvm::BasicBlock* return_block;
+	} mFunctionContext;
+
+	llvm::Instruction* mAllocaInsertionPoint;
 };
 
 } } } }

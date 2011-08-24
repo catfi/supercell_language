@@ -33,32 +33,105 @@ struct LLVMGeneratorVisitor : GenericDoubleVisitor
 {
 	CREATE_INVOKER(generateInvoker, generate)
 
-	LLVMGeneratorVisitor(llvm::LLVMContext& context, llvm::Module& current_module) : context(context), current_module(current_module)
+	LLVMGeneratorVisitor(llvm::LLVMContext& context, llvm::Module& current_module) :
+		context(context), current_module(current_module), builder(context), helper(context, current_module, builder)
 	{
 		REGISTER_ALL_VISITABLE_ASTNODE(generateInvoker)
 	}
 
 	void generate(ASTNode& node)
 	{
+		revisit(node);
+	}
+
+	void generate(Program& node)
+	{
+		// create LLVM global variables to store VTT and other global variables in thorscript
 	}
 
 	void generate(FunctionDecl& node)
 	{
-		if(!node.get<llvm::Function>())
+		if(!helper.hasFunction(node))
 		{
-			llvm::Function* llvm_function = NULL;
-			if(!LLVMHelper::buildFunction(context, current_module, node, llvm_function))
+			// create function signature (if necessary) and emit prologue of function
+			if(!helper.startFunction(node))
 			{
 				terminateRevisit();
 				return;
 			}
-			// TODO investigate memory ownership
-			node.set<llvm::Function>(llvm_function);
+
+			// visit all children
+			revisit(node);
+
+			// emit epilogue of function
+			if(!helper.finishFunction(node))
+			{
+				terminateRevisit();
+				return;
+			}
 		}
+	}
+
+	void generate(ExpressionStmt& node)
+	{
+
+	}
+
+	void generate(IfElseStmt& node)
+	{
+
+	}
+
+	void generate(ForeachStmt& node)
+	{
+
+	}
+
+	void generate(WhileStmt& node)
+	{
+
+	}
+
+	void generate(SwitchStmt& node)
+	{
+
+	}
+
+	void generate(UnaryExpr& node)
+	{
+
+	}
+
+	void generate(BinaryExpr& node)
+	{
+
+	}
+
+	void generate(TernaryExpr& node)
+	{
+
+	}
+
+	void generate(CallExpr& node)
+	{
+
+	}
+
+	void generate(CastExpr& node)
+	{
+
+	}
+
+	void generate(MemberExpr& node)
+	{
+
 	}
 
 	llvm::LLVMContext& context;
 	llvm::Module& current_module;
+	llvm::IRBuilder<> builder;
+	LLVMHelper helper;
+	llvm::Function* current_function; // current_function would be updated throughout the code generation
 };
 
 } } } }
