@@ -33,33 +33,10 @@ struct Identifier : public ASTNode
 	DEFINE_VISITABLE();
 	DEFINE_HIERARCHY(Identifier, (Identifier)(ASTNode));
 
-//	struct Usage
-//	{
-//		enum type {
-//			TYPE_DECLARATION,
-//			TYPE_SPECIFIER,
-//			SYMBOL,
-//			UNSPECIFIED,
-//		};
-//
-//		static const wchar_t* toString(type t)
-//		{
-//			switch(t)
-//			{
-//			case TYPE_DECLARATION: return L"type-declaration";
-//			case TYPE_SPECIFIER: return L"type-specifier";
-//			case SYMBOL: return L"symbol";
-//			case UNSPECIFIED: return L"unspecified";
-//			}
-//		}
-//	};
-
-	Identifier() //: usage(Usage::UNSPECIFIED)
+	Identifier()
 	{ }
 
 	virtual const std::wstring& toString() const = 0;
-
-//	Usage::type usage;
 };
 
 struct SimpleIdentifier : public Identifier
@@ -115,7 +92,24 @@ struct TemplatedIdentifier : public Identifier
 	DEFINE_VISITABLE()
 	DEFINE_HIERARCHY(TemplatedIdentifier, (TemplatedIdentifier)(Identifier)(ASTNode));
 
-	TemplatedIdentifier(Identifier* id) : id(id)
+	struct Usage
+	{
+		enum type {
+			FORMAL_PARAMETER,
+			ACTUAL_ARGUMENT,
+		};
+
+		static const wchar_t* toString(type t)
+		{
+			switch(t)
+			{
+			case FORMAL_PARAMETER: return L"param";
+			case ACTUAL_ARGUMENT: return L"arg";
+			}
+		}
+	};
+
+	explicit TemplatedIdentifier(Usage::type type, Identifier* id) : type(type), id(id)
 	{
 		id->parent = this;
 	}
@@ -125,15 +119,22 @@ struct TemplatedIdentifier : public Identifier
 		static std::wstring t;
 		t.clear();
 
-		t += id->toString();
-		t += L"<";
-		foreach(i, templated_parameters)
+		if(type == Usage::FORMAL_PARAMETER)
 		{
-			t += (*i)->toString();
-			if((i+1) != endof(templated_parameters))
-				t += L",";
+			t += id->toString();
+			t += L"<";
+			foreach(i, templated_type_list)
+			{
+				t += cast<Identifier>((*i))->toString();
+				if((i+1) != endof(templated_type_list))
+					t += L",";
+			}
+			t += L">";
 		}
-		t += L">";
+		else
+		{
+			// TODO how to dump type specifier without having its header?
+		}
 		return t;
 	}
 
@@ -144,14 +145,25 @@ struct TemplatedIdentifier : public Identifier
 		id->parent = this;
 	}
 
-	void appendParameter(Identifier* parameter)
+	void appendParameter(ASTNode* parameter)
 	{
+		BOOST_ASSERT(type == Usage::FORMAL_PARAMETER);
+
 		parameter->parent = this;
-		templated_parameters.push_back(parameter);
+		templated_type_list.push_back(parameter);
 	}
 
+	void appendArgument(ASTNode* argument)
+	{
+		BOOST_ASSERT(type == Usage::ACTUAL_ARGUMENT);
+
+		argument->parent = this;
+		templated_type_list.push_back(argument);
+	}
+
+	Usage::type type;
 	Identifier* id;
-	std::vector<Identifier*> templated_parameters;
+	std::vector<ASTNode*> templated_type_list;
 };
 
 } } }
