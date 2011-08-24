@@ -1,4 +1,4 @@
-package qwe.asd.zxc; // NOTE: execution failed at stage: type_inference
+package qwe.asd.zxc;
 
 var a:uint32;
 var b:uint32 = -13;

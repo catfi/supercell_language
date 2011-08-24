@@ -44,10 +44,13 @@
 // expression
 #include "language/action/expression/ExpressionActions.h"
 
-// program
+// module
 #include "language/action/module/ImportActions.h"
 #include "language/action/module/PackageActions.h"
 #include "language/action/module/ProgramActions.h"
+
+// statement
+#include "language/action/statement/StatementActions.h"
 
 namespace zillians { namespace language { namespace action {
 
@@ -63,16 +66,17 @@ struct ThorScriptTreeAction
 	typedef action::string_literal  string_literal;
 
 	// basic
-	typedef action::colon_type_specifier    colon_type_specifier;
-	typedef action::type_specifier          type_specifier;
-	typedef action::template_arg_identifier template_arg_identifier;
-	typedef action::template_arg_specifier  template_arg_specifier;
-	typedef action::type_list_specifier     type_list_specifier;
-	typedef action::storage_specifier       storage_specifier;
-	typedef action::visibility_specifier    visibility_specifier;
-	typedef action::annotation_specifiers   annotation_specifiers;
-	typedef action::annotation_specifier    annotation_specifier;
-	typedef action::nested_identifier       nested_identifier;
+	typedef action::colon_type_specifier      colon_type_specifier;
+	typedef action::type_specifier            type_specifier;
+	typedef action::template_arg_identifier   template_arg_identifier;
+	typedef action::template_param_identifier template_param_identifier;
+	typedef action::template_arg_specifier    template_arg_specifier;
+	typedef action::type_list_specifier       type_list_specifier;
+	typedef action::storage_specifier         storage_specifier;
+	typedef action::visibility_specifier      visibility_specifier;
+	typedef action::annotation_specifiers     annotation_specifiers;
+	typedef action::annotation_specifier      annotation_specifier;
+	typedef action::nested_identifier         nested_identifier;
 
 	//////////////////////////////////////////////////////////////////////
 	/// Semantic Actions for Non-terminals
@@ -104,6 +108,14 @@ struct ThorScriptTreeAction
 	typedef action::program      program;
 	typedef action::package_decl package_decl;
 	typedef action::import_decl  import_decl;
+
+	// statement
+	typedef action::statement            statement;
+	typedef action::compound_statement   compound_statement;
+	typedef action::expression_statement expression_statement;
+	typedef action::selection_statement  selection_statement;
+	typedef action::iteration_statement  iteration_statement;
+	typedef action::branch_statement     branch_statement;
 
 	/**
 	 * start is the entry rule for the ThorScript parser

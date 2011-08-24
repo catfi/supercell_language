@@ -35,7 +35,7 @@ struct declaration
 		printf("declaration attr(1) type = %s\n", typeid(_attr_t(1)).name());
 		if(_attr(1).which() == 0)
 		{
-			typedef boost::fusion::vector2<boost::optional<bool>, zillians::language::tree::Declaration*> fusion_vector_t;
+			typedef boost::fusion::vector2<boost::optional<bool>, Declaration*> fusion_vector_t;
 			fusion_vector_t vec = boost::get<fusion_vector_t>(_attr(1));
 			bool is_const = boost::fusion::at_c<0>(vec).is_initialized();
 			Declaration* decl = boost::fusion::at_c<1>(vec);
@@ -44,7 +44,7 @@ struct declaration
 			_value = decl;
 		}
 		else
-			_value = boost::get<zillians::language::tree::Declaration*>(_attr(1));
+			_value = boost::get<Declaration*>(_attr(1));
 		if(_attr(0).is_initialized())
 			_value->setAnnotation(*_attr(0));
 	}
@@ -63,9 +63,7 @@ struct variable_decl
 		printf("variable_decl attr(2) type = %s\n", typeid(_attr_t(2)).name());
 		Identifier*    name        = _attr(0);
 		TypeSpecifier* type        = _attr(1).is_initialized() ? *_attr(1) : NULL;
-		ASTNode*       initializer = NULL;
-		if(_attr(2).is_initialized())
-			initializer = *_attr(2);
+		ASTNode*       initializer = _attr(2).is_initialized() ? *_attr(2) : NULL;
 		Declaration::VisibilitySpecifier::type visibility = Declaration::VisibilitySpecifier::PUBLIC;
 		Declaration::StorageSpecifier::type    storage    = Declaration::StorageSpecifier::NONE;
 		bool is_member = false;
@@ -83,13 +81,20 @@ struct function_decl
 
 	BEGIN_ACTION(init)
 	{
-//		Identifier*                            name       = NULL;//_attr(0).is_initialized() ? *_attr(0) : NULL;
-//		ASTNode*                               type       = NULL;//_attr(0).is_initialized() ? *_attr(0) : NULL;
-//		Block*                                 block      = NULL;//_attr(0).is_initialized() ? *_attr(0) : NULL;
-//		Declaration::VisibilitySpecifier::type visibility = Declaration::VisibilitySpecifier::PUBLIC;
-//		Declaration::StorageSpecifier::type    storage    = Declaration::StorageSpecifier::NONE;
-//		bool is_member = false;
-//		_value = new FunctionDecl(name, type, is_member, visibility, storage, block);
+		printf("function_decl attr(0) type = %s\n", typeid(_attr_t(0)).name());
+		printf("function_decl attr(1) type = %s\n", typeid(_attr_t(1)).name());
+		printf("function_decl attr(2) type = %s\n", typeid(_attr_t(2)).name());
+		Identifier* name = NULL;
+		if(_attr(0).which() == 0)
+			name = boost::get<Identifier*>(_attr(0));
+		else
+			name = new SimpleIdentifier(L"new");
+		TypeSpecifier*                         type       = _attr(1).is_initialized() ? *_attr(1) : NULL;
+		Block*                                 block      = _attr(2).is_initialized() ? *_attr(2) : NULL;
+		Declaration::VisibilitySpecifier::type visibility = Declaration::VisibilitySpecifier::PUBLIC;
+		Declaration::StorageSpecifier::type    storage    = Declaration::StorageSpecifier::NONE;
+		bool is_member = false;
+		_value = new FunctionDecl(name, type, is_member, visibility, storage, block);
 	}
 	END_ACTION
 };
