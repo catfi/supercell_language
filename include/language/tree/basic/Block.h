@@ -42,7 +42,7 @@ struct Block : public ASTNode
 	}
 
 	template<typename T>
-	void appendObject(std::vector<T*>& object_list)
+	void appendObjects(std::vector<T*>& object_list)
 	{
 		foreach(i, object_list)
 		{
