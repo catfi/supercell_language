@@ -35,14 +35,14 @@ struct Block : public ASTNode
 	explicit Block(bool is_pipelined = false, bool is_async = false) : is_pipelined_block(is_pipelined), is_async_block(is_async)
 	{ }
 
-	void append(ASTNode* object)
+	void appendObject(ASTNode* object)
 	{
 		object->parent = this;
 		objects.push_back(object);
 	}
 
 	template<typename T>
-	void append(std::vector<T*> object_list)
+	void appendObject(std::vector<T*>& object_list)
 	{
 		foreach(i, object_list)
 		{
