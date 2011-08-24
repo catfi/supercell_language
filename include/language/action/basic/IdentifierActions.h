@@ -92,7 +92,22 @@ struct template_param_identifier
 	{
 		printf("template_param_identifier attr(0) type = %s\n", typeid(_attr_t(0)).name());
 		printf("template_param_identifier attr(1) type = %s\n", typeid(_attr_t(1)).name());
-		_value = _attr(0);
+		if(_attr(1).is_initialized())
+		{
+			_value =  new TemplatedIdentifier(TemplatedIdentifier::Usage::FORMAL_PARAMETER, _attr(0));
+			foreach(p, *_attr(1))
+				switch((*p).which())
+				{
+				case 0:
+					dynamic_cast<TemplatedIdentifier*>(_value)->appendParameter(boost::get<SimpleIdentifier*>(*p));
+					break;
+				case 1:
+					dynamic_cast<TemplatedIdentifier*>(_value)->appendParameter(new SimpleIdentifier(L"..."));
+					break;
+				}
+		}
+		else
+			_value = _attr(0);
 	}
 	END_ACTION
 };
