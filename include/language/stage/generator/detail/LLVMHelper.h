@@ -158,7 +158,7 @@ struct LLVMHelper
 		return resolved;
 	}
 
-	bool getFunctionType(tree::FunctionDecl& ast_function, /*OUT*/ llvm::FunctionType* llvm_function_type, /*OUT*/ std::vector<llvm::AttributeWithIndex>& llvm_function_parameter_type_attributes, /*OUT*/ llvm::Attributes& llvm_function_return_type_attribute)
+	bool getFunctionType(tree::FunctionDecl& ast_function, /*OUT*/ llvm::FunctionType*& llvm_function_type, /*OUT*/ std::vector<llvm::AttributeWithIndex>& llvm_function_parameter_type_attributes, /*OUT*/ llvm::Attributes& llvm_function_return_type_attribute)
 	{
 		// prepare LLVM function parameter type list
 		std::vector<const llvm::Type*> llvm_function_parameter_types;
@@ -199,7 +199,7 @@ struct LLVMHelper
 			return false;
 	}
 
-	bool getFunction(tree::FunctionDecl& ast_function, /*OUT*/ llvm::Function* llvm_function)
+	bool getFunction(tree::FunctionDecl& ast_function, /*OUT*/ llvm::Function*& llvm_function)
 	{
 		if(!!(llvm_function = ast_function.get<llvm::Function>()))
 			return true;
@@ -234,7 +234,7 @@ struct LLVMHelper
 		return llvm::BasicBlock::Create(mContext, "", parent, before);
 	}
 
-	bool startFunction(tree::FunctionDecl& ast_function, /*OUT*/ llvm::Function** llvm_function_ref = NULL)
+	bool startFunction(tree::FunctionDecl& ast_function)
 	{
 		llvm::Function* llvm_function = NULL;
 		if(!getFunction(ast_function, llvm_function))
@@ -254,9 +254,6 @@ struct LLVMHelper
 
 		// create return block
 		mFunctionContext.return_block = createBasicBlock("return", llvm_function);
-
-		if(llvm_function_ref)
-			*llvm_function_ref = llvm_function;
 
 		return true;
 	}
