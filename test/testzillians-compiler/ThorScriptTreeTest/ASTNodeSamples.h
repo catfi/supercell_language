@@ -78,17 +78,17 @@ ASTNode* createSample3()
 
 						{
 							DeclarativeStmt* stmt = new DeclarativeStmt(new SimpleIdentifier(L"a"), new TypeSpecifier(TypeSpecifier::PrimitiveType::INT32), Declaration::StorageSpecifier::NONE);
-							block->append(stmt);
+							block->appendObject(stmt);
 						}
 
 						{
 							DeclarativeStmt* stmt = new DeclarativeStmt(new SimpleIdentifier(L"b"), new TypeSpecifier(TypeSpecifier::PrimitiveType::INT32), Declaration::StorageSpecifier::NONE);
-							block->append(stmt);
+							block->appendObject(stmt);
 						}
 
 						{
 							ExpressionStmt* stmt = new ExpressionStmt(new BinaryExpr(BinaryExpr::OpCode::ASSIGN, new PrimaryExpr(new SimpleIdentifier(L"a")), new PrimaryExpr(new SimpleIdentifier(L"b"))));
-							block->append(stmt);
+							block->appendObject(stmt);
 						}
 					}
 
@@ -142,17 +142,17 @@ ASTNode* createSample4()
 
 						{
 							DeclarativeStmt* stmt = new DeclarativeStmt(new SimpleIdentifier(L"a"), new TypeSpecifier(new SimpleIdentifier(L"some_class")), Declaration::StorageSpecifier::NONE);
-							block->append(stmt);
+							block->appendObject(stmt);
 						}
 
 						{
 							DeclarativeStmt* stmt = new DeclarativeStmt(new SimpleIdentifier(L"b"), new TypeSpecifier(new SimpleIdentifier(L"some_class")), Declaration::StorageSpecifier::NONE);
-							block->append(stmt);
+							block->appendObject(stmt);
 						}
 
 						{
 							ExpressionStmt* stmt = new ExpressionStmt(new BinaryExpr(BinaryExpr::OpCode::ASSIGN, new PrimaryExpr(new SimpleIdentifier(L"a")), new PrimaryExpr(new SimpleIdentifier(L"b"))));
-							block->append(stmt);
+							block->appendObject(stmt);
 						}
 					}
 
@@ -206,17 +206,17 @@ ASTNode* createSample5()
 
 						{
 							DeclarativeStmt* stmt = new DeclarativeStmt(new SimpleIdentifier(L"a"), new TypeSpecifier(class_decl), Declaration::StorageSpecifier::NONE);
-							block->append(stmt);
+							block->appendObject(stmt);
 						}
 
 						{
 							DeclarativeStmt* stmt = new DeclarativeStmt(new SimpleIdentifier(L"b"), new TypeSpecifier(class_decl), Declaration::StorageSpecifier::NONE);
-							block->append(stmt);
+							block->appendObject(stmt);
 						}
 
 						{
 							ExpressionStmt* stmt = new ExpressionStmt(new BinaryExpr(BinaryExpr::OpCode::ASSIGN, new PrimaryExpr(new SimpleIdentifier(L"a")), new PrimaryExpr(new SimpleIdentifier(L"b"))));
-							block->append(stmt);
+							block->appendObject(stmt);
 						}
 					}
 

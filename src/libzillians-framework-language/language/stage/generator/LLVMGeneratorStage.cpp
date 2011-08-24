@@ -19,17 +19,9 @@
 
 #include "language/stage/generator/LLVMGeneratorStage.h"
 #include "language/stage/generator/detail/LLVMForeach.h"
+#include "language/stage/generator/visitor/LLVMGeneratorVisitor.h"
 #include "language/context/ParserContext.h"
 #include "language/context/GeneratorContext.h"
-
-#include <llvm/LLVMContext.h>
-#include <llvm/Module.h>
-#include <llvm/Function.h>
-#include <llvm/PassManager.h>
-#include <llvm/CallingConv.h>
-#include <llvm/Analysis/Verifier.h>
-#include <llvm/Assembly/PrintModulePass.h>
-#include <llvm/Support/IRBuilder.h>
 
 namespace zillians { namespace language { namespace stage {
 
