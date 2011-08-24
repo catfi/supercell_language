@@ -96,7 +96,7 @@ struct Identifier : qi::grammar<Iterator, typename SA::identifier::attribute_typ
 			L"int8", L"uint8", L"int16", L"uint16", L"int32", L"uint32", L"int64", L"uint64",
 			L"float32", L"float64",
 #endif
-			L"true", L"false", L"null", L"self", L"global",
+			L"true", L"false", L"null", L"self", L"global", L"...",
 			L"const", L"static",
 			L"typedef", L"class", L"interface", L"enum",
 			L"public", L"protected", L"private",
@@ -135,7 +135,7 @@ struct TypeName : qi::grammar<Iterator, typename SA::identifier::attribute_type,
 			L"int8", L"uint8", L"int16", L"uint16", L"int32", L"uint32", L"int64", L"uint64",
 			L"float32", L"float64",
 #endif
-			L"true", L"false", L"null", L"self", L"global",
+			L"true", L"false", L"null", L"self", L"global", L"...",
 			L"const", L"static",
 			L"typedef", L"class", L"interface", L"enum",
 			L"public", L"protected", L"private",
@@ -438,7 +438,7 @@ struct ThorScript : qi::grammar<Iterator, typename SA::start::attribute_type, de
 			;
 
 		template_param_identifier
-			= (IDENTIFIER > -(COMPARE_LT >> ((IDENTIFIER | ELLIPSIS) % COMMA) > COMPARE_GT)) [ typename SA::template_param_identifier::init() ]
+			= (IDENTIFIER > -(COMPARE_LT >> ((IDENTIFIER | (ELLIPSIS >> qi::attr(true))) % COMMA) > COMPARE_GT)) [ typename SA::template_param_identifier::init() ]
 			;
 
 		template_arg_identifier
