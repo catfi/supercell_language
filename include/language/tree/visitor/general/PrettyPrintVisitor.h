@@ -331,7 +331,6 @@ struct PrettyPrintVisitor : Visitor<const ASTNode, void>
 					}
 					STREAM << L"</parameters>" << std::endl;
 				}
-				decreaseIdent();
 			}
 			decreaseIdent();
 
