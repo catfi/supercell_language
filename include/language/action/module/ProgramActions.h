@@ -58,6 +58,9 @@ struct program
 
 	BEGIN_ACTION(append_declaration)
 	{
+		printf("program::append_declaration attr(0) type = %s\n", typeid(_attr_t(0)).name());
+		if(!!getParserContext().active_package)
+			getParserContext().active_package->addObject(_attr(0));
 	}
 	END_ACTION
 };

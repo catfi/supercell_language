@@ -21,24 +21,67 @@
 #define ZILLIANS_LANGUAGE_ACTION_DECLARATION_EXPRESSIONACTIONS_H_
 
 #include "language/action/detail/SemanticActionsDetail.h"
-
-#define RIGHT_TO_LEFT(op_code) \
-	{ \
-		Expression* right = NULL; \
-		r_foreach(i, _attr(0)) \
-			right = (i == r_beginof(_attr(0))) ? *i : new BinaryExpr(op_code, *i, right); \
-		_value = right; \
-	}
+#include <vector>
 
 #define LEFT_TO_RIGHT(op_code) \
 	{ \
-		Expression* left = NULL; \
-		foreach(i, _attr(0)) \
-			left = (i == _attr(0).begin()) ? *i : new BinaryExpr(op_code, left, *i); \
-		_value = left; \
+		if(_attr(0).size() == 1) \
+			_value = *beginof(_attr(0)); \
+		else { \
+			Expression* left = NULL; \
+			foreach(i, _attr(0)) \
+				left = (i == beginof(_attr(0))) ? *i : new BinaryExpr(op_code, left, *i); \
+			_value = left; \
+		} \
+	}
+
+#define RIGHT_TO_LEFT(op_code) \
+	{ \
+		if(_attr(0).size() == 1) \
+			_value = *r_beginof(_attr(0)); \
+		else { \
+			Expression* right = NULL; \
+			r_foreach(i, _attr(0)) \
+				right = (i == r_beginof(_attr(0))) ? *i : new BinaryExpr(op_code, *i, right); \
+			_value = right; \
+		} \
+	}
+
+#define LEFT_TO_RIGHT_VEC(op_code_vec) \
+	{ \
+		if(_attr(0).size() == 1) \
+			_value = *beginof(_attr(0)); \
+		else { \
+			Expression* left = NULL; \
+			decltype(beginof(op_code_vec)) j = beginof(op_code_vec);\
+			foreach(i, _attr(0)) \
+			{ \
+				left = (i == beginof(_attr(0))) ? *i : new BinaryExpr(*j, left, *i); \
+				j++; \
+			} \
+			_value = left; \
+		} \
+	}
+
+#define RIGHT_TO_LEFT_VEC(op_code_vec) \
+	{ \
+		if(_attr(0).size() == 1) \
+			_value = *r_beginof(_attr(0)); \
+		else { \
+			Expression* right = NULL; \
+			decltype(r_beginof(op_code_vec)) j = r_beginof(op_code_vec);\
+			r_foreach(i, _attr(0)) \
+			{ \
+				right = (i == r_beginof(_attr(0))) ? *i : new BinaryExpr(*j, *i, right); \
+				j++; \
+			} \
+			_value = right; \
+		} \
 	}
 
 namespace zillians { namespace language { namespace action {
+
+typedef std::vector<BinaryExpr::OpCode::type> binary_ops_t;
 
 struct primary_expression
 {
@@ -52,38 +95,17 @@ struct primary_expression
 	}
 	END_ACTION
 
-	BEGIN_ACTION(init_true)
+	BEGIN_TEMPLATED_ACTION(init_bool, bool Value)
 	{
-		printf("primary_expression::init_true attr(0) type = %s\n", typeid(_attr_t(0)).name());
-		_value = new PrimaryExpr(new NumericLiteral(true));
+		printf("primary_expression::init_bool attr(0) type = %s\n", typeid(_attr_t(0)).name());
+		_value = new PrimaryExpr(new NumericLiteral(Value));
 	}
 	END_ACTION
 
-	BEGIN_ACTION(init_false)
+	BEGIN_TEMPLATED_ACTION(init_object_literal, ObjectLiteral::LiteralType::type Type)
 	{
-		printf("primary_expression::init_false attr(0) type = %s\n", typeid(_attr_t(0)).name());
-		_value = new PrimaryExpr(new NumericLiteral(false));
-	}
-	END_ACTION
-
-	BEGIN_ACTION(init_null)
-	{
-		printf("primary_expression::init_null attr(0) type = %s\n", typeid(_attr_t(0)).name());
-		_value = new PrimaryExpr(new ObjectLiteral(ObjectLiteral::LiteralType::NULL_OBJECT));
-	}
-	END_ACTION
-
-	BEGIN_ACTION(init_self)
-	{
-		printf("primary_expression::init_self attr(0) type = %s\n", typeid(_attr_t(0)).name());
-		_value = new PrimaryExpr(new ObjectLiteral(ObjectLiteral::LiteralType::SELF_OBJECT));
-	}
-	END_ACTION
-
-	BEGIN_ACTION(init_global)
-	{
-		printf("primary_expression::init_global attr(0) type = %s\n", typeid(_attr_t(0)).name());
-		_value = new PrimaryExpr(new ObjectLiteral(ObjectLiteral::LiteralType::GLOBAL_OBJECT));
+		printf("primary_expression::init_object_literal attr(0) type = %s\n", typeid(_attr_t(0)).name());
+		_value = new PrimaryExpr(new ObjectLiteral(Type));
 	}
 	END_ACTION
 
@@ -147,17 +169,10 @@ struct postfix_expression
 	}
 	END_ACTION
 
-	BEGIN_ACTION(append_postfix_inc)
+	BEGIN_TEMPLATED_ACTION(append_postfix_step, UnaryExpr::OpCode::type Type)
 	{
-		printf("postfix_expression::init_postfix_inc attr(0) type = %s\n", typeid(_attr_t(0)).name());
-		_value = new UnaryExpr(UnaryExpr::OpCode::POSTFIX_INCREMENT, _value);
-	}
-	END_ACTION
-
-	BEGIN_ACTION(append_postfix_dec)
-	{
-		printf("postfix_expression::init_postfix_dec attr(0) type = %s\n", typeid(_attr_t(0)).name());
-		_value = new UnaryExpr(UnaryExpr::OpCode::POSTFIX_DECREMENT, _value);
+		printf("postfix_expression::append_postfix_step attr(0) type = %s\n", typeid(_attr_t(0)).name());
+		_value = new UnaryExpr(Type, _value);
 	}
 	END_ACTION
 };
@@ -177,140 +192,83 @@ struct prefix_expression
 	BEGIN_ACTION(init)
 	{
 		printf("prefix_expression attr(0) type = %s\n", typeid(_attr_t(0)).name());
-		_value = new UnaryExpr(_local(0), _attr(0));
+		printf("prefix_expression attr(1) type = %s\n", typeid(_attr_t(1)).name());
+		_value = new UnaryExpr(_attr(0), _attr(1));
 	}
 	END_ACTION
 };
 
-struct multiplicative_expression
+struct left_to_right_binary_op_vec
 {
 	DEFINE_ATTRIBUTES(Expression*)
-	DEFINE_LOCALS(BinaryExpr::OpCode::type)
+	DEFINE_LOCALS(shared_ptr<binary_ops_t>)
+
+	BEGIN_ACTION(append_op)
+	{
+		printf("left_to_right_binary_op_vec::append_op attr(0) type = %s\n", typeid(_attr_t(0)).name());
+		if(!_local(0))
+			_local(0).reset(new binary_ops_t());
+		_local(0)->push_back(_attr(0));
+	}
+	END_ACTION
 
 	BEGIN_ACTION(init)
 	{
-		printf("multiplicative_expression attr(0) type = %s\n", typeid(_attr_t(0)).name());
-		LEFT_TO_RIGHT(_local(0));
+		printf("left_to_right_binary_op_vec attr(0) type = %s\n", typeid(_attr_t(0)).name());
+		LEFT_TO_RIGHT_VEC(*_local(0));
 	}
 	END_ACTION
 };
 
-struct additive_expression
+struct right_to_left_binary_op_vec
 {
 	DEFINE_ATTRIBUTES(Expression*)
-	DEFINE_LOCALS(BinaryExpr::OpCode::type)
+	DEFINE_LOCALS(shared_ptr<binary_ops_t>)
+
+	BEGIN_ACTION(append_op)
+	{
+		printf("right_to_left_binary_op_vec::append_op attr(0) type = %s\n", typeid(_attr_t(0)).name());
+		if(!_local(0))
+			_local(0).reset(new binary_ops_t());
+		_local(0)->push_back(_attr(0));
+	}
+	END_ACTION
 
 	BEGIN_ACTION(init)
 	{
-		printf("additive_expression attr(0) type = %s\n", typeid(_attr_t(0)).name());
-		LEFT_TO_RIGHT(_local(0));
+		printf("right_to_left_binary_op_vec attr(0) type = %s\n", typeid(_attr_t(0)).name());
+		RIGHT_TO_LEFT_VEC(*_local(0));
 	}
 	END_ACTION
 };
 
-struct shift_expression
-{
-	DEFINE_ATTRIBUTES(Expression*)
-	DEFINE_LOCALS(BinaryExpr::OpCode::type)
-
-	BEGIN_ACTION(init)
-	{
-		printf("shift_expression attr(0) type = %s\n", typeid(_attr_t(0)).name());
-		LEFT_TO_RIGHT(_local(0));
-	}
-	END_ACTION
-};
-
-struct relational_expression
-{
-	DEFINE_ATTRIBUTES(Expression*)
-	DEFINE_LOCALS(BinaryExpr::OpCode::type)
-
-	BEGIN_ACTION(init)
-	{
-		printf("relational_expression attr(0) type = %s\n", typeid(_attr_t(0)).name());
-		LEFT_TO_RIGHT(_local(0));
-	}
-	END_ACTION
-};
-
-struct equality_expression
-{
-	DEFINE_ATTRIBUTES(Expression*)
-	DEFINE_LOCALS(BinaryExpr::OpCode::type)
-
-	BEGIN_ACTION(init)
-	{
-		printf("equality_expression attr(0) type = %s\n", typeid(_attr_t(0)).name());
-		LEFT_TO_RIGHT(_local(0));
-	}
-	END_ACTION
-};
-
-struct and_expression
+struct left_to_right_binary_op
 {
 	DEFINE_ATTRIBUTES(Expression*)
 	DEFINE_LOCALS()
 
-	BEGIN_ACTION(init)
+	BEGIN_TEMPLATED_ACTION(init, BinaryExpr::OpCode::type Type)
 	{
-		printf("and_expression attr(0) type = %s\n", typeid(_attr_t(0)).name());
-		LEFT_TO_RIGHT(BinaryExpr::OpCode::BINARY_AND);
+		printf("left_to_right_binary_op attr(0) type = %s\n", typeid(_attr_t(0)).name());
+		LEFT_TO_RIGHT(Type);
 	}
 	END_ACTION
 };
 
-struct xor_expression
+#if 0 // NOTE: unused
+struct right_to_left_binary_op
 {
 	DEFINE_ATTRIBUTES(Expression*)
 	DEFINE_LOCALS()
 
-	BEGIN_ACTION(init)
+	BEGIN_TEMPLATED_ACTION(init, BinaryExpr::OpCode::type Type)
 	{
-		printf("xor_expression attr(0) type = %s\n", typeid(_attr_t(0)).name());
-		LEFT_TO_RIGHT(BinaryExpr::OpCode::BINARY_XOR);
+		printf("right_to_left_binary_op attr(0) type = %s\n", typeid(_attr_t(0)).name());
+		RIGHT_TO_LEFT(Type);
 	}
 	END_ACTION
 };
-
-struct or_expression
-{
-	DEFINE_ATTRIBUTES(Expression*)
-	DEFINE_LOCALS()
-
-	BEGIN_ACTION(init)
-	{
-		printf("or_expression attr(0) type = %s\n", typeid(_attr_t(0)).name());
-		LEFT_TO_RIGHT(BinaryExpr::OpCode::BINARY_OR);
-	}
-	END_ACTION
-};
-
-struct logical_and_expression
-{
-	DEFINE_ATTRIBUTES(Expression*)
-	DEFINE_LOCALS()
-
-	BEGIN_ACTION(init)
-	{
-		printf("logical_and_expression attr(0) type = %s\n", typeid(_attr_t(0)).name());
-		LEFT_TO_RIGHT(BinaryExpr::OpCode::LOGICAL_AND);
-	}
-	END_ACTION
-};
-
-struct logical_or_expression
-{
-	DEFINE_ATTRIBUTES(Expression*)
-	DEFINE_LOCALS()
-
-	BEGIN_ACTION(init)
-	{
-		printf("logical_or_expression attr(0) type = %s\n", typeid(_attr_t(0)).name());
-		LEFT_TO_RIGHT(BinaryExpr::OpCode::LOGICAL_OR);
-	}
-	END_ACTION
-};
+#endif
 
 struct range_expression
 {
@@ -355,12 +313,21 @@ struct ternary_expression
 struct expression
 {
 	DEFINE_ATTRIBUTES(Expression*)
-	DEFINE_LOCALS(BinaryExpr::OpCode::type)
+	DEFINE_LOCALS(shared_ptr<binary_ops_t>)
+
+	BEGIN_ACTION(append_op)
+	{
+		printf("assignment_expression::append_op attr(0) type = %s\n", typeid(_attr_t(0)).name());
+		if(!_local(0))
+			_local(0).reset(new binary_ops_t());
+		_local(0)->push_back(_attr(0));
+	}
+	END_ACTION
 
 	BEGIN_ACTION(init)
 	{
 		printf("assignment_expression attr(0) type = %s\n", typeid(_attr_t(0)).name());
-		RIGHT_TO_LEFT(_local(0));
+		RIGHT_TO_LEFT_VEC(*_local(0));
 	}
 	END_ACTION
 };

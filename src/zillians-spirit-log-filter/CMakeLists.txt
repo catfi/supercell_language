@@ -26,12 +26,12 @@ INCLUDE_DIRECTORIES(
 ADD_EXECUTABLE(spirit-log-filter
     main.cpp
     )
-    
+
 TARGET_LINK_LIBRARIES(spirit-log-filter
     ${TICPP_LIBRARIES}
     zillians-common-core
     )
-    
+
 #zillians_add_complex_test( 
 #    TARGET spirit-log-filter
 #    SHELL ${EXECUTABLE_OUTPUT_PATH}/spirit-log-filter

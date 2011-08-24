@@ -31,7 +31,9 @@ using namespace zillians::language::tree;
 struct TransformerWrapper : public StageConductor
 {
 	TransformerWrapper()
-	{ }
+	{
+		setParserContext(new ParserContext());
+	}
 
 	virtual ~TransformerWrapper()
 	{ }
