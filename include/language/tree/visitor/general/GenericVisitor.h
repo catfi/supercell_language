@@ -179,7 +179,7 @@ struct GenericVisitor : Visitor<const ASTNode, void, VisitorImplementation::recu
 	{
 		if(node.id) visit(*node.id);
 
-		foreach(i, node.templated_parameters)	visit(**i);
+		foreach(i, node.templated_type_list)	visit(**i);
 	}
 
 	void apply(const TypeSpecifier& node)

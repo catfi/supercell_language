@@ -172,7 +172,7 @@ private:
 			TemplatedIdentifier* tb = cast<TemplatedIdentifier>(b);
 			if(ta->id->toString() == tb->id->toString())
 			{
-				if(ta->templated_parameters.size() == tb->templated_parameters.size())
+				if(ta->templated_type_list.size() == tb->templated_type_list.size())
 				{
 					return true;
 				}
