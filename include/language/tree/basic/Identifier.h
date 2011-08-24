@@ -49,7 +49,14 @@ struct SimpleIdentifier : public Identifier
 
 	virtual const std::wstring& toString() const
 	{
-		return name;
+		static std::wstring t;
+		if(name.length() == 0)
+		{
+			t = L"<empty>";
+			return t;
+		}
+		else
+			return name;
 	}
 
 	const std::wstring name;
@@ -74,6 +81,9 @@ struct NestedIdentifier : public Identifier
 			if((i+1) != endof(identifier_list))
 				t += L".";
 		}
+
+		if(t.length() == 0)
+			t = L"<empty>";
 
 		return t;
 	}
@@ -135,6 +145,10 @@ struct TemplatedIdentifier : public Identifier
 		{
 			// TODO how to dump type specifier without having its header?
 		}
+
+		if(t.length() == 0)
+			t = L"<empty>";
+
 		return t;
 	}
 

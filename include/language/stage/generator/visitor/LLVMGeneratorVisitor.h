@@ -22,16 +22,7 @@
 
 #include "core/Prerequisite.h"
 #include "language/tree/visitor/general/GenericDoubleVisitor.h"
-#include "language/resolver/TypeResolver.h"
-
-#include <llvm/LLVMContext.h>
-#include <llvm/Module.h>
-#include <llvm/Function.h>
-#include <llvm/PassManager.h>
-#include <llvm/CallingConv.h>
-#include <llvm/Analysis/Verifier.h>
-#include <llvm/Assembly/PrintModulePass.h>
-#include <llvm/Support/IRBuilder.h>
+#include "language/stage/generator/detail/LLVMHelper.h"
 
 using namespace zillians::language::tree;
 using zillians::language::tree::visitor::GenericDoubleVisitor;
@@ -42,7 +33,7 @@ struct LLVMGeneratorVisitor : GenericDoubleVisitor
 {
 	CREATE_INVOKER(generateInvoker, generate)
 
-	LLVMGeneratorVisitor()
+	LLVMGeneratorVisitor(llvm::LLVMContext& context, llvm::Module& current_module) : context(context), current_module(current_module)
 	{
 		REGISTER_ALL_VISITABLE_ASTNODE(generateInvoker)
 	}
@@ -53,7 +44,21 @@ struct LLVMGeneratorVisitor : GenericDoubleVisitor
 
 	void generate(FunctionDecl& node)
 	{
+		if(!node.get<llvm::Function>())
+		{
+			llvm::Function* llvm_function = NULL;
+			if(!LLVMHelper::buildFunction(context, current_module, node, llvm_function))
+			{
+				terminateRevisit();
+				return;
+			}
+			// TODO investigate memory ownership
+			node.set<llvm::Function>(llvm_function);
+		}
 	}
+
+	llvm::LLVMContext& context;
+	llvm::Module& current_module;
 };
 
 } } } }

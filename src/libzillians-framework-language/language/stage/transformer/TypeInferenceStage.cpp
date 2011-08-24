@@ -19,6 +19,8 @@
 
 #include "language/stage/transformer/TypeInferenceStage.h"
 #include "language/stage/transformer/visitor/TypeInferenceVisitor.h"
+#include "language/tree/visitor/general/NodeTypeNameVisitor.h"
+#include "language/tree/visitor/general/NodeInfoVisitor.h"
 #include "language/resolver/TypeResolver.h"
 #include "language/context/ParserContext.h"
 
@@ -60,7 +62,7 @@ bool TypeInferenceStage::execute()
 			std::size_t last_unresolved_count = 0;
 			while(true)
 			{
-				visitor.reset_count();
+				visitor.reset();
 				visitor.visit(*getParserContext().program);
 
 				total_resolved_count += visitor.get_resolved_count();
@@ -80,17 +82,33 @@ bool TypeInferenceStage::execute()
 			if(last_unresolved_count > 0)
 			{
 				total_unresolved_count += last_unresolved_count;
-				LOG4CXX_ERROR(Logger::TransformerStage, L"failed to resolve types");
+				tree::visitor::NodeTypeNameVisitor name;
+				tree::visitor::NodeInfoVisitor info;
+				for(__gnu_cxx::hash_set<ASTNode*>::iterator it = visitor.unresolved_nodes.begin(); it != visitor.unresolved_nodes.end(); ++it)
+				{
+					if(tree::isa<tree::TypeSpecifier>(*it))
+					{
+						tree::TypeSpecifier* specifier = tree::cast<tree::TypeSpecifier>(*it);
+						if(specifier->type == tree::TypeSpecifier::ReferredType::UNSPECIFIED)
+						{
+							name.visit(**it);
+							info.visit(**it);
+							LOG4CXX_ERROR(Logger::TransformerStage, L"failed to resolve type specifier: " << specifier->referred.unspecified->toString() << ", full qualified id: " << info.stream.str());
+							info.reset();
+						}
+					}
+				}
 				return false;
 			}
 		}
 		else
 		{
-			std::cerr << "empty program node" << std::endl;
+			LOG4CXX_ERROR(Logger::TransformerStage, L"empty program node");
 		}
 	}
 	return true;
 }
+
 
 std::size_t TypeInferenceStage::get_resolved_count()
 {
