@@ -39,7 +39,7 @@ int StageConductor::main(int argc, const char** argv)
 	// prepare simple logger appender
 	if(true)
 	{
-
+		Logger::initialize();
 	}
 	else
 	{
