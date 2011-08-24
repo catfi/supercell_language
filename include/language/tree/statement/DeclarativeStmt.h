@@ -34,19 +34,14 @@ struct DeclarativeStmt : public Statement
 	DEFINE_VISITABLE();
 	DEFINE_HIERARCHY(DeclarativeStmt, (DeclarativeStmt)(Statement)(ASTNode));
 
-	DeclarativeStmt(Identifier* name, TypeSpecifier* type, Declaration::StorageSpecifier::type storage, Expression* initializer = NULL) : name(name), type(type), storage(storage), initializer(initializer)
+	explicit DeclarativeStmt(Declaration* declaration) : declaration(declaration)
 	{
-		BOOST_ASSERT(name && "null name for declarative statement is not allowed");
+		BOOST_ASSERT(declaration && "null declaration for declarative statement is not allowed");
 
-		name->parent = this;
-		if(type) type->parent = this;
-		if(initializer) initializer->parent = this;
+		declaration->parent = this;
 	}
 
-	Identifier* name;
-	TypeSpecifier* type;
-	Declaration::StorageSpecifier::type storage;
-	Expression* initializer;
+	Declaration* declaration;
 };
 
 } } }

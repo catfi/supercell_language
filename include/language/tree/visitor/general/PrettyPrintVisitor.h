@@ -379,11 +379,13 @@ struct PrettyPrintVisitor : Visitor<const ASTNode, void>
 
 	void print(const DeclarativeStmt& node)
 	{
-		STREAM << L"<declarative_stmt "
-				L"name=\"" << node.name->toString() << L"\" " <<
-				L"type=\"" << decodeType(node.type) << L"\" " <<
-				L"storage=\"" << Declaration::StorageSpecifier::toString(node.storage) << L"\"" <<
-				L"/>" << std::endl;
+		STREAM << L"<declarative_stmt>" << std::endl;
+		{
+			increaseIdent();
+			visit(*node.declaration);
+			decreaseIdent();
+		}
+		STREAM << L"</declarative_stmt>" << std::endl;
 	}
 
 	void print(const ExpressionStmt& node)

@@ -192,9 +192,7 @@ struct GenericDoubleVisitor : Visitor<ASTNode, void, VisitorImplementation::recu
 
 		void apply(DeclarativeStmt& node)
 		{
-			if(node.name) user_visitor->visit(*node.name);
-			if(node.type) user_visitor->visit(*node.type);
-			if(node.initializer) user_visitor->visit(*node.initializer);
+			if(node.declaration) user_visitor->visit(*node.declaration);
 
 			if(node.annotations) user_visitor->visit(*node.annotations);
 		}

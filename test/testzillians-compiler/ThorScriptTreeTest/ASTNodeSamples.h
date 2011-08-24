@@ -77,12 +77,12 @@ ASTNode* createSample3()
 						Block* block = some_member_function->block;
 
 						{
-							DeclarativeStmt* stmt = new DeclarativeStmt(new SimpleIdentifier(L"a"), new TypeSpecifier(TypeSpecifier::PrimitiveType::INT32), Declaration::StorageSpecifier::NONE);
+							DeclarativeStmt* stmt = new DeclarativeStmt(new VariableDecl(new SimpleIdentifier(L"a"), new TypeSpecifier(TypeSpecifier::PrimitiveType::INT32), false, Declaration::VisibilitySpecifier::DEFAULT, Declaration::StorageSpecifier::NONE));
 							block->appendObject(stmt);
 						}
 
 						{
-							DeclarativeStmt* stmt = new DeclarativeStmt(new SimpleIdentifier(L"b"), new TypeSpecifier(TypeSpecifier::PrimitiveType::INT32), Declaration::StorageSpecifier::NONE);
+							DeclarativeStmt* stmt = new DeclarativeStmt(new VariableDecl(new SimpleIdentifier(L"b"), new TypeSpecifier(TypeSpecifier::PrimitiveType::INT32), false, Declaration::VisibilitySpecifier::DEFAULT, Declaration::StorageSpecifier::NONE));
 							block->appendObject(stmt);
 						}
 
@@ -141,12 +141,12 @@ ASTNode* createSample4()
 						Block* block = some_member_function->block;
 
 						{
-							DeclarativeStmt* stmt = new DeclarativeStmt(new SimpleIdentifier(L"a"), new TypeSpecifier(new SimpleIdentifier(L"some_class")), Declaration::StorageSpecifier::NONE);
+							DeclarativeStmt* stmt = new DeclarativeStmt(new VariableDecl(new SimpleIdentifier(L"a"), new TypeSpecifier(new SimpleIdentifier(L"some_class")), false, Declaration::VisibilitySpecifier::DEFAULT, Declaration::StorageSpecifier::NONE));
 							block->appendObject(stmt);
 						}
 
 						{
-							DeclarativeStmt* stmt = new DeclarativeStmt(new SimpleIdentifier(L"b"), new TypeSpecifier(new SimpleIdentifier(L"some_class")), Declaration::StorageSpecifier::NONE);
+							DeclarativeStmt* stmt = new DeclarativeStmt(new VariableDecl(new SimpleIdentifier(L"b"), new TypeSpecifier(new SimpleIdentifier(L"some_class")), false, Declaration::VisibilitySpecifier::DEFAULT, Declaration::StorageSpecifier::NONE));
 							block->appendObject(stmt);
 						}
 
@@ -205,12 +205,12 @@ ASTNode* createSample5()
 						Block* block = some_member_function->block;
 
 						{
-							DeclarativeStmt* stmt = new DeclarativeStmt(new SimpleIdentifier(L"a"), new TypeSpecifier(class_decl), Declaration::StorageSpecifier::NONE);
+							DeclarativeStmt* stmt = new DeclarativeStmt(new VariableDecl(new SimpleIdentifier(L"a"), new TypeSpecifier(class_decl), false, Declaration::VisibilitySpecifier::DEFAULT, Declaration::StorageSpecifier::NONE));
 							block->appendObject(stmt);
 						}
 
 						{
-							DeclarativeStmt* stmt = new DeclarativeStmt(new SimpleIdentifier(L"b"), new TypeSpecifier(class_decl), Declaration::StorageSpecifier::NONE);
+							DeclarativeStmt* stmt = new DeclarativeStmt(new VariableDecl(new SimpleIdentifier(L"b"), new TypeSpecifier(class_decl), false, Declaration::VisibilitySpecifier::DEFAULT, Declaration::StorageSpecifier::NONE));
 							block->appendObject(stmt);
 						}
 
