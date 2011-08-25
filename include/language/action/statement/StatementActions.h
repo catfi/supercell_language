@@ -21,6 +21,7 @@
 #define ZILLIANS_LANGUAGE_ACTION_STATEMENT_STATEMENTACTIONS_H_
 
 #include "language/action/detail/SemanticActionsDetail.h"
+#include <boost/mpl/at.hpp>
 
 namespace zillians { namespace language { namespace action {
 
@@ -37,29 +38,23 @@ struct statement
 		{
 		case 0:
 			{
-				typedef boost::fusion::vector2<boost::optional<bool>, Declaration*> fusion_vector_t;
-				fusion_vector_t vec = boost::get<fusion_vector_t>(_attr(1));
-				bool is_const = boost::fusion::at_c<0>(vec).is_initialized();
-				Declaration* decl = boost::fusion::at_c<1>(vec);
-				if(is_const)
-					dynamic_cast<VariableDecl*>(decl)->storage = Declaration::StorageSpecifier::CONST;
+				Declaration* decl = boost::get<Declaration*>(_attr(1));
 				_value = new DeclarativeStmt(decl);
 			}
 			break;
 		case 1:
 			_value = boost::get<Statement*>(_attr(1));
 			break;
-		case 2:
-			_value = boost::get<Block*>(_attr(1));
-			break;
 		}
-		switch(_attr(1).which())
-		{
-		case 0:
-		case 1:
-			if(_attr(0).is_initialized())
-				dynamic_cast<Statement*>(_value)->setAnnotation(*_attr(0));
-		}
+		if(_attr(0).is_initialized())
+			dynamic_cast<Statement*>(_value)->setAnnotation(*_attr(0));
+	}
+	END_ACTION
+
+	BEGIN_ACTION(init_block)
+	{
+		printf("statement::init_block attr(0) type = %s\n", typeid(_attr_t(0)).name());
+		_value = _attr(0);
 	}
 	END_ACTION
 };

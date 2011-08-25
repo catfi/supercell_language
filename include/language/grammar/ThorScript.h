@@ -666,14 +666,14 @@ struct ThorScript : qi::grammar<Iterator, typename SA::start::attribute_type, de
 		// statement
 		statement
 			=	(-annotation_specifiers
-					>>	( -(CONST >> qi::attr(true)) >> variable_decl
+					>>	( const_variable_decl
 						| selection_statement
 						| iteration_statement
 						| branch_statement
 						| expression_statement
-						| block
 						)
 				) [ typename SA::statement::init() ]
+			|	block [ typename SA::statement::init_block() ]
 			;
 
 		// block
@@ -730,7 +730,7 @@ struct ThorScript : qi::grammar<Iterator, typename SA::start::attribute_type, de
 		// global declaration
 		declaration
 			=	(-annotation_specifiers
-					>>	( -(CONST >> qi::attr(true)) >> variable_decl
+					>>	( const_variable_decl
 						| function_decl
 						| typedef_decl
 						| class_decl
@@ -738,6 +738,10 @@ struct ThorScript : qi::grammar<Iterator, typename SA::start::attribute_type, de
 						| enum_decl
 						)
 				) [ typename SA::declaration::init() ]
+			;
+
+		const_variable_decl
+			= (-(CONST >> qi::attr(true)) >> variable_decl) [ typename SA::const_variable_decl::init() ]
 			;
 
 		// variable declaration
@@ -1052,13 +1056,14 @@ struct ThorScript : qi::grammar<Iterator, typename SA::start::attribute_type, de
 	qi::rule<Iterator, typename SA::annotation_specifier::attribute_type,      detail::WhiteSpace<Iterator>, typename SA::annotation_specifier::local_type>      annotation_specifier;
 
 	// declaration
-	qi::rule<Iterator, typename SA::declaration::attribute_type,    detail::WhiteSpace<Iterator>, typename SA::declaration::local_type>    declaration;
-	qi::rule<Iterator, typename SA::variable_decl::attribute_type,  detail::WhiteSpace<Iterator>, typename SA::variable_decl::local_type>  variable_decl;
-	qi::rule<Iterator, typename SA::function_decl::attribute_type,  detail::WhiteSpace<Iterator>, typename SA::function_decl::local_type>  function_decl;
-	qi::rule<Iterator, typename SA::typedef_decl::attribute_type,   detail::WhiteSpace<Iterator>, typename SA::typedef_decl::local_type>   typedef_decl;
-	qi::rule<Iterator, typename SA::class_decl::attribute_type,     detail::WhiteSpace<Iterator>, typename SA::class_decl::local_type>     class_decl;
-	qi::rule<Iterator, typename SA::interface_decl::attribute_type, detail::WhiteSpace<Iterator>, typename SA::interface_decl::local_type> interface_decl;
-	qi::rule<Iterator, typename SA::enum_decl::attribute_type,      detail::WhiteSpace<Iterator>, typename SA::enum_decl::local_type>      enum_decl;
+	qi::rule<Iterator, typename SA::declaration::attribute_type,         detail::WhiteSpace<Iterator>, typename SA::declaration::local_type>         declaration;
+	qi::rule<Iterator, typename SA::const_variable_decl::attribute_type, detail::WhiteSpace<Iterator>, typename SA::const_variable_decl::local_type> const_variable_decl;
+	qi::rule<Iterator, typename SA::variable_decl::attribute_type,       detail::WhiteSpace<Iterator>, typename SA::variable_decl::local_type>       variable_decl;
+	qi::rule<Iterator, typename SA::function_decl::attribute_type,       detail::WhiteSpace<Iterator>, typename SA::function_decl::local_type>       function_decl;
+	qi::rule<Iterator, typename SA::typedef_decl::attribute_type,        detail::WhiteSpace<Iterator>, typename SA::typedef_decl::local_type>        typedef_decl;
+	qi::rule<Iterator, typename SA::class_decl::attribute_type,          detail::WhiteSpace<Iterator>, typename SA::class_decl::local_type>          class_decl;
+	qi::rule<Iterator, typename SA::interface_decl::attribute_type,      detail::WhiteSpace<Iterator>, typename SA::interface_decl::local_type>      interface_decl;
+	qi::rule<Iterator, typename SA::enum_decl::attribute_type,           detail::WhiteSpace<Iterator>, typename SA::enum_decl::local_type>           enum_decl;
 
 	// expression
 	qi::rule<Iterator, typename SA::right_to_left_binary_op_vec::attribute_type, detail::WhiteSpace<Iterator>, typename SA::right_to_left_binary_op_vec::local_type> expression;
