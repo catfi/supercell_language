@@ -2,6 +2,7 @@ package qwe.asd.zxc;
 
 function f():void
 {
+    var x:uint32;
     x=1;
     //f();
     //return;

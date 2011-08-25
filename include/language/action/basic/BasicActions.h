@@ -38,6 +38,18 @@ struct block
 	END_ACTION
 };
 
+struct typed_parameter_list
+{
+	DEFINE_ATTRIBUTES(ASTNode*)
+	DEFINE_LOCALS()
+
+	BEGIN_ACTION(init)
+	{
+		printf("typed_parameter_list attr(0) type = %s\n", typeid(_attr_t(0)).name());
+	}
+	END_ACTION
+};
+
 } } }
 
 #endif /* ZILLIANS_LANGUAGE_ACTION_BASIC_BASICACTIONS_H_ */

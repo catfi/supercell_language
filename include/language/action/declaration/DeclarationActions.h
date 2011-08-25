@@ -33,20 +33,25 @@ struct declaration
 	{
 		printf("declaration attr(0) type = %s\n", typeid(_attr_t(0)).name());
 		printf("declaration attr(1) type = %s\n", typeid(_attr_t(1)).name());
-		if(_attr(1).which() == 0)
-		{
-			typedef boost::fusion::vector2<boost::optional<bool>, Declaration*> fusion_vector_t;
-			fusion_vector_t vec = boost::get<fusion_vector_t>(_attr(1));
-			bool is_const = boost::fusion::at_c<0>(vec).is_initialized();
-			Declaration* decl = boost::fusion::at_c<1>(vec);
-			if(is_const)
-				dynamic_cast<VariableDecl*>(decl)->storage = Declaration::StorageSpecifier::CONST;
-			_value = decl;
-		}
-		else
-			_value = boost::get<Declaration*>(_attr(1));
+		_value = _attr(1);
 		if(_attr(0).is_initialized())
 			_value->setAnnotation(*_attr(0));
+	}
+	END_ACTION
+};
+
+struct const_variable_decl
+{
+	DEFINE_ATTRIBUTES(Declaration*)
+	DEFINE_LOCALS()
+
+	BEGIN_ACTION(init)
+	{
+		printf("const_variable_decl attr(0) type = %s\n", typeid(_attr_t(0)).name());
+		printf("const_variable_decl attr(1) type = %s\n", typeid(_attr_t(1)).name());
+		_value = _attr(1);
+		if(_attr(0).is_initialized())
+			dynamic_cast<VariableDecl*>(_value)->storage = Declaration::StorageSpecifier::CONST;
 	}
 	END_ACTION
 };
@@ -84,13 +89,14 @@ struct function_decl
 		printf("function_decl attr(0) type = %s\n", typeid(_attr_t(0)).name());
 		printf("function_decl attr(1) type = %s\n", typeid(_attr_t(1)).name());
 		printf("function_decl attr(2) type = %s\n", typeid(_attr_t(2)).name());
+		printf("function_decl attr(3) type = %s\n", typeid(_attr_t(3)).name());
 		Identifier* name = NULL;
 		if(_attr(0).which() == 0)
 			name = boost::get<Identifier*>(_attr(0));
 		else
 			name = new SimpleIdentifier(L"new");
-		TypeSpecifier*                         type       = _attr(1).is_initialized() ? *_attr(1) : NULL;
-		Block*                                 block      = _attr(2).is_initialized() ? *_attr(2) : NULL;
+		TypeSpecifier*                         type       = _attr(1).is_initialized() ? *_attr(2) : NULL;
+		Block*                                 block      = _attr(2).is_initialized() ? *_attr(3) : NULL;
 		Declaration::VisibilitySpecifier::type visibility = Declaration::VisibilitySpecifier::PUBLIC;
 		Declaration::StorageSpecifier::type    storage    = Declaration::StorageSpecifier::NONE;
 		bool is_member = false;
