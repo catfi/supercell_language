@@ -67,6 +67,7 @@ struct ThorScriptTreeAction
 	typedef action::string_literal  string_literal;
 
 	// basic
+	typedef action::typed_parameter_list      typed_parameter_list;
 	typedef action::colon_type_specifier      colon_type_specifier;
 	typedef action::type_specifier            type_specifier;
 	typedef action::template_arg_identifier   template_arg_identifier;

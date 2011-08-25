@@ -383,7 +383,7 @@ struct ThorScript : qi::grammar<Iterator, typename SA::start::attribute_type, de
 		//
 
 		typed_parameter_list
-			= (IDENTIFIER > -colon_type_specifier) % COMMA
+			= ((IDENTIFIER > -colon_type_specifier) % COMMA) [ typename SA::typed_parameter_list::init() ]
 			;
 
 		colon_type_specifier
@@ -667,21 +667,13 @@ struct ThorScript : qi::grammar<Iterator, typename SA::start::attribute_type, de
 		statement
 			=	(-annotation_specifiers
 					>>	( const_variable_decl
+						| expression_statement
 						| selection_statement
 						| iteration_statement
 						| branch_statement
-						| expression_statement
 						)
 				) [ typename SA::statement::init() ]
 			|	block [ typename SA::statement::init_block() ]
-			;
-
-		// block
-		block
-			=	(LEFT_BRACE
-					> *statement
-					> RIGHT_BRACE
-				) [ typename SA::block::init() ]
 			;
 
 		// expression_statement
@@ -691,24 +683,25 @@ struct ThorScript : qi::grammar<Iterator, typename SA::start::attribute_type, de
 
 		// selection_statement
 		selection_statement
-			=	(IF > LEFT_PAREN > expression > RIGHT_PAREN > statement
-					> *(ELIF > LEFT_PAREN > expression > RIGHT_PAREN > statement)
-					> -(ELSE > statement)
-				| SWITCH > LEFT_PAREN > expression > RIGHT_PAREN
-					> LEFT_BRACE
-					>	*( CASE > expression > COLON > statement
-						| DEFAULT > COLON > statement
-						)
-					> RIGHT_BRACE
-				) [ typename SA::selection_statement::init() ]
+				=	(IF > LEFT_PAREN > expression > RIGHT_PAREN > statement
+						> *(ELIF > LEFT_PAREN > expression > RIGHT_PAREN > statement)
+						> -(ELSE > statement)
+					) [ typename SA::selection_statement::init_if_statement() ]
+				|	(SWITCH > LEFT_PAREN > expression > RIGHT_PAREN
+						> LEFT_BRACE
+						>	*( CASE > expression > COLON > statement
+							| DEFAULT > COLON > statement
+							)
+						> RIGHT_BRACE
+					) [ typename SA::selection_statement::init_switch_statement() ]
 			;
 
 		// iteration_statement
 		iteration_statement
-			=	(WHILE > LEFT_PAREN > expression > RIGHT_PAREN > statement
-				| DO > statement > WHILE > LEFT_PAREN > expression > RIGHT_PAREN > SEMICOLON
-				| FOREACH > LEFT_PAREN > -VAR > IDENTIFIER > -colon_type_specifier > IN > (range_expression | IDENTIFIER) > RIGHT_PAREN > statement
-				) [ typename SA::iteration_statement::init() ]
+			=	(WHILE > LEFT_PAREN > expression > RIGHT_PAREN > statement)                  [ typename SA::iteration_statement::init_while_loop() ]
+			|	(DO > statement > WHILE > LEFT_PAREN > expression > RIGHT_PAREN > SEMICOLON) [ typename SA::iteration_statement::init_do_while_loop() ]
+			|	(FOREACH > LEFT_PAREN > -VAR > IDENTIFIER > -colon_type_specifier > IN > (range_expression | IDENTIFIER) > RIGHT_PAREN > statement
+				) [ typename SA::iteration_statement::init_foreach() ]
 			;
 
 		// branch_statement
@@ -717,6 +710,14 @@ struct ThorScript : qi::grammar<Iterator, typename SA::start::attribute_type, de
 				| BREAK > SEMICOLON
 				| CONTINUE > SEMICOLON
 				) [ typename SA::branch_statement::init() ]
+			;
+
+		// block
+		block
+			=	(LEFT_BRACE
+					> *statement
+					> RIGHT_BRACE
+				) [ typename SA::block::init() ]
 			;
 
 		//
@@ -986,7 +987,7 @@ struct ThorScript : qi::grammar<Iterator, typename SA::start::attribute_type, de
 	qi::rule<Iterator, detail::WhiteSpace<Iterator> >
 		///////////////////////////////////////
 		// BEGIN BASIC
-		typed_parameter_list, /*colon_type_specifier, type_specifier, template_param_identifier, template_arg_identifier, template_arg_specifier, type_list_specifier,*/
+//		typed_parameter_list, colon_type_specifier, type_specifier, template_param_identifier, template_arg_identifier, template_arg_specifier, type_list_specifier,
 //			storage_specifier,
 //			visibility_specifier,
 //			annotation_specifiers,
@@ -1044,6 +1045,7 @@ struct ThorScript : qi::grammar<Iterator, typename SA::start::attribute_type, de
 
 	// basic
 	qi::rule<Iterator, typename SA::nested_identifier::attribute_type,         detail::WhiteSpace<Iterator>, typename SA::nested_identifier::local_type>         nested_identifier;
+	qi::rule<Iterator, typename SA::typed_parameter_list::attribute_type,      detail::WhiteSpace<Iterator>, typename SA::typed_parameter_list::local_type>      typed_parameter_list;
 	qi::rule<Iterator, typename SA::colon_type_specifier::attribute_type,      detail::WhiteSpace<Iterator>, typename SA::colon_type_specifier::local_type>      colon_type_specifier;
 	qi::rule<Iterator, typename SA::type_specifier::attribute_type,            detail::WhiteSpace<Iterator>, typename SA::type_specifier::local_type>            type_specifier;
 	qi::rule<Iterator, typename SA::template_arg_identifier::attribute_type,   detail::WhiteSpace<Iterator>, typename SA::template_arg_identifier::local_type>   template_arg_identifier;

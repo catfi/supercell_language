@@ -89,13 +89,14 @@ struct function_decl
 		printf("function_decl attr(0) type = %s\n", typeid(_attr_t(0)).name());
 		printf("function_decl attr(1) type = %s\n", typeid(_attr_t(1)).name());
 		printf("function_decl attr(2) type = %s\n", typeid(_attr_t(2)).name());
+		printf("function_decl attr(3) type = %s\n", typeid(_attr_t(3)).name());
 		Identifier* name = NULL;
 		if(_attr(0).which() == 0)
 			name = boost::get<Identifier*>(_attr(0));
 		else
 			name = new SimpleIdentifier(L"new");
-		TypeSpecifier*                         type       = _attr(1).is_initialized() ? *_attr(1) : NULL;
-		Block*                                 block      = _attr(2).is_initialized() ? *_attr(2) : NULL;
+		TypeSpecifier*                         type       = _attr(1).is_initialized() ? *_attr(2) : NULL;
+		Block*                                 block      = _attr(2).is_initialized() ? *_attr(3) : NULL;
 		Declaration::VisibilitySpecifier::type visibility = Declaration::VisibilitySpecifier::PUBLIC;
 		Declaration::StorageSpecifier::type    storage    = Declaration::StorageSpecifier::NONE;
 		bool is_member = false;

@@ -21,7 +21,6 @@
 #define ZILLIANS_LANGUAGE_ACTION_STATEMENT_STATEMENTACTIONS_H_
 
 #include "language/action/detail/SemanticActionsDetail.h"
-#include <boost/mpl/at.hpp>
 
 namespace zillians { namespace language { namespace action {
 
@@ -59,14 +58,38 @@ struct statement
 	END_ACTION
 };
 
-struct selection_statement
+struct expression_statement
 {
 	DEFINE_ATTRIBUTES(Statement*)
 	DEFINE_LOCALS()
 
 	BEGIN_ACTION(init)
 	{
-		printf("selection_statement attr(0) type = %s\n", typeid(_attr_t(0)).name());
+		printf("expression_statement attr(0) type = %s\n", typeid(_attr_t(0)).name());
+		if(_attr(0).is_initialized())
+			_value = new ExpressionStmt(*_attr(0));
+	}
+	END_ACTION
+};
+
+struct selection_statement
+{
+	DEFINE_ATTRIBUTES(Statement*)
+	DEFINE_LOCALS()
+
+	BEGIN_ACTION(init_if_statement)
+	{
+		printf("selection_statement::init_if_statement attr(0) type = %s\n", typeid(_attr_t(0)).name());
+		printf("selection_statement::init_if_statement attr(1) type = %s\n", typeid(_attr_t(1)).name());
+		printf("selection_statement::init_if_statement attr(2) type = %s\n", typeid(_attr_t(2)).name());
+		printf("selection_statement::init_if_statement attr(3) type = %s\n", typeid(_attr_t(3)).name());
+	}
+	END_ACTION
+
+	BEGIN_ACTION(init_switch_statement)
+	{
+		printf("selection_statement::init_switch_statement attr(0) type = %s\n", typeid(_attr_t(0)).name());
+		printf("selection_statement::init_switch_statement attr(1) type = %s\n", typeid(_attr_t(1)).name());
 	}
 	END_ACTION
 };
@@ -76,9 +99,26 @@ struct iteration_statement
 	DEFINE_ATTRIBUTES(Statement*)
 	DEFINE_LOCALS()
 
-	BEGIN_ACTION(init)
+	BEGIN_ACTION(init_while_loop)
 	{
-		printf("iteration_statement attr(0) type = %s\n", typeid(_attr_t(0)).name());
+		printf("iteration_statement::init_while_loop attr(0) type = %s\n", typeid(_attr_t(0)).name());
+		printf("iteration_statement::init_while_loop attr(1) type = %s\n", typeid(_attr_t(1)).name());
+	}
+	END_ACTION
+
+	BEGIN_ACTION(init_do_while_loop)
+	{
+		printf("iteration_statement::init_do_while_loop attr(0) type = %s\n", typeid(_attr_t(0)).name());
+		printf("iteration_statement::init_do_while_loop attr(1) type = %s\n", typeid(_attr_t(1)).name());
+	}
+	END_ACTION
+
+	BEGIN_ACTION(init_foreach)
+	{
+		printf("iteration_statement::init_foreach attr(0) type = %s\n", typeid(_attr_t(0)).name());
+		printf("iteration_statement::init_foreach attr(1) type = %s\n", typeid(_attr_t(1)).name());
+		printf("iteration_statement::init_foreach attr(2) type = %s\n", typeid(_attr_t(2)).name());
+		printf("iteration_statement::init_foreach attr(3) type = %s\n", typeid(_attr_t(3)).name());
 	}
 	END_ACTION
 };
@@ -91,20 +131,6 @@ struct branch_statement
 	BEGIN_ACTION(init)
 	{
 		printf("branch_statement attr(0) type = %s\n", typeid(_attr_t(0)).name());
-	}
-	END_ACTION
-};
-
-struct expression_statement
-{
-	DEFINE_ATTRIBUTES(Statement*)
-	DEFINE_LOCALS()
-
-	BEGIN_ACTION(init)
-	{
-		printf("expression_statement attr(0) type = %s\n", typeid(_attr_t(0)).name());
-		if(_attr(0).is_initialized())
-			_value = new ExpressionStmt(*_attr(0));
 	}
 	END_ACTION
 };
