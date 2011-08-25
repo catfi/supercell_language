@@ -21,6 +21,8 @@
 #define ZILLIANS_LANGUAGE_ACTION_BASIC_BASICACTIONS_H_
 
 #include "language/action/detail/SemanticActionsDetail.h"
+#include <vector>
+#include <utility>
 
 namespace zillians { namespace language { namespace action {
 
@@ -40,12 +42,21 @@ struct block
 
 struct typed_parameter_list
 {
-	DEFINE_ATTRIBUTES(ASTNode*)
+	typedef std::vector<std::pair<SimpleIdentifier*, TypeSpecifier*>> value_t;
+	DEFINE_ATTRIBUTES(value_t*)
 	DEFINE_LOCALS()
 
 	BEGIN_ACTION(init)
 	{
 		printf("typed_parameter_list attr(0) type = %s\n", typeid(_attr_t(0)).name());
+		_value = new value_t;
+		foreach(i, _attr(0))
+		{
+			SimpleIdentifier* name = boost::fusion::at_c<0>(*i);
+			boost::optional<TypeSpecifier*> optional_type = boost::fusion::at_c<1>(*i);
+			TypeSpecifier* type = optional_type.is_initialized() ? *optional_type : NULL;
+			_value->push_back(value_t::value_type(name, type));
+		}
 	}
 	END_ACTION
 };

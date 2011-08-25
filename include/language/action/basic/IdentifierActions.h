@@ -95,11 +95,11 @@ struct template_param_identifier
 		if(_attr(1).is_initialized())
 		{
 			_value =  new TemplatedIdentifier(TemplatedIdentifier::Usage::FORMAL_PARAMETER, _attr(0));
-			foreach(p, *_attr(1))
-				switch((*p).which())
+			foreach(i, *_attr(1))
+				switch((*i).which())
 				{
 				case 0:
-					dynamic_cast<TemplatedIdentifier*>(_value)->appendParameter(boost::get<SimpleIdentifier*>(*p));
+					dynamic_cast<TemplatedIdentifier*>(_value)->appendParameter(boost::get<SimpleIdentifier*>(*i));
 					break;
 				case 1:
 					dynamic_cast<TemplatedIdentifier*>(_value)->appendParameter(new SimpleIdentifier(L"..."));

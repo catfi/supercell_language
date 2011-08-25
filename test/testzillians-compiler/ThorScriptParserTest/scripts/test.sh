@@ -19,7 +19,7 @@ for ARG in "$@"; do
     fi
     echo "filename: $ARG"
     if [ $MODE -eq 1 ]; then
-        $EXEC $ARG --dump-ast --no-type-inference
+        $EXEC $ARG --dump-ast --no-type-inference --no-llvm
         continue
     fi
     $EXEC $ARG --dump-parse >& $TEMP_FILE_A
