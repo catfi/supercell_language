@@ -33,7 +33,7 @@ struct TernaryExpr : public Expression
 	DEFINE_HIERARCHY(TernaryExpr, (TernaryExpr)(Expression)(ASTNode));
 
 	// so far there only one ternary expression: the conditional expression
-	TernaryExpr(Expression* cond, ASTNode* true_node, ASTNode* false_node) : cond(cond), true_node(true_node), false_node(false_node)
+	TernaryExpr(Expression* cond, Expression* true_node, Expression* false_node) : cond(cond), true_node(true_node), false_node(false_node)
 	{
 		BOOST_ASSERT(cond && "null condition for ternary expression is not allowed");
 		BOOST_ASSERT(true_node && "null \"true node\" for ternary expression is not allowed");
@@ -44,9 +44,15 @@ struct TernaryExpr : public Expression
 		false_node->parent = this;
 	}
 
+	virtual bool isRValue()
+	{
+		// it's R-value if either "true block" or "false block" is R-value
+		return (true_node->isRValue() | false_node->isRValue());
+	}
+
 	Expression* cond;
-	ASTNode* true_node;
-	ASTNode* false_node;
+	Expression* true_node;
+	Expression* false_node;
 };
 
 } } }

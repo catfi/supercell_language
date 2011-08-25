@@ -72,6 +72,16 @@ struct PrimaryExpr : public Expression
 		value.lambda = lambda;
 	}
 
+	virtual bool isRValue()
+	{
+		switch(type)
+		{
+		case Catagory::IDENTIFIER: return false;
+		case Catagory::LITERAL: return true;
+		case Catagory::LAMBDA: return true;
+		}
+	}
+
 	Catagory::type type;
 
 	union

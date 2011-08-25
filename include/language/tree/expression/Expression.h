@@ -43,6 +43,9 @@ struct Expression : public ASTNode
 		annotations = anns;
 	}
 
+	bool isLValue() { return !isRValue(); }
+	virtual bool isRValue() = 0;
+
 	Annotations* annotations;
 };
 

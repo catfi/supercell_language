@@ -41,6 +41,11 @@ struct MemberExpr : public Expression
 		member->parent = this;
 	}
 
+	virtual bool isRValue()
+	{
+		return false;
+	}
+
 	ASTNode* node;
 	Identifier* member;
 };

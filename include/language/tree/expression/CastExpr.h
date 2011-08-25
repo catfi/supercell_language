@@ -42,6 +42,11 @@ struct CastExpr : public Expression
 		type->parent = this;
 	}
 
+	virtual bool isRValue()
+	{
+		return node->isRValue();
+	}
+
 	Expression* node;
 	TypeSpecifier* type;
 };

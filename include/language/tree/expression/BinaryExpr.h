@@ -161,6 +161,48 @@ struct BinaryExpr : public Expression
 			return false;
 	}
 
+	virtual bool isRValue()
+	{
+		switch(opcode)
+		{
+		case OpCode::ASSIGN:
+		case OpCode::RSHIFT_ASSIGN:
+		case OpCode::LSHIFT_ASSIGN:
+		case OpCode::ADD_ASSIGN:
+		case OpCode::SUB_ASSIGN:
+		case OpCode::MUL_ASSIGN:
+		case OpCode::DIV_ASSIGN:
+		case OpCode::MOD_ASSIGN:
+		case OpCode::AND_ASSIGN:
+		case OpCode::OR_ASSIGN:
+		case OpCode::XOR_ASSIGN:
+		case OpCode::ARRAY_SUBSCRIPT:
+			return false;
+		case OpCode::ARITHMETIC_ADD:
+		case OpCode::ARITHMETIC_SUB:
+		case OpCode::ARITHMETIC_MUL:
+		case OpCode::ARITHMETIC_DIV:
+		case OpCode::ARITHMETIC_MOD:
+		case OpCode::BINARY_AND:
+		case OpCode::BINARY_OR:
+		case OpCode::BINARY_XOR:
+		case OpCode::BINARY_LSHIFT:
+		case OpCode::BINARY_RSHIFT:
+		case OpCode::LOGICAL_AND:
+		case OpCode::LOGICAL_OR:
+		case OpCode::INSTANCEOF:
+		case OpCode::COMPARE_EQ:
+		case OpCode::COMPARE_NE:
+		case OpCode::COMPARE_GT:
+		case OpCode::COMPARE_LT:
+		case OpCode::COMPARE_GE:
+		case OpCode::COMPARE_LE:
+		case OpCode::RANGE_ELLIPSIS:
+		case OpCode::INVALID:
+			return true;
+		}
+	}
+
 	OpCode::type opcode;
 	Expression* left;
 	Expression* right;
