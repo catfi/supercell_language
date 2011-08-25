@@ -37,7 +37,12 @@ namespace zillians { namespace language { namespace stage { namespace visitor {
 struct LLVMHelper
 {
 	LLVMHelper(llvm::LLVMContext& context, llvm::Module& module, llvm::IRBuilder<>& builder) : mContext(context), mModule(module), mBuilder(builder)
-	{ }
+	{
+		mFunctionContext.function = NULL;
+		mFunctionContext.entry_block = NULL;
+		mFunctionContext.return_block = NULL;
+		mFunctionContext.alloca_insert_point = NULL;
+	}
 
 	bool getType(tree::TypeSpecifier& specifier, /*OUT*/ const llvm::Type*& result, /*OUT*/ llvm::Attributes& modifier)
 	{
@@ -236,6 +241,11 @@ struct LLVMHelper
 
 	bool startFunction(tree::FunctionDecl& ast_function)
 	{
+		BOOST_ASSERT(!mFunctionContext.function);
+		BOOST_ASSERT(!mFunctionContext.entry_block);
+		BOOST_ASSERT(!mFunctionContext.return_block);
+		BOOST_ASSERT(!mFunctionContext.alloca_insert_point);
+
 		llvm::Function* llvm_function = NULL;
 		if(!getFunction(ast_function, llvm_function))
 			return false;
@@ -247,9 +257,9 @@ struct LLVMHelper
 		// create dummy alloca insertion point (from clang & foster)
 		{
 			llvm::Value *undef = llvm::UndefValue::get(llvm::Type::getInt32Ty(mContext));
-			mAllocaInsertionPoint = new llvm::BitCastInst(undef, llvm::Type::getInt32Ty(mContext), "", mFunctionContext.entry_block);
+			mFunctionContext.alloca_insert_point = new llvm::BitCastInst(undef, llvm::Type::getInt32Ty(mContext), "", mFunctionContext.entry_block);
 			if(mBuilder.isNamePreserving())
-				mAllocaInsertionPoint->setName("allocapt");
+				mFunctionContext.alloca_insert_point->setName("allocapt");
 		}
 
 		// create return block
@@ -260,8 +270,13 @@ struct LLVMHelper
 
 	bool finishFunction(tree::FunctionDecl& ast_function)
 	{
-		mAllocaInsertionPoint->eraseFromParent();
-		mAllocaInsertionPoint = NULL;
+		mFunctionContext.alloca_insert_point->eraseFromParent();
+		mFunctionContext.alloca_insert_point = NULL;
+
+		// TODO does this cause memory leak?
+		mFunctionContext.function = NULL;
+		mFunctionContext.entry_block = NULL;
+		mFunctionContext.return_block = NULL;
 
 		return true;
 	}
@@ -275,9 +290,8 @@ private:
 		llvm::Function* function;
 		llvm::BasicBlock* entry_block;
 		llvm::BasicBlock* return_block;
+		llvm::Instruction* alloca_insert_point;
 	} mFunctionContext;
-
-	llvm::Instruction* mAllocaInsertionPoint;
 };
 
 } } } }

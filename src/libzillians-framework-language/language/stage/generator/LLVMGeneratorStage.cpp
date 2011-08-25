@@ -68,6 +68,7 @@ bool LLVMGeneratorStage::execute()
 	llvm::LLVMContext* context = new llvm::LLVMContext();
 	llvm::Module* module = new llvm::Module(llvm_module_name, llvm::getGlobalContext());
 
+	// create visitor to walk through the entire tree and generate instructions accordingly
 	visitor::LLVMGeneratorVisitor visitor(*context, *module);
 
 	if(getParserContext().program)
@@ -75,8 +76,8 @@ bool LLVMGeneratorStage::execute()
 		visitor.visit(*getParserContext().program);
 	}
 
-	// TODO make a visitor to walk through the entire tree and generate instructions accordingly
 	getGeneratorContext().modules.push_back(module);
+
 	return true;
 }
 
