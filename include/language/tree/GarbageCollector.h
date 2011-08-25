@@ -26,7 +26,7 @@
 #include "core/Prerequisite.h"
 #include "core/Visitor.h"
 #include "core/Singleton.h"
-#include "utility/TemplateTricks.h"
+#include "utility/Foreach.h"
 #include <tr1/unordered_set>
 
 namespace zillians { namespace language { namespace tree {

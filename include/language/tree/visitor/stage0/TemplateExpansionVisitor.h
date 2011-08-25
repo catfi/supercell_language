@@ -25,7 +25,7 @@
 
 #include "core/Prerequisite.h"
 #include "core/Visitor.h"
-#include "utility/TemplateTricks.h"
+#include "utility/Foreach.h"
 #include "language/tree/ASTNodeFactory.h"
 
 namespace zillians { namespace language { namespace tree { namespace visitor {

@@ -20,7 +20,7 @@
 #ifndef ZILLIANS_LANGUAGE_STAGE_GENERATOR_DETAIL_LLVMFOREACH_H_
 #define ZILLIANS_LANGUAGE_STAGE_GENERATOR_DETAIL_LLVMFOREACH_H_
 
-#include "utility/TemplateTricks.h"
+#include "utility/Foreach.h"
 #include "llvm/Function.h"
 #include "llvm/BasicBlock.h"
 #include "llvm/Module.h"

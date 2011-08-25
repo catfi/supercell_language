@@ -24,7 +24,7 @@
 #define ZILLIANS_LANGUAGE_TREE_IDENTIFIER_H_
 
 #include "language/tree/ASTNode.h"
-#include "utility/TemplateTricks.h"
+#include "utility/Foreach.h"
 
 namespace zillians { namespace language { namespace tree {
 

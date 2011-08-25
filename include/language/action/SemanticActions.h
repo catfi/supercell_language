@@ -21,7 +21,7 @@
 #define ZILLIANS_LANGUAGE_ACTION_SEMANTICACTIONS_H_
 
 #include "core/Prerequisite.h"
-#include "utility/TemplateTricks.h"
+#include "utility/Foreach.h"
 #include <boost/spirit/include/qi.hpp>
 #include <boost/spirit/repository/include/qi_iter_pos.hpp>
 #include "language/tree/ASTNodeFactory.h"

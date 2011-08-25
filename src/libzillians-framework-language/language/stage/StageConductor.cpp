@@ -19,7 +19,7 @@
 
 #include "language/stage/StageConductor.h"
 #include "language/logging/Logger.h"
-#include "utility/TemplateTricks.h"
+#include "utility/Foreach.h"
 
 namespace zillians { namespace language { namespace stage {
 

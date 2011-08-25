@@ -22,7 +22,7 @@
 
 #include "language/tree/ASTNodeFactory.h"
 #include "language/tree/visitor/general/TypeResolutionVisitor.h"
-#include "utility/TemplateTricks.h"
+#include "utility/Foreach.h"
 
 namespace __gnu_cxx {
 

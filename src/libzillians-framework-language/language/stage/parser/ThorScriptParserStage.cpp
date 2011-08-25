@@ -23,7 +23,7 @@
 #include "language/action/SemanticActions.h"
 #include "language/tree/visitor/general/PrettyPrintVisitor.h"
 #include "language/ThorScriptCompiler.h"
-#include "utility/TemplateTricks.h"
+#include "utility/Foreach.h"
 #include "utility/UnicodeUtil.h"
 
 namespace classic = boost::spirit::classic;
