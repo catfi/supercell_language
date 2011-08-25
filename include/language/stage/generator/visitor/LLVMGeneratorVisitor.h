@@ -73,6 +73,11 @@ struct LLVMGeneratorVisitor : GenericDoubleVisitor
 		}
 	}
 
+	void generate(VariableDecl& node)
+	{
+
+	}
+
 	void generate(ExpressionStmt& node)
 	{
 

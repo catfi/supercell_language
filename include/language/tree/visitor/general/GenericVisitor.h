@@ -166,6 +166,11 @@ struct GenericVisitor : Visitor<const ASTNode, void, VisitorImplementation::recu
 		foreach(i, node.objects)	visit(**i);
 	}
 
+	void apply(Identifier& node)
+	{
+		BOOST_ASSERT(false && "reaching unreachable code");
+	}
+
 	void apply(const SimpleIdentifier& node)
 	{
 	}
@@ -223,6 +228,10 @@ struct GenericVisitor : Visitor<const ASTNode, void, VisitorImplementation::recu
 
 	//////////////////////////////////////////////////////////////////////
 	/// Declaration
+	void apply(Declaration& node)
+	{
+		BOOST_ASSERT(false && "reaching unreachable code");
+	}
 
 	void apply(const ClassDecl& node)
 	{
@@ -289,6 +298,10 @@ struct GenericVisitor : Visitor<const ASTNode, void, VisitorImplementation::recu
 
 	//////////////////////////////////////////////////////////////////////
 	/// Statement
+	void apply(Statement& node)
+	{
+		BOOST_ASSERT(false && "reaching unreachable code");
+	}
 
 	void apply(const DeclarativeStmt& node)
 	{
@@ -354,6 +367,11 @@ struct GenericVisitor : Visitor<const ASTNode, void, VisitorImplementation::recu
 
 	//////////////////////////////////////////////////////////////////////
 	/// Expression
+	void apply(Expression& node)
+	{
+		BOOST_ASSERT(false && "reaching unreachable code");
+	}
+
 	void apply(const PrimaryExpr& node)
 	{
 		switch(node.type)
