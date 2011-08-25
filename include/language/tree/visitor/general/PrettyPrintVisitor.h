@@ -221,6 +221,11 @@ struct PrettyPrintVisitor : Visitor<const ASTNode, void>
 			case TypeSpecifier::ReferredType::TYPEDEF_DECL: if(node.referred.typedef_decl) visit(*node.referred.typedef_decl); break;
 			case TypeSpecifier::ReferredType::FUNCTION_TYPE: if(node.referred.function_type) visit(*node.referred.function_type); break;
 			case TypeSpecifier::ReferredType::UNSPECIFIED: if(node.referred.unspecified) visit(*node.referred.unspecified); break;
+			case TypeSpecifier::ReferredType::PRIMITIVE:
+			{
+				STREAM << L"<primitive type=\"" << TypeSpecifier::PrimitiveType::toString(node.referred.primitive) << L"\"/>" << std::endl;
+				break;
+			}
 			}
 			decreaseIdent();
 		}
