@@ -37,6 +37,7 @@ public:
 	virtual bool execute();
 
 private:
+	bool enabled;
 	std::string llvm_module_name;
 };
 
