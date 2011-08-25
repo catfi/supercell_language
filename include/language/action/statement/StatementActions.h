@@ -64,34 +64,6 @@ struct statement
 	END_ACTION
 };
 
-struct compound_statement
-{
-	DEFINE_ATTRIBUTES(Block*)
-	DEFINE_LOCALS()
-
-	BEGIN_ACTION(init)
-	{
-		printf("compound_statement attr(0) type = %s\n", typeid(_attr_t(0)).name());
-		_value = new Block();
-		_value->appendObjects(_attr(0));
-	}
-	END_ACTION
-};
-
-struct expression_statement
-{
-	DEFINE_ATTRIBUTES(Statement*)
-	DEFINE_LOCALS()
-
-	BEGIN_ACTION(init)
-	{
-		printf("expression_statement attr(0) type = %s\n", typeid(_attr_t(0)).name());
-		if(_attr(0).is_initialized())
-			_value = new ExpressionStmt(*_attr(0));
-	}
-	END_ACTION
-};
-
 struct selection_statement
 {
 	DEFINE_ATTRIBUTES(Statement*)
@@ -124,6 +96,20 @@ struct branch_statement
 	BEGIN_ACTION(init)
 	{
 		printf("branch_statement attr(0) type = %s\n", typeid(_attr_t(0)).name());
+	}
+	END_ACTION
+};
+
+struct expression_statement
+{
+	DEFINE_ATTRIBUTES(Statement*)
+	DEFINE_LOCALS()
+
+	BEGIN_ACTION(init)
+	{
+		printf("expression_statement attr(0) type = %s\n", typeid(_attr_t(0)).name());
+		if(_attr(0).is_initialized())
+			_value = new ExpressionStmt(*_attr(0));
 	}
 	END_ACTION
 };

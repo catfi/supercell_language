@@ -391,8 +391,7 @@ struct ThorScript : qi::grammar<Iterator, typename SA::start::attribute_type, de
 			;
 
 		type_specifier
-			= (IDENTIFIER > -template_arg_specifier)                                               [ typename SA::type_specifier::init_type() ]
-			| qi::lit(L"void")                                                                     [ typename SA::type_specifier::template init_primitive_type<tree::TypeSpecifier::PrimitiveType::VOID>() ]
+			= qi::lit(L"void")                                                                     [ typename SA::type_specifier::template init_primitive_type<tree::TypeSpecifier::PrimitiveType::VOID>() ]
 			| qi::lit(L"int8")                                                                     [ typename SA::type_specifier::template init_primitive_type<tree::TypeSpecifier::PrimitiveType::INT8>() ]
 			| qi::lit(L"uint8")                                                                    [ typename SA::type_specifier::template init_primitive_type<tree::TypeSpecifier::PrimitiveType::UINT8>() ]
 			| qi::lit(L"int16")                                                                    [ typename SA::type_specifier::template init_primitive_type<tree::TypeSpecifier::PrimitiveType::INT16>() ]
@@ -403,6 +402,7 @@ struct ThorScript : qi::grammar<Iterator, typename SA::start::attribute_type, de
 			| qi::lit(L"uint64")                                                                   [ typename SA::type_specifier::template init_primitive_type<tree::TypeSpecifier::PrimitiveType::UINT64>() ]
 			| qi::lit(L"float32")                                                                  [ typename SA::type_specifier::template init_primitive_type<tree::TypeSpecifier::PrimitiveType::FLOAT32>() ]
 			| qi::lit(L"float64")                                                                  [ typename SA::type_specifier::template init_primitive_type<tree::TypeSpecifier::PrimitiveType::FLOAT64>() ]
+			| (IDENTIFIER > -template_arg_specifier)                                               [ typename SA::type_specifier::init_type() ]
 			| (FUNCTION > LEFT_PAREN > -type_list_specifier > RIGHT_PAREN > -colon_type_specifier) [ typename SA::type_specifier::init_function_type() ]
 			| ELLIPSIS                                                                             [ typename SA::type_specifier::init_ellipsis() ]
 			;
@@ -494,7 +494,7 @@ struct ThorScript : qi::grammar<Iterator, typename SA::start::attribute_type, de
 
 		lambda_expression
 			= (FUNCTION > LEFT_PAREN > -typed_parameter_list > RIGHT_PAREN > -colon_type_specifier
-				> compound_statement) [ typename SA::lambda_expression::init() ]
+				> block) [ typename SA::lambda_expression::init() ]
 			;
 
 		// postfix expression
@@ -667,21 +667,21 @@ struct ThorScript : qi::grammar<Iterator, typename SA::start::attribute_type, de
 		statement
 			=	(-annotation_specifiers
 					>>	( -(CONST >> qi::attr(true)) >> variable_decl
-						| expression_statement
 						| selection_statement
 						| iteration_statement
 						| branch_statement
-						| compound_statement
+						| expression_statement
+						| block
 						)
 				) [ typename SA::statement::init() ]
 			;
 
-		// compound_statement
-		compound_statement
+		// block
+		block
 			=	(LEFT_BRACE
 					> *statement
 					> RIGHT_BRACE
-				) [ typename SA::compound_statement::init() ]
+				) [ typename SA::block::init() ]
 			;
 
 		// expression_statement
@@ -748,7 +748,7 @@ struct ThorScript : qi::grammar<Iterator, typename SA::start::attribute_type, de
 		// function declaration
 		function_decl
 			= (FUNCTION > (template_param_identifier | (NEW >> qi::attr(true))) > LEFT_PAREN > -typed_parameter_list > RIGHT_PAREN > -colon_type_specifier
-				> -compound_statement
+				> -block
 				) [ typename SA::function_decl::init() ]
 			;
 
@@ -871,7 +871,7 @@ struct ThorScript : qi::grammar<Iterator, typename SA::start::attribute_type, de
 			logical_or_expression.name("logical_or_expression");
 			ternary_expression.name("ternary_expression");
 		statement.name("statement");
-			compound_statement.name("compound_statement");
+			block.name("block");
 			expression_statement.name("expression_statement");
 			selection_statement.name("selection_statement");
 			iteration_statement.name("iteration_statement");
@@ -923,7 +923,7 @@ struct ThorScript : qi::grammar<Iterator, typename SA::start::attribute_type, de
 				debug(logical_or_expression);
 				debug(ternary_expression);
 			debug(statement);
-				debug(compound_statement);
+				debug(block);
 				debug(expression_statement);
 				debug(selection_statement);
 				debug(iteration_statement);
@@ -1014,7 +1014,7 @@ struct ThorScript : qi::grammar<Iterator, typename SA::start::attribute_type, de
 		///////////////////////////////////////
 		// BEGIN STATEMENT
 //		statement,
-//			compound_statement,
+//			block,
 //			expression_statement,
 //			selection_statement,
 //			iteration_statement,
@@ -1086,7 +1086,7 @@ struct ThorScript : qi::grammar<Iterator, typename SA::start::attribute_type, de
 
 	// statement
 	qi::rule<Iterator, typename SA::statement::attribute_type,            detail::WhiteSpace<Iterator>, typename SA::statement::local_type>            statement;
-	qi::rule<Iterator, typename SA::compound_statement::attribute_type,   detail::WhiteSpace<Iterator>, typename SA::compound_statement::local_type>   compound_statement;
+	qi::rule<Iterator, typename SA::block::attribute_type,                detail::WhiteSpace<Iterator>, typename SA::block::local_type>                block;
 	qi::rule<Iterator, typename SA::expression_statement::attribute_type, detail::WhiteSpace<Iterator>, typename SA::expression_statement::local_type> expression_statement;
 	qi::rule<Iterator, typename SA::selection_statement::attribute_type,  detail::WhiteSpace<Iterator>, typename SA::selection_statement::local_type>  selection_statement;
 	qi::rule<Iterator, typename SA::iteration_statement::attribute_type,  detail::WhiteSpace<Iterator>, typename SA::iteration_statement::local_type>  iteration_statement;
