@@ -67,10 +67,7 @@ struct IfElseStmt : public SelectionStmt
 	DEFINE_VISITABLE();
 	DEFINE_HIERARCHY(IfElseStmt, (IfElseStmt)(SelectionStmt)(Statement)(ASTNode));
 
-	explicit IfElseStmt()
-	{ }
-
-	void setIfBranch(const Selection& branch)
+	explicit IfElseStmt(const Selection& branch)
 	{
 		branch.cond->parent = this;
 		branch.block->parent = this;
