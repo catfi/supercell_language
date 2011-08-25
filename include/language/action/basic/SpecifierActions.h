@@ -49,15 +49,19 @@ struct type_specifier
 		if(_attr(1).is_initialized())
 		{
 			std::vector<TypeSpecifier*> &vec = *_attr(1);
-			TemplatedIdentifier *templated_identifier = new TemplatedIdentifier(_attr(0));
-			for(std::vector<TypeSpecifier*>::iterator p = vec.begin(); p != vec.end(); p++)
-			{
-//				templated_identifier->appendParameter(*p);
-			}
+			TemplatedIdentifier *templated_identifier = new TemplatedIdentifier(TemplatedIdentifier::Usage::ACTUAL_ARGUMENT, _attr(0));
+			for(std::vector<TypeSpecifier*>::iterator p; p != vec.end(); p++)
+				templated_identifier->appendArgument(*p);
 			_value = new TypeSpecifier(templated_identifier);
 		}
 		else
 			_value = new TypeSpecifier(_attr(0));
+	}
+	END_ACTION
+
+	BEGIN_TEMPLATED_ACTION(init_primitive_type, TypeSpecifier::PrimitiveType::type Type)
+	{
+		_value = new TypeSpecifier(Type);
 	}
 	END_ACTION
 
@@ -72,6 +76,20 @@ struct type_specifier
 	BEGIN_ACTION(init_ellipsis)
 	{
 //		printf("type_specifier::init_ellipsis attr(0) type = %s\n", typeid(_attr_t(0)).name());
+		_value = new tree::TypeSpecifier(TypeSpecifier::PrimitiveType::VARIADIC_ELLIPSIS);
+	}
+	END_ACTION
+};
+
+struct template_arg_specifier
+{
+	DEFINE_ATTRIBUTES(std::vector<TypeSpecifier*>)
+	DEFINE_LOCALS()
+
+	BEGIN_ACTION(init)
+	{
+		printf("template_specifier attr(0) type = %s\n", typeid(_attr_t(0)).name());
+		_value = _attr(0);
 	}
 	END_ACTION
 };

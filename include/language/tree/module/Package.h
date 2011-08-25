@@ -25,7 +25,7 @@
 
 #include "language/tree/ASTNode.h"
 #include "language/tree/basic/Identifier.h"
-#include "utility/TemplateTricks.h"
+#include "utility/Foreach.h"
 
 namespace zillians { namespace language { namespace tree {
 

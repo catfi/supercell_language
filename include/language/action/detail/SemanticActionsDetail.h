@@ -21,7 +21,7 @@
 #define ZILLIANS_LANGUAGE_ACTION_DETAIL_SEMANTICACTIONSDETAIL_H_
 
 #include "core/Prerequisite.h"
-#include "utility/TemplateTricks.h"
+#include "utility/Foreach.h"
 #include "language/GlobalContext.h"
 #include "language/context/ParserContext.h"
 #include "language/tree/ASTNodeFactory.h"

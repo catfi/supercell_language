@@ -1,6 +1,6 @@
 /**
  * Zillians MMO
- * Copyright (C) 2007-2010 Zillians.com, Inc.
+ * Copyright (C) 2007-2011 Zillians.com, Inc.
  * For more information see http://www.zillians.com
  *
  * Zillians MMO is the library and runtime for massive multiplayer online game
@@ -16,39 +16,32 @@
  * AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-/**
- * @date Aug 5, 2011 sdk - Initial version created.
- */
 
-#ifndef ZILLIANS_LANGUAGE_TREE_EXPRESSION_H_
-#define ZILLIANS_LANGUAGE_TREE_EXPRESSION_H_
+#ifndef ZILLIANS_LANGUAGE_STAGE_GENERATOR_LLVMBITCODESTAGE_H_
+#define ZILLIANS_LANGUAGE_STAGE_GENERATOR_LLVMBITCODESTAGE_H_
 
-#include "language/tree/ASTNode.h"
-#include "language/tree/basic/Annotations.h"
+#include "language/stage/Stage.h"
 
-namespace zillians { namespace language { namespace tree {
+namespace zillians { namespace language { namespace stage {
 
-struct Expression : public ASTNode
+class LLVMBitCodeStage : public Stage
 {
-	DEFINE_VISITABLE();
-	DEFINE_HIERARCHY(Expression, (Expression)(ASTNode));
+public:
+	LLVMBitCodeStage();
+	virtual ~LLVMBitCodeStage();
 
-	Expression() : annotations(NULL)
-	{ }
+public:
+	virtual const char* name();
+	virtual void initializeOptions(po::options_description& option_desc, po::positional_options_description& positional_desc);
+	virtual bool parseOptions(po::variables_map& vm);
+	virtual bool execute();
 
-	void setAnnotation(Annotations* anns)
-	{
-		if(annotations) annotations->parent = NULL;
-		anns->parent = this;
-		annotations = anns;
-	}
-
-	bool isLValue() { return !isRValue(); }
-	virtual bool isRValue() = 0;
-
-	Annotations* annotations;
+private:
+	std::string llvm_module_name;
 };
 
 } } }
 
-#endif /* ZILLIANS_LANGUAGE_TREE_EXPRESSION_H_ */
+
+
+#endif /* ZILLIANS_LANGUAGE_STAGE_GENERATOR_LLVMBITCODESTAGE_H_ */

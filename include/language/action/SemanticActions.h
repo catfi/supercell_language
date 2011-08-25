@@ -21,7 +21,7 @@
 #define ZILLIANS_LANGUAGE_ACTION_SEMANTICACTIONS_H_
 
 #include "core/Prerequisite.h"
-#include "utility/TemplateTricks.h"
+#include "utility/Foreach.h"
 #include <boost/spirit/include/qi.hpp>
 #include <boost/spirit/repository/include/qi_iter_pos.hpp>
 #include "language/tree/ASTNodeFactory.h"
@@ -34,6 +34,7 @@
 #include "language/action/detail/SemanticActionsDetail.h"
 
 // basic
+#include "language/action/basic/BasicActions.h"
 #include "language/action/basic/IdentifierActions.h"
 #include "language/action/basic/LiteralActions.h"
 #include "language/action/basic/SpecifierActions.h"
@@ -44,10 +45,13 @@
 // expression
 #include "language/action/expression/ExpressionActions.h"
 
-// program
+// module
 #include "language/action/module/ImportActions.h"
 #include "language/action/module/PackageActions.h"
 #include "language/action/module/ProgramActions.h"
+
+// statement
+#include "language/action/statement/StatementActions.h"
 
 namespace zillians { namespace language { namespace action {
 
@@ -63,16 +67,18 @@ struct ThorScriptTreeAction
 	typedef action::string_literal  string_literal;
 
 	// basic
-	typedef action::colon_type_specifier    colon_type_specifier;
-	typedef action::type_specifier          type_specifier;
-	typedef action::template_arg_identifier template_arg_identifier;
-	typedef action::template_arg_specifier  template_arg_specifier;
-	typedef action::type_list_specifier     type_list_specifier;
-	typedef action::storage_specifier       storage_specifier;
-	typedef action::visibility_specifier    visibility_specifier;
-	typedef action::annotation_specifiers   annotation_specifiers;
-	typedef action::annotation_specifier    annotation_specifier;
-	typedef action::nested_identifier       nested_identifier;
+	typedef action::typed_parameter_list      typed_parameter_list;
+	typedef action::colon_type_specifier      colon_type_specifier;
+	typedef action::type_specifier            type_specifier;
+	typedef action::template_arg_identifier   template_arg_identifier;
+	typedef action::template_param_identifier template_param_identifier;
+	typedef action::template_arg_specifier    template_arg_specifier;
+	typedef action::type_list_specifier       type_list_specifier;
+	typedef action::storage_specifier         storage_specifier;
+	typedef action::visibility_specifier      visibility_specifier;
+	typedef action::annotation_specifiers     annotation_specifiers;
+	typedef action::annotation_specifier      annotation_specifier;
+	typedef action::nested_identifier         nested_identifier;
 
 	//////////////////////////////////////////////////////////////////////
 	/// Semantic Actions for Non-terminals
@@ -92,18 +98,27 @@ struct ThorScriptTreeAction
 	typedef action::ternary_expression          ternary_expression;
 
 	// declaration
-	typedef action::declaration    declaration;
-	typedef action::variable_decl  variable_decl;
-	typedef action::function_decl  function_decl;
-	typedef action::typedef_decl   typedef_decl;
-	typedef action::class_decl     class_decl;
-	typedef action::interface_decl interface_decl;
-	typedef action::enum_decl      enum_decl;
+	typedef action::declaration         declaration;
+	typedef action::const_variable_decl const_variable_decl;
+	typedef action::variable_decl       variable_decl;
+	typedef action::function_decl       function_decl;
+	typedef action::typedef_decl        typedef_decl;
+	typedef action::class_decl          class_decl;
+	typedef action::interface_decl      interface_decl;
+	typedef action::enum_decl           enum_decl;
 
 	// module
 	typedef action::program      program;
 	typedef action::package_decl package_decl;
 	typedef action::import_decl  import_decl;
+
+	// statement
+	typedef action::statement            statement;
+	typedef action::block                block;
+	typedef action::expression_statement expression_statement;
+	typedef action::selection_statement  selection_statement;
+	typedef action::iteration_statement  iteration_statement;
+	typedef action::branch_statement     branch_statement;
 
 	/**
 	 * start is the entry rule for the ThorScript parser

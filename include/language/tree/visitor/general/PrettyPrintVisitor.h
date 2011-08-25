@@ -221,6 +221,11 @@ struct PrettyPrintVisitor : Visitor<const ASTNode, void>
 			case TypeSpecifier::ReferredType::TYPEDEF_DECL: if(node.referred.typedef_decl) visit(*node.referred.typedef_decl); break;
 			case TypeSpecifier::ReferredType::FUNCTION_TYPE: if(node.referred.function_type) visit(*node.referred.function_type); break;
 			case TypeSpecifier::ReferredType::UNSPECIFIED: if(node.referred.unspecified) visit(*node.referred.unspecified); break;
+			case TypeSpecifier::ReferredType::PRIMITIVE:
+			{
+				STREAM << L"<primitive type=\"" << TypeSpecifier::PrimitiveType::toString(node.referred.primitive) << L"\"/>" << std::endl;
+				break;
+			}
 			}
 			decreaseIdent();
 		}
@@ -318,14 +323,33 @@ struct PrettyPrintVisitor : Visitor<const ASTNode, void>
 				L"visibility=\"" << Declaration::VisibilitySpecifier::toString(node.visibility) << L"\" " <<
 				L"storage=\"" << Declaration::StorageSpecifier::toString(node.storage) << L"\"" <<
 				L">" << std::endl;
-
-		if(node.block)
 		{
 			increaseIdent();
-			visit(*node.block);
+			{
+				foreach(i, node.parameters)
+				{
+					STREAM << L"<parameters name=\"" << i->first->toString() << "\">" << std::endl;
+					{
+						increaseIdent();
+						visit(*i->second);
+						decreaseIdent();
+					}
+					STREAM << L"</parameters>" << std::endl;
+				}
+			}
+			decreaseIdent();
+
+			increaseIdent();
+			if(node.block)
+			{
+				STREAM << L"<block>" << std::endl;
+				increaseIdent();
+				visit(*node.block);
+				decreaseIdent();
+				STREAM << L"</blocl>" << std::endl;
+			}
 			decreaseIdent();
 		}
-
 		STREAM << L"</function_decl>" << std::endl;
 	}
 
@@ -347,26 +371,23 @@ struct PrettyPrintVisitor : Visitor<const ASTNode, void>
 	{
 		STREAM << L"<variable_decl " <<
 				L"name=\"" << node.name->toString() << L"\" " <<
-				L"type=\"" << decodeType(node.type) << L"\" " <<
+				L"type=\"" << decodeType(node.type) << L"\" "
 				L"is_member=\"" << (node.is_member ? L"true" : L"false") << L"\" " <<
 				L"visibility=\"" << Declaration::VisibilitySpecifier::toString(node.visibility) << L"\" " <<
-				L"storage=\"" << Declaration::StorageSpecifier::toString(node.storage) << L"\"";
+				L"storage=\"" << Declaration::StorageSpecifier::toString(node.storage) << L"\">" << std::endl;
 
 		if(node.initializer)
 		{
-			std::wcout << L">" << std::endl;
-
+			STREAM << L"<initializer>" << std::endl;
 			{
 				increaseIdent();
 				visit(*node.initializer);
 				decreaseIdent();
 			}
-			std::wcout << L"</variable_decl>" << std::endl;
+			STREAM << L"</initializer>" << std::endl;
 		}
-		else
-		{
-			std::wcout << L"/>" << std::endl;
-		}
+
+		STREAM << L"</variable_decl>" << std::endl;
 	}
 
 	void print(const TypedefDecl& node)
@@ -554,19 +575,10 @@ struct PrettyPrintVisitor : Visitor<const ASTNode, void>
 				{
 					increaseIdent();
 					{
-						STREAM << L"<condition>" << std::endl;
-						{
-							increaseIdent();
-							if(node.else_branch.cond) visit(*node.else_branch.cond);
-							decreaseIdent();
-						}
-						STREAM << L"</condition>" << std::endl;
-					}
-					{
 						STREAM << L"<block>" << std::endl;
 						{
 							increaseIdent();
-							if(node.else_branch.block) visit(*node.else_branch.block);
+							if(node.else_block) visit(*node.else_block);
 							decreaseIdent();
 						}
 						STREAM << L"</block>" << std::endl;
@@ -824,7 +836,7 @@ struct PrettyPrintVisitor : Visitor<const ASTNode, void>
 	}
 
 private:
-	static const wchar_t* decodeType(ASTNode* type)
+	static std::wstring decodeType(ASTNode* type)
 	{
 		if(!type)
 			return L"<unspecified>";
@@ -835,21 +847,24 @@ private:
 		}
 		else
 		{
+			//return L"others";
 			TypeSpecifier* t = cast<TypeSpecifier>(type);
 			switch(t->type)
 			{
-			case TypeSpecifier::ReferredType::CLASS_DECL: return t->referred.class_decl->name->toString().c_str();
-			case TypeSpecifier::ReferredType::INTERFACE_DECL: return t->referred.interface_decl->name->toString().c_str();
-			case TypeSpecifier::ReferredType::FUNCTION_DECL: return t->referred.function_decl->name->toString().c_str();
-			case TypeSpecifier::ReferredType::ENUM_DECL: return t->referred.enum_decl->name->toString().c_str();
-			case TypeSpecifier::ReferredType::TYPEDEF_DECL: return t->referred.typedef_decl->to->toString().c_str();
-			case TypeSpecifier::ReferredType::UNSPECIFIED: return t->referred.unspecified->toString().c_str();
+			case TypeSpecifier::ReferredType::CLASS_DECL: return t->referred.class_decl->name->toString();
+			case TypeSpecifier::ReferredType::INTERFACE_DECL: return t->referred.interface_decl->name->toString();
+			case TypeSpecifier::ReferredType::FUNCTION_DECL: return t->referred.function_decl->name->toString();
+			case TypeSpecifier::ReferredType::ENUM_DECL: return t->referred.enum_decl->name->toString();
+			case TypeSpecifier::ReferredType::TYPEDEF_DECL: return t->referred.typedef_decl->to->toString();
+			case TypeSpecifier::ReferredType::PRIMITIVE: return TypeSpecifier::PrimitiveType::toString(t->referred.primitive);
+			case TypeSpecifier::ReferredType::UNSPECIFIED: return t->referred.unspecified->toString();
 			case TypeSpecifier::ReferredType::FUNCTION_TYPE: return decodeFunctionType(t->referred.function_type);
 			}
 		}
+		return L"error";
 	}
 
-	static const wchar_t* decodeFunctionType(FunctionType* type)
+	static std::wstring decodeFunctionType(FunctionType* type)
 	{
 		std::wstringstream ss;
 
@@ -866,7 +881,7 @@ private:
 			ss << decodeType(*i) << ((i != type->argument_types.end()) ? L", " : L"");
 		ss << ")";
 
-		return ss.str().c_str();
+		return ss.str();
 	}
 
 	static std::basic_ostream<wchar_t>& set_indent(std::basic_ostream<wchar_t> &ss, size_t depth)

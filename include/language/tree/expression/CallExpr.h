@@ -44,6 +44,11 @@ struct CallExpr : public Expression
 		parameters.push_back(parameter);
 	}
 
+	virtual bool isRValue()
+	{
+		return true;
+	}
+
 	ASTNode* node;
 	std::vector<Expression*> parameters;
 };

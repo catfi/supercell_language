@@ -19,7 +19,7 @@
 
 #include "language/stage/StageConductor.h"
 #include "language/logging/Logger.h"
-#include "utility/TemplateTricks.h"
+#include "utility/Foreach.h"
 
 namespace zillians { namespace language { namespace stage {
 
@@ -39,7 +39,7 @@ int StageConductor::main(int argc, const char** argv)
 	// prepare simple logger appender
 	if(true)
 	{
-
+		Logger::initialize();
 	}
 	else
 	{

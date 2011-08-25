@@ -31,6 +31,7 @@ struct identifier
 
 	BEGIN_ACTION(init)
 	{
+		printf("identifier attr(0) type = %s\n", typeid(_attr_t(0)).name());
 		_value = new SimpleIdentifier(_attr(0));
 	}
 	END_ACTION
@@ -43,6 +44,7 @@ struct nested_identifier
 
 	BEGIN_ACTION(init)
 	{
+		printf("nested_identifier attr(0) type = %s\n", typeid(_attr_t(0)).name());
 		BOOST_MPL_ASSERT(( boost::is_same<_value_t, NestedIdentifier*&> ));
 
 		_value = new NestedIdentifier();
@@ -51,17 +53,10 @@ struct nested_identifier
 
 	BEGIN_ACTION(append_identifier)
 	{
+		printf("nested_identifier::append_identifier attr(0) type = %s\n", typeid(_attr_t(0)).name());
 		BOOST_MPL_ASSERT(( boost::is_same<_attr_t(0), SimpleIdentifier*&> ));
 
 		_value->appendIdentifier(_attr(0));
-	}
-	END_ACTION
-
-	BEGIN_ACTION(abort)
-	{
-		// TODO this is just a proof of concept to create abort semantic and clean up resource when rule does not match
-		SAFE_DELETE(_value);
-		passed = false;
 	}
 	END_ACTION
 };
@@ -74,19 +69,45 @@ struct template_arg_identifier
 	BEGIN_ACTION(init)
 	{
 		printf("template_arg_identifier attr(0) type = %s\n", typeid(_attr_t(0)).name());
+		printf("template_arg_identifier attr(1) type = %s\n", typeid(_attr_t(1)).name());
+		if(_attr(1).is_initialized())
+		{
+			std::vector<TypeSpecifier*> &vec = *_attr(1);
+			_value =  new TemplatedIdentifier(TemplatedIdentifier::Usage::ACTUAL_ARGUMENT, _attr(0));
+			for(std::vector<TypeSpecifier*>::iterator p; p != vec.end(); p++)
+				dynamic_cast<TemplatedIdentifier*>(_value)->appendArgument(*p);
+		}
+		else
+			_value = _attr(0);
 	}
 	END_ACTION
 };
 
-struct template_arg_specifier
+struct template_param_identifier
 {
-	DEFINE_ATTRIBUTES(std::vector<TypeSpecifier*>)
+	DEFINE_ATTRIBUTES(Identifier*)
 	DEFINE_LOCALS()
 
 	BEGIN_ACTION(init)
 	{
-		printf("template_specifier attr(0) type = %s\n", typeid(_attr_t(0)).name());
-		_value = _attr(0);
+		printf("template_param_identifier attr(0) type = %s\n", typeid(_attr_t(0)).name());
+		printf("template_param_identifier attr(1) type = %s\n", typeid(_attr_t(1)).name());
+		if(_attr(1).is_initialized())
+		{
+			_value =  new TemplatedIdentifier(TemplatedIdentifier::Usage::FORMAL_PARAMETER, _attr(0));
+			foreach(i, *_attr(1))
+				switch((*i).which())
+				{
+				case 0:
+					dynamic_cast<TemplatedIdentifier*>(_value)->appendParameter(boost::get<SimpleIdentifier*>(*i));
+					break;
+				case 1:
+					dynamic_cast<TemplatedIdentifier*>(_value)->appendParameter(new SimpleIdentifier(L"..."));
+					break;
+				}
+		}
+		else
+			_value = _attr(0);
 	}
 	END_ACTION
 };

@@ -66,6 +66,24 @@ struct UnaryExpr : public Expression
 		node->parent = this;
 	}
 
+	virtual bool isRValue()
+	{
+		switch(opcode)
+		{
+		case OpCode::PREFIX_INCREMENT:
+		case OpCode::PREFIX_DECREMENT:
+			return false;
+		case OpCode::POSTFIX_INCREMENT:
+		case OpCode::POSTFIX_DECREMENT:
+		case OpCode::BINARY_NOT:
+		case OpCode::LOGICAL_NOT:
+		case OpCode::ARITHMETIC_NEGATE:
+		case OpCode::NEW:
+		case OpCode::INVALID:
+			return true;
+		}
+	}
+
 	OpCode::type opcode;
 	ASTNode* node;
 };

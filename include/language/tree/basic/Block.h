@@ -47,7 +47,7 @@ struct Block : public ASTNode
 		foreach(i, object_list)
 		{
 			(*i)->parent = this;
-			objects.push_back(cast<ASTNode>(*i));
+			objects.push_back(*i);
 		}
 	}
 

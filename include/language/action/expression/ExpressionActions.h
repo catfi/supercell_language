@@ -35,6 +35,7 @@
 		} \
 	}
 
+#if 0 // NOTE: unused
 #define RIGHT_TO_LEFT(op_code) \
 	{ \
 		if(_attr(0).size() == 1) \
@@ -46,6 +47,7 @@
 			_value = right; \
 		} \
 	}
+#endif
 
 #define LEFT_TO_RIGHT_VEC(op_code_vec) \
 	{ \
@@ -180,20 +182,21 @@ struct postfix_expression
 struct prefix_expression
 {
 	DEFINE_ATTRIBUTES(Expression*)
-	DEFINE_LOCALS(UnaryExpr::OpCode::type)
-
-	BEGIN_ACTION(init_postfix_expression)
-	{
-		printf("prefix_expression::init_postfix_expression attr(0) type = %s\n", typeid(_attr_t(0)).name());
-		_value = _attr(0);
-	}
-	END_ACTION
+	DEFINE_LOCALS()
 
 	BEGIN_ACTION(init)
 	{
 		printf("prefix_expression attr(0) type = %s\n", typeid(_attr_t(0)).name());
-		printf("prefix_expression attr(1) type = %s\n", typeid(_attr_t(1)).name());
-		_value = new UnaryExpr(_attr(0), _attr(1));
+		if(_attr(0).which() == 0)
+			_value = boost::get<Expression*>(_attr(0));
+		else
+		{
+			typedef boost::fusion::vector2<UnaryExpr::OpCode::type, Expression*> fusion_vector_t;
+			fusion_vector_t vec = boost::get<fusion_vector_t>(_attr(0));
+			UnaryExpr::OpCode::type type = boost::fusion::at_c<0>(vec);
+			Expression* expr = boost::fusion::at_c<1>(vec);
+			_value = new UnaryExpr(type, expr);
+		}
 	}
 	END_ACTION
 };

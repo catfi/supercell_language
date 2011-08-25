@@ -29,15 +29,7 @@ namespace zillians { namespace language { namespace tree {
 
 struct Selection
 {
-	Selection() : cond(NULL), block(NULL)
-	{ }
-
-	Selection(Expression* cond) : cond(cond), block(new Block)
-	{
-		BOOST_ASSERT(cond && "null condition for selection statement is not allowed");
-	}
-
-	Selection(Expression* cond, Block* block) : cond(cond), block(block)
+	explicit Selection(Expression* cond, Block* block) : cond(cond), block(block)
 	{
 		BOOST_ASSERT(cond && "null condition for selection statement is not allowed");
 		BOOST_ASSERT(block && "null block for selection statement is not allowed");
@@ -67,33 +59,36 @@ struct IfElseStmt : public SelectionStmt
 	DEFINE_VISITABLE();
 	DEFINE_HIERARCHY(IfElseStmt, (IfElseStmt)(SelectionStmt)(Statement)(ASTNode));
 
-	explicit IfElseStmt()
-	{ }
-
-	void setIfBranch(const Selection& branch)
+	explicit IfElseStmt(const Selection& branch) : if_branch(branch)
 	{
+		BOOST_ASSERT(branch.cond != NULL);
+		BOOST_ASSERT(branch.block != NULL);
+
 		branch.cond->parent = this;
 		branch.block->parent = this;
-		if_branch = branch;
 	}
 
 	void addElseIfBranch(const Selection& branch)
 	{
+		BOOST_ASSERT(branch.cond != NULL);
+		BOOST_ASSERT(branch.block != NULL);
+
 		branch.cond->parent = this;
 		branch.block->parent = this;
 		elseif_branches.push_back(branch);
 	}
 
-	void setElseBranch(const Selection& branch)
+	void setElseBranch(Block* block)
 	{
-		branch.cond->parent = this;
-		branch.block->parent = this;
-		else_branch = branch;
+		BOOST_ASSERT(block != NULL);
+
+		block->parent = this;
+		else_block = block;
 	}
 
 	Selection if_branch;
 	std::vector<Selection> elseif_branches;
-	Selection else_branch;
+	Block* else_block;
 };
 
 struct SwitchStmt : public SelectionStmt

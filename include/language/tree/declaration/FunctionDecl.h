@@ -44,15 +44,15 @@ struct FunctionDecl : public Declaration
 		if(block) block->parent = this;
 	}
 
-	void appendArgument(SimpleIdentifier* name, TypeSpecifier* type = NULL)
+	void appendParameter(SimpleIdentifier* name, TypeSpecifier* type = NULL)
 	{
 		name->parent = this;
 		if(type) type->parent = this;
-		arguments.push_back(std::make_pair(name, type));
+		parameters.push_back(std::make_pair(name, type));
 	}
 
 	Identifier* name;
-	std::vector<std::pair<SimpleIdentifier*, TypeSpecifier*>> arguments;
+	std::vector<std::pair<SimpleIdentifier*, TypeSpecifier*>> parameters;
 	TypeSpecifier* type;
 	bool is_member;
 	Declaration::VisibilitySpecifier::type visibility;

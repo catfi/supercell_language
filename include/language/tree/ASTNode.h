@@ -30,6 +30,10 @@
 #include <boost/preprocessor.hpp>
 
 #define DEFINE_HIERARCHY_BASE() \
+	static int stype() \
+	{ \
+		return (int)ASTNodeType::ASTNode; \
+	} \
 	virtual bool checkType(int type) = 0;
 
 #define DEFINE_HIERARCHY_STATIC_IMPL(r, data, i, elem)	\

@@ -24,7 +24,7 @@
 #define ZILLIANS_LANGUAGE_TREE_ASTNODEFACTORY_H_
 
 #include "core/Prerequisite.h"
-#include "utility/TemplateTricks.h"
+#include "utility/Foreach.h"
 
 #include "language/logging/Logger.h"
 

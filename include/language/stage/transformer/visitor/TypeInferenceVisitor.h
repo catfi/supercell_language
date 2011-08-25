@@ -29,6 +29,8 @@ using zillians::language::tree::visitor::GenericDoubleVisitor;
 
 namespace zillians { namespace language { namespace stage { namespace visitor {
 
+// TODO implement resolve cache
+
 struct TypeInferenceVisitor : GenericDoubleVisitor
 {
 	CREATE_INVOKER(inferInvoker, infer)
@@ -70,7 +72,10 @@ struct TypeInferenceVisitor : GenericDoubleVisitor
 			if(type_resolver.resolve(node))
 				++resolved_count;
 			else
+			{
+				unresolved_nodes.insert(&node);
 				++unresolved_count;
+			}
 		}
 	}
 
@@ -84,13 +89,15 @@ struct TypeInferenceVisitor : GenericDoubleVisitor
 		return resolved_count;
 	}
 
-	void reset_count()
+	void reset()
 	{
+		unresolved_nodes.clear();
 		resolved_count = 0;
 		unresolved_count = 0;
 	}
 
-private:
+public:
+	__gnu_cxx::hash_set<ASTNode*> unresolved_nodes;
 	resolver::TypeResolver& type_resolver;
 	std::size_t resolved_count;
 	std::size_t unresolved_count;

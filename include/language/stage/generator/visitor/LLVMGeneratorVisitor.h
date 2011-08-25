@@ -22,16 +22,7 @@
 
 #include "core/Prerequisite.h"
 #include "language/tree/visitor/general/GenericDoubleVisitor.h"
-#include "language/resolver/TypeResolver.h"
-
-#include <llvm/LLVMContext.h>
-#include <llvm/Module.h>
-#include <llvm/Function.h>
-#include <llvm/PassManager.h>
-#include <llvm/CallingConv.h>
-#include <llvm/Analysis/Verifier.h>
-#include <llvm/Assembly/PrintModulePass.h>
-#include <llvm/Support/IRBuilder.h>
+#include "language/stage/generator/detail/LLVMHelper.h"
 
 using namespace zillians::language::tree;
 using zillians::language::tree::visitor::GenericDoubleVisitor;
@@ -42,18 +33,106 @@ struct LLVMGeneratorVisitor : GenericDoubleVisitor
 {
 	CREATE_INVOKER(generateInvoker, generate)
 
-	LLVMGeneratorVisitor()
+	LLVMGeneratorVisitor(llvm::LLVMContext& context, llvm::Module& current_module) :
+		context(context), current_module(current_module), builder(context), helper(context, current_module, builder)
 	{
 		REGISTER_ALL_VISITABLE_ASTNODE(generateInvoker)
 	}
 
 	void generate(ASTNode& node)
 	{
+		revisit(node);
+	}
+
+	void generate(Program& node)
+	{
+		// create LLVM global variables to store VTT and other global variables in thorscript
+		revisit(node);
 	}
 
 	void generate(FunctionDecl& node)
 	{
+		if(!helper.hasFunction(node))
+		{
+			// create function signature (if necessary) and emit prologue of function
+			if(!helper.startFunction(node))
+			{
+				terminateRevisit();
+				return;
+			}
+
+			// visit all children
+			revisit(node);
+
+			// emit epilogue of function
+			if(!helper.finishFunction(node))
+			{
+				terminateRevisit();
+				return;
+			}
+		}
 	}
+
+	void generate(ExpressionStmt& node)
+	{
+
+	}
+
+	void generate(IfElseStmt& node)
+	{
+
+	}
+
+	void generate(ForeachStmt& node)
+	{
+
+	}
+
+	void generate(WhileStmt& node)
+	{
+
+	}
+
+	void generate(SwitchStmt& node)
+	{
+
+	}
+
+	void generate(UnaryExpr& node)
+	{
+
+	}
+
+	void generate(BinaryExpr& node)
+	{
+
+	}
+
+	void generate(TernaryExpr& node)
+	{
+
+	}
+
+	void generate(CallExpr& node)
+	{
+
+	}
+
+	void generate(CastExpr& node)
+	{
+
+	}
+
+	void generate(MemberExpr& node)
+	{
+
+	}
+
+	llvm::LLVMContext& context;
+	llvm::Module& current_module;
+	llvm::IRBuilder<> builder;
+	LLVMHelper helper;
+	llvm::Function* current_function; // current_function would be updated throughout the code generation
 };
 
 } } } }

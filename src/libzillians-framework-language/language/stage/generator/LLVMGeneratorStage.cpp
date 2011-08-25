@@ -25,7 +25,7 @@
 
 namespace zillians { namespace language { namespace stage {
 
-LLVMGeneratorStage::LLVMGeneratorStage()
+LLVMGeneratorStage::LLVMGeneratorStage() : enabled(true)
 { }
 
 LLVMGeneratorStage::~LLVMGeneratorStage()
@@ -39,11 +39,17 @@ const char* LLVMGeneratorStage::name()
 void LLVMGeneratorStage::initializeOptions(po::options_description& option_desc, po::positional_options_description& positional_desc)
 {
     option_desc.add_options()
+    ("no-llvm", "disable LLVM code generation")
     ("llvm-module-name", po::value<std::string>(),	"llvm module name");
 }
 
 bool LLVMGeneratorStage::parseOptions(po::variables_map& vm)
 {
+	if(vm.count("no-llvm") > 0)
+	{
+		enabled = false;
+	}
+
 	if(vm.count("llvm-module-name") == 0)
 	{
 		llvm_module_name = "default_module";
@@ -62,11 +68,25 @@ bool LLVMGeneratorStage::parseOptions(po::variables_map& vm)
 
 bool LLVMGeneratorStage::execute()
 {
+	if(!enabled)
+		return true;
+
 	setGeneratorContext(new GeneratorContext());
 
+	//llvm::LLVMContext& context = llvm::getGlobalContext();
+	llvm::LLVMContext* context = new llvm::LLVMContext();
 	llvm::Module* module = new llvm::Module(llvm_module_name, llvm::getGlobalContext());
-	// TODO make a visitor to walk through the entire tree and generate instructions accordingly
+
+	// create visitor to walk through the entire tree and generate instructions accordingly
+	visitor::LLVMGeneratorVisitor visitor(*context, *module);
+
+	if(getParserContext().program)
+	{
+		visitor.visit(*getParserContext().program);
+	}
+
 	getGeneratorContext().modules.push_back(module);
+
 	return true;
 }
 
