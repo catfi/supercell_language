@@ -575,19 +575,10 @@ struct PrettyPrintVisitor : Visitor<const ASTNode, void>
 				{
 					increaseIdent();
 					{
-						STREAM << L"<condition>" << std::endl;
-						{
-							increaseIdent();
-							if(node.else_branch.cond) visit(*node.else_branch.cond);
-							decreaseIdent();
-						}
-						STREAM << L"</condition>" << std::endl;
-					}
-					{
 						STREAM << L"<block>" << std::endl;
 						{
 							increaseIdent();
-							if(node.else_branch.block) visit(*node.else_branch.block);
+							if(node.else_block) visit(*node.else_block);
 							decreaseIdent();
 						}
 						STREAM << L"</block>" << std::endl;
