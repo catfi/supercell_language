@@ -21,6 +21,7 @@
 #define ZILLIANS_LANGUAGE_ACTION_DECLARATION_DECLARATIONACTIONS_H_
 
 #include "language/action/detail/SemanticActionsDetail.h"
+#include "language/action/basic/BasicActions.h"
 
 namespace zillians { namespace language { namespace action {
 
@@ -66,11 +67,11 @@ struct variable_decl
 		printf("variable_decl attr(0) type = %s\n", typeid(_attr_t(0)).name());
 		printf("variable_decl attr(1) type = %s\n", typeid(_attr_t(1)).name());
 		printf("variable_decl attr(2) type = %s\n", typeid(_attr_t(2)).name());
-		Identifier*    name        = _attr(0);
-		TypeSpecifier* type        = _attr(1).is_initialized() ? *_attr(1) : NULL;
-		ASTNode*       initializer = _attr(2).is_initialized() ? *_attr(2) : NULL;
-		Declaration::VisibilitySpecifier::type visibility = Declaration::VisibilitySpecifier::PUBLIC;
-		Declaration::StorageSpecifier::type    storage    = Declaration::StorageSpecifier::NONE;
+		Identifier*                            name        = _attr(0);
+		TypeSpecifier*                         type        = _attr(1).is_initialized() ? *_attr(1) : NULL;
+		ASTNode*                               initializer = _attr(2).is_initialized() ? *_attr(2) : NULL;
+		Declaration::VisibilitySpecifier::type visibility  = Declaration::VisibilitySpecifier::PUBLIC;
+		Declaration::StorageSpecifier::type    storage     = Declaration::StorageSpecifier::NONE;
 		bool is_member = false;
 		_value = new VariableDecl(
 				name, type, is_member, visibility, storage, initializer
@@ -95,12 +96,16 @@ struct function_decl
 			name = boost::get<Identifier*>(_attr(0));
 		else
 			name = new SimpleIdentifier(L"new");
-		TypeSpecifier*                         type       = _attr(1).is_initialized() ? *_attr(2) : NULL;
-		Block*                                 block      = _attr(2).is_initialized() ? *_attr(3) : NULL;
+		typed_parameter_list::value_t*         parameters = _attr(1).is_initialized() ? *_attr(1) : NULL;
+		TypeSpecifier*                         type       = _attr(2).is_initialized() ? *_attr(2) : NULL;
+		Block*                                 block      = _attr(3).is_initialized() ? *_attr(3) : NULL;
 		Declaration::VisibilitySpecifier::type visibility = Declaration::VisibilitySpecifier::PUBLIC;
 		Declaration::StorageSpecifier::type    storage    = Declaration::StorageSpecifier::NONE;
 		bool is_member = false;
 		_value = new FunctionDecl(name, type, is_member, visibility, storage, block);
+		if(!!parameters)
+			for(typed_parameter_list::value_t::iterator i = parameters->begin(); i != parameters->end(); i++)
+				dynamic_cast<FunctionDecl*>(_value)->appendParameter((*i).first, (*i).second);
 	}
 	END_ACTION
 };
