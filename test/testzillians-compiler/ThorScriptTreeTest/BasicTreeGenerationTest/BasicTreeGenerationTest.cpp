@@ -59,12 +59,12 @@ BOOST_AUTO_TEST_CASE( ThorScriptTreeTest_BasicTreeGenerationTestCase2 )
 {
 	{
 		Program* program = new Program(new Package(new SimpleIdentifier(L"")));
-		BOOST_CHECK(program->root->id->toString().empty());
+		BOOST_CHECK(program->root->id->toString() == L"<empty>");
 	}
 
 	{
 		Program* program = new Program();
-		BOOST_CHECK(program->root->id->toString().empty()); // the default package name is empty ""
+		BOOST_CHECK(program->root->id->toString() == L"<empty>"); // the default package name is "<empty>"
 	}
 }
 
