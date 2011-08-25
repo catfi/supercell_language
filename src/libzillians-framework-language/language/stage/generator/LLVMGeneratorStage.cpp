@@ -45,10 +45,7 @@ void LLVMGeneratorStage::initializeOptions(po::options_description& option_desc,
 
 bool LLVMGeneratorStage::parseOptions(po::variables_map& vm)
 {
-	if(vm.count("no-llvm") > 0)
-	{
-		enabled = false;
-	}
+	enabled = (vm.count("no-llvm") > 0);
 
 	if(vm.count("llvm-module-name") == 0)
 	{
