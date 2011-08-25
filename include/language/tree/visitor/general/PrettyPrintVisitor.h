@@ -369,23 +369,20 @@ struct PrettyPrintVisitor : Visitor<const ASTNode, void>
 				L"type=\"" << decodeType(node.type) << L"\" "
 				L"is_member=\"" << (node.is_member ? L"true" : L"false") << L"\" " <<
 				L"visibility=\"" << Declaration::VisibilitySpecifier::toString(node.visibility) << L"\" " <<
-				L"storage=\"" << Declaration::StorageSpecifier::toString(node.storage) << L"\"";
+				L"storage=\"" << Declaration::StorageSpecifier::toString(node.storage) << L"\">";
 
 		if(node.initializer)
 		{
-			std::wcout << L">" << std::endl;
-
+			STREAM << L"<initializer>" << std::endl;
 			{
 				increaseIdent();
 				visit(*node.initializer);
 				decreaseIdent();
 			}
-			std::wcout << L"</variable_decl>" << std::endl;
+			STREAM << L"</initializer>" << std::endl;
 		}
-		else
-		{
-			std::wcout << L"/>" << std::endl;
-		}
+
+		STREAM << L"</variable_decl>" << std::endl;
 	}
 
 	void print(const TypedefDecl& node)
