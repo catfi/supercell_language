@@ -83,6 +83,17 @@ struct selection_statement
 		printf("selection_statement::init_if_statement attr(1) type = %s\n", typeid(_attr_t(1)).name());
 		printf("selection_statement::init_if_statement attr(2) type = %s\n", typeid(_attr_t(2)).name());
 		printf("selection_statement::init_if_statement attr(3) type = %s\n", typeid(_attr_t(3)).name());
+		Expression* cond = _attr(0);
+		ASTNode* block = _attr(1);
+		_value = new IfElseStmt(Selection(cond, block));
+		foreach(i, _attr(2))
+		{
+			Expression* cond = boost::fusion::at_c<0>(*i);
+			ASTNode* block = boost::fusion::at_c<1>(*i);
+			dynamic_cast<IfElseStmt*>(_value)->addElseIfBranch(Selection(cond, block));
+		}
+		if(_attr(3).is_initialized())
+			dynamic_cast<IfElseStmt*>(_value)->setElseBranch(*_attr(3));
 	}
 	END_ACTION
 
@@ -90,6 +101,7 @@ struct selection_statement
 	{
 		printf("selection_statement::init_switch_statement attr(0) type = %s\n", typeid(_attr_t(0)).name());
 		printf("selection_statement::init_switch_statement attr(1) type = %s\n", typeid(_attr_t(1)).name());
+//		_value = new SwitchStmt();
 	}
 	END_ACTION
 };
