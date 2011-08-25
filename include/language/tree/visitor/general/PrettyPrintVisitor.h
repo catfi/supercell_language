@@ -369,7 +369,7 @@ struct PrettyPrintVisitor : Visitor<const ASTNode, void>
 				L"type=\"" << decodeType(node.type) << L"\" "
 				L"is_member=\"" << (node.is_member ? L"true" : L"false") << L"\" " <<
 				L"visibility=\"" << Declaration::VisibilitySpecifier::toString(node.visibility) << L"\" " <<
-				L"storage=\"" << Declaration::StorageSpecifier::toString(node.storage) << L"\">";
+				L"storage=\"" << Declaration::StorageSpecifier::toString(node.storage) << L"\">" << std::endl;
 
 		if(node.initializer)
 		{
