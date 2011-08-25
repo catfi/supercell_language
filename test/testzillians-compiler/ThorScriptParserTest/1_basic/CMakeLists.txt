@@ -37,7 +37,7 @@ zillians_add_complex_test(
 zillians_add_complex_test(
     TARGET thorscript-parser-test-ast-basic
     SHELL ${CMAKE_CURRENT_SOURCE_DIR}/../scripts/test.sh ${TCC} ${SPIRIT_LOG_FILTER} 1
-            #${CMAKE_CURRENT_SOURCE_DIR}/0_global_var.t
+            ${CMAKE_CURRENT_SOURCE_DIR}/0_global_var.t
             ${CMAKE_CURRENT_SOURCE_DIR}/1_global_func.t
             #${CMAKE_CURRENT_SOURCE_DIR}/2_class.t
             #${CMAKE_CURRENT_SOURCE_DIR}/3_local_var.t

@@ -34,6 +34,7 @@
 #include "language/action/detail/SemanticActionsDetail.h"
 
 // basic
+#include "language/action/basic/BasicActions.h"
 #include "language/action/basic/IdentifierActions.h"
 #include "language/action/basic/LiteralActions.h"
 #include "language/action/basic/SpecifierActions.h"
@@ -111,7 +112,7 @@ struct ThorScriptTreeAction
 
 	// statement
 	typedef action::statement            statement;
-	typedef action::compound_statement   compound_statement;
+	typedef action::block                block;
 	typedef action::expression_statement expression_statement;
 	typedef action::selection_statement  selection_statement;
 	typedef action::iteration_statement  iteration_statement;
