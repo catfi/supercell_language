@@ -98,6 +98,8 @@ struct NumericLiteral : public Literal
 			case U16: return L"uint16";
 			case U32: return L"uint32";
 			case U64: return L"uint64";
+			case F32: return L"float32";
+			case F64: return L"float64";
 			}
 		}
 	};
