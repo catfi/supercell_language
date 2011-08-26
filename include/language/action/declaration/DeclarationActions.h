@@ -72,7 +72,7 @@ struct variable_decl
 		ASTNode*                               initializer = _attr(2).is_initialized() ? *_attr(2) : NULL;
 		Declaration::VisibilitySpecifier::type visibility  = Declaration::VisibilitySpecifier::PUBLIC;
 		Declaration::StorageSpecifier::type    storage     = Declaration::StorageSpecifier::NONE;
-		bool is_member = false;
+		bool                                   is_member   = false;
 		_value = new VariableDecl(
 				name, type, is_member, visibility, storage, initializer
 				);
@@ -101,7 +101,7 @@ struct function_decl
 		Block*                                 block      = _attr(3).is_initialized() ? *_attr(3) : NULL;
 		Declaration::VisibilitySpecifier::type visibility = Declaration::VisibilitySpecifier::PUBLIC;
 		Declaration::StorageSpecifier::type    storage    = Declaration::StorageSpecifier::NONE;
-		bool is_member = false;
+		bool                                   is_member  = false;
 		_value = new FunctionDecl(name, type, is_member, visibility, storage, block);
 		if(!!parameters)
 			for(typed_parameter_list::value_t::iterator i = parameters->begin(); i != parameters->end(); i++)
