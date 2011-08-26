@@ -40,7 +40,7 @@ struct ForeachStmt : public IterativeStmt
 	DEFINE_VISITABLE();
 	DEFINE_HIERARCHY(ForeachStmt, (ForeachStmt)(IterativeStmt)(Statement)(ASTNode));
 
-	explicit ForeachStmt(Expression* iterator, Expression* range, ASTNode* block = NULL) : iterator(iterator), range(range), block(block)
+	explicit ForeachStmt(ASTNode* iterator, Expression* range, ASTNode* block = NULL) : iterator(iterator), range(range), block(block)
 	{
 		BOOST_ASSERT(iterator && "null iterator for foreach statement is not allowed");
 		BOOST_ASSERT(range && "null range for foreach statement is not allowed");
@@ -50,7 +50,7 @@ struct ForeachStmt : public IterativeStmt
 		if(block) block->parent = this;
 	}
 
-	Expression* iterator;
+	ASTNode* iterator; // TODO semantic-check: it must be L-value expression or declarative statement
 	Expression* range;
 	ASTNode* block;
 };
