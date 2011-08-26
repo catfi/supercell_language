@@ -115,6 +115,9 @@ struct iteration_statement
 	{
 		printf("iteration_statement::init_while_loop attr(0) type = %s\n", typeid(_attr_t(0)).name());
 		printf("iteration_statement::init_while_loop attr(1) type = %s\n", typeid(_attr_t(1)).name());
+		Expression* cond = _attr(0);
+		ASTNode* block = _attr(1).is_initialized() ? *_attr(1) : NULL;
+		_value = new WhileStmt(WhileStmt::Style::WHILE, cond, block);
 	}
 	END_ACTION
 
@@ -122,6 +125,9 @@ struct iteration_statement
 	{
 		printf("iteration_statement::init_do_while_loop attr(0) type = %s\n", typeid(_attr_t(0)).name());
 		printf("iteration_statement::init_do_while_loop attr(1) type = %s\n", typeid(_attr_t(1)).name());
+		ASTNode* block = _attr(0);
+		Expression* cond = _attr(1);
+		_value = new WhileStmt(WhileStmt::Style::DO_WHILE, cond, block);
 	}
 	END_ACTION
 
@@ -130,7 +136,10 @@ struct iteration_statement
 		printf("iteration_statement::init_foreach attr(0) type = %s\n", typeid(_attr_t(0)).name());
 		printf("iteration_statement::init_foreach attr(1) type = %s\n", typeid(_attr_t(1)).name());
 		printf("iteration_statement::init_foreach attr(2) type = %s\n", typeid(_attr_t(2)).name());
-		printf("iteration_statement::init_foreach attr(3) type = %s\n", typeid(_attr_t(3)).name());
+//		Expression* iterator = _attr(0);
+//		Expression* range = _attr(1);
+//		ASTNode* block = _attr(2).is_initialized() ? *_attr(2) : NULL;
+//		_value = new ForeachStmt(iterator, range, block);
 	}
 	END_ACTION
 };

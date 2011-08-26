@@ -137,7 +137,7 @@ bool ThorScriptParserStage::parse(std::string filename)
     enable_default_locale(std::wcout);
 
     getParserContext().enable_debug_parser = dump_parse;
-    getParserContext().enable_semantic_action = true;
+    getParserContext().enable_semantic_action = !dump_parse;
 
     // try to parse
 	typedef classic::position_iterator2<std::wstring::iterator> pos_iterator_type;
