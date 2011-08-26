@@ -700,7 +700,7 @@ struct ThorScript : qi::grammar<Iterator, typename SA::start::attribute_type, de
 		iteration_statement
 			=	(WHILE > LEFT_PAREN > expression > RIGHT_PAREN > -statement)                 [ typename SA::iteration_statement::init_while_loop() ]
 			|	(DO > statement > WHILE > LEFT_PAREN > expression > RIGHT_PAREN > SEMICOLON) [ typename SA::iteration_statement::init_do_while_loop() ]
-			|	(FOREACH > LEFT_PAREN > IDENTIFIER /*((VAR > IDENTIFIER > -colon_type_specifier) | postfix_expression)*/ > IN > (range_expression | IDENTIFIER) > RIGHT_PAREN > -statement
+			|	(FOREACH > LEFT_PAREN > ((VAR > IDENTIFIER > -colon_type_specifier) | postfix_expression) > IN > (range_expression | IDENTIFIER) > RIGHT_PAREN > -statement
 				) [ typename SA::iteration_statement::init_foreach() ]
 			;
 
