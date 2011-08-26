@@ -43,13 +43,13 @@ struct block
 struct typed_parameter_list
 {
 	typedef std::vector<std::pair<SimpleIdentifier*, TypeSpecifier*>> value_t;
-	DEFINE_ATTRIBUTES(value_t*)
+	DEFINE_ATTRIBUTES(shared_ptr<value_t>)
 	DEFINE_LOCALS()
 
 	BEGIN_ACTION(init)
 	{
 		printf("typed_parameter_list attr(0) type = %s\n", typeid(_attr_t(0)).name());
-		_value = new value_t;
+		_value.reset(new value_t);
 		foreach(i, _attr(0))
 		{
 			SimpleIdentifier* name = boost::fusion::at_c<0>(*i);
