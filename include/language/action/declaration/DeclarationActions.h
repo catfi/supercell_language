@@ -96,7 +96,7 @@ struct function_decl
 			name = boost::get<Identifier*>(_attr(0));
 		else
 			name = new SimpleIdentifier(L"new");
-		typed_parameter_list::value_t*         parameters = _attr(1).is_initialized() ? *_attr(1) : NULL;
+		typed_parameter_list::value_t*         parameters = _attr(1).is_initialized() ? (*_attr(1)).get() : NULL;
 		TypeSpecifier*                         type       = _attr(2).is_initialized() ? *_attr(2) : NULL;
 		Block*                                 block      = _attr(3).is_initialized() ? *_attr(3) : NULL;
 		Declaration::VisibilitySpecifier::type visibility = Declaration::VisibilitySpecifier::PUBLIC;
