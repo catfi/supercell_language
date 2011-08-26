@@ -160,13 +160,13 @@ struct postfix_expression
 	BEGIN_ACTION(append_postfix_call)
 	{
 		printf("postfix_expression::init_postfix_call attr(0) type = %s\n", typeid(_attr_t(0)).name());
-//		CallExpr* call_expr = new CallExpr(_value);
-//		if(_attr(0).is_initialized())
-//		{
-//			foreach(i, *_attr(0))
-//				call_expr->appendParameter(*i);
-//		}
-//		_value = call_expr;
+		CallExpr* call_expr = new CallExpr(_value);
+		if(_attr(0).is_initialized())
+		{
+			foreach(i, *_attr(0))
+				call_expr->appendParameter(*i);
+		}
+		_value = call_expr;
 	}
 	END_ACTION
 
