@@ -29,7 +29,7 @@ namespace zillians { namespace language { namespace tree {
 
 struct Selection
 {
-	explicit Selection(Expression* cond, Block* block) : cond(cond), block(block)
+	explicit Selection(Expression* cond, ASTNode* block) : cond(cond), block(block)
 	{
 		BOOST_ASSERT(cond && "null condition for selection statement is not allowed");
 		BOOST_ASSERT(block && "null block for selection statement is not allowed");
@@ -45,7 +45,7 @@ struct Selection
 	}
 
 	Expression* cond;
-	Block* block;
+	ASTNode* block;
 };
 
 struct SelectionStmt : public Statement
@@ -78,7 +78,7 @@ struct IfElseStmt : public SelectionStmt
 		elseif_branches.push_back(branch);
 	}
 
-	void setElseBranch(Block* block)
+	void setElseBranch(ASTNode* block)
 	{
 		BOOST_ASSERT(block != NULL);
 
@@ -88,7 +88,7 @@ struct IfElseStmt : public SelectionStmt
 
 	Selection if_branch;
 	std::vector<Selection> elseif_branches;
-	Block* else_block;
+	ASTNode* else_block;
 };
 
 struct SwitchStmt : public SelectionStmt

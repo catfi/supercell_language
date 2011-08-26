@@ -306,8 +306,8 @@ struct ternary_expression
 			_value = _attr(0);
 			return;
 		}
-		ASTNode* true_node  = boost::fusion::at_c<0>(*_attr(1));
-		ASTNode* false_node = boost::fusion::at_c<1>(*_attr(1));
+		Expression* true_node  = boost::fusion::at_c<0>(*_attr(1));
+		Expression* false_node = boost::fusion::at_c<1>(*_attr(1));
 		_value = new TernaryExpr(_attr(0), true_node, false_node);
 	}
 	END_ACTION

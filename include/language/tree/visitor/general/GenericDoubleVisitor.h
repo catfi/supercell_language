@@ -66,13 +66,20 @@ struct GenericDoubleVisitor : Visitor<ASTNode, void, VisitorImplementation::recu
 			foreach(i, node.objects)	user_visitor->visit(**i);
 		}
 
+		void apply(Identifier& node)
+		{
+			BOOST_ASSERT(false && "reaching unreachable code");
+		}
+
 		void apply(SimpleIdentifier& node)
 		{
+			if(node.resolved) user_visitor->visit(*node.resolved);
 		}
 
 		void apply(NestedIdentifier& node)
 		{
 			foreach(i, node.identifier_list)	user_visitor->visit(**i);
+			if(node.resolved) user_visitor->visit(*node.resolved);
 		}
 
 		void apply(TemplatedIdentifier& node)
@@ -80,6 +87,8 @@ struct GenericDoubleVisitor : Visitor<ASTNode, void, VisitorImplementation::recu
 			if(node.id) user_visitor->visit(*node.id);
 
 			foreach(i, node.templated_type_list)	user_visitor->visit(**i);
+
+			if(node.resolved) user_visitor->visit(*node.resolved);
 		}
 
 		void apply(TypeSpecifier& node)
@@ -123,6 +132,10 @@ struct GenericDoubleVisitor : Visitor<ASTNode, void, VisitorImplementation::recu
 
 		//////////////////////////////////////////////////////////////////////
 		/// Declaration
+		void apply(Declaration& node)
+		{
+			BOOST_ASSERT(false && "reaching unreachable code");
+		}
 
 		void apply(ClassDecl& node)
 		{
@@ -189,6 +202,10 @@ struct GenericDoubleVisitor : Visitor<ASTNode, void, VisitorImplementation::recu
 
 		//////////////////////////////////////////////////////////////////////
 		/// Statement
+		void apply(Statement& node)
+		{
+			BOOST_ASSERT(false && "reaching unreachable code");
+		}
 
 		void apply(DeclarativeStmt& node)
 		{
@@ -254,6 +271,10 @@ struct GenericDoubleVisitor : Visitor<ASTNode, void, VisitorImplementation::recu
 
 		//////////////////////////////////////////////////////////////////////
 		/// Expression
+		void apply(Expression& node)
+		{
+			BOOST_ASSERT(false && "reaching unreachable code");
+		}
 
 		void apply(PrimaryExpr& node)
 		{

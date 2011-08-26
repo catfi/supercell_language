@@ -49,7 +49,7 @@ static void expand_tabs(const std::wstring& input, std::wstring& output, int num
 
 }
 
-ThorScriptParserStage::ThorScriptParserStage() : dump_parse(false)
+ThorScriptParserStage::ThorScriptParserStage() : skip_parse(false), dump_parse(false)
 { }
 
 ThorScriptParserStage::~ThorScriptParserStage()
@@ -63,6 +63,7 @@ const char* ThorScriptParserStage::name()
 void ThorScriptParserStage::initializeOptions(po::options_description& option_desc, po::positional_options_description& positional_desc)
 {
     option_desc.add_options()
+	("skip-parse",                                      "skip parsing stage and use provided parser context")
     ("dump-parse",										"dump parse tree for debugging purpose")
     ("input,i", po::value<std::vector<std::string>>(),	"thorscript files");
 
@@ -71,6 +72,7 @@ void ThorScriptParserStage::initializeOptions(po::options_description& option_de
 
 bool ThorScriptParserStage::parseOptions(po::variables_map& vm)
 {
+	skip_parse = (vm.count("skip-parse") > 0);
 	dump_parse = (vm.count("dump-parse") > 0);
 
 	if(vm.count("input") > 0)
@@ -86,6 +88,9 @@ bool ThorScriptParserStage::parseOptions(po::variables_map& vm)
 
 bool ThorScriptParserStage::execute()
 {
+	if(skip_parse)
+		return true;
+
 	setParserContext(new ParserContext());
 
 	if(inputs.size() > 0)

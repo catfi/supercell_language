@@ -474,7 +474,7 @@ struct PrettyPrintVisitor : Visitor<const ASTNode, void>
 
 	void print(const WhileStmt& node)
 	{
-		STREAM << L"<while_stmt type=\"" << WhileStmt::Style::toString(node.style) << "\">" << std::endl;
+		STREAM << L"<while_stmt type=\"" << WhileStmt::Style::toString(node.type) << "\">" << std::endl;
 		{
 			increaseIdent();
 			if(node.cond)

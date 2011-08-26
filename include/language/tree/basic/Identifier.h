@@ -33,10 +33,19 @@ struct Identifier : public ASTNode
 	DEFINE_VISITABLE();
 	DEFINE_HIERARCHY(Identifier, (Identifier)(ASTNode));
 
-	Identifier()
+	Identifier() : resolved(NULL)
 	{ }
 
+	void resolveTo(ASTNode* node)
+	{
+		if(resolved) resolved->parent = NULL;
+		resolved = node;
+		if(resolved) resolved->parent = this;
+	}
+
 	virtual const std::wstring& toString() const = 0;
+
+	ASTNode* resolved;
 };
 
 struct SimpleIdentifier : public Identifier

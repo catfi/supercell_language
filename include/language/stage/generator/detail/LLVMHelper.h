@@ -239,6 +239,30 @@ struct LLVMHelper
 		return llvm::BasicBlock::Create(mContext, "", parent, before);
 	}
 
+	llvm::AllocaInst* createAlloca(tree::VariableDecl& ast_variable, llvm::StringRef name = "")
+	{
+	}
+
+	bool getAlloca(tree::VariableDecl& ast_variable, /*OUT*/ llvm::AllocaInst*& llvm_alloca_inst)
+	{
+		if(!!(llvm_alloca_inst = ast_variable.get<llvm::AllocaInst>()))
+			return true;
+
+		const llvm::Type* llvm_variable_type = NULL;
+		llvm::Attributes llvm_variable_modifier = llvm::Attribute::None;
+		if(!getType(*ast_variable.type, llvm_variable_type, llvm_variable_modifier))
+			return NULL;
+
+		if(mBuilder.isNamePreserving())
+			llvm_alloca_inst = new llvm::AllocaInst(llvm_variable_type, 0, "", mFunctionContext.alloca_insert_point);
+		//else
+			//llvm_alloca_inst = new llvm::AllocaInst(llvm_variable_type, 0, ast_variable.name->toString(), mFunctionContext.alloca_insert_point);
+
+		ast_variable.set<llvm::AllocaInst>(llvm_alloca_inst);
+
+		return true;
+	}
+
 	bool startFunction(tree::FunctionDecl& ast_function)
 	{
 		BOOST_ASSERT(!mFunctionContext.function);

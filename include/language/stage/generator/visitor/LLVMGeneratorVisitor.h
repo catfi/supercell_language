@@ -73,6 +73,11 @@ struct LLVMGeneratorVisitor : GenericDoubleVisitor
 		}
 	}
 
+	void generate(VariableDecl& node)
+	{
+		//helper.createAlloca();
+	}
+
 	void generate(ExpressionStmt& node)
 	{
 
