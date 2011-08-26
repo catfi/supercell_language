@@ -706,10 +706,10 @@ struct ThorScript : qi::grammar<Iterator, typename SA::start::attribute_type, de
 
 		// branch_statement
 		branch_statement
-			=	(RETURN > -expression > SEMICOLON
-				| BREAK > SEMICOLON
-				| CONTINUE > SEMICOLON
-				) [ typename SA::branch_statement::init() ]
+			=	( (RETURN > -expression > SEMICOLON) [ typename SA::branch_statement::init_return() ]
+				| (BREAK > SEMICOLON)                [ typename SA::branch_statement::template init<tree::BranchStmt::OpCode::BREAK>() ]
+				| (CONTINUE > SEMICOLON)             [ typename SA::branch_statement::template init<tree::BranchStmt::OpCode::CONTINUE>() ]
+				)
 			;
 
 		// block
