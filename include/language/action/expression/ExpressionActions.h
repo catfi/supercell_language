@@ -55,10 +55,13 @@
 			_value = *beginof(_attr(0)); \
 		else { \
 			Expression* left = NULL; \
-			decltype(beginof(op_code_vec)) j = beginof(op_code_vec);\
-			foreach(i, _attr(0)) \
-			{ \
-				left = (i == beginof(_attr(0))) ? *i : new BinaryExpr(*j, left, *i); \
+			decltype(beginof(op_code_vec)) j = beginof(op_code_vec); \
+			foreach(i, _attr(0)) { \
+				if(i == beginof(_attr(0))) { \
+					left = *i; \
+					continue; \
+				} \
+				left = new BinaryExpr(*j, left, *i); \
 				j++; \
 			} \
 			_value = left; \
@@ -71,10 +74,13 @@
 			_value = *r_beginof(_attr(0)); \
 		else { \
 			Expression* right = NULL; \
-			decltype(r_beginof(op_code_vec)) j = r_beginof(op_code_vec);\
-			r_foreach(i, _attr(0)) \
-			{ \
-				right = (i == r_beginof(_attr(0))) ? *i : new BinaryExpr(*j, *i, right); \
+			decltype(r_beginof(op_code_vec)) j = r_beginof(op_code_vec); \
+			r_foreach(i, _attr(0)) { \
+				if(i == r_beginof(_attr(0))) { \
+					right = *i; \
+					continue; \
+				} \
+				right = new BinaryExpr(*j, *i, right); \
 				j++; \
 			} \
 			_value = right; \
