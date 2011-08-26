@@ -48,7 +48,7 @@ struct PrimaryExpr : public Expression
 		}
 	};
 
-	explicit PrimaryExpr(Identifier* identifier) : type(Catagory::IDENTIFIER)
+	explicit PrimaryExpr(Identifier* identifier) : catagory(Catagory::IDENTIFIER)
 	{
 		BOOST_ASSERT(identifier && "null identifier for primary expression is not allowed");
 
@@ -56,7 +56,7 @@ struct PrimaryExpr : public Expression
 		value.identifier = identifier;
 	}
 
-	explicit PrimaryExpr(Literal* literal) : type(Catagory::LITERAL)
+	explicit PrimaryExpr(Literal* literal) : catagory(Catagory::LITERAL)
 	{
 		BOOST_ASSERT(literal && "null literal for primary expression is not allowed");
 
@@ -64,7 +64,7 @@ struct PrimaryExpr : public Expression
 		value.literal = literal;
 	}
 
-	explicit PrimaryExpr(FunctionDecl* lambda) : type(Catagory::LAMBDA)
+	explicit PrimaryExpr(FunctionDecl* lambda) : catagory(Catagory::LAMBDA)
 	{
 		BOOST_ASSERT(lambda && "null lambda for primary expression is not allowed");
 
@@ -74,7 +74,7 @@ struct PrimaryExpr : public Expression
 
 	virtual bool isRValue()
 	{
-		switch(type)
+		switch(catagory)
 		{
 		case Catagory::IDENTIFIER: return false;
 		case Catagory::LITERAL: return true;
@@ -82,7 +82,7 @@ struct PrimaryExpr : public Expression
 		}
 	}
 
-	Catagory::type type;
+	Catagory::type catagory;
 
 	union
 	{

@@ -474,7 +474,7 @@ struct PrettyPrintVisitor : Visitor<const ASTNode, void>
 
 	void print(const WhileStmt& node)
 	{
-		STREAM << L"<while_stmt type=\"" << WhileStmt::Style::toString(node.type) << "\">" << std::endl;
+		STREAM << L"<while_stmt type=\"" << WhileStmt::Style::toString(node.style) << "\">" << std::endl;
 		{
 			increaseIdent();
 			if(node.cond)
@@ -676,10 +676,10 @@ struct PrettyPrintVisitor : Visitor<const ASTNode, void>
 
 	void print(const PrimaryExpr& node)
 	{
-		STREAM << L"<primary_expr type=\"" << PrimaryExpr::Catagory::toString(node.type) << L"\">" << std::endl;
+		STREAM << L"<primary_expr type=\"" << PrimaryExpr::Catagory::toString(node.catagory) << L"\">" << std::endl;
 		{
 			increaseIdent();
-			switch(node.type)
+			switch(node.catagory)
 			{
 			case PrimaryExpr::Catagory::IDENTIFIER: if(node.value.identifier) visit(*node.value.identifier); break;
 			case PrimaryExpr::Catagory::LITERAL: if(node.value.literal) visit(*node.value.literal); break;

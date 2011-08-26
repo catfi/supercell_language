@@ -77,7 +77,7 @@ struct WhileStmt : public IterativeStmt
 		}
 	};
 
-	explicit WhileStmt(Style::type style, Expression* cond, Block* block = NULL) : type(type), cond(cond), block( (block == NULL) ? new Block() : block )
+	explicit WhileStmt(Style::type style, Expression* cond, Block* block = NULL) : style(style), cond(cond), block( (block == NULL) ? new Block() : block )
 	{
 		BOOST_ASSERT(cond && "null condition for while statement is not allowed");
 
@@ -85,7 +85,7 @@ struct WhileStmt : public IterativeStmt
 		if(block) block->parent = this;
 	}
 
-	Style::type type;
+	Style::type style;
 	Expression* cond;
 	Block* block;
 };

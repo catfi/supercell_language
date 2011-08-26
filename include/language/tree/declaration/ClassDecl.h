@@ -21,6 +21,7 @@
 #define ZILLIANS_LANGUAGE_TREE_CLASSDECL_H_
 
 #include "language/tree/basic/Identifier.h"
+#include "language/tree/basic/TypeSpecifier.h"
 #include "language/tree/declaration/Declaration.h"
 #include "language/tree/declaration/FunctionDecl.h"
 #include "language/tree/declaration/VariableDecl.h"
@@ -56,7 +57,7 @@ struct ClassDecl : public Declaration
 		member_variables.push_back(var);
 	}
 
-	void setBase(ASTNode* extends_from)
+	void setBase(TypeSpecifier* extends_from)
 	{
 		BOOST_ASSERT(extends_from && "null base class is not allowed");
 
@@ -68,7 +69,7 @@ struct ClassDecl : public Declaration
 		base = extends_from;
 	}
 
-	void addInterface(ASTNode* interface)
+	void addInterface(TypeSpecifier* interface)
 	{
 		BOOST_ASSERT(interface && "null interface is not allowed");
 
@@ -77,8 +78,8 @@ struct ClassDecl : public Declaration
 	}
 
 	Identifier* name;
-	ASTNode* base;
-	std::vector<ASTNode*> implements;
+	TypeSpecifier* base;
+	std::vector<TypeSpecifier*> implements;
 	std::vector<FunctionDecl*> member_functions;
 	std::vector<VariableDecl*> member_variables;
 };

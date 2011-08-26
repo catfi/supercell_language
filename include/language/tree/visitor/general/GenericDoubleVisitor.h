@@ -278,7 +278,7 @@ struct GenericDoubleVisitor : Visitor<ASTNode, void, VisitorImplementation::recu
 
 		void apply(PrimaryExpr& node)
 		{
-			switch(node.type)
+			switch(node.catagory)
 			{
 			case PrimaryExpr::Catagory::IDENTIFIER: if(node.value.identifier) user_visitor->visit(*node.value.identifier); break;
 			case PrimaryExpr::Catagory::LITERAL: if(node.value.literal) user_visitor->visit(*node.value.literal); break;

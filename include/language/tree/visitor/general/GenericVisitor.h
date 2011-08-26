@@ -374,7 +374,7 @@ struct GenericVisitor : Visitor<const ASTNode, void, VisitorImplementation::recu
 
 	void apply(const PrimaryExpr& node)
 	{
-		switch(node.type)
+		switch(node.catagory)
 		{
 		case PrimaryExpr::Catagory::IDENTIFIER: if(node.value.identifier) visit(*node.value.identifier); break;
 		case PrimaryExpr::Catagory::LITERAL: if(node.value.literal) visit(*node.value.literal); break;
