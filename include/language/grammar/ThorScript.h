@@ -764,10 +764,11 @@ struct ThorScript : qi::grammar<Iterator, typename SA::start::attribute_type, de
 			;
 
 		class_member_decl
-			= -annotation_specifiers >> -visibility_specifier >> -storage_specifier
-				>>	( variable_decl
-					| function_decl
-					)
+			=	(-annotation_specifiers >> -visibility_specifier >> -storage_specifier
+					>>	( variable_decl
+						| function_decl
+						)
+				) [ typename SA::class_member_decl::init() ]
 			;
 
 		interface_decl
@@ -779,7 +780,8 @@ struct ThorScript : qi::grammar<Iterator, typename SA::start::attribute_type, de
 			;
 
 		member_function_decl_without_body
-			= FUNCTION > IDENTIFIER > LEFT_PAREN > -typed_parameter_list > RIGHT_PAREN > colon_type_specifier >> SEMICOLON
+			=	(FUNCTION > IDENTIFIER > LEFT_PAREN > -typed_parameter_list > RIGHT_PAREN > colon_type_specifier >> SEMICOLON
+				) [ typename SA::member_function_decl_without_body::init() ]
 			;
 
 		enum_decl
@@ -968,7 +970,7 @@ struct ThorScript : qi::grammar<Iterator, typename SA::start::attribute_type, de
 	detail::StringLiteral<Iterator, SA>  STRING_LITERAL;
 
 	// non-terminals
-	qi::rule<Iterator, detail::WhiteSpace<Iterator> >
+//	qi::rule<Iterator, detail::WhiteSpace<Iterator> >
 		///////////////////////////////////////
 		// BEGIN BASIC
 //		typed_parameter_list, colon_type_specifier, type_specifier, template_param_identifier, template_arg_identifier, template_arg_specifier, type_list_specifier,
@@ -1016,8 +1018,8 @@ struct ThorScript : qi::grammar<Iterator, typename SA::start::attribute_type, de
 //			variable_decl,
 //			function_decl,
 //			typedef_decl,
-			/*class_decl,*/ class_member_decl,
-			/*interface_decl,*/ member_function_decl_without_body;
+//			class_decl, class_member_decl,
+//			interface_decl, member_function_decl_without_body,
 //			enum_decl,
 		// END DECLARATION
 		///////////////////////////////////////
@@ -1049,7 +1051,9 @@ struct ThorScript : qi::grammar<Iterator, typename SA::start::attribute_type, de
 	qi::rule<Iterator, typename SA::function_decl::attribute_type,       detail::WhiteSpace<Iterator>, typename SA::function_decl::local_type>       function_decl;
 	qi::rule<Iterator, typename SA::typedef_decl::attribute_type,        detail::WhiteSpace<Iterator>, typename SA::typedef_decl::local_type>        typedef_decl;
 	qi::rule<Iterator, typename SA::class_decl::attribute_type,          detail::WhiteSpace<Iterator>, typename SA::class_decl::local_type>          class_decl;
+	qi::rule<Iterator, typename SA::class_member_decl::attribute_type,   detail::WhiteSpace<Iterator>, typename SA::class_member_decl::local_type>   class_member_decl;
 	qi::rule<Iterator, typename SA::interface_decl::attribute_type,      detail::WhiteSpace<Iterator>, typename SA::interface_decl::local_type>      interface_decl;
+	qi::rule<Iterator, typename SA::member_function_decl_without_body::attribute_type, detail::WhiteSpace<Iterator>, typename SA::member_function_decl_without_body::local_type> member_function_decl_without_body;
 	qi::rule<Iterator, typename SA::enum_decl::attribute_type,           detail::WhiteSpace<Iterator>, typename SA::enum_decl::local_type>           enum_decl;
 
 	// expression

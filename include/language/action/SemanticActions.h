@@ -98,15 +98,17 @@ struct ThorScriptTreeAction
 	typedef action::ternary_expression          ternary_expression;
 
 	// declaration
-	typedef action::declaration         declaration;
-	typedef action::const_variable_decl const_variable_decl;
-	typedef action::variable_decl       variable_decl;
-	typedef action::variable_decl_stem  variable_decl_stem;
-	typedef action::function_decl       function_decl;
-	typedef action::typedef_decl        typedef_decl;
-	typedef action::class_decl          class_decl;
-	typedef action::interface_decl      interface_decl;
-	typedef action::enum_decl           enum_decl;
+	typedef action::declaration                       declaration;
+	typedef action::const_variable_decl               const_variable_decl;
+	typedef action::variable_decl                     variable_decl;
+	typedef action::variable_decl_stem                variable_decl_stem;
+	typedef action::function_decl                     function_decl;
+	typedef action::typedef_decl                      typedef_decl;
+	typedef action::class_decl                        class_decl;
+	typedef action::class_member_decl                 class_member_decl;
+	typedef action::interface_decl                    interface_decl;
+	typedef action::member_function_decl_without_body member_function_decl_without_body;
+	typedef action::enum_decl                         enum_decl;
 
 	// module
 	typedef action::program      program;

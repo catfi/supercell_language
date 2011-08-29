@@ -31,8 +31,7 @@ struct program
 
 	BEGIN_ACTION(init)
 	{
-		BOOST_MPL_ASSERT(( boost::is_same<_value_t, Program*&> ));
-
+//		BOOST_MPL_ASSERT(( boost::is_same<_value_t, Program*&> ));
 		if(getParserContext().program)
 		{
 			_value = getParserContext().program;

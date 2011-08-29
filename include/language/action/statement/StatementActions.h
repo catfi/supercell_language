@@ -103,7 +103,6 @@ struct selection_statement
 		printf("selection_statement::init_switch_statement attr(1) type = %s\n", typeid(_attr_t(1)).name());
 		_value = new SwitchStmt(_attr(0));
 		foreach(i, _attr(1))
-		{
 			switch((*i).which())
 			{
 			case 0:
@@ -122,7 +121,6 @@ struct selection_statement
 				}
 				break;
 			}
-		}
 	}
 	END_ACTION
 };

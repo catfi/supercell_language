@@ -137,6 +137,7 @@ struct typedef_decl
 
 	BEGIN_ACTION(init)
 	{
+		printf("typedef_decl attr(0) type = %s\n", typeid(_attr_t(0)).name());
 	}
 	END_ACTION
 };
@@ -148,6 +149,22 @@ struct class_decl
 
 	BEGIN_ACTION(init)
 	{
+		printf("class_decl attr(0) type = %s\n", typeid(_attr_t(0)).name());
+		printf("class_decl attr(1) type = %s\n", typeid(_attr_t(1)).name());
+		printf("class_decl attr(2) type = %s\n", typeid(_attr_t(2)).name());
+		printf("class_decl attr(3) type = %s\n", typeid(_attr_t(3)).name());
+	}
+	END_ACTION
+};
+
+struct class_member_decl
+{
+	DEFINE_ATTRIBUTES(Declaration*)
+	DEFINE_LOCALS()
+
+	BEGIN_ACTION(init)
+	{
+		printf("class_member_decl attr(0) type = %s\n", typeid(_attr_t(0)).name());
 	}
 	END_ACTION
 };
@@ -159,6 +176,19 @@ struct interface_decl
 
 	BEGIN_ACTION(init)
 	{
+		printf("interface_decl attr(0) type = %s\n", typeid(_attr_t(0)).name());
+	}
+	END_ACTION
+};
+
+struct member_function_decl_without_body
+{
+	DEFINE_ATTRIBUTES(Declaration*)
+	DEFINE_LOCALS()
+
+	BEGIN_ACTION(init)
+	{
+		printf("member_function_decl_without_body attr(0) type = %s\n", typeid(_attr_t(0)).name());
 	}
 	END_ACTION
 };
@@ -170,6 +200,7 @@ struct enum_decl
 
 	BEGIN_ACTION(init)
 	{
+		printf("enum_decl attr(0) type = %s\n", typeid(_attr_t(0)).name());
 	}
 	END_ACTION
 };

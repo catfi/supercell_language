@@ -37,9 +37,8 @@ struct package_decl
 
 	BEGIN_ACTION(init)
 	{
-		BOOST_MPL_ASSERT(( boost::is_same<_value_t, Package*&> ));
-		BOOST_MPL_ASSERT(( boost::is_same<_attr_t(0), NestedIdentifier*&> ));
-
+//		BOOST_MPL_ASSERT(( boost::is_same<_value_t, Package*&> ));
+//		BOOST_MPL_ASSERT(( boost::is_same<_attr_t(0), NestedIdentifier*&> ));
 		NestedIdentifier *nested_id = cast<NestedIdentifier>(_attr(0));
 		Package* last = getParserContext().program->root;
 		for(std::vector<Identifier*>::iterator id = nested_id->identifier_list.begin(); id != nested_id->identifier_list.end(); ++id)
