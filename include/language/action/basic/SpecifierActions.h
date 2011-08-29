@@ -75,7 +75,7 @@ struct type_specifier
 
 	BEGIN_ACTION(init_ellipsis)
 	{
-//		printf("type_specifier::init_ellipsis attr(0) type = %s\n", typeid(_attr_t(0)).name());
+		printf("type_specifier::init_ellipsis attr(0) type = %s\n", typeid(_attr_t(0)).name());
 		_value = new tree::TypeSpecifier(TypeSpecifier::PrimitiveType::VARIADIC_ELLIPSIS);
 	}
 	END_ACTION

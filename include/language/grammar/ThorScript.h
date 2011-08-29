@@ -477,7 +477,6 @@ struct ThorScript : qi::grammar<Iterator, typename SA::start::attribute_type, de
 		// 15. COMMA
 		//
 
-		// primary expression
 		primary_expression
 			= template_arg_identifier                   [ typename SA::primary_expression::init() ]
 			| INTEGER_LITERAL                           [ typename SA::primary_expression::init() ]
@@ -663,7 +662,6 @@ struct ThorScript : qi::grammar<Iterator, typename SA::start::attribute_type, de
 		// BEGIN STATEMENT
 		//
 
-		// statement
 		statement
 			=	(-annotation_specifiers
 					>>	( const_variable_decl
@@ -676,12 +674,10 @@ struct ThorScript : qi::grammar<Iterator, typename SA::start::attribute_type, de
 			|	block [ typename SA::statement::init_block() ]
 			;
 
-		// expression_statement
 		expression_statement
 			= (-expression >> SEMICOLON) [ typename SA::expression_statement::init() ]
 			;
 
-		// selection_statement
 		selection_statement
 				=	(IF > LEFT_PAREN > expression > RIGHT_PAREN > statement
 						> *(ELIF > LEFT_PAREN > expression > RIGHT_PAREN > statement)
@@ -696,15 +692,13 @@ struct ThorScript : qi::grammar<Iterator, typename SA::start::attribute_type, de
 					) [ typename SA::selection_statement::init_switch_statement() ]
 			;
 
-		// iteration_statement
 		iteration_statement
 			=	(WHILE > LEFT_PAREN > expression > RIGHT_PAREN > -statement)                 [ typename SA::iteration_statement::init_while_loop() ]
 			|	(DO > statement > WHILE > LEFT_PAREN > expression > RIGHT_PAREN > SEMICOLON) [ typename SA::iteration_statement::init_do_while_loop() ]
-			|	(FOREACH > LEFT_PAREN > ((VAR > IDENTIFIER > -colon_type_specifier) | postfix_expression) > IN > (range_expression | IDENTIFIER) > RIGHT_PAREN > -statement
+			|	(FOREACH > LEFT_PAREN > (variable_decl_stem | postfix_expression) > IN > expression > RIGHT_PAREN > -statement
 				) [ typename SA::iteration_statement::init_foreach() ]
 			;
 
-		// branch_statement
 		branch_statement
 			=	( (RETURN > -expression > SEMICOLON) [ typename SA::branch_statement::init_return() ]
 				| (BREAK > SEMICOLON)                [ typename SA::branch_statement::template init<tree::BranchStmt::OpCode::BREAK>() ]
@@ -712,7 +706,6 @@ struct ThorScript : qi::grammar<Iterator, typename SA::start::attribute_type, de
 				)
 			;
 
-		// block
 		block
 			=	(LEFT_BRACE
 					> *statement
@@ -728,7 +721,6 @@ struct ThorScript : qi::grammar<Iterator, typename SA::start::attribute_type, de
 		// BEGIN DECLARATION
 		//
 
-		// global declaration
 		declaration
 			=	(-annotation_specifiers
 					>>	( const_variable_decl
@@ -745,24 +737,24 @@ struct ThorScript : qi::grammar<Iterator, typename SA::start::attribute_type, de
 			= (-(CONST >> qi::attr(true)) >> variable_decl) [ typename SA::const_variable_decl::init() ]
 			;
 
-		// variable declaration
 		variable_decl
-			= (VAR > IDENTIFIER > -colon_type_specifier > -(ASSIGN > expression) > SEMICOLON) [ typename SA::variable_decl::init() ]
+			= (variable_decl_stem > -(ASSIGN > expression) > SEMICOLON) [ typename SA::variable_decl::init() ]
 			;
 
-		// function declaration
+		variable_decl_stem
+			= (VAR > IDENTIFIER > -colon_type_specifier) [ typename SA::variable_decl_stem::init() ]
+			;
+
 		function_decl
 			= (FUNCTION > (template_param_identifier | (NEW >> qi::attr(true))) > LEFT_PAREN > -typed_parameter_list > RIGHT_PAREN > -colon_type_specifier
 				> -block
 				) [ typename SA::function_decl::init() ]
 			;
 
-		// typedef declaration
 		typedef_decl
 			= (TYPEDEF >> type_specifier > IDENTIFIER > SEMICOLON) [ typename SA::typedef_decl::init() ]
 			;
 
-		// class declaration
 		class_decl
 			= (CLASS > template_param_identifier > -(EXTENDS > nested_identifier) > -((IMPLEMENTS > nested_identifier) % COMMA)
 				> LEFT_BRACE
@@ -771,7 +763,6 @@ struct ThorScript : qi::grammar<Iterator, typename SA::start::attribute_type, de
 				) [ typename SA::class_decl::init() ]
 			;
 
-		// member declaration
 		class_member_decl
 			= -annotation_specifiers >> -visibility_specifier >> -storage_specifier
 				>>	( variable_decl
@@ -779,7 +770,6 @@ struct ThorScript : qi::grammar<Iterator, typename SA::start::attribute_type, de
 					)
 			;
 
-		// interface declaration
 		interface_decl
 			= (INTERFACE > IDENTIFIER
 				> LEFT_BRACE
@@ -788,12 +778,10 @@ struct ThorScript : qi::grammar<Iterator, typename SA::start::attribute_type, de
 				) [ typename SA::interface_decl::init() ]
 			;
 
-		// function declaration without body (used in interface declaration)
 		member_function_decl_without_body
 			= FUNCTION > IDENTIFIER > LEFT_PAREN > -typed_parameter_list > RIGHT_PAREN > colon_type_specifier >> SEMICOLON
 			;
 
-		// enum declaration
 		enum_decl
 			= (ENUM > IDENTIFIER
 				> LEFT_BRACE
@@ -810,7 +798,6 @@ struct ThorScript : qi::grammar<Iterator, typename SA::start::attribute_type, de
 		// BEGIN MODULE
 		//
 
-		// basic translation unit (file)
 		program
 			= qi::eps              [ typename SA::program::init() ]
 				>> -( package_decl [ typename SA::program::append_package_decl() ] )
@@ -818,14 +805,12 @@ struct ThorScript : qi::grammar<Iterator, typename SA::start::attribute_type, de
 				>> *( declaration  [ typename SA::program::append_declaration() ] )
 			;
 
-		// package declaration
 		package_decl
 			= PACKAGE
 				> nested_identifier [ typename SA::package_decl::init() ]
 				> SEMICOLON
 			;
 
-		// import declaration
 		import_decl
 			= IMPORT > nested_identifier [ typename SA::import_decl::init() ] > SEMICOLON
 			;
@@ -834,7 +819,6 @@ struct ThorScript : qi::grammar<Iterator, typename SA::start::attribute_type, de
 		// END MODULE
 		///////////////////////////////////////////////////////////
 
-		// starting symbol
 		start
 			= program
 			;
@@ -1061,6 +1045,7 @@ struct ThorScript : qi::grammar<Iterator, typename SA::start::attribute_type, de
 	qi::rule<Iterator, typename SA::declaration::attribute_type,         detail::WhiteSpace<Iterator>, typename SA::declaration::local_type>         declaration;
 	qi::rule<Iterator, typename SA::const_variable_decl::attribute_type, detail::WhiteSpace<Iterator>, typename SA::const_variable_decl::local_type> const_variable_decl;
 	qi::rule<Iterator, typename SA::variable_decl::attribute_type,       detail::WhiteSpace<Iterator>, typename SA::variable_decl::local_type>       variable_decl;
+	qi::rule<Iterator, typename SA::variable_decl_stem::attribute_type,  detail::WhiteSpace<Iterator>, typename SA::variable_decl_stem::local_type>  variable_decl_stem;
 	qi::rule<Iterator, typename SA::function_decl::attribute_type,       detail::WhiteSpace<Iterator>, typename SA::function_decl::local_type>       function_decl;
 	qi::rule<Iterator, typename SA::typedef_decl::attribute_type,        detail::WhiteSpace<Iterator>, typename SA::typedef_decl::local_type>        typedef_decl;
 	qi::rule<Iterator, typename SA::class_decl::attribute_type,          detail::WhiteSpace<Iterator>, typename SA::class_decl::local_type>          class_decl;

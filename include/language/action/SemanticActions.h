@@ -101,6 +101,7 @@ struct ThorScriptTreeAction
 	typedef action::declaration         declaration;
 	typedef action::const_variable_decl const_variable_decl;
 	typedef action::variable_decl       variable_decl;
+	typedef action::variable_decl_stem  variable_decl_stem;
 	typedef action::function_decl       function_decl;
 	typedef action::typedef_decl        typedef_decl;
 	typedef action::class_decl          class_decl;

@@ -66,10 +66,25 @@ struct variable_decl
 	{
 		printf("variable_decl attr(0) type = %s\n", typeid(_attr_t(0)).name());
 		printf("variable_decl attr(1) type = %s\n", typeid(_attr_t(1)).name());
-		printf("variable_decl attr(2) type = %s\n", typeid(_attr_t(2)).name());
+		_value = _attr(0);
+		ASTNode* initializer = _attr(1).is_initialized() ? *_attr(1) : NULL;
+		dynamic_cast<VariableDecl*>(_value)->initializer = initializer;
+	}
+	END_ACTION
+};
+
+struct variable_decl_stem
+{
+	DEFINE_ATTRIBUTES(Declaration*)
+	DEFINE_LOCALS()
+
+	BEGIN_ACTION(init)
+	{
+		printf("variable_decl_stem attr(0) type = %s\n", typeid(_attr_t(0)).name());
+		printf("variable_decl_stem attr(1) type = %s\n", typeid(_attr_t(1)).name());
 		Identifier*                            name        = _attr(0);
 		TypeSpecifier*                         type        = _attr(1).is_initialized() ? *_attr(1) : NULL;
-		ASTNode*                               initializer = _attr(2).is_initialized() ? *_attr(2) : NULL;
+		ASTNode*                               initializer = NULL;
 		Declaration::VisibilitySpecifier::type visibility  = Declaration::VisibilitySpecifier::PUBLIC;
 		Declaration::StorageSpecifier::type    storage     = Declaration::StorageSpecifier::NONE;
 		bool                                   is_member   = false;
@@ -92,10 +107,15 @@ struct function_decl
 		printf("function_decl attr(2) type = %s\n", typeid(_attr_t(2)).name());
 		printf("function_decl attr(3) type = %s\n", typeid(_attr_t(3)).name());
 		Identifier* name = NULL;
-		if(_attr(0).which() == 0)
+		switch(_attr(0).which())
+		{
+		case 0:
 			name = boost::get<Identifier*>(_attr(0));
-		else
+			break;
+		case 1:
 			name = new SimpleIdentifier(L"new");
+			break;
+		}
 		typed_parameter_list::value_t*         parameters = _attr(1).is_initialized() ? (*_attr(1)).get() : NULL;
 		TypeSpecifier*                         type       = _attr(2).is_initialized() ? *_attr(2) : NULL;
 		Block*                                 block      = _attr(3).is_initialized() ? *_attr(3) : NULL;

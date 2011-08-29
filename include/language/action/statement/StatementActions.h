@@ -136,10 +136,19 @@ struct iteration_statement
 		printf("iteration_statement::init_foreach attr(0) type = %s\n", typeid(_attr_t(0)).name());
 		printf("iteration_statement::init_foreach attr(1) type = %s\n", typeid(_attr_t(1)).name());
 		printf("iteration_statement::init_foreach attr(2) type = %s\n", typeid(_attr_t(2)).name());
-//		Expression* iterator = _attr(0);
-//		Expression* range = _attr(1);
-//		ASTNode* block = _attr(2).is_initialized() ? *_attr(2) : NULL;
-//		_value = new ForeachStmt(iterator, range, block);
+		ASTNode* iterator = NULL;
+		switch(_attr(0).which())
+		{
+		case 0:
+			iterator = boost::get<Declaration*>(_attr(0));
+			break;
+		case 1:
+			iterator = boost::get<Expression*>(_attr(0));
+			break;
+		}
+		Expression* range = _attr(1);
+		ASTNode* block = _attr(2).is_initialized() ? *_attr(2) : NULL;
+		_value = new ForeachStmt(iterator, range, block);
 	}
 	END_ACTION
 };
@@ -152,10 +161,8 @@ struct branch_statement
 	BEGIN_ACTION(init_return)
 	{
 		printf("branch_statement::init_return attr(0) type = %s\n", typeid(_attr_t(0)).name());
-		if(_attr(0).is_initialized())
-			_value = new BranchStmt(tree::BranchStmt::OpCode::RETURN, *_attr(0));
-		else
-			_value = new BranchStmt(tree::BranchStmt::OpCode::RETURN);
+		Expression* expr = _attr(0).is_initialized() ? *_attr(0) : NULL;
+		_value = new BranchStmt(tree::BranchStmt::OpCode::RETURN, expr);
 	}
 	END_ACTION
 
