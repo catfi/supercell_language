@@ -161,10 +161,8 @@ struct branch_statement
 	BEGIN_ACTION(init_return)
 	{
 		printf("branch_statement::init_return attr(0) type = %s\n", typeid(_attr_t(0)).name());
-		if(_attr(0).is_initialized())
-			_value = new BranchStmt(tree::BranchStmt::OpCode::RETURN, *_attr(0));
-		else
-			_value = new BranchStmt(tree::BranchStmt::OpCode::RETURN);
+		Expression* expr = _attr(0).is_initialized() ? *_attr(0) : NULL;
+		_value = new BranchStmt(tree::BranchStmt::OpCode::RETURN, expr);
 	}
 	END_ACTION
 
