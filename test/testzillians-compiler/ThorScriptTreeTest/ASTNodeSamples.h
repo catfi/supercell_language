@@ -72,7 +72,7 @@ ASTNode* createSample3()
 							true,
 							Declaration::VisibilitySpecifier::PUBLIC,
 							Declaration::StorageSpecifier::NONE);
-					class_decl->appendFunction(some_member_function);
+					class_decl->addFunction(some_member_function);
 					{
 						Block* block = some_member_function->block;
 
@@ -99,7 +99,7 @@ ASTNode* createSample3()
 							Declaration::VisibilitySpecifier::PUBLIC,
 							Declaration::StorageSpecifier::STATIC
 							);
-					class_decl->appendVariable(some_member_variable1);
+					class_decl->addVariable(some_member_variable1);
 
 					VariableDecl* some_member_variable2 = new VariableDecl(
 							new SimpleIdentifier(L"some_member_variable2"),
@@ -108,7 +108,7 @@ ASTNode* createSample3()
 							Declaration::VisibilitySpecifier::PUBLIC,
 							Declaration::StorageSpecifier::STATIC
 							);
-					class_decl->appendVariable(some_member_variable2);
+					class_decl->addVariable(some_member_variable2);
 				}
 			}
 		}
@@ -136,7 +136,7 @@ ASTNode* createSample4()
 							true,
 							Declaration::VisibilitySpecifier::PUBLIC,
 							Declaration::StorageSpecifier::NONE);
-					class_decl->appendFunction(some_member_function);
+					class_decl->addFunction(some_member_function);
 					{
 						Block* block = some_member_function->block;
 
@@ -163,7 +163,7 @@ ASTNode* createSample4()
 							Declaration::VisibilitySpecifier::PUBLIC,
 							Declaration::StorageSpecifier::STATIC
 							);
-					class_decl->appendVariable(some_member_variable1);
+					class_decl->addVariable(some_member_variable1);
 
 					VariableDecl* some_member_variable2 = new VariableDecl(
 							new SimpleIdentifier(L"some_member_variable2"),
@@ -172,7 +172,7 @@ ASTNode* createSample4()
 							Declaration::VisibilitySpecifier::PUBLIC,
 							Declaration::StorageSpecifier::STATIC
 							);
-					class_decl->appendVariable(some_member_variable2);
+					class_decl->addVariable(some_member_variable2);
 				}
 			}
 		}
@@ -200,7 +200,7 @@ ASTNode* createSample5()
 							true,
 							Declaration::VisibilitySpecifier::PUBLIC,
 							Declaration::StorageSpecifier::NONE);
-					class_decl->appendFunction(some_member_function);
+					class_decl->addFunction(some_member_function);
 					{
 						Block* block = some_member_function->block;
 
@@ -227,7 +227,7 @@ ASTNode* createSample5()
 							Declaration::VisibilitySpecifier::PUBLIC,
 							Declaration::StorageSpecifier::STATIC
 							);
-					class_decl->appendVariable(some_member_variable1);
+					class_decl->addVariable(some_member_variable1);
 
 					VariableDecl* some_member_variable2 = new VariableDecl(
 							new SimpleIdentifier(L"some_member_variable2"),
@@ -236,7 +236,7 @@ ASTNode* createSample5()
 							Declaration::VisibilitySpecifier::PUBLIC,
 							Declaration::StorageSpecifier::STATIC
 							);
-					class_decl->appendVariable(some_member_variable2);
+					class_decl->addVariable(some_member_variable2);
 				}
 			}
 		}

@@ -40,7 +40,7 @@ struct InterfaceDecl : public Declaration
 		name->parent = this;
 	}
 
-	void appendFunction(FunctionDecl* func)
+	void addFunction(FunctionDecl* func)
 	{
 		func->parent = this;
 		member_functions.push_back(func);
