@@ -31,7 +31,7 @@ struct colon_type_specifier
 
 	BEGIN_ACTION(init)
 	{
-//		printf("colon_type_specifier attr(0) type = %s\n", typeid(_attr_t(0)).name());
+		printf("colon_type_specifier attr(0) type = %s\n", typeid(_attr_t(0)).name());
 		_value = _attr(0);
 	}
 	END_ACTION

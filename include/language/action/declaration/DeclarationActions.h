@@ -153,6 +153,27 @@ struct class_decl
 		printf("class_decl attr(1) type = %s\n", typeid(_attr_t(1)).name());
 		printf("class_decl attr(2) type = %s\n", typeid(_attr_t(2)).name());
 		printf("class_decl attr(3) type = %s\n", typeid(_attr_t(3)).name());
+		Identifier* name = _attr(0);
+		TypeSpecifier* extends_from = _attr(1).is_initialized() ? new TypeSpecifier(*_attr(1)) : NULL;
+		_value = new ClassDecl(name);
+		if(!!extends_from)
+			dynamic_cast<ClassDecl*>(_value)->setBase(extends_from);
+		if(_attr(2).is_initialized())
+			foreach(i, *_attr(2))
+				dynamic_cast<ClassDecl*>(_value)->addInterface(new TypeSpecifier(*i));
+		foreach(i, _attr(3))
+		{
+			if(isa<VariableDecl>(*i))
+			{
+				dynamic_cast<ClassDecl*>(_value)->addVariable(dynamic_cast<VariableDecl*>(*i));
+				dynamic_cast<VariableDecl*>(*i)->is_member = true;
+			}
+			else if(isa<FunctionDecl>(*i))
+			{
+				dynamic_cast<ClassDecl*>(_value)->addFunction(dynamic_cast<FunctionDecl*>(*i));
+				dynamic_cast<FunctionDecl*>(*i)->is_member = true;
+			}
+		}
 	}
 	END_ACTION
 };
@@ -165,6 +186,24 @@ struct class_member_decl
 	BEGIN_ACTION(init)
 	{
 		printf("class_member_decl attr(0) type = %s\n", typeid(_attr_t(0)).name());
+		printf("class_member_decl attr(1) type = %s\n", typeid(_attr_t(1)).name());
+		printf("class_member_decl attr(2) type = %s\n", typeid(_attr_t(2)).name());
+		printf("class_member_decl attr(3) type = %s\n", typeid(_attr_t(3)).name());
+		Annotations*                           annotations = _attr(0).is_initialized() ? *_attr(0) : NULL;
+		Declaration::VisibilitySpecifier::type visibility  = _attr(1).is_initialized() ? *_attr(1) : Declaration::VisibilitySpecifier::DEFAULT;
+		Declaration::StorageSpecifier::type    storage     = _attr(2).is_initialized() ? *_attr(2) : Declaration::StorageSpecifier::NONE;
+		_value = _attr(3);
+		dynamic_cast<Declaration*>(_value)->setAnnotation(annotations);
+		if(isa<VariableDecl>(_value))
+		{
+			dynamic_cast<VariableDecl*>(_value)->visibility = visibility;
+			dynamic_cast<VariableDecl*>(_value)->storage = storage;
+		}
+		else if(isa<FunctionDecl>(_value))
+		{
+			dynamic_cast<FunctionDecl*>(_value)->visibility = visibility;
+			dynamic_cast<FunctionDecl*>(_value)->storage = storage;
+		}
 	}
 	END_ACTION
 };
