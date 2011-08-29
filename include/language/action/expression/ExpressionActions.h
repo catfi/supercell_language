@@ -193,15 +193,18 @@ struct prefix_expression
 	BEGIN_ACTION(init)
 	{
 		printf("prefix_expression attr(0) type = %s\n", typeid(_attr_t(0)).name());
-		if(_attr(0).which() == 0)
-			_value = boost::get<Expression*>(_attr(0));
-		else
+		switch(_attr(0).which())
 		{
+		case 0:
+			_value = boost::get<Expression*>(_attr(0));
+			break;
+		case 1:
 			typedef boost::fusion::vector2<UnaryExpr::OpCode::type, Expression*> fusion_vector_t;
 			fusion_vector_t vec = boost::get<fusion_vector_t>(_attr(0));
 			UnaryExpr::OpCode::type type = boost::fusion::at_c<0>(vec);
 			Expression* expr = boost::fusion::at_c<1>(vec);
 			_value = new UnaryExpr(type, expr);
+			break;
 		}
 	}
 	END_ACTION

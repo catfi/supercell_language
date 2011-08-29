@@ -92,10 +92,15 @@ struct function_decl
 		printf("function_decl attr(2) type = %s\n", typeid(_attr_t(2)).name());
 		printf("function_decl attr(3) type = %s\n", typeid(_attr_t(3)).name());
 		Identifier* name = NULL;
-		if(_attr(0).which() == 0)
+		switch(_attr(0).which())
+		{
+		case 0:
 			name = boost::get<Identifier*>(_attr(0));
-		else
+			break;
+		case 1:
 			name = new SimpleIdentifier(L"new");
+			break;
+		}
 		typed_parameter_list::value_t*         parameters = _attr(1).is_initialized() ? (*_attr(1)).get() : NULL;
 		TypeSpecifier*                         type       = _attr(2).is_initialized() ? *_attr(2) : NULL;
 		Block*                                 block      = _attr(3).is_initialized() ? *_attr(3) : NULL;
