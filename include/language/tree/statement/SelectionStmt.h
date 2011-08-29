@@ -96,7 +96,7 @@ struct SwitchStmt : public SelectionStmt
 	DEFINE_VISITABLE();
 	DEFINE_HIERARCHY(SwitchStmt, (SwitchStmt)(SelectionStmt)(Statement)(ASTNode));
 
-	explicit SwitchStmt(Expression* node) : node(node)
+	explicit SwitchStmt(Expression* node) : node(node), default_block(NULL)
 	{
 		BOOST_ASSERT(node && "null node for switch statement is not allowed");
 
@@ -112,8 +112,16 @@ struct SwitchStmt : public SelectionStmt
 		cases.push_back(branch);
 	}
 
+	void setDefaultCase(ASTNode* block)
+	{
+		if(default_block) default_block->parent = NULL;
+		default_block = block;
+		if(default_block) default_block->parent = this;
+	}
+
 	Expression* node;
 	std::vector<Selection> cases;
+	ASTNode* default_block;
 };
 
 } } }
