@@ -700,7 +700,7 @@ struct ThorScript : qi::grammar<Iterator, typename SA::start::attribute_type, de
 		iteration_statement
 			=	(WHILE > LEFT_PAREN > expression > RIGHT_PAREN > -statement)                 [ typename SA::iteration_statement::init_while_loop() ]
 			|	(DO > statement > WHILE > LEFT_PAREN > expression > RIGHT_PAREN > SEMICOLON) [ typename SA::iteration_statement::init_do_while_loop() ]
-			|	(FOREACH > LEFT_PAREN > ((VAR > IDENTIFIER > -colon_type_specifier) | postfix_expression) > IN > (range_expression | IDENTIFIER) > RIGHT_PAREN > -statement
+			|	(FOREACH > LEFT_PAREN > (variable_decl_stem | postfix_expression) > IN > expression > RIGHT_PAREN > -statement
 				) [ typename SA::iteration_statement::init_foreach() ]
 			;
 
@@ -747,7 +747,11 @@ struct ThorScript : qi::grammar<Iterator, typename SA::start::attribute_type, de
 
 		// variable declaration
 		variable_decl
-			= (VAR > IDENTIFIER > -colon_type_specifier > -(ASSIGN > expression) > SEMICOLON) [ typename SA::variable_decl::init() ]
+			= (variable_decl_stem > -(ASSIGN > expression) > SEMICOLON) [ typename SA::variable_decl::init() ]
+			;
+
+		variable_decl_stem
+			= (VAR > IDENTIFIER > -colon_type_specifier) [ typename SA::variable_decl_stem::init() ]
 			;
 
 		// function declaration
@@ -1061,6 +1065,7 @@ struct ThorScript : qi::grammar<Iterator, typename SA::start::attribute_type, de
 	qi::rule<Iterator, typename SA::declaration::attribute_type,         detail::WhiteSpace<Iterator>, typename SA::declaration::local_type>         declaration;
 	qi::rule<Iterator, typename SA::const_variable_decl::attribute_type, detail::WhiteSpace<Iterator>, typename SA::const_variable_decl::local_type> const_variable_decl;
 	qi::rule<Iterator, typename SA::variable_decl::attribute_type,       detail::WhiteSpace<Iterator>, typename SA::variable_decl::local_type>       variable_decl;
+	qi::rule<Iterator, typename SA::variable_decl_stem::attribute_type,  detail::WhiteSpace<Iterator>, typename SA::variable_decl_stem::local_type>  variable_decl_stem;
 	qi::rule<Iterator, typename SA::function_decl::attribute_type,       detail::WhiteSpace<Iterator>, typename SA::function_decl::local_type>       function_decl;
 	qi::rule<Iterator, typename SA::typedef_decl::attribute_type,        detail::WhiteSpace<Iterator>, typename SA::typedef_decl::local_type>        typedef_decl;
 	qi::rule<Iterator, typename SA::class_decl::attribute_type,          detail::WhiteSpace<Iterator>, typename SA::class_decl::local_type>          class_decl;

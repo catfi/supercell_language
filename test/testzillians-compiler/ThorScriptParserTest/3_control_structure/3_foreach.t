@@ -6,9 +6,9 @@ function f():void
 
     foreach(var i:uint32 in 0 ... 13)
     {
-        //x = x + i;
-        //break;
-        //continue;
+        x = x + i;
+        break;
+        continue;
     }
 
     var j:uint32 = 0;
