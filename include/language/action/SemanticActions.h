@@ -126,7 +126,7 @@ struct ThorScriptTreeAction
 	 */
 	struct start
 	{
-		DEFINE_ATTRIBUTES(zillians::language::tree::ASTNode*)
+		DEFINE_ATTRIBUTES(ASTNode*)
 		DEFINE_LOCALS()
 	};
 };
