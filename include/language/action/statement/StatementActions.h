@@ -101,7 +101,26 @@ struct selection_statement
 	{
 		printf("selection_statement::init_switch_statement attr(0) type = %s\n", typeid(_attr_t(0)).name());
 		printf("selection_statement::init_switch_statement attr(1) type = %s\n", typeid(_attr_t(1)).name());
-//		_value = new SwitchStmt();
+		_value = new SwitchStmt(_attr(0));
+		foreach(i, _attr(1))
+			switch((*i).which())
+			{
+			case 0:
+				{
+					typedef boost::fusion::vector2<Expression*, ASTNode*> fusion_vec_t;
+					fusion_vec_t &vec = boost::get<fusion_vec_t>(*i);
+					Expression* cond = boost::fusion::at_c<0>(vec);
+					ASTNode* block = boost::fusion::at_c<1>(vec);
+					dynamic_cast<SwitchStmt*>(_value)->addCase(Selection(cond, block));
+				}
+				break;
+			case 1:
+				{
+					ASTNode* block = boost::get<ASTNode*>(*i);
+					dynamic_cast<SwitchStmt*>(_value)->setDefaultCase(block);
+				}
+				break;
+			}
 	}
 	END_ACTION
 };

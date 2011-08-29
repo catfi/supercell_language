@@ -31,9 +31,8 @@ struct import_decl
 
 	BEGIN_ACTION(init)
 	{
-		BOOST_MPL_ASSERT(( boost::is_same<_value_t, Import*&> ));
-		BOOST_MPL_ASSERT(( boost::is_same<_attr_t(0), NestedIdentifier*&> ));
-
+//		BOOST_MPL_ASSERT(( boost::is_same<_value_t, Import*&> ));
+//		BOOST_MPL_ASSERT(( boost::is_same<_attr_t(0), NestedIdentifier*&> ));
 		_value = new Import(_attr(0));
 	}
 	END_ACTION

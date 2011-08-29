@@ -39,14 +39,13 @@ struct identifier
 
 struct nested_identifier
 {
-	DEFINE_ATTRIBUTES(NestedIdentifier*)
+	DEFINE_ATTRIBUTES(Identifier*)
 	DEFINE_LOCALS()
 
 	BEGIN_ACTION(init)
 	{
 		printf("nested_identifier attr(0) type = %s\n", typeid(_attr_t(0)).name());
-		BOOST_MPL_ASSERT(( boost::is_same<_value_t, NestedIdentifier*&> ));
-
+//		BOOST_MPL_ASSERT(( boost::is_same<_value_t, NestedIdentifier*&> ));
 		_value = new NestedIdentifier();
 	}
 	END_ACTION
@@ -54,9 +53,8 @@ struct nested_identifier
 	BEGIN_ACTION(append_identifier)
 	{
 		printf("nested_identifier::append_identifier attr(0) type = %s\n", typeid(_attr_t(0)).name());
-		BOOST_MPL_ASSERT(( boost::is_same<_attr_t(0), SimpleIdentifier*&> ));
-
-		_value->appendIdentifier(_attr(0));
+//		BOOST_MPL_ASSERT(( boost::is_same<_attr_t(0), SimpleIdentifier*&> ));
+		dynamic_cast<NestedIdentifier*>(_value)->appendIdentifier(_attr(0));
 	}
 	END_ACTION
 };

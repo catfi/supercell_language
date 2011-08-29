@@ -1,3 +1,5 @@
+package qwe.asd.zxc;
+
 class my_class
 {
     var m_data:uint32;

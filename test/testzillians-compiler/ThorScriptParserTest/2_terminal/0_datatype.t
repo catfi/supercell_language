@@ -1,3 +1,5 @@
+package qwe.asd.zxc;
+
 function f():void
 {
 }
