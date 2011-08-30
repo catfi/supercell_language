@@ -392,7 +392,7 @@ struct PrettyPrintVisitor : Visitor<const ASTNode, void>
 
 	void print(const TypedefDecl& node)
 	{
-		STREAM << L"<typedef_decl from=\"" << decodeType(node.from) << L"\" to=\"" << decodeType(node.to) << L"\"/>" << std::endl;
+		STREAM << L"<typedef_decl from=\"" << decodeType(node.from) << L"\" to=\"" << node.to->toString() << L"\"/>" << std::endl;
 	}
 
 	//////////////////////////////////////////////////////////////////////
