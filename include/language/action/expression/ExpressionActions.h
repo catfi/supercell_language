@@ -123,19 +123,22 @@ struct primary_expression
 		_value = _attr(0);
 	}
 	END_ACTION
-};
 
-struct lambda_expression
-{
-	DEFINE_ATTRIBUTES(FunctionDecl*)
-	DEFINE_LOCALS()
-
-	BEGIN_ACTION(init)
+	BEGIN_ACTION(init_lambda)
 	{
-		printf("lambda_expression attr(0) type = %s\n", typeid(_attr_t(0)).name());
-		printf("lambda_expression attr(1) type = %s\n", typeid(_attr_t(1)).name());
-		printf("lambda_expression attr(2) type = %s\n", typeid(_attr_t(2)).name());
-//		_value = new FunctionDecl(_attr(0));
+		printf("primary_expression::lambda_expression attr(0) type = %s\n", typeid(_attr_t(0)).name());
+		printf("primary_expression::lambda_expression attr(1) type = %s\n", typeid(_attr_t(1)).name());
+		printf("primary_expression::lambda_expression attr(2) type = %s\n", typeid(_attr_t(2)).name());
+		typed_parameter_list::value_t*         parameters = _attr(0).is_initialized() ? (*_attr(0)).get() : NULL;
+		TypeSpecifier*                         type       = _attr(1).is_initialized() ? *_attr(1) : NULL;
+		Declaration::VisibilitySpecifier::type visibility = Declaration::VisibilitySpecifier::PUBLIC;
+		Declaration::StorageSpecifier::type    storage    = Declaration::StorageSpecifier::NONE;
+		bool                                   is_member  = false;
+		FunctionDecl* function_decl = new FunctionDecl(NULL, type, is_member, visibility, storage, _attr(2));
+		if(!!parameters)
+			for(typed_parameter_list::value_t::iterator i = parameters->begin(); i != parameters->end(); i++)
+				function_decl->appendParameter((*i).first, (*i).second);
+		_value = new PrimaryExpr(function_decl);
 	}
 	END_ACTION
 };

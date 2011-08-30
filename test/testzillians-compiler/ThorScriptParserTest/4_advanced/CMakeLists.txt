@@ -41,8 +41,8 @@ zillians_add_complex_test(
             #${CMAKE_CURRENT_SOURCE_DIR}/1_constructor.t
             #${CMAKE_CURRENT_SOURCE_DIR}/2_annotation.t
             #${CMAKE_CURRENT_SOURCE_DIR}/3_instanceof.t
-            ${CMAKE_CURRENT_SOURCE_DIR}/4_typedef.t
-            #${CMAKE_CURRENT_SOURCE_DIR}/5_lambda.t
+            #${CMAKE_CURRENT_SOURCE_DIR}/4_typedef.t
+            ${CMAKE_CURRENT_SOURCE_DIR}/5_lambda.t
             #${CMAKE_CURRENT_SOURCE_DIR}/6_template.t
             #${CMAKE_CURRENT_SOURCE_DIR}/7_container.t
             #${CMAKE_CURRENT_SOURCE_DIR}/8_va_arg.t
