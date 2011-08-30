@@ -76,7 +76,7 @@ struct type_specifier
 		if(!!parameters)
 			for(type_list_specifier_t::iterator i = parameters->begin(); i != parameters->end(); i++)
 				function_type->appendParameterType(*i);
-//		function_type->setReturnType(type);
+		function_type->setReturnType(type);
 		_value = new TypeSpecifier(function_type);
 	}
 	END_ACTION
@@ -166,13 +166,8 @@ struct annotation_specifiers
 	{
 		printf("annotation_specifiers attr(0) type = %s\n", typeid(_attr_t(0)).name());
 		_value = new Annotations();
-	}
-	END_ACTION
-
-	BEGIN_ACTION(append_annotation)
-	{
-		printf("annotation_specifiers::append_annotation attr(0) type = %s\n", typeid(_attr_t(0)).name());
-		_value->appendAnnotation(_attr(0));
+		foreach(i, _attr(0))
+			_value->appendAnnotation(*i);
 	}
 	END_ACTION
 };
@@ -184,16 +179,17 @@ struct annotation_specifier
 
 	BEGIN_ACTION(init)
 	{
-		printf("annotation_specifier attr(0) type = %s\n", typeid(_attr_t(0)).name());
+		printf("annotation_specifier::init2 attr(0) type = %s\n", typeid(_attr_t(0)).name());
+		printf("annotation_specifier::init2 attr(1) type = %s\n", typeid(_attr_t(1)).name());
 		_value = new Annotation(_attr(0));
-	}
-	END_ACTION
-
-	BEGIN_ACTION(append_keyvalue)
-	{
-		printf("annotation_specifier::append_keyvalue attr(0) type = %s\n", typeid(_attr_t(0)).name());
-		printf("annotation_specifier::append_keyvalue attr(1) type = %s\n", typeid(_attr_t(1)).name());
-		_value->appendKeyValue(_attr(0), _attr(1));
+		if(_attr(1).is_initialized())
+			foreach(i, *_attr(1))
+			{
+				typedef boost::fusion::vector2<SimpleIdentifier*, Expression*> fusion_vec_t;
+				SimpleIdentifier* key = boost::fusion::at_c<0>(*i);
+				Expression* value = boost::fusion::at_c<1>(*i);
+				_value->appendKeyValue(key, value);
+			}
 	}
 	END_ACTION
 };

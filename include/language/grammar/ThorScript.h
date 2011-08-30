@@ -435,15 +435,15 @@ struct ThorScript : qi::grammar<Iterator, typename SA::start::attribute_type, de
 			;
 
 		annotation_specifiers
-			= qi::eps                      [ typename SA::annotation_specifiers::init() ]
-				>> *( annotation_specifier [ typename SA::annotation_specifiers::append_annotation() ] )
+			= (*annotation_specifier) [ typename SA::annotation_specifiers::init() ]
 			;
 
 		annotation_specifier
-			= AT_SYMBOL >> IDENTIFIER [ typename SA::annotation_specifier::init() ]
-				>>	-(LEFT_BRACE >> (
-					(IDENTIFIER > ASSIGN > primary_expression) [ typename SA::annotation_specifier::append_keyvalue() ] % COMMA
-					) >> RIGHT_BRACE)
+			=	(AT_SYMBOL >> IDENTIFIER
+					>>	-(LEFT_BRACE >> (
+						(IDENTIFIER > ASSIGN > primary_expression) % COMMA
+						) >> RIGHT_BRACE)
+				) [ typename SA::annotation_specifier::init() ]
 			;
 
 		nested_identifier
