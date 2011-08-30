@@ -138,6 +138,8 @@ struct typedef_decl
 	BEGIN_ACTION(init)
 	{
 		printf("typedef_decl attr(0) type = %s\n", typeid(_attr_t(0)).name());
+		printf("typedef_decl attr(1) type = %s\n", typeid(_attr_t(1)).name());
+		_value = new TypedefDecl(_attr(0), _attr(1));
 	}
 	END_ACTION
 };
