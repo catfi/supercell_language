@@ -317,7 +317,7 @@ struct PrettyPrintVisitor : Visitor<const ASTNode, void>
 	void print(const FunctionDecl& node)
 	{
 		STREAM << L"<function_decl " <<
-				L"name=\"" << node.name->toString() << L"\" " <<
+				L"name=\"" << ((node.name) ? node.name->toString() : L"<unspecified-null>") << L"\" " <<
 				L"type=\"" << decodeType(node.type) << L"\" " <<
 				L"is_member=\"" << (node.is_member ? L"true" : L"false") << L"\" " <<
 				L"visibility=\"" << Declaration::VisibilitySpecifier::toString(node.visibility) << L"\" " <<
