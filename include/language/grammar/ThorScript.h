@@ -447,9 +447,7 @@ struct ThorScript : qi::grammar<Iterator, typename SA::start::attribute_type, de
 			;
 
 		nested_identifier
-			= qi::eps                   [ typename SA::nested_identifier::init() ]
-				>> IDENTIFIER           [ typename SA::nested_identifier::append_identifier() ]
-				>> *( DOT >> IDENTIFIER [ typename SA::nested_identifier::append_identifier() ] )
+			= (IDENTIFIER >> *( DOT >> IDENTIFIER)) [ typename SA::nested_identifier::init() ]
 			;
 
 		//
@@ -797,20 +795,22 @@ struct ThorScript : qi::grammar<Iterator, typename SA::start::attribute_type, de
 		//
 
 		program
-			= qi::eps              [ typename SA::program::init() ]
-				>> -( package_decl [ typename SA::program::append_package_decl() ] )
-				>> *( import_decl  [ typename SA::program::append_import_decl() ] )
-				>> *( declaration  [ typename SA::program::append_declaration() ] )
+			=	(qi::eps               [ typename SA::program::init() ]
+					>> -( package_decl [ typename SA::program::append_package_decl() ] )
+					>> *( import_decl  [ typename SA::program::append_import_decl() ] )
+					>> *( declaration  [ typename SA::program::append_declaration() ] )
+				) [ typename SA::program::init2() ]
 			;
 
 		package_decl
-			= PACKAGE
-				> nested_identifier [ typename SA::package_decl::init() ]
-				> SEMICOLON
+			=	(PACKAGE
+					> nested_identifier
+					> SEMICOLON
+				) [ typename SA::package_decl::init() ]
 			;
 
 		import_decl
-			= IMPORT > nested_identifier [ typename SA::import_decl::init() ] > SEMICOLON
+			= (IMPORT > nested_identifier > SEMICOLON) [ typename SA::import_decl::init() ]
 			;
 
 		//

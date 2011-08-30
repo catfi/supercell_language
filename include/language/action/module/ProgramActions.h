@@ -62,6 +62,14 @@ struct program
 			getParserContext().active_package->addObject(_attr(0));
 	}
 	END_ACTION
+
+	BEGIN_ACTION(init2)
+	{
+		printf("program::init2 attr(0) type = %s\n", typeid(_attr_t(0)).name());
+		printf("program::init2 attr(1) type = %s\n", typeid(_attr_t(1)).name());
+		printf("program::init2 attr(2) type = %s\n", typeid(_attr_t(2)).name());
+	}
+	END_ACTION
 };
 
 } } }

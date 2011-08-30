@@ -179,8 +179,8 @@ struct annotation_specifier
 
 	BEGIN_ACTION(init)
 	{
-		printf("annotation_specifier::init2 attr(0) type = %s\n", typeid(_attr_t(0)).name());
-		printf("annotation_specifier::init2 attr(1) type = %s\n", typeid(_attr_t(1)).name());
+		printf("annotation_specifier::init attr(0) type = %s\n", typeid(_attr_t(0)).name());
+		printf("annotation_specifier::init attr(1) type = %s\n", typeid(_attr_t(1)).name());
 		_value = new Annotation(_attr(0));
 		if(_attr(1).is_initialized())
 			foreach(i, *_attr(1))
