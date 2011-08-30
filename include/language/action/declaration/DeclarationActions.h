@@ -242,6 +242,17 @@ struct enum_decl
 	BEGIN_ACTION(init)
 	{
 		printf("enum_decl attr(0) type = %s\n", typeid(_attr_t(0)).name());
+		printf("enum_decl attr(1) type = %s\n", typeid(_attr_t(1)).name());
+		_value = new EnumDecl(_attr(0));
+		foreach(i, _attr(1))
+		{
+			boost::optional<Annotations*> &optional_annotations = boost::fusion::at_c<0>(*i);
+			SimpleIdentifier*              tag                  = boost::fusion::at_c<1>(*i);
+			boost::optional<Expression*>  &optional_value       = boost::fusion::at_c<2>(*i);
+			Annotations* annotations = optional_annotations.is_initialized() ? *optional_annotations : NULL;
+			Expression* value = optional_value.is_initialized() ? *optional_value : NULL;
+			dynamic_cast<EnumDecl*>(_value)->addEnumeration(tag, value);
+		}
 	}
 	END_ACTION
 };

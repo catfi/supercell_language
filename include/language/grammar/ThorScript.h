@@ -783,7 +783,7 @@ struct ThorScript : qi::grammar<Iterator, typename SA::start::attribute_type, de
 		enum_decl
 			= (ENUM > IDENTIFIER
 				> LEFT_BRACE
-				> (-annotation_specifiers >> IDENTIFIER > -(ASSIGN > INTEGER_LITERAL)) % COMMA
+				> (-annotation_specifiers > IDENTIFIER > -(ASSIGN > expression)) % COMMA
 				> RIGHT_BRACE
 				) [ typename SA::enum_decl::init() ]
 			;
