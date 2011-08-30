@@ -482,18 +482,14 @@ struct ThorScript : qi::grammar<Iterator, typename SA::start::attribute_type, de
 			| INTEGER_LITERAL                           [ typename SA::primary_expression::init() ]
 			| FLOAT_LITERAL                             [ typename SA::primary_expression::init() ]
 			| STRING_LITERAL                            [ typename SA::primary_expression::init() ]
-			| lambda_expression                         [ typename SA::primary_expression::init() ]
 			| _TRUE                                     [ typename SA::primary_expression::template init_bool<true>() ]
 			| _FALSE                                    [ typename SA::primary_expression::template init_bool<false>() ]
 			| _NULL                                     [ typename SA::primary_expression::template init_object_literal<tree::ObjectLiteral::LiteralType::NULL_OBJECT>() ]
 			| _SELF                                     [ typename SA::primary_expression::template init_object_literal<tree::ObjectLiteral::LiteralType::SELF_OBJECT>() ]
 			| _GLOBAL                                   [ typename SA::primary_expression::template init_object_literal<tree::ObjectLiteral::LiteralType::GLOBAL_OBJECT>() ]
 			| (LEFT_PAREN >> expression >> RIGHT_PAREN) [ typename SA::primary_expression::init_paren_expression() ]
-			;
-
-		lambda_expression
-			= (FUNCTION > LEFT_PAREN > -typed_parameter_list > RIGHT_PAREN > -colon_type_specifier
-				> block) [ typename SA::lambda_expression::init() ]
+			| (FUNCTION > LEFT_PAREN > -typed_parameter_list > RIGHT_PAREN > -colon_type_specifier
+				> block) [ typename SA::primary_expression::init_lambda() ]
 			;
 
 		// postfix expression
@@ -847,7 +843,6 @@ struct ThorScript : qi::grammar<Iterator, typename SA::start::attribute_type, de
 			nested_identifier.name("nested_identifier");
 		expression.name("expression");
 			primary_expression.name("primary_expression");
-				lambda_expression.name("lambda_expression");
 			postfix_expression.name("postfix_expression");
 			prefix_expression.name("prefix_expression");
 			multiplicative_expression.name("multiplicative_expression");
@@ -899,7 +894,6 @@ struct ThorScript : qi::grammar<Iterator, typename SA::start::attribute_type, de
 				debug(nested_identifier);
 			debug(expression);
 				debug(primary_expression);
-					debug(lambda_expression);
 				debug(postfix_expression);
 				debug(prefix_expression);
 				debug(multiplicative_expression);
@@ -985,7 +979,6 @@ struct ThorScript : qi::grammar<Iterator, typename SA::start::attribute_type, de
 		// BEGIN EXPRESSION
 //		expression,
 //			primary_expression,
-//				lambda_expression,
 //			postfix_expression,
 //			prefix_expression,
 //			multiplicative_expression,
@@ -1059,7 +1052,6 @@ struct ThorScript : qi::grammar<Iterator, typename SA::start::attribute_type, de
 	// expression
 	qi::rule<Iterator, typename SA::right_to_left_binary_op_vec::attribute_type, detail::WhiteSpace<Iterator>, typename SA::right_to_left_binary_op_vec::local_type> expression;
 	qi::rule<Iterator, typename SA::primary_expression::attribute_type,          detail::WhiteSpace<Iterator>, typename SA::primary_expression::local_type>          primary_expression;
-	qi::rule<Iterator, typename SA::lambda_expression::attribute_type,           detail::WhiteSpace<Iterator>, typename SA::lambda_expression::local_type>           lambda_expression;
 	qi::rule<Iterator, typename SA::postfix_expression::attribute_type,          detail::WhiteSpace<Iterator>, typename SA::postfix_expression::local_type>          postfix_expression;
 	qi::rule<Iterator, typename SA::prefix_expression::attribute_type,           detail::WhiteSpace<Iterator>, typename SA::prefix_expression::local_type>           prefix_expression;
 	qi::rule<Iterator, typename SA::left_to_right_binary_op_vec::attribute_type, detail::WhiteSpace<Iterator>, typename SA::left_to_right_binary_op_vec::local_type> multiplicative_expression;

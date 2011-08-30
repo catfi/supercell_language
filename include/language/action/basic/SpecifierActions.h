@@ -69,7 +69,15 @@ struct type_specifier
 	{
 		printf("type_specifier::init_function_type attr(0) type = %s\n", typeid(_attr_t(0)).name());
 		printf("type_specifier::init_function_type attr(1) type = %s\n", typeid(_attr_t(1)).name());
-//		_value = new TypeSpecifier(new FunctionType());
+		typedef std::vector<TypeSpecifier*> type_list_specifier_t;
+		type_list_specifier_t* parameters = _attr(0).is_initialized() ? &*_attr(0) : NULL;
+		TypeSpecifier*         type       = _attr(1).is_initialized() ? *_attr(1) : NULL;
+		FunctionType* function_type = new FunctionType();
+		if(!!parameters)
+			for(type_list_specifier_t::iterator i = parameters->begin(); i != parameters->end(); i++)
+				function_type->appendParameterType(*i);
+//		function_type->setReturnType(type);
+		_value = new TypeSpecifier(function_type);
 	}
 	END_ACTION
 
