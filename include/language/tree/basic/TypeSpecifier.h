@@ -165,10 +165,10 @@ struct TypeSpecifier : public ASTNode
 		referred.typedef_decl = typedef_decl;
 	}
 
-	void update(FunctionType* function_proto)
+	void update(FunctionType* function_type)
 	{
 		type = ReferredType::FUNCTION_TYPE;
-		referred.function_type = function_proto;
+		referred.function_type = function_type;
 	}
 
 	void update(PrimitiveType::type primitive)
