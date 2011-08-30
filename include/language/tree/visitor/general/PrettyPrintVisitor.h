@@ -273,6 +273,9 @@ struct PrettyPrintVisitor : Visitor<const ASTNode, void>
 	{
 		STREAM << L"<class_decl name=\"" << node.name->toString() << L"\">" << std::endl;
 		{
+			printAnnotation(node.annotations);
+		}
+		{
 			increaseIdent();
 			foreach(i, node.member_functions)
 			{
@@ -294,6 +297,9 @@ struct PrettyPrintVisitor : Visitor<const ASTNode, void>
 	void print(const EnumDecl& node)
 	{
 		STREAM << L"<enum_decl name=\"" << node.name->toString() << L"\">" << std::endl;
+		{
+			printAnnotation(node.annotations);
+		}
 		{
 			increaseIdent();
 			foreach(i, node.enumeration_list)
@@ -323,6 +329,9 @@ struct PrettyPrintVisitor : Visitor<const ASTNode, void>
 				L"visibility=\"" << Declaration::VisibilitySpecifier::toString(node.visibility) << L"\" " <<
 				L"storage=\"" << Declaration::StorageSpecifier::toString(node.storage) << L"\"" <<
 				L">" << std::endl;
+		{
+			printAnnotation(node.annotations);
+		}
 		{
 			increaseIdent();
 			{
@@ -357,6 +366,9 @@ struct PrettyPrintVisitor : Visitor<const ASTNode, void>
 	{
 		STREAM << L"<interface_decl name=\"" << node.name->toString() << L"\">" << std::endl;
 		{
+			printAnnotation(node.annotations);
+		}
+		{
 			increaseIdent();
 			foreach(i, node.member_functions)
 			{
@@ -375,7 +387,9 @@ struct PrettyPrintVisitor : Visitor<const ASTNode, void>
 				L"is_member=\"" << (node.is_member ? L"true" : L"false") << L"\" " <<
 				L"visibility=\"" << Declaration::VisibilitySpecifier::toString(node.visibility) << L"\" " <<
 				L"storage=\"" << Declaration::StorageSpecifier::toString(node.storage) << L"\">" << std::endl;
-
+		{
+			printAnnotation(node.annotations);
+		}
 		if(node.initializer)
 		{
 			STREAM << L"<initializer>" << std::endl;
@@ -402,6 +416,9 @@ struct PrettyPrintVisitor : Visitor<const ASTNode, void>
 	{
 		STREAM << L"<declarative_stmt>" << std::endl;
 		{
+			printAnnotation(node.annotations);
+		}
+		{
 			increaseIdent();
 			visit(*node.declaration);
 			decreaseIdent();
@@ -413,6 +430,9 @@ struct PrettyPrintVisitor : Visitor<const ASTNode, void>
 	{
 		STREAM << L"<expression_stmt>" << std::endl;
 		{
+			printAnnotation(node.annotations);
+		}
+		{
 			increaseIdent();
 			visit(*node.expr);
 			decreaseIdent();
@@ -423,6 +443,9 @@ struct PrettyPrintVisitor : Visitor<const ASTNode, void>
 	void print(const ForeachStmt& node)
 	{
 		STREAM << L"<foreach_stmt>" << std::endl;
+		{
+			printAnnotation(node.annotations);
+		}
 		{
 			increaseIdent();
 			if(node.iterator)
@@ -476,6 +499,9 @@ struct PrettyPrintVisitor : Visitor<const ASTNode, void>
 	{
 		STREAM << L"<while_stmt type=\"" << WhileStmt::Style::toString(node.style) << "\">" << std::endl;
 		{
+			printAnnotation(node.annotations);
+		}
+		{
 			increaseIdent();
 			if(node.cond)
 			{
@@ -513,6 +539,9 @@ struct PrettyPrintVisitor : Visitor<const ASTNode, void>
 	void print(const IfElseStmt& node)
 	{
 		STREAM << L"<ifelse_stmt>" << std::endl;
+		{
+			printAnnotation(node.annotations);
+		}
 		{
 			increaseIdent();
 			{
@@ -596,6 +625,9 @@ struct PrettyPrintVisitor : Visitor<const ASTNode, void>
 	{
 		STREAM << L"<switch_stmt>" << std::endl;
 		{
+			printAnnotation(node.annotations);
+		}
+		{
 			increaseIdent();
 			{
 				STREAM << L"<node>" << std::endl;
@@ -646,6 +678,9 @@ struct PrettyPrintVisitor : Visitor<const ASTNode, void>
 		{
 			STREAM << L"<branch_stmt opcode=\"" << BranchStmt::OpCode::toString(node.opcode) << L"\"/>" << std::endl;
 			{
+				printAnnotation(node.annotations);
+			}
+			{
 				increaseIdent();
 				if(node.result)
 				{
@@ -667,7 +702,11 @@ struct PrettyPrintVisitor : Visitor<const ASTNode, void>
 		}
 		else
 		{
-			STREAM << L"<branch_stmt opcode=\"" << BranchStmt::OpCode::toString(node.opcode) << L"\"/>" << std::endl;
+			STREAM << L"<branch_stmt opcode=\"" << BranchStmt::OpCode::toString(node.opcode) << L"\">" << std::endl;
+			{
+				printAnnotation(node.annotations);
+			}
+			STREAM << L"</branch_stmt>" << std::endl;
 		}
 	}
 
@@ -677,6 +716,9 @@ struct PrettyPrintVisitor : Visitor<const ASTNode, void>
 	void print(const PrimaryExpr& node)
 	{
 		STREAM << L"<primary_expr type=\"" << PrimaryExpr::Catagory::toString(node.catagory) << L"\">" << std::endl;
+		{
+			printAnnotation(node.annotations);
+		}
 		{
 			increaseIdent();
 			switch(node.catagory)
@@ -694,6 +736,9 @@ struct PrettyPrintVisitor : Visitor<const ASTNode, void>
 	{
 		STREAM << L"<unary_expr opcode=\"" << UnaryExpr::OpCode::toString(node.opcode) << L"\">" << std::endl;
 		{
+			printAnnotation(node.annotations);
+		}
+		{
 			increaseIdent();
 			visit(*node.node);
 			decreaseIdent();
@@ -704,6 +749,9 @@ struct PrettyPrintVisitor : Visitor<const ASTNode, void>
 	void print(const BinaryExpr& node)
 	{
 		STREAM << L"<binary_expr opcode=\"" << BinaryExpr::OpCode::toString(node.opcode) << L"\">" << std::endl;
+		{
+			printAnnotation(node.annotations);
+		}
 		{
 			increaseIdent();
 			{
@@ -732,6 +780,9 @@ struct PrettyPrintVisitor : Visitor<const ASTNode, void>
 	void print(const TernaryExpr& node)
 	{
 		STREAM << L"<ternary_expr>" << std::endl;
+		{
+			printAnnotation(node.annotations);
+		}
 		{
 			increaseIdent();
 			{
@@ -770,6 +821,9 @@ struct PrettyPrintVisitor : Visitor<const ASTNode, void>
 	{
 		STREAM << L"<member_expr member=\"" << node.member->toString() << L"\">" << std::endl;
 		{
+			printAnnotation(node.annotations);
+		}
+		{
 			increaseIdent();
 			{
 				STREAM << L"<left_hand_side>" << std::endl;
@@ -788,6 +842,9 @@ struct PrettyPrintVisitor : Visitor<const ASTNode, void>
 	void print(const CallExpr& node)
 	{
 		STREAM << L"<call_expr>" << std::endl;
+		{
+			printAnnotation(node.annotations);
+		}
 		{
 			increaseIdent();
 			{
@@ -820,6 +877,9 @@ struct PrettyPrintVisitor : Visitor<const ASTNode, void>
 	{
 		STREAM << L"<cast_expr type=\"" << decodeType(node.type) << L"\">" << std::endl;
 		{
+			printAnnotation(node.annotations);
+		}
+		{
 			increaseIdent();
 			{
 				STREAM << L"<node>" << std::endl;
@@ -836,6 +896,50 @@ struct PrettyPrintVisitor : Visitor<const ASTNode, void>
 	}
 
 private:
+	void printAnnotation(Annotations* annotations)
+	{
+		if(annotations && annotations->annotation_list.size() > 0)
+		{
+			increaseIdent();
+			{
+				STREAM << L"<annotations>" << std::endl;
+				{
+					increaseIdent();
+					foreach(i, annotations->annotation_list)
+					{
+						STREAM << L"<annotation name=\"" << (*i)->name->toString() << L"\">" << std::endl;
+						{
+							increaseIdent();
+							foreach(j, (*i)->attribute_list)
+							{
+								STREAM << L"<key>" << std::endl;
+								{
+									increaseIdent();
+									visit(*j->first);
+									decreaseIdent();
+								}
+								STREAM << L"</key>" << std::endl;
+
+								STREAM << L"<value>" << std::endl;
+								{
+									increaseIdent();
+									visit(*j->second);
+									decreaseIdent();
+								}
+								STREAM << L"</value>" << std::endl;
+							}
+							decreaseIdent();
+						}
+						STREAM << L"</annotation>" << std::endl;
+					}
+					decreaseIdent();
+				}
+				STREAM << L"</annotations>" << std::endl;
+			}
+			decreaseIdent();
+		}
+	}
+
 	static std::wstring decodeType(ASTNode* type)
 	{
 		if(!type)

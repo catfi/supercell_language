@@ -28,7 +28,7 @@ namespace zillians { namespace language { namespace tree {
 struct Declaration : public ASTNode
 {
 	DEFINE_VISITABLE();
-	DEFINE_HIERARCHY(FunctionDecl, (Declaration)(ASTNode));
+	DEFINE_HIERARCHY(Declaration, (Declaration)(ASTNode));
 
 	struct StorageSpecifier
 	{
