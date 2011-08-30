@@ -31,27 +31,35 @@ struct program
 
 	BEGIN_ACTION(init)
 	{
-//		BOOST_MPL_ASSERT(( boost::is_same<_value_t, Program*&> ));
-		if(getParserContext().program)
-		{
-			_value = getParserContext().program;
-		}
-		else
-		{
-			_value = new Program();
-			getParserContext().program = _value;
-		}
+		printf("program attr(0) type = %s\n", typeid(_attr_t(0)).name());
+		/*_value =*/ getParserContext().program = new Program();
 	}
 	END_ACTION
 
-	BEGIN_ACTION(append_package_decl)
+	BEGIN_ACTION(append_package)
 	{
-		getParserContext().active_package = _attr(0);
+		printf("program::append_package_decl attr(0) type = %s\n", typeid(_attr_t(0)).name());
+		NestedIdentifier *nested_id = cast<NestedIdentifier>(_attr(0));
+		Package* last = getParserContext().program->root;
+		for(std::vector<Identifier*>::iterator id = nested_id->identifier_list.begin(); id != nested_id->identifier_list.end(); ++id)
+		{
+			Package *next = last->findPackage((*id)->toString());
+			if(!next)
+			{
+				next = new Package(cast<SimpleIdentifier>(*id));
+				last->addPackage(next);
+			}
+			last = next;
+		}
+		getParserContext().active_package = last;
 	}
 	END_ACTION
 
-	BEGIN_ACTION(append_import_decl)
+	BEGIN_ACTION(append_import)
 	{
+		printf("program::append_import_decl attr(0) type = %s\n", typeid(_attr_t(0)).name());
+		if(!!getParserContext().program)
+			getParserContext().program->addImport(new Import(_attr(0)));
 	}
 	END_ACTION
 
@@ -60,14 +68,6 @@ struct program
 		printf("program::append_declaration attr(0) type = %s\n", typeid(_attr_t(0)).name());
 		if(!!getParserContext().active_package)
 			getParserContext().active_package->addObject(_attr(0));
-	}
-	END_ACTION
-
-	BEGIN_ACTION(init2)
-	{
-		printf("program::init2 attr(0) type = %s\n", typeid(_attr_t(0)).name());
-		printf("program::init2 attr(1) type = %s\n", typeid(_attr_t(1)).name());
-		printf("program::init2 attr(2) type = %s\n", typeid(_attr_t(2)).name());
 	}
 	END_ACTION
 };

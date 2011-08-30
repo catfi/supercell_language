@@ -46,8 +46,6 @@
 #include "language/action/expression/ExpressionActions.h"
 
 // module
-#include "language/action/module/ImportActions.h"
-#include "language/action/module/PackageActions.h"
 #include "language/action/module/ProgramActions.h"
 
 // statement
@@ -110,9 +108,7 @@ struct ThorScriptTreeAction
 	typedef action::enum_decl                         enum_decl;
 
 	// module
-	typedef action::program      program;
-	typedef action::package_decl package_decl;
-	typedef action::import_decl  import_decl;
+	typedef action::program program;
 
 	// statement
 	typedef action::statement            statement;

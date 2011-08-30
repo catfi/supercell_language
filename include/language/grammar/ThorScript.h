@@ -795,22 +795,10 @@ struct ThorScript : qi::grammar<Iterator, typename SA::start::attribute_type, de
 		//
 
 		program
-			=	(qi::eps               [ typename SA::program::init() ]
-					>> -( package_decl [ typename SA::program::append_package_decl() ] )
-					>> *( import_decl  [ typename SA::program::append_import_decl() ] )
-					>> *( declaration  [ typename SA::program::append_declaration() ] )
-				) [ typename SA::program::init2() ]
-			;
-
-		package_decl
-			=	(PACKAGE
-					> nested_identifier
-					> SEMICOLON
-				) [ typename SA::package_decl::init() ]
-			;
-
-		import_decl
-			= (IMPORT > nested_identifier > SEMICOLON) [ typename SA::import_decl::init() ]
+			= qi::eps                                           [ typename SA::program::init() ]
+				>> -( (PACKAGE > nested_identifier > SEMICOLON) [ typename SA::program::append_package() ] )
+				>> *( (IMPORT > nested_identifier > SEMICOLON)  [ typename SA::program::append_import() ] )
+				>> *( declaration                               [ typename SA::program::append_declaration() ] )
 			;
 
 		//
@@ -869,7 +857,7 @@ struct ThorScript : qi::grammar<Iterator, typename SA::start::attribute_type, de
 			class_decl.name("class_decl"); class_member_decl.name("class_member_decl");
 			interface_decl.name("interface_decl"); member_function_decl_without_body.name("member_function_decl_without_body");
 			enum_decl.name("enum_decl");
-		program.name("program"); package_decl.name("package_decl"); import_decl.name("import_decl");
+		program.name("program");
 		start.name("start");
 
 		if(getParserContext().enable_debug_parser)
@@ -920,7 +908,7 @@ struct ThorScript : qi::grammar<Iterator, typename SA::start::attribute_type, de
 				debug(class_decl); debug(class_member_decl);
 				debug(interface_decl); debug(member_function_decl_without_body);
 				debug(enum_decl);
-			debug(program); debug(package_decl); debug(import_decl);
+			debug(program);
 			debug(start);
 		}
 	}
@@ -1018,7 +1006,7 @@ struct ThorScript : qi::grammar<Iterator, typename SA::start::attribute_type, de
 		///////////////////////////////////////
 		///////////////////////////////////////
 		// BEGIN MODULE
-//		program, package_decl, import_decl;
+//		program,
 		// END MODULE
 		///////////////////////////////////////
 
@@ -1068,9 +1056,7 @@ struct ThorScript : qi::grammar<Iterator, typename SA::start::attribute_type, de
 	qi::rule<Iterator, typename SA::ternary_expression::attribute_type,          detail::WhiteSpace<Iterator>, typename SA::ternary_expression::local_type>          ternary_expression;
 
 	// module
-	qi::rule<Iterator, typename SA::program::attribute_type,      detail::WhiteSpace<Iterator>, typename SA::program::local_type>      program;
-	qi::rule<Iterator, typename SA::package_decl::attribute_type, detail::WhiteSpace<Iterator>, typename SA::package_decl::local_type> package_decl;
-	qi::rule<Iterator, typename SA::import_decl::attribute_type,  detail::WhiteSpace<Iterator>, typename SA::import_decl::local_type>  import_decl;
+	qi::rule<Iterator, typename SA::program::attribute_type, detail::WhiteSpace<Iterator>, typename SA::program::local_type> program;
 
 	// statement
 	qi::rule<Iterator, typename SA::statement::attribute_type,            detail::WhiteSpace<Iterator>, typename SA::statement::local_type>            statement;
