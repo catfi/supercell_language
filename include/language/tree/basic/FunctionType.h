@@ -68,6 +68,9 @@ struct FunctionType: public ASTNode
 //		}
 //	};
 
+	FunctionType() : return_type(NULL)
+	{ }
+
 	void appendTemplateParameter(Identifier* parameter)
 	{
 		//parameter->parent = this;
@@ -80,8 +83,14 @@ struct FunctionType: public ASTNode
 		argument_types.push_back(type);
 	}
 
+	void setReturnType(TypeSpecifier* type)
+	{
+		return_type = type;
+	}
+
 	std::vector<Identifier*> templated_parameters;
 	std::vector<TypeSpecifier*> argument_types;
+	TypeSpecifier* return_type;
 };
 
 } } }
