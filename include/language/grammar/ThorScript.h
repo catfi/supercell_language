@@ -435,8 +435,8 @@ struct ThorScript : qi::grammar<Iterator, typename SA::start::attribute_type, de
 			;
 
 		annotation_specifiers
-			= qi::eps                  [ typename SA::annotation_specifiers::init() ]
-			>> *( annotation_specifier [ typename SA::annotation_specifiers::append_annotation() ] )
+			= qi::eps                      [ typename SA::annotation_specifiers::init() ]
+				>> *( annotation_specifier [ typename SA::annotation_specifiers::append_annotation() ] )
 			;
 
 		annotation_specifier

@@ -133,6 +133,8 @@ struct lambda_expression
 	BEGIN_ACTION(init)
 	{
 		printf("lambda_expression attr(0) type = %s\n", typeid(_attr_t(0)).name());
+		printf("lambda_expression attr(1) type = %s\n", typeid(_attr_t(1)).name());
+		printf("lambda_expression attr(2) type = %s\n", typeid(_attr_t(2)).name());
 //		_value = new FunctionDecl(_attr(0));
 	}
 	END_ACTION
