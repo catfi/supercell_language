@@ -339,9 +339,15 @@ struct PrettyPrintVisitor : Visitor<const ASTNode, void>
 				if(i->second)
 				{
 					increaseIdent();
-					STREAM << L"<value>" << std::endl;
-					visit(*i->second);
-					STREAM << L"</value>" << std::endl;
+					{
+						STREAM << L"<value>" << std::endl;
+						{
+							increaseIdent();
+							visit(*i->second);
+							decreaseIdent();
+						}
+						STREAM << L"</value>" << std::endl;
+					}
 					decreaseIdent();
 				}
 				STREAM << L"</enumeration>" << std::endl;
