@@ -219,13 +219,16 @@ struct interface_decl
 	{
 		printf("interface_decl attr(0) type = %s\n", typeid(_attr_t(0)).name());
 		printf("interface_decl attr(1) type = %s\n", typeid(_attr_t(1)).name());
+		_value = new InterfaceDecl(_attr(0));
+		deduced_foreach_value(i, _attr(1))
+			cast<InterfaceDecl>(_value)->addFunction(i);
 	}
 	END_ACTION
 };
 
 struct interface_member_function_decl
 {
-	DEFINE_ATTRIBUTES(Declaration*)
+	DEFINE_ATTRIBUTES(FunctionDecl*)
 	DEFINE_LOCALS()
 
 	BEGIN_ACTION(init)
@@ -233,6 +236,15 @@ struct interface_member_function_decl
 		printf("interface_member_function_decl attr(0) type = %s\n", typeid(_attr_t(0)).name());
 		printf("interface_member_function_decl attr(1) type = %s\n", typeid(_attr_t(1)).name());
 		printf("interface_member_function_decl attr(2) type = %s\n", typeid(_attr_t(2)).name());
+		printf("interface_member_function_decl attr(3) type = %s\n", typeid(_attr_t(3)).name());
+		Declaration::VisibilitySpecifier::type visibility = _attr(0).is_initialized() ? *_attr(0) : Declaration::VisibilitySpecifier::DEFAULT;
+		typed_parameter_list::value_t*         parameters = _attr(2).is_initialized() ? (*_attr(2)).get() : NULL;
+		Declaration::StorageSpecifier::type    storage    = Declaration::StorageSpecifier::NONE;
+		bool                                   is_member  = false;
+		_value = new FunctionDecl(_attr(1), _attr(3), is_member, visibility, storage, NULL);
+		if(!!parameters)
+			deduced_foreach_value(i, *parameters)
+				_value->appendParameter(i.first, i.second);
 	}
 	END_ACTION
 };
