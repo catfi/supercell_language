@@ -36,16 +36,14 @@ struct statement
 		switch(_attr(1).which())
 		{
 		case 0:
-		{
-			Declaration* decl = boost::get<Declaration*>(_attr(1));
-			_value = new DeclarativeStmt(decl);
+			{
+				Declaration* decl = boost::get<Declaration*>(_attr(1));
+				_value = new DeclarativeStmt(decl);
+			}
 			break;
-		}
 		case 1:
-		{
 			_value = boost::get<Statement*>(_attr(1));
 			break;
-		}
 		}
 		if(_attr(0).is_initialized())
 			cast<Statement>(_value)->setAnnotation(*_attr(0));
@@ -105,26 +103,28 @@ struct selection_statement
 		printf("selection_statement::init_switch_statement attr(1) type = %s\n", typeid(_attr_t(1)).name());
 		_value = new SwitchStmt(_attr(0));
 		deduced_foreach_value(i, _attr(1))
-		{
 			switch(i.which())
 			{
 			case 0:
 				{
-					typedef boost::fusion::vector2<Expression*, ASTNode*> fusion_vec_t;
+					typedef boost::fusion::vector2<Expression*, std::vector<ASTNode*>> fusion_vec_t;
 					fusion_vec_t &vec = boost::get<fusion_vec_t>(i);
-					Expression* cond  = boost::fusion::at_c<0>(vec);
-					ASTNode*    block = boost::fusion::at_c<1>(vec);
+					Expression*            cond      = boost::fusion::at_c<0>(vec);
+					std::vector<ASTNode*> &block_vec = boost::fusion::at_c<1>(vec);
+					Block* block = new Block();
+					block->appendObjects(block_vec);
 					cast<SwitchStmt>(_value)->addCase(Selection(cond, block));
 				}
 				break;
 			case 1:
 				{
-					ASTNode* block = boost::get<ASTNode*>(i);
+					std::vector<ASTNode*> &block_vec = boost::get<std::vector<ASTNode*>>(i);
+					Block* block = new Block();
+					block->appendObjects(block_vec);
 					cast<SwitchStmt>(_value)->setDefaultCase(block);
 				}
 				break;
 			}
-		}
 	}
 	END_ACTION
 };

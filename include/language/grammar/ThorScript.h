@@ -435,8 +435,8 @@ struct ThorScript : qi::grammar<Iterator, typename SA::start::attribute_type, de
 			;
 
 		interface_visibility_specifier
-			= PROTECTED [ typename SA::visibility_specifier::init_protected() ]
-			| PRIVATE   [ typename SA::visibility_specifier::init_private() ]
+			= PUBLIC    [ typename SA::visibility_specifier::init_public() ]
+			| PROTECTED [ typename SA::visibility_specifier::init_protected() ]
 			;
 
 		annotation_specifiers
@@ -684,8 +684,8 @@ struct ThorScript : qi::grammar<Iterator, typename SA::start::attribute_type, de
 					) [ typename SA::selection_statement::init_if_statement() ]
 				|	(SWITCH > LEFT_PAREN > expression > RIGHT_PAREN
 						> LEFT_BRACE
-						>	*( CASE > expression > COLON > statement
-							| DEFAULT > COLON > statement
+						>	*( CASE > expression > COLON > *statement
+							| DEFAULT > COLON > *statement
 							)
 						> RIGHT_BRACE
 					) [ typename SA::selection_statement::init_switch_statement() ]
