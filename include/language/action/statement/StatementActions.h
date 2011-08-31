@@ -46,7 +46,7 @@ struct statement
 			break;
 		}
 		if(_attr(0).is_initialized())
-			dynamic_cast<Statement*>(_value)->setAnnotation(*_attr(0));
+			cast<Statement>(_value)->setAnnotation(*_attr(0));
 	}
 	END_ACTION
 
@@ -90,10 +90,10 @@ struct selection_statement
 		{
 			Expression* cond = boost::fusion::at_c<0>(*i);
 			ASTNode* block = boost::fusion::at_c<1>(*i);
-			dynamic_cast<IfElseStmt*>(_value)->addElseIfBranch(Selection(cond, block));
+			cast<IfElseStmt>(_value)->addElseIfBranch(Selection(cond, block));
 		}
 		if(_attr(3).is_initialized())
-			dynamic_cast<IfElseStmt*>(_value)->setElseBranch(*_attr(3));
+			cast<IfElseStmt>(_value)->setElseBranch(*_attr(3));
 	}
 	END_ACTION
 
@@ -111,13 +111,13 @@ struct selection_statement
 					fusion_vec_t &vec = boost::get<fusion_vec_t>(*i);
 					Expression* cond = boost::fusion::at_c<0>(vec);
 					ASTNode* block = boost::fusion::at_c<1>(vec);
-					dynamic_cast<SwitchStmt*>(_value)->addCase(Selection(cond, block));
+					cast<SwitchStmt>(_value)->addCase(Selection(cond, block));
 				}
 				break;
 			case 1:
 				{
 					ASTNode* block = boost::get<ASTNode*>(*i);
-					dynamic_cast<SwitchStmt*>(_value)->setDefaultCase(block);
+					cast<SwitchStmt>(_value)->setDefaultCase(block);
 				}
 				break;
 			}

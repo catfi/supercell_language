@@ -52,7 +52,7 @@ struct const_variable_decl
 		printf("const_variable_decl attr(1) type = %s\n", typeid(_attr_t(1)).name());
 		_value = _attr(1);
 		if(_attr(0).is_initialized())
-			dynamic_cast<VariableDecl*>(_value)->storage = Declaration::StorageSpecifier::CONST;
+			cast<VariableDecl>(_value)->storage = Declaration::StorageSpecifier::CONST;
 	}
 	END_ACTION
 };
@@ -68,7 +68,7 @@ struct variable_decl
 		printf("variable_decl attr(1) type = %s\n", typeid(_attr_t(1)).name());
 		_value = _attr(0);
 		ASTNode* initializer = _attr(1).is_initialized() ? *_attr(1) : NULL;
-		dynamic_cast<VariableDecl*>(_value)->initializer = initializer;
+		cast<VariableDecl>(_value)->initializer = initializer;
 	}
 	END_ACTION
 };
@@ -125,7 +125,7 @@ struct function_decl
 		_value = new FunctionDecl(name, type, is_member, visibility, storage, block);
 		if(!!parameters)
 			for(typed_parameter_list::value_t::iterator i = parameters->begin(); i != parameters->end(); i++)
-				dynamic_cast<FunctionDecl*>(_value)->appendParameter((*i).first, (*i).second);
+				cast<FunctionDecl>(_value)->appendParameter((*i).first, (*i).second);
 	}
 	END_ACTION
 };
@@ -159,21 +159,21 @@ struct class_decl
 		TypeSpecifier* extends_from = _attr(1).is_initialized() ? new TypeSpecifier(*_attr(1)) : NULL;
 		_value = new ClassDecl(name);
 		if(!!extends_from)
-			dynamic_cast<ClassDecl*>(_value)->setBase(extends_from);
+			cast<ClassDecl>(_value)->setBase(extends_from);
 		if(_attr(2).is_initialized())
 			foreach(i, *_attr(2))
-				dynamic_cast<ClassDecl*>(_value)->addInterface(new TypeSpecifier(*i));
+				cast<ClassDecl>(_value)->addInterface(new TypeSpecifier(*i));
 		foreach(i, _attr(3))
 		{
 			if(isa<VariableDecl>(*i))
 			{
-				dynamic_cast<ClassDecl*>(_value)->addVariable(dynamic_cast<VariableDecl*>(*i));
-				dynamic_cast<VariableDecl*>(*i)->is_member = true;
+				cast<ClassDecl>(_value)->addVariable(cast<VariableDecl>(*i));
+				cast<VariableDecl>(*i)->is_member = true;
 			}
 			else if(isa<FunctionDecl>(*i))
 			{
-				dynamic_cast<ClassDecl*>(_value)->addFunction(dynamic_cast<FunctionDecl*>(*i));
-				dynamic_cast<FunctionDecl*>(*i)->is_member = true;
+				cast<ClassDecl>(_value)->addFunction(cast<FunctionDecl>(*i));
+				cast<FunctionDecl>(*i)->is_member = true;
 			}
 		}
 	}
@@ -195,16 +195,16 @@ struct class_member_decl
 		Declaration::VisibilitySpecifier::type visibility  = _attr(1).is_initialized() ? *_attr(1) : Declaration::VisibilitySpecifier::DEFAULT;
 		Declaration::StorageSpecifier::type    storage     = _attr(2).is_initialized() ? *_attr(2) : Declaration::StorageSpecifier::NONE;
 		_value = _attr(3);
-		dynamic_cast<Declaration*>(_value)->setAnnotation(annotations);
+		cast<Declaration>(_value)->setAnnotation(annotations);
 		if(isa<VariableDecl>(_value))
 		{
-			dynamic_cast<VariableDecl*>(_value)->visibility = visibility;
-			dynamic_cast<VariableDecl*>(_value)->storage = storage;
+			cast<VariableDecl>(_value)->visibility = visibility;
+			cast<VariableDecl>(_value)->storage = storage;
 		}
 		else if(isa<FunctionDecl>(_value))
 		{
-			dynamic_cast<FunctionDecl*>(_value)->visibility = visibility;
-			dynamic_cast<FunctionDecl*>(_value)->storage = storage;
+			cast<FunctionDecl>(_value)->visibility = visibility;
+			cast<FunctionDecl>(_value)->storage = storage;
 		}
 	}
 	END_ACTION
@@ -218,6 +218,7 @@ struct interface_decl
 	BEGIN_ACTION(init)
 	{
 		printf("interface_decl attr(0) type = %s\n", typeid(_attr_t(0)).name());
+		printf("interface_decl attr(1) type = %s\n", typeid(_attr_t(1)).name());
 	}
 	END_ACTION
 };
@@ -230,6 +231,8 @@ struct member_function_decl_without_body
 	BEGIN_ACTION(init)
 	{
 		printf("member_function_decl_without_body attr(0) type = %s\n", typeid(_attr_t(0)).name());
+		printf("member_function_decl_without_body attr(1) type = %s\n", typeid(_attr_t(1)).name());
+		printf("member_function_decl_without_body attr(2) type = %s\n", typeid(_attr_t(2)).name());
 	}
 	END_ACTION
 };
@@ -251,7 +254,7 @@ struct enum_decl
 			boost::optional<Expression*>  &optional_value       = boost::fusion::at_c<2>(*i);
 			Annotations* annotations = optional_annotations.is_initialized() ? *optional_annotations : NULL;
 			Expression* value = optional_value.is_initialized() ? *optional_value : NULL;
-			dynamic_cast<EnumDecl*>(_value)->addEnumeration(tag, value);
+			cast<EnumDecl>(_value)->addEnumeration(tag, value);
 		}
 	}
 	END_ACTION
