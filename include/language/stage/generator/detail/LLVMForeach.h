@@ -26,42 +26,68 @@
 #include "llvm/Module.h"
 #include "llvm/Metadata.h"
 
-static inline llvm::Function::iterator beginof (llvm::Function& m) { return m.begin(); }
-static inline llvm::Function::iterator endof (llvm::Function& m)   { return m.end(); }
+namespace zillians {
 
-static inline llvm::Function::const_iterator beginof (const llvm::Function& m) { return m.begin(); }
-static inline llvm::Function::const_iterator endof (const llvm::Function& m)   { return m.end(); }
+template<>
+struct foreach_trait<llvm::Function>
+{
+	typedef llvm::Function container_type;
+	typedef container_type::iterator iterator_type;
+	typedef container_type::const_iterator const_iterator_type;
 
-static inline llvm::Function::iterator beginof (llvm::Function*& m) { return m->begin(); }
-static inline llvm::Function::iterator endof (llvm::Function*& m)   { return m->end(); }
+	static inline iterator_type beginof(container_type& a)
+	{ return a.begin(); }
 
-static inline llvm::Function::const_iterator beginof (const llvm::Function*& m) { return m->begin(); }
-static inline llvm::Function::const_iterator endof (const llvm::Function*& m)   { return m->end(); }
+	static inline iterator_type endof(container_type& a)
+	{ return a.end(); }
 
+	static inline const_iterator_type beginof(const container_type& a)
+	{ return a.begin(); }
 
-static inline llvm::BasicBlock::iterator beginof (llvm::BasicBlock& m) { return m.begin(); }
-static inline llvm::BasicBlock::iterator endof (llvm::BasicBlock& m)   { return m.end(); }
+	static inline const_iterator_type endof(const container_type& a)
+	{ return a.end(); }
+};
 
-static inline llvm::BasicBlock::const_iterator beginof (const llvm::BasicBlock& m) { return m.begin(); }
-static inline llvm::BasicBlock::const_iterator endof (const llvm::BasicBlock& m)   { return m.end(); }
+template<>
+struct foreach_trait<llvm::BasicBlock>
+{
+	typedef llvm::BasicBlock container_type;
+	typedef container_type::iterator iterator_type;
+	typedef container_type::const_iterator const_iterator_type;
 
-static inline llvm::BasicBlock::iterator beginof (llvm::BasicBlock*& m) { return m->begin(); }
-static inline llvm::BasicBlock::iterator endof (llvm::BasicBlock*& m)   { return m->end(); }
+	static inline iterator_type beginof(container_type& a)
+	{ return a.begin(); }
 
-static inline llvm::BasicBlock::const_iterator beginof (const llvm::BasicBlock*& m) { return m->begin(); }
-static inline llvm::BasicBlock::const_iterator endof (const llvm::BasicBlock*& m)   { return m->end(); }
+	static inline iterator_type endof(container_type& a)
+	{ return a.end(); }
 
+	static inline const_iterator_type beginof(const container_type& a)
+	{ return a.begin(); }
 
-static inline llvm::Module::iterator beginof (llvm::Module& m) { return m.begin(); }
-static inline llvm::Module::iterator endof (llvm::Module& m)   { return m.end(); }
+	static inline const_iterator_type endof(const container_type& a)
+	{ return a.end(); }
+};
 
-static inline llvm::Module::const_iterator beginof (const llvm::Module& m) { return m.begin(); }
-static inline llvm::Module::const_iterator endof (const llvm::Module& m)   { return m.end(); }
+template<>
+struct foreach_trait<llvm::Module>
+{
+	typedef llvm::Module container_type;
+	typedef container_type::iterator iterator_type;
+	typedef container_type::const_iterator const_iterator_type;
 
-static inline llvm::Module::iterator beginof (llvm::Module*& m) { return m->begin(); }
-static inline llvm::Module::iterator endof (llvm::Module*& m)   { return m->end(); }
+	static inline iterator_type beginof(container_type& a)
+	{ return a.begin(); }
 
-static inline llvm::Module::const_iterator beginof (const llvm::Module*& m) { return m->begin(); }
-static inline llvm::Module::const_iterator endof (const llvm::Module*& m)   { return m->end(); }
+	static inline iterator_type endof(container_type& a)
+	{ return a.end(); }
+
+	static inline const_iterator_type beginof(const container_type& a)
+	{ return a.begin(); }
+
+	static inline const_iterator_type endof(const container_type& a)
+	{ return a.end(); }
+};
+
+}
 
 #endif /* ZILLIANS_LANGUAGE_STAGE_GENERATOR_LLVMFOREACH_H_ */

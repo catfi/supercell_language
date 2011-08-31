@@ -36,14 +36,16 @@ struct statement
 		switch(_attr(1).which())
 		{
 		case 0:
-			{
-				Declaration* decl = boost::get<Declaration*>(_attr(1));
-				_value = new DeclarativeStmt(decl);
-			}
+		{
+			Declaration* decl = boost::get<Declaration*>(_attr(1));
+			_value = new DeclarativeStmt(decl);
 			break;
+		}
 		case 1:
+		{
 			_value = boost::get<Statement*>(_attr(1));
 			break;
+		}
 		}
 		if(_attr(0).is_initialized())
 			cast<Statement>(_value)->setAnnotation(*_attr(0));
@@ -86,7 +88,7 @@ struct selection_statement
 		Expression* cond = _attr(0);
 		ASTNode* block = _attr(1);
 		_value = new IfElseStmt(Selection(cond, block));
-		BOOST_FOREACH(auto i, (_attr(2)))
+		deduced_foreach_value(i, _attr(2))
 		{
 			Expression* cond  = boost::fusion::at_c<0>(i);
 			ASTNode*    block = boost::fusion::at_c<1>(i);
@@ -102,7 +104,8 @@ struct selection_statement
 		printf("selection_statement::init_switch_statement attr(0) type = %s\n", typeid(_attr_t(0)).name());
 		printf("selection_statement::init_switch_statement attr(1) type = %s\n", typeid(_attr_t(1)).name());
 		_value = new SwitchStmt(_attr(0));
-		BOOST_FOREACH(auto i, (_attr(1)))
+		deduced_foreach_value(i, _attr(1))
+		{
 			switch(i.which())
 			{
 			case 0:
@@ -121,6 +124,7 @@ struct selection_statement
 				}
 				break;
 			}
+		}
 	}
 	END_ACTION
 };

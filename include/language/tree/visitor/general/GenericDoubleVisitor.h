@@ -73,13 +73,13 @@ struct GenericDoubleVisitor : Visitor<ASTNode, void, VisitorImplementation::recu
 
 		void apply(SimpleIdentifier& node)
 		{
-			if(node.resolved) user_visitor->visit(*node.resolved);
+//			if(node.resolved) user_visitor->visit(*node.resolved);
 		}
 
 		void apply(NestedIdentifier& node)
 		{
 			foreach(i, node.identifier_list)	user_visitor->visit(**i);
-			if(node.resolved) user_visitor->visit(*node.resolved);
+//			if(node.resolved) user_visitor->visit(*node.resolved);
 		}
 
 		void apply(TemplatedIdentifier& node)
@@ -88,7 +88,7 @@ struct GenericDoubleVisitor : Visitor<ASTNode, void, VisitorImplementation::recu
 
 			foreach(i, node.templated_type_list)	user_visitor->visit(**i);
 
-			if(node.resolved) user_visitor->visit(*node.resolved);
+//			if(node.resolved) user_visitor->visit(*node.resolved);
 		}
 
 		void apply(TypeSpecifier& node)
@@ -178,7 +178,7 @@ struct GenericDoubleVisitor : Visitor<ASTNode, void, VisitorImplementation::recu
 		{
 			if(node.name) user_visitor->visit(*node.name);
 			foreach(i, node.member_functions)
-			user_visitor->visit(**i);
+				user_visitor->visit(**i);
 
 			if(node.annotations) user_visitor->visit(*node.annotations);
 		}

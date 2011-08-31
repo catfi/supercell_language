@@ -65,6 +65,9 @@ bool LLVMGeneratorStage::parseOptions(po::variables_map& vm)
 
 bool LLVMGeneratorStage::execute()
 {
+	// TODO remove this
+	return true;
+
 	if(!enabled)
 		return true;
 

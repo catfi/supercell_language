@@ -48,7 +48,7 @@ struct nested_identifier
 		printf("nested_identifier attr(1) type = %s\n", typeid(_attr_t(1)).name());
 		_value = new NestedIdentifier();
 		cast<NestedIdentifier>(_value)->appendIdentifier(_attr(0));
-		BOOST_FOREACH(auto i, (_attr(1)))
+		deduced_foreach_value(i, _attr(1))
 			cast<NestedIdentifier>(_value)->appendIdentifier(i);
 	}
 	END_ACTION
@@ -65,9 +65,8 @@ struct template_arg_identifier
 		printf("template_arg_identifier attr(1) type = %s\n", typeid(_attr_t(1)).name());
 		if(_attr(1).is_initialized())
 		{
-			std::vector<TypeSpecifier*> &vec = *_attr(1);
 			_value =  new TemplatedIdentifier(TemplatedIdentifier::Usage::ACTUAL_ARGUMENT, _attr(0));
-			BOOST_FOREACH(auto i, vec)
+			deduced_foreach_value(i, *_attr(1))
 				cast<TemplatedIdentifier>(_value)->appendArgument(i);
 		}
 		else
@@ -88,7 +87,8 @@ struct template_param_identifier
 		if(_attr(1).is_initialized())
 		{
 			_value =  new TemplatedIdentifier(TemplatedIdentifier::Usage::FORMAL_PARAMETER, _attr(0));
-			BOOST_FOREACH(auto i, *(_attr(1)))
+			deduced_foreach_value(i, *(_attr(1)))
+			{
 				switch(i.which())
 				{
 				case 0:
@@ -98,6 +98,7 @@ struct template_param_identifier
 					cast<TemplatedIdentifier>(_value)->appendParameter(new SimpleIdentifier(L"..."));
 					break;
 				}
+			}
 		}
 		else
 			_value = _attr(0);

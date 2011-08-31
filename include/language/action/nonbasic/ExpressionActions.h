@@ -26,11 +26,11 @@
 #define LEFT_TO_RIGHT(op_code) \
 	{ \
 		if(_attr(0).size() == 1) \
-			_value = *beginof(_attr(0)); \
+			_value = *make_deduced_begin(_attr(0)); \
 		else { \
 			Expression* left = NULL; \
-			foreach(i, _attr(0)) \
-				left = (i == beginof(_attr(0))) ? *i : new BinaryExpr(op_code, left, *i); \
+			deduced_foreach(i, _attr(0)) \
+				left = (is_begin_of_deduced_foreach(i, _attr(0))) ? *i : new BinaryExpr(op_code, left, *i); \
 			_value = left; \
 		} \
 	}
@@ -39,11 +39,11 @@
 #define RIGHT_TO_LEFT(op_code) \
 	{ \
 		if(_attr(0).size() == 1) \
-			_value = *r_beginof(_attr(0)); \
+			_value = *make_deduced_reverse_begin(_attr(0)); \
 		else { \
 			Expression* right = NULL; \
-			r_foreach(i, _attr(0)) \
-				right = (i == r_beginof(_attr(0))) ? *i : new BinaryExpr(op_code, *i, right); \
+			deduced_reverse_foreach(i, _attr(0)) \
+				right = (is_begin_of_deduced_reverse_foreach(i, _attr(0))) ? *i : new BinaryExpr(op_code, *i, right); \
 			_value = right; \
 		} \
 	}
@@ -52,12 +52,12 @@
 #define LEFT_TO_RIGHT_VEC(op_code_vec) \
 	{ \
 		if(_attr(0).size() == 1) \
-			_value = *beginof(_attr(0)); \
+			_value = *make_deduced_begin(_attr(0)); \
 		else { \
 			Expression* left = NULL; \
-			decltype(beginof(op_code_vec)) j = beginof(op_code_vec); \
-			foreach(i, _attr(0)) { \
-				if(i == beginof(_attr(0))) { \
+			auto j = make_deduced_begin(op_code_vec); \
+			deduced_foreach(i, _attr(0)) { \
+				if(is_begin_of_deduced_foreach(i, _attr(0))) { \
 					left = *i; \
 					continue; \
 				} \
@@ -71,12 +71,12 @@
 #define RIGHT_TO_LEFT_VEC(op_code_vec) \
 	{ \
 		if(_attr(0).size() == 1) \
-			_value = *r_beginof(_attr(0)); \
+			_value = *make_deduced_reverse_begin(_attr(0)); \
 		else { \
 			Expression* right = NULL; \
-			decltype(r_beginof(op_code_vec)) j = r_beginof(op_code_vec); \
-			r_foreach(i, _attr(0)) { \
-				if(i == r_beginof(_attr(0))) { \
+			auto j = make_deduced_reverse_begin(op_code_vec); \
+			deduced_reverse_foreach(i, _attr(0)) { \
+				if(is_begin_of_deduced_reverse_foreach(i, _attr(0))) { \
 					right = *i; \
 					continue; \
 				} \
@@ -136,7 +136,7 @@ struct primary_expression
 		bool                                   is_member  = false;
 		FunctionDecl* function_decl = new FunctionDecl(NULL, type, is_member, visibility, storage, _attr(2));
 		if(!!parameters)
-			BOOST_FOREACH(auto i, *parameters)
+			deduced_foreach_value(i, *parameters)
 				function_decl->appendParameter(i.first, i.second);
 		_value = new PrimaryExpr(function_decl);
 	}
@@ -167,7 +167,7 @@ struct postfix_expression
 		printf("postfix_expression::init_postfix_call attr(0) type = %s\n", typeid(_attr_t(0)).name());
 		CallExpr* call_expr = new CallExpr(_value);
 		if(_attr(0).is_initialized())
-			BOOST_FOREACH(auto i, *(_attr(0)))
+			deduced_foreach_value(i, *_attr(0))
 				call_expr->appendParameter(i);
 		_value = call_expr;
 	}

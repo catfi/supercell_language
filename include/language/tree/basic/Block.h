@@ -44,7 +44,7 @@ struct Block : public ASTNode
 	template<typename T>
 	void appendObjects(std::vector<T*>& object_list)
 	{
-		foreach(i, object_list)
+		deduced_foreach(i, object_list)
 		{
 			(*i)->parent = this;
 			objects.push_back(*i);

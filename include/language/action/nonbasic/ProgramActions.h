@@ -41,7 +41,7 @@ struct program
 		printf("program::append_package_decl attr(0) type = %s\n", typeid(_attr_t(0)).name());
 		NestedIdentifier *nested_id = cast<NestedIdentifier>(_attr(0));
 		Package* last = getParserContext().program->root;
-		BOOST_FOREACH(auto i, nested_id->identifier_list)
+		deduced_foreach_value(i, nested_id->identifier_list)
 		{
 			Package *next = last->findPackage(i->toString());
 			if(!next)

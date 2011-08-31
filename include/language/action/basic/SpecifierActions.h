@@ -49,7 +49,7 @@ struct type_specifier
 		if(_attr(1).is_initialized())
 		{
 			TemplatedIdentifier *templated_identifier = new TemplatedIdentifier(TemplatedIdentifier::Usage::ACTUAL_ARGUMENT, _attr(0));
-			BOOST_FOREACH(auto i, *(_attr(1)))
+			deduced_foreach_value(i, *_attr(1))
 				templated_identifier->appendArgument(i);
 			_value = new TypeSpecifier(templated_identifier);
 		}
@@ -73,7 +73,7 @@ struct type_specifier
 		TypeSpecifier*         type       = _attr(1).is_initialized() ? *_attr(1) : NULL;
 		FunctionType* function_type = new FunctionType();
 		if(!!parameters)
-			BOOST_FOREACH(auto i, *parameters)
+			deduced_foreach_value(i, *parameters)
 				function_type->appendParameterType(i);
 		function_type->setReturnType(type);
 		_value = new TypeSpecifier(function_type);
@@ -165,7 +165,7 @@ struct annotation_specifiers
 	{
 		printf("annotation_specifiers attr(0) type = %s\n", typeid(_attr_t(0)).name());
 		_value = new Annotations();
-		BOOST_FOREACH(auto i, (_attr(0)))
+		deduced_foreach_value(i, _attr(0))
 			_value->appendAnnotation(i);
 	}
 	END_ACTION
@@ -182,7 +182,7 @@ struct annotation_specifier
 		printf("annotation_specifier::init attr(1) type = %s\n", typeid(_attr_t(1)).name());
 		_value = new Annotation(_attr(0));
 		if(_attr(1).is_initialized())
-			BOOST_FOREACH(auto i, *(_attr(1)))
+			deduced_foreach_value(i, *_attr(1))
 			{
 				typedef boost::fusion::vector2<SimpleIdentifier*, Expression*> fusion_vec_t;
 				SimpleIdentifier* key   = boost::fusion::at_c<0>(i);

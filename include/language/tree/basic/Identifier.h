@@ -33,19 +33,19 @@ struct Identifier : public ASTNode
 	DEFINE_VISITABLE();
 	DEFINE_HIERARCHY(Identifier, (Identifier)(ASTNode));
 
-	Identifier() : resolved(NULL)
+	Identifier()// : resolved(NULL)
 	{ }
 
-	void resolveTo(ASTNode* node)
-	{
-		if(resolved) resolved->parent = NULL;
-		resolved = node;
-		if(resolved) resolved->parent = this;
-	}
+//	void resolveTo(ASTNode* node)
+//	{
+//		if(resolved) resolved->parent = NULL;
+//		resolved = node;
+//		if(resolved) resolved->parent = this;
+//	}
 
 	virtual const std::wstring& toString() const = 0;
 
-	ASTNode* resolved;
+//	ASTNode* resolved;
 };
 
 struct SimpleIdentifier : public Identifier
@@ -87,7 +87,7 @@ struct NestedIdentifier : public Identifier
 		foreach(i, identifier_list)
 		{
 			t += (*i)->toString();
-			if((i+1) != endof(identifier_list))
+			if(is_end_of_foreach(i, identifier_list))
 				t += L".";
 		}
 
@@ -145,7 +145,7 @@ struct TemplatedIdentifier : public Identifier
 			foreach(i, templated_type_list)
 			{
 				t += cast<Identifier>((*i))->toString();
-				if((i+1) != endof(templated_type_list))
+				if(is_end_of_foreach(i, templated_type_list))
 					t += L",";
 			}
 			t += L">";

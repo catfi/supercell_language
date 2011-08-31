@@ -17,8 +17,8 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef ZILLIANS_LANGUAGE_TREE_VISITOR_TYPERESOLUTIONVISITOR_H_
-#define ZILLIANS_LANGUAGE_TREE_VISITOR_TYPERESOLUTIONVISITOR_H_
+#ifndef ZILLIANS_LANGUAGE_TREE_VISITOR_RESOLUTIONVISITOR_H_
+#define ZILLIANS_LANGUAGE_TREE_VISITOR_RESOLUTIONVISITOR_H_
 
 #include "core/Prerequisite.h"
 #include "core/Visitor.h"
@@ -27,13 +27,23 @@
 
 namespace zillians { namespace language { namespace tree { namespace visitor {
 
-struct TypeResolutionVisitor : Visitor<ASTNode, void, VisitorImplementation::recursive_dfs>
+struct ResolutionVisitor : Visitor<ASTNode, void, VisitorImplementation::recursive_dfs>
 {
 	CREATE_INVOKER(resolveInvoker, resolve)
 
-	TypeResolutionVisitor(bool allow_template_partial_match = false) : allow_template_partial_match(allow_template_partial_match)
+	struct Target
+	{
+		enum type {
+			SYMBOL,
+			TYPE,
+			PACKAGE,
+		};
+	};
+
+	ResolutionVisitor(bool allow_template_partial_match = false) : type(type), allow_template_partial_match(allow_template_partial_match)
 	{
 		REGISTER_ALL_VISITABLE_ASTNODE(resolveInvoker)
+		reset();
 	}
 
 	void resolve(ASTNode& node)
@@ -51,44 +61,96 @@ struct TypeResolutionVisitor : Visitor<ASTNode, void, VisitorImplementation::rec
 		bool is_template_partial_match = false;
 		if(compare(current, node.id, is_template_partial_match))
 		{
-			if(!isLast())
+			if(type == Target::TYPE || type == Target::SYMBOL)
 			{
-				next();
-				foreach(i, node.children)
-					visit(**i);
-				foreach(i, node.objects)
-					visit(**i);
-				prev();
+				if(!isLast())
+				{
+					next();
+					foreach(i, node.children)
+						visit(**i);
+					foreach(i, node.objects)
+						visit(**i);
+					prev();
+				}
+			}
+			else if(type == Target::PACKAGE)
+			{
+				if(isLast())
+				{
+					candidates.push_back(&node);
+					partial_match_flags.push_back(is_template_partial_match);
+				}
+				else
+				{
+					next();
+					foreach(i, node.children)
+						visit(**i);
+					prev();
+				}
 			}
 		}
 	}
 
 	void resolve(ClassDecl& node)
 	{
+		BOOST_ASSERT(type != Target::PACKAGE);
+
 		bool is_template_partial_match = false;
 		if(compare(current, node.name, is_template_partial_match))
 		{
-			if(isLast())
+			if(type == Target::TYPE)
 			{
-				// reach the end of nested identifier, and we end up with ClassDecl, which is a type
-				// save to candidcate list
-				candidates.push_back(&node);
-				partial_match_flags.push_back(is_template_partial_match);
+				if(isLast())
+				{
+					// reach the end of nested identifier, and we end up with ClassDecl, which is a type
+					// save to candidcate list
+					candidates.push_back(&node);
+					partial_match_flags.push_back(is_template_partial_match);
+				}
+			}
+			else if(type == Target::SYMBOL)
+			{
+				if(!isLast())
+				{
+					next();
+					foreach(i, node.member_functions)
+						visit(**i);
+					foreach(i, node.member_variables)
+						visit(**i);
+					prev();
+				}
 			}
 		}
 	}
 
 	void resolve(EnumDecl& node)
 	{
+		BOOST_ASSERT(type != Target::PACKAGE);
+
 		bool is_template_partial_match = false;
 		if(compare(current, node.name, is_template_partial_match))
 		{
-			if(isLast())
+			if(type == Target::TYPE)
 			{
-				// reach the end of nested identifier, and we end up with ClassDecl, which is a type
-				// save to candidcate list
-				candidates.push_back(&node);
-				partial_match_flags.push_back(is_template_partial_match);
+				if(isLast())
+				{
+					// reach the end of nested identifier, and we end up with ClassDecl, which is a type
+					// save to candidcate list
+					candidates.push_back(&node);
+					partial_match_flags.push_back(is_template_partial_match);
+				}
+			}
+			else if(type == Target::SYMBOL)
+			{
+				if(!isLast())
+				{
+					next();
+					foreach(i, node.enumeration_list)
+					{
+						visit(*i->first);
+					}
+					prev();
+				}
 			}
 		}
 	}
@@ -98,12 +160,25 @@ struct TypeResolutionVisitor : Visitor<ASTNode, void, VisitorImplementation::rec
 		bool is_template_partial_match = false;
 		if(compare(current, node.name, is_template_partial_match))
 		{
-			if(isLast())
+			if(type == Target::TYPE)
 			{
-				// reach the end of nested identifier, and we end up with ClassDecl, which is a type
-				// save to candidcate list
-				candidates.push_back(&node);
-				partial_match_flags.push_back(is_template_partial_match);
+				if(isLast())
+				{
+					// reach the end of nested identifier, and we end up with ClassDecl, which is a type
+					// save to candidcate list
+					candidates.push_back(&node);
+					partial_match_flags.push_back(is_template_partial_match);
+				}
+			}
+			else if(type == Target::SYMBOL)
+			{
+				if(!isLast())
+				{
+					next();
+					foreach(i, node.member_functions)
+						visit(**i);
+					prev();
+				}
 			}
 		}
 	}
@@ -113,18 +188,89 @@ struct TypeResolutionVisitor : Visitor<ASTNode, void, VisitorImplementation::rec
 		bool is_template_partial_match = false;
 		if(compare(current, node.to, is_template_partial_match))
 		{
-			if(isLast())
+			if(type == Target::TYPE)
 			{
-				// reach the end of nested identifier, and we end up with ClassDecl, which is a type
-				// save to candidcate list
-				candidates.push_back(&node);
-				partial_match_flags.push_back(is_template_partial_match);
+				if(isLast())
+				{
+					// reach the end of nested identifier, and we end up with ClassDecl, which is a type
+					// save to candidcate list
+					candidates.push_back(&node);
+					partial_match_flags.push_back(is_template_partial_match);
+				}
 			}
 		}
 	}
 
-	void target(Identifier* id)
+	void resolve(FunctionDecl& node)
 	{
+		if(type == Target::SYMBOL)
+		{
+			// try to match function name
+			{
+				bool is_template_partial_match = false;
+				if(compare(current, node.name, is_template_partial_match))
+				{
+					if(isLast())
+					{
+						candidates.push_back(&node);
+						partial_match_flags.push_back(is_template_partial_match);
+					}
+				}
+			}
+
+			// try to match parameters in the function
+			{
+				foreach(i, node.parameters)
+				{
+					bool is_template_partial_match = false;
+					if(compare(current, i->first, is_template_partial_match))
+					{
+						if(isLast())
+						{
+							candidates.push_back(i->first);
+							partial_match_flags.push_back(is_template_partial_match);
+						}
+					}
+				}
+			}
+		}
+	}
+
+	void resolve(VariableDecl& node)
+	{
+		if(type == Target::SYMBOL)
+		{
+			bool is_template_partial_match = false;
+			if(compare(current, node.name, is_template_partial_match))
+			{
+				if(isLast())
+				{
+					candidates.push_back(&node);
+					partial_match_flags.push_back(is_template_partial_match);
+				}
+			}
+		}
+	}
+
+	void resolve(DeclarativeStmt& node)
+	{
+		visit(*node.declaration);
+	}
+
+	void resolve(ForeachStmt& node)
+	{
+		if(type == Target::SYMBOL)
+		{
+			// TODO handle the local variable
+		}
+	}
+
+	void target(Target::type type, Identifier* id)
+	{
+		BOOST_ASSERT(id != NULL);
+
+		this->type = type;
+
 		if(isa<NestedIdentifier>(id))
 		{
 			full = cast<NestedIdentifier>(id);
@@ -146,11 +292,8 @@ struct TypeResolutionVisitor : Visitor<ASTNode, void, VisitorImplementation::rec
 		candidates.clear();
 		partial_match_flags.clear();
 		current_index = 0;
-
-		if(full)
-		{
-			current = full->identifier_list[0];
-		}
+		full = NULL;
+		current = NULL;
 	}
 
 	bool compare(Identifier* a, Identifier* b, bool& is_template_partial_match)
@@ -238,6 +381,7 @@ private:
 		current = full->identifier_list[--current_index];
 	}
 
+	Target::type type;
 	Identifier* current;
 	int current_index;
 	NestedIdentifier* full;
@@ -250,4 +394,4 @@ public:
 
 } } } }
 
-#endif /* ZILLIANS_LANGUAGE_TREE_VISITOR_TYPERESOLUTIONVISITOR_H_ */
+#endif /* ZILLIANS_LANGUAGE_TREE_VISITOR_RESOLUTIONVISITOR_H_ */

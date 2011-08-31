@@ -17,24 +17,28 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef ZILLIANS_LANGUAGE_STAGE_TRANSFORMER_TYPEINFERENCESTAGE_H_
-#define ZILLIANS_LANGUAGE_STAGE_TRANSFORMER_TYPEINFERENCESTAGE_H_
+#ifndef ZILLIANS_LANGUAGE_STAGE_TRANSFORMER_RESOLUTIONSTAGE_H_
+#define ZILLIANS_LANGUAGE_STAGE_TRANSFORMER_RESOLUTIONSTAGE_H_
 
 #include "language/stage/Stage.h"
 
 namespace zillians { namespace language { namespace stage {
 
-class TypeInferenceStage : public Stage
+class ResolutionStage : public Stage
 {
 public:
-	TypeInferenceStage();
-	virtual ~TypeInferenceStage();
+	ResolutionStage();
+	virtual ~ResolutionStage();
 
 public:
 	virtual const char* name();
 	virtual void initializeOptions(po::options_description& option_desc, po::positional_options_description& positional_desc);
 	virtual bool parseOptions(po::variables_map& vm);
 	virtual bool execute();
+
+private:
+	bool resolveTypes();
+	bool resolveSymbols();
 
 public:
 	std::size_t get_resolved_count();
@@ -48,4 +52,4 @@ private:
 
 } } }
 
-#endif /* ZILLIANS_LANGUAGE_STAGE_TRANSFORMER_TYPEINFERENCESTAGE_H_ */
+#endif /* ZILLIANS_LANGUAGE_STAGE_TRANSFORMER_RESOLUTIONSTAGE_H_ */

@@ -23,7 +23,7 @@
 #include "language/ThorScriptCompiler.h"
 #include "language/stage/basic/TreeDebugStage.h"
 #include "language/stage/parser/ThorScriptParserStage.h"
-#include "language/stage/transformer/TypeInferenceStage.h"
+#include "language/stage/transformer/ResolutionStage.h"
 #include "language/stage/generator/LLVMGeneratorStage.h"
 
 using namespace zillians::language::stage;
@@ -39,12 +39,12 @@ ThorScriptCompiler::~ThorScriptCompiler()
 void ThorScriptCompiler::initialize()
 {
 	shared_ptr<Stage> parser(new ThorScriptParserStage());
-	shared_ptr<Stage> type_inference(new TypeInferenceStage());
+	shared_ptr<Stage> resolution(new ResolutionStage());
 	shared_ptr<Stage> debug_tree(new TreeDebugStage());
 	shared_ptr<Stage> llvm_generator(new LLVMGeneratorStage());
 
 	appendStage(parser);
-	appendStage(type_inference);
+	appendStage(resolution);
 	appendStage(debug_tree);
 	appendStage(llvm_generator);
 }

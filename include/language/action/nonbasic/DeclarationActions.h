@@ -124,7 +124,7 @@ struct function_decl
 		bool                                   is_member  = false;
 		_value = new FunctionDecl(name, type, is_member, visibility, storage, block);
 		if(!!parameters)
-			BOOST_FOREACH(auto i, *parameters)
+			deduced_foreach_value(i, *parameters)
 				cast<FunctionDecl>(_value)->appendParameter(i.first, i.second);
 	}
 	END_ACTION
@@ -161,9 +161,9 @@ struct class_decl
 		if(!!extends_from)
 			cast<ClassDecl>(_value)->setBase(extends_from);
 		if(_attr(2).is_initialized())
-			BOOST_FOREACH(auto i, *(_attr(2)))
+			deduced_foreach_value(i, *_attr(2))
 				cast<ClassDecl>(_value)->addInterface(new TypeSpecifier(i));
-		BOOST_FOREACH(auto i, (_attr(3)))
+		deduced_foreach_value(i, _attr(3))
 		{
 			if(isa<VariableDecl>(i))
 			{
@@ -247,7 +247,7 @@ struct enum_decl
 		printf("enum_decl attr(0) type = %s\n", typeid(_attr_t(0)).name());
 		printf("enum_decl attr(1) type = %s\n", typeid(_attr_t(1)).name());
 		_value = new EnumDecl(_attr(0));
-		BOOST_FOREACH(auto i, (_attr(1)))
+		deduced_foreach_value(i, _attr(1))
 		{
 			boost::optional<Annotations*> &optional_annotations = boost::fusion::at_c<0>(i);
 			SimpleIdentifier*              tag                  = boost::fusion::at_c<1>(i);
