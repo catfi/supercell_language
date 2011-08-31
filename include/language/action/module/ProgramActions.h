@@ -26,13 +26,13 @@ namespace zillians { namespace language { namespace action {
 
 struct program
 {
-	DEFINE_ATTRIBUTES(Program*)
+	DEFINE_ATTRIBUTES(void)
 	DEFINE_LOCALS()
 
 	BEGIN_ACTION(init)
 	{
 		printf("program attr(0) type = %s\n", typeid(_attr_t(0)).name());
-		/*_value =*/ getParserContext().program = new Program();
+		getParserContext().program = new Program();
 	}
 	END_ACTION
 
@@ -41,12 +41,12 @@ struct program
 		printf("program::append_package_decl attr(0) type = %s\n", typeid(_attr_t(0)).name());
 		NestedIdentifier *nested_id = cast<NestedIdentifier>(_attr(0));
 		Package* last = getParserContext().program->root;
-		for(std::vector<Identifier*>::iterator id = nested_id->identifier_list.begin(); id != nested_id->identifier_list.end(); ++id)
+		BOOST_FOREACH(auto i, nested_id->identifier_list)
 		{
-			Package *next = last->findPackage((*id)->toString());
+			Package *next = last->findPackage(i->toString());
 			if(!next)
 			{
-				next = new Package(cast<SimpleIdentifier>(*id));
+				next = new Package(cast<SimpleIdentifier>(i));
 				last->addPackage(next);
 			}
 			last = next;

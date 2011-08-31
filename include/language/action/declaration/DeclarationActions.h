@@ -124,8 +124,8 @@ struct function_decl
 		bool                                   is_member  = false;
 		_value = new FunctionDecl(name, type, is_member, visibility, storage, block);
 		if(!!parameters)
-			for(typed_parameter_list::value_t::iterator i = parameters->begin(); i != parameters->end(); i++)
-				cast<FunctionDecl>(_value)->appendParameter((*i).first, (*i).second);
+			BOOST_FOREACH(auto i, *parameters)
+				cast<FunctionDecl>(_value)->appendParameter(i.first, i.second);
 	}
 	END_ACTION
 };
@@ -161,19 +161,19 @@ struct class_decl
 		if(!!extends_from)
 			cast<ClassDecl>(_value)->setBase(extends_from);
 		if(_attr(2).is_initialized())
-			foreach(i, *_attr(2))
-				cast<ClassDecl>(_value)->addInterface(new TypeSpecifier(*i));
-		foreach(i, _attr(3))
+			BOOST_FOREACH(auto i, *(_attr(2)))
+				cast<ClassDecl>(_value)->addInterface(new TypeSpecifier(i));
+		BOOST_FOREACH(auto i, (_attr(3)))
 		{
-			if(isa<VariableDecl>(*i))
+			if(isa<VariableDecl>(i))
 			{
-				cast<ClassDecl>(_value)->addVariable(cast<VariableDecl>(*i));
-				cast<VariableDecl>(*i)->is_member = true;
+				cast<ClassDecl>(_value)->addVariable(cast<VariableDecl>(i));
+				cast<VariableDecl>(i)->is_member = true;
 			}
-			else if(isa<FunctionDecl>(*i))
+			else if(isa<FunctionDecl>(i))
 			{
-				cast<ClassDecl>(_value)->addFunction(cast<FunctionDecl>(*i));
-				cast<FunctionDecl>(*i)->is_member = true;
+				cast<ClassDecl>(_value)->addFunction(cast<FunctionDecl>(i));
+				cast<FunctionDecl>(i)->is_member = true;
 			}
 		}
 	}
@@ -247,11 +247,11 @@ struct enum_decl
 		printf("enum_decl attr(0) type = %s\n", typeid(_attr_t(0)).name());
 		printf("enum_decl attr(1) type = %s\n", typeid(_attr_t(1)).name());
 		_value = new EnumDecl(_attr(0));
-		foreach(i, _attr(1))
+		BOOST_FOREACH(auto i, (_attr(1)))
 		{
-			boost::optional<Annotations*> &optional_annotations = boost::fusion::at_c<0>(*i);
-			SimpleIdentifier*              tag                  = boost::fusion::at_c<1>(*i);
-			boost::optional<Expression*>  &optional_value       = boost::fusion::at_c<2>(*i);
+			boost::optional<Annotations*> &optional_annotations = boost::fusion::at_c<0>(i);
+			SimpleIdentifier*              tag                  = boost::fusion::at_c<1>(i);
+			boost::optional<Expression*>  &optional_value       = boost::fusion::at_c<2>(i);
 			Annotations* annotations = optional_annotations.is_initialized() ? *optional_annotations : NULL;
 			Expression* value = optional_value.is_initialized() ? *optional_value : NULL;
 			cast<EnumDecl>(_value)->addEnumeration(tag, value);

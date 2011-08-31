@@ -22,6 +22,7 @@
 
 #include "core/Prerequisite.h"
 #include "utility/Foreach.h"
+#include <boost/foreach.hpp>
 #include "language/GlobalContext.h"
 #include "language/context/ParserContext.h"
 #include "language/tree/ASTNodeFactory.h"

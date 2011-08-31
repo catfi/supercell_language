@@ -48,8 +48,8 @@ struct nested_identifier
 		printf("nested_identifier attr(1) type = %s\n", typeid(_attr_t(1)).name());
 		_value = new NestedIdentifier();
 		cast<NestedIdentifier>(_value)->appendIdentifier(_attr(0));
-		foreach(i, _attr(1))
-			cast<NestedIdentifier>(_value)->appendIdentifier(*i);
+		BOOST_FOREACH(auto i, (_attr(1)))
+			cast<NestedIdentifier>(_value)->appendIdentifier(i);
 	}
 	END_ACTION
 };
@@ -67,8 +67,8 @@ struct template_arg_identifier
 		{
 			std::vector<TypeSpecifier*> &vec = *_attr(1);
 			_value =  new TemplatedIdentifier(TemplatedIdentifier::Usage::ACTUAL_ARGUMENT, _attr(0));
-			for(std::vector<TypeSpecifier*>::iterator p; p != vec.end(); p++)
-				cast<TemplatedIdentifier>(_value)->appendArgument(*p);
+			BOOST_FOREACH(auto i, vec)
+				cast<TemplatedIdentifier>(_value)->appendArgument(i);
 		}
 		else
 			_value = _attr(0);
@@ -88,11 +88,11 @@ struct template_param_identifier
 		if(_attr(1).is_initialized())
 		{
 			_value =  new TemplatedIdentifier(TemplatedIdentifier::Usage::FORMAL_PARAMETER, _attr(0));
-			foreach(i, *_attr(1))
-				switch((*i).which())
+			BOOST_FOREACH(auto i, *(_attr(1)))
+				switch(i.which())
 				{
 				case 0:
-					cast<TemplatedIdentifier>(_value)->appendParameter(boost::get<SimpleIdentifier*>(*i));
+					cast<TemplatedIdentifier>(_value)->appendParameter(boost::get<SimpleIdentifier*>(i));
 					break;
 				case 1:
 					cast<TemplatedIdentifier>(_value)->appendParameter(new SimpleIdentifier(L"..."));

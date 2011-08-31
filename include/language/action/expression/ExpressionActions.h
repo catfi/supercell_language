@@ -136,8 +136,8 @@ struct primary_expression
 		bool                                   is_member  = false;
 		FunctionDecl* function_decl = new FunctionDecl(NULL, type, is_member, visibility, storage, _attr(2));
 		if(!!parameters)
-			for(typed_parameter_list::value_t::iterator i = parameters->begin(); i != parameters->end(); i++)
-				function_decl->appendParameter((*i).first, (*i).second);
+			BOOST_FOREACH(auto i, *parameters)
+				function_decl->appendParameter(i.first, i.second);
 		_value = new PrimaryExpr(function_decl);
 	}
 	END_ACTION
@@ -167,10 +167,8 @@ struct postfix_expression
 		printf("postfix_expression::init_postfix_call attr(0) type = %s\n", typeid(_attr_t(0)).name());
 		CallExpr* call_expr = new CallExpr(_value);
 		if(_attr(0).is_initialized())
-		{
-			foreach(i, *_attr(0))
-				call_expr->appendParameter(*i);
-		}
+			BOOST_FOREACH(auto i, *(_attr(0)))
+				call_expr->appendParameter(i);
 		_value = call_expr;
 	}
 	END_ACTION
