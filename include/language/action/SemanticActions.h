@@ -39,19 +39,11 @@
 #include "language/action/basic/LiteralActions.h"
 #include "language/action/basic/SpecifierActions.h"
 
-// declaration
-#include "language/action/declaration/DeclarationActions.h"
-
-// expression
-#include "language/action/expression/ExpressionActions.h"
-
-// module
-#include "language/action/module/ImportActions.h"
-#include "language/action/module/PackageActions.h"
-#include "language/action/module/ProgramActions.h"
-
-// statement
-#include "language/action/statement/StatementActions.h"
+// non-basic
+#include "language/action/nonbasic/DeclarationActions.h"
+#include "language/action/nonbasic/ExpressionActions.h"
+#include "language/action/nonbasic/ProgramActions.h"
+#include "language/action/nonbasic/StatementActions.h"
 
 namespace zillians { namespace language { namespace action {
 
@@ -85,7 +77,6 @@ struct ThorScriptTreeAction
 
 	// expression
 	typedef action::primary_expression          primary_expression;
-	typedef action::lambda_expression           lambda_expression;
 	typedef action::postfix_expression          postfix_expression;
 	typedef action::prefix_expression           prefix_expression;
 	typedef action::left_to_right_binary_op_vec left_to_right_binary_op_vec;
@@ -98,22 +89,20 @@ struct ThorScriptTreeAction
 	typedef action::ternary_expression          ternary_expression;
 
 	// declaration
-	typedef action::declaration                       declaration;
-	typedef action::const_variable_decl               const_variable_decl;
-	typedef action::variable_decl                     variable_decl;
-	typedef action::variable_decl_stem                variable_decl_stem;
-	typedef action::function_decl                     function_decl;
-	typedef action::typedef_decl                      typedef_decl;
-	typedef action::class_decl                        class_decl;
-	typedef action::class_member_decl                 class_member_decl;
-	typedef action::interface_decl                    interface_decl;
-	typedef action::member_function_decl_without_body member_function_decl_without_body;
-	typedef action::enum_decl                         enum_decl;
+	typedef action::declaration         declaration;
+	typedef action::const_variable_decl const_variable_decl;
+	typedef action::variable_decl       variable_decl;
+	typedef action::variable_decl_stem  variable_decl_stem;
+	typedef action::function_decl       function_decl;
+	typedef action::typedef_decl        typedef_decl;
+	typedef action::class_decl          class_decl;
+	typedef action::class_member_decl   class_member_decl;
+	typedef action::interface_decl      interface_decl;
+	typedef action::interface_member_function_decl interface_member_function_decl;
+	typedef action::enum_decl           enum_decl;
 
 	// module
-	typedef action::program      program;
-	typedef action::package_decl package_decl;
-	typedef action::import_decl  import_decl;
+	typedef action::program program;
 
 	// statement
 	typedef action::statement            statement;

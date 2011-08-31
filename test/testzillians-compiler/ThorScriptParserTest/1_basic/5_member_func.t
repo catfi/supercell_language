@@ -1,4 +1,5 @@
-// FIX-ME! -- temporarily modified for testing
+package qwe.asd.zxc;
+
 class my_class
 {
     function f():void

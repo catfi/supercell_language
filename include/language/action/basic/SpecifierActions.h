@@ -31,7 +31,7 @@ struct colon_type_specifier
 
 	BEGIN_ACTION(init)
 	{
-//		printf("colon_type_specifier attr(0) type = %s\n", typeid(_attr_t(0)).name());
+		printf("colon_type_specifier attr(0) type = %s\n", typeid(_attr_t(0)).name());
 		_value = _attr(0);
 	}
 	END_ACTION
@@ -48,10 +48,9 @@ struct type_specifier
 		printf("type_specifier::init_type attr(1) type = %s\n", typeid(_attr_t(1)).name());
 		if(_attr(1).is_initialized())
 		{
-			std::vector<TypeSpecifier*> &vec = *_attr(1);
 			TemplatedIdentifier *templated_identifier = new TemplatedIdentifier(TemplatedIdentifier::Usage::ACTUAL_ARGUMENT, _attr(0));
-			for(std::vector<TypeSpecifier*>::iterator p; p != vec.end(); p++)
-				templated_identifier->appendArgument(*p);
+			deduced_foreach_value(i, *_attr(1))
+				templated_identifier->appendArgument(i);
 			_value = new TypeSpecifier(templated_identifier);
 		}
 		else
@@ -69,7 +68,15 @@ struct type_specifier
 	{
 		printf("type_specifier::init_function_type attr(0) type = %s\n", typeid(_attr_t(0)).name());
 		printf("type_specifier::init_function_type attr(1) type = %s\n", typeid(_attr_t(1)).name());
-//		_value = new TypeSpecifier(new FunctionType());
+		typedef std::vector<TypeSpecifier*> type_list_specifier_t;
+		type_list_specifier_t* parameters = _attr(0).is_initialized() ? &*_attr(0) : NULL;
+		TypeSpecifier*         type       = _attr(1).is_initialized() ? *_attr(1) : NULL;
+		FunctionType* function_type = new FunctionType();
+		if(!!parameters)
+			deduced_foreach_value(i, *parameters)
+				function_type->appendParameterType(i);
+		function_type->setReturnType(type);
+		_value = new TypeSpecifier(function_type);
 	}
 	END_ACTION
 
@@ -158,13 +165,8 @@ struct annotation_specifiers
 	{
 		printf("annotation_specifiers attr(0) type = %s\n", typeid(_attr_t(0)).name());
 		_value = new Annotations();
-	}
-	END_ACTION
-
-	BEGIN_ACTION(append_annotation)
-	{
-		printf("annotation_specifiers::append_annotation attr(0) type = %s\n", typeid(_attr_t(0)).name());
-		_value->appendAnnotation(_attr(0));
+		deduced_foreach_value(i, _attr(0))
+			_value->appendAnnotation(i);
 	}
 	END_ACTION
 };
@@ -176,16 +178,17 @@ struct annotation_specifier
 
 	BEGIN_ACTION(init)
 	{
-		printf("annotation_specifier attr(0) type = %s\n", typeid(_attr_t(0)).name());
+		printf("annotation_specifier::init attr(0) type = %s\n", typeid(_attr_t(0)).name());
+		printf("annotation_specifier::init attr(1) type = %s\n", typeid(_attr_t(1)).name());
 		_value = new Annotation(_attr(0));
-	}
-	END_ACTION
-
-	BEGIN_ACTION(append_keyvalue)
-	{
-		printf("annotation_specifier::append_keyvalue attr(0) type = %s\n", typeid(_attr_t(0)).name());
-		printf("annotation_specifier::append_keyvalue attr(1) type = %s\n", typeid(_attr_t(1)).name());
-		_value->appendKeyValue(_attr(0), _attr(1));
+		if(_attr(1).is_initialized())
+			deduced_foreach_value(i, *_attr(1))
+			{
+				typedef boost::fusion::vector2<SimpleIdentifier*, Expression*> fusion_vec_t;
+				SimpleIdentifier* key   = boost::fusion::at_c<0>(i);
+				Expression*       value = boost::fusion::at_c<1>(i);
+				_value->appendKeyValue(key, value);
+			}
 	}
 	END_ACTION
 };

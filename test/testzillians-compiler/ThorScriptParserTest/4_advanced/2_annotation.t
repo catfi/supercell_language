@@ -1,3 +1,5 @@
+package qwe.asd.zxc;
+
 @tag { key = 13, key2 = "aaa" }
 function f():void
 {

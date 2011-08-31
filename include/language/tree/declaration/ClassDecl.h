@@ -41,7 +41,7 @@ struct ClassDecl : public Declaration
 		name->parent = this;
 	}
 
-	void appendFunction(FunctionDecl* func)
+	void addFunction(FunctionDecl* func)
 	{
 		BOOST_ASSERT(name && "null member function declaration is not allowed");
 
@@ -49,7 +49,7 @@ struct ClassDecl : public Declaration
 		member_functions.push_back(func);
 	}
 
-	void appendVariable(VariableDecl* var)
+	void addVariable(VariableDecl* var)
 	{
 		BOOST_ASSERT(name && "null member variable declaration is not allowed");
 

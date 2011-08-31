@@ -17,27 +17,39 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef ZILLIANS_LANGUAGE_ACTION_MODULE_IMPORTACTIONS_H_
-#define ZILLIANS_LANGUAGE_ACTION_MODULE_IMPORTACTIONS_H_
+#ifndef ZILLIANS_LANGUAGE_STAGE_TRANSFORMER_RESOLUTIONSTAGE_H_
+#define ZILLIANS_LANGUAGE_STAGE_TRANSFORMER_RESOLUTIONSTAGE_H_
 
-#include "language/action/detail/SemanticActionsDetail.h"
+#include "language/stage/Stage.h"
 
-namespace zillians { namespace language { namespace action {
+namespace zillians { namespace language { namespace stage {
 
-struct import_decl
+class ResolutionStage : public Stage
 {
-	DEFINE_ATTRIBUTES(Import*)
-	DEFINE_LOCALS()
+public:
+	ResolutionStage();
+	virtual ~ResolutionStage();
 
-	BEGIN_ACTION(init)
-	{
-//		BOOST_MPL_ASSERT(( boost::is_same<_value_t, Import*&> ));
-//		BOOST_MPL_ASSERT(( boost::is_same<_attr_t(0), NestedIdentifier*&> ));
-		_value = new Import(_attr(0));
-	}
-	END_ACTION
+public:
+	virtual const char* name();
+	virtual void initializeOptions(po::options_description& option_desc, po::positional_options_description& positional_desc);
+	virtual bool parseOptions(po::variables_map& vm);
+	virtual bool execute();
+
+private:
+	bool resolveTypes();
+	bool resolveSymbols();
+
+public:
+	std::size_t get_resolved_count();
+	std::size_t get_unresolved_count();
+
+private:
+	bool disable_type_inference;
+	std::size_t total_resolved_count;
+	std::size_t total_unresolved_count;
 };
 
 } } }
 
-#endif /* ZILLIANS_LANGUAGE_ACTION_MODULE_IMPORTACTIONS_H_ */
+#endif /* ZILLIANS_LANGUAGE_STAGE_TRANSFORMER_RESOLUTIONSTAGE_H_ */

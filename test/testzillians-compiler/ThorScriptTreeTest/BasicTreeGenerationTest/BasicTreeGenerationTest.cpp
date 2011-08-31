@@ -53,6 +53,12 @@ BOOST_AUTO_TEST_CASE( ThorScriptTreeTest_BasicTreeGenerationTestCase1_IsA )
 		NestedIdentifier* node = new NestedIdentifier();
 		BOOST_CHECK(isa<Identifier>(node));
 	}
+
+	{
+		VariableDecl* node = new VariableDecl(new SimpleIdentifier(L"test"), new TypeSpecifier(TypeSpecifier::PrimitiveType::FLOAT32), false, Declaration::VisibilitySpecifier::DEFAULT, Declaration::StorageSpecifier::CONST);
+		BOOST_CHECK(isa<VariableDecl>(node));
+		BOOST_CHECK(isa<Declaration>(node));
+	}
 }
 
 BOOST_AUTO_TEST_CASE( ThorScriptTreeTest_BasicTreeGenerationTestCase2 )

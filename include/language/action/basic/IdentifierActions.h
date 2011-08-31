@@ -45,16 +45,11 @@ struct nested_identifier
 	BEGIN_ACTION(init)
 	{
 		printf("nested_identifier attr(0) type = %s\n", typeid(_attr_t(0)).name());
-//		BOOST_MPL_ASSERT(( boost::is_same<_value_t, NestedIdentifier*&> ));
+		printf("nested_identifier attr(1) type = %s\n", typeid(_attr_t(1)).name());
 		_value = new NestedIdentifier();
-	}
-	END_ACTION
-
-	BEGIN_ACTION(append_identifier)
-	{
-		printf("nested_identifier::append_identifier attr(0) type = %s\n", typeid(_attr_t(0)).name());
-//		BOOST_MPL_ASSERT(( boost::is_same<_attr_t(0), SimpleIdentifier*&> ));
-		dynamic_cast<NestedIdentifier*>(_value)->appendIdentifier(_attr(0));
+		cast<NestedIdentifier>(_value)->appendIdentifier(_attr(0));
+		deduced_foreach_value(i, _attr(1))
+			cast<NestedIdentifier>(_value)->appendIdentifier(i);
 	}
 	END_ACTION
 };
@@ -70,10 +65,9 @@ struct template_arg_identifier
 		printf("template_arg_identifier attr(1) type = %s\n", typeid(_attr_t(1)).name());
 		if(_attr(1).is_initialized())
 		{
-			std::vector<TypeSpecifier*> &vec = *_attr(1);
 			_value =  new TemplatedIdentifier(TemplatedIdentifier::Usage::ACTUAL_ARGUMENT, _attr(0));
-			for(std::vector<TypeSpecifier*>::iterator p; p != vec.end(); p++)
-				dynamic_cast<TemplatedIdentifier*>(_value)->appendArgument(*p);
+			deduced_foreach_value(i, *_attr(1))
+				cast<TemplatedIdentifier>(_value)->appendArgument(i);
 		}
 		else
 			_value = _attr(0);
@@ -93,16 +87,18 @@ struct template_param_identifier
 		if(_attr(1).is_initialized())
 		{
 			_value =  new TemplatedIdentifier(TemplatedIdentifier::Usage::FORMAL_PARAMETER, _attr(0));
-			foreach(i, *_attr(1))
-				switch((*i).which())
+			deduced_foreach_value(i, *(_attr(1)))
+			{
+				switch(i.which())
 				{
 				case 0:
-					dynamic_cast<TemplatedIdentifier*>(_value)->appendParameter(boost::get<SimpleIdentifier*>(*i));
+					cast<TemplatedIdentifier>(_value)->appendParameter(boost::get<SimpleIdentifier*>(i));
 					break;
 				case 1:
-					dynamic_cast<TemplatedIdentifier*>(_value)->appendParameter(new SimpleIdentifier(L"..."));
+					cast<TemplatedIdentifier>(_value)->appendParameter(new SimpleIdentifier(L"..."));
 					break;
 				}
+			}
 		}
 		else
 			_value = _attr(0);

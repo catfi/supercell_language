@@ -26,32 +26,40 @@ namespace zillians { namespace language { namespace action {
 
 struct program
 {
-	DEFINE_ATTRIBUTES(Program*)
+	DEFINE_ATTRIBUTES(void)
 	DEFINE_LOCALS()
 
 	BEGIN_ACTION(init)
 	{
-//		BOOST_MPL_ASSERT(( boost::is_same<_value_t, Program*&> ));
-		if(getParserContext().program)
-		{
-			_value = getParserContext().program;
-		}
-		else
-		{
-			_value = new Program();
-			getParserContext().program = _value;
-		}
+		printf("program attr(0) type = %s\n", typeid(_attr_t(0)).name());
+		getParserContext().program = new Program();
 	}
 	END_ACTION
 
-	BEGIN_ACTION(append_package_decl)
+	BEGIN_ACTION(append_package)
 	{
-		getParserContext().active_package = _attr(0);
+		printf("program::append_package_decl attr(0) type = %s\n", typeid(_attr_t(0)).name());
+		NestedIdentifier *nested_id = cast<NestedIdentifier>(_attr(0));
+		Package* last = getParserContext().program->root;
+		deduced_foreach_value(i, nested_id->identifier_list)
+		{
+			Package *next = last->findPackage(i->toString());
+			if(!next)
+			{
+				next = new Package(cast<SimpleIdentifier>(i));
+				last->addPackage(next);
+			}
+			last = next;
+		}
+		getParserContext().active_package = last;
 	}
 	END_ACTION
 
-	BEGIN_ACTION(append_import_decl)
+	BEGIN_ACTION(append_import)
 	{
+		printf("program::append_import_decl attr(0) type = %s\n", typeid(_attr_t(0)).name());
+		if(!!getParserContext().program)
+			getParserContext().program->addImport(new Import(_attr(0)));
 	}
 	END_ACTION
 

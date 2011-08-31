@@ -26,11 +26,11 @@
 #define LEFT_TO_RIGHT(op_code) \
 	{ \
 		if(_attr(0).size() == 1) \
-			_value = *beginof(_attr(0)); \
+			_value = *make_deduced_begin(_attr(0)); \
 		else { \
 			Expression* left = NULL; \
-			foreach(i, _attr(0)) \
-				left = (i == beginof(_attr(0))) ? *i : new BinaryExpr(op_code, left, *i); \
+			deduced_foreach(i, _attr(0)) \
+				left = (is_begin_of_deduced_foreach(i, _attr(0))) ? *i : new BinaryExpr(op_code, left, *i); \
 			_value = left; \
 		} \
 	}
@@ -39,11 +39,11 @@
 #define RIGHT_TO_LEFT(op_code) \
 	{ \
 		if(_attr(0).size() == 1) \
-			_value = *r_beginof(_attr(0)); \
+			_value = *make_deduced_reverse_begin(_attr(0)); \
 		else { \
 			Expression* right = NULL; \
-			r_foreach(i, _attr(0)) \
-				right = (i == r_beginof(_attr(0))) ? *i : new BinaryExpr(op_code, *i, right); \
+			deduced_reverse_foreach(i, _attr(0)) \
+				right = (is_begin_of_deduced_reverse_foreach(i, _attr(0))) ? *i : new BinaryExpr(op_code, *i, right); \
 			_value = right; \
 		} \
 	}
@@ -52,12 +52,12 @@
 #define LEFT_TO_RIGHT_VEC(op_code_vec) \
 	{ \
 		if(_attr(0).size() == 1) \
-			_value = *beginof(_attr(0)); \
+			_value = *make_deduced_begin(_attr(0)); \
 		else { \
 			Expression* left = NULL; \
-			decltype(beginof(op_code_vec)) j = beginof(op_code_vec); \
-			foreach(i, _attr(0)) { \
-				if(i == beginof(_attr(0))) { \
+			auto j = make_deduced_begin(op_code_vec); \
+			deduced_foreach(i, _attr(0)) { \
+				if(is_begin_of_deduced_foreach(i, _attr(0))) { \
 					left = *i; \
 					continue; \
 				} \
@@ -71,12 +71,12 @@
 #define RIGHT_TO_LEFT_VEC(op_code_vec) \
 	{ \
 		if(_attr(0).size() == 1) \
-			_value = *r_beginof(_attr(0)); \
+			_value = *make_deduced_reverse_begin(_attr(0)); \
 		else { \
 			Expression* right = NULL; \
-			decltype(r_beginof(op_code_vec)) j = r_beginof(op_code_vec); \
-			r_foreach(i, _attr(0)) { \
-				if(i == r_beginof(_attr(0))) { \
+			auto j = make_deduced_reverse_begin(op_code_vec); \
+			deduced_reverse_foreach(i, _attr(0)) { \
+				if(is_begin_of_deduced_reverse_foreach(i, _attr(0))) { \
 					right = *i; \
 					continue; \
 				} \
@@ -123,17 +123,22 @@ struct primary_expression
 		_value = _attr(0);
 	}
 	END_ACTION
-};
 
-struct lambda_expression
-{
-	DEFINE_ATTRIBUTES(FunctionDecl*)
-	DEFINE_LOCALS()
-
-	BEGIN_ACTION(init)
+	BEGIN_ACTION(init_lambda)
 	{
-		printf("lambda_expression attr(0) type = %s\n", typeid(_attr_t(0)).name());
-//		_value = new FunctionDecl(_attr(0));
+		printf("primary_expression::lambda_expression attr(0) type = %s\n", typeid(_attr_t(0)).name());
+		printf("primary_expression::lambda_expression attr(1) type = %s\n", typeid(_attr_t(1)).name());
+		printf("primary_expression::lambda_expression attr(2) type = %s\n", typeid(_attr_t(2)).name());
+		typed_parameter_list::value_t*         parameters = _attr(0).is_initialized() ? (*_attr(0)).get() : NULL;
+		TypeSpecifier*                         type       = _attr(1).is_initialized() ? *_attr(1) : NULL;
+		Declaration::VisibilitySpecifier::type visibility = Declaration::VisibilitySpecifier::PUBLIC;
+		Declaration::StorageSpecifier::type    storage    = Declaration::StorageSpecifier::NONE;
+		bool                                   is_member  = false;
+		FunctionDecl* function_decl = new FunctionDecl(NULL, type, is_member, visibility, storage, _attr(2));
+		if(!!parameters)
+			deduced_foreach_value(i, *parameters)
+				function_decl->appendParameter(i.first, i.second);
+		_value = new PrimaryExpr(function_decl);
 	}
 	END_ACTION
 };
@@ -162,10 +167,8 @@ struct postfix_expression
 		printf("postfix_expression::init_postfix_call attr(0) type = %s\n", typeid(_attr_t(0)).name());
 		CallExpr* call_expr = new CallExpr(_value);
 		if(_attr(0).is_initialized())
-		{
-			foreach(i, *_attr(0))
-				call_expr->appendParameter(*i);
-		}
+			deduced_foreach_value(i, *_attr(0))
+				call_expr->appendParameter(i);
 		_value = call_expr;
 	}
 	END_ACTION
@@ -202,7 +205,7 @@ struct prefix_expression
 			typedef boost::fusion::vector2<UnaryExpr::OpCode::type, Expression*> fusion_vec_t;
 			fusion_vec_t &vec = boost::get<fusion_vec_t>(_attr(0));
 			UnaryExpr::OpCode::type type = boost::fusion::at_c<0>(vec);
-			Expression* expr = boost::fusion::at_c<1>(vec);
+			Expression*             expr = boost::fusion::at_c<1>(vec);
 			_value = new UnaryExpr(type, expr);
 			break;
 		}

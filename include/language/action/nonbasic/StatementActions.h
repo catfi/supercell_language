@@ -36,17 +36,19 @@ struct statement
 		switch(_attr(1).which())
 		{
 		case 0:
-			{
-				Declaration* decl = boost::get<Declaration*>(_attr(1));
-				_value = new DeclarativeStmt(decl);
-			}
+		{
+			Declaration* decl = boost::get<Declaration*>(_attr(1));
+			_value = new DeclarativeStmt(decl);
 			break;
+		}
 		case 1:
+		{
 			_value = boost::get<Statement*>(_attr(1));
 			break;
 		}
+		}
 		if(_attr(0).is_initialized())
-			dynamic_cast<Statement*>(_value)->setAnnotation(*_attr(0));
+			cast<Statement>(_value)->setAnnotation(*_attr(0));
 	}
 	END_ACTION
 
@@ -86,14 +88,14 @@ struct selection_statement
 		Expression* cond = _attr(0);
 		ASTNode* block = _attr(1);
 		_value = new IfElseStmt(Selection(cond, block));
-		foreach(i, _attr(2))
+		deduced_foreach_value(i, _attr(2))
 		{
-			Expression* cond = boost::fusion::at_c<0>(*i);
-			ASTNode* block = boost::fusion::at_c<1>(*i);
-			dynamic_cast<IfElseStmt*>(_value)->addElseIfBranch(Selection(cond, block));
+			Expression* cond  = boost::fusion::at_c<0>(i);
+			ASTNode*    block = boost::fusion::at_c<1>(i);
+			cast<IfElseStmt>(_value)->addElseIfBranch(Selection(cond, block));
 		}
 		if(_attr(3).is_initialized())
-			dynamic_cast<IfElseStmt*>(_value)->setElseBranch(*_attr(3));
+			cast<IfElseStmt>(_value)->setElseBranch(*_attr(3));
 	}
 	END_ACTION
 
@@ -102,25 +104,27 @@ struct selection_statement
 		printf("selection_statement::init_switch_statement attr(0) type = %s\n", typeid(_attr_t(0)).name());
 		printf("selection_statement::init_switch_statement attr(1) type = %s\n", typeid(_attr_t(1)).name());
 		_value = new SwitchStmt(_attr(0));
-		foreach(i, _attr(1))
-			switch((*i).which())
+		deduced_foreach_value(i, _attr(1))
+		{
+			switch(i.which())
 			{
 			case 0:
 				{
 					typedef boost::fusion::vector2<Expression*, ASTNode*> fusion_vec_t;
-					fusion_vec_t &vec = boost::get<fusion_vec_t>(*i);
-					Expression* cond = boost::fusion::at_c<0>(vec);
-					ASTNode* block = boost::fusion::at_c<1>(vec);
-					dynamic_cast<SwitchStmt*>(_value)->addCase(Selection(cond, block));
+					fusion_vec_t &vec = boost::get<fusion_vec_t>(i);
+					Expression* cond  = boost::fusion::at_c<0>(vec);
+					ASTNode*    block = boost::fusion::at_c<1>(vec);
+					cast<SwitchStmt>(_value)->addCase(Selection(cond, block));
 				}
 				break;
 			case 1:
 				{
-					ASTNode* block = boost::get<ASTNode*>(*i);
-					dynamic_cast<SwitchStmt*>(_value)->setDefaultCase(block);
+					ASTNode* block = boost::get<ASTNode*>(i);
+					cast<SwitchStmt>(_value)->setDefaultCase(block);
 				}
 				break;
 			}
+		}
 	}
 	END_ACTION
 };

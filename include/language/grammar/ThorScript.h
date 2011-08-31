@@ -434,22 +434,25 @@ struct ThorScript : qi::grammar<Iterator, typename SA::start::attribute_type, de
 			| PRIVATE   [ typename SA::visibility_specifier::init_private() ]
 			;
 
+		interface_visibility_specifier
+			= PROTECTED [ typename SA::visibility_specifier::init_protected() ]
+			| PRIVATE   [ typename SA::visibility_specifier::init_private() ]
+			;
+
 		annotation_specifiers
-			= qi::eps                  [ typename SA::annotation_specifiers::init() ]
-			>> *( annotation_specifier [ typename SA::annotation_specifiers::append_annotation() ] )
+			= (*annotation_specifier) [ typename SA::annotation_specifiers::init() ]
 			;
 
 		annotation_specifier
-			= AT_SYMBOL >> IDENTIFIER [ typename SA::annotation_specifier::init() ]
-				>>	-(LEFT_BRACE >> (
-					(IDENTIFIER > ASSIGN > primary_expression) [ typename SA::annotation_specifier::append_keyvalue() ] % COMMA
-					) >> RIGHT_BRACE)
+			=	(AT_SYMBOL >> IDENTIFIER
+					>>	-(LEFT_BRACE >> (
+						(IDENTIFIER > ASSIGN > primary_expression) % COMMA
+						) >> RIGHT_BRACE)
+				) [ typename SA::annotation_specifier::init() ]
 			;
 
 		nested_identifier
-			= qi::eps                   [ typename SA::nested_identifier::init() ]
-				>> IDENTIFIER           [ typename SA::nested_identifier::append_identifier() ]
-				>> *( DOT >> IDENTIFIER [ typename SA::nested_identifier::append_identifier() ] )
+			= (IDENTIFIER >> *( DOT >> IDENTIFIER)) [ typename SA::nested_identifier::init() ]
 			;
 
 		//
@@ -482,18 +485,14 @@ struct ThorScript : qi::grammar<Iterator, typename SA::start::attribute_type, de
 			| INTEGER_LITERAL                           [ typename SA::primary_expression::init() ]
 			| FLOAT_LITERAL                             [ typename SA::primary_expression::init() ]
 			| STRING_LITERAL                            [ typename SA::primary_expression::init() ]
-			| lambda_expression                         [ typename SA::primary_expression::init() ]
 			| _TRUE                                     [ typename SA::primary_expression::template init_bool<true>() ]
 			| _FALSE                                    [ typename SA::primary_expression::template init_bool<false>() ]
 			| _NULL                                     [ typename SA::primary_expression::template init_object_literal<tree::ObjectLiteral::LiteralType::NULL_OBJECT>() ]
 			| _SELF                                     [ typename SA::primary_expression::template init_object_literal<tree::ObjectLiteral::LiteralType::SELF_OBJECT>() ]
 			| _GLOBAL                                   [ typename SA::primary_expression::template init_object_literal<tree::ObjectLiteral::LiteralType::GLOBAL_OBJECT>() ]
 			| (LEFT_PAREN >> expression >> RIGHT_PAREN) [ typename SA::primary_expression::init_paren_expression() ]
-			;
-
-		lambda_expression
-			= (FUNCTION > LEFT_PAREN > -typed_parameter_list > RIGHT_PAREN > -colon_type_specifier
-				> block) [ typename SA::lambda_expression::init() ]
+			| (FUNCTION > LEFT_PAREN > -typed_parameter_list > RIGHT_PAREN > -colon_type_specifier
+				> block) [ typename SA::primary_expression::init_lambda() ]
 			;
 
 		// postfix expression
@@ -774,20 +773,20 @@ struct ThorScript : qi::grammar<Iterator, typename SA::start::attribute_type, de
 		interface_decl
 			= (INTERFACE > IDENTIFIER
 				> LEFT_BRACE
-				> *member_function_decl_without_body
+				> *interface_member_function_decl
 				> RIGHT_BRACE
 				) [ typename SA::interface_decl::init() ]
 			;
 
-		member_function_decl_without_body
-			=	(FUNCTION > IDENTIFIER > LEFT_PAREN > -typed_parameter_list > RIGHT_PAREN > colon_type_specifier >> SEMICOLON
-				) [ typename SA::member_function_decl_without_body::init() ]
+		interface_member_function_decl
+			=	(-interface_visibility_specifier >> FUNCTION > IDENTIFIER > LEFT_PAREN > -typed_parameter_list > RIGHT_PAREN > colon_type_specifier > SEMICOLON
+				) [ typename SA::interface_member_function_decl::init() ]
 			;
 
 		enum_decl
 			= (ENUM > IDENTIFIER
 				> LEFT_BRACE
-				> (-annotation_specifiers >> IDENTIFIER > -(ASSIGN > INTEGER_LITERAL)) % COMMA
+				> (-annotation_specifiers > IDENTIFIER > -(ASSIGN > expression)) % COMMA
 				> RIGHT_BRACE
 				) [ typename SA::enum_decl::init() ]
 			;
@@ -801,20 +800,10 @@ struct ThorScript : qi::grammar<Iterator, typename SA::start::attribute_type, de
 		//
 
 		program
-			= qi::eps              [ typename SA::program::init() ]
-				>> -( package_decl [ typename SA::program::append_package_decl() ] )
-				>> *( import_decl  [ typename SA::program::append_import_decl() ] )
-				>> *( declaration  [ typename SA::program::append_declaration() ] )
-			;
-
-		package_decl
-			= PACKAGE
-				> nested_identifier [ typename SA::package_decl::init() ]
-				> SEMICOLON
-			;
-
-		import_decl
-			= IMPORT > nested_identifier [ typename SA::import_decl::init() ] > SEMICOLON
+			= qi::eps                                           [ typename SA::program::init() ]
+				>> -( (PACKAGE > nested_identifier > SEMICOLON) [ typename SA::program::append_package() ] )
+				>> *( (IMPORT > nested_identifier > SEMICOLON)  [ typename SA::program::append_import() ] )
+				>> *( declaration                               [ typename SA::program::append_declaration() ] )
 			;
 
 		//
@@ -847,7 +836,6 @@ struct ThorScript : qi::grammar<Iterator, typename SA::start::attribute_type, de
 			nested_identifier.name("nested_identifier");
 		expression.name("expression");
 			primary_expression.name("primary_expression");
-				lambda_expression.name("lambda_expression");
 			postfix_expression.name("postfix_expression");
 			prefix_expression.name("prefix_expression");
 			multiplicative_expression.name("multiplicative_expression");
@@ -872,9 +860,9 @@ struct ThorScript : qi::grammar<Iterator, typename SA::start::attribute_type, de
 			function_decl.name("function_decl");
 			typedef_decl.name("typedef_decl");
 			class_decl.name("class_decl"); class_member_decl.name("class_member_decl");
-			interface_decl.name("interface_decl"); member_function_decl_without_body.name("member_function_decl_without_body");
+			interface_decl.name("interface_decl"); interface_member_function_decl.name("interface_member_function_decl");
 			enum_decl.name("enum_decl");
-		program.name("program"); package_decl.name("package_decl"); import_decl.name("import_decl");
+		program.name("program");
 		start.name("start");
 
 		if(getParserContext().enable_debug_parser)
@@ -899,7 +887,6 @@ struct ThorScript : qi::grammar<Iterator, typename SA::start::attribute_type, de
 				debug(nested_identifier);
 			debug(expression);
 				debug(primary_expression);
-					debug(lambda_expression);
 				debug(postfix_expression);
 				debug(prefix_expression);
 				debug(multiplicative_expression);
@@ -924,9 +911,9 @@ struct ThorScript : qi::grammar<Iterator, typename SA::start::attribute_type, de
 				debug(function_decl);
 				debug(typedef_decl);
 				debug(class_decl); debug(class_member_decl);
-				debug(interface_decl); debug(member_function_decl_without_body);
+				debug(interface_decl); debug(interface_member_function_decl);
 				debug(enum_decl);
-			debug(program); debug(package_decl); debug(import_decl);
+			debug(program);
 			debug(start);
 		}
 	}
@@ -976,6 +963,7 @@ struct ThorScript : qi::grammar<Iterator, typename SA::start::attribute_type, de
 //		typed_parameter_list, colon_type_specifier, type_specifier, template_param_identifier, template_arg_identifier, template_arg_specifier, type_list_specifier,
 //			storage_specifier,
 //			visibility_specifier,
+//			interface_visibility_specifier,
 //			annotation_specifiers,
 //			annotation_specifier,
 //			nested_identifier,
@@ -985,7 +973,6 @@ struct ThorScript : qi::grammar<Iterator, typename SA::start::attribute_type, de
 		// BEGIN EXPRESSION
 //		expression,
 //			primary_expression,
-//				lambda_expression,
 //			postfix_expression,
 //			prefix_expression,
 //			multiplicative_expression,
@@ -1019,13 +1006,13 @@ struct ThorScript : qi::grammar<Iterator, typename SA::start::attribute_type, de
 //			function_decl,
 //			typedef_decl,
 //			class_decl, class_member_decl,
-//			interface_decl, member_function_decl_without_body,
+//			interface_decl, interface_member_function_decl,
 //			enum_decl,
 		// END DECLARATION
 		///////////////////////////////////////
 		///////////////////////////////////////
 		// BEGIN MODULE
-//		program, package_decl, import_decl;
+//		program,
 		// END MODULE
 		///////////////////////////////////////
 
@@ -1040,26 +1027,13 @@ struct ThorScript : qi::grammar<Iterator, typename SA::start::attribute_type, de
 	qi::rule<Iterator, typename SA::type_list_specifier::attribute_type,       detail::WhiteSpace<Iterator>, typename SA::type_list_specifier::local_type>       type_list_specifier;
 	qi::rule<Iterator, typename SA::storage_specifier::attribute_type,         detail::WhiteSpace<Iterator>, typename SA::storage_specifier::local_type>         storage_specifier;
 	qi::rule<Iterator, typename SA::visibility_specifier::attribute_type,      detail::WhiteSpace<Iterator>, typename SA::visibility_specifier::local_type>      visibility_specifier;
+	qi::rule<Iterator, typename SA::visibility_specifier::attribute_type,      detail::WhiteSpace<Iterator>, typename SA::visibility_specifier::local_type>      interface_visibility_specifier;
 	qi::rule<Iterator, typename SA::annotation_specifiers::attribute_type,     detail::WhiteSpace<Iterator>, typename SA::annotation_specifiers::local_type>     annotation_specifiers;
 	qi::rule<Iterator, typename SA::annotation_specifier::attribute_type,      detail::WhiteSpace<Iterator>, typename SA::annotation_specifier::local_type>      annotation_specifier;
-
-	// declaration
-	qi::rule<Iterator, typename SA::declaration::attribute_type,         detail::WhiteSpace<Iterator>, typename SA::declaration::local_type>         declaration;
-	qi::rule<Iterator, typename SA::const_variable_decl::attribute_type, detail::WhiteSpace<Iterator>, typename SA::const_variable_decl::local_type> const_variable_decl;
-	qi::rule<Iterator, typename SA::variable_decl::attribute_type,       detail::WhiteSpace<Iterator>, typename SA::variable_decl::local_type>       variable_decl;
-	qi::rule<Iterator, typename SA::variable_decl_stem::attribute_type,  detail::WhiteSpace<Iterator>, typename SA::variable_decl_stem::local_type>  variable_decl_stem;
-	qi::rule<Iterator, typename SA::function_decl::attribute_type,       detail::WhiteSpace<Iterator>, typename SA::function_decl::local_type>       function_decl;
-	qi::rule<Iterator, typename SA::typedef_decl::attribute_type,        detail::WhiteSpace<Iterator>, typename SA::typedef_decl::local_type>        typedef_decl;
-	qi::rule<Iterator, typename SA::class_decl::attribute_type,          detail::WhiteSpace<Iterator>, typename SA::class_decl::local_type>          class_decl;
-	qi::rule<Iterator, typename SA::class_member_decl::attribute_type,   detail::WhiteSpace<Iterator>, typename SA::class_member_decl::local_type>   class_member_decl;
-	qi::rule<Iterator, typename SA::interface_decl::attribute_type,      detail::WhiteSpace<Iterator>, typename SA::interface_decl::local_type>      interface_decl;
-	qi::rule<Iterator, typename SA::member_function_decl_without_body::attribute_type, detail::WhiteSpace<Iterator>, typename SA::member_function_decl_without_body::local_type> member_function_decl_without_body;
-	qi::rule<Iterator, typename SA::enum_decl::attribute_type,           detail::WhiteSpace<Iterator>, typename SA::enum_decl::local_type>           enum_decl;
 
 	// expression
 	qi::rule<Iterator, typename SA::right_to_left_binary_op_vec::attribute_type, detail::WhiteSpace<Iterator>, typename SA::right_to_left_binary_op_vec::local_type> expression;
 	qi::rule<Iterator, typename SA::primary_expression::attribute_type,          detail::WhiteSpace<Iterator>, typename SA::primary_expression::local_type>          primary_expression;
-	qi::rule<Iterator, typename SA::lambda_expression::attribute_type,           detail::WhiteSpace<Iterator>, typename SA::lambda_expression::local_type>           lambda_expression;
 	qi::rule<Iterator, typename SA::postfix_expression::attribute_type,          detail::WhiteSpace<Iterator>, typename SA::postfix_expression::local_type>          postfix_expression;
 	qi::rule<Iterator, typename SA::prefix_expression::attribute_type,           detail::WhiteSpace<Iterator>, typename SA::prefix_expression::local_type>           prefix_expression;
 	qi::rule<Iterator, typename SA::left_to_right_binary_op_vec::attribute_type, detail::WhiteSpace<Iterator>, typename SA::left_to_right_binary_op_vec::local_type> multiplicative_expression;
@@ -1075,11 +1049,6 @@ struct ThorScript : qi::grammar<Iterator, typename SA::start::attribute_type, de
 	qi::rule<Iterator, typename SA::range_expression::attribute_type,            detail::WhiteSpace<Iterator>, typename SA::range_expression::local_type>            range_expression;
 	qi::rule<Iterator, typename SA::ternary_expression::attribute_type,          detail::WhiteSpace<Iterator>, typename SA::ternary_expression::local_type>          ternary_expression;
 
-	// module
-	qi::rule<Iterator, typename SA::program::attribute_type,      detail::WhiteSpace<Iterator>, typename SA::program::local_type>      program;
-	qi::rule<Iterator, typename SA::package_decl::attribute_type, detail::WhiteSpace<Iterator>, typename SA::package_decl::local_type> package_decl;
-	qi::rule<Iterator, typename SA::import_decl::attribute_type,  detail::WhiteSpace<Iterator>, typename SA::import_decl::local_type>  import_decl;
-
 	// statement
 	qi::rule<Iterator, typename SA::statement::attribute_type,            detail::WhiteSpace<Iterator>, typename SA::statement::local_type>            statement;
 	qi::rule<Iterator, typename SA::block::attribute_type,                detail::WhiteSpace<Iterator>, typename SA::block::local_type>                block;
@@ -1087,6 +1056,22 @@ struct ThorScript : qi::grammar<Iterator, typename SA::start::attribute_type, de
 	qi::rule<Iterator, typename SA::selection_statement::attribute_type,  detail::WhiteSpace<Iterator>, typename SA::selection_statement::local_type>  selection_statement;
 	qi::rule<Iterator, typename SA::iteration_statement::attribute_type,  detail::WhiteSpace<Iterator>, typename SA::iteration_statement::local_type>  iteration_statement;
 	qi::rule<Iterator, typename SA::branch_statement::attribute_type,     detail::WhiteSpace<Iterator>, typename SA::branch_statement::local_type>     branch_statement;
+
+	// declaration
+	qi::rule<Iterator, typename SA::declaration::attribute_type,         detail::WhiteSpace<Iterator>, typename SA::declaration::local_type>         declaration;
+	qi::rule<Iterator, typename SA::const_variable_decl::attribute_type, detail::WhiteSpace<Iterator>, typename SA::const_variable_decl::local_type> const_variable_decl;
+	qi::rule<Iterator, typename SA::variable_decl::attribute_type,       detail::WhiteSpace<Iterator>, typename SA::variable_decl::local_type>       variable_decl;
+	qi::rule<Iterator, typename SA::variable_decl_stem::attribute_type,  detail::WhiteSpace<Iterator>, typename SA::variable_decl_stem::local_type>  variable_decl_stem;
+	qi::rule<Iterator, typename SA::function_decl::attribute_type,       detail::WhiteSpace<Iterator>, typename SA::function_decl::local_type>       function_decl;
+	qi::rule<Iterator, typename SA::typedef_decl::attribute_type,        detail::WhiteSpace<Iterator>, typename SA::typedef_decl::local_type>        typedef_decl;
+	qi::rule<Iterator, typename SA::class_decl::attribute_type,          detail::WhiteSpace<Iterator>, typename SA::class_decl::local_type>          class_decl;
+	qi::rule<Iterator, typename SA::class_member_decl::attribute_type,   detail::WhiteSpace<Iterator>, typename SA::class_member_decl::local_type>   class_member_decl;
+	qi::rule<Iterator, typename SA::interface_decl::attribute_type,      detail::WhiteSpace<Iterator>, typename SA::interface_decl::local_type>      interface_decl;
+	qi::rule<Iterator, typename SA::interface_member_function_decl::attribute_type, detail::WhiteSpace<Iterator>, typename SA::interface_member_function_decl::local_type> interface_member_function_decl;
+	qi::rule<Iterator, typename SA::enum_decl::attribute_type,           detail::WhiteSpace<Iterator>, typename SA::enum_decl::local_type>           enum_decl;
+
+	// module
+	qi::rule<Iterator, typename SA::program::attribute_type, detail::WhiteSpace<Iterator>, typename SA::program::local_type> program;
 
 	// start
 	qi::rule<Iterator, typename SA::start::attribute_type, detail::WhiteSpace<Iterator>, typename SA::start::local_type> start;
