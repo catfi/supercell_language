@@ -39,17 +39,11 @@
 #include "language/action/basic/LiteralActions.h"
 #include "language/action/basic/SpecifierActions.h"
 
-// declaration
-#include "language/action/declaration/DeclarationActions.h"
-
-// expression
-#include "language/action/expression/ExpressionActions.h"
-
-// module
-#include "language/action/module/ProgramActions.h"
-
-// statement
-#include "language/action/statement/StatementActions.h"
+// non-basic
+#include "language/action/nonbasic/DeclarationActions.h"
+#include "language/action/nonbasic/ExpressionActions.h"
+#include "language/action/nonbasic/ProgramActions.h"
+#include "language/action/nonbasic/StatementActions.h"
 
 namespace zillians { namespace language { namespace action {
 
