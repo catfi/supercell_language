@@ -275,6 +275,37 @@ struct PrettyPrintVisitor : Visitor<const ASTNode, void>
 		{
 			printAnnotation(node.annotations);
 		}
+		if(node.base)
+		{
+			increaseIdent();
+			{
+				STREAM << L"<base_class>" << std::endl;
+				{
+					increaseIdent();
+					visit(*node.base);
+					decreaseIdent();
+				}
+				STREAM << L"</base_class>" << std::endl;
+			}
+			decreaseIdent();
+		}
+		if(node.implements.size() > 0)
+		{
+			increaseIdent();
+			{
+				STREAM << L"<implements>" << std::endl;
+				{
+					increaseIdent();
+					foreach(i, node.implements)
+					{
+						visit(**i);
+					}
+					decreaseIdent();
+				}
+				STREAM << L"</implements>" << std::endl;
+			}
+			decreaseIdent();
+		}
 		{
 			increaseIdent();
 			foreach(i, node.member_functions)
