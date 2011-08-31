@@ -46,10 +46,10 @@ struct UnaryExpr : public Expression
 		{
 			switch(t)
 			{
-			case POSTFIX_INCREMENT: return L"postfix++";
-			case POSTFIX_DECREMENT: return L"postfix--";
-			case PREFIX_INCREMENT: return L"++postfix";
-			case PREFIX_DECREMENT: return L"--postfix";
+			case POSTFIX_INCREMENT: return L"postfix_inc";
+			case POSTFIX_DECREMENT: return L"postfix_dec";
+			case PREFIX_INCREMENT: return L"prefix_inc";
+			case PREFIX_DECREMENT: return L"prefix_dec";
 			case BINARY_NOT: return L"~";
 			case LOGICAL_NOT: return L"!";
 			case ARITHMETIC_NEGATE: return L"-";
