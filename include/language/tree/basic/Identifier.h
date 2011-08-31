@@ -87,7 +87,7 @@ struct NestedIdentifier : public Identifier
 		foreach(i, identifier_list)
 		{
 			t += (*i)->toString();
-			if(is_end_of_foreach(i, identifier_list))
+			if(!is_end_of_foreach(i, identifier_list))
 				t += L".";
 		}
 
@@ -145,7 +145,7 @@ struct TemplatedIdentifier : public Identifier
 			foreach(i, templated_type_list)
 			{
 				t += cast<Identifier>((*i))->toString();
-				if(is_end_of_foreach(i, templated_type_list))
+				if(!is_end_of_foreach(i, templated_type_list))
 					t += L",";
 			}
 			t += L">";
