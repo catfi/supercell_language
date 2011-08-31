@@ -205,7 +205,7 @@ struct prefix_expression
 			typedef boost::fusion::vector2<UnaryExpr::OpCode::type, Expression*> fusion_vec_t;
 			fusion_vec_t &vec = boost::get<fusion_vec_t>(_attr(0));
 			UnaryExpr::OpCode::type type = boost::fusion::at_c<0>(vec);
-			Expression* expr = boost::fusion::at_c<1>(vec);
+			Expression*             expr = boost::fusion::at_c<1>(vec);
 			_value = new UnaryExpr(type, expr);
 			break;
 		}

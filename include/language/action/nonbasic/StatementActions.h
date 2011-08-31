@@ -88,8 +88,8 @@ struct selection_statement
 		_value = new IfElseStmt(Selection(cond, block));
 		BOOST_FOREACH(auto i, (_attr(2)))
 		{
-			Expression* cond = boost::fusion::at_c<0>(i);
-			ASTNode* block = boost::fusion::at_c<1>(i);
+			Expression* cond  = boost::fusion::at_c<0>(i);
+			ASTNode*    block = boost::fusion::at_c<1>(i);
 			cast<IfElseStmt>(_value)->addElseIfBranch(Selection(cond, block));
 		}
 		if(_attr(3).is_initialized())
@@ -109,8 +109,8 @@ struct selection_statement
 				{
 					typedef boost::fusion::vector2<Expression*, ASTNode*> fusion_vec_t;
 					fusion_vec_t &vec = boost::get<fusion_vec_t>(i);
-					Expression* cond = boost::fusion::at_c<0>(vec);
-					ASTNode* block = boost::fusion::at_c<1>(vec);
+					Expression* cond  = boost::fusion::at_c<0>(vec);
+					ASTNode*    block = boost::fusion::at_c<1>(vec);
 					cast<SwitchStmt>(_value)->addCase(Selection(cond, block));
 				}
 				break;

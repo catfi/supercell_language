@@ -185,8 +185,8 @@ struct annotation_specifier
 			BOOST_FOREACH(auto i, *(_attr(1)))
 			{
 				typedef boost::fusion::vector2<SimpleIdentifier*, Expression*> fusion_vec_t;
-				SimpleIdentifier* key = boost::fusion::at_c<0>(i);
-				Expression* value = boost::fusion::at_c<1>(i);
+				SimpleIdentifier* key   = boost::fusion::at_c<0>(i);
+				Expression*       value = boost::fusion::at_c<1>(i);
 				_value->appendKeyValue(key, value);
 			}
 	}

@@ -52,7 +52,7 @@ struct typed_parameter_list
 		_value.reset(new value_t);
 		BOOST_FOREACH(auto i, (_attr(0)))
 		{
-			SimpleIdentifier* name = boost::fusion::at_c<0>(i);
+			SimpleIdentifier*                name          = boost::fusion::at_c<0>(i);
 			boost::optional<TypeSpecifier*> &optional_type = boost::fusion::at_c<1>(i);
 			TypeSpecifier* type = optional_type.is_initialized() ? *optional_type : NULL;
 			_value->push_back(value_t::value_type(name, type));
