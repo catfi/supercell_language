@@ -221,14 +221,17 @@ struct interface_decl
 		printf("interface_decl attr(1) type = %s\n", typeid(_attr_t(1)).name());
 		_value = new InterfaceDecl(_attr(0));
 		deduced_foreach_value(i, _attr(1))
-			cast<InterfaceDecl>(_value)->addFunction(i);
+		{
+			cast<InterfaceDecl>(_value)->addFunction(cast<FunctionDecl>(i));
+			cast<FunctionDecl>(i)->is_member = true;
+		}
 	}
 	END_ACTION
 };
 
 struct interface_member_function_decl
 {
-	DEFINE_ATTRIBUTES(FunctionDecl*)
+	DEFINE_ATTRIBUTES(Declaration*)
 	DEFINE_LOCALS()
 
 	BEGIN_ACTION(init)
@@ -244,7 +247,7 @@ struct interface_member_function_decl
 		_value = new FunctionDecl(_attr(1), _attr(3), is_member, visibility, storage, NULL);
 		if(!!parameters)
 			deduced_foreach_value(i, *parameters)
-				_value->appendParameter(i.first, i.second);
+				cast<FunctionDecl>(_value)->appendParameter(i.first, i.second);
 	}
 	END_ACTION
 };
@@ -265,7 +268,7 @@ struct enum_decl
 			SimpleIdentifier*              tag                  = boost::fusion::at_c<1>(i);
 			boost::optional<Expression*>  &optional_value       = boost::fusion::at_c<2>(i);
 			Annotations* annotations = optional_annotations.is_initialized() ? *optional_annotations : NULL;
-			Expression* value = optional_value.is_initialized() ? *optional_value : NULL;
+			Expression*  value       = optional_value.is_initialized() ? *optional_value : NULL;
 			cast<EnumDecl>(_value)->addEnumeration(tag, value);
 		}
 	}

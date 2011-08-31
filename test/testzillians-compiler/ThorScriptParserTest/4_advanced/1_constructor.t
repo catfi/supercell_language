@@ -1,3 +1,5 @@
+package qwe.asd.zxc;
+
 class my_class
 {
     public function new() // NOTE: no return type necessary
