@@ -17,32 +17,23 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef ZILLIANS_LANGUAGE_STAGE_GENERATOR_LLVMBITCODEGENERATORSTAGE_H_
-#define ZILLIANS_LANGUAGE_STAGE_GENERATOR_LLVMBITCODEGENERATORSTAGE_H_
+#ifndef ZILLIANS_LANGUAGE_CONFIGURATIONCONTEXT_H_
+#define ZILLIANS_LANGUAGE_CONFIGURATIONCONTEXT_H_
 
-#include "language/stage/Stage.h"
+#include "core/Prerequisite.h"
+#include "language/tree/ASTNodeFactory.h"
+#include "language/GlobalContext.h"
 
-namespace zillians { namespace language { namespace stage {
+namespace zillians { namespace language {
 
-class LLVMBitCodeGeneratorStage : public Stage
+struct ConfigurationContext
 {
-public:
-	LLVMBitCodeGeneratorStage();
-	virtual ~LLVMBitCodeGeneratorStage();
-
-public:
-	virtual const char* name();
-	virtual void initializeOptions(po::options_description& option_desc, po::positional_options_description& positional_desc);
-	virtual bool parseOptions(po::variables_map& vm);
-	virtual bool execute();
-
-private:
-	bool emit_llvm;
-	bool dump_llvm;
 };
 
-} } }
+bool hasConfigurationContext();
+ConfigurationContext& getConfigurationContext();
+void setConfigurationContext(ConfigurationContext* context);
 
+} }
 
-
-#endif /* ZILLIANS_LANGUAGE_STAGE_GENERATOR_LLVMBITCODEGENERATORSTAGE_H_ */
+#endif /* ZILLIANS_LANGUAGE_CONFIGURATIONCONTEXT_H_ */

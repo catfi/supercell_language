@@ -25,12 +25,14 @@ include_directories(
     )
 
 add_library(zillians-framework-language
+    language/context/ConfigurationContext.cpp
     language/context/ParserContext.cpp
     language/logging/Logger.cpp
     language/stage/StageConductor.cpp
     language/stage/basic/TreeDebugStage.cpp
     language/stage/parser/ThorScriptParserStage.cpp
     language/stage/transformer/ResolutionStage.cpp
+    language/stage/transformer/ManglingStage.cpp
 	)
 
 if(LLVM_FOUND)
@@ -40,6 +42,7 @@ if(LLVM_FOUND)
         language/context/GeneratorContext.cpp
         language/stage/generator/LLVMGeneratorStage.cpp
         language/stage/generator/LLVMDebugInfoGeneratorStage.cpp
+        language/stage/generator/LLVMBitCodeGeneratorStage.cpp
         )
 endif()
 

@@ -22,6 +22,7 @@
 
 #include "core/Prerequisite.h"
 #include "language/stage/generator/detail/LLVMForeach.h"
+#include "language/stage/transformer/context/ManglingStageContext.h"
 
 #include <llvm/LLVMContext.h>
 #include <llvm/Module.h>
@@ -220,7 +221,7 @@ struct LLVMHelper
 			return false;
 
 		// TODO we should provide some generator name manging helper
-		llvm_function = llvm::Function::Create(llvm_function_type, llvm::Function::ExternalLinkage, "test_function", &mModule);
+		llvm_function = llvm::Function::Create(llvm_function_type, llvm::Function::ExternalLinkage, NameManglingContext::get(&ast_function)->managled_name, &mModule);
 
 		if(!llvm_function)
 			return false;
@@ -255,8 +256,8 @@ struct LLVMHelper
 
 		if(mBuilder.isNamePreserving())
 			llvm_alloca_inst = new llvm::AllocaInst(llvm_variable_type, 0, "", mFunctionContext.alloca_insert_point);
-		//else
-			//llvm_alloca_inst = new llvm::AllocaInst(llvm_variable_type, 0, ast_variable.name->toString(), mFunctionContext.alloca_insert_point);
+		else
+			llvm_alloca_inst = new llvm::AllocaInst(llvm_variable_type, 0, NameManglingContext::get(&ast_variable)->managled_name, mFunctionContext.alloca_insert_point);
 
 		ast_variable.set<llvm::AllocaInst>(llvm_alloca_inst);
 

@@ -17,32 +17,26 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef ZILLIANS_LANGUAGE_STAGE_GENERATOR_LLVMBITCODEGENERATORSTAGE_H_
-#define ZILLIANS_LANGUAGE_STAGE_GENERATOR_LLVMBITCODEGENERATORSTAGE_H_
+#ifndef ZILLIANS_LANGUAGE_STAGE_TRANSFORMER_MANGLINGSTAGE_H_
+#define ZILLIANS_LANGUAGE_STAGE_TRANSFORMER_MANGLINGSTAGE_H_
 
 #include "language/stage/Stage.h"
 
 namespace zillians { namespace language { namespace stage {
 
-class LLVMBitCodeGeneratorStage : public Stage
+class ManglingStage : public Stage
 {
 public:
-	LLVMBitCodeGeneratorStage();
-	virtual ~LLVMBitCodeGeneratorStage();
+	ManglingStage();
+	virtual ~ManglingStage();
 
 public:
 	virtual const char* name();
 	virtual void initializeOptions(po::options_description& option_desc, po::positional_options_description& positional_desc);
 	virtual bool parseOptions(po::variables_map& vm);
 	virtual bool execute();
-
-private:
-	bool emit_llvm;
-	bool dump_llvm;
 };
 
 } } }
 
-
-
-#endif /* ZILLIANS_LANGUAGE_STAGE_GENERATOR_LLVMBITCODEGENERATORSTAGE_H_ */
+#endif /* ZILLIANS_LANGUAGE_STAGE_TRANSFORMER_MANGLINGSTAGE_H_ */

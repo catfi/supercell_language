@@ -17,32 +17,49 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef ZILLIANS_LANGUAGE_STAGE_GENERATOR_LLVMBITCODEGENERATORSTAGE_H_
-#define ZILLIANS_LANGUAGE_STAGE_GENERATOR_LLVMBITCODEGENERATORSTAGE_H_
-
-#include "language/stage/Stage.h"
+#include "language/stage/transformer/ManglingStage.h"
+#include "language/stage/transformer/visitor/ManglingStageVisitor.h"
+#include "language/context/ParserContext.h"
 
 namespace zillians { namespace language { namespace stage {
 
-class LLVMBitCodeGeneratorStage : public Stage
+ManglingStage::ManglingStage()
+{ }
+
+ManglingStage::~ManglingStage()
+{ }
+
+const char* ManglingStage::name()
 {
-public:
-	LLVMBitCodeGeneratorStage();
-	virtual ~LLVMBitCodeGeneratorStage();
+	return "mangling_stage";
+}
 
-public:
-	virtual const char* name();
-	virtual void initializeOptions(po::options_description& option_desc, po::positional_options_description& positional_desc);
-	virtual bool parseOptions(po::variables_map& vm);
-	virtual bool execute();
+void ManglingStage::initializeOptions(po::options_description& option_desc, po::positional_options_description& positional_desc)
+{
+}
 
-private:
-	bool emit_llvm;
-	bool dump_llvm;
-};
+bool ManglingStage::parseOptions(po::variables_map& vm)
+{
+	return true;
+}
+
+bool ManglingStage::execute()
+{
+	if(!hasParserContext())
+		return false;
+
+	ParserContext& parser_context = getParserContext();
+
+	if(parser_context.program)
+	{
+		visitor::ManglingStageVisitor mangler;
+		mangler.visit(*parser_context.program);
+		return true;
+	}
+	else
+	{
+		return false;
+	}
+}
 
 } } }
-
-
-
-#endif /* ZILLIANS_LANGUAGE_STAGE_GENERATOR_LLVMBITCODEGENERATORSTAGE_H_ */

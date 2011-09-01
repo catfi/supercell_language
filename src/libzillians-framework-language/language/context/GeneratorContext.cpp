@@ -21,6 +21,14 @@
 
 namespace zillians { namespace language {
 
+bool hasGeneratorContext()
+{
+	if(GlobalContext::instance()->get<GeneratorContext>())
+		return true;
+	else
+		return false;
+}
+
 GeneratorContext& getGeneratorContext()
 {
 	return *GlobalContext::instance()->get<GeneratorContext>();

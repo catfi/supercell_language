@@ -25,6 +25,7 @@
 #include "language/tree/visitor/general/PrettyPrintVisitor.h"
 #include "language/tree/visitor/general/NodeInfoVisitor.h"
 #include "utility/Foreach.h"
+#include "language/resolver/context/ResolverContext.h"
 
 namespace __gnu_cxx {
 
@@ -40,72 +41,6 @@ struct hash<T*>
 }
 
 namespace zillians { namespace language {
-
-struct ResolvedType
-{
-	explicit ResolvedType(tree::ASTNode* ref) : ref(ref)
-	{ }
-
-	static tree::ASTNode* get(tree::ASTNode* node)
-	{
-		ResolvedType* resolved = node->get<ResolvedType>();
-		if(resolved)
-			return resolved->ref;
-		else
-			return NULL;
-	}
-
-	static void set(tree::ASTNode* node, tree::ASTNode* ref)
-	{
-		return node->set<ResolvedType>(new ResolvedType(ref));
-	}
-
-	tree::ASTNode* ref;
-};
-
-struct ResolvedSymbol
-{
-	explicit ResolvedSymbol(tree::ASTNode* ref) : ref(ref)
-	{ }
-
-	static tree::ASTNode* get(tree::ASTNode* node)
-	{
-		ResolvedSymbol* resolved = node->get<ResolvedSymbol>();
-		if(resolved)
-			return resolved->ref;
-		else
-			return NULL;
-	}
-
-	static void set(tree::ASTNode* node, tree::ASTNode* ref)
-	{
-		return node->set<ResolvedSymbol>(new ResolvedSymbol(ref));
-	}
-
-	tree::ASTNode* ref;
-};
-
-struct ResolvedPackage
-{
-	explicit ResolvedPackage(tree::ASTNode* ref) : ref(ref)
-	{ }
-
-	static tree::ASTNode* get(tree::ASTNode* node)
-	{
-		ResolvedSymbol* resolved = node->get<ResolvedSymbol>();
-		if(resolved)
-			return resolved->ref;
-		else
-			return NULL;
-	}
-
-	static void set(tree::ASTNode* node, tree::ASTNode* ref)
-	{
-		return node->set<ResolvedPackage>(new ResolvedPackage(ref));
-	}
-
-	tree::ASTNode* ref;
-};
 
 struct Resolver
 {

@@ -36,6 +36,7 @@ struct GeneratorContext
 	std::vector<llvm::Module*> modules;
 };
 
+bool hasGeneratorContext();
 GeneratorContext& getGeneratorContext();
 void setGeneratorContext(GeneratorContext* context);
 

@@ -24,8 +24,10 @@
 #include "language/stage/basic/TreeDebugStage.h"
 #include "language/stage/parser/ThorScriptParserStage.h"
 #include "language/stage/transformer/ResolutionStage.h"
+#include "language/stage/transformer/ManglingStage.h"
 #include "language/stage/generator/LLVMGeneratorStage.h"
 #include "language/stage/generator/LLVMDebugInfoGeneratorStage.h"
+#include "language/stage/generator/LLVMBitCodeGeneratorStage.h"
 
 using namespace zillians::language::stage;
 
@@ -40,16 +42,24 @@ ThorScriptCompiler::~ThorScriptCompiler()
 void ThorScriptCompiler::initialize()
 {
 	shared_ptr<Stage> parser(new ThorScriptParserStage());
-	shared_ptr<Stage> resolution(new ResolutionStage());
 	shared_ptr<Stage> debug_tree(new TreeDebugStage());
+
+	shared_ptr<Stage> resolution(new ResolutionStage());
+	shared_ptr<Stage> mangling(new ManglingStage());
+
 	shared_ptr<Stage> llvm_generator(new LLVMGeneratorStage());
-	shared_ptr<Stage> debuginfo_generator(new LLVMDebugInfoGeneratorStage());
+	shared_ptr<Stage> llvm_debug_info_generator(new LLVMDebugInfoGeneratorStage());
+	shared_ptr<Stage> llvm_bitcode_generator(new LLVMBitCodeGeneratorStage());
 
 	appendStage(parser);
 	appendStage(debug_tree);
+
 	appendStage(resolution);
+	appendStage(mangling);
+
 	appendStage(llvm_generator);
-	appendStage(debuginfo_generator);
+	appendStage(llvm_debug_info_generator);
+	appendStage(llvm_bitcode_generator);
 }
 
 void ThorScriptCompiler::finalize()

@@ -21,6 +21,7 @@
 #include "language/logging/Logger.h"
 #include "utility/Foreach.h"
 #include "language/tree/ASTNode.h"
+#include "language/context/ConfigurationContext.h"
 
 namespace zillians { namespace language { namespace stage {
 
@@ -46,6 +47,11 @@ int StageConductor::main(int argc, const char** argv)
 	{
 		log4cxx::BasicConfigurator::configure();
 	}
+
+
+	// initialize the global configuration context
+	ConfigurationContext* config = new ConfigurationContext();
+	setConfigurationContext(config);
 
 	// call implementation's initialize() to append stages
 	initialize();

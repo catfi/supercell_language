@@ -21,6 +21,7 @@
 #define ZILLIANS_LANGUAGE_STAGE_TRANSFORMER_RESOLUTIONSTAGE_H_
 
 #include "language/stage/Stage.h"
+#include "language/resolver/Resolver.h"
 
 namespace zillians { namespace language { namespace stage {
 

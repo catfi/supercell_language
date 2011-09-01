@@ -44,6 +44,7 @@ struct ParserContext
 	} debug;
 };
 
+bool hasParserContext();
 ParserContext& getParserContext();
 void setParserContext(ParserContext* context);
 

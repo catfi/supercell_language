@@ -21,6 +21,14 @@
 
 namespace zillians { namespace language {
 
+bool hasParserContext()
+{
+	if(GlobalContext::instance()->get<ParserContext>())
+		return true;
+	else
+		return false;
+}
+
 ParserContext& getParserContext()
 {
 	return *GlobalContext::instance()->get<ParserContext>();
