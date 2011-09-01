@@ -26,7 +26,7 @@
 
 namespace zillians { namespace language { namespace stage {
 
-ResolutionStage::ResolutionStage() : disable_type_inference(false), total_resolved_count(0)
+ResolutionStage::ResolutionStage() : disable_type_inference(false), total_resolved_count(0), total_unresolved_count(0)
 { }
 
 ResolutionStage::~ResolutionStage()
@@ -34,7 +34,7 @@ ResolutionStage::~ResolutionStage()
 
 const char* ResolutionStage::name()
 {
-	return "type_inference";
+	return "resolution_stage";
 }
 
 void ResolutionStage::initializeOptions(po::options_description& option_desc, po::positional_options_description& positional_desc)
@@ -52,25 +52,24 @@ bool ResolutionStage::parseOptions(po::variables_map& vm)
 
 bool ResolutionStage::execute()
 {
-	// TODO remove this
-	return true;
-
-	if(!resolveTypes()) return false;
-	if(!resolveSymbols()) return false;
+	if(!resolveTypes(true)) return false;
+	if(!resolveSymbols(true)) return false;
 
 	return true;
 }
 
-bool ResolutionStage::resolveTypes()
+bool ResolutionStage::resolveTypes(bool report_error_summary)
 {
 	if(getParserContext().program)
 	{
+		LOG4CXX_DEBUG(Logger::TransformerStage, L"trying to resolve types");
+
 		tree::Program& program = *getParserContext().program;
 
 		Resolver resolver;
 		visitor::ResolutionStageVisitor visitor(visitor::ResolutionStageVisitor::Target::TYPE_RESOLUTION, program, resolver);
 
-		std::size_t last_unresolved_count = 0;
+		std::size_t last_unresolved_count = std::numeric_limits<std::size_t>::max();
 		while(true)
 		{
 			visitor.reset();
@@ -81,6 +80,7 @@ bool ResolutionStage::resolveTypes()
 
 			if(unresolved_count == 0 || unresolved_count == last_unresolved_count)
 			{
+				if(unresolved_count == 0) last_unresolved_count = 0;
 				break;
 			}
 			else
@@ -93,22 +93,19 @@ bool ResolutionStage::resolveTypes()
 		if(last_unresolved_count > 0)
 		{
 			total_unresolved_count += last_unresolved_count;
-			tree::visitor::NodeTypeNameVisitor name;
-			tree::visitor::NodeInfoVisitor info;
-			for(__gnu_cxx::hash_set<ASTNode*>::iterator it = visitor.unresolved_nodes.begin(); it != visitor.unresolved_nodes.end(); ++it)
+
+			if(report_error_summary)
 			{
-				if(tree::isa<tree::TypeSpecifier>(*it))
+				LOG4CXX_ERROR(Logger::TransformerStage, L"there're " << total_unresolved_count << L" unresolved types found");
+
+				tree::visitor::NodeInfoVisitor node_info_visitor;
+				for(__gnu_cxx::hash_set<ASTNode*>::iterator it = visitor.unresolved_nodes.begin(); it != visitor.unresolved_nodes.end(); ++it)
 				{
-					tree::TypeSpecifier* specifier = tree::cast<tree::TypeSpecifier>(*it);
-					if(specifier->type == tree::TypeSpecifier::ReferredType::UNSPECIFIED)
-					{
-						name.visit(**it);
-						info.visit(**it);
-						LOG4CXX_ERROR(Logger::TransformerStage, L"failed to resolve type specifier: " << specifier->referred.unspecified->toString() << ", full qualified id: " << info.stream.str());
-						info.reset();
-					}
+					node_info_visitor.visit(**it);
+					LOG4CXX_ERROR(Logger::TransformerStage, L"failed to resolve type: \"" << node_info_visitor.stream.str() << L"\"");
 				}
 			}
+
 			return false;
 		}
 	}
@@ -120,16 +117,18 @@ bool ResolutionStage::resolveTypes()
 	return true;
 }
 
-bool ResolutionStage::resolveSymbols()
+bool ResolutionStage::resolveSymbols(bool report_error_summary)
 {
 	if(getParserContext().program)
 	{
+		LOG4CXX_DEBUG(Logger::TransformerStage, "trying to resolve symbols");
+
 		tree::Program& program = *getParserContext().program;
 
 		Resolver resolver;
 		visitor::ResolutionStageVisitor visitor(visitor::ResolutionStageVisitor::Target::SYMBOL_RESOLUTION, program, resolver);
 
-		std::size_t last_unresolved_count = 0;
+		std::size_t last_unresolved_count = std::numeric_limits<std::size_t>::max();
 		while(true)
 		{
 			visitor.reset();
@@ -140,6 +139,7 @@ bool ResolutionStage::resolveSymbols()
 
 			if(unresolved_count == 0 || unresolved_count == last_unresolved_count)
 			{
+				if(unresolved_count == 0) last_unresolved_count = 0;
 				break;
 			}
 			else
@@ -152,22 +152,19 @@ bool ResolutionStage::resolveSymbols()
 		if(last_unresolved_count > 0)
 		{
 			total_unresolved_count += last_unresolved_count;
-			tree::visitor::NodeTypeNameVisitor name;
-			tree::visitor::NodeInfoVisitor info;
-			for(__gnu_cxx::hash_set<ASTNode*>::iterator it = visitor.unresolved_nodes.begin(); it != visitor.unresolved_nodes.end(); ++it)
+
+			if(report_error_summary)
 			{
-				if(tree::isa<tree::Identifier>(*it))
+				LOG4CXX_ERROR(Logger::TransformerStage, L"there're " << total_unresolved_count << L" unresolved symbol found");
+
+				tree::visitor::NodeInfoVisitor node_info_visitor;
+				for(__gnu_cxx::hash_set<ASTNode*>::iterator it = visitor.unresolved_nodes.begin(); it != visitor.unresolved_nodes.end(); ++it)
 				{
-					tree::Identifier* identifier = tree::cast<tree::Identifier>(*it);
-//					if(specifier->type == tree::TypeSpecifier::ReferredType::UNSPECIFIED)
-//					{
-//						name.visit(**it);
-//						info.visit(**it);
-//						LOG4CXX_ERROR(Logger::TransformerStage, L"failed to resolve type specifier: " << specifier->referred.unspecified->toString() << ", full qualified id: " << info.stream.str());
-//						info.reset();
-//					}
+					node_info_visitor.visit(**it);
+					LOG4CXX_ERROR(Logger::TransformerStage, L"failed to resolve symbol: \"" << node_info_visitor.stream.str() << L"\"");
 				}
 			}
+
 			return false;
 		}
 	}

@@ -29,7 +29,7 @@
 namespace zillians { namespace language {
 
 log4cxx::LoggerPtr Logger::Compiler(log4cxx::Logger::getLogger("compiler"));
-log4cxx::LoggerPtr Logger::Resolver(log4cxx::Logger::getLogger("resolver"));
+log4cxx::LoggerPtr Logger::Resolver(log4cxx::Logger::getLogger("compiler.resolver"));
 log4cxx::LoggerPtr Logger::ParserStage(log4cxx::Logger::getLogger("compiler.parser"));
 log4cxx::LoggerPtr Logger::TransformerStage(log4cxx::Logger::getLogger("compiler.transformer"));
 log4cxx::LoggerPtr Logger::GeneratorStage(log4cxx::Logger::getLogger("compiler.generator"));
@@ -47,13 +47,13 @@ void Logger::initialize()
 	// %x -> nested context (usuallh null)
 	// %m -> message
 	// %n -> new line
-	static const log4cxx::LogString default_pattern(LOG4CXX_STR("%m%n"));
+	static const log4cxx::LogString default_pattern(LOG4CXX_STR("[%p] [%c] %m%n"));
 	log4cxx::LayoutPtr layout(new log4cxx::PatternLayout(default_pattern));
 	log4cxx::AppenderPtr appender(new log4cxx::ConsoleAppender(layout));
 	root->addAppender(appender);
 
 	// log level: TRACE -> DEBUG -> INFO -> WARN -> ERROR -> FATAL
-	root->setLevel(log4cxx::Level::getInfo());
+	root->setLevel(log4cxx::Level::getDebug());
 }
 
 } }

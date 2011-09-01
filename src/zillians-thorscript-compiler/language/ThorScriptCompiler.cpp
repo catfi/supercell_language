@@ -44,8 +44,8 @@ void ThorScriptCompiler::initialize()
 	shared_ptr<Stage> llvm_generator(new LLVMGeneratorStage());
 
 	appendStage(parser);
-	appendStage(resolution);
 	appendStage(debug_tree);
+	appendStage(resolution);
 	appendStage(llvm_generator);
 }
 

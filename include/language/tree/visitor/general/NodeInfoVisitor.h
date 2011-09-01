@@ -60,6 +60,21 @@ struct NodeInfoVisitor : Visitor<ASTNode, void, VisitorImplementation::recursive
 		stream << node.id->toString();
 	}
 
+	void info(Block& node)
+	{
+		if(node.parent) visit(*node.parent);
+
+		if(stream.str().length() > 0)
+			stream << L".";
+
+		if(node.is_pipelined_block)
+			stream << L"[pipeline_blocl]";
+		else if(node.is_async_block)
+			stream << L"[async_blocl]";
+		else
+			stream << L"[block]";
+	}
+
 	void info(TypeSpecifier& node)
 	{
 		if(node.parent) visit(*node.parent);

@@ -31,7 +31,7 @@ TreeDebugStage::~TreeDebugStage()
 
 const char* TreeDebugStage::name()
 {
-	return "tree_debug";
+	return "tree_debug_stage";
 }
 
 void TreeDebugStage::initializeOptions(po::options_description& option_desc, po::positional_options_description& positional_desc)

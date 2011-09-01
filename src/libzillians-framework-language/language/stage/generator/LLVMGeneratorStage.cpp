@@ -33,7 +33,7 @@ LLVMGeneratorStage::~LLVMGeneratorStage()
 
 const char* LLVMGeneratorStage::name()
 {
-	return "llvm_generator";
+	return "llvm_generator_stage";
 }
 
 void LLVMGeneratorStage::initializeOptions(po::options_description& option_desc, po::positional_options_description& positional_desc)

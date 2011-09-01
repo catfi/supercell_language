@@ -71,7 +71,10 @@ struct ResolutionStageVisitor : GenericDoubleVisitor
 
 	void resolve(Import& node)
 	{
-		package_visitor.target(ResolutionVisitor::Target::PACKAGE, node.ns);
+		package_visitor.reset();
+		package_visitor.search(node.ns);
+		package_visitor.filter(ResolutionVisitor::Filter::PACKAGE);
+
 		package_visitor.visit(program);
 
 		if(package_visitor.candidates.size() == 1)
@@ -84,28 +87,8 @@ struct ResolutionStageVisitor : GenericDoubleVisitor
 
 	void resolve(TypeSpecifier& node)
 	{
-//		BOOST_ASSERT(type == Target::TYPE_RESOLUTION);
-
 		// TODO we should never reach here
 		BOOST_ASSERT(false && "reaching code that shouldn't be reached");
-
-//		if(type == Target::TYPE_RESOLUTION)
-//		{
-//			if(node.type == TypeSpecifier::ReferredType::UNSPECIFIED)
-//			{
-//				if(resolver.resolveType(node))
-//					++resolved_count;
-//				else
-//				{
-//					unresolved_nodes.insert(&node);
-//					++unresolved_count;
-//				}
-//			}
-//		}
-//		else if(type == Target::SYMBOL_RESOLUTION)
-//		{
-//
-//		}
 	}
 
 	void resolve(ClassDecl& node)
@@ -131,6 +114,32 @@ struct ResolutionStageVisitor : GenericDoubleVisitor
 		BOOST_ASSERT(type == Target::TYPE_RESOLUTION || type == Target::SYMBOL_RESOLUTION);
 
 		resolver.enterScope(node);
+
+		LOG4CXX_DEBUG(Logger::TransformerStage, L"trying to resolve function: " << node.name->toString());
+
+		if(type == Target::TYPE_RESOLUTION)
+		{
+			// try to resolve return type
+			try_to_resolve_type(node.type);
+
+			// try to resolve parameter type
+			foreach(i, node.parameters)
+			{
+				try_to_resolve_type(i->second);
+			}
+
+		}
+		else if(type == Target::SYMBOL_RESOLUTION)
+		{
+			// do nothing
+		}
+
+		// visit all statements in the function block
+		if(node.block)
+		{
+			visit(*node.block);
+		}
+
 		resolver.leaveScope(node);
 	}
 
@@ -154,18 +163,7 @@ struct ResolutionStageVisitor : GenericDoubleVisitor
 	{
 		if(type == Target::TYPE_RESOLUTION)
 		{
-			if(node.from->type == TypeSpecifier::ReferredType::UNSPECIFIED)
-			{
-				if(resolver.resolveType(*node.from))
-				{
-					++resolved_count;
-				}
-				else
-				{
-					unresolved_nodes.insert(node.from);
-					++unresolved_count;
-				}
-			}
+			try_to_resolve_type(node.from);
 		}
 		else if(type == Target::SYMBOL_RESOLUTION)
 		{
@@ -178,27 +176,17 @@ struct ResolutionStageVisitor : GenericDoubleVisitor
 	{
 		if(type == Target::TYPE_RESOLUTION)
 		{
-			if(node.type)
-			{
-				if(resolver.resolveType(*node.type))
-				{
-					++resolved_count;
-				}
-				else
-				{
-					unresolved_nodes.insert(node.type);
-					++unresolved_count;
-				}
-			}
-			else
-			{
-				++unspecified_type_count;
-			}
+			try_to_resolve_type(node.type);
 		}
 		else if(type == Target::SYMBOL_RESOLUTION)
 		{
-			// we should never reach here
-			BOOST_ASSERT(false && "reaching code that shouldn't be reached");
+//			if(try_to_resolve_symbol(node.name, true))
+//			{
+//				// error, the variable declared name should be resolvable because that would lead to ambiguous name conflict
+//				// TODO make the error message cleaner
+//				LOG4CXX_ERROR(Logger::Resolver, L"ambiguous variable declared: " << node.name->toString());
+//			}
+			visit(*node.initializer);
 		}
 	}
 
@@ -262,49 +250,44 @@ struct ResolutionStageVisitor : GenericDoubleVisitor
 
 	void resolve(MemberExpr& node)
 	{
-		BOOST_ASSERT(type == Target::SYMBOL_RESOLUTION);
-
 		if(type == Target::TYPE_RESOLUTION)
 		{
 			// we should never reach here
-			BOOST_ASSERT(false && "reaching code that shouldn't be reached");
+			//BOOST_ASSERT(false && "reaching code that shouldn't be reached");
 		}
 		else if(type == Target::SYMBOL_RESOLUTION)
 		{
 			visit(*node.node);
-			resolver.resolveSymbol(*node.node, *node.member);
-			// resolver should be able to take node.node to search for a identifier
+			try_to_resolve_symbol_or_package(node.node, node.member);
 		}
 	}
 
 	void resolve(PrimaryExpr& node)
 	{
-		BOOST_ASSERT(type == Target::SYMBOL_RESOLUTION);
-
 		if(type == Target::TYPE_RESOLUTION)
 		{
 			// we should never reach here
-			BOOST_ASSERT(false && "reaching code that shouldn't be reached");
+			//BOOST_ASSERT(false && "reaching code that shouldn't be reached");
 		}
 		else if(type == Target::SYMBOL_RESOLUTION)
 		{
 			if(node.catagory == PrimaryExpr::Catagory::IDENTIFIER)
 			{
-				visit(*node.value.identifier);
+				try_to_resolve_symbol_or_package(node.value.identifier);
 			}
 		}
 	}
 
 	void resolve(CastExpr& node)
 	{
+		visit(*node.node);
+
 		if(type == Target::TYPE_RESOLUTION)
 		{
-			visit(*node.node);
-			resolver.resolveType(*node.type);
+			try_to_resolve_type(node.type);
 		}
 		else if(type == Target::SYMBOL_RESOLUTION)
 		{
-			visit(*node.node);
 		}
 	}
 
@@ -329,6 +312,154 @@ struct ResolutionStageVisitor : GenericDoubleVisitor
 		resolved_count = 0;
 		unresolved_count = 0;
 		unspecified_type_count = 0;
+	}
+
+private:
+	void try_to_resolve_type(tree::TypeSpecifier* node, bool no_action = false)
+	{
+		if(!node)
+			return;
+
+		if(node->type == TypeSpecifier::ReferredType::UNSPECIFIED)
+		{
+			if(resolver.resolveType(*node, no_action))
+			{
+				++resolved_count;
+			}
+			else
+			{
+				unresolved_nodes.insert(node);
+				++unresolved_count;
+			}
+		}
+		else
+		{
+			++unspecified_type_count;
+		}
+	}
+
+	bool try_to_resolve_symbol(tree::ASTNode* scope, tree::Identifier* node, bool no_action = false)
+	{
+		if(!scope || !node)
+			return false;
+
+		if(resolver.resolveSymbol(*scope, *node, no_action))
+		{
+			++resolved_count;
+			return true;
+		}
+		else
+		{
+			unresolved_nodes.insert(node);
+			++unresolved_count;
+			return false;
+		}
+	}
+
+	bool try_to_resolve_symbol(tree::Identifier* node, bool no_action = false)
+	{
+		if(!node)
+			return false;
+
+		if(resolver.resolveSymbol(*node, no_action))
+		{
+			++resolved_count;
+			return true;
+		}
+		else
+		{
+			unresolved_nodes.insert(node);
+			++unresolved_count;
+			return false;
+		}
+	}
+
+	bool try_to_resolve_package(tree::ASTNode* scope, tree::Identifier* node, bool no_action = false)
+	{
+		if(!scope || !node)
+			return false;
+
+		if(resolver.resolvePackage(*scope, *node, no_action))
+		{
+			++resolved_count;
+			return true;
+		}
+		else
+		{
+			unresolved_nodes.insert(node);
+			++unresolved_count;
+			return false;
+		}
+	}
+
+	bool try_to_resolve_package(tree::Identifier* node, bool no_action = false)
+	{
+		if(!node)
+			return false;
+
+		if(resolver.resolvePackage(*node, no_action))
+		{
+			++resolved_count;
+			return true;
+		}
+		else
+		{
+			unresolved_nodes.insert(node);
+			++unresolved_count;
+			return false;
+		}
+	}
+
+	bool try_to_resolve_symbol_or_package(tree::ASTNode* scope, tree::Identifier* node, bool no_action = false)
+	{
+		if(!scope || !node)
+			return false;
+
+		if(resolver.resolveSymbol(*scope, *node, no_action))
+		{
+			++resolved_count;
+			return true;
+		}
+		else
+		{
+			if(resolver.resolvePackage(*scope, *node, no_action))
+			{
+				++resolved_count;
+				return true;
+			}
+			else
+			{
+				unresolved_nodes.insert(node);
+				++unresolved_count;
+				return false;
+			}
+		}
+	}
+
+	bool try_to_resolve_symbol_or_package(tree::Identifier* node, bool no_action = false)
+	{
+		if(!node)
+			return false;
+
+		if(resolver.resolveSymbol(*node, no_action))
+		{
+			++resolved_count;
+			return true;
+		}
+		else
+		{
+			if(resolver.resolvePackage(*node, no_action))
+			{
+				++resolved_count;
+				return true;
+			}
+			else
+			{
+				unresolved_nodes.insert(node);
+				++unresolved_count;
+				return false;
+			}
+		}
 	}
 
 public:

@@ -44,6 +44,7 @@ struct Identifier : public ASTNode
 //	}
 
 	virtual const std::wstring& toString() const = 0;
+	virtual bool isEmpty() const = 0;
 
 //	ASTNode* resolved;
 };
@@ -66,6 +67,11 @@ struct SimpleIdentifier : public Identifier
 		}
 		else
 			return name;
+	}
+
+	virtual bool isEmpty() const
+	{
+		return (name.length() == 0);
 	}
 
 	const std::wstring name;
@@ -95,6 +101,17 @@ struct NestedIdentifier : public Identifier
 			t = L"<empty>";
 
 		return t;
+	}
+
+	virtual bool isEmpty() const
+	{
+		foreach(i, identifier_list)
+		{
+			if(!(*i)->isEmpty())
+				return false;
+		}
+
+		return true;
 	}
 
 	void appendIdentifier(Identifier* id)
@@ -159,6 +176,14 @@ struct TemplatedIdentifier : public Identifier
 			t = L"<empty>";
 
 		return t;
+	}
+
+	virtual bool isEmpty() const
+	{
+		if(id->isEmpty() && templated_type_list.size() == 0)
+			return true;
+		else
+			return false;
 	}
 
 	void setIdentifier(Identifier* identifier)

@@ -37,8 +37,8 @@ public:
 	virtual bool execute();
 
 private:
-	bool resolveTypes();
-	bool resolveSymbols();
+	bool resolveTypes(bool report_error_summary);
+	bool resolveSymbols(bool report_error_summary);
 
 public:
 	std::size_t get_resolved_count();

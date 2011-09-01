@@ -1,24 +1,18 @@
 package com.zillians.compiler_test;
 
-class some_class_decl
+function f0(x:int32, y:int32):int32
 {
+	return x + y;
 }
 
-function f0(x:some_class_decl, y:some_class_decl):some_class_decl
+function f1(x:int32, y:int32):int32
 {
-	var temp:some_class_decl = x;
-	return temp;
+	return f0(x,y) + f0(x,y);
 }
 
-function f1(x, y)
+function f2(x:int32, y:int32):int32
 {
-	var temp = x;
-	return temp;
+	return f1(x,y) + f1(x,y);
 }
 
-function f1_caller()
-{
-	//var x = new some_class_decl();
-	//var y = new some_class_decl();
-	//var result = f1(x, y);
-}
+function g0(

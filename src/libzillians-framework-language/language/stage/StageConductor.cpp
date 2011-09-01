@@ -20,6 +20,7 @@
 #include "language/stage/StageConductor.h"
 #include "language/logging/Logger.h"
 #include "utility/Foreach.h"
+#include "language/tree/ASTNode.h"
 
 namespace zillians { namespace language { namespace stage {
 
@@ -48,6 +49,8 @@ int StageConductor::main(int argc, const char** argv)
 
 	// call implementation's initialize() to append stages
 	initialize();
+
+	tree::printASTNodeDebugInfo();
 
 	if(true)
 	{

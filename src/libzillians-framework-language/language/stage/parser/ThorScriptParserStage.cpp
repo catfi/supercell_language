@@ -57,7 +57,7 @@ ThorScriptParserStage::~ThorScriptParserStage()
 
 const char* ThorScriptParserStage::name()
 {
-	return "thorscript_parser";
+	return "thorscript_parser_stage";
 }
 
 void ThorScriptParserStage::initializeOptions(po::options_description& option_desc, po::positional_options_description& positional_desc)
@@ -111,6 +111,12 @@ bool ThorScriptParserStage::execute()
 bool ThorScriptParserStage::parse(std::string filename)
 {
 	std::ifstream in(filename, std::ios_base::in);
+
+	if(!in.good())
+	{
+		LOG4CXX_ERROR(Logger::ParserStage, "failed to open file: " << filename);
+		return false;
+	}
 
     // ignore the BOM marking the beginning of a UTF-8 file in Windows
     if(in.peek() == '\xef')

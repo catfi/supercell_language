@@ -111,6 +111,11 @@ struct TypeSpecifier : public ASTNode
 		update(class_decl);
 	}
 
+	explicit TypeSpecifier(InterfaceDecl* interface_decl)
+	{
+		update(interface_decl);
+	}
+
 	explicit TypeSpecifier(FunctionDecl* function_decl)
 	{
 		update(function_decl);
@@ -145,6 +150,12 @@ struct TypeSpecifier : public ASTNode
 	{
 		type = ReferredType::CLASS_DECL;
 		referred.class_decl = class_decl;
+	}
+
+	void update(InterfaceDecl* interface_decl)
+	{
+		type = ReferredType::INTERFACE_DECL;
+		referred.interface_decl = interface_decl;
 	}
 
 	void update(FunctionDecl* function_decl)

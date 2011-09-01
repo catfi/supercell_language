@@ -33,7 +33,7 @@ LLVMDebugInfoGeneratorStage::~LLVMDebugInfoGeneratorStage()
 
 const char* LLVMDebugInfoGeneratorStage::name()
 {
-	return "llvm_generator";
+	return "llvm_debug_info_generator_stage";
 }
 
 void LLVMDebugInfoGeneratorStage::initializeOptions(po::options_description& option_desc, po::positional_options_description& positional_desc)

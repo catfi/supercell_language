@@ -27,6 +27,7 @@
 #include "core/ContextHub.h"
 #include "core/Visitor.h"
 #include "language/tree/GarbageCollector.h"
+#include "language/logging/Logger.h"
 #include <boost/preprocessor.hpp>
 
 #define DEFINE_HIERARCHY_BASE() \
@@ -149,6 +150,55 @@ enum class ASTNodeType : int
 
 	InvalidType,
 };
+
+static void printASTNodeDebugInfo()
+{
+	LOG4CXX_DEBUG(Logger::Compiler, L"[ASTNode Type Id Debugging Table]");
+	LOG4CXX_DEBUG(Logger::Compiler, L"[#" << (int)(ASTNodeType::ASTNode) << L"] = " << L"ASTNodeType::ASTNode");
+	LOG4CXX_DEBUG(Logger::Compiler, L"[#" << (int)(ASTNodeType::Annotation) << L"] = " << L"ASTNodeType::Annotation");
+	LOG4CXX_DEBUG(Logger::Compiler, L"[#" << (int)(ASTNodeType::Annotations) << L"] = " << L"ASTNodeType::Annotations");
+	LOG4CXX_DEBUG(Logger::Compiler, L"[#" << (int)(ASTNodeType::Program) << L"] = " << L"ASTNodeType::Program");
+	LOG4CXX_DEBUG(Logger::Compiler, L"[#" << (int)(ASTNodeType::Package) << L"] = " << L"ASTNodeType::Package");
+	LOG4CXX_DEBUG(Logger::Compiler, L"[#" << (int)(ASTNodeType::Import) << L"] = " << L"ASTNodeType::Import");
+	LOG4CXX_DEBUG(Logger::Compiler, L"[#" << (int)(ASTNodeType::Block) << L"] = " << L"ASTNodeType::Block");
+	LOG4CXX_DEBUG(Logger::Compiler, L"[#" << (int)(ASTNodeType::Identifier) << L"] = " << L"ASTNodeType::Identifier");
+	LOG4CXX_DEBUG(Logger::Compiler, L"[#" << (int)(ASTNodeType::SimpleIdentifier) << L"] = " << L"ASTNodeType::SimpleIdentifier");
+	LOG4CXX_DEBUG(Logger::Compiler, L"[#" << (int)(ASTNodeType::NestedIdentifier) << L"] = " << L"ASTNodeType::NestedIdentifier");
+	LOG4CXX_DEBUG(Logger::Compiler, L"[#" << (int)(ASTNodeType::TemplatedIdentifier) << L"] = " << L"ASTNodeType::TemplatedIdentifier");
+	LOG4CXX_DEBUG(Logger::Compiler, L"[#" << (int)(ASTNodeType::Literal) << L"] = " << L"ASTNodeType::Literal");
+	LOG4CXX_DEBUG(Logger::Compiler, L"[#" << (int)(ASTNodeType::NumericLiteral) << L"] = " << L"ASTNodeType::NumericLiteral");
+	LOG4CXX_DEBUG(Logger::Compiler, L"[#" << (int)(ASTNodeType::StringLiteral) << L"] = " << L"ASTNodeType::StringLiteral");
+	LOG4CXX_DEBUG(Logger::Compiler, L"[#" << (int)(ASTNodeType::ObjectLiteral) << L"] = " << L"ASTNodeType::ObjectLiteral");
+	LOG4CXX_DEBUG(Logger::Compiler, L"[#" << (int)(ASTNodeType::TypeSpecifier) << L"] = " << L"ASTNodeType::TypeSpecifier");
+	LOG4CXX_DEBUG(Logger::Compiler, L"[#" << (int)(ASTNodeType::FunctionType) << L"] = " << L"ASTNodeType::FunctionType");
+
+	LOG4CXX_DEBUG(Logger::Compiler, L"[#" << (int)(ASTNodeType::Declaration) << L"] = " << L"ASTNodeType::Declaration");
+	LOG4CXX_DEBUG(Logger::Compiler, L"[#" << (int)(ASTNodeType::ClassDecl) << L"] = " << L"ASTNodeType::ClassDecl");
+	LOG4CXX_DEBUG(Logger::Compiler, L"[#" << (int)(ASTNodeType::EnumDecl) << L"] = " << L"ASTNodeType::EnumDecl");
+	LOG4CXX_DEBUG(Logger::Compiler, L"[#" << (int)(ASTNodeType::InterfaceDecl) << L"] = " << L"ASTNodeType::InterfaceDecl");
+	LOG4CXX_DEBUG(Logger::Compiler, L"[#" << (int)(ASTNodeType::TypedefDecl) << L"] = " << L"ASTNodeType::TypedefDecl");
+	LOG4CXX_DEBUG(Logger::Compiler, L"[#" << (int)(ASTNodeType::FunctionDecl) << L"] = " << L"ASTNodeType::FunctionDecl");
+	LOG4CXX_DEBUG(Logger::Compiler, L"[#" << (int)(ASTNodeType::VariableDecl) << L"] = " << L"ASTNodeType::VariableDecl");
+	LOG4CXX_DEBUG(Logger::Compiler, L"[#" << (int)(ASTNodeType::Statement) << L"] = " << L"ASTNodeType::Statement");
+	LOG4CXX_DEBUG(Logger::Compiler, L"[#" << (int)(ASTNodeType::DeclarativeStmt) << L"] = " << L"ASTNodeType::DeclarativeStmt");
+	LOG4CXX_DEBUG(Logger::Compiler, L"[#" << (int)(ASTNodeType::ExpressionStmt) << L"] = " << L"ASTNodeType::ExpressionStmt");
+	LOG4CXX_DEBUG(Logger::Compiler, L"[#" << (int)(ASTNodeType::IterativeStmt) << L"] = " << L"ASTNodeType::IterativeStmt");
+	LOG4CXX_DEBUG(Logger::Compiler, L"[#" << (int)(ASTNodeType::ForeachStmt) << L"] = " << L"ASTNodeType::ForeachStmt");
+	LOG4CXX_DEBUG(Logger::Compiler, L"[#" << (int)(ASTNodeType::WhileStmt) << L"] = " << L"ASTNodeType::WhileStmt");
+	LOG4CXX_DEBUG(Logger::Compiler, L"[#" << (int)(ASTNodeType::SelectionStmt) << L"] = " << L"ASTNodeType::SelectionStmt");
+	LOG4CXX_DEBUG(Logger::Compiler, L"[#" << (int)(ASTNodeType::IfElseStmt) << L"] = " << L"ASTNodeType::IfElseStmt");
+	LOG4CXX_DEBUG(Logger::Compiler, L"[#" << (int)(ASTNodeType::SwitchStmt) << L"] = " << L"ASTNodeType::SwitchStmt");
+	LOG4CXX_DEBUG(Logger::Compiler, L"[#" << (int)(ASTNodeType::BranchStmt) << L"] = " << L"ASTNodeType::BranchStmt");
+	LOG4CXX_DEBUG(Logger::Compiler, L"[#" << (int)(ASTNodeType::Expression) << L"] = " << L"ASTNodeType::Expression");
+	LOG4CXX_DEBUG(Logger::Compiler, L"[#" << (int)(ASTNodeType::PrimaryExpr) << L"] = " << L"ASTNodeType::PrimaryExpr");
+	LOG4CXX_DEBUG(Logger::Compiler, L"[#" << (int)(ASTNodeType::UnaryExpr) << L"] = " << L"ASTNodeType::UnaryExpr");
+	LOG4CXX_DEBUG(Logger::Compiler, L"[#" << (int)(ASTNodeType::BinaryExpr) << L"] = " << L"ASTNodeType::BinaryExpr");
+	LOG4CXX_DEBUG(Logger::Compiler, L"[#" << (int)(ASTNodeType::TernaryExpr) << L"] = " << L"ASTNodeType::TernaryExpr");
+	LOG4CXX_DEBUG(Logger::Compiler, L"[#" << (int)(ASTNodeType::MemberExpr) << L"] = " << L"ASTNodeType::MemberExpr");
+	LOG4CXX_DEBUG(Logger::Compiler, L"[#" << (int)(ASTNodeType::CallExpr) << L"] = " << L"ASTNodeType::CallExpr");
+	LOG4CXX_DEBUG(Logger::Compiler, L"[#" << (int)(ASTNodeType::CastExpr) << L"] = " << L"ASTNodeType::CastExpr");
+	LOG4CXX_DEBUG(Logger::Compiler, L"[#" << (int)(ASTNodeType::InvalidType) << L"] = " << L"ASTNodeType::InvalidType");
+}
 
 struct ASTNode : public VisitableBase<ASTNode>, ContextHub<ContextOwnership::transfer>
 {
