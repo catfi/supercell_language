@@ -1,5 +1,3 @@
-package qwe.asd.zxc;
-
 interface iface
 {
     function f():void;

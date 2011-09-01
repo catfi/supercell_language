@@ -1,4 +1,3 @@
-package qwe.asd.zxc;
 import system;
 
 function print<T, ...>(arg:T, rest:...)
