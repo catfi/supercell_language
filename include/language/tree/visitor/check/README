@@ -5,6 +5,9 @@ Semantic Check List
 - All methods in interface can have no function body
 - All types must be explicitly specified for member function in interface
 
+// For all templated identifier
+- There should be a limit on the many templated parameters allowed in a single templated identifier
+
 // For all global variables
 - The initializer must be constant expression (or can be deduced as constant expression)
 
@@ -13,44 +16,49 @@ Semantic Check List
 
 // For all member variable in class scope
 - The static variables is just like global variable except it's within class scope
-- 
+- The variable name must not conflict with the class name or member function name
+- The variable names must not conflict with each other
 
 // For all templated identifier
 - No parameter name conflict is allowed
 - The "..." type is only allowed once at the end of template parameter list
+- The "..." type is not allowed when the AST is processed and transformed. It should be expanded.
 
 // For all member function in either interface or class or local scope
 - The function parameters must be fully resolved
 - Except member function in interface, function must have body block (local anonymous function must be renamed beforehand)
-- The function name cannot conflict with other function or variable (name resolving conflict)
- 
+- The function name cannot conflict with other function unless they have different parameter signature (name resolving conflict)
+- There should be a limit on the many parameters allowed in a single function
+
 // For class declaration
 - The class name cannot conflict with other class (name resolving conflict)
 - The identifiers for interface implementation must refer to an interface
-- There can be more than one new function
+- There can be more than one new function (constructor overload) as long as they have different parameter signature
 - There should be a limit on how many member variables allowed in a single class
 
 // For enum declaration
 - The identifiers must not conflict with each other
 - The initialization list must be constant (just like global variable) and of integral type
-- 
 
 // For typedef declaration
 - The "from" node must refer to a type, and the "to" node must be an simple identifier 
 
 // For if/elseif/else statement
 - The condition expression must be able to cast into a boolean variable (and insert cast operation when necessary)
-- 
+- The both if and elseif Selection must have non-null condition 
 
 // For foreach statement
-- the range expression must be a variable of Range<T> type
-- the iterator must be a variable
+- the range expression must be an instance of Range<T> type
+- the iterator must be a variable declaration or a primary expression resolved to a symbol
+
+// For switch statement
+- If the condition is a variable resolved to EnumDecl type, all cases must be covered or there's default case, otherwise generate a warning for it
 
 // For while/do-while statement
--
+- If the condition can be evaluated as constant expression and its value is always true and there's no break in the while/do-while block, generate infinite loop warning
 
 // For annotations
--
+- If there's no custom annotation, 
 
 // For unary expression
 - Check whether the type can be applied with specific unary operation (for example, ~ or ! cannot be used with floating number)
@@ -58,4 +66,8 @@ Semantic Check List
 // For binary expression 
 - Check the type compatibility between LHS and RHS
 - All expression must be fully resolved 
- 
+
+// For ternary expression
+- Check the type compatibility between LHS and RHS
+
+
