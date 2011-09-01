@@ -13,23 +13,28 @@ for ARG in "$@"; do
         continue
     fi
     echo "file #$COUNTER.."
+    echo "filename: $ARG"
     if [ ! -f "$ARG" ]; then
         echo "ERROR: file not found!"
         exit 1
     fi
-    echo "filename: $ARG"
     if [ $MODE -eq 1 ]; then
         $EXEC $ARG --dump-ast --no-type-inference --no-llvm
+        ERROR_CODE="$?"
+        if [ $ERROR_CODE -ne 0 ];
+        then
+            echo "ERROR: construct/dump ast fail!"
+            exit 1
+        fi
         continue
     fi
     $EXEC $ARG --dump-parse >& $TEMP_FILE_A
-    ERROR_MESSAGE=`cat $TEMP_FILE_A | grep "error"`
-    if [ -n "$ERROR_MESSAGE" ]; then
-        cat $TEMP_FILE_A # NOTE: for convenience
-        echo "filename: $ARG"
-        echo $ERROR_MESSAGE
+    ERROR_CODE="$?"
+    if [ $ERROR_CODE -ne 0 ]; then
+        cat $TEMP_FILE_A # NOTE: for convenience of reference
+        echo "ERROR: parse fail!"
         echo "using temp file: $TEMP_FILE_A (contents shown above)" # NOTE: useful for diagnosing error
-        exit 1 # NOTE: bail on first error
+        exit 1
     fi
 
     # =========================================================================================================
@@ -62,5 +67,6 @@ for ARG in "$@"; do
     echo
 done
 
+echo "success!"
 exit 0
 

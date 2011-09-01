@@ -1,5 +1,3 @@
-package qwe.asd.zxc;
-
 function f(x:function(uint32, uint32):uint32):void
 {
 }

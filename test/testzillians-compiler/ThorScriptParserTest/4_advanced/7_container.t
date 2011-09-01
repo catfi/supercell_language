@@ -1,4 +1,4 @@
-package qwe.asd.zxc;
+import containers.array;
 
 function f():void
 {

@@ -33,25 +33,26 @@ struct program
 	{
 		printf("program attr(0) type = %s\n", typeid(_attr_t(0)).name());
 		getParserContext().program = new Program();
+		getParserContext().active_package = getParserContext().program->root;
 	}
 	END_ACTION
 
 	BEGIN_ACTION(append_package)
 	{
 		printf("program::append_package_decl attr(0) type = %s\n", typeid(_attr_t(0)).name());
-		NestedIdentifier *nested_id = cast<NestedIdentifier>(_attr(0));
-		Package* last = getParserContext().program->root;
-		deduced_foreach_value(i, nested_id->identifier_list)
+		NestedIdentifier *nested_ident = cast<NestedIdentifier>(_attr(0));
+		Package* prev_package = getParserContext().program->root;
+		deduced_foreach_value(i, nested_ident->identifier_list)
 		{
-			Package *next = last->findPackage(i->toString());
-			if(!next)
+			Package *package = prev_package->findPackage(i->toString());
+			if(!package)
 			{
-				next = new Package(cast<SimpleIdentifier>(i));
-				last->addPackage(next);
+				package = new Package(cast<SimpleIdentifier>(i));
+				prev_package->addPackage(package);
 			}
-			last = next;
+			prev_package = package;
 		}
-		getParserContext().active_package = last;
+		getParserContext().active_package = prev_package;
 	}
 	END_ACTION
 

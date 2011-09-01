@@ -1,5 +1,3 @@
-package qwe.asd.zxc;
-
 function f():void
 {
     var i:uint32 = 0;
