@@ -86,6 +86,7 @@ bool LLVMGeneratorStage::execute()
 	}
 
 	getGeneratorContext().modules.push_back(module);
+	getGeneratorContext().context = context;
 
 	return true;
 }

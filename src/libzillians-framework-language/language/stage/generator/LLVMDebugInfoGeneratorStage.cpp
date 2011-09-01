@@ -19,9 +19,9 @@
 
 #include "language/stage/generator/LLVMDebugInfoGeneratorStage.h"
 #include "language/stage/generator/detail/LLVMForeach.h"
+#include "language/stage/generator/visitor/LLVMDebugInfoGeneratorVisitor.h"
 #include "language/context/ParserContext.h"
 #include "language/context/GeneratorContext.h"
-#include "language/context/DebugContext.h"
 
 namespace zillians { namespace language { namespace stage {
 
@@ -45,13 +45,22 @@ void LLVMDebugInfoGeneratorStage::initializeOptions(po::options_description& opt
 bool LLVMDebugInfoGeneratorStage::parseOptions(po::variables_map& vm)
 {
 	enabled = (vm.count("debug") > 0);
-
 	return true;
 }
 
 bool LLVMDebugInfoGeneratorStage::execute()
 {
-	// TODO remove this
+	if (!enabled)
+		return true;
+
+	// create visitor to walk through the entire tree and generate instructions accordingly
+	visitor::LLVMDebugInfoGeneratorVisitor visitor(*getGeneratorContext().context, *getGeneratorContext().modules[0]);
+
+	if(getParserContext().program)
+	{
+		visitor.visit(*getParserContext().program);
+	}
+
 	return true;
 }
 

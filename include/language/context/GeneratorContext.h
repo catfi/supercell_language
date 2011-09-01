@@ -32,6 +32,7 @@ struct GeneratorContext
 	GeneratorContext()
 	{ }
 
+	llvm::LLVMContext* context;
 	std::vector<llvm::Module*> modules;
 };
 
