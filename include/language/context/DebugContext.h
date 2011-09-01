@@ -34,7 +34,7 @@ struct DebugContext
 		std::vector<std::wstring> source_files;
 	};
 
-	// TranslationUnit will be stored in every function/member function
+	// TranslationUnit will be stored in every FunctionDecl function
 	struct TranslationUnit
 	{
 		int32 source_index;
@@ -46,6 +46,9 @@ struct DebugContext
 		uint32 line;
 		uint32 column;
 	};
+
+private:
+	DebugContext() { }
 };
 
 } }
