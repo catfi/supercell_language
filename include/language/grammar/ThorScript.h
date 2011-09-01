@@ -37,6 +37,7 @@
 #include <boost/spirit/include/phoenix_bind.hpp>
 #include <boost/spirit/repository/include/qi_distinct.hpp>
 #include <boost/spirit/repository/include/qi_iter_pos.hpp>
+#include <boost/spirit/include/qi_omit.hpp>
 #include <boost/regex/pending/unicode_iterator.hpp>
 #include "utility/UnicodeUtil.h"
 #include "language/tree/ASTNodeFactory.h"
@@ -51,6 +52,7 @@ namespace tree = zillians::language::tree;
 using boost::spirit::repository::distinct;
 using boost::spirit::ascii::no_case;
 using boost::spirit::repository::qi::iter_pos;
+using boost::spirit::omit;
 
 namespace zillians { namespace language { namespace grammar {
 
@@ -110,7 +112,10 @@ struct Identifier : qi::grammar<Iterator, typename SA::identifier::attribute_typ
 
 		start %= qi::lexeme[ ((unicode::alpha | L'_') > *(unicode::alnum | L'_')) - keyword ];
 
-		start_augmented = start [ typename SA::identifier::init() ];
+		start_augmented
+			=	(start
+					> omit[ iter_pos[ typename SA::identifier::init_iter_pos() ] ]
+				) [ typename SA::identifier::init() ];
 
 		start_augmented.name("IDENTIFIER");
 		if(getParserContext().enable_debug_parser)

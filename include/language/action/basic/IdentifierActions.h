@@ -37,6 +37,19 @@ struct identifier
 		_value = new SimpleIdentifier(_attr(0));
 	}
 	END_ACTION
+
+	// NOTE: fix-me!
+	BEGIN_ACTION(init_iter_pos)
+	{
+//#ifdef DEBUG
+		printf("identifier::init_iter_pos attr(0) type = %s\n", typeid(_attr_t(0)).name());
+//#endif
+		std::wstring s = _attr(0).get_currentline();
+		std::wstring::iterator p = _attr(0).get_currentline_begin();
+		getParserContext().debug.current_line   = _attr(0).get_position().line;
+		getParserContext().debug.current_column = _attr(0).get_position().column;
+	}
+	END_ACTION
 };
 
 struct nested_identifier
