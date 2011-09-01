@@ -402,7 +402,7 @@ struct ThorScript : qi::grammar<Iterator, typename SA::start::attribute_type, de
 			| qi::lit(L"uint64")                                                                   [ typename SA::type_specifier::template init_primitive_type<tree::TypeSpecifier::PrimitiveType::UINT64>() ]
 			| qi::lit(L"float32")                                                                  [ typename SA::type_specifier::template init_primitive_type<tree::TypeSpecifier::PrimitiveType::FLOAT32>() ]
 			| qi::lit(L"float64")                                                                  [ typename SA::type_specifier::template init_primitive_type<tree::TypeSpecifier::PrimitiveType::FLOAT64>() ]
-			| (IDENTIFIER > -template_arg_specifier)                                               [ typename SA::type_specifier::init_type() ]
+			| template_arg_identifier                                                              [ typename SA::type_specifier::init_type() ]
 			| (FUNCTION > LEFT_PAREN > -type_list_specifier > RIGHT_PAREN > -colon_type_specifier) [ typename SA::type_specifier::init_function_type() ]
 			| ELLIPSIS                                                                             [ typename SA::type_specifier::init_ellipsis() ]
 			;
@@ -412,11 +412,7 @@ struct ThorScript : qi::grammar<Iterator, typename SA::start::attribute_type, de
 			;
 
 		template_arg_identifier
-			= (IDENTIFIER > -template_arg_specifier) [ typename SA::template_arg_identifier::init() ]
-			;
-
-		template_arg_specifier
-			= (COMPARE_LT >> type_list_specifier > COMPARE_GT) [ typename SA::template_arg_specifier::init() ]
+			= (nested_identifier > -(COMPARE_LT >> type_list_specifier > COMPARE_GT)) [ typename SA::template_arg_identifier::init() ]
 			;
 
 		type_list_specifier
@@ -828,7 +824,7 @@ struct ThorScript : qi::grammar<Iterator, typename SA::start::attribute_type, de
 		STRING_LITERAL.name("STRING_LITERAL.grammar");
 
 		// non-terminals
-		typed_parameter_list.name("typed_parameter_list"); colon_type_specifier.name("colon_type_specifier"); type_specifier.name("type_specifier"); template_param_identifier.name("template_param_identifier"); template_arg_identifier.name("template_arg_identifier"); template_arg_specifier.name("template_arg_specifier"); type_list_specifier.name("type_list_specifier");
+		typed_parameter_list.name("typed_parameter_list"); colon_type_specifier.name("colon_type_specifier"); type_specifier.name("type_specifier"); template_param_identifier.name("template_param_identifier"); template_arg_identifier.name("template_arg_identifier"); type_list_specifier.name("type_list_specifier");
 			storage_specifier.name("storage_specifier");
 			visibility_specifier.name("visibility_specifier");
 			annotation_specifiers.name("annotation_specifiers");
@@ -879,7 +875,7 @@ struct ThorScript : qi::grammar<Iterator, typename SA::start::attribute_type, de
 #endif
 
 			// non-terminals
-			debug(typed_parameter_list); debug(colon_type_specifier); debug(type_specifier); debug(template_param_identifier); debug(template_arg_identifier); debug(template_arg_specifier); debug(type_list_specifier);
+			debug(typed_parameter_list); debug(colon_type_specifier); debug(type_specifier); debug(template_param_identifier); debug(template_arg_identifier); debug(type_list_specifier);
 				debug(storage_specifier);
 				debug(visibility_specifier);
 				debug(annotation_specifiers);
@@ -960,7 +956,7 @@ struct ThorScript : qi::grammar<Iterator, typename SA::start::attribute_type, de
 //	qi::rule<Iterator, detail::WhiteSpace<Iterator> >
 		///////////////////////////////////////
 		// BEGIN BASIC
-//		typed_parameter_list, colon_type_specifier, type_specifier, template_param_identifier, template_arg_identifier, template_arg_specifier, type_list_specifier,
+//		typed_parameter_list, colon_type_specifier, type_specifier, template_param_identifier, template_arg_identifier, type_list_specifier,
 //			storage_specifier,
 //			visibility_specifier,
 //			interface_visibility_specifier,
@@ -1021,9 +1017,8 @@ struct ThorScript : qi::grammar<Iterator, typename SA::start::attribute_type, de
 	qi::rule<Iterator, typename SA::typed_parameter_list::attribute_type,      detail::WhiteSpace<Iterator>, typename SA::typed_parameter_list::local_type>      typed_parameter_list;
 	qi::rule<Iterator, typename SA::colon_type_specifier::attribute_type,      detail::WhiteSpace<Iterator>, typename SA::colon_type_specifier::local_type>      colon_type_specifier;
 	qi::rule<Iterator, typename SA::type_specifier::attribute_type,            detail::WhiteSpace<Iterator>, typename SA::type_specifier::local_type>            type_specifier;
-	qi::rule<Iterator, typename SA::template_arg_identifier::attribute_type,   detail::WhiteSpace<Iterator>, typename SA::template_arg_identifier::local_type>   template_arg_identifier;
 	qi::rule<Iterator, typename SA::template_param_identifier::attribute_type, detail::WhiteSpace<Iterator>, typename SA::template_param_identifier::local_type> template_param_identifier;
-	qi::rule<Iterator, typename SA::template_arg_specifier::attribute_type,    detail::WhiteSpace<Iterator>, typename SA::template_arg_specifier::local_type>    template_arg_specifier;
+	qi::rule<Iterator, typename SA::template_arg_identifier::attribute_type,   detail::WhiteSpace<Iterator>, typename SA::template_arg_identifier::local_type>   template_arg_identifier;
 	qi::rule<Iterator, typename SA::type_list_specifier::attribute_type,       detail::WhiteSpace<Iterator>, typename SA::type_list_specifier::local_type>       type_list_specifier;
 	qi::rule<Iterator, typename SA::storage_specifier::attribute_type,         detail::WhiteSpace<Iterator>, typename SA::storage_specifier::local_type>         storage_specifier;
 	qi::rule<Iterator, typename SA::visibility_specifier::attribute_type,      detail::WhiteSpace<Iterator>, typename SA::visibility_specifier::local_type>      visibility_specifier;

@@ -31,8 +31,10 @@ struct statement
 
 	BEGIN_ACTION(init)
 	{
+#ifdef DEBUG
 		printf("statement attr(0) type = %s\n", typeid(_attr_t(0)).name());
 		printf("statement attr(1) type = %s\n", typeid(_attr_t(1)).name());
+#endif
 		switch(_attr(1).which())
 		{
 		case 0:
@@ -52,7 +54,9 @@ struct statement
 
 	BEGIN_ACTION(init_block)
 	{
+#ifdef DEBUG
 		printf("statement::init_block attr(0) type = %s\n", typeid(_attr_t(0)).name());
+#endif
 		_value = _attr(0);
 	}
 	END_ACTION
@@ -65,7 +69,9 @@ struct expression_statement
 
 	BEGIN_ACTION(init)
 	{
+#ifdef DEBUG
 		printf("expression_statement attr(0) type = %s\n", typeid(_attr_t(0)).name());
+#endif
 		if(_attr(0).is_initialized())
 			_value = new ExpressionStmt(*_attr(0));
 	}
@@ -79,10 +85,12 @@ struct selection_statement
 
 	BEGIN_ACTION(init_if_statement)
 	{
+#ifdef DEBUG
 		printf("selection_statement::init_if_statement attr(0) type = %s\n", typeid(_attr_t(0)).name());
 		printf("selection_statement::init_if_statement attr(1) type = %s\n", typeid(_attr_t(1)).name());
 		printf("selection_statement::init_if_statement attr(2) type = %s\n", typeid(_attr_t(2)).name());
 		printf("selection_statement::init_if_statement attr(3) type = %s\n", typeid(_attr_t(3)).name());
+#endif
 		Expression* cond = _attr(0);
 		ASTNode* block = _attr(1);
 		_value = new IfElseStmt(Selection(cond, block));
@@ -99,8 +107,10 @@ struct selection_statement
 
 	BEGIN_ACTION(init_switch_statement)
 	{
+#ifdef DEBUG
 		printf("selection_statement::init_switch_statement attr(0) type = %s\n", typeid(_attr_t(0)).name());
 		printf("selection_statement::init_switch_statement attr(1) type = %s\n", typeid(_attr_t(1)).name());
+#endif
 		_value = new SwitchStmt(_attr(0));
 		deduced_foreach_value(i, _attr(1))
 			switch(i.which())
@@ -136,8 +146,10 @@ struct iteration_statement
 
 	BEGIN_ACTION(init_while_loop)
 	{
+#ifdef DEBUG
 		printf("iteration_statement::init_while_loop attr(0) type = %s\n", typeid(_attr_t(0)).name());
 		printf("iteration_statement::init_while_loop attr(1) type = %s\n", typeid(_attr_t(1)).name());
+#endif
 		Expression* cond = _attr(0);
 		ASTNode* block = _attr(1).is_initialized() ? *_attr(1) : NULL;
 		_value = new WhileStmt(WhileStmt::Style::WHILE, cond, block);
@@ -146,8 +158,10 @@ struct iteration_statement
 
 	BEGIN_ACTION(init_do_while_loop)
 	{
+#ifdef DEBUG
 		printf("iteration_statement::init_do_while_loop attr(0) type = %s\n", typeid(_attr_t(0)).name());
 		printf("iteration_statement::init_do_while_loop attr(1) type = %s\n", typeid(_attr_t(1)).name());
+#endif
 		ASTNode* block = _attr(0);
 		Expression* cond = _attr(1);
 		_value = new WhileStmt(WhileStmt::Style::DO_WHILE, cond, block);
@@ -156,9 +170,11 @@ struct iteration_statement
 
 	BEGIN_ACTION(init_foreach)
 	{
+#ifdef DEBUG
 		printf("iteration_statement::init_foreach attr(0) type = %s\n", typeid(_attr_t(0)).name());
 		printf("iteration_statement::init_foreach attr(1) type = %s\n", typeid(_attr_t(1)).name());
 		printf("iteration_statement::init_foreach attr(2) type = %s\n", typeid(_attr_t(2)).name());
+#endif
 		ASTNode* iterator = NULL;
 		switch(_attr(0).which())
 		{
@@ -183,7 +199,9 @@ struct branch_statement
 
 	BEGIN_ACTION(init_return)
 	{
+#ifdef DEBUG
 		printf("branch_statement::init_return attr(0) type = %s\n", typeid(_attr_t(0)).name());
+#endif
 		_value = new BranchStmt(tree::BranchStmt::OpCode::RETURN, _attr(0));
 	}
 	END_ACTION

@@ -33,7 +33,9 @@ struct block
 
 	BEGIN_ACTION(init)
 	{
+#ifdef DEBUG
 		printf("block attr(0) type = %s\n", typeid(_attr_t(0)).name());
+#endif
 		_value = new Block();
 		_value->appendObjects(_attr(0));
 	}
@@ -48,7 +50,9 @@ struct typed_parameter_list
 
 	BEGIN_ACTION(init)
 	{
+#ifdef DEBUG
 		printf("typed_parameter_list attr(0) type = %s\n", typeid(_attr_t(0)).name());
+#endif
 		_value.reset(new value_t);
 		deduced_foreach_value(i, _attr(0))
 		{

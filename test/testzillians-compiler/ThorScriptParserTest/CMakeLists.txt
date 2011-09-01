@@ -20,7 +20,9 @@
 #
 
 zillians_create_test_subject(SUBJECT thorscript-parser-test-all)
+zillians_create_test_subject(SUBJECT thorscript-parser-test-ast-all)
 zillians_add_subject_to_subject(PARENT framework-compiler-critical CHILD thorscript-parser-test-all)
+zillians_add_subject_to_subject(PARENT framework-compiler-critical CHILD thorscript-parser-test-ast-all)
 
 ADD_SUBDIRECTORY(0_lexer)
 ADD_SUBDIRECTORY(1_basic)

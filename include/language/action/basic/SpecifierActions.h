@@ -31,7 +31,9 @@ struct colon_type_specifier
 
 	BEGIN_ACTION(init)
 	{
+#ifdef DEBUG
 		printf("colon_type_specifier attr(0) type = %s\n", typeid(_attr_t(0)).name());
+#endif
 		_value = _attr(0);
 	}
 	END_ACTION
@@ -44,17 +46,10 @@ struct type_specifier
 
 	BEGIN_ACTION(init_type)
 	{
+#ifdef DEBUG
 		printf("type_specifier::init_type attr(0) type = %s\n", typeid(_attr_t(0)).name());
-		printf("type_specifier::init_type attr(1) type = %s\n", typeid(_attr_t(1)).name());
-		if(_attr(1).is_initialized())
-		{
-			TemplatedIdentifier *templated_identifier = new TemplatedIdentifier(TemplatedIdentifier::Usage::ACTUAL_ARGUMENT, _attr(0));
-			deduced_foreach_value(i, *_attr(1))
-				templated_identifier->appendArgument(i);
-			_value = new TypeSpecifier(templated_identifier);
-		}
-		else
-			_value = new TypeSpecifier(_attr(0));
+#endif
+		_value = new TypeSpecifier(_attr(0));
 	}
 	END_ACTION
 
@@ -66,8 +61,10 @@ struct type_specifier
 
 	BEGIN_ACTION(init_function_type)
 	{
+#ifdef DEBUG
 		printf("type_specifier::init_function_type attr(0) type = %s\n", typeid(_attr_t(0)).name());
 		printf("type_specifier::init_function_type attr(1) type = %s\n", typeid(_attr_t(1)).name());
+#endif
 		typedef std::vector<TypeSpecifier*> type_list_specifier_t;
 		type_list_specifier_t* parameters = _attr(0).is_initialized() ? &*_attr(0) : NULL;
 		TypeSpecifier*         type       = _attr(1).is_initialized() ? *_attr(1) : NULL;
@@ -82,7 +79,9 @@ struct type_specifier
 
 	BEGIN_ACTION(init_ellipsis)
 	{
+#ifdef DEBUG
 		printf("type_specifier::init_ellipsis attr(0) type = %s\n", typeid(_attr_t(0)).name());
+#endif
 		_value = new tree::TypeSpecifier(TypeSpecifier::PrimitiveType::VARIADIC_ELLIPSIS);
 	}
 	END_ACTION
@@ -95,7 +94,9 @@ struct template_arg_specifier
 
 	BEGIN_ACTION(init)
 	{
+#ifdef DEBUG
 		printf("template_specifier attr(0) type = %s\n", typeid(_attr_t(0)).name());
+#endif
 		_value = _attr(0);
 	}
 	END_ACTION
@@ -108,7 +109,9 @@ struct type_list_specifier
 
 	BEGIN_ACTION(init)
 	{
+#ifdef DEBUG
 		printf("type_list_specifier attr(0) type = %s\n", typeid(_attr_t(0)).name());
+#endif
 		_value = _attr(0);
 	}
 	END_ACTION
@@ -163,7 +166,9 @@ struct annotation_specifiers
 
 	BEGIN_ACTION(init)
 	{
+#ifdef DEBUG
 		printf("annotation_specifiers attr(0) type = %s\n", typeid(_attr_t(0)).name());
+#endif
 		_value = new Annotations();
 		deduced_foreach_value(i, _attr(0))
 			_value->appendAnnotation(i);
@@ -178,8 +183,10 @@ struct annotation_specifier
 
 	BEGIN_ACTION(init)
 	{
+#ifdef DEBUG
 		printf("annotation_specifier::init attr(0) type = %s\n", typeid(_attr_t(0)).name());
 		printf("annotation_specifier::init attr(1) type = %s\n", typeid(_attr_t(1)).name());
+#endif
 		_value = new Annotation(_attr(0));
 		if(_attr(1).is_initialized())
 			deduced_foreach_value(i, *_attr(1))

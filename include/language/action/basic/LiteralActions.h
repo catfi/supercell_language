@@ -31,6 +31,9 @@ struct integer_literal
 
 	BEGIN_ACTION(init)
 	{
+#ifdef DEBUG
+		printf("integer_literal attr(0) type = %s\n", typeid(_attr_t(0)).name());
+#endif
 		_value = new NumericLiteral(_attr(0));
 	}
 	END_ACTION
@@ -43,6 +46,9 @@ struct float_literal
 
 	BEGIN_ACTION(init)
 	{
+#ifdef DEBUG
+		printf("float_literal attr(0) type = %s\n", typeid(_attr_t(0)).name());
+#endif
 		_value = new NumericLiteral(_attr(0));
 	}
 	END_ACTION
@@ -55,6 +61,9 @@ struct string_literal
 
 	BEGIN_ACTION(init)
 	{
+#ifdef DEBUG
+		printf("string_literal attr(0) type = %s\n", typeid(_attr_t(0)).name());
+#endif
 		_value = new StringLiteral(_attr(0));
 	}
 	END_ACTION

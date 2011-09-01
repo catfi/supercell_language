@@ -32,8 +32,10 @@ struct declaration
 
 	BEGIN_ACTION(init)
 	{
+#ifdef DEBUG
 		printf("declaration attr(0) type = %s\n", typeid(_attr_t(0)).name());
 		printf("declaration attr(1) type = %s\n", typeid(_attr_t(1)).name());
+#endif
 		_value = _attr(1);
 		if(_attr(0).is_initialized())
 			_value->setAnnotation(*_attr(0));
@@ -48,8 +50,10 @@ struct const_variable_decl
 
 	BEGIN_ACTION(init)
 	{
+#ifdef DEBUG
 		printf("const_variable_decl attr(0) type = %s\n", typeid(_attr_t(0)).name());
 		printf("const_variable_decl attr(1) type = %s\n", typeid(_attr_t(1)).name());
+#endif
 		_value = _attr(1);
 		if(_attr(0).is_initialized())
 			cast<VariableDecl>(_value)->storage = Declaration::StorageSpecifier::CONST;
@@ -64,8 +68,10 @@ struct variable_decl
 
 	BEGIN_ACTION(init)
 	{
+#ifdef DEBUG
 		printf("variable_decl attr(0) type = %s\n", typeid(_attr_t(0)).name());
 		printf("variable_decl attr(1) type = %s\n", typeid(_attr_t(1)).name());
+#endif
 		_value = _attr(0);
 		ASTNode* initializer = _attr(1).is_initialized() ? *_attr(1) : NULL;
 		cast<VariableDecl>(_value)->initializer = initializer;
@@ -80,8 +86,10 @@ struct variable_decl_stem
 
 	BEGIN_ACTION(init)
 	{
+#ifdef DEBUG
 		printf("variable_decl_stem attr(0) type = %s\n", typeid(_attr_t(0)).name());
 		printf("variable_decl_stem attr(1) type = %s\n", typeid(_attr_t(1)).name());
+#endif
 		Identifier*                            name        = _attr(0);
 		TypeSpecifier*                         type        = _attr(1).is_initialized() ? *_attr(1) : NULL;
 		ASTNode*                               initializer = NULL;
@@ -102,10 +110,12 @@ struct function_decl
 
 	BEGIN_ACTION(init)
 	{
+#ifdef DEBUG
 		printf("function_decl attr(0) type = %s\n", typeid(_attr_t(0)).name());
 		printf("function_decl attr(1) type = %s\n", typeid(_attr_t(1)).name());
 		printf("function_decl attr(2) type = %s\n", typeid(_attr_t(2)).name());
 		printf("function_decl attr(3) type = %s\n", typeid(_attr_t(3)).name());
+#endif
 		Identifier* name = NULL;
 		switch(_attr(0).which())
 		{
@@ -137,8 +147,10 @@ struct typedef_decl
 
 	BEGIN_ACTION(init)
 	{
+#ifdef DEBUG
 		printf("typedef_decl attr(0) type = %s\n", typeid(_attr_t(0)).name());
 		printf("typedef_decl attr(1) type = %s\n", typeid(_attr_t(1)).name());
+#endif
 		_value = new TypedefDecl(_attr(0), _attr(1));
 	}
 	END_ACTION
@@ -151,10 +163,12 @@ struct class_decl
 
 	BEGIN_ACTION(init)
 	{
+#ifdef DEBUG
 		printf("class_decl attr(0) type = %s\n", typeid(_attr_t(0)).name());
 		printf("class_decl attr(1) type = %s\n", typeid(_attr_t(1)).name());
 		printf("class_decl attr(2) type = %s\n", typeid(_attr_t(2)).name());
 		printf("class_decl attr(3) type = %s\n", typeid(_attr_t(3)).name());
+#endif
 		Identifier* name = _attr(0);
 		TypeSpecifier* extends_from = _attr(1).is_initialized() ? new TypeSpecifier(*_attr(1)) : NULL;
 		_value = new ClassDecl(name);
@@ -187,10 +201,12 @@ struct class_member_decl
 
 	BEGIN_ACTION(init)
 	{
+#ifdef DEBUG
 		printf("class_member_decl attr(0) type = %s\n", typeid(_attr_t(0)).name());
 		printf("class_member_decl attr(1) type = %s\n", typeid(_attr_t(1)).name());
 		printf("class_member_decl attr(2) type = %s\n", typeid(_attr_t(2)).name());
 		printf("class_member_decl attr(3) type = %s\n", typeid(_attr_t(3)).name());
+#endif
 		Annotations*                           annotations = _attr(0).is_initialized() ? *_attr(0) : NULL;
 		Declaration::VisibilitySpecifier::type visibility  = _attr(1).is_initialized() ? *_attr(1) : Declaration::VisibilitySpecifier::DEFAULT;
 		Declaration::StorageSpecifier::type    storage     = _attr(2).is_initialized() ? *_attr(2) : Declaration::StorageSpecifier::NONE;
@@ -217,8 +233,10 @@ struct interface_decl
 
 	BEGIN_ACTION(init)
 	{
+#ifdef DEBUG
 		printf("interface_decl attr(0) type = %s\n", typeid(_attr_t(0)).name());
 		printf("interface_decl attr(1) type = %s\n", typeid(_attr_t(1)).name());
+#endif
 		_value = new InterfaceDecl(_attr(0));
 		deduced_foreach_value(i, _attr(1))
 		{
@@ -236,10 +254,12 @@ struct interface_member_function_decl
 
 	BEGIN_ACTION(init)
 	{
+#ifdef DEBUG
 		printf("interface_member_function_decl attr(0) type = %s\n", typeid(_attr_t(0)).name());
 		printf("interface_member_function_decl attr(1) type = %s\n", typeid(_attr_t(1)).name());
 		printf("interface_member_function_decl attr(2) type = %s\n", typeid(_attr_t(2)).name());
 		printf("interface_member_function_decl attr(3) type = %s\n", typeid(_attr_t(3)).name());
+#endif
 		Declaration::VisibilitySpecifier::type visibility = _attr(0).is_initialized() ? *_attr(0) : Declaration::VisibilitySpecifier::DEFAULT;
 		typed_parameter_list::value_t*         parameters = _attr(2).is_initialized() ? (*_attr(2)).get() : NULL;
 		Declaration::StorageSpecifier::type    storage    = Declaration::StorageSpecifier::NONE;
@@ -259,8 +279,10 @@ struct enum_decl
 
 	BEGIN_ACTION(init)
 	{
+#ifdef DEBUG
 		printf("enum_decl attr(0) type = %s\n", typeid(_attr_t(0)).name());
 		printf("enum_decl attr(1) type = %s\n", typeid(_attr_t(1)).name());
+#endif
 		_value = new EnumDecl(_attr(0));
 		deduced_foreach_value(i, _attr(1))
 		{

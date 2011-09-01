@@ -31,7 +31,9 @@ struct identifier
 
 	BEGIN_ACTION(init)
 	{
+#ifdef DEBUG
 		printf("identifier attr(0) type = %s\n", typeid(_attr_t(0)).name());
+#endif
 		_value = new SimpleIdentifier(_attr(0));
 	}
 	END_ACTION
@@ -44,12 +46,19 @@ struct nested_identifier
 
 	BEGIN_ACTION(init)
 	{
+#ifdef DEBUG
 		printf("nested_identifier attr(0) type = %s\n", typeid(_attr_t(0)).name());
 		printf("nested_identifier attr(1) type = %s\n", typeid(_attr_t(1)).name());
-		_value = new NestedIdentifier();
-		cast<NestedIdentifier>(_value)->appendIdentifier(_attr(0));
-		deduced_foreach_value(i, _attr(1))
-			cast<NestedIdentifier>(_value)->appendIdentifier(i);
+#endif
+		if(_attr(1).size() == 1)
+			_value = _attr(0);
+		else
+		{
+			_value = new NestedIdentifier();
+			cast<NestedIdentifier>(_value)->appendIdentifier(_attr(0));
+			deduced_foreach_value(i, _attr(1))
+				cast<NestedIdentifier>(_value)->appendIdentifier(i);
+		}
 	}
 	END_ACTION
 };
@@ -61,8 +70,10 @@ struct template_arg_identifier
 
 	BEGIN_ACTION(init)
 	{
+#ifdef DEBUG
 		printf("template_arg_identifier attr(0) type = %s\n", typeid(_attr_t(0)).name());
 		printf("template_arg_identifier attr(1) type = %s\n", typeid(_attr_t(1)).name());
+#endif
 		if(_attr(1).is_initialized())
 		{
 			_value =  new TemplatedIdentifier(TemplatedIdentifier::Usage::ACTUAL_ARGUMENT, _attr(0));
@@ -82,8 +93,10 @@ struct template_param_identifier
 
 	BEGIN_ACTION(init)
 	{
+#ifdef DEBUG
 		printf("template_param_identifier attr(0) type = %s\n", typeid(_attr_t(0)).name());
 		printf("template_param_identifier attr(1) type = %s\n", typeid(_attr_t(1)).name());
+#endif
 		if(_attr(1).is_initialized())
 		{
 			_value =  new TemplatedIdentifier(TemplatedIdentifier::Usage::FORMAL_PARAMETER, _attr(0));

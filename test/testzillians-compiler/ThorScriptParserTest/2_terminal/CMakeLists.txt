@@ -36,3 +36,4 @@ zillians_add_complex_test(
     )
 
 zillians_add_test_to_subject(SUBJECT thorscript-parser-test-all TARGET thorscript-parser-test-terminal)
+zillians_add_test_to_subject(SUBJECT thorscript-parser-test-ast-all TARGET thorscript-parser-test-ast-terminal)

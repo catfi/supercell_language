@@ -62,9 +62,8 @@ struct ThorScriptTreeAction
 	typedef action::typed_parameter_list      typed_parameter_list;
 	typedef action::colon_type_specifier      colon_type_specifier;
 	typedef action::type_specifier            type_specifier;
-	typedef action::template_arg_identifier   template_arg_identifier;
 	typedef action::template_param_identifier template_param_identifier;
-	typedef action::template_arg_specifier    template_arg_specifier;
+	typedef action::template_arg_identifier   template_arg_identifier;
 	typedef action::type_list_specifier       type_list_specifier;
 	typedef action::storage_specifier         storage_specifier;
 	typedef action::visibility_specifier      visibility_specifier;
