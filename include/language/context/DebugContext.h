@@ -28,7 +28,7 @@ namespace zillians { namespace language {
 
 struct DebugContext
 {
-	// Module info will be only stored at AST Program
+	// Module info will be only stored at Program node
 	struct ModuleInfo
 	{
 		std::vector<std::wstring> source_files;
@@ -37,14 +37,14 @@ struct DebugContext
 	// TranslationUnit will be stored in every function/member function
 	struct TranslationUnit
 	{
-		std::size_t source_index;
+		int32 source_index;
 	};
 
 	// SourceInfo will be stored in every AST Identifier, Statement, Expression, and Declaration
 	struct SourceInfo
 	{
-		std::size_t line;
-		std::size_t column;
+		uint32 line;
+		uint32 column;
 	};
 };
 

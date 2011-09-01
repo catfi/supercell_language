@@ -35,6 +35,13 @@ struct ParserContext
 	bool enable_debug_parser;
 	tree::Program* program;
 	tree::Package* active_package;
+
+	struct
+	{
+		int32 current_source_index;
+		uint32 current_line;
+		uint32 current_column;
+	} debug;
 };
 
 ParserContext& getParserContext();
