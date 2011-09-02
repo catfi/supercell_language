@@ -26,6 +26,7 @@
 #include "core/Prerequisite.h"
 #include "core/Visitor.h"
 #include "language/tree/ASTNodeFactory.h"
+#include "language/stage/parser/context/SourceInfoContext.h"
 
 #define INDENT_CHAR  L' '
 #define INDENT_WIDTH 2
@@ -36,7 +37,7 @@ namespace zillians { namespace language { namespace tree { namespace visitor {
 
 struct PrettyPrintVisitor : Visitor<const ASTNode, void>
 {
-	PrettyPrintVisitor()
+	PrettyPrintVisitor(bool dump_source_info = false) : dump_source_info(dump_source_info)
 	{
 		REGISTER_VISITABLE(printInvoker,
 				// basic
@@ -130,17 +131,42 @@ struct PrettyPrintVisitor : Visitor<const ASTNode, void>
 
 	void print(const Annotation& node)
 	{
-		STREAM << L"<annotation name=\"" << node.name->toString() << L"\">" << std::endl;
+		if(hasSourceInfo(node))
+		{
+			STREAM << L"<annotation name=\"" << node.name->toString() << L">" << std::endl;
+			{
+				printSourceInfo(node);
+			}
+			STREAM << L"</annotation>" << std::endl;
+		}
+		else
+		{
+			STREAM << L"<annotation name=\"" << node.name->toString() << L"/>" << std::endl;
+		}
 	}
 
 	void print(const Identifier& node)
 	{
-		STREAM << L"<identifier data=\"" << node.toString() << L"\">" << std::endl;
+		if(hasSourceInfo(node))
+		{
+			STREAM << L"<identifier data=\"" << node.toString() << L"\">" << std::endl;
+			{
+				printSourceInfo(node);
+			}
+			STREAM << L"</identifier>" << std::endl;
+		}
+		else
+		{
+			STREAM << L"<identifier data=\"" << node.toString() << L"\">" << std::endl;
+		}
 	}
 
 	void print(const NumericLiteral& node)
 	{
 		STREAM << L"<numeric_literal type=\"" << NumericLiteral::LiteralType::toString(node.type) << L"\">" << std::endl;
+		{
+			printSourceInfo(node);
+		}
 		{
 			increaseIdent();
 			switch(node.type)
@@ -163,7 +189,18 @@ struct PrettyPrintVisitor : Visitor<const ASTNode, void>
 
 	void print(const StringLiteral& node)
 	{
-		STREAM << L"<string_literal data=\"" << node.value << "\"/>" << std::endl;
+		if(hasSourceInfo(node))
+		{
+			STREAM << L"<string_literal data=\"" << node.value << "\">" << std::endl;
+			{
+				printSourceInfo(node);
+			}
+			STREAM << L"</string_literal>" << std::endl;
+		}
+		else
+		{
+			STREAM << L"<string_literal data=\"" << node.value << "\"/>" << std::endl;
+		}
 	}
 
 	//////////////////////////////////////////////////////////////////////
@@ -172,6 +209,9 @@ struct PrettyPrintVisitor : Visitor<const ASTNode, void>
 	void print(const Program& node)
 	{
 		STREAM << L"<program>" << std::endl;
+		{
+			printSourceInfo(node);
+		}
 		if(node.root)
 		{
 			increaseIdent();
@@ -184,6 +224,9 @@ struct PrettyPrintVisitor : Visitor<const ASTNode, void>
 	void print(const Package& node)
 	{
 		STREAM << L"<package name=\"" << node.id->toString() << L"\">" << std::endl;
+		{
+			printSourceInfo(node);
+		}
 		{
 			increaseIdent();
 			foreach(i, node.children)
@@ -205,12 +248,27 @@ struct PrettyPrintVisitor : Visitor<const ASTNode, void>
 
 	void print(const Import& node)
 	{
-		STREAM << L"<import ns=\"" << node.ns->toString() << L"\"/>" << std::endl;
+		if(hasSourceInfo(node))
+		{
+			STREAM << L"<import ns=\"" << node.ns->toString() << L"\">" << std::endl;
+			{
+				printSourceInfo(node);
+			}
+			STREAM << L"</import>" << std::endl;
+		}
+		else
+		{
+			STREAM << L"<import ns=\"" << node.ns->toString() << L"\"/>" << std::endl;
+		}
+
 	}
 
 	void print(const TypeSpecifier& node)
 	{
 		STREAM << L"<type_specifier referred_type=\"" << TypeSpecifier::ReferredType::toString(node.type) << L"\">" << std::endl;
+		{
+			printSourceInfo(node);
+		}
 		{
 			increaseIdent();
 			switch(node.type)
@@ -235,6 +293,9 @@ struct PrettyPrintVisitor : Visitor<const ASTNode, void>
 	void print(const FunctionType& node)
 	{
 		STREAM << L"<function_type>" << std::endl;
+		{
+			printSourceInfo(node);
+		}
 		{
 			int index = 0;
 			increaseIdent();
@@ -272,6 +333,9 @@ struct PrettyPrintVisitor : Visitor<const ASTNode, void>
 	void print(const ClassDecl& node)
 	{
 		STREAM << L"<class_decl name=\"" << node.name->toString() << L"\">" << std::endl;
+		{
+			printSourceInfo(node);
+		}
 		{
 			printAnnotation(node.annotations);
 		}
@@ -329,6 +393,9 @@ struct PrettyPrintVisitor : Visitor<const ASTNode, void>
 	{
 		STREAM << L"<enum_decl name=\"" << node.name->toString() << L"\">" << std::endl;
 		{
+			printSourceInfo(node);
+		}
+		{
 			printAnnotation(node.annotations);
 		}
 		{
@@ -367,6 +434,9 @@ struct PrettyPrintVisitor : Visitor<const ASTNode, void>
 				L"storage=\"" << Declaration::StorageSpecifier::toString(node.storage) << L"\"" <<
 				L">" << std::endl;
 		{
+			printSourceInfo(node);
+		}
+		{
 			printAnnotation(node.annotations);
 		}
 		{
@@ -403,6 +473,9 @@ struct PrettyPrintVisitor : Visitor<const ASTNode, void>
 	{
 		STREAM << L"<interface_decl name=\"" << node.name->toString() << L"\">" << std::endl;
 		{
+			printSourceInfo(node);
+		}
+		{
 			printAnnotation(node.annotations);
 		}
 		{
@@ -425,6 +498,9 @@ struct PrettyPrintVisitor : Visitor<const ASTNode, void>
 				L"visibility=\"" << Declaration::VisibilitySpecifier::toString(node.visibility) << L"\" " <<
 				L"storage=\"" << Declaration::StorageSpecifier::toString(node.storage) << L"\">" << std::endl;
 		{
+			printSourceInfo(node);
+		}
+		{
 			printAnnotation(node.annotations);
 		}
 		if(node.initializer)
@@ -443,7 +519,18 @@ struct PrettyPrintVisitor : Visitor<const ASTNode, void>
 
 	void print(const TypedefDecl& node)
 	{
-		STREAM << L"<typedef_decl from=\"" << decodeType(node.from) << L"\" to=\"" << node.to->toString() << L"\"/>" << std::endl;
+		if(hasSourceInfo(node))
+		{
+			STREAM << L"<typedef_decl from=\"" << decodeType(node.from) << L"\" to=\"" << node.to->toString() << L"\">" << std::endl;
+			{
+				printSourceInfo(node);
+			}
+			STREAM << L"</typedef_decl>" << std::endl;
+		}
+		else
+		{
+			STREAM << L"<typedef_decl from=\"" << decodeType(node.from) << L"\" to=\"" << node.to->toString() << L"\"/>" << std::endl;
+		}
 	}
 
 	//////////////////////////////////////////////////////////////////////
@@ -452,6 +539,9 @@ struct PrettyPrintVisitor : Visitor<const ASTNode, void>
 	void print(const DeclarativeStmt& node)
 	{
 		STREAM << L"<declarative_stmt>" << std::endl;
+		{
+			printSourceInfo(node);
+		}
 		{
 			printAnnotation(node.annotations);
 		}
@@ -467,6 +557,9 @@ struct PrettyPrintVisitor : Visitor<const ASTNode, void>
 	{
 		STREAM << L"<expression_stmt>" << std::endl;
 		{
+			printSourceInfo(node);
+		}
+		{
 			printAnnotation(node.annotations);
 		}
 		{
@@ -480,6 +573,9 @@ struct PrettyPrintVisitor : Visitor<const ASTNode, void>
 	void print(const ForeachStmt& node)
 	{
 		STREAM << L"<foreach_stmt>" << std::endl;
+		{
+			printSourceInfo(node);
+		}
 		{
 			printAnnotation(node.annotations);
 		}
@@ -536,6 +632,9 @@ struct PrettyPrintVisitor : Visitor<const ASTNode, void>
 	{
 		STREAM << L"<while_stmt type=\"" << WhileStmt::Style::toString(node.style) << "\">" << std::endl;
 		{
+			printSourceInfo(node);
+		}
+		{
 			printAnnotation(node.annotations);
 		}
 		{
@@ -576,6 +675,9 @@ struct PrettyPrintVisitor : Visitor<const ASTNode, void>
 	void print(const IfElseStmt& node)
 	{
 		STREAM << L"<ifelse_stmt>" << std::endl;
+		{
+			printSourceInfo(node);
+		}
 		{
 			printAnnotation(node.annotations);
 		}
@@ -662,6 +764,9 @@ struct PrettyPrintVisitor : Visitor<const ASTNode, void>
 	{
 		STREAM << L"<switch_stmt>" << std::endl;
 		{
+			printSourceInfo(node);
+		}
+		{
 			printAnnotation(node.annotations);
 		}
 		{
@@ -715,6 +820,9 @@ struct PrettyPrintVisitor : Visitor<const ASTNode, void>
 		{
 			STREAM << L"<branch_stmt opcode=\"" << BranchStmt::OpCode::toString(node.opcode) << L"\"/>" << std::endl;
 			{
+				printSourceInfo(node);
+			}
+			{
 				printAnnotation(node.annotations);
 			}
 			{
@@ -741,6 +849,9 @@ struct PrettyPrintVisitor : Visitor<const ASTNode, void>
 		{
 			STREAM << L"<branch_stmt opcode=\"" << BranchStmt::OpCode::toString(node.opcode) << L"\">" << std::endl;
 			{
+				printSourceInfo(node);
+			}
+			{
 				printAnnotation(node.annotations);
 			}
 			STREAM << L"</branch_stmt>" << std::endl;
@@ -753,6 +864,9 @@ struct PrettyPrintVisitor : Visitor<const ASTNode, void>
 	void print(const PrimaryExpr& node)
 	{
 		STREAM << L"<primary_expr type=\"" << PrimaryExpr::Catagory::toString(node.catagory) << L"\">" << std::endl;
+		{
+			printSourceInfo(node);
+		}
 		{
 			printAnnotation(node.annotations);
 		}
@@ -773,6 +887,9 @@ struct PrettyPrintVisitor : Visitor<const ASTNode, void>
 	{
 		STREAM << L"<unary_expr opcode=\"" << UnaryExpr::OpCode::toString(node.opcode) << L"\">" << std::endl;
 		{
+			printSourceInfo(node);
+		}
+		{
 			printAnnotation(node.annotations);
 		}
 		{
@@ -786,6 +903,9 @@ struct PrettyPrintVisitor : Visitor<const ASTNode, void>
 	void print(const BinaryExpr& node)
 	{
 		STREAM << L"<binary_expr opcode=\"" << BinaryExpr::OpCode::toString(node.opcode) << L"\">" << std::endl;
+		{
+			printSourceInfo(node);
+		}
 		{
 			printAnnotation(node.annotations);
 		}
@@ -817,6 +937,9 @@ struct PrettyPrintVisitor : Visitor<const ASTNode, void>
 	void print(const TernaryExpr& node)
 	{
 		STREAM << L"<ternary_expr>" << std::endl;
+		{
+			printSourceInfo(node);
+		}
 		{
 			printAnnotation(node.annotations);
 		}
@@ -858,6 +981,9 @@ struct PrettyPrintVisitor : Visitor<const ASTNode, void>
 	{
 		STREAM << L"<member_expr member=\"" << node.member->toString() << L"\">" << std::endl;
 		{
+			printSourceInfo(node);
+		}
+		{
 			printAnnotation(node.annotations);
 		}
 		{
@@ -879,6 +1005,9 @@ struct PrettyPrintVisitor : Visitor<const ASTNode, void>
 	void print(const CallExpr& node)
 	{
 		STREAM << L"<call_expr>" << std::endl;
+		{
+			printSourceInfo(node);
+		}
 		{
 			printAnnotation(node.annotations);
 		}
@@ -914,6 +1043,9 @@ struct PrettyPrintVisitor : Visitor<const ASTNode, void>
 	{
 		STREAM << L"<cast_expr type=\"" << decodeType(node.type) << L"\">" << std::endl;
 		{
+			printSourceInfo(node);
+		}
+		{
 			printAnnotation(node.annotations);
 		}
 		{
@@ -933,6 +1065,35 @@ struct PrettyPrintVisitor : Visitor<const ASTNode, void>
 	}
 
 private:
+	bool hasSourceInfo(const ASTNode& node)
+	{
+		using namespace zillians::language::stage;
+
+		if(!dump_source_info)
+			return false;
+
+		SourceInfoContext* source_info = SourceInfoContext::get((ASTNode*)&node);
+		return (source_info != NULL);
+	}
+
+	void printSourceInfo(const ASTNode& node)
+	{
+		using namespace zillians::language::stage;
+
+		if(!dump_source_info)
+			return;
+
+		SourceInfoContext* source_info = SourceInfoContext::get((ASTNode*)&node);
+		if(source_info)
+		{
+			increaseIdent();
+			{
+				STREAM << L"<source_info line=\"" << source_info->line << "\" column=\"" << source_info->column << "\"/>" << std::endl;
+			}
+			decreaseIdent();
+		}
+	}
+
 	void printAnnotation(Annotations* annotations)
 	{
 		if(annotations && annotations->annotation_list.size() > 0)
@@ -1033,6 +1194,8 @@ private:
 	CREATE_INVOKER(printInvoker, print);
 
 	int depth;
+
+	bool dump_source_info;
 };
 
 } } } }

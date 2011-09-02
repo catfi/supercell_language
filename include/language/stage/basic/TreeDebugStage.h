@@ -39,6 +39,7 @@ public:
 private:
 	bool dump_ast;
 	bool dump_ast_and_stop;
+	bool dump_ast_location;
 };
 
 } } }
