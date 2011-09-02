@@ -240,10 +240,6 @@ struct LLVMHelper
 		return llvm::BasicBlock::Create(mContext, "", parent, before);
 	}
 
-	llvm::AllocaInst* createAlloca(tree::VariableDecl& ast_variable, llvm::StringRef name = "")
-	{
-	}
-
 	bool getAlloca(tree::VariableDecl& ast_variable, /*OUT*/ llvm::AllocaInst*& llvm_alloca_inst)
 	{
 		if(!!(llvm_alloca_inst = ast_variable.get<llvm::AllocaInst>()))
@@ -255,11 +251,11 @@ struct LLVMHelper
 			return NULL;
 
 		if(mBuilder.isNamePreserving())
-			llvm_alloca_inst = new llvm::AllocaInst(llvm_variable_type, 0, "", mFunctionContext.alloca_insert_point);
-		else
 			llvm_alloca_inst = new llvm::AllocaInst(llvm_variable_type, 0, NameManglingContext::get(&ast_variable)->managled_name, mFunctionContext.alloca_insert_point);
+		else
+			llvm_alloca_inst = new llvm::AllocaInst(llvm_variable_type, 0, "", mFunctionContext.alloca_insert_point);
 
-		ast_variable.set<llvm::AllocaInst>(llvm_alloca_inst);
+		ast_variable.set<llvm::Value>(llvm_alloca_inst);
 
 		return true;
 	}

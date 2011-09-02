@@ -46,7 +46,7 @@ struct NameManglingVisitor : Visitor<ASTNode, void, VisitorImplementation::recur
 		if(node.parent) visit(*node.parent);
 
 		if(stream.str().length() > 0)
-			stream << ".";
+			stream << "_";
 
 		stream << encode(node.toString());
 	}
@@ -56,7 +56,7 @@ struct NameManglingVisitor : Visitor<ASTNode, void, VisitorImplementation::recur
 		if(node.parent) visit(*node.parent);
 
 		if(stream.str().length() > 0)
-			stream << ".";
+			stream << "_";
 
 		if(node.id->isEmpty())
 			stream << "root";
@@ -69,7 +69,7 @@ struct NameManglingVisitor : Visitor<ASTNode, void, VisitorImplementation::recur
 		if(node.parent) visit(*node.parent);
 
 		if(stream.str().length() > 0)
-			stream << ".";
+			stream << "_";
 
 		stream << "_B_";
 	}
@@ -79,7 +79,7 @@ struct NameManglingVisitor : Visitor<ASTNode, void, VisitorImplementation::recur
 		if(node.parent) visit(*node.parent);
 
 		if(stream.str().length() > 0)
-			stream << ".";
+			stream << "_";
 
 		switch(node.type)
 		{
@@ -115,7 +115,7 @@ struct NameManglingVisitor : Visitor<ASTNode, void, VisitorImplementation::recur
 		if(node.parent) visit(*node.parent);
 
 		if(stream.str().length() > 0)
-			stream << ".";
+			stream << "_";
 
 		stream << encode(node.name->toString());
 	}
@@ -125,7 +125,7 @@ struct NameManglingVisitor : Visitor<ASTNode, void, VisitorImplementation::recur
 		if(node.parent) visit(*node.parent);
 
 		if(stream.str().length() > 0)
-			stream << ".";
+			stream << "_";
 
 		stream << encode(node.name->toString());
 	}
@@ -135,7 +135,7 @@ struct NameManglingVisitor : Visitor<ASTNode, void, VisitorImplementation::recur
 		if(node.parent) visit(*node.parent);
 
 		if(stream.str().length() > 0)
-			stream << ".";
+			stream << "_";
 
 		stream << encode(node.name->toString());
 	}
@@ -145,7 +145,7 @@ struct NameManglingVisitor : Visitor<ASTNode, void, VisitorImplementation::recur
 		if(node.parent) visit(*node.parent);
 
 		if(stream.str().length() > 0)
-			stream << ".";
+			stream << "_";
 
 		stream << encode(node.name->toString());
 	}
