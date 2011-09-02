@@ -30,7 +30,10 @@
 		else { \
 			Expression* left = NULL; \
 			deduced_foreach(i, _param(0)) \
-				REGISTER_LOCATION(left = (is_begin_of_deduced_foreach(i, _param(0))) ? *i : new BinaryExpr(op_code, left, *i)); \
+				if(is_begin_of_deduced_foreach(i, _param(0))) \
+					left = *i; \
+				else \
+					REGISTER_LOCATION(left = new BinaryExpr(op_code, left, *i)); \
 			_result = left; \
 		} \
 	}
@@ -43,7 +46,10 @@
 		else { \
 			Expression* right = NULL; \
 			deduced_reverse_foreach(i, _param(0)) \
-				REGISTER_LOCATION(right = (is_begin_of_deduced_reverse_foreach(i, _param(0))) ? *i : new BinaryExpr(op_code, *i, right)); \
+				if(is_begin_of_deduced_reverse_foreach(i, _param(0))) \
+					right = *i; \
+				else \
+					REGISTER_LOCATION(right = new BinaryExpr(op_code, *i, right)); \
 			_result = right; \
 		} \
 	}
