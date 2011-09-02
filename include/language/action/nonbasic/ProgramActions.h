@@ -34,7 +34,7 @@ struct program
 #ifdef DEBUG
 		printf("program param(0) type = %s\n", typeid(_param_t(0)).name());
 #endif
-		REGISTER_LOCATION(getParserContext().program = new Program());
+		REGISTER_LOCATION(getParserContext().program);
 		getParserContext().active_package = getParserContext().program->root;
 	}
 	END_ACTION
