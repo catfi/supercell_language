@@ -23,14 +23,16 @@
 #include "core/Prerequisite.h"
 #include <boost/filesystem.hpp>
 
-#include "language/tree/visitor/general/GenericDoubleVisitor.h"
-#include "language/stage/generator/detail/LLVMHelper.h"
-#include "language/stage/parser/context/SourceInfoContext.h"
-#include "utility/UnicodeUtil.h"
-
 #include "llvm/Support/Dwarf.h"
 #include "llvm/Analysis/DebugInfo.h"
 
+#include "language/tree/visitor/general/GenericDoubleVisitor.h"
+#include "language/stage/generator/detail/LLVMHelper.h"
+#include "language/context/ParserContext.h"
+#include "language/stage/parser/context/SourceInfoContext.h"
+#include "language/stage/transformer/context/ManglingStageContext.h"
+#include "language/stage/generator/context/DebugInfoContext.h"
+#include "utility/UnicodeUtil.h"
 
 using namespace zillians::language::tree;
 using zillians::language::tree::visitor::GenericDoubleVisitor;
@@ -47,15 +49,7 @@ struct LLVMDebugInfoGeneratorVisitor: GenericDoubleVisitor
 {
 	CREATE_INVOKER(generateInvoker, generate)
 
-	// Structure of a compile unit
-	struct compile_unit_t
-	{
-		llvm::DICompileUnit compile_unit;
-		llvm::DIFile file;
-
-		// Since we create the DITypes base on DIFile, so type_cache is move into compile unit structure
-		std::map<llvm::Type::TypeID, llvm::DIType> type_cache;
-	};
+	typedef std::map<TypeSpecifier::PrimitiveType::type, llvm::DIBasicType> type_cache_t;
 
 	LLVMDebugInfoGeneratorVisitor(llvm::LLVMContext& context, llvm::Module& current_module) :
 		context(context), current_module(current_module), factory(current_module), builder(context), helper(context, current_module, builder)
@@ -65,6 +59,12 @@ struct LLVMDebugInfoGeneratorVisitor: GenericDoubleVisitor
 
 	void generate(ASTNode& node)
 	{
+		revisit(node);
+	}
+
+	void generate(Package& node)
+	{
+		revisit(node);
 	}
 
 	void generate(Program& node)
@@ -72,33 +72,189 @@ struct LLVMDebugInfoGeneratorVisitor: GenericDoubleVisitor
 		std::cout << __PRETTY_FUNCTION__ << std::endl;
 		ModuleSourceInfoContext* module_info = ModuleSourceInfoContext::get(&node);
 
+		DebugInfoProgramContext *program_context = new DebugInfoProgramContext();
+
 		// Create compile units
 		for (int i = 0; i < module_info->source_files.size(); i++)
 		{
+			std::cout << "<Program> Ori path: " << module_info->source_files[i] << std::endl;
 			boost::filesystem::path file_path(module_info->source_files[i]);
 			std::string folder = file_path.parent_path().generic_string();
 			std::string filename = file_path.filename().generic_string();
+
+			std::cout << "<Program> folder: " << folder << std::endl;
+			std::cout << "<Program> filename: " << filename << std::endl;
 
 			llvm::DICompileUnit compile_unit = factory.CreateCompileUnit(llvm::dwarf::DW_LANG_C_plus_plus,
 				llvm::StringRef(filename.c_str()), llvm::StringRef(folder.c_str()), llvm::StringRef(COMPANY_INFORMATION), true);
 
 			llvm::DIFile file = factory.CreateFile(llvm::StringRef(filename.c_str()), llvm::StringRef(folder.c_str()), compile_unit);
 
+			std::cout << "<Program> compile_unit: " << compile_unit << std::endl;
+			std::cout << "<Program> file: " << file << std::endl;
+
 			// The index of the compile_units corresponds to the index of module_info->source_files
-			compile_unit_t unit;
-			unit.compile_unit = compile_unit;
-			unit.file = file;
-			compile_units.push_back(unit);
+			program_context->addProgramContext(compile_unit, file);
 		}
+
+		DebugInfoProgramContext::set(&node, program_context);
+
+		revisit(node);
+	}
+
+	void generate(TypeSpecifier& node)
+	{
+		std::cout << __PRETTY_FUNCTION__ << std::endl;
+		SourceInfoContext* source_info = SourceInfoContext::get(&node);
+		DebugInfoProgramContext* program_context = DebugInfoProgramContext::get(getParserContext().program);
+
+		// TODO: temprarty workaound
+		int32 source_index = source_info->source_index;
+
+		llvm::DIType* type = NULL;
+		switch(node.type)
+		{
+		case TypeSpecifier::ReferredType::CLASS_DECL: break;
+		case TypeSpecifier::ReferredType::FUNCTION_DECL:  break;
+		case TypeSpecifier::ReferredType::ENUM_DECL: break;
+		case TypeSpecifier::ReferredType::TYPEDEF_DECL: break;
+		case TypeSpecifier::ReferredType::FUNCTION_TYPE: break;
+		case TypeSpecifier::ReferredType::UNSPECIFIED: break;
+		case TypeSpecifier::ReferredType::PRIMITIVE:
+		{
+			std::cout << "Primitive Type" << std::endl;
+			type = new llvm::DIBasicType();
+			*type = createPrimitiveType(
+					primitive_type_caches[source_index],
+					program_context->files[source_index],
+					node.referred.primitive);
+			break;
+		}
+		}
+
+		DebugInfoTypeContext::set(&node, new DebugInfoTypeContext(shared_ptr<llvm::DIType>(type)));
 	}
 
 	void generate(FunctionDecl& node)
 	{
+		std::cout << __PRETTY_FUNCTION__ << std::endl;
+		std::cout << "<Function> function name: " << ws_to_s(node.name->toString()) << std::endl;
+
+		SourceInfoContext* source_info = SourceInfoContext::get(&node);
+		NameManglingContext* mangling = NameManglingContext::get(&node);
+
+		// TODO: -1 to workaround temporarily
+		int32 source_index = source_info->source_index;
+		std::cout << "<Function> mangling name: " << mangling->managled_name << std::endl;
+
+		DebugInfoProgramContext* program_context = DebugInfoProgramContext::get(getParserContext().program);
+		std::cout << "<Function> file: " << program_context->files[source_index] << std::endl;
+
+		// Generate return type debug information
+		generate(*node.type);
+		DebugInfoTypeContext* return_type = DebugInfoTypeContext::get(node.type);
+
+		// TODO: Generate debug information of parameters' type
+
+
+		// Create DISubprogram for the function
+		llvm::Function * llvm_function = node.get<llvm::Function>();
+		llvm::DISubprogram subprogram = factory.CreateSubprogram(
+				program_context->files[source_index], // TODO: Last context
+				llvm::StringRef(ws_to_s(node.name->toString()).c_str()),
+				llvm::StringRef(ws_to_s(node.name->toString()).c_str()),
+				llvm::StringRef(mangling->managled_name.c_str()),
+				program_context->files[source_index],
+				source_info->line,
+				*return_type->type, //createType(llvm::Type::IntegerTyID, program_context->files[function_file_info->source_index], type_caches[function_file_info->source_index]),	// TODO: Decide function type
+				false, //bool isLocalToUnit,
+				true, //bool isDefinition,
+				llvm::dwarf::DW_VIRTUALITY_none, //unsigned VK = 0
+				0, //unsigned VIndex = 0
+				llvm::DIType(), //DIType = DIType() parameter types
+				false, //bool isArtificial = 0
+				false, //bool isOptimized = false
+				llvm_function);
+
+		DebugInfoContext::set(&node, new DebugInfoContext(program_context->compile_units[source_index],
+				program_context->files[source_index], subprogram));
+
+		std::cout << "<Function> subprogram: " << subprogram << " mdnode: " << (llvm::MDNode*)subprogram << std::endl;
+
+		// Visit other attributes
+		if(node.name) generate(*node.name);
+		foreach(i, node.parameters)
+		{
+			if(i->first) generate(*i->first);
+			if(i->second) generate(*i->second);
+		}
+		if(node.block) generate(*node.block);
+		if(node.annotations) generate(*node.annotations);
+	}
+
+	void generate(Block& node)
+	{
+		std::cout << __PRETTY_FUNCTION__ << std::endl;
+		BOOST_ASSERT(node.parent && "Block has no parent!");
+
+		// Retrieve parent node debug information, since we need its context
+		DebugInfoContext* parent_debug_info = DebugInfoContext::get(node.parent);
+		SourceInfoContext* source_info = SourceInfoContext::get(&node);
+
+		std::cout << "<Block> parent: " << parent_debug_info->context << " mdnode: " << (llvm::MDNode*)parent_debug_info->context << std::endl;
+		llvm::DILexicalBlock function_block = factory.CreateLexicalBlock(
+				parent_debug_info->context, parent_debug_info->file, source_info->line, source_info->column);
+
+		DebugInfoContext::set(&node, new DebugInfoContext(
+				parent_debug_info->compile_unit, parent_debug_info->file,	// inherit from parent node
+				function_block));
+		std::cout << "<Block> context: " << function_block << std::endl;
+		revisit(node);
 	}
 
 	void generate(VariableDecl& node)
 	{
-		//helper.createAlloca();
+		std::cout << __PRETTY_FUNCTION__ << std::endl;
+		BOOST_ASSERT(node.parent && "Variable declaration has no parent!");
+
+		ASTNode* parent = node.parent;
+		while (!isa<Block>(parent))
+		{
+			parent = parent->parent;
+		}
+
+		DebugInfoContext* parent_debug_info = DebugInfoContext::get(parent);
+		SourceInfoContext* source_info = SourceInfoContext::get(&node);
+
+		std::cout << "<Variable> parent context: " << parent_debug_info->context << std::endl;
+
+		// Generate type debug information
+		generate(*node.type);
+		DebugInfoTypeContext* type_info = DebugInfoTypeContext::get(node.type);
+
+		// TODO: Need to decide the type
+		llvm::DIVariable variable = factory.CreateVariable(
+				llvm::dwarf::DW_TAG_auto_variable,
+				parent_debug_info->context, llvm::StringRef(ws_to_s(node.name->toString()).c_str()),
+				parent_debug_info->file, source_info->line,
+				*type_info->type
+				);
+
+		DebugInfoContext::set(&node, new DebugInfoContext(
+				parent_debug_info->compile_unit, parent_debug_info->file, // inherit from parent node
+				variable));
+
+		// TODO:: not sure the llvm value and llvm instruction
+		llvm::Value* value = node.get<llvm::Value>();
+		llvm::BasicBlock* block = llvm::cast<llvm::Instruction>(value)->getParent();
+
+		std::cout << "<Variable> value: " << value << std::endl;
+		std::cout << "<Variable> block: " << block << std::endl;
+
+		llvm::Instruction* variable_inst = factory.InsertDeclare(value, variable, block);
+		llvm::MDNode* scope = parent_debug_info->context;
+		variable_inst->setDebugLoc(llvm::DebugLoc::get(source_info->line, source_info->column, scope));
+		revisit(node);
 	}
 
 	void generate(ExpressionStmt& node)
@@ -157,44 +313,49 @@ struct LLVMDebugInfoGeneratorVisitor: GenericDoubleVisitor
 	}
 
 private:
-	llvm::DIType createType(llvm::Type::TypeID& type, compile_unit_t& compile_unit)
+	llvm::DIBasicType createPrimitiveType(type_cache_t& primitive_type_cache, llvm::DIFile& file, TypeSpecifier::PrimitiveType::type type)
 	{
-		if (compile_unit.type_cache.find(type) == compile_unit.type_cache.end())
+		int bits = 0;
+		int alignment = 0;
+		int offset = 0;
+		llvm::dwarf::dwarf_constants encoding;
+
+		if (primitive_type_cache.find(type) != primitive_type_cache.end())
 		{
-			// Create the specific type
-			switch(type)
-			{
-			case llvm::Type::VoidTyID:	break;
-			case llvm::Type::FloatTyID:	break;
-			case llvm::Type::DoubleTyID:	break;
-			case llvm::Type::X86_FP80TyID:	break;
-			case llvm::Type::FP128TyID:	break;
-			case llvm::Type::PPC_FP128TyID:	break;
-			case llvm::Type::LabelTyID:	break;
-			case llvm::Type::MetadataTyID:	break;
-			case llvm::Type::IntegerTyID:
-			{
-				llvm::DIBasicType basic_type = factory.CreateBasicType(compile_unit.file,
-						llvm::StringRef("int"), compile_unit.file,
-						/* line */ 0, /* bits */32, /* alignment */ 32, /* offset */ 0, /*flags*/ 0,
-						/* encoding */ llvm::dwarf::DW_ATE_signed);
-				compile_unit.type_cache[type] = basic_type;
-				break;
-			}
-			case llvm::Type::FunctionTyID:	break;
-			case llvm::Type::StructTyID:	break;
-			case llvm::Type::ArrayTyID:	break;
-			case llvm::Type::PointerTyID:	break;
-			case llvm::Type::OpaqueTyID:	break;
-			case llvm::Type::VectorTyID:	break;
-			default:
-				return llvm::DIType();
-			}
+			return primitive_type_cache[type];
 		}
 
-		return compile_unit.type_cache[type];
-	}
+		switch (type)
+		{
+		case TypeSpecifier::PrimitiveType::VOID: break;
+		case TypeSpecifier::PrimitiveType::INT8: break;
+		case TypeSpecifier::PrimitiveType::INT16: break;
+		case TypeSpecifier::PrimitiveType::INT32: break;
+		case TypeSpecifier::PrimitiveType::INT64: break;
+		case TypeSpecifier::PrimitiveType::UINT8: break;
+		case TypeSpecifier::PrimitiveType::UINT16: break;
+		case TypeSpecifier::PrimitiveType::UINT32:
+		{
+			bits = 32; alignment = 32; offset = 0;
+			encoding = llvm::dwarf::DW_ATE_unsigned;
+			break;
+		}
+		case TypeSpecifier::PrimitiveType::UINT64: break;
+		case TypeSpecifier::PrimitiveType::FLOAT32: break;
+		case TypeSpecifier::PrimitiveType::FLOAT64: break;
+		case TypeSpecifier::PrimitiveType::ANONYMOUS_OBJECT: break;
+		case TypeSpecifier::PrimitiveType::ANONYMOUS_FUNCTION: break;
+		case TypeSpecifier::PrimitiveType::VARIADIC_ELLIPSIS: break;
+		default:
+			BOOST_ASSERT(false && "Unknown basic type");
+		}
 
+		llvm::DIBasicType basic_type = factory.CreateBasicType(file,
+				llvm::StringRef(ws_to_s(TypeSpecifier::PrimitiveType::toString(type)).c_str()),
+				file, /* line */ 0, bits, alignment, offset, /*flags*/ 0, encoding);
+
+		return (primitive_type_cache[type] = basic_type);
+	}
 
 private:
 	llvm::LLVMContext& context;
@@ -204,7 +365,8 @@ private:
 
 	llvm::DIFactory factory;
 
-	std::vector<compile_unit_t> compile_units;
+	// The first key is the source index, each source
+	std::map< unsigned int, type_cache_t > primitive_type_caches;
 };
 
 }}}}
