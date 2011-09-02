@@ -91,7 +91,11 @@ bool ThorScriptParserStage::execute(bool& continue_execution)
 	if(skip_parse)
 		return true;
 
+	// prepare the global parser context
 	setParserContext(new ParserContext());
+
+	// prepare the module source info context for the root program node
+   	ModuleSourceInfoContext::set(getParserContext().program, new ModuleSourceInfoContext());
 
 	if(inputs.size() > 0)
 	{
