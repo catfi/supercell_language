@@ -41,8 +41,9 @@ private:
 	bool parse(std::string filename);
 
 private:
-	bool skip_parse;
 	bool dump_parse;
+	bool dump_parse_and_stop;
+	bool skip_parse;
 	std::vector<std::string> inputs;
 };
 

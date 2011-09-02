@@ -37,8 +37,8 @@ public:
 	virtual bool execute(bool& continue_execution);
 
 private:
-	bool dump_tree_and_stop;
-	bool dump_tree;
+	bool dump_ast;
+	bool dump_ast_and_stop;
 };
 
 } } }

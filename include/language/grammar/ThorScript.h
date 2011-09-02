@@ -113,8 +113,7 @@ struct Identifier : qi::grammar<Iterator, typename SA::identifier::attribute_typ
 		start %= qi::lexeme[ ((unicode::alpha | L'_') > *(unicode::alnum | L'_')) - keyword ];
 
 		start_augmented
-			=	(start
-					> omit[ iter_pos[ typename SA::identifier::init_iter_pos() ] ]
+			=	(omit[ iter_pos[ typename SA::identifier::init_iter_pos() ] ] >> start
 				) [ typename SA::identifier::init() ];
 
 		start_augmented.name("IDENTIFIER");

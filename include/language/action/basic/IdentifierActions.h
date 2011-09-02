@@ -48,6 +48,8 @@ struct identifier
 		std::wstring::iterator p = _attr(0).get_currentline_begin();
 		getParserContext().debug.current_line   = _attr(0).get_position().line;
 		getParserContext().debug.current_column = _attr(0).get_position().column;
+		printf("line number = %d\n", getParserContext().debug.current_line);
+		printf("col number = %d\n", getParserContext().debug.current_column);
 	}
 	END_ACTION
 };

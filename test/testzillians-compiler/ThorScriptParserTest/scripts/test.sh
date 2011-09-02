@@ -19,7 +19,7 @@ for ARG in "$@"; do
         exit 1
     fi
     if [ $MODE -eq 1 ]; then
-        $EXEC $ARG --dump-ast --no-type-inference --no-llvm
+        $EXEC $ARG --dump-ast-and-stop
         ERROR_CODE="$?"
         if [ $ERROR_CODE -ne 0 ];
         then
@@ -28,7 +28,7 @@ for ARG in "$@"; do
         fi
         continue
     fi
-    $EXEC $ARG --dump-parse >& $TEMP_FILE_A
+    $EXEC $ARG --dump-parse-and-stop >& $TEMP_FILE_A
     ERROR_CODE="$?"
     if [ $ERROR_CODE -ne 0 ]; then
         cat $TEMP_FILE_A # NOTE: for convenience of reference
