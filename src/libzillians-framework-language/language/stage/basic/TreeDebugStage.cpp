@@ -23,7 +23,7 @@
 
 namespace zillians { namespace language { namespace stage {
 
-TreeDebugStage::TreeDebugStage() : dump_ast(false), dump_ast_and_stop(false)
+TreeDebugStage::TreeDebugStage() : dump_ast(false), dump_ast_and_stop(false), dump_ast_location(false)
 { }
 
 TreeDebugStage::~TreeDebugStage()
@@ -38,13 +38,16 @@ void TreeDebugStage::initializeOptions(po::options_description& option_desc, po:
 {
     option_desc.add_options()
     ("dump-ast",          "dump AST pretty-print for debugging purpose")
+    ("dump-ast-location", "dump AST with source code locations")
 	("dump-ast-and-stop", "dump AST pretty-print for debugging purpose and stop processing");
 }
 
 bool TreeDebugStage::parseOptions(po::variables_map& vm)
 {
 	dump_ast          = (vm.count("dump-ast") > 0);
+	dump_ast_location = (vm.count("dump-ast-location") > 0);
 	dump_ast_and_stop = (vm.count("dump-ast-and-stop") > 0);
+
 	dump_ast |= dump_ast_and_stop;
 	return true;
 }
@@ -56,7 +59,7 @@ bool TreeDebugStage::execute(bool& continue_execution)
 		return true;
 	if(getParserContext().program)
 	{
-		tree::visitor::PrettyPrintVisitor printer;
+		tree::visitor::PrettyPrintVisitor printer(dump_ast_location);
 		printer.visit(*getParserContext().program);
 	}
 	else
