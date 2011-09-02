@@ -28,19 +28,19 @@ namespace zillians { namespace language {
 
 struct ParserContext
 {
-	ParserContext() : enable_semantic_action(true), enable_debug_parser(false), program(new tree::Program()), active_package(NULL)
+	ParserContext() : enable_semantic_action(true), dump_rule_debug(false), program(new tree::Program()), active_package(NULL)
 	{ }
 
 	bool enable_semantic_action;
-	bool enable_debug_parser;
+	bool dump_rule_debug;
 	tree::Program* program;
 	tree::Package* active_package;
 
 	struct
 	{
-		int32 current_source_index;
-		uint32 current_line;
-		uint32 current_column;
+		int32 source_index;
+		uint32 line;
+		uint32 column;
 	} debug;
 };
 

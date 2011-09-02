@@ -92,6 +92,10 @@ struct Identifier : qi::grammar<Iterator, typename SA::identifier::attribute_typ
 {
 	Identifier() : Identifier::base_type(start_augmented)
 	{
+		location
+			= omit[ iter_pos[ typename SA::location::init() ] ]
+			;
+
 		keyword_sym =
 			L"void",
 			L"int8", L"uint8", L"int16", L"uint16", L"int32", L"uint32", L"int64", L"uint64",
@@ -113,17 +117,18 @@ struct Identifier : qi::grammar<Iterator, typename SA::identifier::attribute_typ
 		start %= qi::lexeme[ ((unicode::alpha | L'_') > *(unicode::alnum | L'_')) - keyword ];
 
 		start_augmented
-			=	(start
-					> omit[ iter_pos[ typename SA::identifier::init_iter_pos() ] ]
-				) [ typename SA::identifier::init() ];
+			= (location >> start) [ typename SA::identifier::init() ]
+			;
 
 		start_augmented.name("IDENTIFIER");
-		if(getParserContext().enable_debug_parser)
+		if(getParserContext().dump_rule_debug)
 			debug(start_augmented);
 	}
 
+	qi::rule<Iterator, typename SA::location::attribute_type, typename SA::location::local_type> location;
 	qi::symbols<wchar_t const> keyword_sym;
-	qi::rule<Iterator, std::wstring()> keyword, start;
+	qi::rule<Iterator, std::wstring()> keyword;
+	qi::rule<Iterator, std::wstring()> start;
 	qi::rule<Iterator, typename SA::identifier::attribute_type, typename SA::identifier::local_type> start_augmented;
 };
 
@@ -132,18 +137,25 @@ struct IntegerLiteral : qi::grammar<Iterator, typename SA::integer_literal::attr
 {
 	IntegerLiteral() : IntegerLiteral::base_type(start_augmented)
 	{
+		location
+			= omit[ iter_pos[ typename SA::location::init() ] ]
+			;
+
 		start
 			%=	distinct(qi::lit(L'.') | L'x' | no_case[L'e'])[qi::uint_]
 			|	qi::lit(L"0x") > qi::hex
 			;
 
-		start_augmented = start [ typename SA::integer_literal::init() ];
+		start_augmented
+			= (location >> start) [ typename SA::integer_literal::init() ]
+			;
 
 		start_augmented.name("INTEGER_LITERAL");
-		if(getParserContext().enable_debug_parser)
+		if(getParserContext().dump_rule_debug)
 			debug(start_augmented);
 	}
 
+	qi::rule<Iterator, typename SA::location::attribute_type, typename SA::location::local_type> location;
 	qi::rule<Iterator, uint64()> start;
 	qi::rule<Iterator, typename SA::integer_literal::attribute_type, typename SA::integer_literal::local_type> start_augmented;
 };
@@ -153,19 +165,26 @@ struct FloatLiteral : qi::grammar<Iterator, typename SA::float_literal::attribut
 {
 	FloatLiteral() : FloatLiteral::base_type(start_augmented)
 	{
+		location
+			= omit[ iter_pos[ typename SA::location::init() ] ]
+			;
+
 		start
 			%=	( builtin_float_parser
 				| (qi::uint_ | builtin_float_parser) > no_case[L'e'] > -qi::lit(L'-') > qi::uint_
 				) > -no_case[L'f']
 			;
 
-		start_augmented = start [ typename SA::float_literal::init() ];
+		start_augmented
+			= (location >> start) [ typename SA::float_literal::init() ]
+			;
 
 		start_augmented.name("FLOAT_LITERAL");
-		if(getParserContext().enable_debug_parser)
+		if(getParserContext().dump_rule_debug)
 			debug(start_augmented);
 	}
 
+	qi::rule<Iterator, typename SA::location::attribute_type, typename SA::location::local_type> location;
 	qi::real_parser<double, qi::strict_ureal_policies<double> > builtin_float_parser;
 	qi::rule<Iterator, double()> start;
 	qi::rule<Iterator, typename SA::float_literal::attribute_type, typename SA::float_literal::local_type> start_augmented;
@@ -176,6 +195,10 @@ struct StringLiteral : qi::grammar<Iterator, typename SA::string_literal::attrib
 {
 	StringLiteral() : StringLiteral::base_type(start_augmented)
 	{
+		location
+			= omit[ iter_pos[ typename SA::location::init() ] ]
+			;
+
 		unescaped_char_sym.add
 			(L"\\a", L'\a')
 			(L"\\b", L'\b')
@@ -197,13 +220,16 @@ struct StringLiteral : qi::grammar<Iterator, typename SA::string_literal::attrib
 				>	L'\"'
 			;
 
-		start_augmented = start [ typename SA::string_literal::init() ];
+		start_augmented
+			= (location >> start) [ typename SA::string_literal::init() ]
+			;
 
 		start_augmented.name("STRING_LITERAL");
-		if(getParserContext().enable_debug_parser)
+		if(getParserContext().dump_rule_debug)
 			debug(start_augmented);
 	}
 
+	qi::rule<Iterator, typename SA::location::attribute_type, typename SA::location::local_type> location;
 	qi::symbols<wchar_t const, wchar_t const> unescaped_char_sym;
 	qi::rule<Iterator, std::wstring()> start;
 	qi::rule<Iterator, typename SA::string_literal::attribute_type, typename SA::string_literal::local_type> start_augmented;
@@ -386,6 +412,10 @@ struct ThorScript : qi::grammar<Iterator, typename SA::start::attribute_type, de
 		///////////////////////////////////////////////////////////
 		// BEGIN BASIC
 		//
+
+		location
+			= omit[ iter_pos[ typename SA::location::init() ] ]
+			;
 
 		typed_parameter_list
 			= ((IDENTIFIER > -colon_type_specifier) % COMMA) [ typename SA::typed_parameter_list::init() ]
@@ -638,20 +668,21 @@ struct ThorScript : qi::grammar<Iterator, typename SA::start::attribute_type, de
 		// associativity: right-to-left
 		// rank: 14
 		expression
-			=	(ternary_expression
-				%	( ASSIGN        > qi::attr(tree::BinaryExpr::OpCode::ASSIGN)
-					| RSHIFT_ASSIGN > qi::attr(tree::BinaryExpr::OpCode::RSHIFT_ASSIGN)
-					| LSHIFT_ASSIGN > qi::attr(tree::BinaryExpr::OpCode::LSHIFT_ASSIGN)
-					| PLUS_ASSIGN   > qi::attr(tree::BinaryExpr::OpCode::ADD_ASSIGN)
-					| MINUS_ASSIGN  > qi::attr(tree::BinaryExpr::OpCode::SUB_ASSIGN)
-					| MUL_ASSIGN    > qi::attr(tree::BinaryExpr::OpCode::MUL_ASSIGN)
-					| DIV_ASSIGN    > qi::attr(tree::BinaryExpr::OpCode::DIV_ASSIGN)
-					| MOD_ASSIGN    > qi::attr(tree::BinaryExpr::OpCode::MOD_ASSIGN)
-					| AND_ASSIGN    > qi::attr(tree::BinaryExpr::OpCode::AND_ASSIGN)
-					| OR_ASSIGN     > qi::attr(tree::BinaryExpr::OpCode::OR_ASSIGN)
-					| XOR_ASSIGN    > qi::attr(tree::BinaryExpr::OpCode::XOR_ASSIGN)
-					) [ typename SA::right_to_left_binary_op_vec::append_op() ]
-				) [ typename SA::right_to_left_binary_op_vec::init() ]
+			=	location
+					>>	(ternary_expression
+						%	( ASSIGN        > qi::attr(tree::BinaryExpr::OpCode::ASSIGN)
+							| RSHIFT_ASSIGN > qi::attr(tree::BinaryExpr::OpCode::RSHIFT_ASSIGN)
+							| LSHIFT_ASSIGN > qi::attr(tree::BinaryExpr::OpCode::LSHIFT_ASSIGN)
+							| PLUS_ASSIGN   > qi::attr(tree::BinaryExpr::OpCode::ADD_ASSIGN)
+							| MINUS_ASSIGN  > qi::attr(tree::BinaryExpr::OpCode::SUB_ASSIGN)
+							| MUL_ASSIGN    > qi::attr(tree::BinaryExpr::OpCode::MUL_ASSIGN)
+							| DIV_ASSIGN    > qi::attr(tree::BinaryExpr::OpCode::DIV_ASSIGN)
+							| MOD_ASSIGN    > qi::attr(tree::BinaryExpr::OpCode::MOD_ASSIGN)
+							| AND_ASSIGN    > qi::attr(tree::BinaryExpr::OpCode::AND_ASSIGN)
+							| OR_ASSIGN     > qi::attr(tree::BinaryExpr::OpCode::OR_ASSIGN)
+							| XOR_ASSIGN    > qi::attr(tree::BinaryExpr::OpCode::XOR_ASSIGN)
+							) [ typename SA::right_to_left_binary_op_vec::append_op() ]
+						) [ typename SA::right_to_left_binary_op_vec::init() ]
 			;
 
 		//
@@ -663,15 +694,18 @@ struct ThorScript : qi::grammar<Iterator, typename SA::start::attribute_type, de
 		//
 
 		statement
-			=	(-annotation_specifiers
-					>>	( const_variable_decl
-						| expression_statement
-						| selection_statement
-						| iteration_statement
-						| branch_statement
+			=	location
+					>>	(
+							(-annotation_specifiers
+								>>	( const_variable_decl
+									| expression_statement
+									| selection_statement
+									| iteration_statement
+									| branch_statement
+									)
+							) [ typename SA::statement::init() ]
+						|	block [ typename SA::statement::init_block() ]
 						)
-				) [ typename SA::statement::init() ]
-			|	block [ typename SA::statement::init_block() ]
 			;
 
 		expression_statement
@@ -722,15 +756,16 @@ struct ThorScript : qi::grammar<Iterator, typename SA::start::attribute_type, de
 		//
 
 		declaration
-			=	(-annotation_specifiers
-					>>	( const_variable_decl
-						| function_decl
-						| typedef_decl
-						| class_decl
-						| interface_decl
-						| enum_decl
-						)
-				) [ typename SA::declaration::init() ]
+			=	location
+					>>	(-annotation_specifiers
+							>>	( const_variable_decl
+								| function_decl
+								| typedef_decl
+								| class_decl
+								| interface_decl
+								| enum_decl
+								)
+						) [ typename SA::declaration::init() ]
 			;
 
 		const_variable_decl
@@ -866,7 +901,7 @@ struct ThorScript : qi::grammar<Iterator, typename SA::start::attribute_type, de
 		program.name("program");
 		start.name("start");
 
-		if(getParserContext().enable_debug_parser)
+		if(getParserContext().dump_rule_debug)
 		{
 			// keywords
 			debug(_TRUE); debug(_FALSE); debug(_NULL);
@@ -1018,6 +1053,7 @@ struct ThorScript : qi::grammar<Iterator, typename SA::start::attribute_type, de
 		///////////////////////////////////////
 
 	// basic
+	qi::rule<Iterator, typename SA::location::attribute_type,                                                typename SA::location::local_type>                  location;
 	qi::rule<Iterator, typename SA::nested_identifier::attribute_type,         detail::WhiteSpace<Iterator>, typename SA::nested_identifier::local_type>         nested_identifier;
 	qi::rule<Iterator, typename SA::typed_parameter_list::attribute_type,      detail::WhiteSpace<Iterator>, typename SA::typed_parameter_list::local_type>      typed_parameter_list;
 	qi::rule<Iterator, typename SA::colon_type_specifier::attribute_type,      detail::WhiteSpace<Iterator>, typename SA::colon_type_specifier::local_type>      colon_type_specifier;

@@ -32,7 +32,7 @@ struct program
 	BEGIN_ACTION(init)
 	{
 #ifdef DEBUG
-		printf("program attr(0) type = %s\n", typeid(_attr_t(0)).name());
+		printf("program param(0) type = %s\n", typeid(_param_t(0)).name());
 #endif
 		getParserContext().program = new Program();
 		getParserContext().active_package = getParserContext().program->root;
@@ -42,9 +42,9 @@ struct program
 	BEGIN_ACTION(append_package)
 	{
 #ifdef DEBUG
-		printf("program::append_package_decl attr(0) type = %s\n", typeid(_attr_t(0)).name());
+		printf("program::append_package_decl param(0) type = %s\n", typeid(_param_t(0)).name());
 #endif
-		NestedIdentifier *nested_ident = cast<NestedIdentifier>(_attr(0));
+		NestedIdentifier *nested_ident = cast<NestedIdentifier>(_param(0));
 		Package* prev_package = getParserContext().program->root;
 		deduced_foreach_value(i, nested_ident->identifier_list)
 		{
@@ -63,20 +63,20 @@ struct program
 	BEGIN_ACTION(append_import)
 	{
 #ifdef DEBUG
-		printf("program::append_import_decl attr(0) type = %s\n", typeid(_attr_t(0)).name());
+		printf("program::append_import_decl param(0) type = %s\n", typeid(_param_t(0)).name());
 #endif
 		if(!!getParserContext().program)
-			getParserContext().program->addImport(new Import(_attr(0)));
+			getParserContext().program->addImport(new Import(_param(0)));
 	}
 	END_ACTION
 
 	BEGIN_ACTION(append_declaration)
 	{
 #ifdef DEBUG
-		printf("program::append_declaration attr(0) type = %s\n", typeid(_attr_t(0)).name());
+		printf("program::append_declaration param(0) type = %s\n", typeid(_param_t(0)).name());
 #endif
 		if(!!getParserContext().active_package)
-			getParserContext().active_package->addObject(_attr(0));
+			getParserContext().active_package->addObject(_param(0));
 	}
 	END_ACTION
 };

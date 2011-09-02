@@ -23,7 +23,7 @@
 
 namespace zillians { namespace language { namespace stage {
 
-TreeDebugStage::TreeDebugStage() : dump_tree_and_stop(false), dump_tree(false)
+TreeDebugStage::TreeDebugStage() : dump_ast(false), dump_ast_and_stop(false)
 { }
 
 TreeDebugStage::~TreeDebugStage()
@@ -31,42 +31,36 @@ TreeDebugStage::~TreeDebugStage()
 
 const char* TreeDebugStage::name()
 {
-	return "tree_debug_stage";
+	return "ast_debug_stage";
 }
 
 void TreeDebugStage::initializeOptions(po::options_description& option_desc, po::positional_options_description& positional_desc)
 {
     option_desc.add_options()
+    ("dump-ast",          "dump AST pretty-print for debugging purpose")
 	("dump-ast-and-stop", "dump AST pretty-print for debugging purpose and stop processing");
-    ("dump-ast", "dump AST pretty-print for debugging purpose");
 }
 
 bool TreeDebugStage::parseOptions(po::variables_map& vm)
 {
-	dump_tree_and_stop = (vm.count("dump-ast-and-stop") > 0);
-	dump_tree = (vm.count("dump-ast") > 0);
-
+	dump_ast          = (vm.count("dump-ast") > 0);
+	dump_ast_and_stop = (vm.count("dump-ast-and-stop") > 0);
+	dump_ast |= dump_ast_and_stop;
 	return true;
 }
 
 bool TreeDebugStage::execute(bool& continue_execution)
 {
-	if(dump_tree || dump_tree_and_stop)
+	continue_execution = !dump_ast_and_stop;
+	if(!dump_ast)
+		return true;
+	if(getParserContext().program)
 	{
-		if(getParserContext().program)
-		{
-			tree::visitor::PrettyPrintVisitor printer;
-			printer.visit(*getParserContext().program);
-		}
-		else
-		{
-			std::cerr << "empty program node" << std::endl;
-		}
-
-		if(dump_tree_and_stop)
-			continue_execution = false;
+		tree::visitor::PrettyPrintVisitor printer;
+		printer.visit(*getParserContext().program);
 	}
-
+	else
+		std::cerr << "empty program node" << std::endl;
 	return true;
 }
 
