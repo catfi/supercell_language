@@ -32,6 +32,7 @@
 #include <llvm/Analysis/Verifier.h>
 #include <llvm/Assembly/PrintModulePass.h>
 #include <llvm/Support/IRBuilder.h>
+#include <llvm/Support/raw_ostream.h>
 
 namespace zillians { namespace language { namespace stage { namespace visitor {
 
@@ -237,7 +238,7 @@ struct LLVMHelper
 
 	llvm::BasicBlock* createBasicBlock(llvm::StringRef name = "", llvm::Function* parent = NULL, llvm::BasicBlock* before = NULL)
 	{
-		return llvm::BasicBlock::Create(mContext, "", parent, before);
+		return llvm::BasicBlock::Create(mContext, name, parent, before);
 	}
 
 	bool getAlloca(tree::VariableDecl& ast_variable, /*OUT*/ llvm::AllocaInst*& llvm_alloca_inst)
