@@ -34,7 +34,7 @@ public:
 	virtual const char* name();
 	virtual void initializeOptions(po::options_description& option_desc, po::positional_options_description& positional_desc);
 	virtual bool parseOptions(po::variables_map& vm);
-	virtual bool execute();
+	virtual bool execute(bool& continue_execution);
 
 private:
 	bool enabled;

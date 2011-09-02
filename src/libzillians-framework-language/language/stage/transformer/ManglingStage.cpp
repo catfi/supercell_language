@@ -23,7 +23,7 @@
 
 namespace zillians { namespace language { namespace stage {
 
-ManglingStage::ManglingStage()
+ManglingStage::ManglingStage() : disable_mangling(false)
 { }
 
 ManglingStage::~ManglingStage()
@@ -36,15 +36,22 @@ const char* ManglingStage::name()
 
 void ManglingStage::initializeOptions(po::options_description& option_desc, po::positional_options_description& positional_desc)
 {
+    option_desc.add_options()
+	("skip-mangling", "skip mangling stage");
 }
 
 bool ManglingStage::parseOptions(po::variables_map& vm)
 {
+	disable_mangling = (vm.count("skip-mangling") > 0);
+
 	return true;
 }
 
-bool ManglingStage::execute()
+bool ManglingStage::execute(bool& continue_execution)
 {
+	if(disable_mangling)
+		return true;
+
 	if(!hasParserContext())
 		return false;
 

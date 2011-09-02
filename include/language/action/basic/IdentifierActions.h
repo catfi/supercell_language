@@ -32,22 +32,9 @@ struct identifier
 	BEGIN_ACTION(init)
 	{
 #ifdef DEBUG
-		printf("identifier attr(0) type = %s\n", typeid(_attr_t(0)).name());
+		printf("identifier param(0) type = %s\n", typeid(_param_t(0)).name());
 #endif
-		_value = new SimpleIdentifier(_attr(0));
-	}
-	END_ACTION
-
-	// NOTE: fix-me!
-	BEGIN_ACTION(init_iter_pos)
-	{
-//#ifdef DEBUG
-		printf("identifier::init_iter_pos attr(0) type = %s\n", typeid(_attr_t(0)).name());
-//#endif
-		std::wstring s = _attr(0).get_currentline();
-		std::wstring::iterator p = _attr(0).get_currentline_begin();
-		getParserContext().debug.current_line   = _attr(0).get_position().line;
-		getParserContext().debug.current_column = _attr(0).get_position().column;
+		_result = new SimpleIdentifier(_param(0));
 	}
 	END_ACTION
 };
@@ -60,17 +47,17 @@ struct nested_identifier
 	BEGIN_ACTION(init)
 	{
 #ifdef DEBUG
-		printf("nested_identifier attr(0) type = %s\n", typeid(_attr_t(0)).name());
-		printf("nested_identifier attr(1) type = %s\n", typeid(_attr_t(1)).name());
+		printf("nested_identifier param(0) type = %s\n", typeid(_param_t(0)).name());
+		printf("nested_identifier param(1) type = %s\n", typeid(_param_t(1)).name());
 #endif
-		if(_attr(1).size() == 0)
-			_value = _attr(0);
+		if(_param(1).size() == 0)
+			_result = _param(0);
 		else
 		{
-			_value = new NestedIdentifier();
-			cast<NestedIdentifier>(_value)->appendIdentifier(_attr(0));
-			deduced_foreach_value(i, _attr(1))
-				cast<NestedIdentifier>(_value)->appendIdentifier(i);
+			_result = new NestedIdentifier();
+			cast<NestedIdentifier>(_result)->appendIdentifier(_param(0));
+			deduced_foreach_value(i, _param(1))
+				cast<NestedIdentifier>(_result)->appendIdentifier(i);
 		}
 	}
 	END_ACTION
@@ -84,17 +71,17 @@ struct template_arg_identifier
 	BEGIN_ACTION(init)
 	{
 #ifdef DEBUG
-		printf("template_arg_identifier attr(0) type = %s\n", typeid(_attr_t(0)).name());
-		printf("template_arg_identifier attr(1) type = %s\n", typeid(_attr_t(1)).name());
+		printf("template_arg_identifier param(0) type = %s\n", typeid(_param_t(0)).name());
+		printf("template_arg_identifier param(1) type = %s\n", typeid(_param_t(1)).name());
 #endif
-		if(_attr(1).is_initialized())
+		if(_param(1).is_initialized())
 		{
-			_value =  new TemplatedIdentifier(TemplatedIdentifier::Usage::ACTUAL_ARGUMENT, _attr(0));
-			deduced_foreach_value(i, *_attr(1))
-				cast<TemplatedIdentifier>(_value)->appendArgument(i);
+			_result =  new TemplatedIdentifier(TemplatedIdentifier::Usage::ACTUAL_ARGUMENT, _param(0));
+			deduced_foreach_value(i, *_param(1))
+				cast<TemplatedIdentifier>(_result)->appendArgument(i);
 		}
 		else
-			_value = _attr(0);
+			_result = _param(0);
 	}
 	END_ACTION
 };
@@ -107,27 +94,27 @@ struct template_param_identifier
 	BEGIN_ACTION(init)
 	{
 #ifdef DEBUG
-		printf("template_param_identifier attr(0) type = %s\n", typeid(_attr_t(0)).name());
-		printf("template_param_identifier attr(1) type = %s\n", typeid(_attr_t(1)).name());
+		printf("template_param_identifier param(0) type = %s\n", typeid(_param_t(0)).name());
+		printf("template_param_identifier param(1) type = %s\n", typeid(_param_t(1)).name());
 #endif
-		if(_attr(1).is_initialized())
+		if(_param(1).is_initialized())
 		{
-			_value =  new TemplatedIdentifier(TemplatedIdentifier::Usage::FORMAL_PARAMETER, _attr(0));
-			deduced_foreach_value(i, *(_attr(1)))
+			_result =  new TemplatedIdentifier(TemplatedIdentifier::Usage::FORMAL_PARAMETER, _param(0));
+			deduced_foreach_value(i, *(_param(1)))
 			{
 				switch(i.which())
 				{
 				case 0:
-					cast<TemplatedIdentifier>(_value)->appendParameter(boost::get<SimpleIdentifier*>(i));
+					cast<TemplatedIdentifier>(_result)->appendParameter(boost::get<SimpleIdentifier*>(i));
 					break;
 				case 1:
-					cast<TemplatedIdentifier>(_value)->appendParameter(new SimpleIdentifier(L"..."));
+					cast<TemplatedIdentifier>(_result)->appendParameter(new SimpleIdentifier(L"..."));
 					break;
 				}
 			}
 		}
 		else
-			_value = _attr(0);
+			_result = _param(0);
 	}
 	END_ACTION
 };

@@ -49,7 +49,7 @@ static void expand_tabs(const std::wstring& input, std::wstring& output, int num
 
 }
 
-ThorScriptParserStage::ThorScriptParserStage() : skip_parse(false), dump_parse(false)
+ThorScriptParserStage::ThorScriptParserStage() : dump_parse(false), dump_parse_and_stop(false), skip_parse(false)
 { }
 
 ThorScriptParserStage::~ThorScriptParserStage()
@@ -63,49 +63,44 @@ const char* ThorScriptParserStage::name()
 void ThorScriptParserStage::initializeOptions(po::options_description& option_desc, po::positional_options_description& positional_desc)
 {
     option_desc.add_options()
-	("skip-parse",                                      "skip parsing stage and use provided parser context")
-    ("dump-parse",										"dump parse tree for debugging purpose")
-    ("input,i", po::value<std::vector<std::string>>(),	"thorscript files");
-
+    ("dump-parse",                                     "dump parse for debugging purpose")
+	("dump-parse-and-stop",                            "dump parse for debugging purpose and stop processing")
+	("skip-parse",                                     "skip parsing stage and use provided parser context")
+    ("input,i", po::value<std::vector<std::string>>(), "thorscript files");
     positional_desc.add("input", -1);
 }
 
 bool ThorScriptParserStage::parseOptions(po::variables_map& vm)
 {
+	dump_parse          = (vm.count("dump-parse") > 0);
+	dump_parse_and_stop = (vm.count("dump-parse-and-stop") > 0);
+	dump_parse |= dump_parse_and_stop;
 	skip_parse = (vm.count("skip-parse") > 0);
-	dump_parse = (vm.count("dump-parse") > 0);
-
 	if(vm.count("input") > 0)
 	{
 		inputs = vm["input"].as<std::vector<std::string>>();
 		return true;
 	}
-	else
-	{
-		return false;
-	}
+	return false;
 }
 
-bool ThorScriptParserStage::execute()
+bool ThorScriptParserStage::execute(bool& continue_execution)
 {
+	continue_execution = !dump_parse_and_stop;
 	if(skip_parse)
 		return true;
 
+	// prepare the global parser context
 	setParserContext(new ParserContext());
 
-	if(inputs.size() > 0)
-	{
-		foreach(i, inputs)
-		{
-			if(!parse(*i)) return false;
-		}
+	// prepare the module source info context for the root program node
+   	ModuleSourceInfoContext::set(getParserContext().program, new ModuleSourceInfoContext());
 
-		return true;
-	}
-	else
-	{
-		return true;
-	}
+	if(inputs.size() > 0)
+		foreach(i, inputs)
+			if(!parse(*i))
+				return false;
+	return true;
 }
 
 bool ThorScriptParserStage::parse(std::string filename)
@@ -142,8 +137,9 @@ bool ThorScriptParserStage::parse(std::string filename)
     // enable correct locale so that we can print UCS4 characters
     enable_default_locale(std::wcout);
 
-    getParserContext().enable_debug_parser = dump_parse;
+    getParserContext().dump_rule_debug = dump_parse;
     getParserContext().enable_semantic_action = !dump_parse;
+    getParserContext().debug.source_index = ModuleSourceInfoContext::get(getParserContext().program)->addSource(filename);
 
     // try to parse
 	typedef classic::position_iterator2<std::wstring::iterator> pos_iterator_type;

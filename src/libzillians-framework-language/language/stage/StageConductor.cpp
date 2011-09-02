@@ -109,11 +109,15 @@ int StageConductor::main(int argc, const char** argv)
 		// perform the execution
 		foreach(stage, mStages)
 		{
-			if(!(*stage)->execute())
+			bool c = true;
+
+			if(!(*stage)->execute(c))
 			{
 				std::cerr << "execution failed at stage: " << (*stage)->name() << std::endl;
 				return -1;
 			}
+
+			if(!c) break;
 		}
 	}
 

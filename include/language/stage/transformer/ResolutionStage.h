@@ -35,7 +35,7 @@ public:
 	virtual const char* name();
 	virtual void initializeOptions(po::options_description& option_desc, po::positional_options_description& positional_desc);
 	virtual bool parseOptions(po::variables_map& vm);
-	virtual bool execute();
+	virtual bool execute(bool& continue_execution);
 
 private:
 	bool resolveTypes(bool report_error_summary);
@@ -46,6 +46,7 @@ public:
 	std::size_t get_unresolved_count();
 
 private:
+	bool disable_resolution;
 	bool disable_type_inference;
 	std::size_t total_resolved_count;
 	std::size_t total_unresolved_count;

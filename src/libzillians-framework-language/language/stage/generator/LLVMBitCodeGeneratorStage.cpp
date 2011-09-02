@@ -21,7 +21,6 @@
 #include "language/stage/generator/detail/LLVMForeach.h"
 #include "language/context/ParserContext.h"
 #include "language/context/GeneratorContext.h"
-#include "language/context/DebugContext.h"
 
 #include "llvm/Analysis/Verifier.h"
 #include "llvm/Bitcode/ReaderWriter.h"
@@ -55,7 +54,7 @@ bool LLVMBitCodeGeneratorStage::parseOptions(po::variables_map& vm)
 	return true;
 }
 
-bool LLVMBitCodeGeneratorStage::execute()
+bool LLVMBitCodeGeneratorStage::execute(bool& continue_execution)
 {
 	if(dump_llvm)
 	{

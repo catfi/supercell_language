@@ -120,12 +120,14 @@ struct ResolutionStageVisitor : GenericDoubleVisitor
 		if(type == Target::TYPE_RESOLUTION)
 		{
 			// try to resolve return type
-			try_to_resolve_type(node.type);
+			if(node.type)
+				try_to_resolve_type(node.type);
 
 			// try to resolve parameter type
 			foreach(i, node.parameters)
 			{
-				try_to_resolve_type(i->second);
+				if(i->second)
+					try_to_resolve_type(i->second);
 			}
 
 		}
@@ -154,7 +156,8 @@ struct ResolutionStageVisitor : GenericDoubleVisitor
 			// for symbol resolution, there can be some symbol (which should be constant expression) defined in the enumeration value
 			foreach(i, node.enumeration_list)
 			{
-				visit(*i->second);
+				if(i->second)
+					visit(*i->second);
 			}
 		}
 	}
@@ -186,7 +189,8 @@ struct ResolutionStageVisitor : GenericDoubleVisitor
 //				// TODO make the error message cleaner
 //				LOG4CXX_ERROR(Logger::Resolver, L"ambiguous variable declared: " << node.name->toString());
 //			}
-			visit(*node.initializer);
+			if(node.initializer)
+				visit(*node.initializer);
 		}
 	}
 
