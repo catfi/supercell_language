@@ -53,7 +53,6 @@ bool LLVMDebugInfoGeneratorStage::execute(bool& continue_execution)
 	if (!enabled)
 		return true;
 
-	// create visitor to walk through the entire tree and generate instructions accordingly
 	visitor::LLVMDebugInfoGeneratorVisitor visitor(*getGeneratorContext().context, *getGeneratorContext().modules[0]);
 
 	if(getParserContext().program)
