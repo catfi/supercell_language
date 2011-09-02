@@ -36,9 +36,9 @@ struct declaration
 		printf("declaration attr(0) type = %s\n", typeid(_attr_t(0)).name());
 		printf("declaration attr(1) type = %s\n", typeid(_attr_t(1)).name());
 #endif
-		_value = _attr(1);
+		_result = _attr(1);
 		if(_attr(0).is_initialized())
-			_value->setAnnotation(*_attr(0));
+			_result->setAnnotation(*_attr(0));
 	}
 	END_ACTION
 };
@@ -54,9 +54,9 @@ struct const_variable_decl
 		printf("const_variable_decl attr(0) type = %s\n", typeid(_attr_t(0)).name());
 		printf("const_variable_decl attr(1) type = %s\n", typeid(_attr_t(1)).name());
 #endif
-		_value = _attr(1);
+		_result = _attr(1);
 		if(_attr(0).is_initialized())
-			cast<VariableDecl>(_value)->storage = Declaration::StorageSpecifier::CONST;
+			cast<VariableDecl>(_result)->storage = Declaration::StorageSpecifier::CONST;
 	}
 	END_ACTION
 };
@@ -72,9 +72,9 @@ struct variable_decl
 		printf("variable_decl attr(0) type = %s\n", typeid(_attr_t(0)).name());
 		printf("variable_decl attr(1) type = %s\n", typeid(_attr_t(1)).name());
 #endif
-		_value = _attr(0);
+		_result = _attr(0);
 		ASTNode* initializer = _attr(1).is_initialized() ? *_attr(1) : NULL;
-		cast<VariableDecl>(_value)->initializer = initializer;
+		cast<VariableDecl>(_result)->initializer = initializer;
 	}
 	END_ACTION
 };
@@ -96,7 +96,7 @@ struct variable_decl_stem
 		Declaration::VisibilitySpecifier::type visibility  = Declaration::VisibilitySpecifier::PUBLIC;
 		Declaration::StorageSpecifier::type    storage     = Declaration::StorageSpecifier::NONE;
 		bool                                   is_member   = false;
-		_value = new VariableDecl(
+		_result = new VariableDecl(
 				name, type, is_member, visibility, storage, initializer
 				);
 	}
@@ -132,10 +132,10 @@ struct function_decl
 		Declaration::VisibilitySpecifier::type visibility = Declaration::VisibilitySpecifier::PUBLIC;
 		Declaration::StorageSpecifier::type    storage    = Declaration::StorageSpecifier::NONE;
 		bool                                   is_member  = false;
-		_value = new FunctionDecl(name, type, is_member, visibility, storage, block);
+		_result = new FunctionDecl(name, type, is_member, visibility, storage, block);
 		if(!!parameters)
 			deduced_foreach_value(i, *parameters)
-				cast<FunctionDecl>(_value)->appendParameter(i.first, i.second);
+				cast<FunctionDecl>(_result)->appendParameter(i.first, i.second);
 	}
 	END_ACTION
 };
@@ -151,7 +151,7 @@ struct typedef_decl
 		printf("typedef_decl attr(0) type = %s\n", typeid(_attr_t(0)).name());
 		printf("typedef_decl attr(1) type = %s\n", typeid(_attr_t(1)).name());
 #endif
-		_value = new TypedefDecl(_attr(0), _attr(1));
+		_result = new TypedefDecl(_attr(0), _attr(1));
 	}
 	END_ACTION
 };
@@ -171,22 +171,22 @@ struct class_decl
 #endif
 		Identifier* name = _attr(0);
 		TypeSpecifier* extends_from = _attr(1).is_initialized() ? new TypeSpecifier(*_attr(1)) : NULL;
-		_value = new ClassDecl(name);
+		_result = new ClassDecl(name);
 		if(!!extends_from)
-			cast<ClassDecl>(_value)->setBase(extends_from);
+			cast<ClassDecl>(_result)->setBase(extends_from);
 		if(_attr(2).is_initialized())
 			deduced_foreach_value(i, *_attr(2))
-				cast<ClassDecl>(_value)->addInterface(new TypeSpecifier(i));
+				cast<ClassDecl>(_result)->addInterface(new TypeSpecifier(i));
 		deduced_foreach_value(i, _attr(3))
 		{
 			if(isa<VariableDecl>(i))
 			{
-				cast<ClassDecl>(_value)->addVariable(cast<VariableDecl>(i));
+				cast<ClassDecl>(_result)->addVariable(cast<VariableDecl>(i));
 				cast<VariableDecl>(i)->is_member = true;
 			}
 			else if(isa<FunctionDecl>(i))
 			{
-				cast<ClassDecl>(_value)->addFunction(cast<FunctionDecl>(i));
+				cast<ClassDecl>(_result)->addFunction(cast<FunctionDecl>(i));
 				cast<FunctionDecl>(i)->is_member = true;
 			}
 		}
@@ -210,17 +210,17 @@ struct class_member_decl
 		Annotations*                           annotations = _attr(0).is_initialized() ? *_attr(0) : NULL;
 		Declaration::VisibilitySpecifier::type visibility  = _attr(1).is_initialized() ? *_attr(1) : Declaration::VisibilitySpecifier::DEFAULT;
 		Declaration::StorageSpecifier::type    storage     = _attr(2).is_initialized() ? *_attr(2) : Declaration::StorageSpecifier::NONE;
-		_value = _attr(3);
-		cast<Declaration>(_value)->setAnnotation(annotations);
-		if(isa<VariableDecl>(_value))
+		_result = _attr(3);
+		cast<Declaration>(_result)->setAnnotation(annotations);
+		if(isa<VariableDecl>(_result))
 		{
-			cast<VariableDecl>(_value)->visibility = visibility;
-			cast<VariableDecl>(_value)->storage = storage;
+			cast<VariableDecl>(_result)->visibility = visibility;
+			cast<VariableDecl>(_result)->storage = storage;
 		}
-		else if(isa<FunctionDecl>(_value))
+		else if(isa<FunctionDecl>(_result))
 		{
-			cast<FunctionDecl>(_value)->visibility = visibility;
-			cast<FunctionDecl>(_value)->storage = storage;
+			cast<FunctionDecl>(_result)->visibility = visibility;
+			cast<FunctionDecl>(_result)->storage = storage;
 		}
 	}
 	END_ACTION
@@ -237,10 +237,10 @@ struct interface_decl
 		printf("interface_decl attr(0) type = %s\n", typeid(_attr_t(0)).name());
 		printf("interface_decl attr(1) type = %s\n", typeid(_attr_t(1)).name());
 #endif
-		_value = new InterfaceDecl(_attr(0));
+		_result = new InterfaceDecl(_attr(0));
 		deduced_foreach_value(i, _attr(1))
 		{
-			cast<InterfaceDecl>(_value)->addFunction(cast<FunctionDecl>(i));
+			cast<InterfaceDecl>(_result)->addFunction(cast<FunctionDecl>(i));
 			cast<FunctionDecl>(i)->is_member = true;
 		}
 	}
@@ -264,10 +264,10 @@ struct interface_member_function_decl
 		typed_parameter_list::value_t*         parameters = _attr(2).is_initialized() ? (*_attr(2)).get() : NULL;
 		Declaration::StorageSpecifier::type    storage    = Declaration::StorageSpecifier::NONE;
 		bool                                   is_member  = false;
-		_value = new FunctionDecl(_attr(1), _attr(3), is_member, visibility, storage, NULL);
+		_result = new FunctionDecl(_attr(1), _attr(3), is_member, visibility, storage, NULL);
 		if(!!parameters)
 			deduced_foreach_value(i, *parameters)
-				cast<FunctionDecl>(_value)->appendParameter(i.first, i.second);
+				cast<FunctionDecl>(_result)->appendParameter(i.first, i.second);
 	}
 	END_ACTION
 };
@@ -283,15 +283,15 @@ struct enum_decl
 		printf("enum_decl attr(0) type = %s\n", typeid(_attr_t(0)).name());
 		printf("enum_decl attr(1) type = %s\n", typeid(_attr_t(1)).name());
 #endif
-		_value = new EnumDecl(_attr(0));
+		_result = new EnumDecl(_attr(0));
 		deduced_foreach_value(i, _attr(1))
 		{
 			boost::optional<Annotations*> &optional_annotations = boost::fusion::at_c<0>(i);
 			SimpleIdentifier*              tag                  = boost::fusion::at_c<1>(i);
-			boost::optional<Expression*>  &optional_value       = boost::fusion::at_c<2>(i);
+			boost::optional<Expression*>  &optional_result       = boost::fusion::at_c<2>(i);
 			Annotations* annotations = optional_annotations.is_initialized() ? *optional_annotations : NULL;
-			Expression*  value       = optional_value.is_initialized() ? *optional_value : NULL;
-			cast<EnumDecl>(_value)->addEnumeration(tag, value);
+			Expression*  value       = optional_result.is_initialized() ? *optional_result : NULL;
+			cast<EnumDecl>(_result)->addEnumeration(tag, value);
 		}
 	}
 	END_ACTION

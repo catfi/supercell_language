@@ -34,7 +34,7 @@ struct colon_type_specifier
 #ifdef DEBUG
 		printf("colon_type_specifier attr(0) type = %s\n", typeid(_attr_t(0)).name());
 #endif
-		_value = _attr(0);
+		_result = _attr(0);
 	}
 	END_ACTION
 };
@@ -59,13 +59,13 @@ struct type_specifier
 		}
 		else
 			ident = _attr(0);
-		_value = new TypeSpecifier(ident);
+		_result = new TypeSpecifier(ident);
 	}
 	END_ACTION
 
 	BEGIN_TEMPLATED_ACTION(init_primitive_type, TypeSpecifier::PrimitiveType::type Type)
 	{
-		_value = new TypeSpecifier(Type);
+		_result = new TypeSpecifier(Type);
 	}
 	END_ACTION
 
@@ -83,7 +83,7 @@ struct type_specifier
 			deduced_foreach_value(i, *parameters)
 				function_type->appendParameterType(i);
 		function_type->setReturnType(type);
-		_value = new TypeSpecifier(function_type);
+		_result = new TypeSpecifier(function_type);
 	}
 	END_ACTION
 
@@ -92,7 +92,7 @@ struct type_specifier
 #ifdef DEBUG
 		printf("type_specifier::init_ellipsis attr(0) type = %s\n", typeid(_attr_t(0)).name());
 #endif
-		_value = new tree::TypeSpecifier(TypeSpecifier::PrimitiveType::VARIADIC_ELLIPSIS);
+		_result = new tree::TypeSpecifier(TypeSpecifier::PrimitiveType::VARIADIC_ELLIPSIS);
 	}
 	END_ACTION
 };
@@ -107,7 +107,7 @@ struct template_arg_specifier
 #ifdef DEBUG
 		printf("template_specifier attr(0) type = %s\n", typeid(_attr_t(0)).name());
 #endif
-		_value = _attr(0);
+		_result = _attr(0);
 	}
 	END_ACTION
 };
@@ -122,7 +122,7 @@ struct type_list_specifier
 #ifdef DEBUG
 		printf("type_list_specifier attr(0) type = %s\n", typeid(_attr_t(0)).name());
 #endif
-		_value = _attr(0);
+		_result = _attr(0);
 	}
 	END_ACTION
 };
@@ -134,13 +134,13 @@ struct storage_specifier
 
 	BEGIN_ACTION(init_static)
 	{
-		_value = Declaration::StorageSpecifier::STATIC;
+		_result = Declaration::StorageSpecifier::STATIC;
 	}
 	END_ACTION
 
 	BEGIN_ACTION(init_const)
 	{
-		_value = Declaration::StorageSpecifier::CONST;
+		_result = Declaration::StorageSpecifier::CONST;
 	}
 	END_ACTION
 };
@@ -152,19 +152,19 @@ struct visibility_specifier
 
 	BEGIN_ACTION(init_public)
 	{
-		_value = Declaration::VisibilitySpecifier::PUBLIC;
+		_result = Declaration::VisibilitySpecifier::PUBLIC;
 	}
 	END_ACTION
 
 	BEGIN_ACTION(init_protected)
 	{
-		_value = Declaration::VisibilitySpecifier::PROTECTED;
+		_result = Declaration::VisibilitySpecifier::PROTECTED;
 	}
 	END_ACTION
 
 	BEGIN_ACTION(init_private)
 	{
-		_value = Declaration::VisibilitySpecifier::PRIVATE;
+		_result = Declaration::VisibilitySpecifier::PRIVATE;
 	}
 	END_ACTION
 };
@@ -179,9 +179,9 @@ struct annotation_specifiers
 #ifdef DEBUG
 		printf("annotation_specifiers attr(0) type = %s\n", typeid(_attr_t(0)).name());
 #endif
-		_value = new Annotations();
+		_result = new Annotations();
 		deduced_foreach_value(i, _attr(0))
-			_value->appendAnnotation(i);
+			_result->appendAnnotation(i);
 	}
 	END_ACTION
 };
@@ -197,14 +197,14 @@ struct annotation_specifier
 		printf("annotation_specifier::init attr(0) type = %s\n", typeid(_attr_t(0)).name());
 		printf("annotation_specifier::init attr(1) type = %s\n", typeid(_attr_t(1)).name());
 #endif
-		_value = new Annotation(_attr(0));
+		_result = new Annotation(_attr(0));
 		if(_attr(1).is_initialized())
 			deduced_foreach_value(i, *_attr(1))
 			{
 				typedef boost::fusion::vector2<SimpleIdentifier*, Expression*> fusion_vec_t;
 				SimpleIdentifier* key   = boost::fusion::at_c<0>(i);
 				Expression*       value = boost::fusion::at_c<1>(i);
-				_value->appendKeyValue(key, value);
+				_result->appendKeyValue(key, value);
 			}
 	}
 	END_ACTION

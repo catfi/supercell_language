@@ -26,12 +26,12 @@
 #define LEFT_TO_RIGHT(op_code) \
 	{ \
 		if(_attr(0).size() == 1) \
-			_value = *make_deduced_begin(_attr(0)); \
+			_result = *make_deduced_begin(_attr(0)); \
 		else { \
 			Expression* left = NULL; \
 			deduced_foreach(i, _attr(0)) \
 				left = (is_begin_of_deduced_foreach(i, _attr(0))) ? *i : new BinaryExpr(op_code, left, *i); \
-			_value = left; \
+			_result = left; \
 		} \
 	}
 
@@ -39,12 +39,12 @@
 #define RIGHT_TO_LEFT(op_code) \
 	{ \
 		if(_attr(0).size() == 1) \
-			_value = *make_deduced_reverse_begin(_attr(0)); \
+			_result = *make_deduced_reverse_begin(_attr(0)); \
 		else { \
 			Expression* right = NULL; \
 			deduced_reverse_foreach(i, _attr(0)) \
 				right = (is_begin_of_deduced_reverse_foreach(i, _attr(0))) ? *i : new BinaryExpr(op_code, *i, right); \
-			_value = right; \
+			_result = right; \
 		} \
 	}
 #endif
@@ -52,7 +52,7 @@
 #define LEFT_TO_RIGHT_VEC(op_code_vec) \
 	{ \
 		if(_attr(0).size() == 1) \
-			_value = *make_deduced_begin(_attr(0)); \
+			_result = *make_deduced_begin(_attr(0)); \
 		else { \
 			Expression* left = NULL; \
 			auto j = make_deduced_begin(op_code_vec); \
@@ -64,14 +64,14 @@
 				left = new BinaryExpr(*j, left, *i); \
 				j++; \
 			} \
-			_value = left; \
+			_result = left; \
 		} \
 	}
 
 #define RIGHT_TO_LEFT_VEC(op_code_vec) \
 	{ \
 		if(_attr(0).size() == 1) \
-			_value = *make_deduced_reverse_begin(_attr(0)); \
+			_result = *make_deduced_reverse_begin(_attr(0)); \
 		else { \
 			Expression* right = NULL; \
 			auto j = make_deduced_reverse_begin(op_code_vec); \
@@ -83,7 +83,7 @@
 				right = new BinaryExpr(*j, *i, right); \
 				j++; \
 			} \
-			_value = right; \
+			_result = right; \
 		} \
 	}
 
@@ -101,7 +101,7 @@ struct primary_expression
 #ifdef DEBUG
 		printf("primary_expression attr(0) type = %s\n", typeid(_attr_t(0)).name());
 #endif
-		_value = new PrimaryExpr(_attr(0));
+		_result = new PrimaryExpr(_attr(0));
 	}
 	END_ACTION
 
@@ -110,7 +110,7 @@ struct primary_expression
 #ifdef DEBUG
 		printf("primary_expression::init_bool attr(0) type = %s\n", typeid(_attr_t(0)).name());
 #endif
-		_value = new PrimaryExpr(new NumericLiteral(Value));
+		_result = new PrimaryExpr(new NumericLiteral(Value));
 	}
 	END_ACTION
 
@@ -119,7 +119,7 @@ struct primary_expression
 #ifdef DEBUG
 		printf("primary_expression::init_object_literal attr(0) type = %s\n", typeid(_attr_t(0)).name());
 #endif
-		_value = new PrimaryExpr(new ObjectLiteral(Type));
+		_result = new PrimaryExpr(new ObjectLiteral(Type));
 	}
 	END_ACTION
 
@@ -128,7 +128,7 @@ struct primary_expression
 #ifdef DEBUG
 		printf("primary_expression::init_paren_expression attr(0) type = %s\n", typeid(_attr_t(0)).name());
 #endif
-		_value = _attr(0);
+		_result = _attr(0);
 	}
 	END_ACTION
 
@@ -148,7 +148,7 @@ struct primary_expression
 		if(!!parameters)
 			deduced_foreach_value(i, *parameters)
 				function_decl->appendParameter(i.first, i.second);
-		_value = new PrimaryExpr(function_decl);
+		_result = new PrimaryExpr(function_decl);
 	}
 	END_ACTION
 };
@@ -163,7 +163,7 @@ struct postfix_expression
 #ifdef DEBUG
 		printf("postfix_expression::init_primary_expression attr(0) type = %s\n", typeid(_attr_t(0)).name());
 #endif
-		_value = _attr(0);
+		_result = _attr(0);
 	}
 	END_ACTION
 
@@ -172,7 +172,7 @@ struct postfix_expression
 #ifdef DEBUG
 		printf("postfix_expression::init_postfix_array attr(0) type = %s\n", typeid(_attr_t(0)).name());
 #endif
-		_value = new BinaryExpr(BinaryExpr::OpCode::ARRAY_SUBSCRIPT, _value, _attr(0));
+		_result = new BinaryExpr(BinaryExpr::OpCode::ARRAY_SUBSCRIPT, _result, _attr(0));
 	}
 	END_ACTION
 
@@ -181,11 +181,11 @@ struct postfix_expression
 #ifdef DEBUG
 		printf("postfix_expression::init_postfix_call attr(0) type = %s\n", typeid(_attr_t(0)).name());
 #endif
-		CallExpr* call_expr = new CallExpr(_value);
+		CallExpr* call_expr = new CallExpr(_result);
 		if(_attr(0).is_initialized())
 			deduced_foreach_value(i, *_attr(0))
 				call_expr->appendParameter(i);
-		_value = call_expr;
+		_result = call_expr;
 	}
 	END_ACTION
 
@@ -194,7 +194,7 @@ struct postfix_expression
 #ifdef DEBUG
 		printf("postfix_expression::init_postfix_member attr(0) type = %s\n", typeid(_attr_t(0)).name());
 #endif
-		_value = new MemberExpr(_value, _attr(0));
+		_result = new MemberExpr(_result, _attr(0));
 	}
 	END_ACTION
 
@@ -203,7 +203,7 @@ struct postfix_expression
 #ifdef DEBUG
 		printf("postfix_expression::append_postfix_step attr(0) type = %s\n", typeid(_attr_t(0)).name());
 #endif
-		_value = new UnaryExpr(Type, _value);
+		_result = new UnaryExpr(Type, _result);
 	}
 	END_ACTION
 };
@@ -221,14 +221,14 @@ struct prefix_expression
 		switch(_attr(0).which())
 		{
 		case 0:
-			_value = boost::get<Expression*>(_attr(0));
+			_result = boost::get<Expression*>(_attr(0));
 			break;
 		case 1:
 			typedef boost::fusion::vector2<UnaryExpr::OpCode::type, Expression*> fusion_vec_t;
 			fusion_vec_t &vec = boost::get<fusion_vec_t>(_attr(0));
 			UnaryExpr::OpCode::type type = boost::fusion::at_c<0>(vec);
 			Expression*             expr = boost::fusion::at_c<1>(vec);
-			_value = new UnaryExpr(type, expr);
+			_result = new UnaryExpr(type, expr);
 			break;
 		}
 	}
@@ -332,10 +332,10 @@ struct range_expression
 #endif
 		if(!_attr(1).is_initialized())
 		{
-			_value = _attr(0);
+			_result = _attr(0);
 			return;
 		}
-		_value = new BinaryExpr(BinaryExpr::OpCode::RANGE_ELLIPSIS, _attr(0), *_attr(1));
+		_result = new BinaryExpr(BinaryExpr::OpCode::RANGE_ELLIPSIS, _attr(0), *_attr(1));
 	}
 	END_ACTION
 };
@@ -353,12 +353,12 @@ struct ternary_expression
 #endif
 		if(!_attr(1).is_initialized())
 		{
-			_value = _attr(0);
+			_result = _attr(0);
 			return;
 		}
 		Expression* true_node  = boost::fusion::at_c<0>(*_attr(1));
 		Expression* false_node = boost::fusion::at_c<1>(*_attr(1));
-		_value = new TernaryExpr(_attr(0), true_node, false_node);
+		_result = new TernaryExpr(_attr(0), true_node, false_node);
 	}
 	END_ACTION
 };

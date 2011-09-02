@@ -40,15 +40,15 @@ struct statement
 		case 0:
 			{
 				Declaration* decl = boost::get<Declaration*>(_attr(1));
-				_value = new DeclarativeStmt(decl);
+				_result = new DeclarativeStmt(decl);
 			}
 			break;
 		case 1:
-			_value = boost::get<Statement*>(_attr(1));
+			_result = boost::get<Statement*>(_attr(1));
 			break;
 		}
 		if(_attr(0).is_initialized())
-			cast<Statement>(_value)->setAnnotation(*_attr(0));
+			cast<Statement>(_result)->setAnnotation(*_attr(0));
 	}
 	END_ACTION
 
@@ -57,7 +57,7 @@ struct statement
 #ifdef DEBUG
 		printf("statement::init_block attr(0) type = %s\n", typeid(_attr_t(0)).name());
 #endif
-		_value = _attr(0);
+		_result = _attr(0);
 	}
 	END_ACTION
 };
@@ -73,7 +73,7 @@ struct expression_statement
 		printf("expression_statement attr(0) type = %s\n", typeid(_attr_t(0)).name());
 #endif
 		if(_attr(0).is_initialized())
-			_value = new ExpressionStmt(*_attr(0));
+			_result = new ExpressionStmt(*_attr(0));
 	}
 	END_ACTION
 };
@@ -93,15 +93,15 @@ struct selection_statement
 #endif
 		Expression* cond = _attr(0);
 		ASTNode* block = _attr(1);
-		_value = new IfElseStmt(Selection(cond, block));
+		_result = new IfElseStmt(Selection(cond, block));
 		deduced_foreach_value(i, _attr(2))
 		{
 			Expression* cond  = boost::fusion::at_c<0>(i);
 			ASTNode*    block = boost::fusion::at_c<1>(i);
-			cast<IfElseStmt>(_value)->addElseIfBranch(Selection(cond, block));
+			cast<IfElseStmt>(_result)->addElseIfBranch(Selection(cond, block));
 		}
 		if(_attr(3).is_initialized())
-			cast<IfElseStmt>(_value)->setElseBranch(*_attr(3));
+			cast<IfElseStmt>(_result)->setElseBranch(*_attr(3));
 	}
 	END_ACTION
 
@@ -111,7 +111,7 @@ struct selection_statement
 		printf("selection_statement::init_switch_statement attr(0) type = %s\n", typeid(_attr_t(0)).name());
 		printf("selection_statement::init_switch_statement attr(1) type = %s\n", typeid(_attr_t(1)).name());
 #endif
-		_value = new SwitchStmt(_attr(0));
+		_result = new SwitchStmt(_attr(0));
 		deduced_foreach_value(i, _attr(1))
 			switch(i.which())
 			{
@@ -123,7 +123,7 @@ struct selection_statement
 					std::vector<ASTNode*> &block_vec = boost::fusion::at_c<1>(vec);
 					Block* block = new Block();
 					block->appendObjects(block_vec);
-					cast<SwitchStmt>(_value)->addCase(Selection(cond, block));
+					cast<SwitchStmt>(_result)->addCase(Selection(cond, block));
 				}
 				break;
 			case 1:
@@ -131,7 +131,7 @@ struct selection_statement
 					std::vector<ASTNode*> &block_vec = boost::get<std::vector<ASTNode*>>(i);
 					Block* block = new Block();
 					block->appendObjects(block_vec);
-					cast<SwitchStmt>(_value)->setDefaultCase(block);
+					cast<SwitchStmt>(_result)->setDefaultCase(block);
 				}
 				break;
 			}
@@ -152,7 +152,7 @@ struct iteration_statement
 #endif
 		Expression* cond = _attr(0);
 		ASTNode* block = _attr(1).is_initialized() ? *_attr(1) : NULL;
-		_value = new WhileStmt(WhileStmt::Style::WHILE, cond, block);
+		_result = new WhileStmt(WhileStmt::Style::WHILE, cond, block);
 	}
 	END_ACTION
 
@@ -164,7 +164,7 @@ struct iteration_statement
 #endif
 		ASTNode* block = _attr(0);
 		Expression* cond = _attr(1);
-		_value = new WhileStmt(WhileStmt::Style::DO_WHILE, cond, block);
+		_result = new WhileStmt(WhileStmt::Style::DO_WHILE, cond, block);
 	}
 	END_ACTION
 
@@ -187,7 +187,7 @@ struct iteration_statement
 		}
 		Expression* range = _attr(1);
 		ASTNode* block = _attr(2).is_initialized() ? *_attr(2) : NULL;
-		_value = new ForeachStmt(iterator, range, block);
+		_result = new ForeachStmt(iterator, range, block);
 	}
 	END_ACTION
 };
@@ -202,13 +202,13 @@ struct branch_statement
 #ifdef DEBUG
 		printf("branch_statement::init_return attr(0) type = %s\n", typeid(_attr_t(0)).name());
 #endif
-		_value = new BranchStmt(tree::BranchStmt::OpCode::RETURN, _attr(0));
+		_result = new BranchStmt(tree::BranchStmt::OpCode::RETURN, _attr(0));
 	}
 	END_ACTION
 
 	BEGIN_TEMPLATED_ACTION(init, BranchStmt::OpCode::type Type)
 	{
-		_value = new BranchStmt(Type);
+		_result = new BranchStmt(Type);
 	}
 	END_ACTION
 };

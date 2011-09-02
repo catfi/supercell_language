@@ -34,7 +34,7 @@ struct identifier
 #ifdef DEBUG
 		printf("identifier attr(0) type = %s\n", typeid(_attr_t(0)).name());
 #endif
-		_value = new SimpleIdentifier(_attr(0));
+		_result = new SimpleIdentifier(_attr(0));
 	}
 	END_ACTION
 };
@@ -51,13 +51,13 @@ struct nested_identifier
 		printf("nested_identifier attr(1) type = %s\n", typeid(_attr_t(1)).name());
 #endif
 		if(_attr(1).size() == 0)
-			_value = _attr(0);
+			_result = _attr(0);
 		else
 		{
-			_value = new NestedIdentifier();
-			cast<NestedIdentifier>(_value)->appendIdentifier(_attr(0));
+			_result = new NestedIdentifier();
+			cast<NestedIdentifier>(_result)->appendIdentifier(_attr(0));
 			deduced_foreach_value(i, _attr(1))
-				cast<NestedIdentifier>(_value)->appendIdentifier(i);
+				cast<NestedIdentifier>(_result)->appendIdentifier(i);
 		}
 	}
 	END_ACTION
@@ -76,12 +76,12 @@ struct template_arg_identifier
 #endif
 		if(_attr(1).is_initialized())
 		{
-			_value =  new TemplatedIdentifier(TemplatedIdentifier::Usage::ACTUAL_ARGUMENT, _attr(0));
+			_result =  new TemplatedIdentifier(TemplatedIdentifier::Usage::ACTUAL_ARGUMENT, _attr(0));
 			deduced_foreach_value(i, *_attr(1))
-				cast<TemplatedIdentifier>(_value)->appendArgument(i);
+				cast<TemplatedIdentifier>(_result)->appendArgument(i);
 		}
 		else
-			_value = _attr(0);
+			_result = _attr(0);
 	}
 	END_ACTION
 };
@@ -99,22 +99,22 @@ struct template_param_identifier
 #endif
 		if(_attr(1).is_initialized())
 		{
-			_value =  new TemplatedIdentifier(TemplatedIdentifier::Usage::FORMAL_PARAMETER, _attr(0));
+			_result =  new TemplatedIdentifier(TemplatedIdentifier::Usage::FORMAL_PARAMETER, _attr(0));
 			deduced_foreach_value(i, *(_attr(1)))
 			{
 				switch(i.which())
 				{
 				case 0:
-					cast<TemplatedIdentifier>(_value)->appendParameter(boost::get<SimpleIdentifier*>(i));
+					cast<TemplatedIdentifier>(_result)->appendParameter(boost::get<SimpleIdentifier*>(i));
 					break;
 				case 1:
-					cast<TemplatedIdentifier>(_value)->appendParameter(new SimpleIdentifier(L"..."));
+					cast<TemplatedIdentifier>(_result)->appendParameter(new SimpleIdentifier(L"..."));
 					break;
 				}
 			}
 		}
 		else
-			_value = _attr(0);
+			_result = _attr(0);
 	}
 	END_ACTION
 };

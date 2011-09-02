@@ -63,14 +63,14 @@
 			} \
 		};
 
-#define _value   boost::fusion::at_c<0>(context.attributes)
-#define _value_t decltype(boost::fusion::at_c<0>(context.attributes))
+#define _result   boost::fusion::at_c<0>(context.attributes)
+#define _result_t decltype(boost::fusion::at_c<0>(context.attributes))
 
 #define _attr(i)   detail::attribute_accessor<i, ParserAttribute>::get(parser_attribute)
 #define _attr_t(i) typename detail::attribute_accessor<i, ParserAttribute>::result_type
 
-#define _param(i)   boost::fusion::at_c<i+1>(context.attributes)
-#define _param_t(i) decltype(boost::fusion::at_c<i+1>(context.attributes))
+#define _aux_param(i)   boost::fusion::at_c<i+1>(context.attributes)
+#define _aux_param_t(i) decltype(boost::fusion::at_c<i+1>(context.attributes))
 
 #define _local(i)   boost::fusion::at_c<i>(context.locals)
 #define _local_t(i) decltype(boost::fusion::at_c<i>(context.locals))

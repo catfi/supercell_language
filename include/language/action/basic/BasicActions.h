@@ -26,6 +26,23 @@
 
 namespace zillians { namespace language { namespace action {
 
+struct parse_checkpoint
+{
+	DEFINE_ATTRIBUTES(void)
+	DEFINE_LOCALS()
+
+	BEGIN_ACTION(init)
+	{
+#ifdef DEBUG
+		printf("parse_checkpoint attr(0) type = %s\n", typeid(_attr_t(0)).name());
+#endif
+		getParserContext().debug.line        = _attr(0).get_position().line;
+		getParserContext().debug.column      = _attr(0).get_position().column;
+		getParserContext().debug.currentline = _attr(0).get_currentline();
+	}
+	END_ACTION
+};
+
 struct block
 {
 	DEFINE_ATTRIBUTES(Block*)
@@ -36,8 +53,8 @@ struct block
 #ifdef DEBUG
 		printf("block attr(0) type = %s\n", typeid(_attr_t(0)).name());
 #endif
-		_value = new Block();
-		_value->appendObjects(_attr(0));
+		_result = new Block();
+		_result->appendObjects(_attr(0));
 	}
 	END_ACTION
 };
@@ -53,34 +70,14 @@ struct typed_parameter_list
 #ifdef DEBUG
 		printf("typed_parameter_list attr(0) type = %s\n", typeid(_attr_t(0)).name());
 #endif
-		_value.reset(new value_t);
+		_result.reset(new value_t);
 		deduced_foreach_value(i, _attr(0))
 		{
 			SimpleIdentifier*                name          = boost::fusion::at_c<0>(i);
 			boost::optional<TypeSpecifier*> &optional_type = boost::fusion::at_c<1>(i);
 			TypeSpecifier* type = optional_type.is_initialized() ? *optional_type : NULL;
-			_value->push_back(value_t::value_type(name, type));
+			_result->push_back(value_t::value_type(name, type));
 		}
-	}
-	END_ACTION
-};
-
-struct parse_checkpoint
-{
-	DEFINE_ATTRIBUTES(void)
-	DEFINE_LOCALS()
-
-	BEGIN_ACTION(init)
-	{
-#ifdef DEBUG
-		printf("parse_checkpoint attr(0) type = %s\n", typeid(_attr_t(0)).name());
-#endif
-//		std::wstring s = _attr(0).get_currentline();
-//		std::wstring::iterator p = _attr(0).get_currentline_begin();
-		getParserContext().debug.current_line   = _attr(0).get_position().line;
-		getParserContext().debug.current_column = _attr(0).get_position().column;
-//		printf("line number = %d\n", getParserContext().debug.current_line);
-//		printf("col number = %d\n", getParserContext().debug.current_column);
 	}
 	END_ACTION
 };
