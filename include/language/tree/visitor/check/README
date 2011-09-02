@@ -30,6 +30,9 @@ Semantic Check List
 - The function name cannot conflict with other function unless they have different parameter signature (name resolving conflict)
 - There should be a limit on the many parameters allowed in a single function
 
+// For all package
+- the package name should not conflict with its parent and sibling
+
 // For class declaration
 - The class name cannot conflict with other class (name resolving conflict)
 - The identifiers for interface implementation must refer to an interface
@@ -70,4 +73,10 @@ Semantic Check List
 // For ternary expression
 - Check the type compatibility between LHS and RHS
 
+// For call expression
+- Check whether the node is callable
+- If the callee is a MemberExpr and the RHS is resolved to a non-static member function, we need to check if the LHS is a variable of that instance
+- If the callee is s MemberExpr and the RHS is resolved to a static member function, we just need to check the type of LHS
 
+// For cast expression
+- Check whether the node is covertible to the desired type

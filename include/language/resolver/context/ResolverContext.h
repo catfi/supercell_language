@@ -75,7 +75,7 @@ struct ResolvedPackage
 
 	static tree::ASTNode* get(tree::ASTNode* node)
 	{
-		ResolvedSymbol* resolved = node->get<ResolvedSymbol>();
+		ResolvedPackage* resolved = node->get<ResolvedPackage>();
 		if(resolved)
 			return resolved->ref;
 		else

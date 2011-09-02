@@ -56,6 +56,10 @@ struct ResolutionVisitor : Visitor<ASTNode, void, VisitorImplementation::recursi
 		if(isSearchForType())
 		{
 			LOG4CXX_ERROR(Logger::Compiler, L"resolution visitor is trying to resolve type on unspecified node \"" << node_info_visitor.stream.str() << L"\"");
+
+			ASTNode* r = ResolvedType::get(&node);
+			if(r)
+				visit(*r);
 		}
 
 		if(isSearchForSymbol())
@@ -69,7 +73,11 @@ struct ResolutionVisitor : Visitor<ASTNode, void, VisitorImplementation::recursi
 
 		if(isSearchForPackage())
 		{
-			LOG4CXX_ERROR(Logger::Compiler, L"resolution visitor is trying to resolve package on unspecified node \"" << node_info_visitor.stream.str() << L"\"");
+			LOG4CXX_DEBUG(Logger::Compiler, L"resolution visitor is trying to resolve package on unspecified node \"" << node_info_visitor.stream.str() << L"\"");
+
+			ASTNode* r = ResolvedPackage::get(&node);
+			if(r)
+				visit(*r);
 		}
 
 	}
@@ -95,14 +103,12 @@ struct ResolutionVisitor : Visitor<ASTNode, void, VisitorImplementation::recursi
 			visit(*node.referred.function_decl); break;
 		case TypeSpecifier::ReferredType::FUNCTION_TYPE:
 		{
-			candidates.push_back(&node);
-			partial_match_flags.push_back(false);
+			enlist(&node, false);
 			break;
 		}
 		case TypeSpecifier::ReferredType::PRIMITIVE:
 		{
-			candidates.push_back(&node);
-			partial_match_flags.push_back(false);
+			enlist(&node, false);
 			break;
 		}
 		case TypeSpecifier::ReferredType::UNSPECIFIED:
@@ -123,7 +129,7 @@ struct ResolutionVisitor : Visitor<ASTNode, void, VisitorImplementation::recursi
 	{
 		// the root package always match
 		// otherwise we have to make sure the package matches the the required identifier and advance to next identifier
-		if(node.id->isEmpty())
+		if(node.id->isEmpty() || isAtRootScope())
 		{
 			if(isSearchForType() || isSearchForSymbol())
 			{
@@ -166,8 +172,7 @@ struct ResolutionVisitor : Visitor<ASTNode, void, VisitorImplementation::recursi
 				{
 					if(isLast())
 					{
-						candidates.push_back(&node);
-						partial_match_flags.push_back(is_template_partial_match);
+						enlist(&node, is_template_partial_match);
 					}
 					else
 					{
@@ -204,8 +209,7 @@ struct ResolutionVisitor : Visitor<ASTNode, void, VisitorImplementation::recursi
 				{
 					// reach the end of nested identifier, and we end up with ClassDecl, which is a type
 					// save to candidate list
-					candidates.push_back(&node);
-					partial_match_flags.push_back(is_template_partial_match);
+					enlist(&node, is_template_partial_match);
 				}
 			}
 		}
@@ -252,8 +256,7 @@ struct ResolutionVisitor : Visitor<ASTNode, void, VisitorImplementation::recursi
 				{
 					// reach the end of nested identifier, and we end up with ClassDecl, which is a type
 					// save to candidate list
-					candidates.push_back(&node);
-					partial_match_flags.push_back(is_template_partial_match);
+					enlist(&node, is_template_partial_match);
 				}
 			}
 		}
@@ -269,8 +272,7 @@ struct ResolutionVisitor : Visitor<ASTNode, void, VisitorImplementation::recursi
 						bool is_template_partial_match = false;
 						if(compare(current, i->first, is_template_partial_match))
 						{
-							candidates.push_back(i->first);
-							partial_match_flags.push_back(is_template_partial_match);
+							enlist(i->first, is_template_partial_match);
 						}
 					}
 				}
@@ -288,8 +290,7 @@ struct ResolutionVisitor : Visitor<ASTNode, void, VisitorImplementation::recursi
 							bool is_template_partial_match = false;
 							if(compare(current, i->first, is_template_partial_match))
 							{
-								candidates.push_back(i->first);
-								partial_match_flags.push_back(is_template_partial_match);
+								enlist(i->first, is_template_partial_match);
 							}
 						}
 					}
@@ -310,8 +311,7 @@ struct ResolutionVisitor : Visitor<ASTNode, void, VisitorImplementation::recursi
 				{
 					// reach the end of nested identifier, and we end up with ClassDecl, which is a type
 					// save to candidate list
-					candidates.push_back(&node);
-					partial_match_flags.push_back(is_template_partial_match);
+					enlist(&node, is_template_partial_match);
 				}
 			}
 		}
@@ -346,8 +346,7 @@ struct ResolutionVisitor : Visitor<ASTNode, void, VisitorImplementation::recursi
 				{
 					// reach the end of nested identifier, and we end up with ClassDecl, which is a type
 					// save to candidcate list
-					candidates.push_back(node.from);
-					partial_match_flags.push_back(is_template_partial_match);
+					enlist(node.from, is_template_partial_match);
 				}
 				else
 				{
@@ -370,8 +369,7 @@ struct ResolutionVisitor : Visitor<ASTNode, void, VisitorImplementation::recursi
 				{
 					if(isLast())
 					{
-						candidates.push_back(&node);
-						partial_match_flags.push_back(is_template_partial_match);
+						enlist(&node, is_template_partial_match);
 					}
 				}
 			}
@@ -387,8 +385,7 @@ struct ResolutionVisitor : Visitor<ASTNode, void, VisitorImplementation::recursi
 					{
 						if(isLast())
 						{
-							candidates.push_back(i->first);
-							partial_match_flags.push_back(is_template_partial_match);
+							enlist(i->first, is_template_partial_match);
 						}
 					}
 				}
@@ -405,8 +402,7 @@ struct ResolutionVisitor : Visitor<ASTNode, void, VisitorImplementation::recursi
 			{
 				if(isLast())
 				{
-					candidates.push_back(&node);
-					partial_match_flags.push_back(is_template_partial_match);
+					enlist(&node, is_template_partial_match);
 				}
 			}
 		}
@@ -427,6 +423,49 @@ struct ResolutionVisitor : Visitor<ASTNode, void, VisitorImplementation::recursi
 		if(isSearchForSymbol())
 		{
 			// TODO handle the local variable
+		}
+	}
+
+	void resolve(PrimaryExpr& node)
+	{
+		if(isSearchForType())
+		{
+			if(node.catagory == PrimaryExpr::Catagory::IDENTIFIER)
+			{
+				// there can be type within package
+				ASTNode* package = ResolvedPackage::get(node.value.identifier);
+				if(package)
+					visit(*package);
+			}
+			// TODO handle lambda case
+		}
+
+		if(isSearchForSymbol())
+		{
+			if(node.catagory == PrimaryExpr::Catagory::IDENTIFIER)
+			{
+				// there can be symbol within package or another symbol
+				ASTNode* symbol = ResolvedSymbol::get(node.value.identifier);
+				if(symbol)
+					visit(*symbol);
+
+				ASTNode* package = ResolvedPackage::get(node.value.identifier);
+				if(package)
+					visit(*package);
+			}
+			// TODO handle lambda case
+		}
+
+		if(isSearchForPackage())
+		{
+			if(node.catagory == PrimaryExpr::Catagory::IDENTIFIER)
+			{
+				// there can be package within package
+				ASTNode* package = ResolvedPackage::get(node.value.identifier);
+				if(package)
+					visit(*package);
+			}
+			// TODO handle lambda case
 		}
 	}
 
@@ -457,6 +496,18 @@ public:
 			filter_type |= (int)type;
 		else
 			filter_type &= ~((int)type);
+	}
+
+	bool enlist(ASTNode* node, bool is_template_partial_match)
+	{
+		foreach(i, candidates)
+			if(*i == node)
+				return false;
+
+		candidates.push_back(node);
+		partial_match_flags.push_back(is_template_partial_match);
+
+		return true;
 	}
 
 	void reset()
@@ -540,6 +591,8 @@ private:
 		return filter_type & ((int)Filter::PACKAGE);
 	}
 
+	/// tryVisit will increase the search level, which means there's another level of depth in the search tree
+	/// (which usually introduced by a identifier match)
 	inline void tryVisit(ASTNode& node)
 	{
 		++current_search_level;

@@ -199,6 +199,11 @@ struct Resolver
 	{
 		using namespace zillians::language::tree;
 
+		tree::visitor::NodeInfoVisitor node_info_visitor;
+		node_info_visitor.visit(scope);
+		LOG4CXX_DEBUG(Logger::Resolver, L"trying to resolve type: \"" << node.referred.unspecified->toString() << L"\" from scope \"" << node_info_visitor.stream.str() << L"\"");
+		node_info_visitor.reset();
+
 		if(node.type == TypeSpecifier::ReferredType::UNSPECIFIED)
 		{
 			resolution_visitor.reset();
@@ -319,6 +324,11 @@ struct Resolver
 	{
 		using namespace zillians::language::tree;
 
+		tree::visitor::NodeInfoVisitor node_info_visitor;
+		node_info_visitor.visit(scope);
+		LOG4CXX_DEBUG(Logger::Resolver, L"trying to resolve package: \"" << node.toString() << L"\" from scope \"" << node_info_visitor.stream.str() << L"\"");
+		node_info_visitor.reset();
+
 		if(!ResolvedPackage::get(&node))
 		{
 			resolution_visitor.reset();
@@ -338,6 +348,8 @@ struct Resolver
 	bool resolvePackage(tree::Identifier& node, bool no_action = false)
 	{
 		using namespace zillians::language::tree;
+
+		LOG4CXX_DEBUG(Logger::Resolver, L"trying to resolve package: \"" << node.toString() << L"\"");
 
 		if(!ResolvedPackage::get(&node))
 		{
