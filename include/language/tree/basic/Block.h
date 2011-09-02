@@ -54,7 +54,6 @@ struct Block : public ASTNode
 	bool is_pipelined_block;
 	bool is_async_block;
 
-	ASTNode* parent;
 	std::vector<ASTNode*> objects;
 };
 
