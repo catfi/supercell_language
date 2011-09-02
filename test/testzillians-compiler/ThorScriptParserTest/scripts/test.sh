@@ -28,7 +28,7 @@ for ARG in "$@"; do
         fi
         continue
     fi
-    $EXEC $ARG --dump-parse-and-stop >& $TEMP_FILE_A
+    $EXEC $ARG --dump-parse-and-stop |& grep -v "[DEBUG]" > $TEMP_FILE_A
     ERROR_CODE="$?"
     if [ $ERROR_CODE -ne 0 ]; then
         cat $TEMP_FILE_A # NOTE: for convenience of reference
@@ -38,7 +38,7 @@ for ARG in "$@"; do
     fi
 
     # =========================================================================================================
-    # replace recognized tags to use curly-brace
+    # replace non-content tags to use curly-brace
     cat $TEMP_FILE_A | sed "s#<try>#{try}#g"               | sed "s#<\/try>#{\/try}#g"               > $TEMP_FILE_B
     cat $TEMP_FILE_B | sed "s#<success>#{success}#g"       | sed "s#<\/success>#{\/success}#g"       > $TEMP_FILE_A
     cat $TEMP_FILE_A | sed "s#<attributes>#{attributes}#g" | sed "s#<\/attributes>#{\/attributes}#g" > $TEMP_FILE_B
@@ -50,7 +50,7 @@ for ARG in "$@"; do
     cat $TEMP_FILE_B | sed "s/</{LT}/g" | sed "s/>/{GT}/g" > $TEMP_FILE_A
 
     # =========================================================================================================
-    # restore recognized xml tags
+    # restore non-content xml tags
     cat $TEMP_FILE_A | sed "s#{try}#<try>#g"               | sed "s#{\/try}#<\/try>#g"               > $TEMP_FILE_B
     cat $TEMP_FILE_B | sed "s#{success}#<success>#g"       | sed "s#{\/success}#<\/success>#g"       > $TEMP_FILE_A
     cat $TEMP_FILE_A | sed "s#{attributes}#<attributes>#g" | sed "s#{\/attributes}#<\/attributes>#g" > $TEMP_FILE_B

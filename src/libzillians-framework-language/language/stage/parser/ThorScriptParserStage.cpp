@@ -137,7 +137,7 @@ bool ThorScriptParserStage::parse(std::string filename)
     // enable correct locale so that we can print UCS4 characters
     enable_default_locale(std::wcout);
 
-    getParserContext().enable_debug_parser = dump_parse;
+    getParserContext().dump_rule_debug = dump_parse;
     getParserContext().enable_semantic_action = !dump_parse;
     getParserContext().debug.current_source_index = ModuleSourceInfoContext::get(getParserContext().program)->addSource(filename);
 

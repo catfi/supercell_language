@@ -117,7 +117,7 @@ struct Identifier : qi::grammar<Iterator, typename SA::identifier::attribute_typ
 				) [ typename SA::identifier::init() ];
 
 		start_augmented.name("IDENTIFIER");
-		if(getParserContext().enable_debug_parser)
+		if(getParserContext().dump_rule_debug)
 			debug(start_augmented);
 	}
 
@@ -139,7 +139,7 @@ struct IntegerLiteral : qi::grammar<Iterator, typename SA::integer_literal::attr
 		start_augmented = start [ typename SA::integer_literal::init() ];
 
 		start_augmented.name("INTEGER_LITERAL");
-		if(getParserContext().enable_debug_parser)
+		if(getParserContext().dump_rule_debug)
 			debug(start_augmented);
 	}
 
@@ -161,7 +161,7 @@ struct FloatLiteral : qi::grammar<Iterator, typename SA::float_literal::attribut
 		start_augmented = start [ typename SA::float_literal::init() ];
 
 		start_augmented.name("FLOAT_LITERAL");
-		if(getParserContext().enable_debug_parser)
+		if(getParserContext().dump_rule_debug)
 			debug(start_augmented);
 	}
 
@@ -199,7 +199,7 @@ struct StringLiteral : qi::grammar<Iterator, typename SA::string_literal::attrib
 		start_augmented = start [ typename SA::string_literal::init() ];
 
 		start_augmented.name("STRING_LITERAL");
-		if(getParserContext().enable_debug_parser)
+		if(getParserContext().dump_rule_debug)
 			debug(start_augmented);
 	}
 
@@ -865,7 +865,7 @@ struct ThorScript : qi::grammar<Iterator, typename SA::start::attribute_type, de
 		program.name("program");
 		start.name("start");
 
-		if(getParserContext().enable_debug_parser)
+		if(getParserContext().dump_rule_debug)
 		{
 			// keywords
 			debug(_TRUE); debug(_FALSE); debug(_NULL);
