@@ -23,7 +23,7 @@
 
 namespace zillians { namespace language { namespace stage {
 
-TreeDebugStage::TreeDebugStage() : dump_tree(false)
+TreeDebugStage::TreeDebugStage() : dump_tree_and_stop(false), dump_tree(false)
 { }
 
 TreeDebugStage::~TreeDebugStage()
@@ -37,19 +37,21 @@ const char* TreeDebugStage::name()
 void TreeDebugStage::initializeOptions(po::options_description& option_desc, po::positional_options_description& positional_desc)
 {
     option_desc.add_options()
+	("dump-ast-and-stop", "dump AST pretty-print for debugging purpose and stop processing");
     ("dump-ast", "dump AST pretty-print for debugging purpose");
 }
 
 bool TreeDebugStage::parseOptions(po::variables_map& vm)
 {
+	dump_tree_and_stop = (vm.count("dump-ast-and-stop") > 0);
 	dump_tree = (vm.count("dump-ast") > 0);
 
 	return true;
 }
 
-bool TreeDebugStage::execute()
+bool TreeDebugStage::execute(bool& continue_execution)
 {
-	if(dump_tree)
+	if(dump_tree || dump_tree_and_stop)
 	{
 		if(getParserContext().program)
 		{
@@ -60,6 +62,9 @@ bool TreeDebugStage::execute()
 		{
 			std::cerr << "empty program node" << std::endl;
 		}
+
+		if(dump_tree_and_stop)
+			continue_execution = false;
 	}
 
 	return true;

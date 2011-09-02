@@ -28,7 +28,7 @@ namespace zillians { namespace language {
 
 struct ParserContext
 {
-	ParserContext() : enable_semantic_action(true), enable_debug_parser(false), program(NULL), active_package(NULL)
+	ParserContext() : enable_semantic_action(true), enable_debug_parser(false), program(new tree::Program()), active_package(NULL)
 	{ }
 
 	bool enable_semantic_action;

@@ -63,7 +63,7 @@ bool LLVMGeneratorStage::parseOptions(po::variables_map& vm)
 	return true;
 }
 
-bool LLVMGeneratorStage::execute()
+bool LLVMGeneratorStage::execute(bool& continue_execution)
 {
 	if(!enabled)
 		return true;

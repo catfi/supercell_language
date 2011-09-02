@@ -52,7 +52,7 @@ bool ResolutionStage::parseOptions(po::variables_map& vm)
 	return true;
 }
 
-bool ResolutionStage::execute()
+bool ResolutionStage::execute(bool& continue_execution)
 {
 	if(!resolveTypes(true)) return false;
 	if(!resolveSymbols(true)) return false;

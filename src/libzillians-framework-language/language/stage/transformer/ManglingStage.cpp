@@ -47,7 +47,7 @@ bool ManglingStage::parseOptions(po::variables_map& vm)
 	return true;
 }
 
-bool ManglingStage::execute()
+bool ManglingStage::execute(bool& continue_execution)
 {
 	if(disable_mangling)
 		return true;

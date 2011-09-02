@@ -86,7 +86,7 @@ bool ThorScriptParserStage::parseOptions(po::variables_map& vm)
 	}
 }
 
-bool ThorScriptParserStage::execute()
+bool ThorScriptParserStage::execute(bool& continue_execution)
 {
 	if(skip_parse)
 		return true;
@@ -144,6 +144,7 @@ bool ThorScriptParserStage::parse(std::string filename)
 
     getParserContext().enable_debug_parser = dump_parse;
     getParserContext().enable_semantic_action = !dump_parse;
+    getParserContext().debug.current_source_index = ModuleSourceInfoContext::get(getParserContext().program)->addSource(filename);
 
     // try to parse
 	typedef classic::position_iterator2<std::wstring::iterator> pos_iterator_type;

@@ -25,7 +25,7 @@
 
 #include "language/tree/visitor/general/GenericDoubleVisitor.h"
 #include "language/stage/generator/detail/LLVMHelper.h"
-#include "language/context/DebugContext.h"
+#include "language/stage/parser/context/SourceInfoContext.h"
 #include "utility/UnicodeUtil.h"
 
 #include "llvm/Support/Dwarf.h"
@@ -43,8 +43,9 @@ namespace visitor {
 #define COMPANY_INFORMATION "1.0 ThorScript Compiler (Zillians Corp.)"
 
 
-struct LLVMDebugInfoGeneratorVisitor: GenericDoubleVisitor {
-			CREATE_INVOKER(generateInvoker, generate)
+struct LLVMDebugInfoGeneratorVisitor: GenericDoubleVisitor
+{
+	CREATE_INVOKER(generateInvoker, generate)
 
 	// Structure of a compile unit
 	struct compile_unit_t
@@ -69,12 +70,12 @@ struct LLVMDebugInfoGeneratorVisitor: GenericDoubleVisitor {
 	void generate(Program& node)
 	{
 		std::cout << __PRETTY_FUNCTION__ << std::endl;
-		DebugContext::ModuleInfo* module_info = node.get<DebugContext::ModuleInfo>();
+		ModuleSourceInfoContext* module_info = ModuleSourceInfoContext::get(&node);
 
 		// Create compile units
 		for (int i = 0; i < module_info->source_files.size(); i++)
 		{
-			boost::filesystem::path file_path(ws_to_s(module_info->source_files[i]));
+			boost::filesystem::path file_path(module_info->source_files[i]);
 			std::string folder = file_path.parent_path().generic_string();
 			std::string filename = file_path.filename().generic_string();
 

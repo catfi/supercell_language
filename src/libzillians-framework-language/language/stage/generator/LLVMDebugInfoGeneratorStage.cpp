@@ -48,7 +48,7 @@ bool LLVMDebugInfoGeneratorStage::parseOptions(po::variables_map& vm)
 	return true;
 }
 
-bool LLVMDebugInfoGeneratorStage::execute()
+bool LLVMDebugInfoGeneratorStage::execute(bool& continue_execution)
 {
 	if (!enabled)
 		return true;
