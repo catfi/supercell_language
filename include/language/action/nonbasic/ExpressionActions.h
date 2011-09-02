@@ -30,7 +30,7 @@
 		else { \
 			Expression* left = NULL; \
 			deduced_foreach(i, _param(0)) \
-				left = (is_begin_of_deduced_foreach(i, _param(0))) ? *i : new BinaryExpr(op_code, left, *i); \
+				REGISTER_LOCATION(left = (is_begin_of_deduced_foreach(i, _param(0))) ? *i : new BinaryExpr(op_code, left, *i)); \
 			_result = left; \
 		} \
 	}
@@ -43,7 +43,7 @@
 		else { \
 			Expression* right = NULL; \
 			deduced_reverse_foreach(i, _param(0)) \
-				right = (is_begin_of_deduced_reverse_foreach(i, _param(0))) ? *i : new BinaryExpr(op_code, *i, right); \
+				REGISTER_LOCATION(right = (is_begin_of_deduced_reverse_foreach(i, _param(0))) ? *i : new BinaryExpr(op_code, *i, right)); \
 			_result = right; \
 		} \
 	}
@@ -61,7 +61,7 @@
 					left = *i; \
 					continue; \
 				} \
-				left = new BinaryExpr(*j, left, *i); \
+				REGISTER_LOCATION(left = new BinaryExpr(*j, left, *i)); \
 				j++; \
 			} \
 			_result = left; \
@@ -80,7 +80,7 @@
 					right = *i; \
 					continue; \
 				} \
-				right = new BinaryExpr(*j, *i, right); \
+				REGISTER_LOCATION(right = new BinaryExpr(*j, *i, right)); \
 				j++; \
 			} \
 			_result = right; \
@@ -101,7 +101,7 @@ struct primary_expression
 #ifdef DEBUG
 		printf("primary_expression param(0) type = %s\n", typeid(_param_t(0)).name());
 #endif
-		_result = new PrimaryExpr(_param(0));
+		REGISTER_LOCATION(_result = new PrimaryExpr(_param(0)));
 	}
 	END_ACTION
 
@@ -110,7 +110,8 @@ struct primary_expression
 #ifdef DEBUG
 		printf("primary_expression::init_bool param(0) type = %s\n", typeid(_param_t(0)).name());
 #endif
-		_result = new PrimaryExpr(new NumericLiteral(Value));
+		Literal* literal = new NumericLiteral(Value); REGISTER_LOCATION(literal);
+		REGISTER_LOCATION(_result = new PrimaryExpr(literal));
 	}
 	END_ACTION
 
@@ -119,7 +120,8 @@ struct primary_expression
 #ifdef DEBUG
 		printf("primary_expression::init_object_literal param(0) type = %s\n", typeid(_param_t(0)).name());
 #endif
-		_result = new PrimaryExpr(new ObjectLiteral(Type));
+		Literal* literal = new ObjectLiteral(Type); REGISTER_LOCATION(literal);
+		REGISTER_LOCATION(_result = new PrimaryExpr(literal));
 	}
 	END_ACTION
 
@@ -144,11 +146,12 @@ struct primary_expression
 		Declaration::VisibilitySpecifier::type visibility = Declaration::VisibilitySpecifier::PUBLIC;
 		Declaration::StorageSpecifier::type    storage    = Declaration::StorageSpecifier::NONE;
 		bool                                   is_member  = false;
-		FunctionDecl* function_decl = new FunctionDecl(NULL, type, is_member, visibility, storage, _param(2));
+		FunctionDecl* function_decl =
+				new FunctionDecl(NULL, type, is_member, visibility, storage, _param(2)); REGISTER_LOCATION(function_decl);
 		if(!!parameters)
 			deduced_foreach_value(i, *parameters)
 				function_decl->appendParameter(i.first, i.second);
-		_result = new PrimaryExpr(function_decl);
+		REGISTER_LOCATION(_result = new PrimaryExpr(function_decl));
 	}
 	END_ACTION
 };
@@ -172,7 +175,7 @@ struct postfix_expression
 #ifdef DEBUG
 		printf("postfix_expression::init_postfix_array param(0) type = %s\n", typeid(_param_t(0)).name());
 #endif
-		_result = new BinaryExpr(BinaryExpr::OpCode::ARRAY_SUBSCRIPT, _result, _param(0));
+		REGISTER_LOCATION(_result = new BinaryExpr(BinaryExpr::OpCode::ARRAY_SUBSCRIPT, _result, _param(0)));
 	}
 	END_ACTION
 
@@ -181,11 +184,10 @@ struct postfix_expression
 #ifdef DEBUG
 		printf("postfix_expression::init_postfix_call param(0) type = %s\n", typeid(_param_t(0)).name());
 #endif
-		CallExpr* call_expr = new CallExpr(_result);
+		REGISTER_LOCATION(_result = new CallExpr(_result));
 		if(_param(0).is_initialized())
 			deduced_foreach_value(i, *_param(0))
-				call_expr->appendParameter(i);
-		_result = call_expr;
+				cast<CallExpr>(_result)->appendParameter(i);
 	}
 	END_ACTION
 
@@ -194,7 +196,7 @@ struct postfix_expression
 #ifdef DEBUG
 		printf("postfix_expression::init_postfix_member param(0) type = %s\n", typeid(_param_t(0)).name());
 #endif
-		_result = new MemberExpr(_result, _param(0));
+		REGISTER_LOCATION(_result = new MemberExpr(_result, _param(0)));
 	}
 	END_ACTION
 
@@ -203,7 +205,7 @@ struct postfix_expression
 #ifdef DEBUG
 		printf("postfix_expression::append_postfix_step param(0) type = %s\n", typeid(_param_t(0)).name());
 #endif
-		_result = new UnaryExpr(Type, _result);
+		REGISTER_LOCATION(_result = new UnaryExpr(Type, _result));
 	}
 	END_ACTION
 };
@@ -228,7 +230,7 @@ struct prefix_expression
 			fusion_vec_t &vec = boost::get<fusion_vec_t>(_param(0));
 			UnaryExpr::OpCode::type type = boost::fusion::at_c<0>(vec);
 			Expression*             expr = boost::fusion::at_c<1>(vec);
-			_result = new UnaryExpr(type, expr);
+			REGISTER_LOCATION(_result = new UnaryExpr(type, expr));
 			break;
 		}
 	}
@@ -335,7 +337,7 @@ struct range_expression
 			_result = _param(0);
 			return;
 		}
-		_result = new BinaryExpr(BinaryExpr::OpCode::RANGE_ELLIPSIS, _param(0), *_param(1));
+		REGISTER_LOCATION(_result = new BinaryExpr(BinaryExpr::OpCode::RANGE_ELLIPSIS, _param(0), *_param(1)));
 	}
 	END_ACTION
 };
@@ -358,7 +360,7 @@ struct ternary_expression
 		}
 		Expression* true_node  = boost::fusion::at_c<0>(*_param(1));
 		Expression* false_node = boost::fusion::at_c<1>(*_param(1));
-		_result = new TernaryExpr(_param(0), true_node, false_node);
+		REGISTER_LOCATION(_result = new TernaryExpr(_param(0), true_node, false_node));
 	}
 	END_ACTION
 };

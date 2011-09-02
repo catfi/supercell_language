@@ -40,7 +40,7 @@ struct statement
 		case 0:
 			{
 				Declaration* decl = boost::get<Declaration*>(_param(1));
-				_result = new DeclarativeStmt(decl);
+				REGISTER_LOCATION(_result = new DeclarativeStmt(decl));
 			}
 			break;
 		case 1:
@@ -73,7 +73,7 @@ struct expression_statement
 		printf("expression_statement param(0) type = %s\n", typeid(_param_t(0)).name());
 #endif
 		if(_param(0).is_initialized())
-			_result = new ExpressionStmt(*_param(0));
+			REGISTER_LOCATION(_result = new ExpressionStmt(*_param(0)));
 	}
 	END_ACTION
 };
@@ -93,7 +93,7 @@ struct selection_statement
 #endif
 		Expression* cond = _param(0);
 		ASTNode* block = _param(1);
-		_result = new IfElseStmt(Selection(cond, block));
+		REGISTER_LOCATION(_result = new IfElseStmt(Selection(cond, block)));
 		deduced_foreach_value(i, _param(2))
 		{
 			Expression* cond  = boost::fusion::at_c<0>(i);
@@ -111,7 +111,7 @@ struct selection_statement
 		printf("selection_statement::init_switch_statement param(0) type = %s\n", typeid(_param_t(0)).name());
 		printf("selection_statement::init_switch_statement param(1) type = %s\n", typeid(_param_t(1)).name());
 #endif
-		_result = new SwitchStmt(_param(0));
+		REGISTER_LOCATION(_result = new SwitchStmt(_param(0)));
 		deduced_foreach_value(i, _param(1))
 			switch(i.which())
 			{
@@ -121,7 +121,7 @@ struct selection_statement
 					fusion_vec_t &vec = boost::get<fusion_vec_t>(i);
 					Expression*            cond      = boost::fusion::at_c<0>(vec);
 					std::vector<ASTNode*> &block_vec = boost::fusion::at_c<1>(vec);
-					Block* block = new Block();
+					Block* block = new Block(); REGISTER_LOCATION(block);
 					block->appendObjects(block_vec);
 					cast<SwitchStmt>(_result)->addCase(Selection(cond, block));
 				}
@@ -129,7 +129,7 @@ struct selection_statement
 			case 1:
 				{
 					std::vector<ASTNode*> &block_vec = boost::get<std::vector<ASTNode*>>(i);
-					Block* block = new Block();
+					Block* block = new Block(); REGISTER_LOCATION(block);
 					block->appendObjects(block_vec);
 					cast<SwitchStmt>(_result)->setDefaultCase(block);
 				}
@@ -150,9 +150,9 @@ struct iteration_statement
 		printf("iteration_statement::init_while_loop param(0) type = %s\n", typeid(_param_t(0)).name());
 		printf("iteration_statement::init_while_loop param(1) type = %s\n", typeid(_param_t(1)).name());
 #endif
-		Expression* cond = _param(0);
-		ASTNode* block = _param(1).is_initialized() ? *_param(1) : NULL;
-		_result = new WhileStmt(WhileStmt::Style::WHILE, cond, block);
+		Expression* cond  = _param(0);
+		ASTNode*    block = _param(1).is_initialized() ? *_param(1) : NULL;
+		REGISTER_LOCATION(_result = new WhileStmt(WhileStmt::Style::WHILE, cond, block));
 	}
 	END_ACTION
 
@@ -162,9 +162,9 @@ struct iteration_statement
 		printf("iteration_statement::init_do_while_loop param(0) type = %s\n", typeid(_param_t(0)).name());
 		printf("iteration_statement::init_do_while_loop param(1) type = %s\n", typeid(_param_t(1)).name());
 #endif
-		ASTNode* block = _param(0);
-		Expression* cond = _param(1);
-		_result = new WhileStmt(WhileStmt::Style::DO_WHILE, cond, block);
+		ASTNode*    block = _param(0);
+		Expression* cond  = _param(1);
+		REGISTER_LOCATION(_result = new WhileStmt(WhileStmt::Style::DO_WHILE, cond, block));
 	}
 	END_ACTION
 
@@ -186,8 +186,8 @@ struct iteration_statement
 			break;
 		}
 		Expression* range = _param(1);
-		ASTNode* block = _param(2).is_initialized() ? *_param(2) : NULL;
-		_result = new ForeachStmt(iterator, range, block);
+		ASTNode*    block = _param(2).is_initialized() ? *_param(2) : NULL;
+		REGISTER_LOCATION(_result = new ForeachStmt(iterator, range, block));
 	}
 	END_ACTION
 };
@@ -202,13 +202,13 @@ struct branch_statement
 #ifdef DEBUG
 		printf("branch_statement::init_return param(0) type = %s\n", typeid(_param_t(0)).name());
 #endif
-		_result = new BranchStmt(tree::BranchStmt::OpCode::RETURN, _param(0));
+		REGISTER_LOCATION(_result = new BranchStmt(BranchStmt::OpCode::RETURN, _param(0)));
 	}
 	END_ACTION
 
 	BEGIN_TEMPLATED_ACTION(init, BranchStmt::OpCode::type Type)
 	{
-		_result = new BranchStmt(Type);
+		REGISTER_LOCATION(_result = new BranchStmt(Type));
 	}
 	END_ACTION
 };

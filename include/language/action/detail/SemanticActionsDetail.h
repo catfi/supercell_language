@@ -24,6 +24,7 @@
 #include "utility/Foreach.h"
 #include "language/GlobalContext.h"
 #include "language/context/ParserContext.h"
+#include "language/stage/parser/context/SourceInfoContext.h"
 #include "language/tree/ASTNodeFactory.h"
 
 #include <boost/mpl/bool.hpp>
@@ -74,6 +75,9 @@
 
 #define _local(i)   boost::fusion::at_c<i>(context.locals)
 #define _local_t(i) decltype(boost::fusion::at_c<i>(context.locals))
+
+#define REGISTER_LOCATION(x) \
+		stage::SourceInfoContext::set(x, new stage::SourceInfoContext(getParserContext().debug.line, getParserContext().debug.column));
 
 using namespace zillians::language::tree;
 
