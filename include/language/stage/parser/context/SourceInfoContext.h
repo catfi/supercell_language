@@ -32,7 +32,7 @@ struct ModuleSourceInfoContext
 	int32 addSource(const std::string& filename)
 	{
 		source_files.push_back(filename);
-		return (int32)source_files.size();
+		return (int32)source_files.size() - 1;
 	}
 
 	static ModuleSourceInfoContext* get(tree::ASTNode* node)
