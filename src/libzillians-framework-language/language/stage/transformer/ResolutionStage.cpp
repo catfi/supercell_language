@@ -40,11 +40,13 @@ const char* ResolutionStage::name()
 void ResolutionStage::initializeOptions(po::options_description& option_desc, po::positional_options_description& positional_desc)
 {
     option_desc.add_options()
+	("skip-resolution", "skip type and symbol resolution stage")
     ("no-type-inference", "disable type inference system so every type declaration must be made explicitly");
 }
 
 bool ResolutionStage::parseOptions(po::variables_map& vm)
 {
+	disable_resolution = (vm.count("skip-resolution") > 0);
 	disable_type_inference = (vm.count("no-type-inference") > 0);
 
 	return true;
@@ -60,11 +62,19 @@ bool ResolutionStage::execute()
 
 bool ResolutionStage::resolveTypes(bool report_error_summary)
 {
-	if(getParserContext().program)
+	if(disable_resolution)
+		return true;
+
+	if(hasParserContext())
 	{
+		ParserContext& parser_context = getParserContext();
+
+		if(!parser_context.program)
+			return false;
+
 		LOG4CXX_DEBUG(Logger::TransformerStage, L"trying to resolve types");
 
-		tree::Program& program = *getParserContext().program;
+		tree::Program& program = *parser_context.program;
 
 		Resolver resolver;
 		visitor::ResolutionStageVisitor visitor(visitor::ResolutionStageVisitor::Target::TYPE_RESOLUTION, program, resolver);
@@ -119,11 +129,19 @@ bool ResolutionStage::resolveTypes(bool report_error_summary)
 
 bool ResolutionStage::resolveSymbols(bool report_error_summary)
 {
-	if(getParserContext().program)
+	if(disable_resolution)
+		return true;
+
+	if(hasParserContext())
 	{
+		ParserContext& parser_context = getParserContext();
+
+		if(!parser_context.program)
+			return false;
+
 		LOG4CXX_DEBUG(Logger::TransformerStage, "trying to resolve symbols");
 
-		tree::Program& program = *getParserContext().program;
+		tree::Program& program = *parser_context.program;
 
 		Resolver resolver;
 		visitor::ResolutionStageVisitor visitor(visitor::ResolutionStageVisitor::Target::SYMBOL_RESOLUTION, program, resolver);

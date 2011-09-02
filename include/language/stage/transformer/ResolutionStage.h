@@ -46,6 +46,7 @@ public:
 	std::size_t get_unresolved_count();
 
 private:
+	bool disable_resolution;
 	bool disable_type_inference;
 	std::size_t total_resolved_count;
 	std::size_t total_unresolved_count;
