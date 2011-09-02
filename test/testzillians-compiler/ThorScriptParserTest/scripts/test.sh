@@ -19,7 +19,7 @@ for ARG in "$@"; do
         exit 1
     fi
     if [ $MODE -eq 1 ]; then
-        $EXEC $ARG --dump-ast-and-stop
+        $EXEC $ARG --dump-ast-and-stop --dump-ast-location
         ERROR_CODE="$?"
         if [ $ERROR_CODE -ne 0 ];
         then
