@@ -58,7 +58,10 @@ struct NameManglingVisitor : Visitor<ASTNode, void, VisitorImplementation::recur
 		if(stream.str().length() > 0)
 			stream << ".";
 
-		stream << encode(node.id->toString());
+		if(node.id->isEmpty())
+			stream << "root";
+		else
+			stream << encode(node.id->toString());
 	}
 
 	void mangle(Block& node)
@@ -149,7 +152,7 @@ struct NameManglingVisitor : Visitor<ASTNode, void, VisitorImplementation::recur
 
 	void reset()
 	{
-		stream.clear();
+		stream.str("");
 	}
 
 	const std::string& encode(const std::wstring& ucs4)

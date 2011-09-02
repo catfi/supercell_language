@@ -57,7 +57,10 @@ struct NodeInfoVisitor : Visitor<ASTNode, void, VisitorImplementation::recursive
 		if(stream.str().length() > 0)
 			stream << L".";
 
-		stream << node.id->toString();
+		if(node.id->isEmpty())
+			stream << "[root_package]";
+		else
+			stream << node.id->toString();
 	}
 
 	void info(Block& node)
@@ -153,7 +156,7 @@ struct NodeInfoVisitor : Visitor<ASTNode, void, VisitorImplementation::recursive
 
 	void reset()
 	{
-		stream.clear();
+		stream.str(L"");
 	}
 
 	std::wstringstream stream;
