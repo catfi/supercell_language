@@ -48,29 +48,10 @@ struct ModuleSourceInfoContext
 	std::vector<std::string> source_files;
 };
 
-/// FunctionSourceInfoContext will be only stored at FunctionDecl node
-struct FunctionSourceInfoContext
-{
-	FunctionSourceInfoContext(int32 index) : source_index(index)
-	{ }
-
-	static FunctionSourceInfoContext* get(tree::ASTNode* node)
-	{
-		return node->get<FunctionSourceInfoContext>();
-	}
-
-	static void set(tree::ASTNode* node, FunctionSourceInfoContext* ctx)
-	{
-		node->set<FunctionSourceInfoContext>(ctx);
-	}
-
-	int32 source_index;
-};
-
 /// SourceInfoContext will be stored in every AST Identifier, Statement, Expression, and Declaration
 struct SourceInfoContext
 {
-	SourceInfoContext(uint32 l, uint32 c) : line(l), column(c)
+	SourceInfoContext(int32 i, uint32 l, uint32 c) : source_index(i), line(l), column(c)
 	{ }
 
 	static SourceInfoContext* get(tree::ASTNode* node)
@@ -83,6 +64,7 @@ struct SourceInfoContext
 		node->set<SourceInfoContext>(ctx);
 	}
 
+	int32 source_index;
 	uint32 line;
 	uint32 column;
 };

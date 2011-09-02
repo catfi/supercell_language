@@ -77,7 +77,10 @@
 #define _local_t(i) decltype(boost::fusion::at_c<i>(context.locals))
 
 #define REGISTER_LOCATION(x) \
-		stage::SourceInfoContext::set(x, new stage::SourceInfoContext(getParserContext().debug.line, getParserContext().debug.column));
+		stage::SourceInfoContext::set(x, new stage::SourceInfoContext( \
+				getParserContext().debug.source_index, \
+				getParserContext().debug.line, \
+				getParserContext().debug.column));
 
 using namespace zillians::language::tree;
 
