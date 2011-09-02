@@ -92,8 +92,8 @@ struct Identifier : qi::grammar<Iterator, typename SA::identifier::attribute_typ
 {
 	Identifier() : Identifier::base_type(start_augmented)
 	{
-		parse_checkpoint
-			= omit[ iter_pos[ typename SA::parse_checkpoint::init() ] ]
+		location
+			= omit[ iter_pos[ typename SA::location::init() ] ]
 			;
 
 		keyword_sym =
@@ -117,7 +117,7 @@ struct Identifier : qi::grammar<Iterator, typename SA::identifier::attribute_typ
 		start %= qi::lexeme[ ((unicode::alpha | L'_') > *(unicode::alnum | L'_')) - keyword ];
 
 		start_augmented
-			= (parse_checkpoint >> start) [ typename SA::identifier::init() ]
+			= (location >> start) [ typename SA::identifier::init() ]
 			;
 
 		start_augmented.name("IDENTIFIER");
@@ -125,7 +125,7 @@ struct Identifier : qi::grammar<Iterator, typename SA::identifier::attribute_typ
 			debug(start_augmented);
 	}
 
-	qi::rule<Iterator, typename SA::parse_checkpoint::attribute_type, typename SA::parse_checkpoint::local_type> parse_checkpoint;
+	qi::rule<Iterator, typename SA::location::attribute_type, typename SA::location::local_type> location;
 	qi::symbols<wchar_t const> keyword_sym;
 	qi::rule<Iterator, std::wstring()> keyword;
 	qi::rule<Iterator, std::wstring()> start;
@@ -137,8 +137,8 @@ struct IntegerLiteral : qi::grammar<Iterator, typename SA::integer_literal::attr
 {
 	IntegerLiteral() : IntegerLiteral::base_type(start_augmented)
 	{
-		parse_checkpoint
-			= omit[ iter_pos[ typename SA::parse_checkpoint::init() ] ]
+		location
+			= omit[ iter_pos[ typename SA::location::init() ] ]
 			;
 
 		start
@@ -147,7 +147,7 @@ struct IntegerLiteral : qi::grammar<Iterator, typename SA::integer_literal::attr
 			;
 
 		start_augmented
-			= (parse_checkpoint >> start) [ typename SA::integer_literal::init() ]
+			= (location >> start) [ typename SA::integer_literal::init() ]
 			;
 
 		start_augmented.name("INTEGER_LITERAL");
@@ -155,7 +155,7 @@ struct IntegerLiteral : qi::grammar<Iterator, typename SA::integer_literal::attr
 			debug(start_augmented);
 	}
 
-	qi::rule<Iterator, typename SA::parse_checkpoint::attribute_type, typename SA::parse_checkpoint::local_type> parse_checkpoint;
+	qi::rule<Iterator, typename SA::location::attribute_type, typename SA::location::local_type> location;
 	qi::rule<Iterator, uint64()> start;
 	qi::rule<Iterator, typename SA::integer_literal::attribute_type, typename SA::integer_literal::local_type> start_augmented;
 };
@@ -165,8 +165,8 @@ struct FloatLiteral : qi::grammar<Iterator, typename SA::float_literal::attribut
 {
 	FloatLiteral() : FloatLiteral::base_type(start_augmented)
 	{
-		parse_checkpoint
-			= omit[ iter_pos[ typename SA::parse_checkpoint::init() ] ]
+		location
+			= omit[ iter_pos[ typename SA::location::init() ] ]
 			;
 
 		start
@@ -176,7 +176,7 @@ struct FloatLiteral : qi::grammar<Iterator, typename SA::float_literal::attribut
 			;
 
 		start_augmented
-			= (parse_checkpoint >> start) [ typename SA::float_literal::init() ]
+			= (location >> start) [ typename SA::float_literal::init() ]
 			;
 
 		start_augmented.name("FLOAT_LITERAL");
@@ -184,7 +184,7 @@ struct FloatLiteral : qi::grammar<Iterator, typename SA::float_literal::attribut
 			debug(start_augmented);
 	}
 
-	qi::rule<Iterator, typename SA::parse_checkpoint::attribute_type, typename SA::parse_checkpoint::local_type> parse_checkpoint;
+	qi::rule<Iterator, typename SA::location::attribute_type, typename SA::location::local_type> location;
 	qi::real_parser<double, qi::strict_ureal_policies<double> > builtin_float_parser;
 	qi::rule<Iterator, double()> start;
 	qi::rule<Iterator, typename SA::float_literal::attribute_type, typename SA::float_literal::local_type> start_augmented;
@@ -195,8 +195,8 @@ struct StringLiteral : qi::grammar<Iterator, typename SA::string_literal::attrib
 {
 	StringLiteral() : StringLiteral::base_type(start_augmented)
 	{
-		parse_checkpoint
-			= omit[ iter_pos[ typename SA::parse_checkpoint::init() ] ]
+		location
+			= omit[ iter_pos[ typename SA::location::init() ] ]
 			;
 
 		unescaped_char_sym.add
@@ -221,7 +221,7 @@ struct StringLiteral : qi::grammar<Iterator, typename SA::string_literal::attrib
 			;
 
 		start_augmented
-			= (parse_checkpoint >> start) [ typename SA::string_literal::init() ]
+			= (location >> start) [ typename SA::string_literal::init() ]
 			;
 
 		start_augmented.name("STRING_LITERAL");
@@ -229,7 +229,7 @@ struct StringLiteral : qi::grammar<Iterator, typename SA::string_literal::attrib
 			debug(start_augmented);
 	}
 
-	qi::rule<Iterator, typename SA::parse_checkpoint::attribute_type, typename SA::parse_checkpoint::local_type> parse_checkpoint;
+	qi::rule<Iterator, typename SA::location::attribute_type, typename SA::location::local_type> location;
 	qi::symbols<wchar_t const, wchar_t const> unescaped_char_sym;
 	qi::rule<Iterator, std::wstring()> start;
 	qi::rule<Iterator, typename SA::string_literal::attribute_type, typename SA::string_literal::local_type> start_augmented;
@@ -413,8 +413,8 @@ struct ThorScript : qi::grammar<Iterator, typename SA::start::attribute_type, de
 		// BEGIN BASIC
 		//
 
-		parse_checkpoint
-			= omit[ iter_pos[ typename SA::parse_checkpoint::init() ] ]
+		location
+			= omit[ iter_pos[ typename SA::location::init() ] ]
 			;
 
 		typed_parameter_list
@@ -668,7 +668,7 @@ struct ThorScript : qi::grammar<Iterator, typename SA::start::attribute_type, de
 		// associativity: right-to-left
 		// rank: 14
 		expression
-			=	parse_checkpoint
+			=	location
 					>>	(ternary_expression
 						%	( ASSIGN        > qi::attr(tree::BinaryExpr::OpCode::ASSIGN)
 							| RSHIFT_ASSIGN > qi::attr(tree::BinaryExpr::OpCode::RSHIFT_ASSIGN)
@@ -694,7 +694,7 @@ struct ThorScript : qi::grammar<Iterator, typename SA::start::attribute_type, de
 		//
 
 		statement
-			=	parse_checkpoint
+			=	location
 					>>	(
 							(-annotation_specifiers
 								>>	( const_variable_decl
@@ -756,7 +756,7 @@ struct ThorScript : qi::grammar<Iterator, typename SA::start::attribute_type, de
 		//
 
 		declaration
-			=	parse_checkpoint
+			=	location
 					>>	(-annotation_specifiers
 							>>	( const_variable_decl
 								| function_decl
@@ -1053,7 +1053,7 @@ struct ThorScript : qi::grammar<Iterator, typename SA::start::attribute_type, de
 		///////////////////////////////////////
 
 	// basic
-	qi::rule<Iterator, typename SA::parse_checkpoint::attribute_type,                                        typename SA::parse_checkpoint::local_type>          parse_checkpoint;
+	qi::rule<Iterator, typename SA::location::attribute_type,                                                typename SA::location::local_type>                  location;
 	qi::rule<Iterator, typename SA::nested_identifier::attribute_type,         detail::WhiteSpace<Iterator>, typename SA::nested_identifier::local_type>         nested_identifier;
 	qi::rule<Iterator, typename SA::typed_parameter_list::attribute_type,      detail::WhiteSpace<Iterator>, typename SA::typed_parameter_list::local_type>      typed_parameter_list;
 	qi::rule<Iterator, typename SA::colon_type_specifier::attribute_type,      detail::WhiteSpace<Iterator>, typename SA::colon_type_specifier::local_type>      colon_type_specifier;

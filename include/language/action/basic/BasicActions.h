@@ -26,7 +26,7 @@
 
 namespace zillians { namespace language { namespace action {
 
-struct parse_checkpoint
+struct location
 {
 	DEFINE_ATTRIBUTES(void)
 	DEFINE_LOCALS()
@@ -34,11 +34,10 @@ struct parse_checkpoint
 	BEGIN_ACTION(init)
 	{
 #ifdef DEBUG
-		printf("parse_checkpoint param(0) type = %s\n", typeid(_param_t(0)).name());
+		printf("location param(0) type = %s\n", typeid(_param_t(0)).name());
 #endif
-		getParserContext().debug.line        = _param(0).get_position().line;
-		getParserContext().debug.column      = _param(0).get_position().column;
-		getParserContext().debug.currentline = _param(0).get_currentline();
+		getParserContext().debug.line   = _param(0).get_position().line;
+		getParserContext().debug.column = _param(0).get_position().column;
 	}
 	END_ACTION
 };
