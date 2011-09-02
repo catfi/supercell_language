@@ -65,6 +65,26 @@ struct typed_parameter_list
 	END_ACTION
 };
 
+struct parse_checkpoint
+{
+	DEFINE_ATTRIBUTES(void)
+	DEFINE_LOCALS()
+
+	BEGIN_ACTION(init)
+	{
+#ifdef DEBUG
+		printf("parse_checkpoint attr(0) type = %s\n", typeid(_attr_t(0)).name());
+#endif
+//		std::wstring s = _attr(0).get_currentline();
+//		std::wstring::iterator p = _attr(0).get_currentline_begin();
+		getParserContext().debug.current_line   = _attr(0).get_position().line;
+		getParserContext().debug.current_column = _attr(0).get_position().column;
+//		printf("line number = %d\n", getParserContext().debug.current_line);
+//		printf("col number = %d\n", getParserContext().debug.current_column);
+	}
+	END_ACTION
+};
+
 } } }
 
 #endif /* ZILLIANS_LANGUAGE_ACTION_BASIC_BASICACTIONS_H_ */
