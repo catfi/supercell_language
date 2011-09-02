@@ -34,11 +34,11 @@ struct parse_checkpoint
 	BEGIN_ACTION(init)
 	{
 #ifdef DEBUG
-		printf("parse_checkpoint attr(0) type = %s\n", typeid(_attr_t(0)).name());
+		printf("parse_checkpoint param(0) type = %s\n", typeid(_param_t(0)).name());
 #endif
-		getParserContext().debug.line        = _attr(0).get_position().line;
-		getParserContext().debug.column      = _attr(0).get_position().column;
-		getParserContext().debug.currentline = _attr(0).get_currentline();
+		getParserContext().debug.line        = _param(0).get_position().line;
+		getParserContext().debug.column      = _param(0).get_position().column;
+		getParserContext().debug.currentline = _param(0).get_currentline();
 	}
 	END_ACTION
 };
@@ -51,10 +51,10 @@ struct block
 	BEGIN_ACTION(init)
 	{
 #ifdef DEBUG
-		printf("block attr(0) type = %s\n", typeid(_attr_t(0)).name());
+		printf("block param(0) type = %s\n", typeid(_param_t(0)).name());
 #endif
 		_result = new Block();
-		_result->appendObjects(_attr(0));
+		_result->appendObjects(_param(0));
 	}
 	END_ACTION
 };
@@ -68,10 +68,10 @@ struct typed_parameter_list
 	BEGIN_ACTION(init)
 	{
 #ifdef DEBUG
-		printf("typed_parameter_list attr(0) type = %s\n", typeid(_attr_t(0)).name());
+		printf("typed_parameter_list param(0) type = %s\n", typeid(_param_t(0)).name());
 #endif
 		_result.reset(new value_t);
-		deduced_foreach_value(i, _attr(0))
+		deduced_foreach_value(i, _param(0))
 		{
 			SimpleIdentifier*                name          = boost::fusion::at_c<0>(i);
 			boost::optional<TypeSpecifier*> &optional_type = boost::fusion::at_c<1>(i);

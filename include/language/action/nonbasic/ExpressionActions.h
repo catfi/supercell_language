@@ -25,12 +25,12 @@
 
 #define LEFT_TO_RIGHT(op_code) \
 	{ \
-		if(_attr(0).size() == 1) \
-			_result = *make_deduced_begin(_attr(0)); \
+		if(_param(0).size() == 1) \
+			_result = *make_deduced_begin(_param(0)); \
 		else { \
 			Expression* left = NULL; \
-			deduced_foreach(i, _attr(0)) \
-				left = (is_begin_of_deduced_foreach(i, _attr(0))) ? *i : new BinaryExpr(op_code, left, *i); \
+			deduced_foreach(i, _param(0)) \
+				left = (is_begin_of_deduced_foreach(i, _param(0))) ? *i : new BinaryExpr(op_code, left, *i); \
 			_result = left; \
 		} \
 	}
@@ -38,12 +38,12 @@
 #if 0 // NOTE: unused
 #define RIGHT_TO_LEFT(op_code) \
 	{ \
-		if(_attr(0).size() == 1) \
-			_result = *make_deduced_reverse_begin(_attr(0)); \
+		if(_param(0).size() == 1) \
+			_result = *make_deduced_reverse_begin(_param(0)); \
 		else { \
 			Expression* right = NULL; \
-			deduced_reverse_foreach(i, _attr(0)) \
-				right = (is_begin_of_deduced_reverse_foreach(i, _attr(0))) ? *i : new BinaryExpr(op_code, *i, right); \
+			deduced_reverse_foreach(i, _param(0)) \
+				right = (is_begin_of_deduced_reverse_foreach(i, _param(0))) ? *i : new BinaryExpr(op_code, *i, right); \
 			_result = right; \
 		} \
 	}
@@ -51,13 +51,13 @@
 
 #define LEFT_TO_RIGHT_VEC(op_code_vec) \
 	{ \
-		if(_attr(0).size() == 1) \
-			_result = *make_deduced_begin(_attr(0)); \
+		if(_param(0).size() == 1) \
+			_result = *make_deduced_begin(_param(0)); \
 		else { \
 			Expression* left = NULL; \
 			auto j = make_deduced_begin(op_code_vec); \
-			deduced_foreach(i, _attr(0)) { \
-				if(is_begin_of_deduced_foreach(i, _attr(0))) { \
+			deduced_foreach(i, _param(0)) { \
+				if(is_begin_of_deduced_foreach(i, _param(0))) { \
 					left = *i; \
 					continue; \
 				} \
@@ -70,13 +70,13 @@
 
 #define RIGHT_TO_LEFT_VEC(op_code_vec) \
 	{ \
-		if(_attr(0).size() == 1) \
-			_result = *make_deduced_reverse_begin(_attr(0)); \
+		if(_param(0).size() == 1) \
+			_result = *make_deduced_reverse_begin(_param(0)); \
 		else { \
 			Expression* right = NULL; \
 			auto j = make_deduced_reverse_begin(op_code_vec); \
-			deduced_reverse_foreach(i, _attr(0)) { \
-				if(is_begin_of_deduced_reverse_foreach(i, _attr(0))) { \
+			deduced_reverse_foreach(i, _param(0)) { \
+				if(is_begin_of_deduced_reverse_foreach(i, _param(0))) { \
 					right = *i; \
 					continue; \
 				} \
@@ -99,16 +99,16 @@ struct primary_expression
 	BEGIN_ACTION(init)
 	{
 #ifdef DEBUG
-		printf("primary_expression attr(0) type = %s\n", typeid(_attr_t(0)).name());
+		printf("primary_expression param(0) type = %s\n", typeid(_param_t(0)).name());
 #endif
-		_result = new PrimaryExpr(_attr(0));
+		_result = new PrimaryExpr(_param(0));
 	}
 	END_ACTION
 
 	BEGIN_TEMPLATED_ACTION(init_bool, bool Value)
 	{
 #ifdef DEBUG
-		printf("primary_expression::init_bool attr(0) type = %s\n", typeid(_attr_t(0)).name());
+		printf("primary_expression::init_bool param(0) type = %s\n", typeid(_param_t(0)).name());
 #endif
 		_result = new PrimaryExpr(new NumericLiteral(Value));
 	}
@@ -117,7 +117,7 @@ struct primary_expression
 	BEGIN_TEMPLATED_ACTION(init_object_literal, ObjectLiteral::LiteralType::type Type)
 	{
 #ifdef DEBUG
-		printf("primary_expression::init_object_literal attr(0) type = %s\n", typeid(_attr_t(0)).name());
+		printf("primary_expression::init_object_literal param(0) type = %s\n", typeid(_param_t(0)).name());
 #endif
 		_result = new PrimaryExpr(new ObjectLiteral(Type));
 	}
@@ -126,25 +126,25 @@ struct primary_expression
 	BEGIN_ACTION(init_paren_expression)
 	{
 #ifdef DEBUG
-		printf("primary_expression::init_paren_expression attr(0) type = %s\n", typeid(_attr_t(0)).name());
+		printf("primary_expression::init_paren_expression param(0) type = %s\n", typeid(_param_t(0)).name());
 #endif
-		_result = _attr(0);
+		_result = _param(0);
 	}
 	END_ACTION
 
 	BEGIN_ACTION(init_lambda)
 	{
 #ifdef DEBUG
-		printf("primary_expression::lambda_expression attr(0) type = %s\n", typeid(_attr_t(0)).name());
-		printf("primary_expression::lambda_expression attr(1) type = %s\n", typeid(_attr_t(1)).name());
-		printf("primary_expression::lambda_expression attr(2) type = %s\n", typeid(_attr_t(2)).name());
+		printf("primary_expression::lambda_expression param(0) type = %s\n", typeid(_param_t(0)).name());
+		printf("primary_expression::lambda_expression param(1) type = %s\n", typeid(_param_t(1)).name());
+		printf("primary_expression::lambda_expression param(2) type = %s\n", typeid(_param_t(2)).name());
 #endif
-		typed_parameter_list::value_t*         parameters = _attr(0).is_initialized() ? (*_attr(0)).get() : NULL;
-		TypeSpecifier*                         type       = _attr(1).is_initialized() ? *_attr(1) : NULL;
+		typed_parameter_list::value_t*         parameters = _param(0).is_initialized() ? (*_param(0)).get() : NULL;
+		TypeSpecifier*                         type       = _param(1).is_initialized() ? *_param(1) : NULL;
 		Declaration::VisibilitySpecifier::type visibility = Declaration::VisibilitySpecifier::PUBLIC;
 		Declaration::StorageSpecifier::type    storage    = Declaration::StorageSpecifier::NONE;
 		bool                                   is_member  = false;
-		FunctionDecl* function_decl = new FunctionDecl(NULL, type, is_member, visibility, storage, _attr(2));
+		FunctionDecl* function_decl = new FunctionDecl(NULL, type, is_member, visibility, storage, _param(2));
 		if(!!parameters)
 			deduced_foreach_value(i, *parameters)
 				function_decl->appendParameter(i.first, i.second);
@@ -161,29 +161,29 @@ struct postfix_expression
 	BEGIN_ACTION(init_primary_expression)
 	{
 #ifdef DEBUG
-		printf("postfix_expression::init_primary_expression attr(0) type = %s\n", typeid(_attr_t(0)).name());
+		printf("postfix_expression::init_primary_expression param(0) type = %s\n", typeid(_param_t(0)).name());
 #endif
-		_result = _attr(0);
+		_result = _param(0);
 	}
 	END_ACTION
 
 	BEGIN_ACTION(append_postfix_array)
 	{
 #ifdef DEBUG
-		printf("postfix_expression::init_postfix_array attr(0) type = %s\n", typeid(_attr_t(0)).name());
+		printf("postfix_expression::init_postfix_array param(0) type = %s\n", typeid(_param_t(0)).name());
 #endif
-		_result = new BinaryExpr(BinaryExpr::OpCode::ARRAY_SUBSCRIPT, _result, _attr(0));
+		_result = new BinaryExpr(BinaryExpr::OpCode::ARRAY_SUBSCRIPT, _result, _param(0));
 	}
 	END_ACTION
 
 	BEGIN_ACTION(append_postfix_call)
 	{
 #ifdef DEBUG
-		printf("postfix_expression::init_postfix_call attr(0) type = %s\n", typeid(_attr_t(0)).name());
+		printf("postfix_expression::init_postfix_call param(0) type = %s\n", typeid(_param_t(0)).name());
 #endif
 		CallExpr* call_expr = new CallExpr(_result);
-		if(_attr(0).is_initialized())
-			deduced_foreach_value(i, *_attr(0))
+		if(_param(0).is_initialized())
+			deduced_foreach_value(i, *_param(0))
 				call_expr->appendParameter(i);
 		_result = call_expr;
 	}
@@ -192,16 +192,16 @@ struct postfix_expression
 	BEGIN_ACTION(append_postfix_member)
 	{
 #ifdef DEBUG
-		printf("postfix_expression::init_postfix_member attr(0) type = %s\n", typeid(_attr_t(0)).name());
+		printf("postfix_expression::init_postfix_member param(0) type = %s\n", typeid(_param_t(0)).name());
 #endif
-		_result = new MemberExpr(_result, _attr(0));
+		_result = new MemberExpr(_result, _param(0));
 	}
 	END_ACTION
 
 	BEGIN_TEMPLATED_ACTION(append_postfix_step, UnaryExpr::OpCode::type Type)
 	{
 #ifdef DEBUG
-		printf("postfix_expression::append_postfix_step attr(0) type = %s\n", typeid(_attr_t(0)).name());
+		printf("postfix_expression::append_postfix_step param(0) type = %s\n", typeid(_param_t(0)).name());
 #endif
 		_result = new UnaryExpr(Type, _result);
 	}
@@ -216,16 +216,16 @@ struct prefix_expression
 	BEGIN_ACTION(init)
 	{
 #ifdef DEBUG
-		printf("prefix_expression attr(0) type = %s\n", typeid(_attr_t(0)).name());
+		printf("prefix_expression param(0) type = %s\n", typeid(_param_t(0)).name());
 #endif
-		switch(_attr(0).which())
+		switch(_param(0).which())
 		{
 		case 0:
-			_result = boost::get<Expression*>(_attr(0));
+			_result = boost::get<Expression*>(_param(0));
 			break;
 		case 1:
 			typedef boost::fusion::vector2<UnaryExpr::OpCode::type, Expression*> fusion_vec_t;
-			fusion_vec_t &vec = boost::get<fusion_vec_t>(_attr(0));
+			fusion_vec_t &vec = boost::get<fusion_vec_t>(_param(0));
 			UnaryExpr::OpCode::type type = boost::fusion::at_c<0>(vec);
 			Expression*             expr = boost::fusion::at_c<1>(vec);
 			_result = new UnaryExpr(type, expr);
@@ -243,18 +243,18 @@ struct left_to_right_binary_op_vec
 	BEGIN_ACTION(append_op)
 	{
 #ifdef DEBUG
-		printf("left_to_right_binary_op_vec::append_op attr(0) type = %s\n", typeid(_attr_t(0)).name());
+		printf("left_to_right_binary_op_vec::append_op param(0) type = %s\n", typeid(_param_t(0)).name());
 #endif
 		if(!_local(0))
 			_local(0).reset(new binary_ops_t());
-		_local(0)->push_back(_attr(0));
+		_local(0)->push_back(_param(0));
 	}
 	END_ACTION
 
 	BEGIN_ACTION(init)
 	{
 #ifdef DEBUG
-		printf("left_to_right_binary_op_vec attr(0) type = %s\n", typeid(_attr_t(0)).name());
+		printf("left_to_right_binary_op_vec param(0) type = %s\n", typeid(_param_t(0)).name());
 #endif
 		LEFT_TO_RIGHT_VEC(*_local(0));
 	}
@@ -269,18 +269,18 @@ struct right_to_left_binary_op_vec
 	BEGIN_ACTION(append_op)
 	{
 #ifdef DEBUG
-		printf("right_to_left_binary_op_vec::append_op attr(0) type = %s\n", typeid(_attr_t(0)).name());
+		printf("right_to_left_binary_op_vec::append_op param(0) type = %s\n", typeid(_param_t(0)).name());
 #endif
 		if(!_local(0))
 			_local(0).reset(new binary_ops_t());
-		_local(0)->push_back(_attr(0));
+		_local(0)->push_back(_param(0));
 	}
 	END_ACTION
 
 	BEGIN_ACTION(init)
 	{
 #ifdef DEBUG
-		printf("right_to_left_binary_op_vec attr(0) type = %s\n", typeid(_attr_t(0)).name());
+		printf("right_to_left_binary_op_vec param(0) type = %s\n", typeid(_param_t(0)).name());
 #endif
 		RIGHT_TO_LEFT_VEC(*_local(0));
 	}
@@ -295,7 +295,7 @@ struct left_to_right_binary_op
 	BEGIN_TEMPLATED_ACTION(init, BinaryExpr::OpCode::type Type)
 	{
 #ifdef DEBUG
-		printf("left_to_right_binary_op attr(0) type = %s\n", typeid(_attr_t(0)).name());
+		printf("left_to_right_binary_op param(0) type = %s\n", typeid(_param_t(0)).name());
 #endif
 		LEFT_TO_RIGHT(Type);
 	}
@@ -311,7 +311,7 @@ struct right_to_left_binary_op
 	BEGIN_TEMPLATED_ACTION(init, BinaryExpr::OpCode::type Type)
 	{
 #ifdef DEBUG
-		printf("right_to_left_binary_op attr(0) type = %s\n", typeid(_attr_t(0)).name());
+		printf("right_to_left_binary_op param(0) type = %s\n", typeid(_param_t(0)).name());
 #endif
 		RIGHT_TO_LEFT(Type);
 	}
@@ -327,15 +327,15 @@ struct range_expression
 	BEGIN_ACTION(init)
 	{
 #ifdef DEBUG
-		printf("range_expression attr(0) type = %s\n", typeid(_attr_t(0)).name());
-		printf("range_expression attr(1) type = %s\n", typeid(_attr_t(1)).name());
+		printf("range_expression param(0) type = %s\n", typeid(_param_t(0)).name());
+		printf("range_expression param(1) type = %s\n", typeid(_param_t(1)).name());
 #endif
-		if(!_attr(1).is_initialized())
+		if(!_param(1).is_initialized())
 		{
-			_result = _attr(0);
+			_result = _param(0);
 			return;
 		}
-		_result = new BinaryExpr(BinaryExpr::OpCode::RANGE_ELLIPSIS, _attr(0), *_attr(1));
+		_result = new BinaryExpr(BinaryExpr::OpCode::RANGE_ELLIPSIS, _param(0), *_param(1));
 	}
 	END_ACTION
 };
@@ -348,17 +348,17 @@ struct ternary_expression
 	BEGIN_ACTION(init)
 	{
 #ifdef DEBUG
-		printf("ternary_expression attr(0) type = %s\n", typeid(_attr_t(0)).name());
-		printf("ternary_expression attr(1) type = %s\n", typeid(_attr_t(1)).name());
+		printf("ternary_expression param(0) type = %s\n", typeid(_param_t(0)).name());
+		printf("ternary_expression param(1) type = %s\n", typeid(_param_t(1)).name());
 #endif
-		if(!_attr(1).is_initialized())
+		if(!_param(1).is_initialized())
 		{
-			_result = _attr(0);
+			_result = _param(0);
 			return;
 		}
-		Expression* true_node  = boost::fusion::at_c<0>(*_attr(1));
-		Expression* false_node = boost::fusion::at_c<1>(*_attr(1));
-		_result = new TernaryExpr(_attr(0), true_node, false_node);
+		Expression* true_node  = boost::fusion::at_c<0>(*_param(1));
+		Expression* false_node = boost::fusion::at_c<1>(*_param(1));
+		_result = new TernaryExpr(_param(0), true_node, false_node);
 	}
 	END_ACTION
 };

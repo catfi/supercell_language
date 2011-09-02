@@ -32,9 +32,9 @@ struct integer_literal
 	BEGIN_ACTION(init)
 	{
 #ifdef DEBUG
-		printf("integer_literal attr(0) type = %s\n", typeid(_attr_t(0)).name());
+		printf("integer_literal param(0) type = %s\n", typeid(_param_t(0)).name());
 #endif
-		_result = new NumericLiteral(_attr(0));
+		_result = new NumericLiteral(_param(0));
 	}
 	END_ACTION
 };
@@ -47,9 +47,9 @@ struct float_literal
 	BEGIN_ACTION(init)
 	{
 #ifdef DEBUG
-		printf("float_literal attr(0) type = %s\n", typeid(_attr_t(0)).name());
+		printf("float_literal param(0) type = %s\n", typeid(_param_t(0)).name());
 #endif
-		_result = new NumericLiteral(_attr(0));
+		_result = new NumericLiteral(_param(0));
 	}
 	END_ACTION
 };
@@ -62,9 +62,9 @@ struct string_literal
 	BEGIN_ACTION(init)
 	{
 #ifdef DEBUG
-		printf("string_literal attr(0) type = %s\n", typeid(_attr_t(0)).name());
+		printf("string_literal param(0) type = %s\n", typeid(_param_t(0)).name());
 #endif
-		_result = new StringLiteral(_attr(0));
+		_result = new StringLiteral(_param(0));
 	}
 	END_ACTION
 };

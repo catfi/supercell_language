@@ -32,9 +32,9 @@ struct identifier
 	BEGIN_ACTION(init)
 	{
 #ifdef DEBUG
-		printf("identifier attr(0) type = %s\n", typeid(_attr_t(0)).name());
+		printf("identifier param(0) type = %s\n", typeid(_param_t(0)).name());
 #endif
-		_result = new SimpleIdentifier(_attr(0));
+		_result = new SimpleIdentifier(_param(0));
 	}
 	END_ACTION
 };
@@ -47,16 +47,16 @@ struct nested_identifier
 	BEGIN_ACTION(init)
 	{
 #ifdef DEBUG
-		printf("nested_identifier attr(0) type = %s\n", typeid(_attr_t(0)).name());
-		printf("nested_identifier attr(1) type = %s\n", typeid(_attr_t(1)).name());
+		printf("nested_identifier param(0) type = %s\n", typeid(_param_t(0)).name());
+		printf("nested_identifier param(1) type = %s\n", typeid(_param_t(1)).name());
 #endif
-		if(_attr(1).size() == 0)
-			_result = _attr(0);
+		if(_param(1).size() == 0)
+			_result = _param(0);
 		else
 		{
 			_result = new NestedIdentifier();
-			cast<NestedIdentifier>(_result)->appendIdentifier(_attr(0));
-			deduced_foreach_value(i, _attr(1))
+			cast<NestedIdentifier>(_result)->appendIdentifier(_param(0));
+			deduced_foreach_value(i, _param(1))
 				cast<NestedIdentifier>(_result)->appendIdentifier(i);
 		}
 	}
@@ -71,17 +71,17 @@ struct template_arg_identifier
 	BEGIN_ACTION(init)
 	{
 #ifdef DEBUG
-		printf("template_arg_identifier attr(0) type = %s\n", typeid(_attr_t(0)).name());
-		printf("template_arg_identifier attr(1) type = %s\n", typeid(_attr_t(1)).name());
+		printf("template_arg_identifier param(0) type = %s\n", typeid(_param_t(0)).name());
+		printf("template_arg_identifier param(1) type = %s\n", typeid(_param_t(1)).name());
 #endif
-		if(_attr(1).is_initialized())
+		if(_param(1).is_initialized())
 		{
-			_result =  new TemplatedIdentifier(TemplatedIdentifier::Usage::ACTUAL_ARGUMENT, _attr(0));
-			deduced_foreach_value(i, *_attr(1))
+			_result =  new TemplatedIdentifier(TemplatedIdentifier::Usage::ACTUAL_ARGUMENT, _param(0));
+			deduced_foreach_value(i, *_param(1))
 				cast<TemplatedIdentifier>(_result)->appendArgument(i);
 		}
 		else
-			_result = _attr(0);
+			_result = _param(0);
 	}
 	END_ACTION
 };
@@ -94,13 +94,13 @@ struct template_param_identifier
 	BEGIN_ACTION(init)
 	{
 #ifdef DEBUG
-		printf("template_param_identifier attr(0) type = %s\n", typeid(_attr_t(0)).name());
-		printf("template_param_identifier attr(1) type = %s\n", typeid(_attr_t(1)).name());
+		printf("template_param_identifier param(0) type = %s\n", typeid(_param_t(0)).name());
+		printf("template_param_identifier param(1) type = %s\n", typeid(_param_t(1)).name());
 #endif
-		if(_attr(1).is_initialized())
+		if(_param(1).is_initialized())
 		{
-			_result =  new TemplatedIdentifier(TemplatedIdentifier::Usage::FORMAL_PARAMETER, _attr(0));
-			deduced_foreach_value(i, *(_attr(1)))
+			_result =  new TemplatedIdentifier(TemplatedIdentifier::Usage::FORMAL_PARAMETER, _param(0));
+			deduced_foreach_value(i, *(_param(1)))
 			{
 				switch(i.which())
 				{
@@ -114,7 +114,7 @@ struct template_param_identifier
 			}
 		}
 		else
-			_result = _attr(0);
+			_result = _param(0);
 	}
 	END_ACTION
 };
