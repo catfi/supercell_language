@@ -140,7 +140,7 @@ bool ThorScriptParserStage::parse(std::string filename)
     getParserContext().dump_rule_debug = dump_parse;
     getParserContext().enable_semantic_action = !dump_parse;
     getParserContext().debug.source_index = ModuleSourceInfoContext::get(getParserContext().program)->addSource(filename);
-    getParserContext().debug.line = 0;
+    getParserContext().debug.line = 1;
     getParserContext().debug.column = 0;
 
     // try to parse
