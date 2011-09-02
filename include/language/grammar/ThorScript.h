@@ -407,7 +407,7 @@ struct ThorScript : qi::grammar<Iterator, typename SA::start::attribute_type, de
 			| qi::lit(L"uint64")                                                                   [ typename SA::type_specifier::template init_primitive_type<tree::TypeSpecifier::PrimitiveType::UINT64>() ]
 			| qi::lit(L"float32")                                                                  [ typename SA::type_specifier::template init_primitive_type<tree::TypeSpecifier::PrimitiveType::FLOAT32>() ]
 			| qi::lit(L"float64")                                                                  [ typename SA::type_specifier::template init_primitive_type<tree::TypeSpecifier::PrimitiveType::FLOAT64>() ]
-			| template_arg_identifier                                                              [ typename SA::type_specifier::init_type() ]
+			| (nested_identifier > -(COMPARE_LT >> type_list_specifier > COMPARE_GT))              [ typename SA::type_specifier::init_type() ]
 			| (FUNCTION > LEFT_PAREN > -type_list_specifier > RIGHT_PAREN > -colon_type_specifier) [ typename SA::type_specifier::init_function_type() ]
 			| ELLIPSIS                                                                             [ typename SA::type_specifier::init_ellipsis() ]
 			;
@@ -417,7 +417,7 @@ struct ThorScript : qi::grammar<Iterator, typename SA::start::attribute_type, de
 			;
 
 		template_arg_identifier
-			= (nested_identifier > -(COMPARE_LT >> type_list_specifier > COMPARE_GT)) [ typename SA::template_arg_identifier::init() ]
+			= (IDENTIFIER > -(COMPARE_LT >> type_list_specifier > COMPARE_GT)) [ typename SA::template_arg_identifier::init() ]
 			;
 
 		type_list_specifier

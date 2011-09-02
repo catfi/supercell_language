@@ -48,8 +48,18 @@ struct type_specifier
 	{
 #ifdef DEBUG
 		printf("type_specifier::init_type attr(0) type = %s\n", typeid(_attr_t(0)).name());
+		printf("type_specifier::init_type attr(1) type = %s\n", typeid(_attr_t(1)).name());
 #endif
-		_value = new TypeSpecifier(_attr(0));
+		Identifier* ident = NULL;
+		if(_attr(1).is_initialized())
+		{
+			ident =  new TemplatedIdentifier(TemplatedIdentifier::Usage::ACTUAL_ARGUMENT, _attr(0));
+			deduced_foreach_value(i, *_attr(1))
+				cast<TemplatedIdentifier>(ident)->appendArgument(i);
+		}
+		else
+			ident = _attr(0);
+		_value = new TypeSpecifier(ident);
 	}
 	END_ACTION
 
