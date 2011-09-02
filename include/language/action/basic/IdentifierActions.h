@@ -63,7 +63,7 @@ struct nested_identifier
 		printf("nested_identifier attr(0) type = %s\n", typeid(_attr_t(0)).name());
 		printf("nested_identifier attr(1) type = %s\n", typeid(_attr_t(1)).name());
 #endif
-		if(_attr(1).size() == 1)
+		if(_attr(1).size() == 0)
 			_value = _attr(0);
 		else
 		{
