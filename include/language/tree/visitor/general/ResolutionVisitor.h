@@ -23,7 +23,9 @@
 #include "core/Prerequisite.h"
 #include "core/Visitor.h"
 #include "language/tree/visitor/general/GenericVisitor.h"
+#include "language/tree/visitor/general/NodeInfoVisitor.h"
 #include "language/tree/ASTNodeFactory.h"
+#include "language/resolver/context/ResolverContext.h"
 
 namespace zillians { namespace language { namespace tree { namespace visitor {
 
@@ -48,7 +50,28 @@ struct ResolutionVisitor : Visitor<ASTNode, void, VisitorImplementation::recursi
 
 	void resolve(ASTNode& node)
 	{
-		// default dummy implementation
+		NodeInfoVisitor node_info_visitor;
+		node_info_visitor.visit(node);
+
+		if(isSearchForType())
+		{
+			LOG4CXX_ERROR(Logger::Compiler, L"resolution visitor is trying to resolve type on unspecified node \"" << node_info_visitor.stream.str() << L"\"");
+		}
+
+		if(isSearchForSymbol())
+		{
+			LOG4CXX_DEBUG(Logger::Compiler, L"resolution visitor is trying to resolve symbol on unspecified node \"" << node_info_visitor.stream.str() << L"\"");
+
+			ASTNode* r = ResolvedSymbol::get(&node);
+			if(r)
+				visit(*r);
+		}
+
+		if(isSearchForPackage())
+		{
+			LOG4CXX_ERROR(Logger::Compiler, L"resolution visitor is trying to resolve package on unspecified node \"" << node_info_visitor.stream.str() << L"\"");
+		}
+
 	}
 
 	void resolve(TypeSpecifier& node)

@@ -51,7 +51,7 @@ struct Resolver
 	{
 		tree::visitor::NodeInfoVisitor node_info_visitor;
 		node_info_visitor.visit(node);
-		LOG4CXX_DEBUG(Logger::Resolver, L"entering scope: " << node_info_visitor.stream.str());
+		LOG4CXX_DEBUG(Logger::Resolver, L"entering scope: \"" << node_info_visitor.stream.str() << L"\"");
 
 		current_scopes.insert(&node);
 	}
@@ -60,7 +60,7 @@ struct Resolver
 	{
 		tree::visitor::NodeInfoVisitor node_info_visitor;
 		node_info_visitor.visit(node);
-		LOG4CXX_DEBUG(Logger::Resolver, L"leaving scope: " << node_info_visitor.stream.str());
+		LOG4CXX_DEBUG(Logger::Resolver, L"leaving scope: \"" << node_info_visitor.stream.str() << L"\"");
 
 		__gnu_cxx::hash_set<tree::ASTNode*>::iterator scope = current_scopes.find(&node);
 		if(scope != current_scopes.end())
@@ -69,7 +69,7 @@ struct Resolver
 		}
 		else
 		{
-			LOG4CXX_ERROR(Logger::Resolver, L"leaving unknown scope: " << node_info_visitor.stream.str());
+			LOG4CXX_ERROR(Logger::Resolver, L"leaving unknown scope: \"" << node_info_visitor.stream.str() << L"\"");
 		}
 	}
 
@@ -77,7 +77,10 @@ struct Resolver
 	{
 		using namespace zillians::language::tree;
 
-		LOG4CXX_DEBUG(Logger::Resolver, L"trying to resolve symbol: " << node.toString() << L" from a single scope");
+		tree::visitor::NodeInfoVisitor node_info_visitor;
+		node_info_visitor.visit(scope);
+		LOG4CXX_DEBUG(Logger::Resolver, L"trying to resolve symbol: \"" << node.toString() << L"\" from scope \"" << node_info_visitor.stream.str() << "\"");
+		node_info_visitor.reset();
 
 		if(!ResolvedSymbol::get(&node))
 		{
@@ -105,7 +108,7 @@ struct Resolver
 	{
 		using namespace zillians::language::tree;
 
-		LOG4CXX_DEBUG(Logger::Resolver, L"trying to resolve symbol: " << node.toString());
+		LOG4CXX_DEBUG(Logger::Resolver, L"trying to resolve symbol: \"" << node.toString() << L"\"");
 
 		if(!ResolvedSymbol::get(&node))
 		{
@@ -118,7 +121,7 @@ struct Resolver
 			{
 				tree::visitor::NodeInfoVisitor node_info_visitor;
 				node_info_visitor.visit(**scope);
-				LOG4CXX_DEBUG(Logger::Resolver, L"looking at scope: " << node_info_visitor.stream.str());
+				LOG4CXX_DEBUG(Logger::Resolver, L"looking at scope: \"" << node_info_visitor.stream.str() << L"\"");
 
 				resolution_visitor.visit(**scope);
 			}
@@ -216,7 +219,7 @@ struct Resolver
 	{
 		using namespace zillians::language::tree;
 
-		LOG4CXX_DEBUG(Logger::Resolver, L"trying to resolve type: " << node.referred.unspecified->toString());
+		LOG4CXX_DEBUG(Logger::Resolver, L"trying to resolve type: \"" << node.referred.unspecified->toString() << L"\"");
 
 		if(node.type == TypeSpecifier::ReferredType::UNSPECIFIED)
 		{

@@ -154,6 +154,166 @@ struct NodeInfoVisitor : Visitor<ASTNode, void, VisitorImplementation::recursive
 		stream << node.name->toString();
 	}
 
+	void info(Statement& node)
+	{
+		if(node.parent) visit(*node.parent);
+
+		if(stream.str().length() > 0)
+			stream << L".";
+
+		stream << L"[stmt]";
+	}
+
+	void info(BranchStmt& node)
+	{
+		if(node.parent) visit(*node.parent);
+
+		if(stream.str().length() > 0)
+			stream << L".";
+
+		stream << L"[branch_stmt]";
+	}
+
+	void info(DeclarativeStmt& node)
+	{
+		if(node.parent) visit(*node.parent);
+
+		if(stream.str().length() > 0)
+			stream << L".";
+
+		stream << L"[decl_stmt]";
+	}
+
+	void info(ExpressionStmt& node)
+	{
+		if(node.parent) visit(*node.parent);
+
+		if(stream.str().length() > 0)
+			stream << L".";
+
+		stream << L"[expr_stmt]";
+	}
+
+	void info(ForeachStmt& node)
+	{
+		if(node.parent) visit(*node.parent);
+
+		if(stream.str().length() > 0)
+			stream << L".";
+
+		stream << L"[foreach_stmt]";
+	}
+
+	void info(WhileStmt& node)
+	{
+		if(node.parent) visit(*node.parent);
+
+		if(stream.str().length() > 0)
+			stream << L".";
+
+		stream << L"[while_stmt]";
+	}
+
+	void info(IfElseStmt& node)
+	{
+		if(node.parent) visit(*node.parent);
+
+		if(stream.str().length() > 0)
+			stream << L".";
+
+		stream << L"[ifelse_stmt]";
+	}
+
+	void info(SwitchStmt& node)
+	{
+		if(node.parent) visit(*node.parent);
+
+		if(stream.str().length() > 0)
+			stream << L".";
+
+		stream << L"[switch_stmt]";
+	}
+
+	void info(Expression& node)
+	{
+		if(node.parent) visit(*node.parent);
+
+		if(stream.str().length() > 0)
+			stream << L".";
+
+		stream << L"[expr]";
+	}
+
+	void info(UnaryExpr& node)
+	{
+		if(node.parent) visit(*node.parent);
+
+		if(stream.str().length() > 0)
+			stream << L".";
+
+		stream << L"[unary_expr]";
+	}
+
+	void info(BinaryExpr& node)
+	{
+		if(node.parent) visit(*node.parent);
+
+		if(stream.str().length() > 0)
+			stream << L".";
+
+		stream << L"[binary_expr]";
+	}
+
+	void info(TernaryExpr& node)
+	{
+		if(node.parent) visit(*node.parent);
+
+		if(stream.str().length() > 0)
+			stream << L".";
+
+		stream << L"[ternary_expr]";
+	}
+
+	void info(CallExpr& node)
+	{
+		if(node.parent) visit(*node.parent);
+
+		if(stream.str().length() > 0)
+			stream << L".";
+
+		stream << L"[call_expr]";
+	}
+
+	void info(CastExpr& node)
+	{
+		if(node.parent) visit(*node.parent);
+
+		if(stream.str().length() > 0)
+			stream << L".";
+
+		stream << L"[cast_expr]";
+	}
+
+	void info(PrimaryExpr& node)
+	{
+		if(node.parent) visit(*node.parent);
+
+		if(stream.str().length() > 0)
+			stream << L".";
+
+		stream << L"[primary_expr]";
+	}
+
+	void info(MemberExpr& node)
+	{
+		if(node.parent) visit(*node.parent);
+
+		if(stream.str().length() > 0)
+			stream << L".";
+
+		stream << L"[member_expr]";
+	}
+
 	void reset()
 	{
 		stream.str(L"");
