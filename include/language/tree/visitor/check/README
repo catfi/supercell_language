@@ -33,6 +33,10 @@ Semantic Check List
 // For all package
 - the package name should not conflict with its parent and sibling
 
+// For function
+- If the function has non-void return type, check if all paths have return value (and are of the same type)
+- If the function has void return type, then there's no return (BranchStmt) allowed in the tree
+
 // For class declaration
 - The class name cannot conflict with other class (name resolving conflict)
 - The identifiers for interface implementation must refer to an interface
