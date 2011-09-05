@@ -1,0 +1,122 @@
+/**
+ * Zillians MMO
+ * Copyright (C) 2007-2011 Zillians.com, Inc.
+ * For more information see http://www.zillians.com
+ *
+ * Zillians MMO is the library and runtime for massive multiplayer online game
+ * development in utility computing model, which runs as a service for every
+ * developer to build their virtual world running on our GPU-assisted machines.
+ *
+ * This is a close source library intended to be used solely within Zillians.com
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * COPYRIGHT HOLDER(S) BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN
+ * AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+ * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ */
+
+#ifndef ZILLIANS_LANGUAGE_STRINGTABLE_H_
+#define ZILLIANS_LANGUAGE_STRINGTABLE_H_
+
+#include "core/Prerequisite.h"
+#include <string>
+
+namespace zillians { namespace language { namespace logging {
+
+/**
+ * StringTable is responsible to:
+ *
+ * 1. Tables for warning and error string
+ */
+struct StringTable
+{
+	/*[[[cog
+
+	# Define constant string
+	WARNING_UNUSED_VARIABLE = 'UNUSED_VARIABLE'
+	ERROR_UNDEFINED_VARIABLE = 'UNDEFINED_VARIABLE'
+
+	# Define string table
+	attribute_table = [
+		('warning', 0, WARNING_UNUSED_VARIABLE),
+		('error', 0, ERROR_UNDEFINED_VARIABLE),
+		]
+
+	translate_table = {
+		'en_US':
+			{
+			WARNING_UNUSED_VARIABLE: 'Undefined variable $ID is used',
+			ERROR_UNDEFINED_VARIABLE: 'Undefined variable $ID in $FILE'
+			},
+	 	'zh_TW':
+	 		{
+			WARNING_UNUSED_VARIABLE: r'$ID 未被使用',
+			ERROR_UNDEFINED_VARIABLE: r'變數 $ID 在 $FILE 中未被定義'
+	 		}
+	 	}
+
+
+	#
+	# Start to generate c++ codes
+	#
+	import cog
+
+	# Generate all message id
+	cog.outl('enum message_id_t {')
+	for i in range(len(attribute_table)):
+		cog.outl('\t %s,' % attribute_table[i][2]);
+	cog.outl('};')
+	 ]]]*/
+	//[[[end]]]
+
+	enum message_type_t {
+		MESSAGE_TYPE_WARNING,
+		MESSAGE_TYPE_ERROR,
+	};
+
+	struct attribute_table_t {
+		message_type_t type;
+		uint32 level;
+		message_id_t id;
+	};
+
+	typdef std::map<message_id_t, std::wstring> translate_map_t;
+	std::map<std::string, translate_map_t>  locale_translation_table;
+
+	StringTable()
+	{
+		/*[[[cog
+
+		#
+		# Generate attribute tables
+		#
+		cog.outl('static attribute_table_t attribute_table[] = {');
+		for i in range(len(attribute_table)):
+			message_type = 'MESSAGE_TYPE_WARNING' if attribute_table[i][0] == 'warning' else 'MESSAGE_TYPE_ERROR'
+			cog.outl('\t {%s, %d, %s}' % (message_type, attribute_table[i][1], attribute_table[i][2]));
+		cog.outl('};');
+
+		#
+		# Generate string tables for different language
+		#
+		for k in translate_table.keys():
+			cog.outl('{');
+			cog.outl('translate_map_t translate_table = locale_translation_table["%s"]' % k);
+
+			for (id, trans) in translate_table[k].iteritems():
+				cog.outl(r'translate_table[%s] = "%s"' % (id, trans));
+			cog.outl('}');
+
+		]]]*/
+		//[[[end]]]
+	}
+
+
+	// TODO: APIs
+};
+
+}}}
+
+#endif /* ZILLIANS_LANGUAGE_STRINGTABLE_H_ */
