@@ -189,7 +189,13 @@ struct annotation_specifiers
 struct annotation_specifier
 {
 	DEFINE_ATTRIBUTES(Annotation*)
-	DEFINE_LOCALS()
+	DEFINE_LOCALS(LOCATIONS_DECL(1))
+
+	BEGIN_ACTION(init_loc)
+	{
+		ALLOCATE_LOCATIONS(1);
+	}
+	END_ACTION
 
 	BEGIN_ACTION(init)
 	{
@@ -197,7 +203,7 @@ struct annotation_specifier
 		printf("annotation_specifier::init param(0) type = %s\n", typeid(_param_t(0)).name());
 		printf("annotation_specifier::init param(1) type = %s\n", typeid(_param_t(1)).name());
 #endif
-		REGISTER_LOCATION(_result = new Annotation(_param(0)));
+		SET_LOCATION(_result = new Annotation(_param(0)));
 		if(_param(1).is_initialized())
 			deduced_foreach_value(i, *_param(1))
 			{
@@ -206,6 +212,7 @@ struct annotation_specifier
 				Expression*       value = boost::fusion::at_c<1>(i);
 				_result->appendKeyValue(key, value);
 			}
+		FREE_UNUSED_LOCATIONS;
 	}
 	END_ACTION
 };

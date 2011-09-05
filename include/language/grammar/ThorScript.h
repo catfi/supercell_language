@@ -475,7 +475,7 @@ struct ThorScript : qi::grammar<Iterator, typename SA::start::attribute_type, de
 			;
 
 		annotation_specifier
-			=	(AT_SYMBOL > IDENTIFIER
+			=	(AT_SYMBOL > IDENTIFIER [ typename SA::annotation_specifier::init_loc() ]
 					>	-(LEFT_BRACE > (
 						(IDENTIFIER > ASSIGN > primary_expression) % COMMA
 						) > RIGHT_BRACE)
@@ -483,7 +483,9 @@ struct ThorScript : qi::grammar<Iterator, typename SA::start::attribute_type, de
 			;
 
 		nested_identifier
-			= (IDENTIFIER > *(DOT > IDENTIFIER)) [ typename SA::nested_identifier::init() ]
+			=	(IDENTIFIER [ typename SA::nested_identifier::init_loc() ]
+					> *(DOT > IDENTIFIER)
+				) [ typename SA::nested_identifier::init() ]
 			;
 
 		//
@@ -777,7 +779,9 @@ struct ThorScript : qi::grammar<Iterator, typename SA::start::attribute_type, de
 			;
 
 		variable_decl_stem
-			= (VAR > IDENTIFIER > -colon_type_specifier) [ typename SA::variable_decl_stem::init() ]
+			=	(VAR > IDENTIFIER [ typename SA::variable_decl_stem::init_loc() ]
+					> -colon_type_specifier
+				) [ typename SA::variable_decl_stem::init() ]
 			;
 
 		function_decl
@@ -788,7 +792,9 @@ struct ThorScript : qi::grammar<Iterator, typename SA::start::attribute_type, de
 			;
 
 		typedef_decl
-			= (TYPEDEF > type_specifier > IDENTIFIER > SEMICOLON) [ typename SA::typedef_decl::init() ]
+			=	(TYPEDEF > type_specifier > IDENTIFIER [ typename SA::typedef_decl::init_loc() ]
+					> SEMICOLON
+				) [ typename SA::typedef_decl::init() ]
 			;
 
 		class_decl
@@ -809,7 +815,7 @@ struct ThorScript : qi::grammar<Iterator, typename SA::start::attribute_type, de
 			;
 
 		interface_decl
-			= (INTERFACE > IDENTIFIER
+			= (INTERFACE > IDENTIFIER [ typename SA::interface_decl::init_loc() ]
 				> LEFT_BRACE
 				> *interface_member_function_decl
 				> RIGHT_BRACE
@@ -817,12 +823,13 @@ struct ThorScript : qi::grammar<Iterator, typename SA::start::attribute_type, de
 			;
 
 		interface_member_function_decl
-			=	(-interface_visibility_specifier >> FUNCTION > IDENTIFIER > LEFT_PAREN > -typed_parameter_list > RIGHT_PAREN > colon_type_specifier > SEMICOLON
+			=	(-interface_visibility_specifier >> FUNCTION > IDENTIFIER [ typename SA::interface_member_function_decl::init_loc() ]
+					> LEFT_PAREN > -typed_parameter_list > RIGHT_PAREN > colon_type_specifier > SEMICOLON
 				) [ typename SA::interface_member_function_decl::init() ]
 			;
 
 		enum_decl
-			= (ENUM > IDENTIFIER
+			= (ENUM > IDENTIFIER [ typename SA::enum_decl::init_loc() ]
 				> LEFT_BRACE
 				> (-annotation_specifiers > IDENTIFIER > -(ASSIGN > expression)) % COMMA
 				> RIGHT_BRACE

@@ -42,7 +42,13 @@ struct identifier
 struct nested_identifier
 {
 	DEFINE_ATTRIBUTES(Identifier*)
-	DEFINE_LOCALS()
+	DEFINE_LOCALS(LOCATIONS_DECL(1))
+
+	BEGIN_ACTION(init_loc)
+	{
+		ALLOCATE_LOCATIONS(1);
+	}
+	END_ACTION
 
 	BEGIN_ACTION(init)
 	{
@@ -54,11 +60,12 @@ struct nested_identifier
 			_result = _param(0);
 		else
 		{
-			REGISTER_LOCATION(_result = new NestedIdentifier());
+			SET_LOCATION(_result = new NestedIdentifier());
 			cast<NestedIdentifier>(_result)->appendIdentifier(_param(0));
 			deduced_foreach_value(i, _param(1))
 				cast<NestedIdentifier>(_result)->appendIdentifier(i);
 		}
+		FREE_UNUSED_LOCATIONS;
 	}
 	END_ACTION
 };
