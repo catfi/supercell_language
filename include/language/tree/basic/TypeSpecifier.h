@@ -41,20 +41,40 @@ struct TypeSpecifier : public ASTNode
 	{
 		enum type {
 			VOID,
-			INT8,
-			INT16,
-			INT32,
-			INT64,
+
+			BOOL,
 			UINT8,
 			UINT16,
 			UINT32,
 			UINT64,
+
+			INT8,
+			INT16,
+			INT32,
+			INT64,
+
 			FLOAT32,
 			FLOAT64,
+
 			ANONYMOUS_OBJECT,
 			ANONYMOUS_FUNCTION,
 			VARIADIC_ELLIPSIS,
 		};
+
+		static bool isSignedIntegerType(type t)
+		{
+			return (t >= INT8 && t <= INT64);
+		}
+
+		static bool isUnsignedIntegerType(type t)
+		{
+			return (t >= BOOL && t <= UINT64);
+		}
+
+		static bool isFloatType(type t)
+		{
+			return (t == FLOAT32 || t == FLOAT64);
+		}
 
 		static const wchar_t* toString(type t)
 		{

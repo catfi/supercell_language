@@ -32,6 +32,7 @@
 #include <llvm/Analysis/Verifier.h>
 #include <llvm/Assembly/PrintModulePass.h>
 #include <llvm/Support/IRBuilder.h>
+#include <llvm/Support/raw_ostream.h>
 
 namespace zillians { namespace language { namespace stage { namespace visitor {
 
@@ -237,11 +238,7 @@ struct LLVMHelper
 
 	llvm::BasicBlock* createBasicBlock(llvm::StringRef name = "", llvm::Function* parent = NULL, llvm::BasicBlock* before = NULL)
 	{
-		return llvm::BasicBlock::Create(mContext, "", parent, before);
-	}
-
-	llvm::AllocaInst* createAlloca(tree::VariableDecl& ast_variable, llvm::StringRef name = "")
-	{
+		return llvm::BasicBlock::Create(mContext, name, parent, before);
 	}
 
 	bool getAlloca(tree::VariableDecl& ast_variable, /*OUT*/ llvm::AllocaInst*& llvm_alloca_inst)
@@ -255,11 +252,11 @@ struct LLVMHelper
 			return NULL;
 
 		if(mBuilder.isNamePreserving())
-			llvm_alloca_inst = new llvm::AllocaInst(llvm_variable_type, 0, "", mFunctionContext.alloca_insert_point);
-		else
 			llvm_alloca_inst = new llvm::AllocaInst(llvm_variable_type, 0, NameManglingContext::get(&ast_variable)->managled_name, mFunctionContext.alloca_insert_point);
+		else
+			llvm_alloca_inst = new llvm::AllocaInst(llvm_variable_type, 0, "", mFunctionContext.alloca_insert_point);
 
-		ast_variable.set<llvm::AllocaInst>(llvm_alloca_inst);
+		ast_variable.set<llvm::Value>(llvm_alloca_inst);
 
 		return true;
 	}

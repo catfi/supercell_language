@@ -41,7 +41,6 @@ struct ParserContext
 		int32 source_index;
 		uint32 line;
 		uint32 column;
-		std::wstring currentline;
 	} debug;
 };
 
