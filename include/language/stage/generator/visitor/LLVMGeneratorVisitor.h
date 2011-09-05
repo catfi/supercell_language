@@ -189,13 +189,114 @@ struct LLVMGeneratorVisitor : GenericDoubleVisitor
 
 	void generate(IfElseStmt& node)
 	{
-		revisit(node);
-		// emit the preamble and prepare blocks
+		// generate code into blocks
+		std::vector<llvm::BasicBlock*> llvm_blocks;
+		{
+			// for if branch
+			{
+				llvm::BasicBlock* cond = createBasicBlock("if.eval", mFunctionContext.function);
+				mBuilder.SetInsertPoint(cond);
+				visit(*node.if_branch.cond);
+
+				llvm::BasicBlock* block = createBasicBlock("if.then", mFunctionContext.function);
+				mBuilder.SetInsertPoint(block);
+				visit(*node.if_branch.block);
+
+				llvm_blocks.push_back(cond);
+				llvm_blocks.push_back(block);
+			}
+
+			// for elif branch
+			{
+				foreach(i, node.elseif_branches)
+				{
+					llvm::BasicBlock* cond = createBasicBlock("elif.eval", mFunctionContext.function);
+					mBuilder.SetInsertPoint(cond);
+					visit(*i->cond);
+
+					llvm::BasicBlock* block = createBasicBlock("elif.then", mFunctionContext.function);
+					mBuilder.SetInsertPoint(block);
+					visit(*i->block);
+
+					llvm_blocks.push_back(cond);
+					llvm_blocks.push_back(block);
+				}
+			}
+
+			// for else branch
+			if(node.else_block)
+			{
+				llvm::BasicBlock* block = createBasicBlock("else.then", mFunctionContext.function);
+				llvm_blocks.push_back(block);
+				visit(*node.else_block);
+			}
+
+			// for the last block
+			{
+				llvm::BasicBlock* block = createBasicBlock("if.continue", mFunctionContext.function);
+				llvm_blocks.push_back(block);
+			}
+		}
+
+		// create linkage among blocks
+		{
+			// for if branch
+			{
+				llvm::Value* llvm_if_cond = node.if_branch.cond->get<llvm::Value>();
+				mBuilder.SetInsertPoint(llvm_blocks[0]); // [0] is the 'condition evaluation block for if branch'
+				mBuilder.CreateCondBr(llvm_if_cond, llvm_blocks[1], llvm_blocks[2]); // [1] is the 'then block for if branch', [2] could be the 'condition evaluation block for first elif branch', or the 'else block', or the 'end block'
+
+				mBuilder.SetInsertPoint(llvm_blocks[1]); // [1] is the 'then block for if branch'
+				mBuilder.CreateBr(llvm_blocks.back()); // [back()] is the 'end block'
+			}
+
+			// for all elif branch
+			int index = 2;
+			{
+				foreach(i, node.elseif_branches)
+				{
+					llvm::Value* llvm_elif_cond = i->cond->get<llvm::Value>();
+					mBuilder.SetInsertPoint(llvm_blocks[index]);
+					mBuilder.CreateCondBr(llvm_elif_cond, llvm_blocks[index+1], llvm_blocks[index+2]);
+
+					mBuilder.SetInsertPoint(llvm_blocks[index+1]);
+					mBuilder.CreateBr(llvm_blocks.back());
+
+					index += 2;
+				}
+			}
+
+			// for else branch
+			if(node.else_block)
+			{
+				mBuilder.SetInsertPoint(llvm_blocks[index]);
+				mBuilder.CreateBr(llvm_blocks.back());
+				index += 1;
+			}
+
+			// for the last block
+			{
+				mBuilder.SetInsertPoint(llvm_blocks.back());
+				index += 1;
+			}
+
+			BOOST_ASSERT(index == llvm_blocks.size());
+		}
 	}
 
 	void generate(ForeachStmt& node)
 	{
-		revisit(node);
+//		if(node.if_branch.cond) user_visitor->
+//		if(node.if_branch.block) user_visitor->visit(*node.if_branch.block);
+//		foreach(i, node.elseif_branches)
+//		{
+//			if(i->cond) user_visitor->visit(*i->cond);
+//			if(i->block) user_visitor->visit(*i->block);
+//		}
+//		if(node.else_block) user_visitor->visit(*node.else_block);
+//
+//		if(node.annotations) user_visitor->visit(*node.annotations);
+
 		// emit the preamble and prepare blocks
 	}
 
@@ -283,7 +384,7 @@ struct LLVMGeneratorVisitor : GenericDoubleVisitor
 
 		// TODO implement load instruction cache here to prevent reduntent load
 		// if either LHS or RHS is a AllocaInst, we need to load its value to register
-		llvm::Value* lhs_value = llvm::isa<llvm::AllocaInst>(lhs) ? mBuilder.CreateLoad(lhs) : lhs;
+		llvm::Value* lhs_value = (node.opcode != BinaryExpr::OpCode::ASSIGN) ? llvm::isa<llvm::AllocaInst>(lhs) ? mBuilder.CreateLoad(lhs) : lhs : NULL;
 		llvm::Value* rhs_value = llvm::isa<llvm::AllocaInst>(rhs) ? mBuilder.CreateLoad(rhs) : rhs;
 		llvm::Value* temporary = NULL;
 
@@ -291,39 +392,39 @@ struct LLVMGeneratorVisitor : GenericDoubleVisitor
 		{
 			// Assignments Operations
 		case BinaryExpr::OpCode::ASSIGN:
-			result = mBuilder.CreateStore(rhs_value, lhs_value);
+			result = mBuilder.CreateStore(rhs_value, lhs);
 			break;
 		case BinaryExpr::OpCode::ADD_ASSIGN:
 			temporary = (isFloatType(node)) ? mBuilder.CreateFAdd(lhs_value, rhs_value) : mBuilder.CreateAdd(lhs_value, rhs_value);
-			result = mBuilder.CreateStore(temporary, lhs_value);
+			result = mBuilder.CreateStore(temporary, lhs);
 			break;
 		case BinaryExpr::OpCode::SUB_ASSIGN:
 			temporary = (isFloatType(node)) ? mBuilder.CreateFSub(lhs_value, rhs_value) : mBuilder.CreateSub(lhs_value, rhs_value);
-			result = mBuilder.CreateStore(temporary, lhs_value);
+			result = mBuilder.CreateStore(temporary, lhs);
 			break;
 		case BinaryExpr::OpCode::MUL_ASSIGN:
 			temporary = (isFloatType(node)) ? mBuilder.CreateFMul(lhs_value, rhs_value) : mBuilder.CreateMul(lhs_value, rhs_value);
-			result = mBuilder.CreateStore(temporary, lhs_value);
+			result = mBuilder.CreateStore(temporary, lhs);
 			break;
 		case BinaryExpr::OpCode::DIV_ASSIGN:
 			temporary = (isFloatType(node)) ? mBuilder.CreateFDiv(lhs_value, rhs_value) : mBuilder.CreateUDiv(lhs_value, rhs_value);
-			result = mBuilder.CreateStore(temporary, lhs_value);
+			result = mBuilder.CreateStore(temporary, lhs);
 			break;
 		case BinaryExpr::OpCode::MOD_ASSIGN:
 			temporary = (isFloatType(node)) ? mBuilder.CreateFRem(lhs_value, rhs_value) : mBuilder.CreateURem(lhs_value, rhs_value);
-			result = mBuilder.CreateStore(temporary, lhs_value);
+			result = mBuilder.CreateStore(temporary, lhs);
 			break;
 		case BinaryExpr::OpCode::AND_ASSIGN:
 			temporary = mBuilder.CreateAnd(lhs_value, rhs_value);
-			result = mBuilder.CreateStore(temporary, lhs_value);
+			result = mBuilder.CreateStore(temporary, lhs);
 			break;
 		case BinaryExpr::OpCode::OR_ASSIGN:
 			temporary = mBuilder.CreateOr(lhs_value, rhs_value);
-			result = mBuilder.CreateStore(temporary, lhs_value);
+			result = mBuilder.CreateStore(temporary, lhs);
 			break;
 		case BinaryExpr::OpCode::XOR_ASSIGN:
 			temporary = mBuilder.CreateXor(lhs_value, rhs_value);
-			result = mBuilder.CreateStore(temporary, lhs_value);
+			result = mBuilder.CreateStore(temporary, lhs);
 			break;
 
 			// Arithmetic Operations
@@ -410,6 +511,7 @@ struct LLVMGeneratorVisitor : GenericDoubleVisitor
 	void generate(TernaryExpr& node)
 	{
 		revisit(node);
+
 		// TODO use predicate
 	}
 
@@ -703,6 +805,9 @@ private:
 				mFunctionContext.return_value = NULL;
 			}
 		}
+
+		// set current function
+		mFunctionContext.function = llvm_function;
 
 		return true;
 	}

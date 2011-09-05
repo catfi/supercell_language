@@ -20,6 +20,14 @@ function main():void
 	var y:uint64 = 20;
 	var z:uint64 = x+y;
 	
+	if(z == 30)
+		z = 40;
+	elif(z == 40)
+		z = 50;
+	else
+		z = 60;
+	z = 70;
+	
 	//compiler_test.f1(x,y);
 	//zillians.compiler_test.f1(x,y);
 	//com.zillians.compiler_test.f1(x,y);
