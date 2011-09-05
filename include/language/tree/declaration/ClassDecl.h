@@ -77,6 +77,16 @@ struct ClassDecl : public Declaration
 		implements.push_back(interface);
 	}
 
+    template<typename Archive>
+    void serialize(Archive& ar, const unsigned int version) {
+        boost::serialization::base_object<Declaration>(*this);
+        ar & name;
+        ar & base;
+        ar & implements;
+        ar & member_functions;
+        ar & member_variables;
+    }
+
 	Identifier* name;
 	TypeSpecifier* base;
 	std::vector<TypeSpecifier*> implements;

@@ -40,6 +40,13 @@ struct TypedefDecl : public Declaration
 		to->parent = this;
 	}
 
+    template<typename Archive>
+    void serialize(Archive& ar, const unsigned int version) {
+        boost::serialization::base_object<Declaration>(*this);
+        ar & from;
+        ar & to;
+    }
+
 	TypeSpecifier* from;
 	SimpleIdentifier* to;
 };

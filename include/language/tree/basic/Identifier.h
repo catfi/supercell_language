@@ -25,6 +25,9 @@
 
 #include "language/tree/ASTNode.h"
 #include "utility/Foreach.h"
+#include <boost/archive/text_oarchive.hpp>
+#include <boost/archive/text_iarchive.hpp>
+#include <boost/serialization/export.hpp>
 
 namespace zillians { namespace language { namespace tree {
 
@@ -45,6 +48,11 @@ struct Identifier : public ASTNode
 
 	virtual const std::wstring& toString() const = 0;
 	virtual bool isEmpty() const = 0;
+
+    template<typename Archive>
+    void serialize(Archive& ar, const unsigned int version) {
+        boost::serialization::base_object<ASTNode>(*this);
+    }
 
 //	ASTNode* resolved;
 };
@@ -73,6 +81,12 @@ struct SimpleIdentifier : public Identifier
 	{
 		return (name.length() == 0);
 	}
+
+    template<typename Archive>
+    void serialize(Archive& ar, const unsigned int version) {
+        boost::serialization::base_object<Identifier>(*this);
+        ar & name;
+    }
 
 	const std::wstring name;
 };
@@ -119,6 +133,12 @@ struct NestedIdentifier : public Identifier
 		id->parent = this;
 		identifier_list.push_back(id);
 	}
+
+    template<typename Archive>
+    void serialize(Archive& ar, const unsigned int version) {
+        boost::serialization::base_object<Identifier>(*this);
+        ar & identifier_list;
+    }
 
 	std::vector<Identifier*> identifier_list;
 };
@@ -208,6 +228,14 @@ struct TemplatedIdentifier : public Identifier
 		argument->parent = this;
 		templated_type_list.push_back(argument);
 	}
+
+    template<typename Archive>
+    void serialize(Archive& ar, const unsigned int version) {
+        boost::serialization::base_object<Identifier>(*this);
+        ar & static_cast<int&>(type);
+        ar & id;
+        ar & templated_type_list;
+    }
 
 	Usage::type type;
 	Identifier* id;

@@ -84,6 +84,13 @@ struct UnaryExpr : public Expression
 		}
 	}
 
+    template<typename Archive>
+    void serialize(Archive& ar, const unsigned int version) {
+        boost::serialization::base_object<Expression>(*this);
+        ar & static_cast<int&>(opcode);
+        ar & node;
+    }
+
 	OpCode::type opcode;
 	ASTNode* node;
 };

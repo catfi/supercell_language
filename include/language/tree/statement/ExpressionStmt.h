@@ -40,6 +40,12 @@ struct ExpressionStmt : public Statement
 		expr->parent = this;
 	}
 
+    template<typename Archive>
+    void serialize(Archive& ar, const unsigned int version) {
+        boost::serialization::base_object<Statement>(*this);
+        ar & expr;
+    }
+
 	Expression* expr;
 };
 

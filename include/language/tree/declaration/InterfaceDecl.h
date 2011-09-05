@@ -46,6 +46,13 @@ struct InterfaceDecl : public Declaration
 		member_functions.push_back(func);
 	}
 
+    template<typename Archive>
+    void serialize(Archive& ar, const unsigned int version) {
+        boost::serialization::base_object<Declaration>(*this);
+        ar & name;
+        ar & member_functions;
+    }
+
 	Identifier* name;
 	std::vector<FunctionDecl*> member_functions;
 };

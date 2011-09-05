@@ -44,6 +44,12 @@ struct Import : public ASTNode
 		ns->parent = this;
 	}
 
+    template<typename Archive>
+    void serialize(Archive& ar, const unsigned int version) {
+        boost::serialization::base_object<ASTNode>(*this);
+        ar & ns;
+    }
+
 	Identifier* ns;
 };
 

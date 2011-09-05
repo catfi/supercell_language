@@ -41,6 +41,12 @@ struct DeclarativeStmt : public Statement
 		declaration->parent = this;
 	}
 
+    template<typename Archive>
+    void serialize(Archive& ar, const unsigned int version) {
+        boost::serialization::base_object<Statement>(*this);
+        ar & declaration;
+    }
+
 	Declaration* declaration;
 };
 

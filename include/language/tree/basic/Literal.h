@@ -62,6 +62,12 @@ struct ObjectLiteral : public Literal
 	explicit ObjectLiteral(LiteralType::type t) : type(t)
 	{ }
 
+    template<typename Archive>
+    void serialize(Archive& ar, const unsigned int version) {
+        boost::serialization::base_object<ASTNode>(*this);
+        ar & static_cast<int&>(type);
+    }
+
 	LiteralType::type type;
 };
 
@@ -118,6 +124,26 @@ struct NumericLiteral : public Literal
 	explicit NumericLiteral(float v)  { type = LiteralType::F32; value.f32 = v; }
 	explicit NumericLiteral(double v) { type = LiteralType::F64; value.f64 = v; }
 
+    template<typename Archive>
+    void serialize(Archive& ar, const unsigned int version) {
+        boost::serialization::base_object<Literal>(*this);
+        ar & static_cast<int&>(type);
+        switch(value)
+        {
+        case LiteralType::BOOL: ar & value.b  ; break;
+		case LiteralType::I8  : ar & value.i8 ; break;
+		case LiteralType::I16 : ar & value.i16; break;
+		case LiteralType::I32 : ar & value.i32; break;
+		case LiteralType::I64 : ar & value.i64; break;
+		case LiteralType::U8  : ar & value.u8 ; break;
+		case LiteralType::U16 : ar & value.u16; break;
+		case LiteralType::U32 : ar & value.u32; break;
+		case LiteralType::U64 : ar & value.u64; break;
+		case LiteralType::F32 : ar & value.f32; break;
+		case LiteralType::F64 : ar & value.f64; break;
+        }
+    }
+
 	LiteralType::type type;
 
 	union
@@ -154,6 +180,12 @@ struct StringLiteral : public Literal
 		for(std::size_t i = 0; i != length; ++i)
 			value.push_back(*begin++);
 	}
+
+    template<typename Archive>
+    void serialize(Archive& ar, const unsigned int version) {
+        boost::serialization::base_object<Literal>(*this);
+        ar & value;
+    }
 
 	std::wstring value;
 };

@@ -44,6 +44,12 @@ struct Selection
 		return *this;
 	}
 
+    template<typename Archive>
+    void serialize(Archive& ar, const unsigned int version) {
+        ar & cond;
+        ar & block;
+    }
+
 	Expression* cond;
 	ASTNode* block;
 };
@@ -52,6 +58,11 @@ struct SelectionStmt : public Statement
 {
 	DEFINE_VISITABLE();
 	DEFINE_HIERARCHY(SelectionStmt, (SelectionStmt)(Statement)(ASTNode));
+
+    template<typename Archive>
+    void serialize(Archive& ar, const unsigned int version) {
+        boost::serialization::base_object<Statement>(*this);
+    }
 };
 
 struct IfElseStmt : public SelectionStmt
@@ -86,6 +97,14 @@ struct IfElseStmt : public SelectionStmt
 		else_block = block;
 	}
 
+    template<typename Archive>
+    void serialize(Archive& ar, const unsigned int version) {
+        boost::serialization::base_object<SelectionStmt>(*this);
+        ar & if_branch;
+        ar & elseif_branches;
+        ar & else_block;
+    }
+
 	Selection if_branch;
 	std::vector<Selection> elseif_branches;
 	ASTNode* else_block;
@@ -118,6 +137,14 @@ struct SwitchStmt : public SelectionStmt
 		default_block = block;
 		if(default_block) default_block->parent = this;
 	}
+
+    template<typename Archive>
+    void serialize(Archive& ar, const unsigned int version) {
+        boost::serialization::base_object<SelectionStmt>(*this);
+        ar & node;
+        ar & cases;
+        ar & default_block;
+    }
 
 	Expression* node;
 	std::vector<Selection> cases;

@@ -46,6 +46,13 @@ struct MemberExpr : public Expression
 		return false;
 	}
 
+    template<typename Archive>
+    void serialize(Archive& ar, const unsigned int version) {
+        boost::serialization::base_object<Expression>(*this);
+        ar & node;
+        ar & member;
+    }
+
 	ASTNode* node;
 	Identifier* member;
 };

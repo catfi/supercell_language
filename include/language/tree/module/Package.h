@@ -71,6 +71,14 @@ struct Package : public ASTNode
 		objects.push_back(object);
 	}
 
+    template<typename Archive>
+    void serialize(Archive& ar, const unsigned int version) {
+        boost::serialization::base_object<ASTNode>(*this);
+        ar & id;
+        ar & children;
+        ar & objects;
+    }
+
 	SimpleIdentifier* id;
 	std::vector<Package*> children;
 	std::vector<ASTNode*> objects;

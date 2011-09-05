@@ -48,6 +48,13 @@ struct EnumDecl : public Declaration
 		enumeration_list.push_back(std::make_pair(tag, value));
 	}
 
+    template<typename Archive>
+    void serialize(Archive& ar, const unsigned int version) {
+        boost::serialization::base_object<Declaration>(*this);
+        ar & name;
+        ar & enumeration_list;
+    }
+
 	Identifier* name;
 	std::vector<std::pair<SimpleIdentifier*, Expression*>> enumeration_list;
 };

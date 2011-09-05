@@ -203,6 +203,14 @@ struct BinaryExpr : public Expression
 		}
 	}
 
+    template<typename Archive>
+    void serialize(Archive& ar, const unsigned int version) {
+        boost::serialization::base_object<Expression>(*this);
+        ar & static_cast<int&>(opcode);
+        ar & left;
+        ar & right;
+    }
+
 	OpCode::type opcode;
 	Expression* left;
 	Expression* right;

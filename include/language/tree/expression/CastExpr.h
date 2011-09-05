@@ -47,6 +47,13 @@ struct CastExpr : public Expression
 		return node->isRValue();
 	}
 
+    template<typename Archive>
+    void serialize(Archive& ar, const unsigned int version) {
+        boost::serialization::base_object<Expression>(*this);
+        ar & node;
+        ar & type;
+    }
+
 	Expression* node;
 	TypeSpecifier* type;
 };

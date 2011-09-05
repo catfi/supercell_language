@@ -33,6 +33,11 @@ struct IterativeStmt : public Statement
 {
 	DEFINE_VISITABLE();
 	DEFINE_HIERARCHY(IterativeStmt, (IterativeStmt)(Statement)(ASTNode));
+    template<typename Archive>
+    void serialize(Archive& ar, const unsigned int version) {
+        boost::serialization::base_object<Statement>(*this);
+    }
+
 };
 
 struct ForeachStmt : public IterativeStmt
@@ -49,6 +54,14 @@ struct ForeachStmt : public IterativeStmt
 		range->parent = this;
 		if(block) block->parent = this;
 	}
+
+    template<typename Archive>
+    void serialize(Archive& ar, const unsigned int version) {
+        boost::serialization::base_object<IterativeStmt>(*this);
+        ar & iterator;
+        ar & range;
+        ar & block;
+    }
 
 	ASTNode* iterator; // TODO semantic-check: it must be L-value expression or declarative statement
 	Expression* range;
@@ -84,6 +97,14 @@ struct WhileStmt : public IterativeStmt
 		cond->parent = this;
 		if(block) block->parent = this;
 	}
+
+    template<typename Archive>
+    void serialize(Archive& ar, const unsigned int version) {
+        boost::serialization::base_object<IterativeStmt>(*this);
+        ar & static_cast<int&>(style);
+        ar & cond;
+        ar & block;
+    }
 
 	Style::type style;
 	Expression* cond;

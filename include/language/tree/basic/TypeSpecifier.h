@@ -194,6 +194,24 @@ struct TypeSpecifier : public ASTNode
 		referred.unspecified = unspecified;
 	}
 
+    template<typename Archive>
+    void serialize(Archive& ar, const unsigned int version) {
+        boost::serialization::base_object<ASTNode>(*this);
+        ar & static_cast<int&>(type);
+        switch(type)
+        {
+        case ReferredType::CLASS_DECL:		ar & referred.class_decl       ; break;
+        case ReferredType::INTERFACE_DECL:	ar & referred.interface_decl   ; break;
+        case ReferredType::FUNCTION_DECL:		ar & referred.function_decl    ; break;
+        case ReferredType::ENUM_DECL:			ar & referred.enum_decl        ; break;
+        case ReferredType::TYPEDEF_DECL:		ar & referred.typedef_decl     ; break;
+        case ReferredType::FUNCTION_TYPE:		ar & referred.function_type    ; break;
+        case ReferredType::PRIMITIVE:			ar & referred.primitive        ; break;
+        case ReferredType::UNSPECIFIED: 		ar & referred.unspecified      ; break;
+        }
+        ar & referred;
+    }
+
 	ReferredType::type type;
 
 	union

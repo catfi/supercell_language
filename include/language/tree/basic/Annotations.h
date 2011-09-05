@@ -45,6 +45,13 @@ struct Annotation : public ASTNode
 		attribute_list.push_back(std::make_pair(key, value));
 	}
 
+    template<typename Archive>
+    void serialize(Archive& ar, const unsigned int version) {
+        boost::serialization::base_object<ASTNode>(*this);
+        ar & name;
+        ar & attribute_list;
+    }
+
 	SimpleIdentifier* name;
 	std::vector<std::pair<ASTNode*/*key*/, ASTNode*/*value*/>> attribute_list;
 };
@@ -59,6 +66,12 @@ struct Annotations : public ASTNode
 		annotation->parent = this;
 		annotation_list.push_back(annotation);
 	}
+
+    template<typename Archive>
+    void serialize(Archive& ar, const unsigned int version) {
+        boost::serialization::base_object<ASTNode>(*this);
+        ar & annotation_list;
+    }
 
 	std::vector<Annotation*> annotation_list;
 };

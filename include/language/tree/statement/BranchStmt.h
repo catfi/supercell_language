@@ -53,6 +53,13 @@ struct BranchStmt : public Statement
 		if(result) result->parent = this;
 	}
 
+    template<typename Archive>
+    void serialize(Archive& ar, const unsigned int version) {
+        boost::serialization::base_object<Statement>(*this);
+        ar & static_cast<int&>(opcode);
+        ar & result;
+    }
+
 	OpCode::type opcode;
 	ASTNode* result;
 };

@@ -49,6 +49,13 @@ struct CallExpr : public Expression
 		return true;
 	}
 
+    template<typename Archive>
+    void serialize(Archive& ar, const unsigned int version) {
+        boost::serialization::base_object<Expression>(*this);
+        ar & node;
+        ar & parameters;
+    }
+
 	ASTNode* node;
 	std::vector<Expression*> parameters;
 };

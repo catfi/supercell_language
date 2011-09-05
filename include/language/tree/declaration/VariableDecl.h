@@ -43,6 +43,17 @@ struct VariableDecl : public Declaration
 		if(initializer) initializer->parent = this;
 	}
 
+    template<typename Archive>
+    void serialize(Archive& ar, const unsigned int version) {
+        boost::serialization::base_object<Declaration>(*this);
+        ar & name;
+        ar & type;
+        ar & is_member;
+        ar & static_cast<int&>(visibility);
+        ar & static_cast<int&>(storage);
+        ar & initializer;
+    }
+
 	Identifier* name;
 	TypeSpecifier* type;
 	bool is_member;

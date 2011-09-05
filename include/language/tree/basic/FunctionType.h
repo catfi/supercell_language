@@ -88,6 +88,14 @@ struct FunctionType: public ASTNode
 		return_type = type;
 	}
 
+    template<typename Archive>
+    void serialize(Archive& ar, const unsigned int version) {
+        boost::serialization::base_object<ASTNode>(*this);
+        ar & templated_parameters;
+        ar & argument_types;
+        ar & return_type;
+    }
+
 	std::vector<Identifier*> templated_parameters;
 	std::vector<TypeSpecifier*> argument_types;
 	TypeSpecifier* return_type;
