@@ -29,6 +29,11 @@
 #include "language/tree/GarbageCollector.h"
 #include "language/logging/Logger.h"
 #include <boost/preprocessor.hpp>
+#include <boost/archive/text_oarchive.hpp>
+#include <boost/archive/text_iarchive.hpp>
+#include <boost/serialization/export.hpp>
+#include <boost/serialization/vector.hpp>
+#include <boost/serialization/utility.hpp>
 
 #define DEFINE_HIERARCHY_BASE() \
 	static int stype() \
@@ -209,6 +214,17 @@ struct ASTNode : public VisitableBase<ASTNode>, ContextHub<ContextOwnership::tra
 	{
 		GarbageCollector<const ASTNode>::instance()->add(this);
 	}
+
+    template<typename Archive>
+    void serialize(Archive& ar, const unsigned int version) {
+    	// TODO: serialize ContextHub.
+    	//
+    	// Currently the ContextHub can not be serialized because of the lackness of type information
+    	// ContextHub uses a special trick to map type to a integer in, and uses std::vector<shared_ptr<void>> to store data.
+    	// Survey boost::any and modify the implementation to make it possible to be serialized.
+        boost::serialization::base_object<ContextHub<ContextOwnership::transfer>>(*this);
+        ar & parent;
+    }
 
 	ASTNode* parent;
 };

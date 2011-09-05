@@ -46,6 +46,12 @@ struct Expression : public ASTNode
 	bool isLValue() { return !isRValue(); }
 	virtual bool isRValue() = 0;
 
+    template<typename Archive>
+    void serialize(Archive& ar, const unsigned int version) {
+        ::boost::serialization::base_object<ASTNode>(*this);
+        ar & annotations;
+    }
+
 	Annotations* annotations;
 };
 

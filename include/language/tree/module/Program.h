@@ -51,6 +51,13 @@ struct Program : public ASTNode
 		imports.push_back(import);
 	}
 
+    template<typename Archive>
+    void serialize(Archive& ar, const unsigned int version) {
+        ::boost::serialization::base_object<ASTNode>(*this);
+        ar & root;
+        ar & imports;
+    }
+
 	Package* root;
 	std::vector<Import*> imports;
 
