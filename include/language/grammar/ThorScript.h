@@ -533,7 +533,7 @@ struct ThorScript : qi::grammar<Iterator, typename SA::start::attribute_type, de
 		// associativity: left-to-right
 		// rank: 0
 		postfix_expression
-			= primary_expression                                         [ typename SA::postfix_expression::init_primary_expression() ]
+			= primary_expression                                         [ typename SA::postfix_expression::init_primary_expression_and_loc() ]
 				>	*( (LEFT_BRACKET > expression > RIGHT_BRACKET)       [ typename SA::postfix_expression::append_postfix_array() ]
 					| (LEFT_PAREN > -(expression % COMMA) > RIGHT_PAREN) [ typename SA::postfix_expression::append_postfix_call() ]
 					| (DOT >> template_arg_identifier)                   [ typename SA::postfix_expression::append_postfix_member() ]
@@ -699,20 +699,22 @@ struct ThorScript : qi::grammar<Iterator, typename SA::start::attribute_type, de
 		statement
 			= location
 				>>	(
-						(-annotation_specifiers
-							>>	( const_variable_decl
-								| expression_statement
-								| selection_statement
-								| iteration_statement
-								| branch_statement
-								)
-						) [ typename SA::statement::init() ]
+						qi::eps [ typename SA::statement::init_loc() ]
+							>>	(-annotation_specifiers
+									>>	( const_variable_decl
+										| expression_statement
+										| selection_statement
+										| iteration_statement
+										| branch_statement
+										)
+								) [ typename SA::statement::init() ]
 					|	block [ typename SA::statement::init_block() ]
 					)
 			;
 
 		expression_statement
-			= (-expression >> SEMICOLON) [ typename SA::expression_statement::init() ]
+			= qi::eps                         [ typename SA::expression_statement::init_loc() ]
+				>> (-expression >> SEMICOLON) [ typename SA::expression_statement::init() ]
 			;
 
 		selection_statement
@@ -742,9 +744,15 @@ struct ThorScript : qi::grammar<Iterator, typename SA::start::attribute_type, de
 			;
 
 		branch_statement
-			=	( (RETURN > expression_statement) [ typename SA::branch_statement::init_return() ]
-				| (BREAK > SEMICOLON)             [ typename SA::branch_statement::template init<tree::BranchStmt::OpCode::BREAK>() ]
-				| (CONTINUE > SEMICOLON)          [ typename SA::branch_statement::template init<tree::BranchStmt::OpCode::CONTINUE>() ]
+			=	(	(RETURN [ typename SA::branch_statement::init_loc() ]
+						> expression_statement
+					) [ typename SA::branch_statement::init_return() ]
+				|	(BREAK [ typename SA::branch_statement::init_loc() ]
+						> SEMICOLON
+					) [ typename SA::branch_statement::template init<tree::BranchStmt::OpCode::BREAK>() ]
+				|	(CONTINUE [ typename SA::branch_statement::init_loc() ]
+						> SEMICOLON
+					) [ typename SA::branch_statement::template init<tree::BranchStmt::OpCode::CONTINUE>() ]
 				)
 			;
 
@@ -813,11 +821,12 @@ struct ThorScript : qi::grammar<Iterator, typename SA::start::attribute_type, de
 			;
 
 		class_member_decl
-			=	(-annotation_specifiers >> -visibility_specifier >> -storage_specifier
-					>>	( variable_decl
-						| function_decl
-						)
-				) [ typename SA::class_member_decl::init() ]
+			= location
+				>>	(-annotation_specifiers >> -visibility_specifier >> -storage_specifier
+						>>	( variable_decl
+							| function_decl
+							)
+					) [ typename SA::class_member_decl::init() ]
 			;
 
 		interface_decl
