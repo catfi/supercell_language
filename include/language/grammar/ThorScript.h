@@ -781,7 +781,8 @@ struct ThorScript : qi::grammar<Iterator, typename SA::start::attribute_type, de
 			;
 
 		function_decl
-			= (FUNCTION > (template_param_identifier | (NEW > qi::attr(true))) > LEFT_PAREN > -typed_parameter_list > RIGHT_PAREN > -colon_type_specifier
+			= (FUNCTION > (template_param_identifier | (NEW > qi::attr(true))) [ typename SA::function_decl::init_loc() ]
+				> LEFT_PAREN > -typed_parameter_list > RIGHT_PAREN > -colon_type_specifier
 				> -block
 				) [ typename SA::function_decl::init() ]
 			;
@@ -791,7 +792,8 @@ struct ThorScript : qi::grammar<Iterator, typename SA::start::attribute_type, de
 			;
 
 		class_decl
-			= (CLASS > template_param_identifier > -(EXTENDS > nested_identifier) > -((IMPLEMENTS > nested_identifier) % COMMA)
+			= (CLASS > template_param_identifier [ typename SA::class_decl::init_loc() ]
+				> -(EXTENDS > nested_identifier) > -((IMPLEMENTS > nested_identifier) % COMMA)
 				> LEFT_BRACE
 				> *class_member_decl
 				> RIGHT_BRACE

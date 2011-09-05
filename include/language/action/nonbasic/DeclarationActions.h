@@ -106,7 +106,13 @@ struct variable_decl_stem
 struct function_decl
 {
 	DEFINE_ATTRIBUTES(Declaration*)
-	DEFINE_LOCALS()
+	DEFINE_LOCALS(LOCATIONS_DECL(2))
+
+	BEGIN_ACTION(init_loc)
+	{
+		ALLOCATE_LOCATIONS(2);
+	}
+	END_ACTION
 
 	BEGIN_ACTION(init)
 	{
@@ -123,7 +129,7 @@ struct function_decl
 			name = boost::get<Identifier*>(_param(0));
 			break;
 		case 1:
-			REGISTER_LOCATION(name = new SimpleIdentifier(L"new"));
+			SET_LOCATION(name = new SimpleIdentifier(L"new"));
 			break;
 		}
 		typed_parameter_list::value_t*         parameters = _param(1).is_initialized() ? (*_param(1)).get() : NULL;
@@ -132,10 +138,11 @@ struct function_decl
 		Declaration::VisibilitySpecifier::type visibility = Declaration::VisibilitySpecifier::PUBLIC;
 		Declaration::StorageSpecifier::type    storage    = Declaration::StorageSpecifier::NONE;
 		bool                                   is_member  = false;
-		REGISTER_LOCATION(_result = new FunctionDecl(name, type, is_member, visibility, storage, block));
+		SET_LOCATION(_result = new FunctionDecl(name, type, is_member, visibility, storage, block));
 		if(!!parameters)
 			deduced_foreach_value(i, *parameters)
 				cast<FunctionDecl>(_result)->appendParameter(i.first, i.second);
+		FREE_UNUSED_LOCATIONS;
 	}
 	END_ACTION
 };
@@ -159,7 +166,13 @@ struct typedef_decl
 struct class_decl
 {
 	DEFINE_ATTRIBUTES(Declaration*)
-	DEFINE_LOCALS()
+	DEFINE_LOCALS(LOCATIONS_DECL(3))
+
+	BEGIN_ACTION(init_loc)
+	{
+		ALLOCATE_LOCATIONS(3);
+	}
+	END_ACTION
 
 	BEGIN_ACTION(init)
 	{
@@ -173,14 +186,14 @@ struct class_decl
 		Identifier* extends_from_ident = _param(1).is_initialized() ? *_param(1) : NULL;
 		TypeSpecifier* extends_from = NULL;
 		if(!!extends_from_ident)
-			REGISTER_LOCATION(extends_from = new TypeSpecifier(extends_from_ident));
-		REGISTER_LOCATION(_result = new ClassDecl(name));
+			SET_LOCATION(extends_from = new TypeSpecifier(extends_from_ident));
+		SET_LOCATION(_result = new ClassDecl(name));
 		if(!!extends_from)
 			cast<ClassDecl>(_result)->setBase(extends_from);
 		if(_param(2).is_initialized())
 			deduced_foreach_value(i, *_param(2))
 			{
-				TypeSpecifier* type = new TypeSpecifier(i); REGISTER_LOCATION(type);
+				TypeSpecifier* type = new TypeSpecifier(i); SET_LOCATION(type);
 				cast<ClassDecl>(_result)->addInterface(type);
 			}
 		deduced_foreach_value(i, _param(3))
@@ -194,6 +207,7 @@ struct class_decl
 				cast<ClassDecl>(_result)->addFunction(cast<FunctionDecl>(i));
 				cast<FunctionDecl>(i)->is_member = true;
 			}
+		FREE_UNUSED_LOCATIONS;
 	}
 	END_ACTION
 };
