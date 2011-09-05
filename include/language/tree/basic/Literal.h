@@ -25,6 +25,7 @@
 
 #include "core/Types.h"
 #include "language/tree/ASTNode.h"
+#include "language/tree/basic/Primitive.h"
 
 namespace zillians { namespace language { namespace tree {
 
@@ -70,55 +71,21 @@ struct NumericLiteral : public Literal
 	DEFINE_VISITABLE();
 	DEFINE_HIERARCHY(NumericLiteral, (NumericLiteral)(Literal)(ASTNode));
 
-	struct LiteralType {
-		enum type {
-			BOOL,
-			I8,
-			I16,
-			I32,
-			I64,
-			U8,
-			U16,
-			U32,
-			U64,
-			F32,
-			F64,
-		};
+	explicit NumericLiteral(bool v)	 { type = PrimitiveType::BOOL;  value.b = v;  }
+	explicit NumericLiteral(int8 v)	 { type = PrimitiveType::INT8;  value.i8 = v;  }
+	explicit NumericLiteral(int16 v) { type = PrimitiveType::INT16; value.i16 = v; }
+	explicit NumericLiteral(int32 v) { type = PrimitiveType::INT32; value.i32 = v; }
+	explicit NumericLiteral(int64 v) { type = PrimitiveType::INT64; value.i64 = v; }
 
-		static const wchar_t* toString(type t)
-		{
-			switch(t)
-			{
-			case BOOL: return L"bool";
-			case I8:  return L"int8";
-			case I16: return L"int16";
-			case I32: return L"int32";
-			case I64: return L"int64";
-			case U8:  return L"uint8";
-			case U16: return L"uint16";
-			case U32: return L"uint32";
-			case U64: return L"uint64";
-			case F32: return L"float32";
-			case F64: return L"float64";
-			}
-		}
-	};
+	explicit NumericLiteral(uint8 v)  { type = PrimitiveType::UINT8;  value.u8 = v;  }
+	explicit NumericLiteral(uint16 v) { type = PrimitiveType::UINT16; value.u16 = v; }
+	explicit NumericLiteral(uint32 v) { type = PrimitiveType::UINT32; value.u32 = v; }
+	explicit NumericLiteral(uint64 v) { type = PrimitiveType::UINT64; value.u64 = v; }
 
-	explicit NumericLiteral(bool v)	 { type = LiteralType::BOOL;  value.b = v;  }
-	explicit NumericLiteral(int8 v)	 { type = LiteralType::I8;  value.i8 = v;  }
-	explicit NumericLiteral(int16 v) { type = LiteralType::I16; value.i16 = v; }
-	explicit NumericLiteral(int32 v) { type = LiteralType::I32; value.i32 = v; }
-	explicit NumericLiteral(int64 v) { type = LiteralType::I64; value.i64 = v; }
+	explicit NumericLiteral(float v)  { type = PrimitiveType::FLOAT32; value.f32 = v; }
+	explicit NumericLiteral(double v) { type = PrimitiveType::FLOAT64; value.f64 = v; }
 
-	explicit NumericLiteral(uint8 v)  { type = LiteralType::U8;  value.u8 = v;  }
-	explicit NumericLiteral(uint16 v) { type = LiteralType::U16; value.u16 = v; }
-	explicit NumericLiteral(uint32 v) { type = LiteralType::U32; value.u32 = v; }
-	explicit NumericLiteral(uint64 v) { type = LiteralType::U64; value.u64 = v; }
-
-	explicit NumericLiteral(float v)  { type = LiteralType::F32; value.f32 = v; }
-	explicit NumericLiteral(double v) { type = LiteralType::F64; value.f64 = v; }
-
-	LiteralType::type type;
+	PrimitiveType::type type;
 
 	union
 	{

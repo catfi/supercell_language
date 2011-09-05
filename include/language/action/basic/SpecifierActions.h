@@ -63,7 +63,7 @@ struct type_specifier
 	}
 	END_ACTION
 
-	BEGIN_TEMPLATED_ACTION(init_primitive_type, TypeSpecifier::PrimitiveType::type Type)
+	BEGIN_TEMPLATED_ACTION(init_primitive_type, PrimitiveType::type Type)
 	{
 		BIND_LOCATION(_result = new TypeSpecifier(Type));
 	}
@@ -92,7 +92,7 @@ struct type_specifier
 #ifdef DEBUG
 		printf("type_specifier::init_ellipsis param(0) type = %s\n", typeid(_param_t(0)).name());
 #endif
-		BIND_LOCATION(_result = new TypeSpecifier(TypeSpecifier::PrimitiveType::VARIADIC_ELLIPSIS));
+		BIND_LOCATION(_result = new TypeSpecifier(PrimitiveType::VARIADIC_ELLIPSIS));
 	}
 	END_ACTION
 };

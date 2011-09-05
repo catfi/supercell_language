@@ -21,6 +21,7 @@
 #define ZILLIANS_LANGUAGE_TREE_TYPESPECIFIER_H_
 
 #include "language/tree/ASTNode.h"
+#include "language/tree/basic/Primitive.h"
 #include "language/tree/basic/Identifier.h"
 #include "language/tree/basic/FunctionType.h"
 
@@ -37,66 +38,6 @@ struct TypeSpecifier : public ASTNode
 	DEFINE_VISITABLE();
 	DEFINE_HIERARCHY(TypeSpecifier, (TypeSpecifier)(ASTNode));
 
-	struct PrimitiveType
-	{
-		enum type {
-			VOID,
-
-			BOOL,
-			UINT8,
-			UINT16,
-			UINT32,
-			UINT64,
-
-			INT8,
-			INT16,
-			INT32,
-			INT64,
-
-			FLOAT32,
-			FLOAT64,
-
-			ANONYMOUS_OBJECT,
-			ANONYMOUS_FUNCTION,
-			VARIADIC_ELLIPSIS,
-		};
-
-		static bool isSignedIntegerType(type t)
-		{
-			return (t >= INT8 && t <= INT64);
-		}
-
-		static bool isUnsignedIntegerType(type t)
-		{
-			return (t >= BOOL && t <= UINT64);
-		}
-
-		static bool isFloatType(type t)
-		{
-			return (t == FLOAT32 || t == FLOAT64);
-		}
-
-		static const wchar_t* toString(type t)
-		{
-			switch(t)
-			{
-			case VOID:	return L"void";
-			case INT8:  return L"int8";
-			case INT16: return L"int16";
-			case INT32: return L"int32";
-			case INT64: return L"int64";
-			case UINT8:  return L"uint8";
-			case UINT16: return L"uint16";
-			case UINT32: return L"uint32";
-			case UINT64: return L"uint64";
-			case FLOAT32: return L"float32";
-			case FLOAT64: return L"float64";
-			case ANONYMOUS_OBJECT: return L"object";
-			case ANONYMOUS_FUNCTION: return L"function";
-			case VARIADIC_ELLIPSIS: return L"...";
-			}
-		}
-	};
 	struct ReferredType
 	{
 		enum type {

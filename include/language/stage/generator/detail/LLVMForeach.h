@@ -21,10 +21,7 @@
 #define ZILLIANS_LANGUAGE_STAGE_GENERATOR_DETAIL_LLVMFOREACH_H_
 
 #include "utility/Foreach.h"
-#include "llvm/Function.h"
-#include "llvm/BasicBlock.h"
-#include "llvm/Module.h"
-#include "llvm/Metadata.h"
+#include "language/stage/generator/detail/LLVMHeaders.h"
 
 namespace zillians {
 
