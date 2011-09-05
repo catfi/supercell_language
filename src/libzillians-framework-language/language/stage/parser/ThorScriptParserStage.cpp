@@ -141,7 +141,7 @@ bool ThorScriptParserStage::parse(std::string filename)
     getParserContext().enable_semantic_action = !dump_parse;
     getParserContext().debug.source_index = ModuleSourceInfoContext::get(getParserContext().program)->addSource(filename);
     getParserContext().debug.line = 1;
-    getParserContext().debug.column = 0;
+    getParserContext().debug.column = 1;
 
     // try to parse
 	typedef classic::position_iterator2<std::wstring::iterator> pos_iterator_type;

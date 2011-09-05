@@ -131,9 +131,9 @@ struct LLVMGeneratorVisitor : GenericDoubleVisitor
 
 				if(llvm_init)
 				{
-					llvm::cast<llvm::AllocaInst>(llvm_alloca_inst)->getAllocatedType()->dump();
-					llvm::cast<llvm::PointerType>(llvm_alloca_inst->getType())->getElementType()->dump();
-					llvm_init->getType()->dump();
+//					llvm::cast<llvm::AllocaInst>(llvm_alloca_inst)->getAllocatedType()->dump();
+//					llvm::cast<llvm::PointerType>(llvm_alloca_inst->getType())->getElementType()->dump();
+//					llvm_init->getType()->dump();
 					BOOST_ASSERT(llvm::cast<llvm::AllocaInst>(llvm_alloca_inst)->getAllocatedType() == llvm_init->getType());
 					BOOST_ASSERT(llvm::cast<llvm::PointerType>(llvm_alloca_inst->getType())->getElementType() == llvm_init->getType());
 					mBuilder.CreateStore(llvm_init, llvm_alloca_inst);
@@ -239,16 +239,27 @@ struct LLVMGeneratorVisitor : GenericDoubleVisitor
 		revisit(node);
 
 		llvm::Value* result = NULL;
+		llvm::Value* operand = node.node->get<llvm::Value>();
+		llvm::Value* operand_value = llvm::isa<llvm::AllocaInst>(operand) ? mBuilder.CreateLoad(operand) : operand;
 
+		// TODO handle the differences between postfix and prefix increment/decrement
 		switch(node.opcode)
 		{
 		case UnaryExpr::OpCode::POSTFIX_INCREMENT:
+			result = mBuilder.CreateAdd(operand_value, llvm::ConstantInt::get(operand_value->getType(), 1, false)); break;
 		case UnaryExpr::OpCode::POSTFIX_DECREMENT:
+			result = mBuilder.CreateSub(operand_value, llvm::ConstantInt::get(operand_value->getType(), 1, false)); break;
 		case UnaryExpr::OpCode::PREFIX_INCREMENT:
+			result = mBuilder.CreateAdd(operand_value, llvm::ConstantInt::get(operand_value->getType(), 1, false)); break;
 		case UnaryExpr::OpCode::PREFIX_DECREMENT:
+			result = mBuilder.CreateAdd(operand_value, llvm::ConstantInt::get(operand_value->getType(), 1, false)); break;
 		case UnaryExpr::OpCode::BINARY_NOT:
+			result = mBuilder.CreateNot(operand_value); break;
 		case UnaryExpr::OpCode::LOGICAL_NOT:
+			BOOST_ASSERT(false && "not yet implemented");
+			break;
 		case UnaryExpr::OpCode::ARITHMETIC_NEGATE:
+			result = (isFloatType(node)) ? mBuilder.CreateFNeg(operand_value) : mBuilder.CreateNeg(operand_value); break;
 		case UnaryExpr::OpCode::NEW:
 			break;
 		}
@@ -274,9 +285,48 @@ struct LLVMGeneratorVisitor : GenericDoubleVisitor
 		// if either LHS or RHS is a AllocaInst, we need to load its value to register
 		llvm::Value* lhs_value = llvm::isa<llvm::AllocaInst>(lhs) ? mBuilder.CreateLoad(lhs) : lhs;
 		llvm::Value* rhs_value = llvm::isa<llvm::AllocaInst>(rhs) ? mBuilder.CreateLoad(rhs) : rhs;
+		llvm::Value* temporary = NULL;
 
 		switch(node.opcode)
 		{
+			// Assignments Operations
+		case BinaryExpr::OpCode::ASSIGN:
+			result = mBuilder.CreateStore(rhs_value, lhs_value);
+			break;
+		case BinaryExpr::OpCode::ADD_ASSIGN:
+			temporary = (isFloatType(node)) ? mBuilder.CreateFAdd(lhs_value, rhs_value) : mBuilder.CreateAdd(lhs_value, rhs_value);
+			result = mBuilder.CreateStore(temporary, lhs_value);
+			break;
+		case BinaryExpr::OpCode::SUB_ASSIGN:
+			temporary = (isFloatType(node)) ? mBuilder.CreateFSub(lhs_value, rhs_value) : mBuilder.CreateSub(lhs_value, rhs_value);
+			result = mBuilder.CreateStore(temporary, lhs_value);
+			break;
+		case BinaryExpr::OpCode::MUL_ASSIGN:
+			temporary = (isFloatType(node)) ? mBuilder.CreateFMul(lhs_value, rhs_value) : mBuilder.CreateMul(lhs_value, rhs_value);
+			result = mBuilder.CreateStore(temporary, lhs_value);
+			break;
+		case BinaryExpr::OpCode::DIV_ASSIGN:
+			temporary = (isFloatType(node)) ? mBuilder.CreateFDiv(lhs_value, rhs_value) : mBuilder.CreateUDiv(lhs_value, rhs_value);
+			result = mBuilder.CreateStore(temporary, lhs_value);
+			break;
+		case BinaryExpr::OpCode::MOD_ASSIGN:
+			temporary = (isFloatType(node)) ? mBuilder.CreateFRem(lhs_value, rhs_value) : mBuilder.CreateURem(lhs_value, rhs_value);
+			result = mBuilder.CreateStore(temporary, lhs_value);
+			break;
+		case BinaryExpr::OpCode::AND_ASSIGN:
+			temporary = mBuilder.CreateAnd(lhs_value, rhs_value);
+			result = mBuilder.CreateStore(temporary, lhs_value);
+			break;
+		case BinaryExpr::OpCode::OR_ASSIGN:
+			temporary = mBuilder.CreateOr(lhs_value, rhs_value);
+			result = mBuilder.CreateStore(temporary, lhs_value);
+			break;
+		case BinaryExpr::OpCode::XOR_ASSIGN:
+			temporary = mBuilder.CreateXor(lhs_value, rhs_value);
+			result = mBuilder.CreateStore(temporary, lhs_value);
+			break;
+
+			// Arithmetic Operations
 		case BinaryExpr::OpCode::ARITHMETIC_ADD:
 			result = (isFloatType(node)) ? mBuilder.CreateFAdd(lhs_value, rhs_value) : mBuilder.CreateAdd(lhs_value, rhs_value); break;
 		case BinaryExpr::OpCode::ARITHMETIC_SUB:
@@ -288,9 +338,63 @@ struct LLVMGeneratorVisitor : GenericDoubleVisitor
 			// TODO current zscript does not handle this correctly
 			// TODO see clang CGExprScalar.cpp:1737 hasUnsignedIntegerRepresentation()
 			result = (isFloatType(node)) ? mBuilder.CreateFDiv(lhs_value, rhs_value) : mBuilder.CreateUDiv(lhs_value, rhs_value); break;
-		case BinaryExpr::OpCode::ASSIGN:
-			result = mBuilder.CreateStore(lhs_value, rhs_value); break;
+		case BinaryExpr::OpCode::ARITHMETIC_MOD:
+			result = (isFloatType(node)) ? mBuilder.CreateFRem(lhs_value, rhs_value) : mBuilder.CreateURem(lhs_value, rhs_value); break;
+
+			// Arithmetic Bitwise Operations
+		case BinaryExpr::OpCode::BINARY_AND:
+			result = mBuilder.CreateAnd(lhs_value, rhs_value); break;
+		case BinaryExpr::OpCode::BINARY_OR:
+			result = mBuilder.CreateOr(lhs_value, rhs_value); break;
+		case BinaryExpr::OpCode::BINARY_XOR:
+			result = mBuilder.CreateXor(lhs_value, rhs_value); break;
+		case BinaryExpr::OpCode::BINARY_LSHIFT:
+			BOOST_ASSERT(false && "not yet implemented");
+			// TODO what's the left shift operation?
+			break;
+		case BinaryExpr::OpCode::BINARY_RSHIFT:
+			// TODO should we use CreateAShr or CreateLShr? depending on the object type?
+			result = mBuilder.CreateAShr(lhs_value, rhs_value); break;
+
+			// Logic Operations
+		case BinaryExpr::OpCode::LOGICAL_AND:
+			BOOST_ASSERT(false && "not yet implemented");
+			break;
+		case BinaryExpr::OpCode::LOGICAL_OR:
+			BOOST_ASSERT(false && "not yet implemented");
+			break;
+
+			// Instance Of (Type testing)
+		case BinaryExpr::OpCode::INSTANCEOF:
+			BOOST_ASSERT(false && "not yet implemented");
+			break;
+
+			// Logical Comparison
+		case BinaryExpr::OpCode::COMPARE_EQ:
+			result = (isFloatType(node)) ? mBuilder.CreateFCmp(llvm::CmpInst::Predicate::FCMP_UEQ, lhs_value, rhs_value) : mBuilder.CreateICmp(llvm::CmpInst::Predicate::ICMP_EQ, lhs_value, rhs_value); break;
+		case BinaryExpr::OpCode::COMPARE_NE:
+			result = (isFloatType(node)) ? mBuilder.CreateFCmp(llvm::CmpInst::Predicate::FCMP_UNE, lhs_value, rhs_value) : mBuilder.CreateICmp(llvm::CmpInst::Predicate::ICMP_NE, lhs_value, rhs_value); break;
+		case BinaryExpr::OpCode::COMPARE_GT:
+			result = (isFloatType(node)) ? mBuilder.CreateFCmp(llvm::CmpInst::Predicate::FCMP_UGT, lhs_value, rhs_value) : mBuilder.CreateICmp(llvm::CmpInst::Predicate::ICMP_UGT, lhs_value, rhs_value); break;
+		case BinaryExpr::OpCode::COMPARE_LT:
+			result = (isFloatType(node)) ? mBuilder.CreateFCmp(llvm::CmpInst::Predicate::FCMP_ULT, lhs_value, rhs_value) : mBuilder.CreateICmp(llvm::CmpInst::Predicate::ICMP_ULT, lhs_value, rhs_value); break;
+		case BinaryExpr::OpCode::COMPARE_GE:
+			result = (isFloatType(node)) ? mBuilder.CreateFCmp(llvm::CmpInst::Predicate::FCMP_UGE, lhs_value, rhs_value) : mBuilder.CreateICmp(llvm::CmpInst::Predicate::ICMP_UGE, lhs_value, rhs_value); break;
+		case BinaryExpr::OpCode::COMPARE_LE:
+			result = (isFloatType(node)) ? mBuilder.CreateFCmp(llvm::CmpInst::Predicate::FCMP_ULE, lhs_value, rhs_value) : mBuilder.CreateICmp(llvm::CmpInst::Predicate::ICMP_ULE, lhs_value, rhs_value); break;
+
+			// Range Operator
+		case BinaryExpr::OpCode::RANGE_ELLIPSIS:
+			BOOST_ASSERT(false && "not yet implemented");
+			break;
+
+			// Array Subscript
+		case BinaryExpr::OpCode::ARRAY_SUBSCRIPT:
+			BOOST_ASSERT(false && "not yet implemented");
+			break;
+
 		default:
+			BOOST_ASSERT(false && "not yet implemented");
 			result = NULL; break;
 		}
 
@@ -299,10 +403,6 @@ struct LLVMGeneratorVisitor : GenericDoubleVisitor
 			BOOST_ASSERT(false && "invalid LLVM interpretation");
 			terminateRevisit();
 		}
-
-		// if LHS is an AllocaInst, we need to store the value back into the stack pointer
-		if(llvm::isa<llvm::AllocaInst>(lhs))
-			mBuilder.CreateStore(result, lhs);
 
 		node.set<llvm::Value>(result);
 	}
@@ -551,7 +651,7 @@ private:
 		if(!getType(*ast_variable.type, llvm_variable_type, llvm_variable_modifier))
 			return false;
 
-		llvm_variable_type->dump();
+//		llvm_variable_type->dump();
 
 		llvm::AllocaInst* llvm_alloca_inst = NULL;
 		if(mBuilder.isNamePreserving())
@@ -604,25 +704,8 @@ private:
 			}
 		}
 
-//		pushBlock(mFunctionContext.return_block);
-
 		return true;
 	}
-
-//	llvm::BasicBlock* currentBlock()
-//	{
-//		return mFunctionContext.block_stack.top();
-//	}
-
-//	void pushBlock(llvm::BasicBlock* block)
-//	{
-//		mFunctionContext.block_stack.push(block);
-//	}
-//
-//	void popBlock()
-//	{
-//		if()
-//	}
 
 	bool finishFunction(FunctionDecl& ast_function)
 	{

@@ -27,7 +27,13 @@ namespace zillians { namespace language { namespace action {
 struct statement
 {
 	DEFINE_ATTRIBUTES(ASTNode*)
-	DEFINE_LOCALS()
+	DEFINE_LOCALS(VAR_LOCATIONS(1))
+
+	BEGIN_ACTION(init_loc)
+	{
+		CACHE_LOCATIONS(1);
+	}
+	END_ACTION
 
 	BEGIN_ACTION(init)
 	{
@@ -40,7 +46,7 @@ struct statement
 		case 0:
 			{
 				Declaration* decl = boost::get<Declaration*>(_param(1));
-				BIND_LOCATION(_result = new DeclarativeStmt(decl));
+				BIND_CACHED_LOCATION(_result = new DeclarativeStmt(decl));
 			}
 			break;
 		case 1:
@@ -49,6 +55,7 @@ struct statement
 		}
 		if(_param(0).is_initialized())
 			cast<Statement>(_result)->setAnnotation(*_param(0));
+		FREE_UNBOUND_CACHED_LOCATIONS;
 	}
 	END_ACTION
 
@@ -65,7 +72,13 @@ struct statement
 struct expression_statement
 {
 	DEFINE_ATTRIBUTES(Statement*)
-	DEFINE_LOCALS()
+	DEFINE_LOCALS(VAR_LOCATIONS(1))
+
+	BEGIN_ACTION(init_loc)
+	{
+		CACHE_LOCATIONS(1);
+	}
+	END_ACTION
 
 	BEGIN_ACTION(init)
 	{
@@ -73,7 +86,8 @@ struct expression_statement
 		printf("expression_statement param(0) type = %s\n", typeid(_param_t(0)).name());
 #endif
 		if(_param(0).is_initialized())
-			BIND_LOCATION(_result = new ExpressionStmt(*_param(0)));
+			BIND_CACHED_LOCATION(_result = new ExpressionStmt(*_param(0)));
+		FREE_UNBOUND_CACHED_LOCATIONS;
 	}
 	END_ACTION
 };
@@ -212,20 +226,26 @@ struct iteration_statement
 struct branch_statement
 {
 	DEFINE_ATTRIBUTES(Statement*)
-	DEFINE_LOCALS()
+	DEFINE_LOCALS(VAR_LOCATIONS(1))
+
+	BEGIN_ACTION(init_loc)
+	{
+		CACHE_LOCATIONS(1);
+	}
+	END_ACTION
 
 	BEGIN_ACTION(init_return)
 	{
 #ifdef DEBUG
 		printf("branch_statement::init_return param(0) type = %s\n", typeid(_param_t(0)).name());
 #endif
-		BIND_LOCATION(_result = new BranchStmt(BranchStmt::OpCode::RETURN, _param(0)));
+		BIND_CACHED_LOCATION(_result = new BranchStmt(BranchStmt::OpCode::RETURN, _param(0)));
 	}
 	END_ACTION
 
 	BEGIN_TEMPLATED_ACTION(init, BranchStmt::OpCode::type Type)
 	{
-		BIND_LOCATION(_result = new BranchStmt(Type));
+		BIND_CACHED_LOCATION(_result = new BranchStmt(Type));
 	}
 	END_ACTION
 };

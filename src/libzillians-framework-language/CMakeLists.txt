@@ -33,6 +33,8 @@ add_library(zillians-framework-language
     language/stage/parser/ThorScriptParserStage.cpp
     language/stage/transformer/ResolutionStage.cpp
     language/stage/transformer/ManglingStage.cpp
+    language/stage/transformer/TypeSynthesisStage.cpp
+    language/stage/transformer/TypeInferenceStage.cpp
 	)
 
 if(LLVM_FOUND)
