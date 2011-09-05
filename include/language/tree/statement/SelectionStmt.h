@@ -29,7 +29,10 @@ namespace zillians { namespace language { namespace tree {
 
 struct Selection
 {
-	explicit Selection(Expression* cond, ASTNode* block) : cond(cond), block(block)
+    Selection() : cond(NULL), block(NULL)
+    { }
+
+	Selection(Expression* cond, ASTNode* block) : cond(cond), block(block)
 	{
 		BOOST_ASSERT(cond && "null condition for selection statement is not allowed");
 		BOOST_ASSERT(block && "null block for selection statement is not allowed");
@@ -61,7 +64,7 @@ struct SelectionStmt : public Statement
 
     template<typename Archive>
     void serialize(Archive& ar, const unsigned int version) {
-        boost::serialization::base_object<Statement>(*this);
+        ::boost::serialization::base_object<Statement>(*this);
     }
 };
 
@@ -99,8 +102,7 @@ struct IfElseStmt : public SelectionStmt
 
     template<typename Archive>
     void serialize(Archive& ar, const unsigned int version) {
-        boost::serialization::base_object<SelectionStmt>(*this);
-        ar & if_branch;
+        ::boost::serialization::base_object<SelectionStmt>(*this);
         ar & elseif_branches;
         ar & else_block;
     }
@@ -140,8 +142,7 @@ struct SwitchStmt : public SelectionStmt
 
     template<typename Archive>
     void serialize(Archive& ar, const unsigned int version) {
-        boost::serialization::base_object<SelectionStmt>(*this);
-        ar & node;
+        ::boost::serialization::base_object<SelectionStmt>(*this);
         ar & cases;
         ar & default_block;
     }
@@ -152,5 +153,43 @@ struct SwitchStmt : public SelectionStmt
 };
 
 } } }
+
+namespace boost { namespace serialization {
+template<class Archive>
+// if else
+inline void save_construct_data(Archive& ar, const zillians::language::tree::IfElseStmt* p, const unsigned int file_version)
+{
+    ar << p->if_branch;
+}
+
+template<class Archive>
+inline void load_construct_data(Archive& ar, zillians::language::tree::IfElseStmt* p, const unsigned int file_version)
+{
+    using namespace zillians::language::tree;
+
+    Expression* selectionExpression;
+    ASTNode*    selectionASTNode;
+    ar >> selectionExpression;
+    ar >> selectionASTNode;
+    Selection if_branch(selectionExpression, selectionASTNode);
+	::new(p) IfElseStmt(if_branch);
+}
+// switch
+template<class Archive>
+inline void save_construct_data(Archive& ar, const zillians::language::tree::SwitchStmt* p, const unsigned int file_version)
+{
+    ar << p->node;
+}
+
+template<class Archive>
+inline void load_construct_data(Archive& ar, zillians::language::tree::SwitchStmt* p, const unsigned int file_version)
+{
+    using namespace zillians::language::tree;
+
+	Expression* node;
+    ar >> node;
+	::new(p) SwitchStmt(node);
+}
+}} // namespace boost::serialization
 
 #endif /* ZILLIANS_LANGUAGE_TREE_SELECTIONSTMT_H_ */

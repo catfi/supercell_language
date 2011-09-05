@@ -77,12 +77,12 @@ ASTNode* createSample3()
 						Block* block = some_member_function->block;
 
 						{
-							DeclarativeStmt* stmt = new DeclarativeStmt(new VariableDecl(new SimpleIdentifier(L"a"), new TypeSpecifier(TypeSpecifier::PrimitiveType::INT32), false, Declaration::VisibilitySpecifier::DEFAULT, Declaration::StorageSpecifier::NONE));
+							DeclarativeStmt* stmt = new DeclarativeStmt(new VariableDecl(new SimpleIdentifier(L"a"), new TypeSpecifier(PrimitiveType::INT32), false, Declaration::VisibilitySpecifier::DEFAULT, Declaration::StorageSpecifier::NONE));
 							block->appendObject(stmt);
 						}
 
 						{
-							DeclarativeStmt* stmt = new DeclarativeStmt(new VariableDecl(new SimpleIdentifier(L"b"), new TypeSpecifier(TypeSpecifier::PrimitiveType::INT32), false, Declaration::VisibilitySpecifier::DEFAULT, Declaration::StorageSpecifier::NONE));
+							DeclarativeStmt* stmt = new DeclarativeStmt(new VariableDecl(new SimpleIdentifier(L"b"), new TypeSpecifier(PrimitiveType::INT32), false, Declaration::VisibilitySpecifier::DEFAULT, Declaration::StorageSpecifier::NONE));
 							block->appendObject(stmt);
 						}
 
@@ -94,7 +94,7 @@ ASTNode* createSample3()
 
 					VariableDecl* some_member_variable1 = new VariableDecl(
 							new SimpleIdentifier(L"some_member_variable1"),
-							new TypeSpecifier(TypeSpecifier::PrimitiveType::FLOAT64),
+							new TypeSpecifier(PrimitiveType::FLOAT64),
 							true,
 							Declaration::VisibilitySpecifier::PUBLIC,
 							Declaration::StorageSpecifier::STATIC
@@ -103,7 +103,7 @@ ASTNode* createSample3()
 
 					VariableDecl* some_member_variable2 = new VariableDecl(
 							new SimpleIdentifier(L"some_member_variable2"),
-							new TypeSpecifier(TypeSpecifier::PrimitiveType::FLOAT32),
+							new TypeSpecifier(PrimitiveType::FLOAT32),
 							true,
 							Declaration::VisibilitySpecifier::PUBLIC,
 							Declaration::StorageSpecifier::STATIC

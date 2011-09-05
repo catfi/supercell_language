@@ -426,17 +426,17 @@ struct ThorScript : qi::grammar<Iterator, typename SA::start::attribute_type, de
 			;
 
 		type_specifier
-			= qi::lit(L"void")                                                                     [ typename SA::type_specifier::template init_primitive_type<tree::TypeSpecifier::PrimitiveType::VOID>() ]
-			| qi::lit(L"int8")                                                                     [ typename SA::type_specifier::template init_primitive_type<tree::TypeSpecifier::PrimitiveType::INT8>() ]
-			| qi::lit(L"uint8")                                                                    [ typename SA::type_specifier::template init_primitive_type<tree::TypeSpecifier::PrimitiveType::UINT8>() ]
-			| qi::lit(L"int16")                                                                    [ typename SA::type_specifier::template init_primitive_type<tree::TypeSpecifier::PrimitiveType::INT16>() ]
-			| qi::lit(L"uint16")                                                                   [ typename SA::type_specifier::template init_primitive_type<tree::TypeSpecifier::PrimitiveType::UINT16>() ]
-			| qi::lit(L"int32")                                                                    [ typename SA::type_specifier::template init_primitive_type<tree::TypeSpecifier::PrimitiveType::INT32>() ]
-			| qi::lit(L"uint32")                                                                   [ typename SA::type_specifier::template init_primitive_type<tree::TypeSpecifier::PrimitiveType::UINT32>() ]
-			| qi::lit(L"int64")                                                                    [ typename SA::type_specifier::template init_primitive_type<tree::TypeSpecifier::PrimitiveType::INT64>() ]
-			| qi::lit(L"uint64")                                                                   [ typename SA::type_specifier::template init_primitive_type<tree::TypeSpecifier::PrimitiveType::UINT64>() ]
-			| qi::lit(L"float32")                                                                  [ typename SA::type_specifier::template init_primitive_type<tree::TypeSpecifier::PrimitiveType::FLOAT32>() ]
-			| qi::lit(L"float64")                                                                  [ typename SA::type_specifier::template init_primitive_type<tree::TypeSpecifier::PrimitiveType::FLOAT64>() ]
+			= qi::lit(L"void")                                                                     [ typename SA::type_specifier::template init_primitive_type<tree::PrimitiveType::VOID>() ]
+			| qi::lit(L"int8")                                                                     [ typename SA::type_specifier::template init_primitive_type<tree::PrimitiveType::INT8>() ]
+			| qi::lit(L"uint8")                                                                    [ typename SA::type_specifier::template init_primitive_type<tree::PrimitiveType::UINT8>() ]
+			| qi::lit(L"int16")                                                                    [ typename SA::type_specifier::template init_primitive_type<tree::PrimitiveType::INT16>() ]
+			| qi::lit(L"uint16")                                                                   [ typename SA::type_specifier::template init_primitive_type<tree::PrimitiveType::UINT16>() ]
+			| qi::lit(L"int32")                                                                    [ typename SA::type_specifier::template init_primitive_type<tree::PrimitiveType::INT32>() ]
+			| qi::lit(L"uint32")                                                                   [ typename SA::type_specifier::template init_primitive_type<tree::PrimitiveType::UINT32>() ]
+			| qi::lit(L"int64")                                                                    [ typename SA::type_specifier::template init_primitive_type<tree::PrimitiveType::INT64>() ]
+			| qi::lit(L"uint64")                                                                   [ typename SA::type_specifier::template init_primitive_type<tree::PrimitiveType::UINT64>() ]
+			| qi::lit(L"float32")                                                                  [ typename SA::type_specifier::template init_primitive_type<tree::PrimitiveType::FLOAT32>() ]
+			| qi::lit(L"float64")                                                                  [ typename SA::type_specifier::template init_primitive_type<tree::PrimitiveType::FLOAT64>() ]
 			| (nested_identifier > -(COMPARE_LT >> type_list_specifier > COMPARE_GT))              [ typename SA::type_specifier::init_type() ]
 			| (FUNCTION > LEFT_PAREN > -type_list_specifier > RIGHT_PAREN > -colon_type_specifier) [ typename SA::type_specifier::init_function_type() ]
 			| ELLIPSIS                                                                             [ typename SA::type_specifier::init_ellipsis() ]
@@ -475,7 +475,7 @@ struct ThorScript : qi::grammar<Iterator, typename SA::start::attribute_type, de
 			;
 
 		annotation_specifier
-			=	(AT_SYMBOL > IDENTIFIER
+			=	(AT_SYMBOL [ typename SA::annotation_specifier::init_loc() ] > IDENTIFIER
 					>	-(LEFT_BRACE > (
 						(IDENTIFIER > ASSIGN > primary_expression) % COMMA
 						) > RIGHT_BRACE)
@@ -483,7 +483,9 @@ struct ThorScript : qi::grammar<Iterator, typename SA::start::attribute_type, de
 			;
 
 		nested_identifier
-			= (IDENTIFIER > *(DOT > IDENTIFIER)) [ typename SA::nested_identifier::init() ]
+			=	(IDENTIFIER [ typename SA::nested_identifier::init_loc() ]
+					> *(DOT > IDENTIFIER)
+				) [ typename SA::nested_identifier::init() ]
 			;
 
 		//
@@ -522,8 +524,9 @@ struct ThorScript : qi::grammar<Iterator, typename SA::start::attribute_type, de
 			| _SELF                                   [ typename SA::primary_expression::template init_object_literal<tree::ObjectLiteral::LiteralType::SELF_OBJECT>() ]
 			| _GLOBAL                                 [ typename SA::primary_expression::template init_object_literal<tree::ObjectLiteral::LiteralType::GLOBAL_OBJECT>() ]
 			| (LEFT_PAREN > expression > RIGHT_PAREN) [ typename SA::primary_expression::init_paren_expression() ]
-			| (FUNCTION > LEFT_PAREN > -typed_parameter_list > RIGHT_PAREN > -colon_type_specifier
-				> block) [ typename SA::primary_expression::init_lambda() ]
+			|	(FUNCTION [ typename SA::primary_expression::init_loc() ]
+					> LEFT_PAREN > -typed_parameter_list > RIGHT_PAREN > -colon_type_specifier > block
+				) [ typename SA::primary_expression::init_lambda() ]
 			;
 
 		// postfix expression
@@ -668,21 +671,21 @@ struct ThorScript : qi::grammar<Iterator, typename SA::start::attribute_type, de
 		// associativity: right-to-left
 		// rank: 14
 		expression
-			=	location
-					>>	(ternary_expression
-						%	( ASSIGN        > qi::attr(tree::BinaryExpr::OpCode::ASSIGN)
-							| RSHIFT_ASSIGN > qi::attr(tree::BinaryExpr::OpCode::RSHIFT_ASSIGN)
-							| LSHIFT_ASSIGN > qi::attr(tree::BinaryExpr::OpCode::LSHIFT_ASSIGN)
-							| PLUS_ASSIGN   > qi::attr(tree::BinaryExpr::OpCode::ADD_ASSIGN)
-							| MINUS_ASSIGN  > qi::attr(tree::BinaryExpr::OpCode::SUB_ASSIGN)
-							| MUL_ASSIGN    > qi::attr(tree::BinaryExpr::OpCode::MUL_ASSIGN)
-							| DIV_ASSIGN    > qi::attr(tree::BinaryExpr::OpCode::DIV_ASSIGN)
-							| MOD_ASSIGN    > qi::attr(tree::BinaryExpr::OpCode::MOD_ASSIGN)
-							| AND_ASSIGN    > qi::attr(tree::BinaryExpr::OpCode::AND_ASSIGN)
-							| OR_ASSIGN     > qi::attr(tree::BinaryExpr::OpCode::OR_ASSIGN)
-							| XOR_ASSIGN    > qi::attr(tree::BinaryExpr::OpCode::XOR_ASSIGN)
-							) [ typename SA::right_to_left_binary_op_vec::append_op() ]
-						) [ typename SA::right_to_left_binary_op_vec::init() ]
+			= location
+				>>	(ternary_expression
+					%	( ASSIGN        > qi::attr(tree::BinaryExpr::OpCode::ASSIGN)
+						| RSHIFT_ASSIGN > qi::attr(tree::BinaryExpr::OpCode::RSHIFT_ASSIGN)
+						| LSHIFT_ASSIGN > qi::attr(tree::BinaryExpr::OpCode::LSHIFT_ASSIGN)
+						| PLUS_ASSIGN   > qi::attr(tree::BinaryExpr::OpCode::ADD_ASSIGN)
+						| MINUS_ASSIGN  > qi::attr(tree::BinaryExpr::OpCode::SUB_ASSIGN)
+						| MUL_ASSIGN    > qi::attr(tree::BinaryExpr::OpCode::MUL_ASSIGN)
+						| DIV_ASSIGN    > qi::attr(tree::BinaryExpr::OpCode::DIV_ASSIGN)
+						| MOD_ASSIGN    > qi::attr(tree::BinaryExpr::OpCode::MOD_ASSIGN)
+						| AND_ASSIGN    > qi::attr(tree::BinaryExpr::OpCode::AND_ASSIGN)
+						| OR_ASSIGN     > qi::attr(tree::BinaryExpr::OpCode::OR_ASSIGN)
+						| XOR_ASSIGN    > qi::attr(tree::BinaryExpr::OpCode::XOR_ASSIGN)
+						) [ typename SA::right_to_left_binary_op_vec::append_op() ]
+					) [ typename SA::right_to_left_binary_op_vec::init() ]
 			;
 
 		//
@@ -694,18 +697,18 @@ struct ThorScript : qi::grammar<Iterator, typename SA::start::attribute_type, de
 		//
 
 		statement
-			=	location
-					>>	(
-							(-annotation_specifiers
-								>>	( const_variable_decl
-									| expression_statement
-									| selection_statement
-									| iteration_statement
-									| branch_statement
-									)
-							) [ typename SA::statement::init() ]
-						|	block [ typename SA::statement::init_block() ]
-						)
+			= location
+				>>	(
+						(-annotation_specifiers
+							>>	( const_variable_decl
+								| expression_statement
+								| selection_statement
+								| iteration_statement
+								| branch_statement
+								)
+						) [ typename SA::statement::init() ]
+					|	block [ typename SA::statement::init_block() ]
+					)
 			;
 
 		expression_statement
@@ -713,11 +716,11 @@ struct ThorScript : qi::grammar<Iterator, typename SA::start::attribute_type, de
 			;
 
 		selection_statement
-				=	(IF > LEFT_PAREN > expression > RIGHT_PAREN > statement
+				=	(IF [ typename SA::selection_statement::init_loc() ] > LEFT_PAREN > expression > RIGHT_PAREN > statement
 						> *(ELIF > LEFT_PAREN > expression > RIGHT_PAREN > statement)
 						> -(ELSE > statement)
 					) [ typename SA::selection_statement::init_if_statement() ]
-				|	(SWITCH > LEFT_PAREN > expression > RIGHT_PAREN
+				|	(SWITCH [ typename SA::selection_statement::init_loc() ] > LEFT_PAREN > expression > RIGHT_PAREN
 						> LEFT_BRACE
 						>	*( CASE > expression > COLON > *statement
 							| DEFAULT > COLON > *statement
@@ -727,9 +730,14 @@ struct ThorScript : qi::grammar<Iterator, typename SA::start::attribute_type, de
 			;
 
 		iteration_statement
-			=	(WHILE > LEFT_PAREN > expression > RIGHT_PAREN > -statement)                 [ typename SA::iteration_statement::init_while_loop() ]
-			|	(DO > statement > WHILE > LEFT_PAREN > expression > RIGHT_PAREN > SEMICOLON) [ typename SA::iteration_statement::init_do_while_loop() ]
-			|	(FOREACH > LEFT_PAREN > (variable_decl_stem | postfix_expression) > IN > expression > RIGHT_PAREN > -statement
+			=	(WHILE [ typename SA::iteration_statement::init_loc() ]
+			 		> LEFT_PAREN > expression > RIGHT_PAREN > -statement
+				) [ typename SA::iteration_statement::init_while_loop() ]
+			|	(DO [ typename SA::iteration_statement::init_loc() ]
+					> statement > WHILE > LEFT_PAREN > expression > RIGHT_PAREN > SEMICOLON
+				) [ typename SA::iteration_statement::init_do_while_loop() ]
+			|	(FOREACH [ typename SA::iteration_statement::init_loc() ]
+					> LEFT_PAREN > (variable_decl_stem | postfix_expression) > IN > expression > RIGHT_PAREN > -statement
 				) [ typename SA::iteration_statement::init_foreach() ]
 			;
 
@@ -756,16 +764,16 @@ struct ThorScript : qi::grammar<Iterator, typename SA::start::attribute_type, de
 		//
 
 		declaration
-			=	location
-					>>	(-annotation_specifiers
-							>>	( const_variable_decl
-								| function_decl
-								| typedef_decl
-								| class_decl
-								| interface_decl
-								| enum_decl
-								)
-						) [ typename SA::declaration::init() ]
+			= location
+				>>	(-annotation_specifiers
+						>>	( const_variable_decl
+							| function_decl
+							| typedef_decl
+							| class_decl
+							| interface_decl
+							| enum_decl
+							)
+					) [ typename SA::declaration::init() ]
 			;
 
 		const_variable_decl
@@ -777,24 +785,30 @@ struct ThorScript : qi::grammar<Iterator, typename SA::start::attribute_type, de
 			;
 
 		variable_decl_stem
-			= (VAR > IDENTIFIER > -colon_type_specifier) [ typename SA::variable_decl_stem::init() ]
+			=	(VAR [ typename SA::variable_decl_stem::init_loc() ] > IDENTIFIER
+					> -colon_type_specifier
+				) [ typename SA::variable_decl_stem::init() ]
 			;
 
 		function_decl
-			= (FUNCTION > (template_param_identifier | (NEW > qi::attr(true))) > LEFT_PAREN > -typed_parameter_list > RIGHT_PAREN > -colon_type_specifier
-				> -block
+			=	(FUNCTION [ typename SA::function_decl::init_loc() ] > (template_param_identifier | (NEW > qi::attr(true)))
+					> LEFT_PAREN > -typed_parameter_list > RIGHT_PAREN > -colon_type_specifier
+					> -block
 				) [ typename SA::function_decl::init() ]
 			;
 
 		typedef_decl
-			= (TYPEDEF > type_specifier > IDENTIFIER > SEMICOLON) [ typename SA::typedef_decl::init() ]
+			=	(TYPEDEF [ typename SA::typedef_decl::init_loc() ] > type_specifier > IDENTIFIER
+					> SEMICOLON
+				) [ typename SA::typedef_decl::init() ]
 			;
 
 		class_decl
-			= (CLASS > template_param_identifier > -(EXTENDS > nested_identifier) > -((IMPLEMENTS > nested_identifier) % COMMA)
-				> LEFT_BRACE
-				> *class_member_decl
-				> RIGHT_BRACE
+			=	(CLASS [ typename SA::class_decl::init_loc() ] > template_param_identifier
+					> -(EXTENDS > nested_identifier) > -((IMPLEMENTS > nested_identifier) % COMMA)
+						> LEFT_BRACE
+						> *class_member_decl
+						> RIGHT_BRACE
 				) [ typename SA::class_decl::init() ]
 			;
 
@@ -807,23 +821,24 @@ struct ThorScript : qi::grammar<Iterator, typename SA::start::attribute_type, de
 			;
 
 		interface_decl
-			= (INTERFACE > IDENTIFIER
-				> LEFT_BRACE
-				> *interface_member_function_decl
-				> RIGHT_BRACE
+			=	(INTERFACE [ typename SA::interface_decl::init_loc() ] > IDENTIFIER
+					> LEFT_BRACE
+					> *interface_member_function_decl
+					> RIGHT_BRACE
 				) [ typename SA::interface_decl::init() ]
 			;
 
 		interface_member_function_decl
-			=	(-interface_visibility_specifier >> FUNCTION > IDENTIFIER > LEFT_PAREN > -typed_parameter_list > RIGHT_PAREN > colon_type_specifier > SEMICOLON
+			=	(-interface_visibility_specifier >> FUNCTION [ typename SA::interface_member_function_decl::init_loc() ] > IDENTIFIER
+					> LEFT_PAREN > -typed_parameter_list > RIGHT_PAREN > colon_type_specifier > SEMICOLON
 				) [ typename SA::interface_member_function_decl::init() ]
 			;
 
 		enum_decl
-			= (ENUM > IDENTIFIER
-				> LEFT_BRACE
-				> (-annotation_specifiers > IDENTIFIER > -(ASSIGN > expression)) % COMMA
-				> RIGHT_BRACE
+			=	(ENUM [ typename SA::enum_decl::init_loc() ] > IDENTIFIER
+					> LEFT_BRACE
+					> (-annotation_specifiers > IDENTIFIER > -(ASSIGN > expression)) % COMMA
+					> RIGHT_BRACE
 				) [ typename SA::enum_decl::init() ]
 			;
 

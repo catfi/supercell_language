@@ -32,6 +32,8 @@
 #include <boost/archive/text_oarchive.hpp>
 #include <boost/archive/text_iarchive.hpp>
 #include <boost/serialization/export.hpp>
+#include <boost/serialization/vector.hpp>
+#include <boost/serialization/utility.hpp>
 
 #define DEFINE_HIERARCHY_BASE() \
 	static int stype() \

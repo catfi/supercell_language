@@ -34,7 +34,7 @@ struct program
 #ifdef DEBUG
 		printf("program param(0) type = %s\n", typeid(_param_t(0)).name());
 #endif
-		REGISTER_LOCATION(getParserContext().program);
+		BIND_LOCATION(getParserContext().program);
 		getParserContext().active_package = getParserContext().program->root;
 	}
 	END_ACTION
@@ -51,7 +51,7 @@ struct program
 			Package *package = prev_package->findPackage(i->toString());
 			if(!package)
 			{
-				REGISTER_LOCATION(package = new Package(cast<SimpleIdentifier>(i)));
+				BIND_LOCATION(package = new Package(cast<SimpleIdentifier>(i)));
 				prev_package->addPackage(package);
 			}
 			prev_package = package;
@@ -67,7 +67,7 @@ struct program
 #endif
 		if(!!getParserContext().program)
 		{
-			Import* import = new Import(_param(0)); REGISTER_LOCATION(import);
+			Import* import = new Import(_param(0)); BIND_LOCATION(import);
 			getParserContext().program->addImport(import);
 		}
 	}

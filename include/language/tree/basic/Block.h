@@ -53,7 +53,7 @@ struct Block : public ASTNode
 
 	template<typename Archive>
     void serialize(Archive& ar, const unsigned int version) {
-        boost::serialization::base_object<ASTNode>(*this);
+        ::boost::serialization::base_object<ASTNode>(*this);
         ar & is_pipelined_block;
         ar & is_async_block;
         ar & objects;

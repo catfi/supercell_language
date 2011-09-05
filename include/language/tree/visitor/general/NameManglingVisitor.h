@@ -102,7 +102,7 @@ struct NameManglingVisitor : Visitor<ASTNode, void, VisitorImplementation::recur
 			visit(*node.referred.function_type);
 			break;
 		case TypeSpecifier::ReferredType::PRIMITIVE:
-			stream << TypeSpecifier::PrimitiveType::toString(node.referred.primitive);
+			stream << PrimitiveType::toString(node.referred.primitive);
 			break;
 		case TypeSpecifier::ReferredType::UNSPECIFIED:
 			stream << encode(node.referred.unspecified->toString());

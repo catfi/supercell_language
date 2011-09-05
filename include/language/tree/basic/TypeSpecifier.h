@@ -21,6 +21,7 @@
 #define ZILLIANS_LANGUAGE_TREE_TYPESPECIFIER_H_
 
 #include "language/tree/ASTNode.h"
+#include "language/tree/basic/Primitive.h"
 #include "language/tree/basic/Identifier.h"
 #include "language/tree/basic/FunctionType.h"
 
@@ -37,66 +38,6 @@ struct TypeSpecifier : public ASTNode
 	DEFINE_VISITABLE();
 	DEFINE_HIERARCHY(TypeSpecifier, (TypeSpecifier)(ASTNode));
 
-	struct PrimitiveType
-	{
-		enum type {
-			VOID,
-
-			BOOL,
-			UINT8,
-			UINT16,
-			UINT32,
-			UINT64,
-
-			INT8,
-			INT16,
-			INT32,
-			INT64,
-
-			FLOAT32,
-			FLOAT64,
-
-			ANONYMOUS_OBJECT,
-			ANONYMOUS_FUNCTION,
-			VARIADIC_ELLIPSIS,
-		};
-
-		static bool isSignedIntegerType(type t)
-		{
-			return (t >= INT8 && t <= INT64);
-		}
-
-		static bool isUnsignedIntegerType(type t)
-		{
-			return (t >= BOOL && t <= UINT64);
-		}
-
-		static bool isFloatType(type t)
-		{
-			return (t == FLOAT32 || t == FLOAT64);
-		}
-
-		static const wchar_t* toString(type t)
-		{
-			switch(t)
-			{
-			case VOID:	return L"void";
-			case INT8:  return L"int8";
-			case INT16: return L"int16";
-			case INT32: return L"int32";
-			case INT64: return L"int64";
-			case UINT8:  return L"uint8";
-			case UINT16: return L"uint16";
-			case UINT32: return L"uint32";
-			case UINT64: return L"uint64";
-			case FLOAT32: return L"float32";
-			case FLOAT64: return L"float64";
-			case ANONYMOUS_OBJECT: return L"object";
-			case ANONYMOUS_FUNCTION: return L"function";
-			case VARIADIC_ELLIPSIS: return L"...";
-			}
-		}
-	};
 	struct ReferredType
 	{
 		enum type {
@@ -216,20 +157,7 @@ struct TypeSpecifier : public ASTNode
 
     template<typename Archive>
     void serialize(Archive& ar, const unsigned int version) {
-        boost::serialization::base_object<ASTNode>(*this);
-        ar & static_cast<int&>(type);
-        switch(type)
-        {
-        case ReferredType::CLASS_DECL:		ar & referred.class_decl       ; break;
-        case ReferredType::INTERFACE_DECL:	ar & referred.interface_decl   ; break;
-        case ReferredType::FUNCTION_DECL:		ar & referred.function_decl    ; break;
-        case ReferredType::ENUM_DECL:			ar & referred.enum_decl        ; break;
-        case ReferredType::TYPEDEF_DECL:		ar & referred.typedef_decl     ; break;
-        case ReferredType::FUNCTION_TYPE:		ar & referred.function_type    ; break;
-        case ReferredType::PRIMITIVE:			ar & referred.primitive        ; break;
-        case ReferredType::UNSPECIFIED: 		ar & referred.unspecified      ; break;
-        }
-        ar & referred;
+        ::boost::serialization::base_object<ASTNode>(*this);
     }
 
 	ReferredType::type type;
@@ -248,5 +176,56 @@ struct TypeSpecifier : public ASTNode
 };
 
 } } }
+
+namespace boost { namespace serialization {
+template<class Archive>
+inline void save_construct_data(Archive& ar, const zillians::language::tree::TypeSpecifier* p, const unsigned int file_version)
+{
+    using namespace zillians::language::tree;
+
+    ar << p->type;
+    switch(p->type)
+    {
+    case TypeSpecifier::ReferredType::CLASS_DECL        : ar << p->referred.class_decl     ; break ;
+    case TypeSpecifier::ReferredType::INTERFACE_DECL    : ar << p->referred.interface_decl ; break ;
+    case TypeSpecifier::ReferredType::FUNCTION_DECL     : ar << p->referred.function_decl  ; break ;
+    case TypeSpecifier::ReferredType::ENUM_DECL         : ar << p->referred.enum_decl      ; break ;
+    case TypeSpecifier::ReferredType::TYPEDEF_DECL      : ar << p->referred.typedef_decl   ; break ;
+    case TypeSpecifier::ReferredType::FUNCTION_TYPE     : ar << p->referred.function_type  ; break ;
+    case TypeSpecifier::ReferredType::PRIMITIVE         : ar << p->referred.primitive      ; break ;
+    case TypeSpecifier::ReferredType::UNSPECIFIED       : ar << p->referred.unspecified    ; break ;
+    }
+}
+
+template<class Archive>
+inline void load_construct_data(Archive& ar, zillians::language::tree::TypeSpecifier* p, const unsigned int file_version)
+{
+    using namespace zillians::language::tree;
+
+    ClassDecl* class_decl;
+    InterfaceDecl* interface_decl;
+    FunctionDecl* function_decl;
+    EnumDecl* enum_decl;
+    TypedefDecl* typedef_decl;
+    FunctionType* function_type;
+    PrimitiveType::type primitive;
+    Identifier* unspecified;
+
+    int type;
+    ar >> type;
+
+    switch(static_cast<TypeSpecifier::ReferredType::type>(type))
+    {
+    case TypeSpecifier::ReferredType::CLASS_DECL        : ar >> class_decl     ; ::new(p) TypeSpecifier(class_decl    ); break ;
+    case TypeSpecifier::ReferredType::INTERFACE_DECL    : ar >> interface_decl ; ::new(p) TypeSpecifier(interface_decl); break ;
+    case TypeSpecifier::ReferredType::FUNCTION_DECL     : ar >> function_decl  ; ::new(p) TypeSpecifier(function_decl ); break ;
+    case TypeSpecifier::ReferredType::ENUM_DECL         : ar >> enum_decl      ; ::new(p) TypeSpecifier(enum_decl     ); break ;
+    case TypeSpecifier::ReferredType::TYPEDEF_DECL      : ar >> typedef_decl   ; ::new(p) TypeSpecifier(typedef_decl  ); break ;
+    case TypeSpecifier::ReferredType::FUNCTION_TYPE     : ar >> function_type  ; ::new(p) TypeSpecifier(function_type ); break ;
+    case TypeSpecifier::ReferredType::PRIMITIVE         : ar >> primitive      ; ::new(p) TypeSpecifier(primitive     ); break ;
+    case TypeSpecifier::ReferredType::UNSPECIFIED       : ar >> unspecified    ; ::new(p) TypeSpecifier(unspecified   ); break ;
+    }
+}
+}} // namespace boost::serialization
 
 #endif /* ZILLIANS_LANGUAGE_TREE_TYPESPECIFIER_H_ */

@@ -45,13 +45,7 @@ struct VariableDecl : public Declaration
 
     template<typename Archive>
     void serialize(Archive& ar, const unsigned int version) {
-        boost::serialization::base_object<Declaration>(*this);
-        ar & name;
-        ar & type;
-        ar & is_member;
-        ar & static_cast<int&>(visibility);
-        ar & static_cast<int&>(storage);
-        ar & initializer;
+        ::boost::serialization::base_object<Declaration>(*this);
     }
 
 	Identifier* name;
@@ -63,5 +57,40 @@ struct VariableDecl : public Declaration
 };
 
 } } }
+
+namespace boost { namespace serialization {
+template<class Archive>
+inline void save_construct_data(Archive& ar, const zillians::language::tree::VariableDecl* p, const unsigned int file_version)
+{
+	ar << p->name;
+    ar << p->type;
+    ar << p->is_member;
+    ar << p->visibility;
+    ar << p->storage;
+    ar << p->initializer;
+}
+
+template<class Archive>
+inline void load_construct_data(Archive& ar, zillians::language::tree::VariableDecl* p, const unsigned int file_version)
+{
+    using namespace zillians::language::tree;
+
+	Identifier* name;
+	TypeSpecifier* type;
+	bool is_member;
+	Declaration::VisibilitySpecifier::type visibility;
+	Declaration::StorageSpecifier::type storage;
+	ASTNode* initializer;
+
+	ar >> name;
+    ar >> type;
+    ar >> is_member;
+    ar >> visibility;
+    ar >> storage;
+    ar >> initializer;
+
+	::new(p) VariableDecl(name, type, is_member, visibility, storage, initializer);
+}
+}} // namespace boost::serialization
 
 #endif /* ZILLIANS_LANGUAGE_TREE_VARIABLEDECL_H_ */

@@ -34,7 +34,7 @@ struct integer_literal
 #ifdef DEBUG
 		printf("integer_literal param(0) type = %s\n", typeid(_param_t(0)).name());
 #endif
-		REGISTER_LOCATION(_result = new NumericLiteral(_param(0)));
+		BIND_LOCATION(_result = new NumericLiteral(_param(0)));
 	}
 	END_ACTION
 };
@@ -49,7 +49,7 @@ struct float_literal
 #ifdef DEBUG
 		printf("float_literal param(0) type = %s\n", typeid(_param_t(0)).name());
 #endif
-		REGISTER_LOCATION(_result = new NumericLiteral(_param(0)));
+		BIND_LOCATION(_result = new NumericLiteral(_param(0)));
 	}
 	END_ACTION
 };
@@ -64,7 +64,7 @@ struct string_literal
 #ifdef DEBUG
 		printf("string_literal param(0) type = %s\n", typeid(_param_t(0)).name());
 #endif
-		REGISTER_LOCATION(_result = new StringLiteral(_param(0)));
+		BIND_LOCATION(_result = new StringLiteral(_param(0)));
 	}
 	END_ACTION
 };

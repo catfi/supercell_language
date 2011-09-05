@@ -50,8 +50,8 @@ struct EnumDecl : public Declaration
 
     template<typename Archive>
     void serialize(Archive& ar, const unsigned int version) {
-        boost::serialization::base_object<Declaration>(*this);
-        ar & name;
+        ::boost::serialization::base_object<Declaration>(*this);
+        //ar & name;
         ar & enumeration_list;
     }
 
@@ -60,5 +60,23 @@ struct EnumDecl : public Declaration
 };
 
 } } }
+
+namespace boost { namespace serialization {
+template<class Archive>
+inline void save_construct_data(Archive& ar, const zillians::language::tree::EnumDecl* p, const unsigned int file_version)
+{
+	ar << p->name;
+}
+
+template<class Archive>
+inline void load_construct_data(Archive& ar, zillians::language::tree::EnumDecl* p, const unsigned int file_version)
+{
+    using namespace zillians::language::tree;
+
+	Identifier* name;
+	ar >> name;
+	::new(p) EnumDecl(name);
+}
+}} // namespace boost::serialization
 
 #endif /* ZILLIANS_LANGUAGE_TREE_ENUMDECL_H_ */

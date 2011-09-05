@@ -82,7 +82,7 @@ struct Declaration : public ASTNode
 
     template<typename Archive>
     void serialize(Archive& ar, const unsigned int version) {
-        boost::serialization::base_object<ASTNode>(*this);
+        ::boost::serialization::base_object<ASTNode>(*this);
         ar & annotations;
     }
 

@@ -35,7 +35,7 @@ struct IterativeStmt : public Statement
 	DEFINE_HIERARCHY(IterativeStmt, (IterativeStmt)(Statement)(ASTNode));
     template<typename Archive>
     void serialize(Archive& ar, const unsigned int version) {
-        boost::serialization::base_object<Statement>(*this);
+        ::boost::serialization::base_object<Statement>(*this);
     }
 
 };
@@ -57,7 +57,7 @@ struct ForeachStmt : public IterativeStmt
 
     template<typename Archive>
     void serialize(Archive& ar, const unsigned int version) {
-        boost::serialization::base_object<IterativeStmt>(*this);
+        ::boost::serialization::base_object<IterativeStmt>(*this);
         ar & iterator;
         ar & range;
         ar & block;
@@ -100,8 +100,7 @@ struct WhileStmt : public IterativeStmt
 
     template<typename Archive>
     void serialize(Archive& ar, const unsigned int version) {
-        boost::serialization::base_object<IterativeStmt>(*this);
-        ar & static_cast<int&>(style);
+        ::boost::serialization::base_object<IterativeStmt>(*this);
         ar & cond;
         ar & block;
     }
@@ -112,5 +111,56 @@ struct WhileStmt : public IterativeStmt
 };
 
 } } }
+
+namespace boost { namespace serialization {
+// ForStmt
+template<class Archive>
+inline void save_construct_data(Archive& ar, const zillians::language::tree::ForeachStmt* p, const unsigned int file_version)
+{
+    ar << p->iterator;
+    ar << p->range;
+    ar << p->block;
+}
+
+template<class Archive>
+inline void load_construct_data(Archive& ar, zillians::language::tree::ForeachStmt* p, const unsigned int file_version)
+{
+    using namespace zillians::language::tree;
+
+	ASTNode* iterator; // TODO semantic-check: it must be L-value expression or declarative statement
+	Expression* range;
+	ASTNode* block;
+
+    ar >> iterator;
+    ar >> range;
+    ar >> block;
+
+	::new(p) ForeachStmt(iterator, range, block);
+}
+// WhileStmt
+template<class Archive>
+inline void save_construct_data(Archive& ar, const zillians::language::tree::WhileStmt* p, const unsigned int file_version)
+{
+    ar << (int&)p->style;
+    ar << p->cond;
+    ar << p->block;
+}
+
+template<class Archive>
+inline void load_construct_data(Archive& ar, zillians::language::tree::WhileStmt* p, const unsigned int file_version)
+{
+    using namespace zillians::language::tree;
+
+	int style;
+	Expression* cond;
+	ASTNode* block;
+
+    ar >> style;
+    ar >> cond;
+    ar >> block;
+
+	::new(p) WhileStmt(static_cast<WhileStmt::Style::type>(style), cond, block);
+}
+}} // namespace boost::serialization
 
 #endif /* ZILLIANS_LANGUAGE_TREE_ITERATIVESTMT_H_ */

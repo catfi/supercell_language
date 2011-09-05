@@ -86,9 +86,7 @@ struct UnaryExpr : public Expression
 
     template<typename Archive>
     void serialize(Archive& ar, const unsigned int version) {
-        boost::serialization::base_object<Expression>(*this);
-        ar & static_cast<int&>(opcode);
-        ar & node;
+        ::boost::serialization::base_object<Expression>(*this);
     }
 
 	OpCode::type opcode;
@@ -96,5 +94,28 @@ struct UnaryExpr : public Expression
 };
 
 } } }
+
+namespace boost { namespace serialization {
+template<class Archive>
+inline void save_construct_data(Archive& ar, const zillians::language::tree::UnaryExpr* p, const unsigned int file_version)
+{
+	ar << (int&)p->opcode;
+    ar << p->node;
+}
+
+template<class Archive>
+inline void load_construct_data(Archive& ar, zillians::language::tree::UnaryExpr* p, const unsigned int file_version)
+{
+    using namespace zillians::language::tree;
+
+    int opcode;
+	ASTNode* node;
+
+	ar >> opcode;
+    ar >> node;
+
+	::new(p) UnaryExpr(static_cast<UnaryExpr::OpCode::type>(opcode), node);
+}
+}} // namespace boost::serialization
 
 #endif /* ZILLIANS_LANGUAGE_TREE_UNARYEXPR_H_ */

@@ -23,6 +23,7 @@
 #include "core/Prerequisite.h"
 #include "language/tree/ASTNodeFactory.h"
 #include "language/GlobalContext.h"
+#include "language/stage/generator/detail/LLVMHeaders.h"
 
 namespace zillians { namespace language { namespace stage {
 

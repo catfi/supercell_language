@@ -90,7 +90,7 @@ struct FunctionType: public ASTNode
 
     template<typename Archive>
     void serialize(Archive& ar, const unsigned int version) {
-        boost::serialization::base_object<ASTNode>(*this);
+        ::boost::serialization::base_object<ASTNode>(*this);
         ar & templated_parameters;
         ar & argument_types;
         ar & return_type;

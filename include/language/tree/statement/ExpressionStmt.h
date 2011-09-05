@@ -42,8 +42,7 @@ struct ExpressionStmt : public Statement
 
     template<typename Archive>
     void serialize(Archive& ar, const unsigned int version) {
-        boost::serialization::base_object<Statement>(*this);
-        ar & expr;
+        ::boost::serialization::base_object<Statement>(*this);
     }
 
 	Expression* expr;
@@ -51,5 +50,23 @@ struct ExpressionStmt : public Statement
 
 
 } } }
+
+namespace boost { namespace serialization {
+template<class Archive>
+inline void save_construct_data(Archive& ar, const zillians::language::tree::ExpressionStmt* p, const unsigned int file_version)
+{
+    ar << p->expr;
+}
+
+template<class Archive>
+inline void load_construct_data(Archive& ar, zillians::language::tree::ExpressionStmt* p, const unsigned int file_version)
+{
+    using namespace zillians::language::tree;
+
+	Expression* expr;
+    ar >> expr;
+	::new(p) ExpressionStmt(expr);
+}
+}} // namespace boost::serialization
 
 #endif /* ZILLIANS_LANGUAGE_TREE_EXPRESSIONSTMT_H_ */
