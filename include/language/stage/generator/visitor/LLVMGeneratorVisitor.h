@@ -189,12 +189,15 @@ struct LLVMGeneratorVisitor : GenericDoubleVisitor
 
 	void generate(IfElseStmt& node)
 	{
+		// TODO simplify the blocks by removing or merging unnecessary blocks
 		// generate code into blocks
 		std::vector<llvm::BasicBlock*> llvm_blocks;
 		{
 			// for if branch
 			{
 				llvm::BasicBlock* cond = createBasicBlock("if.eval", mFunctionContext.function);
+				mBuilder.CreateBr(cond); // jump from current block to the condition evaluation block
+
 				mBuilder.SetInsertPoint(cond);
 				visit(*node.if_branch.cond);
 
@@ -768,6 +771,7 @@ private:
 
 	bool startFunction(FunctionDecl& ast_function)
 	{
+		// TODO simplify the blocks by removing or merging unnecessary blocks
 		BOOST_ASSERT(!mFunctionContext.function);
 		BOOST_ASSERT(!mFunctionContext.entry_block);
 		BOOST_ASSERT(!mFunctionContext.return_block);
