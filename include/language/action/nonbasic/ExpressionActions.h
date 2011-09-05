@@ -172,13 +172,14 @@ struct primary_expression
 struct postfix_expression
 {
 	DEFINE_ATTRIBUTES(Expression*)
-	DEFINE_LOCALS()
+	DEFINE_LOCALS(VAR_LOCATIONS(1))
 
-	BEGIN_ACTION(init_primary_expression)
+	BEGIN_ACTION(init_primary_expression_and_loc)
 	{
 #ifdef DEBUG
 		printf("postfix_expression::init_primary_expression param(0) type = %s\n", typeid(_param_t(0)).name());
 #endif
+		CACHE_LOCATIONS(1);
 		_result = _param(0);
 	}
 	END_ACTION
@@ -197,10 +198,11 @@ struct postfix_expression
 #ifdef DEBUG
 		printf("postfix_expression::init_postfix_call param(0) type = %s\n", typeid(_param_t(0)).name());
 #endif
-		BIND_LOCATION(_result = new CallExpr(_result));
+		BIND_CACHED_LOCATION(_result = new CallExpr(_result));
 		if(_param(0).is_initialized())
 			deduced_foreach_value(i, *_param(0))
 				cast<CallExpr>(_result)->appendParameter(i);
+		FREE_UNBOUND_CACHED_LOCATIONS;
 	}
 	END_ACTION
 
