@@ -52,7 +52,7 @@ struct block
 #ifdef DEBUG
 		printf("block param(0) type = %s\n", typeid(_param_t(0)).name());
 #endif
-		REGISTER_LOCATION(_result = new Block());
+		BIND_CURRENT_LOCATION(_result = new Block());
 		_result->appendObjects(_param(0));
 	}
 	END_ACTION

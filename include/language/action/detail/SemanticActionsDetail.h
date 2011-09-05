@@ -76,12 +76,12 @@
 #define _local(i)   boost::fusion::at_c<i>(context.locals)
 #define _local_t(i) decltype(boost::fusion::at_c<i>(context.locals))
 
-#define LOCATIONS_DECL(n) \
+#define VAR_LOCATIONS(n) \
 		stage::SourceInfoContext*[n], /* _local(0): locations array */ \
 		size_t,                       /* _local(1): size of locations array */ \
 		size_t                        /* _local(2): index into locations array */
 
-#define ALLOCATE_LOCATIONS(n) { \
+#define CACHE_CURRENT_LOCATIONS(n) { \
 			for(size_t i = 0; i<n; i++) \
 				_local(0)[i] = new stage::SourceInfoContext( \
 						getParserContext().debug.source_index, \
@@ -91,19 +91,19 @@
 			_local(2) = 0; \
 		}
 
-#define REGISTER_LOCATION(x) \
+#define BIND_CURRENT_LOCATION(x) \
 		stage::SourceInfoContext::set((x), new stage::SourceInfoContext( \
 				getParserContext().debug.source_index, \
 				getParserContext().debug.line, \
 				getParserContext().debug.column))
 
-#define SET_LOCATION(x) { \
+#define BIND_CACHED_LOCATION(x) { \
 			stage::SourceInfoContext::set((x), _local(0)[_local(2)]); \
 			_local(0)[_local(2)] = NULL; \
 			_local(2)++; \
 		}
 
-#define FREE_UNUSED_LOCATIONS \
+#define FREE_UNBOUND_LOCATIONS \
 		for(size_t i = 0; i<_local(1); i++) \
 			SAFE_DELETE(_local(0)[i])
 

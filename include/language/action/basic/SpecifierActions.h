@@ -53,19 +53,19 @@ struct type_specifier
 		Identifier* ident = NULL;
 		if(_param(1).is_initialized())
 		{
-			REGISTER_LOCATION(ident = new TemplatedIdentifier(TemplatedIdentifier::Usage::ACTUAL_ARGUMENT, _param(0)));
+			BIND_CURRENT_LOCATION(ident = new TemplatedIdentifier(TemplatedIdentifier::Usage::ACTUAL_ARGUMENT, _param(0)));
 			deduced_foreach_value(i, *_param(1))
 				cast<TemplatedIdentifier>(ident)->appendArgument(i);
 		}
 		else
 			ident = _param(0);
-		REGISTER_LOCATION(_result = new TypeSpecifier(ident));
+		BIND_CURRENT_LOCATION(_result = new TypeSpecifier(ident));
 	}
 	END_ACTION
 
 	BEGIN_TEMPLATED_ACTION(init_primitive_type, TypeSpecifier::PrimitiveType::type Type)
 	{
-		REGISTER_LOCATION(_result = new TypeSpecifier(Type));
+		BIND_CURRENT_LOCATION(_result = new TypeSpecifier(Type));
 	}
 	END_ACTION
 
@@ -78,12 +78,12 @@ struct type_specifier
 		typedef std::vector<TypeSpecifier*> type_list_specifier_t;
 		type_list_specifier_t* parameters = _param(0).is_initialized() ? &*_param(0) : NULL;
 		TypeSpecifier*         type       = _param(1).is_initialized() ? *_param(1) : NULL;
-		FunctionType* function_type = new FunctionType(); REGISTER_LOCATION(function_type);
+		FunctionType* function_type = new FunctionType(); BIND_CURRENT_LOCATION(function_type);
 		if(!!parameters)
 			deduced_foreach_value(i, *parameters)
 				function_type->appendParameterType(i);
 		function_type->setReturnType(type);
-		REGISTER_LOCATION(_result = new TypeSpecifier(function_type));
+		BIND_CURRENT_LOCATION(_result = new TypeSpecifier(function_type));
 	}
 	END_ACTION
 
@@ -92,7 +92,7 @@ struct type_specifier
 #ifdef DEBUG
 		printf("type_specifier::init_ellipsis param(0) type = %s\n", typeid(_param_t(0)).name());
 #endif
-		REGISTER_LOCATION(_result = new TypeSpecifier(TypeSpecifier::PrimitiveType::VARIADIC_ELLIPSIS));
+		BIND_CURRENT_LOCATION(_result = new TypeSpecifier(TypeSpecifier::PrimitiveType::VARIADIC_ELLIPSIS));
 	}
 	END_ACTION
 };
@@ -179,7 +179,7 @@ struct annotation_specifiers
 #ifdef DEBUG
 		printf("annotation_specifiers param(0) type = %s\n", typeid(_param_t(0)).name());
 #endif
-		REGISTER_LOCATION(_result = new Annotations());
+		BIND_CURRENT_LOCATION(_result = new Annotations());
 		deduced_foreach_value(i, _param(0))
 			_result->appendAnnotation(i);
 	}
@@ -189,11 +189,11 @@ struct annotation_specifiers
 struct annotation_specifier
 {
 	DEFINE_ATTRIBUTES(Annotation*)
-	DEFINE_LOCALS(LOCATIONS_DECL(1))
+	DEFINE_LOCALS(VAR_LOCATIONS(1))
 
 	BEGIN_ACTION(init_loc)
 	{
-		ALLOCATE_LOCATIONS(1);
+		CACHE_CURRENT_LOCATIONS(1);
 	}
 	END_ACTION
 
@@ -203,7 +203,7 @@ struct annotation_specifier
 		printf("annotation_specifier::init param(0) type = %s\n", typeid(_param_t(0)).name());
 		printf("annotation_specifier::init param(1) type = %s\n", typeid(_param_t(1)).name());
 #endif
-		SET_LOCATION(_result = new Annotation(_param(0)));
+		BIND_CACHED_LOCATION(_result = new Annotation(_param(0)));
 		if(_param(1).is_initialized())
 			deduced_foreach_value(i, *_param(1))
 			{
@@ -212,7 +212,7 @@ struct annotation_specifier
 				Expression*       value = boost::fusion::at_c<1>(i);
 				_result->appendKeyValue(key, value);
 			}
-		FREE_UNUSED_LOCATIONS;
+		FREE_UNBOUND_LOCATIONS;
 	}
 	END_ACTION
 };
