@@ -30,7 +30,7 @@ TypeInferenceStage::~TypeInferenceStage()
 
 const char* TypeInferenceStage::name()
 {
-	return "type_synthesis_stage";
+	return "type_inference_stage";
 }
 
 void TypeInferenceStage::initializeOptions(po::options_description& option_desc, po::positional_options_description& positional_desc)

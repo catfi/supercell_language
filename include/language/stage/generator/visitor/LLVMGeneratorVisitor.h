@@ -278,31 +278,7 @@ struct LLVMGeneratorVisitor : GenericDoubleVisitor
 
 		switch(node.opcode)
 		{
-		case BinaryExpr::OpCode::BINARY_AND:
-			result = mBuilder.CreateAnd(lhs_value, rhs_value); break;
-		case BinaryExpr::OpCode::BINARY_OR:
-			result = mBuilder.CreateOr(lhs_value, rhs_value); break;
-		case BinaryExpr::OpCode::BINARY_XOR:
-			result = mBuilder.CreateXor(lhs_value, rhs_value); break;
-		case BinaryExpr::OpCode::BINARY_LSHIFT:
-			// TODO what's the left shift operation?
-			break;
-		case BinaryExpr::OpCode::BINARY_RSHIFT:
-			// TODO should we use CreateAShr or CreateLShr? depending on the object type?
-			result = mBuilder.CreateLShr(lhs_value, rhs_value); break;
-
-		case BinaryExpr::OpCode::ARITHMETIC_ADD:
-			result = (isFloatType(node)) ? mBuilder.CreateFAdd(lhs_value, rhs_value) : mBuilder.CreateAdd(lhs_value, rhs_value); break;
-		case BinaryExpr::OpCode::ARITHMETIC_SUB:
-			result = (isFloatType(node)) ? mBuilder.CreateFSub(lhs_value, rhs_value) : mBuilder.CreateSub(lhs_value, rhs_value); break;
-		case BinaryExpr::OpCode::ARITHMETIC_MUL:
-			result = (isFloatType(node)) ? mBuilder.CreateFMul(lhs_value, rhs_value) : mBuilder.CreateMul(lhs_value, rhs_value); break;
-		case BinaryExpr::OpCode::ARITHMETIC_DIV:
-			// TODO should be use CreateUDiv or CreateSDiv? depending on whether LHS or RHS is signed or unsigned
-			// TODO current zscript does not handle this correctly
-			// TODO see clang CGExprScalar.cpp:1737 hasUnsignedIntegerRepresentation()
-			result = (isFloatType(node)) ? mBuilder.CreateFDiv(lhs_value, rhs_value) : mBuilder.CreateUDiv(lhs_value, rhs_value); break;
-
+			// Assignments Operations
 		case BinaryExpr::OpCode::ASSIGN:
 			result = mBuilder.CreateStore(rhs_value, lhs_value);
 			break;
@@ -322,7 +298,92 @@ struct LLVMGeneratorVisitor : GenericDoubleVisitor
 			temporary = (isFloatType(node)) ? mBuilder.CreateFDiv(lhs_value, rhs_value) : mBuilder.CreateUDiv(lhs_value, rhs_value);
 			result = mBuilder.CreateStore(temporary, lhs_value);
 			break;
+		case BinaryExpr::OpCode::MOD_ASSIGN:
+			temporary = (isFloatType(node)) ? mBuilder.CreateFRem(lhs_value, rhs_value) : mBuilder.CreateURem(lhs_value, rhs_value);
+			result = mBuilder.CreateStore(temporary, lhs_value);
+			break;
+		case BinaryExpr::OpCode::AND_ASSIGN:
+			temporary = mBuilder.CreateAnd(lhs_value, rhs_value);
+			result = mBuilder.CreateStore(temporary, lhs_value);
+			break;
+		case BinaryExpr::OpCode::OR_ASSIGN:
+			temporary = mBuilder.CreateOr(lhs_value, rhs_value);
+			result = mBuilder.CreateStore(temporary, lhs_value);
+			break;
+		case BinaryExpr::OpCode::XOR_ASSIGN:
+			temporary = mBuilder.CreateXor(lhs_value, rhs_value);
+			result = mBuilder.CreateStore(temporary, lhs_value);
+			break;
+
+			// Arithmetic Operations
+		case BinaryExpr::OpCode::ARITHMETIC_ADD:
+			result = (isFloatType(node)) ? mBuilder.CreateFAdd(lhs_value, rhs_value) : mBuilder.CreateAdd(lhs_value, rhs_value); break;
+		case BinaryExpr::OpCode::ARITHMETIC_SUB:
+			result = (isFloatType(node)) ? mBuilder.CreateFSub(lhs_value, rhs_value) : mBuilder.CreateSub(lhs_value, rhs_value); break;
+		case BinaryExpr::OpCode::ARITHMETIC_MUL:
+			result = (isFloatType(node)) ? mBuilder.CreateFMul(lhs_value, rhs_value) : mBuilder.CreateMul(lhs_value, rhs_value); break;
+		case BinaryExpr::OpCode::ARITHMETIC_DIV:
+			// TODO should be use CreateUDiv or CreateSDiv? depending on whether LHS or RHS is signed or unsigned
+			// TODO current zscript does not handle this correctly
+			// TODO see clang CGExprScalar.cpp:1737 hasUnsignedIntegerRepresentation()
+			result = (isFloatType(node)) ? mBuilder.CreateFDiv(lhs_value, rhs_value) : mBuilder.CreateUDiv(lhs_value, rhs_value); break;
+		case BinaryExpr::OpCode::ARITHMETIC_MOD:
+			result = (isFloatType(node)) ? mBuilder.CreateFRem(lhs_value, rhs_value) : mBuilder.CreateURem(lhs_value, rhs_value); break;
+
+			// Arithmetic Bitwise Operations
+		case BinaryExpr::OpCode::BINARY_AND:
+			result = mBuilder.CreateAnd(lhs_value, rhs_value); break;
+		case BinaryExpr::OpCode::BINARY_OR:
+			result = mBuilder.CreateOr(lhs_value, rhs_value); break;
+		case BinaryExpr::OpCode::BINARY_XOR:
+			result = mBuilder.CreateXor(lhs_value, rhs_value); break;
+		case BinaryExpr::OpCode::BINARY_LSHIFT:
+			BOOST_ASSERT(false && "not yet implemented");
+			// TODO what's the left shift operation?
+			break;
+		case BinaryExpr::OpCode::BINARY_RSHIFT:
+			// TODO should we use CreateAShr or CreateLShr? depending on the object type?
+			result = mBuilder.CreateAShr(lhs_value, rhs_value); break;
+
+			// Logic Operations
+		case BinaryExpr::OpCode::LOGICAL_AND:
+			BOOST_ASSERT(false && "not yet implemented");
+			break;
+		case BinaryExpr::OpCode::LOGICAL_OR:
+			BOOST_ASSERT(false && "not yet implemented");
+			break;
+
+			// Instance Of (Type testing)
+		case BinaryExpr::OpCode::INSTANCEOF:
+			BOOST_ASSERT(false && "not yet implemented");
+			break;
+
+			// Logical Comparison
+		case BinaryExpr::OpCode::COMPARE_EQ:
+			result = (isFloatType(node)) ? mBuilder.CreateFCmp(llvm::CmpInst::Predicate::FCMP_UEQ, lhs_value, rhs_value) : mBuilder.CreateICmp(llvm::CmpInst::Predicate::ICMP_EQ, lhs_value, rhs_value); break;
+		case BinaryExpr::OpCode::COMPARE_NE:
+			result = (isFloatType(node)) ? mBuilder.CreateFCmp(llvm::CmpInst::Predicate::FCMP_UNE, lhs_value, rhs_value) : mBuilder.CreateICmp(llvm::CmpInst::Predicate::ICMP_NE, lhs_value, rhs_value); break;
+		case BinaryExpr::OpCode::COMPARE_GT:
+			result = (isFloatType(node)) ? mBuilder.CreateFCmp(llvm::CmpInst::Predicate::FCMP_UGT, lhs_value, rhs_value) : mBuilder.CreateICmp(llvm::CmpInst::Predicate::ICMP_UGT, lhs_value, rhs_value); break;
+		case BinaryExpr::OpCode::COMPARE_LT:
+			result = (isFloatType(node)) ? mBuilder.CreateFCmp(llvm::CmpInst::Predicate::FCMP_ULT, lhs_value, rhs_value) : mBuilder.CreateICmp(llvm::CmpInst::Predicate::ICMP_ULT, lhs_value, rhs_value); break;
+		case BinaryExpr::OpCode::COMPARE_GE:
+			result = (isFloatType(node)) ? mBuilder.CreateFCmp(llvm::CmpInst::Predicate::FCMP_UGE, lhs_value, rhs_value) : mBuilder.CreateICmp(llvm::CmpInst::Predicate::ICMP_UGE, lhs_value, rhs_value); break;
+		case BinaryExpr::OpCode::COMPARE_LE:
+			result = (isFloatType(node)) ? mBuilder.CreateFCmp(llvm::CmpInst::Predicate::FCMP_ULE, lhs_value, rhs_value) : mBuilder.CreateICmp(llvm::CmpInst::Predicate::ICMP_ULE, lhs_value, rhs_value); break;
+
+			// Range Operator
+		case BinaryExpr::OpCode::RANGE_ELLIPSIS:
+			BOOST_ASSERT(false && "not yet implemented");
+			break;
+
+			// Array Subscript
+		case BinaryExpr::OpCode::ARRAY_SUBSCRIPT:
+			BOOST_ASSERT(false && "not yet implemented");
+			break;
+
 		default:
+			BOOST_ASSERT(false && "not yet implemented");
 			result = NULL; break;
 		}
 
