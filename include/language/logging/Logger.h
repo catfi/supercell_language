@@ -35,6 +35,7 @@ struct Logger
 	static log4cxx::LoggerPtr ParserStage;
 	static log4cxx::LoggerPtr TransformerStage;
 	static log4cxx::LoggerPtr GeneratorStage;
+	static log4cxx::LoggerPtr DebugInfoGeneratorStage;
 	static log4cxx::LoggerPtr VM;
 };
 

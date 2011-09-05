@@ -33,6 +33,7 @@ log4cxx::LoggerPtr Logger::Resolver(log4cxx::Logger::getLogger("compiler.resolve
 log4cxx::LoggerPtr Logger::ParserStage(log4cxx::Logger::getLogger("compiler.parser"));
 log4cxx::LoggerPtr Logger::TransformerStage(log4cxx::Logger::getLogger("compiler.transformer"));
 log4cxx::LoggerPtr Logger::GeneratorStage(log4cxx::Logger::getLogger("compiler.generator"));
+log4cxx::LoggerPtr Logger::DebugInfoGeneratorStage(log4cxx::Logger::getLogger("compiler.debuginfogenerator"));
 log4cxx::LoggerPtr Logger::VM(log4cxx::Logger::getLogger("vm"));
 
 void Logger::initialize()
