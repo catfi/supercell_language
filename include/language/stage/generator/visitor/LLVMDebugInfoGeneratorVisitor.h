@@ -59,11 +59,19 @@ struct LLVMDebugInfoGeneratorVisitor: GenericDoubleVisitor
 
 	void generate(ASTNode& node)
 	{
-		revisit(node);
-	}
+		// By pass the last time debug information to the child. We exepect there is some node will create
+		// debug information later.
+		if (node.parent)
+		{
+			DebugInfoContext* parent_debug_info = DebugInfoContext::get(node.parent);
 
-	void generate(Package& node)
-	{
+			// Only Program and Package has no debug info context. So we could safely skip them
+			if (parent_debug_info)
+			{
+				DebugInfoContext::set(&node, new DebugInfoContext(
+						parent_debug_info->compile_unit, parent_debug_info->file, parent_debug_info->context));
+			}
+		}
 		revisit(node);
 	}
 
@@ -143,7 +151,6 @@ struct LLVMDebugInfoGeneratorVisitor: GenericDoubleVisitor
 		SourceInfoContext* source_info = SourceInfoContext::get(&node);
 		NameManglingContext* mangling = NameManglingContext::get(&node);
 
-		// TODO: -1 to workaround temporarily
 		int32 source_index = source_info->source_index;
 		std::cout << "<Function> mangling name: " << mangling->managled_name << std::endl;
 
@@ -217,13 +224,7 @@ struct LLVMDebugInfoGeneratorVisitor: GenericDoubleVisitor
 		std::cout << __PRETTY_FUNCTION__ << std::endl;
 		BOOST_ASSERT(node.parent && "Variable declaration has no parent!");
 
-		ASTNode* parent = node.parent;
-		while (!isa<Block>(parent))
-		{
-			parent = parent->parent;
-		}
-
-		DebugInfoContext* parent_debug_info = DebugInfoContext::get(parent);
+		DebugInfoContext* parent_debug_info = DebugInfoContext::get(node.parent);
 		SourceInfoContext* source_info = SourceInfoContext::get(&node);
 
 		std::cout << "<Variable> parent context: " << parent_debug_info->context << std::endl;
@@ -255,61 +256,6 @@ struct LLVMDebugInfoGeneratorVisitor: GenericDoubleVisitor
 		llvm::MDNode* scope = parent_debug_info->context;
 		variable_inst->setDebugLoc(llvm::DebugLoc::get(source_info->line, source_info->column, scope));
 		revisit(node);
-	}
-
-	void generate(ExpressionStmt& node)
-	{
-
-	}
-
-	void generate(IfElseStmt& node)
-	{
-
-	}
-
-	void generate(ForeachStmt& node)
-	{
-
-	}
-
-	void generate(WhileStmt& node)
-	{
-
-	}
-
-	void generate(SwitchStmt& node)
-	{
-
-	}
-
-	void generate(UnaryExpr& node)
-	{
-
-	}
-
-	void generate(BinaryExpr& node)
-	{
-
-	}
-
-	void generate(TernaryExpr& node)
-	{
-
-	}
-
-	void generate(CallExpr& node)
-	{
-
-	}
-
-	void generate(CastExpr& node)
-	{
-
-	}
-
-	void generate(MemberExpr& node)
-	{
-
 	}
 
 private:
