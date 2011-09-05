@@ -274,9 +274,23 @@ struct LLVMGeneratorVisitor : GenericDoubleVisitor
 		// if either LHS or RHS is a AllocaInst, we need to load its value to register
 		llvm::Value* lhs_value = llvm::isa<llvm::AllocaInst>(lhs) ? mBuilder.CreateLoad(lhs) : lhs;
 		llvm::Value* rhs_value = llvm::isa<llvm::AllocaInst>(rhs) ? mBuilder.CreateLoad(rhs) : rhs;
+		llvm::Value* temporary = NULL;
 
 		switch(node.opcode)
 		{
+		case BinaryExpr::OpCode::BINARY_AND:
+			result = mBuilder.CreateAnd(lhs_value, rhs_value); break;
+		case BinaryExpr::OpCode::BINARY_OR:
+			result = mBuilder.CreateOr(lhs_value, rhs_value); break;
+		case BinaryExpr::OpCode::BINARY_XOR:
+			result = mBuilder.CreateXor(lhs_value, rhs_value); break;
+		case BinaryExpr::OpCode::BINARY_LSHIFT:
+			// TODO what's the left shift operation?
+			break;
+		case BinaryExpr::OpCode::BINARY_RSHIFT:
+			// TODO should we use CreateAShr or CreateLShr? depending on the object type?
+			result = mBuilder.CreateLShr(lhs_value, rhs_value); break;
+
 		case BinaryExpr::OpCode::ARITHMETIC_ADD:
 			result = (isFloatType(node)) ? mBuilder.CreateFAdd(lhs_value, rhs_value) : mBuilder.CreateAdd(lhs_value, rhs_value); break;
 		case BinaryExpr::OpCode::ARITHMETIC_SUB:
@@ -288,8 +302,26 @@ struct LLVMGeneratorVisitor : GenericDoubleVisitor
 			// TODO current zscript does not handle this correctly
 			// TODO see clang CGExprScalar.cpp:1737 hasUnsignedIntegerRepresentation()
 			result = (isFloatType(node)) ? mBuilder.CreateFDiv(lhs_value, rhs_value) : mBuilder.CreateUDiv(lhs_value, rhs_value); break;
+
 		case BinaryExpr::OpCode::ASSIGN:
-			result = mBuilder.CreateStore(lhs_value, rhs_value); break;
+			result = mBuilder.CreateStore(rhs_value, lhs_value);
+			break;
+		case BinaryExpr::OpCode::ADD_ASSIGN:
+			temporary = (isFloatType(node)) ? mBuilder.CreateFAdd(lhs_value, rhs_value) : mBuilder.CreateAdd(lhs_value, rhs_value);
+			result = mBuilder.CreateStore(temporary, lhs_value);
+			break;
+		case BinaryExpr::OpCode::SUB_ASSIGN:
+			temporary = (isFloatType(node)) ? mBuilder.CreateFSub(lhs_value, rhs_value) : mBuilder.CreateSub(lhs_value, rhs_value);
+			result = mBuilder.CreateStore(temporary, lhs_value);
+			break;
+		case BinaryExpr::OpCode::MUL_ASSIGN:
+			temporary = (isFloatType(node)) ? mBuilder.CreateFMul(lhs_value, rhs_value) : mBuilder.CreateMul(lhs_value, rhs_value);
+			result = mBuilder.CreateStore(temporary, lhs_value);
+			break;
+		case BinaryExpr::OpCode::DIV_ASSIGN:
+			temporary = (isFloatType(node)) ? mBuilder.CreateFDiv(lhs_value, rhs_value) : mBuilder.CreateUDiv(lhs_value, rhs_value);
+			result = mBuilder.CreateStore(temporary, lhs_value);
+			break;
 		default:
 			result = NULL; break;
 		}
@@ -299,10 +331,6 @@ struct LLVMGeneratorVisitor : GenericDoubleVisitor
 			BOOST_ASSERT(false && "invalid LLVM interpretation");
 			terminateRevisit();
 		}
-
-		// if LHS is an AllocaInst, we need to store the value back into the stack pointer
-		if(llvm::isa<llvm::AllocaInst>(lhs))
-			mBuilder.CreateStore(result, lhs);
 
 		node.set<llvm::Value>(result);
 	}
