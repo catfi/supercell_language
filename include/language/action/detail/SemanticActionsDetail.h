@@ -81,7 +81,7 @@
 		size_t,                       /* _local(1): size of locations array */ \
 		size_t                        /* _local(2): index into locations array */
 
-#define CACHE_CURRENT_LOCATIONS(n) { \
+#define CACHE_LOCATIONS(n) { \
 			for(size_t i = 0; i<n; i++) \
 				_local(0)[i] = new stage::SourceInfoContext( \
 						getParserContext().debug.source_index, \
@@ -91,7 +91,7 @@
 			_local(2) = 0; \
 		}
 
-#define BIND_CURRENT_LOCATION(x) \
+#define BIND_LOCATION(x) \
 		stage::SourceInfoContext::set((x), new stage::SourceInfoContext( \
 				getParserContext().debug.source_index, \
 				getParserContext().debug.line, \
@@ -103,7 +103,7 @@
 			_local(2)++; \
 		}
 
-#define FREE_UNBOUND_LOCATIONS \
+#define FREE_UNBOUND_CACHED_LOCATIONS \
 		for(size_t i = 0; i<_local(1); i++) \
 			SAFE_DELETE(_local(0)[i])
 

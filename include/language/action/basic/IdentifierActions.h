@@ -34,7 +34,7 @@ struct identifier
 #ifdef DEBUG
 		printf("identifier param(0) type = %s\n", typeid(_param_t(0)).name());
 #endif
-		BIND_CURRENT_LOCATION(_result = new SimpleIdentifier(_param(0)));
+		BIND_LOCATION(_result = new SimpleIdentifier(_param(0)));
 	}
 	END_ACTION
 };
@@ -46,7 +46,7 @@ struct nested_identifier
 
 	BEGIN_ACTION(init_loc)
 	{
-		CACHE_CURRENT_LOCATIONS(1);
+		CACHE_LOCATIONS(1);
 	}
 	END_ACTION
 
@@ -65,7 +65,7 @@ struct nested_identifier
 			deduced_foreach_value(i, _param(1))
 				cast<NestedIdentifier>(_result)->appendIdentifier(i);
 		}
-		FREE_UNBOUND_LOCATIONS;
+		FREE_UNBOUND_CACHED_LOCATIONS;
 	}
 	END_ACTION
 };
@@ -83,7 +83,7 @@ struct template_arg_identifier
 #endif
 		if(_param(1).is_initialized())
 		{
-			BIND_CURRENT_LOCATION(_result = new TemplatedIdentifier(TemplatedIdentifier::Usage::ACTUAL_ARGUMENT, _param(0)));
+			BIND_LOCATION(_result = new TemplatedIdentifier(TemplatedIdentifier::Usage::ACTUAL_ARGUMENT, _param(0)));
 			deduced_foreach_value(i, *_param(1))
 				cast<TemplatedIdentifier>(_result)->appendArgument(i);
 		}
@@ -106,7 +106,7 @@ struct template_param_identifier
 #endif
 		if(_param(1).is_initialized())
 		{
-			BIND_CURRENT_LOCATION(_result = new TemplatedIdentifier(TemplatedIdentifier::Usage::FORMAL_PARAMETER, _param(0)));
+			BIND_LOCATION(_result = new TemplatedIdentifier(TemplatedIdentifier::Usage::FORMAL_PARAMETER, _param(0)));
 			deduced_foreach_value(i, *(_param(1)))
 			{
 				switch(i.which())
@@ -116,7 +116,7 @@ struct template_param_identifier
 					break;
 				case 1:
 					{
-						Identifier* ident = new SimpleIdentifier(L"..."); BIND_CURRENT_LOCATION(ident);
+						Identifier* ident = new SimpleIdentifier(L"..."); BIND_LOCATION(ident);
 						cast<TemplatedIdentifier>(_result)->appendParameter(ident);
 					}
 					break;

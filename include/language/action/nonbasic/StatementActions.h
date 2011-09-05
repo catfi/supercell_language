@@ -40,7 +40,7 @@ struct statement
 		case 0:
 			{
 				Declaration* decl = boost::get<Declaration*>(_param(1));
-				BIND_CURRENT_LOCATION(_result = new DeclarativeStmt(decl));
+				BIND_LOCATION(_result = new DeclarativeStmt(decl));
 			}
 			break;
 		case 1:
@@ -73,7 +73,7 @@ struct expression_statement
 		printf("expression_statement param(0) type = %s\n", typeid(_param_t(0)).name());
 #endif
 		if(_param(0).is_initialized())
-			BIND_CURRENT_LOCATION(_result = new ExpressionStmt(*_param(0)));
+			BIND_LOCATION(_result = new ExpressionStmt(*_param(0)));
 	}
 	END_ACTION
 };
@@ -85,7 +85,7 @@ struct selection_statement
 
 	BEGIN_ACTION(init_loc)
 	{
-		CACHE_CURRENT_LOCATIONS(1);
+		CACHE_LOCATIONS(1);
 	}
 	END_ACTION
 
@@ -108,7 +108,7 @@ struct selection_statement
 		}
 		if(_param(3).is_initialized())
 			cast<IfElseStmt>(_result)->setElseBranch(*_param(3));
-		FREE_UNBOUND_LOCATIONS;
+		FREE_UNBOUND_CACHED_LOCATIONS;
 	}
 	END_ACTION
 
@@ -128,7 +128,7 @@ struct selection_statement
 					fusion_vec_t &vec = boost::get<fusion_vec_t>(i);
 					Expression*            cond      = boost::fusion::at_c<0>(vec);
 					std::vector<ASTNode*> &block_vec = boost::fusion::at_c<1>(vec);
-					Block* block = new Block(); BIND_CURRENT_LOCATION(block);
+					Block* block = new Block(); BIND_LOCATION(block);
 					block->appendObjects(block_vec);
 					cast<SwitchStmt>(_result)->addCase(Selection(cond, block));
 				}
@@ -136,13 +136,13 @@ struct selection_statement
 			case 1:
 				{
 					std::vector<ASTNode*> &block_vec = boost::get<std::vector<ASTNode*>>(i);
-					Block* block = new Block(); BIND_CURRENT_LOCATION(block);
+					Block* block = new Block(); BIND_LOCATION(block);
 					block->appendObjects(block_vec);
 					cast<SwitchStmt>(_result)->setDefaultCase(block);
 				}
 				break;
 			}
-		FREE_UNBOUND_LOCATIONS;
+		FREE_UNBOUND_CACHED_LOCATIONS;
 	}
 	END_ACTION
 };
@@ -154,7 +154,7 @@ struct iteration_statement
 
 	BEGIN_ACTION(init_loc)
 	{
-		CACHE_CURRENT_LOCATIONS(1);
+		CACHE_LOCATIONS(1);
 	}
 	END_ACTION
 
@@ -167,7 +167,7 @@ struct iteration_statement
 		Expression* cond  = _param(0);
 		ASTNode*    block = _param(1).is_initialized() ? *_param(1) : NULL;
 		BIND_CACHED_LOCATION(_result = new WhileStmt(WhileStmt::Style::WHILE, cond, block));
-		FREE_UNBOUND_LOCATIONS;
+		FREE_UNBOUND_CACHED_LOCATIONS;
 	}
 	END_ACTION
 
@@ -180,7 +180,7 @@ struct iteration_statement
 		ASTNode*    block = _param(0);
 		Expression* cond  = _param(1);
 		BIND_CACHED_LOCATION(_result = new WhileStmt(WhileStmt::Style::DO_WHILE, cond, block));
-		FREE_UNBOUND_LOCATIONS;
+		FREE_UNBOUND_CACHED_LOCATIONS;
 	}
 	END_ACTION
 
@@ -204,7 +204,7 @@ struct iteration_statement
 		Expression* range = _param(1);
 		ASTNode*    block = _param(2).is_initialized() ? *_param(2) : NULL;
 		BIND_CACHED_LOCATION(_result = new ForeachStmt(iterator, range, block));
-		FREE_UNBOUND_LOCATIONS;
+		FREE_UNBOUND_CACHED_LOCATIONS;
 	}
 	END_ACTION
 };
@@ -219,13 +219,13 @@ struct branch_statement
 #ifdef DEBUG
 		printf("branch_statement::init_return param(0) type = %s\n", typeid(_param_t(0)).name());
 #endif
-		BIND_CURRENT_LOCATION(_result = new BranchStmt(BranchStmt::OpCode::RETURN, _param(0)));
+		BIND_LOCATION(_result = new BranchStmt(BranchStmt::OpCode::RETURN, _param(0)));
 	}
 	END_ACTION
 
 	BEGIN_TEMPLATED_ACTION(init, BranchStmt::OpCode::type Type)
 	{
-		BIND_CURRENT_LOCATION(_result = new BranchStmt(Type));
+		BIND_LOCATION(_result = new BranchStmt(Type));
 	}
 	END_ACTION
 };

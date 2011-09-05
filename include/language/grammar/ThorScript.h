@@ -524,7 +524,9 @@ struct ThorScript : qi::grammar<Iterator, typename SA::start::attribute_type, de
 			| _SELF                                   [ typename SA::primary_expression::template init_object_literal<tree::ObjectLiteral::LiteralType::SELF_OBJECT>() ]
 			| _GLOBAL                                 [ typename SA::primary_expression::template init_object_literal<tree::ObjectLiteral::LiteralType::GLOBAL_OBJECT>() ]
 			| (LEFT_PAREN > expression > RIGHT_PAREN) [ typename SA::primary_expression::init_paren_expression() ]
-			| (FUNCTION > LEFT_PAREN > -typed_parameter_list > RIGHT_PAREN > -colon_type_specifier > block) [ typename SA::primary_expression::init_lambda() ]
+			|	(FUNCTION [ typename SA::primary_expression::init_loc() ]
+					> LEFT_PAREN > -typed_parameter_list > RIGHT_PAREN > -colon_type_specifier > block
+				) [ typename SA::primary_expression::init_lambda() ]
 			;
 
 		// postfix expression

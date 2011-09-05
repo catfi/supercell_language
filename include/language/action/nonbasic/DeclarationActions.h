@@ -86,7 +86,7 @@ struct variable_decl_stem
 
 	BEGIN_ACTION(init_loc)
 	{
-		CACHE_CURRENT_LOCATIONS(1);
+		CACHE_LOCATIONS(1);
 	}
 	END_ACTION
 
@@ -105,7 +105,7 @@ struct variable_decl_stem
 		BIND_CACHED_LOCATION(_result = new VariableDecl(
 				name, type, is_member, visibility, storage, initializer
 				));
-		FREE_UNBOUND_LOCATIONS;
+		FREE_UNBOUND_CACHED_LOCATIONS;
 	}
 	END_ACTION
 };
@@ -117,7 +117,7 @@ struct function_decl
 
 	BEGIN_ACTION(init_loc)
 	{
-		CACHE_CURRENT_LOCATIONS(2);
+		CACHE_LOCATIONS(2);
 	}
 	END_ACTION
 
@@ -149,7 +149,7 @@ struct function_decl
 		if(!!parameters)
 			deduced_foreach_value(i, *parameters)
 				cast<FunctionDecl>(_result)->appendParameter(i.first, i.second);
-		FREE_UNBOUND_LOCATIONS;
+		FREE_UNBOUND_CACHED_LOCATIONS;
 	}
 	END_ACTION
 };
@@ -161,7 +161,7 @@ struct typedef_decl
 
 	BEGIN_ACTION(init_loc)
 	{
-		CACHE_CURRENT_LOCATIONS(1);
+		CACHE_LOCATIONS(1);
 	}
 	END_ACTION
 
@@ -172,7 +172,7 @@ struct typedef_decl
 		printf("typedef_decl param(1) type = %s\n", typeid(_param_t(1)).name());
 #endif
 		BIND_CACHED_LOCATION(_result = new TypedefDecl(_param(0), _param(1)));
-		FREE_UNBOUND_LOCATIONS;
+		FREE_UNBOUND_CACHED_LOCATIONS;
 	}
 	END_ACTION
 };
@@ -184,7 +184,7 @@ struct class_decl
 
 	BEGIN_ACTION(init_loc)
 	{
-		CACHE_CURRENT_LOCATIONS(3);
+		CACHE_LOCATIONS(3);
 	}
 	END_ACTION
 
@@ -221,7 +221,7 @@ struct class_decl
 				cast<ClassDecl>(_result)->addFunction(cast<FunctionDecl>(i));
 				cast<FunctionDecl>(i)->is_member = true;
 			}
-		FREE_UNBOUND_LOCATIONS;
+		FREE_UNBOUND_CACHED_LOCATIONS;
 	}
 	END_ACTION
 };
@@ -265,7 +265,7 @@ struct interface_decl
 
 	BEGIN_ACTION(init_loc)
 	{
-		CACHE_CURRENT_LOCATIONS(1);
+		CACHE_LOCATIONS(1);
 	}
 	END_ACTION
 
@@ -281,7 +281,7 @@ struct interface_decl
 			cast<InterfaceDecl>(_result)->addFunction(cast<FunctionDecl>(i));
 			cast<FunctionDecl>(i)->is_member = true;
 		}
-		FREE_UNBOUND_LOCATIONS;
+		FREE_UNBOUND_CACHED_LOCATIONS;
 	}
 	END_ACTION
 };
@@ -293,7 +293,7 @@ struct interface_member_function_decl
 
 	BEGIN_ACTION(init_loc)
 	{
-		CACHE_CURRENT_LOCATIONS(1);
+		CACHE_LOCATIONS(1);
 	}
 	END_ACTION
 
@@ -313,7 +313,7 @@ struct interface_member_function_decl
 		if(!!parameters)
 			deduced_foreach_value(i, *parameters)
 				cast<FunctionDecl>(_result)->appendParameter(i.first, i.second);
-		FREE_UNBOUND_LOCATIONS;
+		FREE_UNBOUND_CACHED_LOCATIONS;
 	}
 	END_ACTION
 };
@@ -325,7 +325,7 @@ struct enum_decl
 
 	BEGIN_ACTION(init_loc)
 	{
-		CACHE_CURRENT_LOCATIONS(1);
+		CACHE_LOCATIONS(1);
 	}
 	END_ACTION
 
@@ -345,7 +345,7 @@ struct enum_decl
 			Expression*  value       = optional_result.is_initialized() ? *optional_result : NULL;
 			cast<EnumDecl>(_result)->addEnumeration(tag, value);
 		}
-		FREE_UNBOUND_LOCATIONS;
+		FREE_UNBOUND_CACHED_LOCATIONS;
 	}
 	END_ACTION
 };
