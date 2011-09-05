@@ -131,9 +131,9 @@ struct LLVMGeneratorVisitor : GenericDoubleVisitor
 
 				if(llvm_init)
 				{
-					llvm::cast<llvm::AllocaInst>(llvm_alloca_inst)->getAllocatedType()->dump();
-					llvm::cast<llvm::PointerType>(llvm_alloca_inst->getType())->getElementType()->dump();
-					llvm_init->getType()->dump();
+//					llvm::cast<llvm::AllocaInst>(llvm_alloca_inst)->getAllocatedType()->dump();
+//					llvm::cast<llvm::PointerType>(llvm_alloca_inst->getType())->getElementType()->dump();
+//					llvm_init->getType()->dump();
 					BOOST_ASSERT(llvm::cast<llvm::AllocaInst>(llvm_alloca_inst)->getAllocatedType() == llvm_init->getType());
 					BOOST_ASSERT(llvm::cast<llvm::PointerType>(llvm_alloca_inst->getType())->getElementType() == llvm_init->getType());
 					mBuilder.CreateStore(llvm_init, llvm_alloca_inst);
@@ -239,16 +239,27 @@ struct LLVMGeneratorVisitor : GenericDoubleVisitor
 		revisit(node);
 
 		llvm::Value* result = NULL;
+		llvm::Value* operand = node.node->get<llvm::Value>();
+		llvm::Value* operand_value = llvm::isa<llvm::AllocaInst>(operand) ? mBuilder.CreateLoad(operand) : operand;
 
+		// TODO handle the differences between postfix and prefix increment/decrement
 		switch(node.opcode)
 		{
 		case UnaryExpr::OpCode::POSTFIX_INCREMENT:
+			result = mBuilder.CreateAdd(operand_value, llvm::ConstantInt::get(operand_value->getType(), 1, false)); break;
 		case UnaryExpr::OpCode::POSTFIX_DECREMENT:
+			result = mBuilder.CreateSub(operand_value, llvm::ConstantInt::get(operand_value->getType(), 1, false)); break;
 		case UnaryExpr::OpCode::PREFIX_INCREMENT:
+			result = mBuilder.CreateAdd(operand_value, llvm::ConstantInt::get(operand_value->getType(), 1, false)); break;
 		case UnaryExpr::OpCode::PREFIX_DECREMENT:
+			result = mBuilder.CreateAdd(operand_value, llvm::ConstantInt::get(operand_value->getType(), 1, false)); break;
 		case UnaryExpr::OpCode::BINARY_NOT:
+			result = mBuilder.CreateNot(operand_value); break;
 		case UnaryExpr::OpCode::LOGICAL_NOT:
+			BOOST_ASSERT(false && "not yet implemented");
+			break;
 		case UnaryExpr::OpCode::ARITHMETIC_NEGATE:
+			result = (isFloatType(node)) ? mBuilder.CreateFNeg(operand_value) : mBuilder.CreateNeg(operand_value); break;
 		case UnaryExpr::OpCode::NEW:
 			break;
 		}
@@ -640,7 +651,7 @@ private:
 		if(!getType(*ast_variable.type, llvm_variable_type, llvm_variable_modifier))
 			return false;
 
-		llvm_variable_type->dump();
+//		llvm_variable_type->dump();
 
 		llvm::AllocaInst* llvm_alloca_inst = NULL;
 		if(mBuilder.isNamePreserving())
@@ -693,25 +704,8 @@ private:
 			}
 		}
 
-//		pushBlock(mFunctionContext.return_block);
-
 		return true;
 	}
-
-//	llvm::BasicBlock* currentBlock()
-//	{
-//		return mFunctionContext.block_stack.top();
-//	}
-
-//	void pushBlock(llvm::BasicBlock* block)
-//	{
-//		mFunctionContext.block_stack.push(block);
-//	}
-//
-//	void popBlock()
-//	{
-//		if()
-//	}
 
 	bool finishFunction(FunctionDecl& ast_function)
 	{
