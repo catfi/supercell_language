@@ -81,7 +81,13 @@ struct expression_statement
 struct selection_statement
 {
 	DEFINE_ATTRIBUTES(Statement*)
-	DEFINE_LOCALS()
+	DEFINE_LOCALS(LOCATIONS_DECL(1))
+
+	BEGIN_ACTION(init_loc)
+	{
+		ALLOCATE_LOCATIONS(1);
+	}
+	END_ACTION
 
 	BEGIN_ACTION(init_if_statement)
 	{
@@ -93,7 +99,7 @@ struct selection_statement
 #endif
 		Expression* cond = _param(0);
 		ASTNode* block = _param(1);
-		REGISTER_LOCATION(_result = new IfElseStmt(Selection(cond, block)));
+		SET_LOCATION(_result = new IfElseStmt(Selection(cond, block)));
 		deduced_foreach_value(i, _param(2))
 		{
 			Expression* cond  = boost::fusion::at_c<0>(i);
@@ -102,6 +108,7 @@ struct selection_statement
 		}
 		if(_param(3).is_initialized())
 			cast<IfElseStmt>(_result)->setElseBranch(*_param(3));
+		FREE_UNUSED_LOCATIONS;
 	}
 	END_ACTION
 
@@ -111,7 +118,7 @@ struct selection_statement
 		printf("selection_statement::init_switch_statement param(0) type = %s\n", typeid(_param_t(0)).name());
 		printf("selection_statement::init_switch_statement param(1) type = %s\n", typeid(_param_t(1)).name());
 #endif
-		REGISTER_LOCATION(_result = new SwitchStmt(_param(0)));
+		SET_LOCATION(_result = new SwitchStmt(_param(0)));
 		deduced_foreach_value(i, _param(1))
 			switch(i.which())
 			{
@@ -135,6 +142,7 @@ struct selection_statement
 				}
 				break;
 			}
+		FREE_UNUSED_LOCATIONS;
 	}
 	END_ACTION
 };
@@ -142,7 +150,13 @@ struct selection_statement
 struct iteration_statement
 {
 	DEFINE_ATTRIBUTES(Statement*)
-	DEFINE_LOCALS()
+	DEFINE_LOCALS(LOCATIONS_DECL(1))
+
+	BEGIN_ACTION(init_loc)
+	{
+		ALLOCATE_LOCATIONS(1);
+	}
+	END_ACTION
 
 	BEGIN_ACTION(init_while_loop)
 	{
@@ -152,7 +166,8 @@ struct iteration_statement
 #endif
 		Expression* cond  = _param(0);
 		ASTNode*    block = _param(1).is_initialized() ? *_param(1) : NULL;
-		REGISTER_LOCATION(_result = new WhileStmt(WhileStmt::Style::WHILE, cond, block));
+		SET_LOCATION(_result = new WhileStmt(WhileStmt::Style::WHILE, cond, block));
+		FREE_UNUSED_LOCATIONS;
 	}
 	END_ACTION
 
@@ -164,7 +179,8 @@ struct iteration_statement
 #endif
 		ASTNode*    block = _param(0);
 		Expression* cond  = _param(1);
-		REGISTER_LOCATION(_result = new WhileStmt(WhileStmt::Style::DO_WHILE, cond, block));
+		SET_LOCATION(_result = new WhileStmt(WhileStmt::Style::DO_WHILE, cond, block));
+		FREE_UNUSED_LOCATIONS;
 	}
 	END_ACTION
 
@@ -187,7 +203,8 @@ struct iteration_statement
 		}
 		Expression* range = _param(1);
 		ASTNode*    block = _param(2).is_initialized() ? *_param(2) : NULL;
-		REGISTER_LOCATION(_result = new ForeachStmt(iterator, range, block));
+		SET_LOCATION(_result = new ForeachStmt(iterator, range, block));
+		FREE_UNUSED_LOCATIONS;
 	}
 	END_ACTION
 };

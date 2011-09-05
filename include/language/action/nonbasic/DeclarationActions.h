@@ -105,6 +105,7 @@ struct variable_decl_stem
 		SET_LOCATION(_result = new VariableDecl(
 				name, type, is_member, visibility, storage, initializer
 				));
+		FREE_UNUSED_LOCATIONS;
 	}
 	END_ACTION
 };
@@ -171,6 +172,7 @@ struct typedef_decl
 		printf("typedef_decl param(1) type = %s\n", typeid(_param_t(1)).name());
 #endif
 		SET_LOCATION(_result = new TypedefDecl(_param(0), _param(1)));
+		FREE_UNUSED_LOCATIONS;
 	}
 	END_ACTION
 };
@@ -311,6 +313,7 @@ struct interface_member_function_decl
 		if(!!parameters)
 			deduced_foreach_value(i, *parameters)
 				cast<FunctionDecl>(_result)->appendParameter(i.first, i.second);
+		FREE_UNUSED_LOCATIONS;
 	}
 	END_ACTION
 };
