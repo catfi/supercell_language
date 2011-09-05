@@ -744,16 +744,12 @@ struct ThorScript : qi::grammar<Iterator, typename SA::start::attribute_type, de
 			;
 
 		branch_statement
-			=	(	(RETURN [ typename SA::branch_statement::init_loc() ]
-						> expression_statement
-					) [ typename SA::branch_statement::init_return() ]
-				|	(BREAK [ typename SA::branch_statement::init_loc() ]
-						> SEMICOLON
-					) [ typename SA::branch_statement::template init<tree::BranchStmt::OpCode::BREAK>() ]
-				|	(CONTINUE [ typename SA::branch_statement::init_loc() ]
-						> SEMICOLON
-					) [ typename SA::branch_statement::template init<tree::BranchStmt::OpCode::CONTINUE>() ]
-				)
+			=	(RETURN [ typename SA::branch_statement::init_loc() ] > expression_statement
+				) [ typename SA::branch_statement::init_return() ]
+			|	(BREAK [ typename SA::branch_statement::init_loc() ] > SEMICOLON
+				) [ typename SA::branch_statement::template init<tree::BranchStmt::OpCode::BREAK>() ]
+			|	(CONTINUE [ typename SA::branch_statement::init_loc() ] > SEMICOLON
+				) [ typename SA::branch_statement::template init<tree::BranchStmt::OpCode::CONTINUE>() ]
 			;
 
 		block
