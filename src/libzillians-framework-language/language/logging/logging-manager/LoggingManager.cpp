@@ -19,8 +19,6 @@
 
 #include "utility/UnicodeUtil.h"
 #include "language/logging/Logger.h"
-#include "language/logging/logging-manager/LoggerWrapper.h"
-#include "language/logging/logging-manager/StringTable.h"
 #include "language/logging/logging-manager/LoggingManager.h"
 
 namespace zillians { namespace language { namespace logging {
