@@ -44,6 +44,87 @@ struct SemanticVerificationStageVisitor0 : GenericDoubleVisitor
 	{
 		revisit(node);
 	}
+
+	void verify(Package& node)
+	{
+		revisit(node);
+
+		// CHECK: the package name should not conflict with its parent and sibling
+		if(node.parent && isa<Package>(node.parent))
+		{
+			if(node.id->toString() == cast<Package>(node.parent)->id->toString())
+			{
+				// TODO log semantic check error
+			}
+		}
+	}
+
+	void verify(ClassDecl& node)
+	{
+		// CHECK: variable name and function name should not conflict with each other
+		std::map<std::wstring, ASTNode*> all_members;
+		foreach(i, node.member_variables)
+		{
+			std::wstring name = (*i)->name->toString();
+			std::map<std::wstring, ASTNode*>::iterator it = all_members.find(name);
+			if(it != all_members.end())
+			{
+				// TODO log semantic check error
+			}
+			else
+			{
+				all_members.insert(std::make_pair(name, (ASTNode*)(*i)));
+			}
+		}
+
+		foreach(i, node.member_functions)
+		{
+			std::wstring name = (*i)->name->toString();
+			std::map<std::wstring, ASTNode*>::iterator it = all_members.find(name);
+			if(it != all_members.end())
+			{
+				// TODO log semantic check error
+			}
+			else
+			{
+				all_members.insert(std::make_pair(name, (ASTNode*)(*i)));
+			}
+		}
+
+		// CHECK: if all member variable or function is marked is_member = true
+		foreach(i, node.member_variables)
+		{
+			if(!(*i)->is_member)
+			{
+				// TODO log semantic check error
+			}
+		}
+
+		foreach(i, node.member_functions)
+		{
+			if(!(*i)->is_member)
+			{
+				// TODO log semantic check error
+			}
+		}
+
+		revisit(node);
+	}
+
+	void verify(InterfaceDecl& node)
+	{
+
+	}
+
+	void verify(FunctionDecl& node)
+	{
+
+	}
+
+	void verify(VariableDecl& node)
+	{
+
+	}
 };
 
 } } } }
