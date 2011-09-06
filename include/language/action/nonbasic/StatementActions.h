@@ -65,6 +65,7 @@ struct statement
 		printf("statement::init_block param(0) type = %s\n", typeid(_param_t(0)).name());
 #endif
 		_result = _param(0);
+		FREE_UNBOUND_CACHED_LOCATIONS;
 	}
 	END_ACTION
 };

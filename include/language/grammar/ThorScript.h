@@ -475,17 +475,19 @@ struct ThorScript : qi::grammar<Iterator, typename SA::start::attribute_type, de
 			;
 
 		annotation_specifier
-			=	(AT_SYMBOL [ typename SA::annotation_specifier::init_loc() ] > IDENTIFIER
-					>	-(LEFT_BRACE > (
-						(IDENTIFIER > ASSIGN > primary_expression) % COMMA
-						) > RIGHT_BRACE)
-				) [ typename SA::annotation_specifier::init() ]
+			= qi::eps [ typename SA::annotation_specifier::init_loc() ]
+				>>	(AT_SYMBOL > IDENTIFIER
+						>	-(LEFT_BRACE > (
+							(IDENTIFIER > ASSIGN > primary_expression) % COMMA
+							) > RIGHT_BRACE)
+					) [ typename SA::annotation_specifier::init() ]
 			;
 
 		nested_identifier
-			=	(IDENTIFIER [ typename SA::nested_identifier::init_loc() ]
-					> *(DOT > IDENTIFIER)
-				) [ typename SA::nested_identifier::init() ]
+			= qi::eps [ typename SA::nested_identifier::init_loc() ]
+				>>	(IDENTIFIER
+						> *(DOT > IDENTIFIER)
+					) [ typename SA::nested_identifier::init() ]
 			;
 
 		//
@@ -697,17 +699,15 @@ struct ThorScript : qi::grammar<Iterator, typename SA::start::attribute_type, de
 		//
 
 		statement
-			= location
-				>>	(
-						qi::eps [ typename SA::statement::init_loc() ]
-							>>	(-annotation_specifiers
-									>>	( const_variable_decl
-										| expression_statement
-										| selection_statement
-										| iteration_statement
-										| branch_statement
-										)
-								) [ typename SA::statement::init() ]
+			= location [ typename SA::statement::init_loc() ]
+				>>	(	(-annotation_specifiers
+							>>	( const_variable_decl
+								| expression_statement
+								| selection_statement
+								| iteration_statement
+								| branch_statement
+								)
+						) [ typename SA::statement::init() ]
 					|	block [ typename SA::statement::init_block() ]
 					)
 			;
@@ -718,38 +718,38 @@ struct ThorScript : qi::grammar<Iterator, typename SA::start::attribute_type, de
 			;
 
 		selection_statement
-				=	(IF [ typename SA::selection_statement::init_loc() ] > LEFT_PAREN > expression > RIGHT_PAREN > statement
-						> *(ELIF > LEFT_PAREN > expression > RIGHT_PAREN > statement)
-						> -(ELSE > statement)
-					) [ typename SA::selection_statement::init_if_statement() ]
-				|	(SWITCH [ typename SA::selection_statement::init_loc() ] > LEFT_PAREN > expression > RIGHT_PAREN
-						> LEFT_BRACE
-						>	*( CASE > expression > COLON > *statement
-							| DEFAULT > COLON > *statement
-							)
-						> RIGHT_BRACE
-					) [ typename SA::selection_statement::init_switch_statement() ]
+			= qi::eps [ typename SA::selection_statement::init_loc() ]
+				>>	(	(IF > LEFT_PAREN > expression > RIGHT_PAREN > statement
+							> *(ELIF > LEFT_PAREN > expression > RIGHT_PAREN > statement)
+							> -(ELSE > statement)
+						) [ typename SA::selection_statement::init_if_statement() ]
+					|	(SWITCH > LEFT_PAREN > expression > RIGHT_PAREN
+							> LEFT_BRACE
+							>	*( CASE > expression > COLON > *statement
+								| DEFAULT > COLON > *statement
+								)
+							> RIGHT_BRACE
+						) [ typename SA::selection_statement::init_switch_statement() ]
+					)
 			;
 
 		iteration_statement
-			=	(WHILE [ typename SA::iteration_statement::init_loc() ]
-			 		> LEFT_PAREN > expression > RIGHT_PAREN > -statement
-				) [ typename SA::iteration_statement::init_while_loop() ]
-			|	(DO [ typename SA::iteration_statement::init_loc() ]
-					> statement > WHILE > LEFT_PAREN > expression > RIGHT_PAREN > SEMICOLON
-				) [ typename SA::iteration_statement::init_do_while_loop() ]
-			|	(FOREACH [ typename SA::iteration_statement::init_loc() ]
-					> LEFT_PAREN > (variable_decl_stem | postfix_expression) > IN > expression > RIGHT_PAREN > -statement
-				) [ typename SA::iteration_statement::init_foreach() ]
+			= qi::eps [ typename SA::iteration_statement::init_loc() ]
+				>>	(	(WHILE > LEFT_PAREN > expression > RIGHT_PAREN > -statement
+						) [ typename SA::iteration_statement::init_while_loop() ]
+					|	(DO > statement > WHILE > LEFT_PAREN > expression > RIGHT_PAREN > SEMICOLON
+						) [ typename SA::iteration_statement::init_do_while_loop() ]
+					|	(FOREACH > LEFT_PAREN > (variable_decl_stem | postfix_expression) > IN > expression > RIGHT_PAREN > -statement
+						) [ typename SA::iteration_statement::init_foreach() ]
+					)
 			;
 
 		branch_statement
-			=	(RETURN [ typename SA::branch_statement::init_loc() ] > expression_statement
-				) [ typename SA::branch_statement::init_return() ]
-			|	(BREAK [ typename SA::branch_statement::init_loc() ] > SEMICOLON
-				) [ typename SA::branch_statement::template init<tree::BranchStmt::OpCode::BREAK>() ]
-			|	(CONTINUE [ typename SA::branch_statement::init_loc() ] > SEMICOLON
-				) [ typename SA::branch_statement::template init<tree::BranchStmt::OpCode::CONTINUE>() ]
+			= qi::eps [ typename SA::branch_statement::init_loc() ]
+				>>	(	(RETURN > expression_statement) [ typename SA::branch_statement::init_return() ]
+					|	(BREAK > SEMICOLON)             [ typename SA::branch_statement::template init<tree::BranchStmt::OpCode::BREAK>() ]
+					|	(CONTINUE > SEMICOLON)          [ typename SA::branch_statement::template init<tree::BranchStmt::OpCode::CONTINUE>() ]
+					)
 			;
 
 		block
@@ -789,31 +789,35 @@ struct ThorScript : qi::grammar<Iterator, typename SA::start::attribute_type, de
 			;
 
 		variable_decl_stem
-			=	(VAR [ typename SA::variable_decl_stem::init_loc() ] > IDENTIFIER
-					> -colon_type_specifier
-				) [ typename SA::variable_decl_stem::init() ]
+			= qi::eps [ typename SA::variable_decl_stem::init_loc() ]
+				>>	(VAR > IDENTIFIER
+						> -colon_type_specifier
+					) [ typename SA::variable_decl_stem::init() ]
 			;
 
 		function_decl
-			=	(FUNCTION [ typename SA::function_decl::init_loc() ] > (template_param_identifier | (NEW > qi::attr(true)))
-					> LEFT_PAREN > -typed_parameter_list > RIGHT_PAREN > -colon_type_specifier
-					> -block
-				) [ typename SA::function_decl::init() ]
+			= qi::eps [ typename SA::function_decl::init_loc() ]
+				>>	(FUNCTION > (template_param_identifier | (NEW > qi::attr(true)))
+						> LEFT_PAREN > -typed_parameter_list > RIGHT_PAREN > -colon_type_specifier
+						> -block
+					) [ typename SA::function_decl::init() ]
 			;
 
 		typedef_decl
-			=	(TYPEDEF [ typename SA::typedef_decl::init_loc() ] > type_specifier > IDENTIFIER
-					> SEMICOLON
-				) [ typename SA::typedef_decl::init() ]
+			= qi::eps [ typename SA::typedef_decl::init_loc() ]
+				>>	(TYPEDEF > type_specifier > IDENTIFIER
+						> SEMICOLON
+					) [ typename SA::typedef_decl::init() ]
 			;
 
 		class_decl
-			=	(CLASS [ typename SA::class_decl::init_loc() ] > template_param_identifier
-					> -(EXTENDS > nested_identifier) > -((IMPLEMENTS > nested_identifier) % COMMA)
-						> LEFT_BRACE
-						> *class_member_decl
-						> RIGHT_BRACE
-				) [ typename SA::class_decl::init() ]
+			= qi::eps [ typename SA::class_decl::init_loc() ]
+				>>	(CLASS > template_param_identifier
+						> -(EXTENDS > nested_identifier) > -((IMPLEMENTS > nested_identifier) % COMMA)
+							> LEFT_BRACE
+							> *class_member_decl
+							> RIGHT_BRACE
+					) [ typename SA::class_decl::init() ]
 			;
 
 		class_member_decl
@@ -826,25 +830,28 @@ struct ThorScript : qi::grammar<Iterator, typename SA::start::attribute_type, de
 			;
 
 		interface_decl
-			=	(INTERFACE [ typename SA::interface_decl::init_loc() ] > IDENTIFIER
-					> LEFT_BRACE
-					> *interface_member_function_decl
-					> RIGHT_BRACE
-				) [ typename SA::interface_decl::init() ]
+			= qi::eps [ typename SA::interface_decl::init_loc() ]
+				>>	(INTERFACE > IDENTIFIER
+						> LEFT_BRACE
+						> *interface_member_function_decl
+						> RIGHT_BRACE
+					) [ typename SA::interface_decl::init() ]
 			;
 
 		interface_member_function_decl
-			=	(-interface_visibility_specifier >> FUNCTION [ typename SA::interface_member_function_decl::init_loc() ] > IDENTIFIER
-					> LEFT_PAREN > -typed_parameter_list > RIGHT_PAREN > colon_type_specifier > SEMICOLON
-				) [ typename SA::interface_member_function_decl::init() ]
+			= qi::eps [ typename SA::interface_member_function_decl::init_loc() ]
+				>>	(-interface_visibility_specifier >> FUNCTION > IDENTIFIER
+						> LEFT_PAREN > -typed_parameter_list > RIGHT_PAREN > colon_type_specifier > SEMICOLON
+					) [ typename SA::interface_member_function_decl::init() ]
 			;
 
 		enum_decl
-			=	(ENUM [ typename SA::enum_decl::init_loc() ] > IDENTIFIER
-					> LEFT_BRACE
-					> (-annotation_specifiers > IDENTIFIER > -(ASSIGN > expression)) % COMMA
-					> RIGHT_BRACE
-				) [ typename SA::enum_decl::init() ]
+			= qi::eps [ typename SA::enum_decl::init_loc() ]
+				>>	(ENUM > IDENTIFIER
+						> LEFT_BRACE
+						> (-annotation_specifiers > IDENTIFIER > -(ASSIGN > expression)) % COMMA
+						> RIGHT_BRACE
+					) [ typename SA::enum_decl::init() ]
 			;
 
 		//
