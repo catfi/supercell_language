@@ -63,21 +63,24 @@ struct SemanticVerificationStageVisitor0 : GenericDoubleVisitor
 	{
 		// CHECK: variable name and function name should not conflict with each other
 		std::map<std::wstring, ASTNode*> all_members;
-		foreach(i, node.member_variables)
+
+		foreach(i, node.member_functions)
 		{
 			std::wstring name = (*i)->name->toString();
 			std::map<std::wstring, ASTNode*>::iterator it = all_members.find(name);
 			if(it != all_members.end())
 			{
-				// TODO log semantic check error
+				// CHECK: if all member function with same name has different function signature
+				// TODO note that even if we don't have complete type information, we can still check by word
 			}
 			else
 			{
+				// insert all function names into all_members
 				all_members.insert(std::make_pair(name, (ASTNode*)(*i)));
 			}
 		}
 
-		foreach(i, node.member_functions)
+		foreach(i, node.member_variables)
 		{
 			std::wstring name = (*i)->name->toString();
 			std::map<std::wstring, ASTNode*>::iterator it = all_members.find(name);
