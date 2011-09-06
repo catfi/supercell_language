@@ -189,11 +189,11 @@ struct annotation_specifiers
 struct annotation_specifier
 {
 	DEFINE_ATTRIBUTES(Annotation*)
-	DEFINE_LOCALS(VAR_LOCATIONS(1))
+	DEFINE_LOCALS(VAR_LOCATIONS)
 
 	BEGIN_ACTION(init_loc)
 	{
-		CACHE_LOCATIONS(1);
+		CACHE_LOCATIONS;
 	}
 	END_ACTION
 
@@ -212,7 +212,6 @@ struct annotation_specifier
 				Expression*       value = boost::fusion::at_c<1>(i);
 				_result->appendKeyValue(key, value);
 			}
-		FREE_UNBOUND_CACHED_LOCATIONS;
 	}
 	END_ACTION
 };
