@@ -32,10 +32,13 @@ function main():void
 		z = 60;
 	z = 70;
 	*/
+	/*
 	while(x > 0)
 	{
 	   --x;
 	}
+	*/
+	x = (x > 0) ? x+1 : x+2;
 	
 	return;
 	//compiler_test.f1(x,y);

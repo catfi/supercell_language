@@ -614,9 +614,48 @@ struct LLVMGeneratorVisitor : GenericDoubleVisitor
 		if(hasValue(node)) return;
 		if(isBlockInsertionMasked() || isBlockTerminated(currentBlock()))	return;
 
-		revisit(node);
+		llvm::BasicBlock* cond_block = createBasicBlock("ternary.eval", mFunctionContext.function);
+		llvm::BasicBlock* true_block = createBasicBlock("ternary.true", mFunctionContext.function);
+		llvm::BasicBlock* false_block = createBasicBlock("ternary.false", mFunctionContext.function);
+		llvm::BasicBlock* final_block = createBasicBlock("ternary.finalized", mFunctionContext.function);
 
-		// TODO use predicate
+		// jump from current block to the condition evaluation block
+		enterBasicBlock(cond_block);
+		{
+			visit(*node.cond);
+
+			// conditional branch to either action block or finalized block
+			llvm::Value* llvm_cond = node.cond->get<llvm::Value>();
+			mBuilder.CreateCondBr(llvm_cond, true_block, false_block);
+		}
+
+		// try entering true block and get the value
+		enterBasicBlock(true_block);
+		if(node.true_node)
+		{
+			visit(*node.true_node);
+			mBuilder.CreateBr(final_block);
+		}
+
+		// try entering true block and get the value
+		enterBasicBlock(false_block);
+		if(node.false_node)
+		{
+			visit(*node.false_node);
+			mBuilder.CreateBr(final_block);
+		}
+
+		// try enter finalized block and create branch from true block
+		enterBasicBlock(final_block);
+		{
+			llvm::Value* true_value = node.true_node->get<llvm::Value>();
+			llvm::Value* false_value = node.false_node->get<llvm::Value>();
+			llvm::PHINode* phi = mBuilder.CreatePHI(true_value->getType());
+			phi->addIncoming(true_value, true_block);
+			phi->addIncoming(false_value, false_block);
+
+			node.set<llvm::Value>(phi);
+		}
 	}
 
 	void generate(CallExpr& node)
