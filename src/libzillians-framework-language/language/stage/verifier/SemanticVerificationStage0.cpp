@@ -18,6 +18,7 @@
  */
 
 #include "language/stage/verifier/SemanticVerificationStage0.h"
+#include "language/stage/verifier/visitor/SemanticVerificationStageVisitor0.h"
 #include "language/tree/visitor/general/PrettyPrintVisitor.h"
 #include "language/context/ParserContext.h"
 
@@ -45,7 +46,21 @@ bool SemanticVerificationStage0::parseOptions(po::variables_map& vm)
 
 bool SemanticVerificationStage0::execute(bool& continue_execution)
 {
-	return true;
+	if(!hasParserContext())
+		return false;
+
+	ParserContext& parser_context = getParserContext();
+
+	if(parser_context.program)
+	{
+		visitor::SemanticVerificationStageVisitor0 verifier;
+		verifier.visit(*parser_context.program);
+		return true;
+	}
+	else
+	{
+		return false;
+	}
 }
 
 } } }
