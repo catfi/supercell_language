@@ -468,7 +468,7 @@ struct LLVMGeneratorVisitor : GenericDoubleVisitor
 			mBuilder.CreateStore(result, operand_value_for_write);
 			break;
 		case UnaryExpr::OpCode::PREFIX_DECREMENT:
-			result = mBuilder.CreateAdd(operand_value_for_read, llvm::ConstantInt::get(operand_value_for_read->getType(), 1, false));
+			result = mBuilder.CreateSub(operand_value_for_read, llvm::ConstantInt::get(operand_value_for_read->getType(), 1, false));
 			mBuilder.CreateStore(result, operand_value_for_write);
 			break;
 		case UnaryExpr::OpCode::BINARY_NOT:

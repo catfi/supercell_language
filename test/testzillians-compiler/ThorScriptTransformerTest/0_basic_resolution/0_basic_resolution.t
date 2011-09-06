@@ -42,3 +42,8 @@ function main():void
 	//zillians.compiler_test.f1(x,y);
 	//com.zillians.compiler_test.f1(x,y);
 }
+
+function entry():int64
+{
+	return f1(100,200);
+}
