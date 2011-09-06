@@ -16,8 +16,8 @@ function main():void
 {
 	var x:uint64 = 10;
 	var y:uint64 = 20;
-	//var z:uint64 = f1(x, y);
-	var z:uint64 = x + y;
+	var z:uint64 = f1(x, y);
+	//var z:uint64 = x + y;
 	
 	if(z == 30)
 	{
@@ -35,6 +35,7 @@ function main():void
 	   --x;
 	}
 	x = (x > 0) ? x+1 : x+2;
+	
 	
 	return;
 	//compiler_test.f1(x,y);

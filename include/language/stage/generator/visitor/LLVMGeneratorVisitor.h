@@ -694,6 +694,40 @@ struct LLVMGeneratorVisitor : GenericDoubleVisitor
 		if(isBlockInsertionMasked() || isBlockTerminated(currentBlock()))	return;
 
 		revisit(node);
+
+		std::vector<llvm::Value*> arguments;
+		foreach(i, node.parameters)
+		{
+			ASTNode* parameter_resolved;
+			llvm::Value* parameter_value_for_read;
+			llvm::Value* parameter_value_for_write;
+			if(!getValue(**i, parameter_resolved, parameter_value_for_read, parameter_value_for_write, false))
+			{
+				BOOST_ASSERT(false && "invalid LLVM parameter value for function call");
+				terminateRevisit();
+			}
+
+			arguments.push_back(parameter_value_for_read);
+		}
+
+		ASTNode* resolved = ResolvedSymbol::get(node.node);
+		if(isa<FunctionDecl>(resolved))
+		{
+			llvm::Function* llvm_function = resolved->get<llvm::Function>();
+			if(llvm_function)
+			{
+				llvm::Value* result = mBuilder.CreateCall(llvm_function, arguments.begin(), arguments.end());
+				node.set<llvm::Value>(result);
+			}
+			else
+			{
+				BOOST_ASSERT(false && "invalid LLVM function object");
+			}
+		}
+		else
+		{
+			BOOST_ASSERT(false && "calling non-invokable value");
+		}
 		// TODO depending on the LHS, if it's a directly-invokable function, just get the function prototype and invoke
 		// TODO if it's not a directly-invokable function, which can be a class member function, pass this pointer to that function and make the call
 		// TODO if it's a class member function and it's virtual, we have different calling convention here
