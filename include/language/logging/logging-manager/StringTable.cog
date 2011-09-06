@@ -22,6 +22,7 @@
 
 #include "core/Prerequisite.h"
 #include "language/logging/Logger.h"
+#include "utility/UnicodeUtil.h"
 #include <boost/parameter.hpp>
 #include <vector>
 #include <string>
@@ -241,13 +242,21 @@ private:
 	}
 
 	template <typename T>
-	wstring replace_substring(wstring& source, T type)
+	wstring replace_substring(wstring& source, T replace)
 	{
 		wstringstream stream;
-		stream << type;
+		stream << replace;
+		return replace_substring(source, stream.str());
+	}
 
+	wstring replace_substring(wstring& source, string replace_string)
+	{
+		return replace_substring(source, s_to_ws(replace_string));
+	}
+
+	wstring replace_substring(wstring& source, wstring replace_string)
+	{
 		wstring output = source;
-		wstring replace_string = stream.str();
 		wstring search_start(L"$");
 		wstring search_end(L")");
 
