@@ -25,6 +25,9 @@
 
 namespace zillians { namespace language { namespace stage {
 
+/**
+ * The SemanticVerificationStage1 is run right after type/symbol resolution, so we have to check if all resolved information is correct
+ */
 class SemanticVerificationStage1 : public Stage
 {
 public:

@@ -44,6 +44,13 @@ struct SemanticVerificationStageVisitor1 : GenericDoubleVisitor
 	{
 		revisit(node);
 	}
+
+	void verify(FunctionDecl& node)
+	{
+		// CHECK: all types should be inferred and resolved in function declaration
+		revisit(node);
+	}
+
 };
 
 } } } }

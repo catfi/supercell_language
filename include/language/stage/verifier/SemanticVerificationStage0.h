@@ -25,6 +25,11 @@
 
 namespace zillians { namespace language { namespace stage {
 
+/**
+ * The SemanticVerificationStage0 is run right after the parsing, so there's zero type information available.
+ *
+ * For all type-related semantic checks, we need to put it into SemanticVerificationStage1
+ */
 class SemanticVerificationStage0 : public Stage
 {
 public:

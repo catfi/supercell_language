@@ -113,12 +113,12 @@ struct SemanticVerificationStageVisitor0 : GenericDoubleVisitor
 
 	void verify(InterfaceDecl& node)
 	{
-
+		// CHECK: all member function in interface must not have private scope specifier
 	}
 
 	void verify(FunctionDecl& node)
 	{
-
+		// CHECK:
 	}
 
 	void verify(VariableDecl& node)
