@@ -45,6 +45,11 @@ struct ManglingStageVisitor : GenericDoubleVisitor
 		revisit(node);
 	}
 
+	void mangle(Identifier& node)
+	{
+		NameManglingContext::set(&node, new NameManglingContext(mangler.encode(node.toString())));
+	}
+
 	void mangle(ClassDecl& node)
 	{
 		mangler.visit(node);

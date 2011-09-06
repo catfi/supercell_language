@@ -6,21 +6,19 @@ function f0(x:int32, y:int32):int32
 	return x + y;
 }*/
 
-/*
-function f1(x:int32, y:int32):int32
+function f1(x:uint64, y:uint64):uint64
 {
-	//return f0(x,y) + f0(x,y);
+	--x;
 	return x + y;
 }
-*/
 
 function main():void
 {
 	var x:uint64 = 10;
-	//var y:uint64 = 20;
-	//var z:uint64 = x+y;
+	var y:uint64 = 20;
+	//var z:uint64 = f1(x, y);
+	var z:uint64 = x + y;
 	
-	/*
 	if(z == 30)
 	{
 		return;
@@ -31,13 +29,11 @@ function main():void
 	else
 		z = 60;
 	z = 70;
-	*/
-	/*
+
 	while(x > 0)
 	{
 	   --x;
 	}
-	*/
 	x = (x > 0) ? x+1 : x+2;
 	
 	return;

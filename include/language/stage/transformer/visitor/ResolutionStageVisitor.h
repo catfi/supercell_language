@@ -262,7 +262,7 @@ struct ResolutionStageVisitor : GenericDoubleVisitor
 		else if(type == Target::SYMBOL_RESOLUTION)
 		{
 			visit(*node.node);
-			try_to_resolve_symbol_or_package(node.node, node.member);
+			try_to_resolve_symbol_or_package(&node, node.node, node.member);
 		}
 	}
 
@@ -277,7 +277,7 @@ struct ResolutionStageVisitor : GenericDoubleVisitor
 		{
 			if(node.catagory == PrimaryExpr::Catagory::IDENTIFIER)
 			{
-				try_to_resolve_symbol_or_package(node.value.identifier);
+				try_to_resolve_symbol_or_package(&node, node.value.identifier);
 			}
 		}
 	}
@@ -342,12 +342,12 @@ private:
 		}
 	}
 
-	bool try_to_resolve_symbol(tree::ASTNode* scope, tree::Identifier* node, bool no_action = false)
+	bool try_to_resolve_symbol(tree::ASTNode* attach, tree::ASTNode* scope, tree::Identifier* node, bool no_action = false)
 	{
 		if(!scope || !node)
 			return false;
 
-		if(resolver.resolveSymbol(*scope, *node, no_action))
+		if(resolver.resolveSymbol(*attach, *scope, *node, no_action))
 		{
 			++resolved_count;
 			return true;
@@ -360,12 +360,12 @@ private:
 		}
 	}
 
-	bool try_to_resolve_symbol(tree::Identifier* node, bool no_action = false)
+	bool try_to_resolve_symbol(tree::ASTNode* attach, tree::Identifier* node, bool no_action = false)
 	{
 		if(!node)
 			return false;
 
-		if(resolver.resolveSymbol(*node, no_action))
+		if(resolver.resolveSymbol(*attach, *node, no_action))
 		{
 			++resolved_count;
 			return true;
@@ -378,12 +378,12 @@ private:
 		}
 	}
 
-	bool try_to_resolve_package(tree::ASTNode* scope, tree::Identifier* node, bool no_action = false)
+	bool try_to_resolve_package(tree::ASTNode* attach, tree::ASTNode* scope, tree::Identifier* node, bool no_action = false)
 	{
 		if(!scope || !node)
 			return false;
 
-		if(resolver.resolvePackage(*scope, *node, no_action))
+		if(resolver.resolvePackage(*attach, *scope, *node, no_action))
 		{
 			++resolved_count;
 			return true;
@@ -396,12 +396,12 @@ private:
 		}
 	}
 
-	bool try_to_resolve_package(tree::Identifier* node, bool no_action = false)
+	bool try_to_resolve_package(tree::ASTNode* attach, tree::Identifier* node, bool no_action = false)
 	{
 		if(!node)
 			return false;
 
-		if(resolver.resolvePackage(*node, no_action))
+		if(resolver.resolvePackage(*attach, *node, no_action))
 		{
 			++resolved_count;
 			return true;
@@ -414,19 +414,19 @@ private:
 		}
 	}
 
-	bool try_to_resolve_symbol_or_package(tree::ASTNode* scope, tree::Identifier* node, bool no_action = false)
+	bool try_to_resolve_symbol_or_package(tree::ASTNode* attach, tree::ASTNode* scope, tree::Identifier* node, bool no_action = false)
 	{
 		if(!scope || !node)
 			return false;
 
-		if(resolver.resolveSymbol(*scope, *node, no_action))
+		if(resolver.resolveSymbol(*attach, *scope, *node, no_action))
 		{
 			++resolved_count;
 			return true;
 		}
 		else
 		{
-			if(resolver.resolvePackage(*scope, *node, no_action))
+			if(resolver.resolvePackage(*attach, *scope, *node, no_action))
 			{
 				++resolved_count;
 				return true;
@@ -440,19 +440,19 @@ private:
 		}
 	}
 
-	bool try_to_resolve_symbol_or_package(tree::Identifier* node, bool no_action = false)
+	bool try_to_resolve_symbol_or_package(tree::ASTNode* attach, tree::Identifier* node, bool no_action = false)
 	{
 		if(!node)
 			return false;
 
-		if(resolver.resolveSymbol(*node, no_action))
+		if(resolver.resolveSymbol(*attach, *node, no_action))
 		{
 			++resolved_count;
 			return true;
 		}
 		else
 		{
-			if(resolver.resolvePackage(*node, no_action))
+			if(resolver.resolvePackage(*attach, *node, no_action))
 			{
 				++resolved_count;
 				return true;
