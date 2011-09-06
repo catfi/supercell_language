@@ -72,7 +72,7 @@ bool LLVMGeneratorStage::execute(bool& continue_execution)
 
 	//llvm::LLVMContext& context = llvm::getGlobalContext();
 	llvm::LLVMContext* context = new llvm::LLVMContext();
-	llvm::Module* module = new llvm::Module(llvm_module_name, llvm::getGlobalContext());
+	llvm::Module* module = new llvm::Module(llvm_module_name, *context);
 
 	// create visitor to walk through the entire tree and generate instructions accordingly
 	visitor::LLVMGeneratorVisitor visitor(*context, *module);

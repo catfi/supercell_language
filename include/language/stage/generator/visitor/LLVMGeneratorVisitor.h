@@ -818,13 +818,13 @@ private:
 		}
 		case PrimitiveType::INT64:
 		{
-			modifier |= llvm::Attribute::SExt;
+			//modifier |= llvm::Attribute::SExt;
 			result = llvm::IntegerType::getInt64Ty(mContext);
 			resolved = true; break;
 		}
 		case PrimitiveType::UINT64:
 		{
-			modifier |= llvm::Attribute::ZExt;
+			//modifier |= llvm::Attribute::ZExt;
 			result = llvm::IntegerType::getInt64Ty(mContext);
 			resolved = true; break;
 		}
@@ -898,7 +898,8 @@ private:
 					return false;
 
 				llvm_function_parameter_types.push_back(t);
-				llvm_function_parameter_type_attributes.push_back(llvm::AttributeWithIndex::get(index, attr));
+				if(attr != llvm::Attribute::None)
+					llvm_function_parameter_type_attributes.push_back(llvm::AttributeWithIndex::get(index, attr));
 
 				++index;
 			}
@@ -925,7 +926,7 @@ private:
 
 		llvm::FunctionType* llvm_function_type = NULL;
 		std::vector<llvm::AttributeWithIndex> llvm_function_parameter_type_attributes;
-		llvm::Attributes llvm_function_return_type_attribute;
+		llvm::Attributes llvm_function_return_type_attribute = llvm::Attribute::None;
 
 		// try to resolve function type
 		if(!getFunctionType(ast_function, llvm_function_type, llvm_function_parameter_type_attributes, llvm_function_return_type_attribute))
@@ -938,7 +939,8 @@ private:
 			return false;
 
 		// set function attributes (modifiers)
-		llvm_function->setAttributes(llvm::AttrListPtr::get(llvm_function_parameter_type_attributes.begin(), llvm_function_parameter_type_attributes.end()));
+		if(llvm_function_parameter_type_attributes.size() > 0)
+			llvm_function->setAttributes(llvm::AttrListPtr::get(llvm_function_parameter_type_attributes.begin(), llvm_function_parameter_type_attributes.end()));
 
 		// set function parameter names
 		int index = 0;
@@ -1062,7 +1064,7 @@ private:
 		else
 		{
 			BOOST_ASSERT(!mFunctionContext.return_value->getType()->isVoidTy());
-			mBuilder.CreateRet(mFunctionContext.return_value);
+			mBuilder.CreateRet(mBuilder.CreateLoad(mFunctionContext.return_value));
 		}
 
 		mFunctionContext.alloca_insert_point->eraseFromParent();
