@@ -21,9 +21,11 @@
 #define ZILLIANS_LANGUAGE_LOGGING_MANAGER_H_
 
 #include "core/Prerequisite.h"
+#include "language/logging/logging-manager/StringTable.h"
+
+namespace po = boost::program_options;
 
 namespace zillians { namespace language { namespace logging {
-
 
 /**
  * LoggingManager provides the following features:
@@ -47,6 +49,7 @@ public:
 	bool parseOptions(po::variables_map& vm);
 
 private:
+	StringTable mStringTable;
 	uint32 mWarningLevel;
 };
 
