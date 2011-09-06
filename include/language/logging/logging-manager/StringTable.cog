@@ -22,6 +22,7 @@
 
 #include "core/Prerequisite.h"
 #include <string>
+#include <map>
 
 namespace zillians { namespace language { namespace logging {
 
@@ -34,81 +35,118 @@ struct StringTable
 {
 	/*[[[cog
 
+	class Repo:
+		""" Helper class to create attributes on the fly """
+		def __init__(self):
+			self.repo = []
+
+		def create(self, name):
+			if hasattr(self, name):
+				raise AttributeError, 'Attribute %s Already Exist' % name
+			setattr(self, name, name)
+			self.repo.append(getattr(self, name))
+	#
+	# This is the place you gonna extend
+	#
+
 	# Define constant string
-	WARNING_UNUSED_VARIABLE = 'UNUSED_VARIABLE'
-	ERROR_UNDEFINED_VARIABLE = 'UNDEFINED_VARIABLE'
+	LOG_STRING = Repo()
+	LOG_STRING.create('LOG_UNUSED_VARIABLE')
+	LOG_STRING.create('LOG_UNDEFINED_VARIABLE')
 
-	# Define string table
-	attribute_table = [
-		('warning', 0, WARNING_UNUSED_VARIABLE),
-		('error', 0, ERROR_UNDEFINED_VARIABLE),
-		]
+	# Define category
+	LOG_CATEGORY = Repo()
+	LOG_CATEGORY.create('CATEGORY_SYMBOL')
+	LOG_CATEGORY.create('CATEGORY_FUNCTION')
+	LOG_CATEGORY.create('CATEGORY_OBJECT_TYPE')
+	LOG_CATEGORY.create('CATEGORY_MISC')
 
-	translate_table = {
-		'en_US':
-			{
-			WARNING_UNUSED_VARIABLE: 'Undefined variable $ID is used',
-			ERROR_UNDEFINED_VARIABLE: 'Undefined variable $ID in $FILE'
+	# Define log type
+	LOG_TYPE = Repo()
+	LOG_TYPE.create('LOG_TYPE_WARNING')
+	LOG_TYPE.create('LOG_TYPE_ERROR')
+	LOG_TYPE.create('LOG_TYPE_FATAL')
+
+	# Define log string attributes
+	attribute_table = {
+		LOG_STRING.LOG_UNUSED_VARIABLE: (LOG_TYPE.LOG_TYPE_WARNING, LOG_CATEGORY.CATEGORY_SYMBOL, 0, LOG_STRING.LOG_UNUSED_VARIABLE),
+		LOG_STRING.LOG_UNDEFINED_VARIABLE: (LOG_TYPE.LOG_TYPE_ERROR, LOG_CATEGORY.CATEGORY_SYMBOL, 0, LOG_STRING.LOG_UNDEFINED_VARIABLE),
+		}
+
+	# Define translation table
+	translation_table = {
+		LOG_STRING.LOG_UNUSED_VARIABLE: {
+			'en_US': r'Undefined variable $ID is used',
+			'zh_TW': r'$ID 未被使用'
 			},
-	 	'zh_TW':
-	 		{
-			WARNING_UNUSED_VARIABLE: r'$ID 未被使用',
-			ERROR_UNDEFINED_VARIABLE: r'變數 $ID 在 $FILE 中未被定義'
-	 		}
+		LOG_STRING.LOG_UNDEFINED_VARIABLE: {
+			'en_US': r'Undefined variable $ID in $FILE',
+			'zh_TW': r'變數 $ID 在 $FILE 中未被定義'
+			},
 	 	}
-
-
-	#
-	# Start to generate c++ codes
-	#
-	import cog
-
-	# Generate all message id
-	cog.outl('enum message_id_t {')
-	for i in range(len(attribute_table)):
-		cog.outl('\t %s,' % attribute_table[i][2]);
-	cog.outl('};')
-	 ]]]*/
+	]]]*/
 	//[[[end]]]
 
-	enum message_type_t {
-		MESSAGE_TYPE_WARNING,
-		MESSAGE_TYPE_ERROR,
+	enum log_id {
+		/*[[[cog
+		import cog
+
+		# Generate all log id
+		for i in range(len(LOG_STRING.repo)):
+			cog.outl('\t %s,' % LOG_STRING.repo[i]);
+		]]]*/
+		//[[[end]]]
+	};
+
+	enum log_type {
+		/*[[[cog
+
+		# Generate all log type
+		for i in range(len(LOG_TYPE.repo)):
+			cog.outl('\t %s,' % LOG_TYPE.repo[i]);
+		]]]*/
+		//[[[end]]]
+	};
+
+	enum log_category {
+		/*[[[cog
+
+		# Generate all log type
+		for i in range(len(LOG_CATEGORY.repo)):
+			cog.outl('\t %s,' % LOG_CATEGORY.repo[i]);
+		]]]*/
+		//[[[end]]]
 	};
 
 	struct attribute_table_t {
-		message_type_t type;
+		attribute_table_t(log_type type, log_category category, uint32 level, log_id id) :
+			type(type), category(category), level(level), id(id) {}
+		log_type type;
+		log_category category;
 		uint32 level;
-		message_id_t id;
+		log_id id;
 	};
 
-	typdef std::map<message_id_t, std::wstring> translate_map_t;
-	std::map<std::string, translate_map_t>  locale_translation_table;
+	typedef std::map<std::string, std::wstring> locale_translate_map_t;
+
+	// Each message id has its own attributes
+	std::map<log_id, attribute_table_t> attribute_table;
+
+	// Each log id has a translation map, which includes the locale and the specific string mapping
+	std::map<log_id, locale_translate_map_t>  translation_table;
+
 
 	StringTable()
 	{
 		/*[[[cog
-
-		#
 		# Generate attribute tables
-		#
-		cog.outl('static attribute_table_t attribute_table[] = {');
-		for i in range(len(attribute_table)):
-			message_type = 'MESSAGE_TYPE_WARNING' if attribute_table[i][0] == 'warning' else 'MESSAGE_TYPE_ERROR'
-			cog.outl('\t {%s, %d, %s}' % (message_type, attribute_table[i][1], attribute_table[i][2]));
-		cog.outl('};');
+		for (id, attr) in attribute_table.iteritems():
+			cog.outl('attribute_table[%s] = attribute_table_t(%s, %s, %d, %s);' % ( (id,) + attr) );
 
-		#
 		# Generate string tables for different language
-		#
-		for k in translate_table.keys():
-			cog.outl('{');
-			cog.outl('translate_map_t translate_table = locale_translation_table["%s"]' % k);
-
-			for (id, trans) in translate_table[k].iteritems():
-				cog.outl(r'translate_table[%s] = "%s"' % (id, trans));
-			cog.outl('}');
-
+		for (id, trans) in translation_table.iteritems():
+			for (locale, trans) in trans.iteritems():
+				cog.outl(r'translation_table[%s]["%s"] = "%s";' % (id, locale, trans))
 		]]]*/
 		//[[[end]]]
 	}
