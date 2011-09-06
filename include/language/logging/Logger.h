@@ -31,6 +31,7 @@ struct Logger
 
 	static log4cxx::LoggerPtr Compiler;
 	static log4cxx::LoggerPtr Resolver;
+	static log4cxx::LoggerPtr CompilerLogger;
 	static log4cxx::LoggerPtr BasicStage;
 	static log4cxx::LoggerPtr ParserStage;
 	static log4cxx::LoggerPtr TransformerStage;
