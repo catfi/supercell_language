@@ -23,7 +23,8 @@
 
 namespace zillians { namespace language { namespace logging {
 
-LoggingManager::LoggingManager()
+LoggingManager::LoggingManager() :
+		mWarningLevel(0)
 {
 	mLogger.setLogger(this);
 	mLogger.setLocale(get_default_locale());
