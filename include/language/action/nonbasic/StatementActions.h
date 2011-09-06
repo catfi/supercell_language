@@ -27,11 +27,11 @@ namespace zillians { namespace language { namespace action {
 struct statement
 {
 	DEFINE_ATTRIBUTES(ASTNode*)
-	DEFINE_LOCALS(VAR_LOCATIONS(1))
+	DEFINE_LOCALS(VAR_LOCATION_TYPE)
 
 	BEGIN_ACTION(init_loc)
 	{
-		CACHE_LOCATIONS(1);
+		SET_LOCATION;
 	}
 	END_ACTION
 
@@ -55,7 +55,6 @@ struct statement
 		}
 		if(_param(0).is_initialized())
 			cast<Statement>(_result)->setAnnotation(*_param(0));
-		FREE_UNBOUND_CACHED_LOCATIONS;
 	}
 	END_ACTION
 
@@ -72,11 +71,11 @@ struct statement
 struct expression_statement
 {
 	DEFINE_ATTRIBUTES(Statement*)
-	DEFINE_LOCALS(VAR_LOCATIONS(1))
+	DEFINE_LOCALS(VAR_LOCATION_TYPE)
 
 	BEGIN_ACTION(init_loc)
 	{
-		CACHE_LOCATIONS(1);
+		SET_LOCATION;
 	}
 	END_ACTION
 
@@ -87,7 +86,6 @@ struct expression_statement
 #endif
 		if(_param(0).is_initialized())
 			BIND_CACHED_LOCATION(_result = new ExpressionStmt(*_param(0)));
-		FREE_UNBOUND_CACHED_LOCATIONS;
 	}
 	END_ACTION
 };
@@ -95,11 +93,11 @@ struct expression_statement
 struct selection_statement
 {
 	DEFINE_ATTRIBUTES(Statement*)
-	DEFINE_LOCALS(VAR_LOCATIONS(1))
+	DEFINE_LOCALS(VAR_LOCATION_TYPE)
 
 	BEGIN_ACTION(init_loc)
 	{
-		CACHE_LOCATIONS(1);
+		SET_LOCATION;
 	}
 	END_ACTION
 
@@ -122,7 +120,6 @@ struct selection_statement
 		}
 		if(_param(3).is_initialized())
 			cast<IfElseStmt>(_result)->setElseBranch(*_param(3));
-		FREE_UNBOUND_CACHED_LOCATIONS;
 	}
 	END_ACTION
 
@@ -156,7 +153,6 @@ struct selection_statement
 				}
 				break;
 			}
-		FREE_UNBOUND_CACHED_LOCATIONS;
 	}
 	END_ACTION
 };
@@ -164,11 +160,11 @@ struct selection_statement
 struct iteration_statement
 {
 	DEFINE_ATTRIBUTES(Statement*)
-	DEFINE_LOCALS(VAR_LOCATIONS(1))
+	DEFINE_LOCALS(VAR_LOCATION_TYPE)
 
 	BEGIN_ACTION(init_loc)
 	{
-		CACHE_LOCATIONS(1);
+		SET_LOCATION;
 	}
 	END_ACTION
 
@@ -181,7 +177,6 @@ struct iteration_statement
 		Expression* cond  = _param(0);
 		ASTNode*    block = _param(1).is_initialized() ? *_param(1) : NULL;
 		BIND_CACHED_LOCATION(_result = new WhileStmt(WhileStmt::Style::WHILE, cond, block));
-		FREE_UNBOUND_CACHED_LOCATIONS;
 	}
 	END_ACTION
 
@@ -194,7 +189,6 @@ struct iteration_statement
 		ASTNode*    block = _param(0);
 		Expression* cond  = _param(1);
 		BIND_CACHED_LOCATION(_result = new WhileStmt(WhileStmt::Style::DO_WHILE, cond, block));
-		FREE_UNBOUND_CACHED_LOCATIONS;
 	}
 	END_ACTION
 
@@ -218,7 +212,6 @@ struct iteration_statement
 		Expression* range = _param(1);
 		ASTNode*    block = _param(2).is_initialized() ? *_param(2) : NULL;
 		BIND_CACHED_LOCATION(_result = new ForeachStmt(iterator, range, block));
-		FREE_UNBOUND_CACHED_LOCATIONS;
 	}
 	END_ACTION
 };
@@ -226,11 +219,11 @@ struct iteration_statement
 struct branch_statement
 {
 	DEFINE_ATTRIBUTES(Statement*)
-	DEFINE_LOCALS(VAR_LOCATIONS(1))
+	DEFINE_LOCALS(VAR_LOCATION_TYPE)
 
 	BEGIN_ACTION(init_loc)
 	{
-		CACHE_LOCATIONS(1);
+		SET_LOCATION;
 	}
 	END_ACTION
 

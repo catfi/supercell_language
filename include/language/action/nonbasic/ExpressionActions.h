@@ -100,11 +100,11 @@ typedef std::vector<BinaryExpr::OpCode::type> binary_ops_t;
 struct primary_expression
 {
 	DEFINE_ATTRIBUTES(Expression*)
-	DEFINE_LOCALS(VAR_LOCATIONS(2))
+	DEFINE_LOCALS(VAR_LOCATION_TYPE)
 
 	BEGIN_ACTION(init_loc)
 	{
-		CACHE_LOCATIONS(2);
+		SET_LOCATION;
 	}
 	END_ACTION
 
@@ -164,7 +164,6 @@ struct primary_expression
 			deduced_foreach_value(i, *parameters)
 				function_decl->appendParameter(i.first, i.second);
 		BIND_CACHED_LOCATION(_result = new PrimaryExpr(function_decl));
-		FREE_UNBOUND_CACHED_LOCATIONS;
 	}
 	END_ACTION
 };
@@ -172,14 +171,14 @@ struct primary_expression
 struct postfix_expression
 {
 	DEFINE_ATTRIBUTES(Expression*)
-	DEFINE_LOCALS(VAR_LOCATIONS(1))
+	DEFINE_LOCALS(VAR_LOCATION_TYPE)
 
 	BEGIN_ACTION(init_primary_expression_and_loc)
 	{
 #ifdef DEBUG
 		printf("postfix_expression::init_primary_expression param(0) type = %s\n", typeid(_param_t(0)).name());
 #endif
-		CACHE_LOCATIONS(1);
+		SET_LOCATION;
 		_result = _param(0);
 	}
 	END_ACTION
@@ -202,7 +201,6 @@ struct postfix_expression
 		if(_param(0).is_initialized())
 			deduced_foreach_value(i, *_param(0))
 				cast<CallExpr>(_result)->appendParameter(i);
-		FREE_UNBOUND_CACHED_LOCATIONS;
 	}
 	END_ACTION
 

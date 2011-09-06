@@ -42,11 +42,11 @@ struct identifier
 struct nested_identifier
 {
 	DEFINE_ATTRIBUTES(Identifier*)
-	DEFINE_LOCALS(VAR_LOCATIONS(1))
+	DEFINE_LOCALS(VAR_LOCATION_TYPE)
 
 	BEGIN_ACTION(init_loc)
 	{
-		CACHE_LOCATIONS(1);
+		SET_LOCATION;
 	}
 	END_ACTION
 
@@ -65,7 +65,6 @@ struct nested_identifier
 			deduced_foreach_value(i, _param(1))
 				cast<NestedIdentifier>(_result)->appendIdentifier(i);
 		}
-		FREE_UNBOUND_CACHED_LOCATIONS;
 	}
 	END_ACTION
 };
