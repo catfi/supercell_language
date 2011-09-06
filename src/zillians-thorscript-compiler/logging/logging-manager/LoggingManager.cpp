@@ -17,12 +17,16 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
+#include "utility/UnicodeUtil.h"
 #include "language/logging/logging-manager/LoggingManager.h"
 
 namespace zillians { namespace language { namespace logging {
 
 LoggingManager::LoggingManager()
-{}
+{
+	mLogger.setLocale(get_default_locale());
+	mLogger.setStringTable(mStringTable);
+}
 
 LoggingManager::~LoggingManager()
 {}
@@ -36,6 +40,11 @@ void LoggingManager::initializeOptions(po::options_description& option_desc, po:
 bool LoggingManager::parseOptions(po::variables_map& vm)
 {
 
+}
+
+Logger& LoggingManager::getLogger()
+{
+	return mLogger;
 }
 
 }}}

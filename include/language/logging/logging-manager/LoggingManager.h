@@ -48,8 +48,11 @@ public:
 	void initializeOptions(po::options_description& option_desc, po::positional_options_description& positional_desc);
 	bool parseOptions(po::variables_map& vm);
 
+	Logger& getLogger();
+
 private:
 	StringTable mStringTable;
+	Logger mLogger;
 	uint32 mWarningLevel;
 };
 
