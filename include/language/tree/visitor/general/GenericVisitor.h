@@ -28,105 +28,105 @@
 #include "language/tree/ASTNodeFactory.h"
 
 #define INDIRECT_REGISTER_ALL_VISITABLE_ASTNODE(impl, invoker) \
-			INDIRECT_REGISTER_VISITABLE(impl, invoker, \
-				/* basic */					\
-				ASTNode, 					\
-				Annotations,				\
-				Annotation,					\
-				Block,						\
-				Identifier,					\
-					SimpleIdentifier,		\
-					NestedIdentifier,		\
-					TemplatedIdentifier,	\
-				Literal,					\
-					NumericLiteral,			\
-					StringLiteral,			\
-					ObjectLiteral,			\
-				TypeSpecifier,				\
-				FunctionType,				\
-				/* module */				\
-				Program,					\
-				Package,					\
-				Import,						\
-				/* declaration */			\
-				Declaration,				\
-					ClassDecl,				\
-					EnumDecl,				\
-					FunctionDecl,			\
-					InterfaceDecl,			\
-					VariableDecl,			\
-					TypedefDecl,			\
-				/* statement */				\
-				Statement,					\
-					DeclarativeStmt,		\
-					ExpressionStmt,			\
-					IterativeStmt,			\
-						ForeachStmt,		\
-						WhileStmt,			\
-					SelectionStmt,			\
-						IfElseStmt,			\
-						SwitchStmt,			\
-					BranchStmt,				\
-				/* expression */			\
-				Expression,					\
-					PrimaryExpr,			\
-					UnaryExpr,				\
-					BinaryExpr,				\
-					TernaryExpr,			\
-					MemberExpr,				\
-					CallExpr,				\
-					CastExpr				\
+		INDIRECT_REGISTER_VISITABLE(impl, invoker, \
+				/* basic */ \
+				ASTNode, \
+				Annotations, \
+				Annotation, \
+				Block, \
+				Identifier, \
+					SimpleIdentifier, \
+					NestedIdentifier, \
+					TemplatedIdentifier, \
+				Literal, \
+					NumericLiteral, \
+					StringLiteral, \
+					ObjectLiteral, \
+				TypeSpecifier, \
+				FunctionType, \
+				/* module */ \
+				Program, \
+				Package, \
+				Import, \
+				/* declaration */ \
+				Declaration, \
+					ClassDecl, \
+					EnumDecl, \
+					FunctionDecl, \
+					InterfaceDecl, \
+					VariableDecl, \
+					TypedefDecl, \
+				/* statement */ \
+				Statement, \
+					DeclarativeStmt, \
+					ExpressionStmt, \
+					IterativeStmt, \
+						ForeachStmt, \
+						WhileStmt, \
+					SelectionStmt, \
+						IfElseStmt, \
+						SwitchStmt, \
+					BranchStmt, \
+				/* expression */ \
+				Expression, \
+					PrimaryExpr, \
+					UnaryExpr, \
+					BinaryExpr, \
+					TernaryExpr, \
+					MemberExpr, \
+					CallExpr, \
+					CastExpr \
 				)
 
-#define REGISTER_ALL_VISITABLE_ASTNODE(invoker)	\
+#define REGISTER_ALL_VISITABLE_ASTNODE(invoker) \
 		REGISTER_VISITABLE(invoker, \
-				/* basic */					\
-				ASTNode, 					\
-				Annotations,				\
-				Annotation,					\
-				Block,						\
-				Identifier,					\
-					SimpleIdentifier,		\
-					NestedIdentifier,		\
-					TemplatedIdentifier,	\
-				Literal,					\
-					NumericLiteral,			\
-					StringLiteral,			\
-					ObjectLiteral,			\
-				TypeSpecifier,				\
-				FunctionType,				\
-				/* module */				\
-				Program,					\
-				Package,					\
-				Import,						\
-				/* declaration */			\
-				Declaration,				\
-					ClassDecl,				\
-					EnumDecl,				\
-					FunctionDecl,			\
-					InterfaceDecl,			\
-					VariableDecl,			\
-					TypedefDecl,			\
-				/* statement */				\
-				Statement,					\
-					DeclarativeStmt,		\
-					ExpressionStmt,			\
-					IterativeStmt,			\
-						ForeachStmt,		\
-						WhileStmt,			\
-					SelectionStmt,			\
-						IfElseStmt,			\
-						SwitchStmt,			\
-					BranchStmt,				\
-				/* expression */			\
-				Expression,					\
-					PrimaryExpr,			\
-					UnaryExpr,				\
-					BinaryExpr,				\
-					TernaryExpr,			\
-					MemberExpr,				\
-					CallExpr,				\
-					CastExpr				\
+				/* basic */ \
+				ASTNode, \
+				Annotations, \
+				Annotation, \
+				Block, \
+				Identifier, \
+					SimpleIdentifier, \
+					NestedIdentifier, \
+					TemplatedIdentifier, \
+				Literal, \
+					NumericLiteral, \
+					StringLiteral, \
+					ObjectLiteral, \
+				TypeSpecifier, \
+				FunctionType, \
+				/* module */ \
+				Program, \
+				Package, \
+				Import, \
+				/* declaration */ \
+				Declaration, \
+					ClassDecl, \
+					EnumDecl, \
+					FunctionDecl, \
+					InterfaceDecl, \
+					VariableDecl, \
+					TypedefDecl, \
+				/* statement */ \
+				Statement, \
+					DeclarativeStmt, \
+					ExpressionStmt, \
+					IterativeStmt, \
+						ForeachStmt, \
+						WhileStmt, \
+					SelectionStmt, \
+						IfElseStmt, \
+						SwitchStmt, \
+					BranchStmt, \
+				/* expression */ \
+				Expression, \
+					PrimaryExpr, \
+					UnaryExpr, \
+					BinaryExpr, \
+					TernaryExpr, \
+					MemberExpr, \
+					CallExpr, \
+					CastExpr \
 				)
 
 namespace zillians { namespace language { namespace tree { namespace visitor {
@@ -151,19 +151,19 @@ struct GenericVisitor : Visitor<const ASTNode, void, VisitorImplementation::recu
 		if(node.name) visit(*node.name);
 		foreach(i, node.attribute_list)
 		{
-			if(i->first) visit(*i->first);
+			if(i->first)  visit(*i->first);
 			if(i->second) visit(*i->second);
 		}
 	}
 
 	void apply(const Annotations& node)
 	{
-		foreach(i, node.annotation_list)	visit(**i);
+		foreach(i, node.annotation_list) visit(**i);
 	}
 
 	void apply(const Block& node)
 	{
-		foreach(i, node.objects)	visit(**i);
+		foreach(i, node.objects) visit(**i);
 	}
 
 	void apply(Identifier& node)
@@ -177,33 +177,33 @@ struct GenericVisitor : Visitor<const ASTNode, void, VisitorImplementation::recu
 
 	void apply(const NestedIdentifier& node)
 	{
-		foreach(i, node.identifier_list)	visit(**i);
+		foreach(i, node.identifier_list) visit(**i);
 	}
 
 	void apply(const TemplatedIdentifier& node)
 	{
 		if(node.id) visit(*node.id);
 
-		foreach(i, node.templated_type_list)	visit(**i);
+		foreach(i, node.templated_type_list) visit(**i);
 	}
 
 	void apply(const TypeSpecifier& node)
 	{
 		switch(node.type)
 		{
-		case TypeSpecifier::ReferredType::CLASS_DECL: if(node.referred.class_decl) visit(*node.referred.class_decl); break;
+		case TypeSpecifier::ReferredType::CLASS_DECL:    if(node.referred.class_decl)    visit(*node.referred.class_decl); break;
 		case TypeSpecifier::ReferredType::FUNCTION_DECL: if(node.referred.function_decl) visit(*node.referred.function_decl); break;
-		case TypeSpecifier::ReferredType::ENUM_DECL: if(node.referred.enum_decl) visit(*node.referred.enum_decl); break;
-		case TypeSpecifier::ReferredType::TYPEDEF_DECL: if(node.referred.typedef_decl) visit(*node.referred.typedef_decl); break;
+		case TypeSpecifier::ReferredType::ENUM_DECL:     if(node.referred.enum_decl)     visit(*node.referred.enum_decl); break;
+		case TypeSpecifier::ReferredType::TYPEDEF_DECL:  if(node.referred.typedef_decl)  visit(*node.referred.typedef_decl); break;
 		case TypeSpecifier::ReferredType::FUNCTION_TYPE: if(node.referred.function_type) visit(*node.referred.function_type); break;
-		case TypeSpecifier::ReferredType::UNSPECIFIED: if(node.referred.unspecified) visit(*node.referred.unspecified); break;
+		case TypeSpecifier::ReferredType::UNSPECIFIED:   if(node.referred.unspecified)   visit(*node.referred.unspecified); break;
 		}
 	}
 
 	void apply(const FunctionType& node)
 	{
-		foreach(i, node.templated_parameters)	visit(**i);
-		foreach(i, node.argument_types)			visit(**i);
+		foreach(i, node.templated_parameters) visit(**i);
+		foreach(i, node.argument_types)       visit(**i);
 	}
 
 	//////////////////////////////////////////////////////////////////////
@@ -217,8 +217,8 @@ struct GenericVisitor : Visitor<const ASTNode, void, VisitorImplementation::recu
 	void apply(const Package& node)
 	{
 		if(node.id) visit(*node.id);
-		foreach(i, node.children)	visit(**i);
-		foreach(i, node.objects)	visit(**i);
+		foreach(i, node.children) visit(**i);
+		foreach(i, node.objects)  visit(**i);
 	}
 
 	void apply(const Import& node)
@@ -237,9 +237,9 @@ struct GenericVisitor : Visitor<const ASTNode, void, VisitorImplementation::recu
 	{
 		if(node.name) visit(*node.name);
 		if(node.base) visit(*node.base);
-		foreach(i, node.implements)			visit(**i);
-		foreach(i, node.member_functions)	visit(**i);
-		foreach(i, node.member_variables)	visit(**i);
+		foreach(i, node.implements)       visit(**i);
+		foreach(i, node.member_functions) visit(**i);
+		foreach(i, node.member_variables) visit(**i);
 
 		if(node.annotations) visit(*node.annotations);
 	}
@@ -249,7 +249,7 @@ struct GenericVisitor : Visitor<const ASTNode, void, VisitorImplementation::recu
 		if(node.name) visit(*node.name);
 		foreach(i, node.enumeration_list)
 		{
-			if(i->first) visit(*i->first);
+			if(i->first)  visit(*i->first);
 			if(i->second) visit(*i->second);
 		}
 
@@ -261,10 +261,10 @@ struct GenericVisitor : Visitor<const ASTNode, void, VisitorImplementation::recu
 		if(node.name) visit(*node.name);
 		foreach(i, node.parameters)
 		{
-			if(i->first) visit(*i->first);
+			if(i->first)  visit(*i->first);
 			if(i->second) visit(*i->second);
 		}
-		if(node.type) visit(*node.type);
+		if(node.type)  visit(*node.type);
 		if(node.block) visit(*node.block);
 
 		if(node.annotations) visit(*node.annotations);
@@ -273,8 +273,7 @@ struct GenericVisitor : Visitor<const ASTNode, void, VisitorImplementation::recu
 	void apply(const InterfaceDecl& node)
 	{
 		if(node.name) visit(*node.name);
-		foreach(i, node.member_functions)
-			visit(**i);
+		foreach(i, node.member_functions) visit(**i);
 
 		if(node.annotations) visit(*node.annotations);
 	}
@@ -289,8 +288,8 @@ struct GenericVisitor : Visitor<const ASTNode, void, VisitorImplementation::recu
 
 	void apply(const VariableDecl& node)
 	{
-		if(node.name) visit(*node.name);
-		if(node.type) visit(*node.type);
+		if(node.name)        visit(*node.name);
+		if(node.type)        visit(*node.type);
 		if(node.initializer) visit(*node.initializer);
 
 		if(node.annotations) visit(*node.annotations);
@@ -320,15 +319,15 @@ struct GenericVisitor : Visitor<const ASTNode, void, VisitorImplementation::recu
 	void apply(const ForeachStmt& node)
 	{
 		if(node.iterator) visit(*node.iterator);
-		if(node.range) visit(*node.range);
-		if(node.block) visit(*node.block);
+		if(node.range)    visit(*node.range);
+		if(node.block)    visit(*node.block);
 
 		if(node.annotations) visit(*node.annotations);
 	}
 
 	void apply(const WhileStmt& node)
 	{
-		if(node.cond) visit(*node.cond);
+		if(node.cond)  visit(*node.cond);
 		if(node.block) visit(*node.block);
 
 		if(node.annotations) visit(*node.annotations);
@@ -336,11 +335,11 @@ struct GenericVisitor : Visitor<const ASTNode, void, VisitorImplementation::recu
 
 	void apply(const IfElseStmt& node)
 	{
-		if(node.if_branch.cond) visit(*node.if_branch.cond);
+		if(node.if_branch.cond)  visit(*node.if_branch.cond);
 		if(node.if_branch.block) visit(*node.if_branch.block);
 		foreach(i, node.elseif_branches)
 		{
-			if(i->cond) visit(*i->cond);
+			if(i->cond)  visit(*i->cond);
 			if(i->block) visit(*i->block);
 		}
 		if(node.else_block) visit(*node.else_block);
@@ -353,7 +352,7 @@ struct GenericVisitor : Visitor<const ASTNode, void, VisitorImplementation::recu
 		if(node.node) visit(*node.node);
 		foreach(i, node.cases)
 		{
-			if(i->cond) visit(*i->cond);
+			if(i->cond)  visit(*i->cond);
 			if(i->block) visit(*i->block);
 		}
 
@@ -377,8 +376,8 @@ struct GenericVisitor : Visitor<const ASTNode, void, VisitorImplementation::recu
 		switch(node.catagory)
 		{
 		case PrimaryExpr::Catagory::IDENTIFIER: if(node.value.identifier) visit(*node.value.identifier); break;
-		case PrimaryExpr::Catagory::LITERAL: if(node.value.literal) visit(*node.value.literal); break;
-		case PrimaryExpr::Catagory::LAMBDA: if(node.value.lambda) visit(*node.value.lambda); break;
+		case PrimaryExpr::Catagory::LITERAL:    if(node.value.literal)    visit(*node.value.literal); break;
+		case PrimaryExpr::Catagory::LAMBDA:     if(node.value.lambda)     visit(*node.value.lambda); break;
 		}
 	}
 
@@ -389,28 +388,27 @@ struct GenericVisitor : Visitor<const ASTNode, void, VisitorImplementation::recu
 
 	void apply(const BinaryExpr& node)
 	{
-		if(node.left) visit(*node.left);
+		if(node.left)  visit(*node.left);
 		if(node.right) visit(*node.right);
 	}
 
 	void apply(const TernaryExpr& node)
 	{
-		if(node.cond) visit(*node.cond);
-		if(node.true_node) visit(*node.true_node);
+		if(node.cond)       visit(*node.cond);
+		if(node.true_node)  visit(*node.true_node);
 		if(node.false_node) visit(*node.false_node);
 	}
 
 	void apply(const MemberExpr& node)
 	{
-		if(node.node) visit(*node.node);
+		if(node.node)   visit(*node.node);
 		if(node.member) visit(*node.member);
 	}
 
 	void apply(const CallExpr& node)
 	{
 		if(node.node) visit(*node.node);
-		foreach(i, node.parameters)
-			visit(**i);
+		foreach(i, node.parameters) visit(**i);
 	}
 
 	void apply(const CastExpr& node)

@@ -499,7 +499,7 @@ struct ThorScript : qi::grammar<Iterator, typename SA::start::attribute_type, de
 			;
 
 		nested_identifier
-			= qi::eps [ typename SA::location::init_loc() ]
+			= qi::eps                                 [ typename SA::location::init_loc() ]
 				>> (IDENTIFIER > *(DOT > IDENTIFIER)) [ typename SA::nested_identifier::init() ]
 			;
 
