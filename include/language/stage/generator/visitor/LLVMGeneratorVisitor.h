@@ -24,6 +24,7 @@
 #include "language/tree/visitor/general/GenericDoubleVisitor.h"
 #include "language/tree/visitor/general/NodeInfoVisitor.h"
 #include "language/stage/generator/detail/LLVMForeach.h"
+#include "language/stage/generator/detail/LLVMHelper.h"
 #include "language/resolver/context/ResolverContext.h"
 #include "language/stage/transformer/context/ManglingStageContext.h"
 
@@ -39,7 +40,7 @@ struct LLVMGeneratorVisitor : GenericDoubleVisitor
 	CREATE_INVOKER(generateInvoker, generate)
 
 	LLVMGeneratorVisitor(llvm::LLVMContext& context, llvm::Module& module) :
-		mContext(context), mModule(module), mBuilder(context)
+		mContext(context), mModule(module), mBuilder(context), mHelper(context)
 	{
 		mFunctionContext.function = NULL;
 		mFunctionContext.entry_block = NULL;
@@ -104,7 +105,7 @@ struct LLVMGeneratorVisitor : GenericDoubleVisitor
 
 	void generate(FunctionDecl& node)
 	{
-		if(!hasFunction(node))
+		if(!isFunctionVisited(node))
 		{
 			// create function signature (if necessary) and emit prologue of function
 			if(!startFunction(node))
@@ -755,206 +756,6 @@ struct LLVMGeneratorVisitor : GenericDoubleVisitor
 	}
 
 private:
-
-	bool getType(PrimitiveType::type type, /*OUT*/ const llvm::Type*& result, /*OUT*/ llvm::Attributes& modifier)
-	{
-		bool resolved = false;
-
-		switch(type)
-		{
-		case PrimitiveType::ANONYMOUS_OBJECT:
-		{
-			// return generic pointer type, which is an unsigned int32
-			modifier |= llvm::Attribute::ZExt;
-			result = llvm::IntegerType::getInt32Ty(mContext);
-			resolved = true; break;
-		}
-		case PrimitiveType::ANONYMOUS_FUNCTION:
-		{
-			// TODO return pointer to function type
-			result = NULL;
-			resolved = true; break;
-		}
-		case PrimitiveType::VOID:
-		{
-			result = llvm::Type::getVoidTy(mContext);
-			resolved = true; break;
-		}
-		case PrimitiveType::INT8:
-		{
-			modifier |= llvm::Attribute::SExt;
-			result = llvm::IntegerType::getInt8Ty(mContext);
-			resolved = true; break;
-		}
-		case PrimitiveType::UINT8:
-		{
-			modifier |= llvm::Attribute::ZExt;
-			result = llvm::IntegerType::getInt8Ty(mContext);
-			resolved = true; break;
-		}
-		case PrimitiveType::INT16:
-		{
-			modifier |= llvm::Attribute::SExt;
-			result = llvm::IntegerType::getInt16Ty(mContext);
-			resolved = true; break;
-		}
-		case PrimitiveType::UINT16:
-		{
-			modifier |= llvm::Attribute::ZExt;
-			result = llvm::IntegerType::getInt16Ty(mContext);
-			resolved = true; break;
-		}
-		case PrimitiveType::INT32:
-		{
-			modifier |= llvm::Attribute::SExt;
-			result = llvm::IntegerType::getInt32Ty(mContext);
-			resolved = true; break;
-		}
-		case PrimitiveType::UINT32:
-		{
-			modifier |= llvm::Attribute::ZExt;
-			result = llvm::IntegerType::getInt32Ty(mContext);
-			resolved = true; break;
-		}
-		case PrimitiveType::INT64:
-		{
-			//modifier |= llvm::Attribute::SExt;
-			result = llvm::IntegerType::getInt64Ty(mContext);
-			resolved = true; break;
-		}
-		case PrimitiveType::UINT64:
-		{
-			//modifier |= llvm::Attribute::ZExt;
-			result = llvm::IntegerType::getInt64Ty(mContext);
-			resolved = true; break;
-		}
-		case PrimitiveType::FLOAT32:
-		{
-			result = llvm::Type::getFloatTy(mContext);
-			resolved = true; break;
-		}
-		case PrimitiveType::FLOAT64:
-		{
-			result = llvm::Type::getDoubleTy(mContext);
-			resolved = true; break;
-		}
-		}
-
-		return resolved;
-	}
-
-	bool getType(TypeSpecifier& specifier, /*OUT*/ const llvm::Type*& result, /*OUT*/ llvm::Attributes& modifier)
-	{
-		bool resolved = false;
-
-		switch(specifier.type)
-		{
-		case TypeSpecifier::ReferredType::CLASS_DECL: // TODO return pointer type
-		case TypeSpecifier::ReferredType::INTERFACE_DECL: // TODO return pointer type
-		{
-			// return generic pointer type, which is an unsigned int32
-			modifier |= llvm::Attribute::ZExt;
-			result = llvm::IntegerType::getInt32Ty(mContext);
-			resolved = true; break;
-		}
-		case TypeSpecifier::ReferredType::FUNCTION_DECL:
-		case TypeSpecifier::ReferredType::FUNCTION_TYPE:
-		{
-			// TODO return pointer to function type
-			result = NULL;
-			resolved = false; break;
-		}
-		case TypeSpecifier::ReferredType::ENUM_DECL:
-		{
-			modifier |= llvm::Attribute::ZExt;
-			result = llvm::IntegerType::getInt32Ty(mContext);
-			resolved = true; break;
-		}
-		case TypeSpecifier::ReferredType::PRIMITIVE:
-		{
-			return getType(specifier.referred.primitive, result, modifier);
-		}
-		case TypeSpecifier::ReferredType::TYPEDEF_DECL:
-		case TypeSpecifier::ReferredType::UNSPECIFIED:
-			// TODO these are cases that shouldn't happen
-			result = NULL;
-			resolved = false; break;
-		}
-		return resolved;
-	}
-
-	bool getFunctionType(FunctionDecl& ast_function, /*OUT*/ llvm::FunctionType*& llvm_function_type, /*OUT*/ std::vector<llvm::AttributeWithIndex>& llvm_function_parameter_type_attributes, /*OUT*/ llvm::Attributes& llvm_function_return_type_attribute)
-	{
-		// prepare LLVM function parameter type list
-		std::vector<const llvm::Type*> llvm_function_parameter_types;
-		{
-			int index = 0;
-			foreach(i, ast_function.parameters)
-			{
-				llvm::Attributes attr = llvm::Attribute::None;
-				const llvm::Type* t = NULL;
-
-				if(!getType(*i->second, t, attr))
-					return false;
-
-				llvm_function_parameter_types.push_back(t);
-				if(attr != llvm::Attribute::None)
-					llvm_function_parameter_type_attributes.push_back(llvm::AttributeWithIndex::get(index, attr));
-
-				++index;
-			}
-		}
-
-		// prepare LLVM function return type
-		const llvm::Type* llvm_function_return_type = NULL;
-		{
-			if(!getType(*ast_function.type, llvm_function_return_type, llvm_function_return_type_attribute))
-				return false;
-		}
-
-		llvm_function_type = llvm::FunctionType::get(llvm_function_return_type, llvm_function_parameter_types, false /*not variadic*/);
-
-		return true;
-	}
-
-	bool getFunction(FunctionDecl& ast_function, /*OUT*/ llvm::Function*& llvm_function)
-	{
-		if(!!(llvm_function = ast_function.get<llvm::Function>()))
-			return true;
-
-		llvm::BasicBlock* bb;
-
-		llvm::FunctionType* llvm_function_type = NULL;
-		std::vector<llvm::AttributeWithIndex> llvm_function_parameter_type_attributes;
-		llvm::Attributes llvm_function_return_type_attribute = llvm::Attribute::None;
-
-		// try to resolve function type
-		if(!getFunctionType(ast_function, llvm_function_type, llvm_function_parameter_type_attributes, llvm_function_return_type_attribute))
-			return false;
-
-		// TODO we should provide some generator name manging helper
-		llvm_function = llvm::Function::Create(llvm_function_type, llvm::Function::ExternalLinkage, NameManglingContext::get(&ast_function)->managled_name, &mModule);
-
-		if(!llvm_function)
-			return false;
-
-		// set function attributes (modifiers)
-		if(llvm_function_parameter_type_attributes.size() > 0)
-			llvm_function->setAttributes(llvm::AttrListPtr::get(llvm_function_parameter_type_attributes.begin(), llvm_function_parameter_type_attributes.end()));
-
-		// set function parameter names
-		int index = 0;
-		for(llvm::Function::arg_iterator i = llvm_function->arg_begin(); i != llvm_function->arg_end(); ++i, ++index)
-		{
-			i->setName(NameManglingContext::get(ast_function.parameters[index].first)->managled_name);
-		}
-
-		// associate the LLVM function object with AST FunctionDecl object
-		ast_function.set<llvm::Function>(llvm_function);
-
-		return true;
-	}
-
 	llvm::BasicBlock* createBasicBlock(llvm::StringRef name = "", llvm::Function* parent = NULL, llvm::BasicBlock* before = NULL)
 	{
 		return llvm::BasicBlock::Create(mContext, name, parent, before);
@@ -990,7 +791,7 @@ private:
 
 		const llvm::Type* llvm_variable_type = NULL;
 		llvm::Attributes llvm_variable_modifier = llvm::Attribute::None;
-		if(!getType(*ast_variable.type, llvm_variable_type, llvm_variable_modifier))
+		if(!mHelper.getType(*ast_variable.type, llvm_variable_type, llvm_variable_modifier))
 			return false;
 
 //		llvm_variable_type->dump();
@@ -1014,9 +815,13 @@ private:
 		BOOST_ASSERT(!mFunctionContext.return_block);
 		BOOST_ASSERT(!mFunctionContext.alloca_insert_point);
 
-		llvm::Function* llvm_function = NULL;
-		if(!getFunction(ast_function, llvm_function))
+		llvm::Function* llvm_function = ast_function.get<llvm::Function>();
+		if(!llvm_function)
+		{
+			BOOST_ASSERT(false && "invalid LLVM function object");
+			terminateRevisit();
 			return false;
+		}
 
 		// create basic entry blocks
 		mFunctionContext.entry_block = createBasicBlock("entry", llvm_function);
@@ -1037,7 +842,7 @@ private:
 		{
 			const llvm::Type* type;
 			llvm::Attributes modifier;
-			if(getType(*ast_function.type, type, modifier) && type && !type->isVoidTy())
+			if(mHelper.getType(*ast_function.type, type, modifier) && type && !type->isVoidTy())
 			{
 				mFunctionContext.return_value = new llvm::AllocaInst(type, 0, "retval", mFunctionContext.alloca_insert_point);
 			}
@@ -1145,7 +950,7 @@ private:
 				{
 					const llvm::Type* t;
 					llvm::Attributes modifier;
-					if(getType(*ast_function->parameters[index].second, t, modifier) && t && !t->isVoidTy())
+					if(mHelper.getType(*ast_function->parameters[index].second, t, modifier) && t && !t->isVoidTy())
 					{
 						llvm_value_for_write = createAlloca(t, NameManglingContext::get(resolved_symbol)->managled_name);
 						mBuilder.CreateStore(llvm_value_for_read, llvm_value_for_write);
@@ -1261,12 +1066,16 @@ private:
 			return false;
 	}
 
-	bool hasFunction(FunctionDecl& ast_function)
+	bool isFunctionVisited(FunctionDecl& ast_function)
 	{
-		if(ast_function.get<llvm::Function>())
-			return true;
-		else
+		llvm::Function* llvm_function = ast_function.get<llvm::Function>();
+		if(!llvm_function)
 			return false;
+
+		if(llvm_function->getBasicBlockList().size() == 0 )
+			return false;
+
+		return true;
 	}
 
 	bool isBlockInsertionMasked()
@@ -1325,6 +1134,7 @@ private:
 	llvm::LLVMContext &mContext;
 	llvm::Module& mModule;
 	llvm::IRBuilder<> mBuilder;
+	LLVMHelper mHelper;
 
 	struct {
 		llvm::Function* function;
