@@ -21,13 +21,17 @@ function main():void
 	var z:uint64 = x+y;
 	
 	if(z == 30)
+	{
+		return;
 		z = 40;
+	}
 	elif(z == 40)
 		z = 50;
 	else
 		z = 60;
 	z = 70;
 	
+	return;
 	//compiler_test.f1(x,y);
 	//zillians.compiler_test.f1(x,y);
 	//com.zillians.compiler_test.f1(x,y);
