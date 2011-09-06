@@ -23,7 +23,7 @@
 #include "language/logging/Logger.h"
 #include "language/ThorScriptCompiler.h"
 
-int main(int argc, char** argv)
+int main(int argc, const char** argv)
 {
 	zillians::language::ThorScriptCompiler compiler;
 	return compiler.main(argc, argv);
