@@ -35,6 +35,8 @@ add_library(zillians-framework-language
     language/stage/transformer/ManglingStage.cpp
     language/stage/transformer/TypeSynthesisStage.cpp
     language/stage/transformer/TypeInferenceStage.cpp
+    language/stage/verifier/SemanticVerificationStage0.cpp
+    language/stage/verifier/SemanticVerificationStage1.cpp
 	)
 
 if(LLVM_FOUND)
