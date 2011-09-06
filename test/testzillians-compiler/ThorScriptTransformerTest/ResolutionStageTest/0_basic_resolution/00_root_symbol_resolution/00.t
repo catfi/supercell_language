@@ -20,7 +20,7 @@ function f3(x:uint64, y:uint64):uint64
 
 function f4(x:uint64, y:uint64):uint64
 {
-	if(x == 0)
+	if(x == 0 || y == 0)
 		return 0;
 	else 
 		return f4(x-1, y-1); // verify resolution to local function (self)

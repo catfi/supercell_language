@@ -591,11 +591,9 @@ struct LLVMGeneratorVisitor : GenericDoubleVisitor
 
 			// Logic Operations
 		case BinaryExpr::OpCode::LOGICAL_AND:
-			BOOST_ASSERT(false && "not yet implemented");
-			break;
+			result = mBuilder.CreateAnd(lhs_value_for_read, rhs_value_for_read); break;
 		case BinaryExpr::OpCode::LOGICAL_OR:
-			BOOST_ASSERT(false && "not yet implemented");
-			break;
+			result = mBuilder.CreateOr(lhs_value_for_read, rhs_value_for_read); break;
 
 			// Instance Of (Type testing)
 		case BinaryExpr::OpCode::INSTANCEOF:
