@@ -27,11 +27,11 @@ namespace zillians { namespace language { namespace action {
 struct statement
 {
 	DEFINE_ATTRIBUTES(ASTNode*)
-	DEFINE_LOCALS(VAR_LOCATIONS)
+	DEFINE_LOCALS(VAR_LOCATION_TYPE)
 
 	BEGIN_ACTION(init_loc)
 	{
-		CACHE_LOCATIONS;
+		SET_LOCATION;
 	}
 	END_ACTION
 
@@ -71,11 +71,11 @@ struct statement
 struct expression_statement
 {
 	DEFINE_ATTRIBUTES(Statement*)
-	DEFINE_LOCALS(VAR_LOCATIONS)
+	DEFINE_LOCALS(VAR_LOCATION_TYPE)
 
 	BEGIN_ACTION(init_loc)
 	{
-		CACHE_LOCATIONS;
+		SET_LOCATION;
 	}
 	END_ACTION
 
@@ -93,11 +93,11 @@ struct expression_statement
 struct selection_statement
 {
 	DEFINE_ATTRIBUTES(Statement*)
-	DEFINE_LOCALS(VAR_LOCATIONS)
+	DEFINE_LOCALS(VAR_LOCATION_TYPE)
 
 	BEGIN_ACTION(init_loc)
 	{
-		CACHE_LOCATIONS;
+		SET_LOCATION;
 	}
 	END_ACTION
 
@@ -160,11 +160,11 @@ struct selection_statement
 struct iteration_statement
 {
 	DEFINE_ATTRIBUTES(Statement*)
-	DEFINE_LOCALS(VAR_LOCATIONS)
+	DEFINE_LOCALS(VAR_LOCATION_TYPE)
 
 	BEGIN_ACTION(init_loc)
 	{
-		CACHE_LOCATIONS;
+		SET_LOCATION;
 	}
 	END_ACTION
 
@@ -219,11 +219,11 @@ struct iteration_statement
 struct branch_statement
 {
 	DEFINE_ATTRIBUTES(Statement*)
-	DEFINE_LOCALS(VAR_LOCATIONS)
+	DEFINE_LOCALS(VAR_LOCATION_TYPE)
 
 	BEGIN_ACTION(init_loc)
 	{
-		CACHE_LOCATIONS;
+		SET_LOCATION;
 	}
 	END_ACTION
 

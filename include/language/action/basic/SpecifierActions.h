@@ -189,11 +189,11 @@ struct annotation_specifiers
 struct annotation_specifier
 {
 	DEFINE_ATTRIBUTES(Annotation*)
-	DEFINE_LOCALS(VAR_LOCATIONS)
+	DEFINE_LOCALS(VAR_LOCATION_TYPE)
 
 	BEGIN_ACTION(init_loc)
 	{
-		CACHE_LOCATIONS;
+		SET_LOCATION;
 	}
 	END_ACTION
 

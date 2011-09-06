@@ -76,23 +76,28 @@
 #define _local(i)   boost::fusion::at_c<i>(context.locals)
 #define _local_t(i) decltype(boost::fusion::at_c<i>(context.locals))
 
-#define VAR_LOCATIONS \
-		shared_ptr<stage::SourceInfoContext>
-
-#define CACHE_LOCATIONS \
-		_local(0).reset(new stage::SourceInfoContext( \
-				getParserContext().debug.source_index, \
-				getParserContext().debug.line, \
-				getParserContext().debug.column))
-
 #define BIND_LOCATION(x) \
 		stage::SourceInfoContext::set((x), new stage::SourceInfoContext( \
 				getParserContext().debug.source_index, \
 				getParserContext().debug.line, \
 				getParserContext().debug.column))
 
+#define VAR_LOCATION_TYPE shared_ptr<stage::SourceInfoContext> // _local(0)
+#define SET_LOCATION \
+	{ \
+		BOOST_MPL_ASSERT(( boost::is_same<_local_t(0), VAR_LOCATION_TYPE&> )); \
+		if(!_local(0)) \
+			_local(0).reset(new stage::SourceInfoContext( \
+					getParserContext().debug.source_index, \
+					getParserContext().debug.line, \
+					getParserContext().debug.column)); \
+	}
 #define BIND_CACHED_LOCATION(x) \
-		stage::SourceInfoContext::set((x), new stage::SourceInfoContext(*(_local(0).get())))
+	{ \
+		BOOST_MPL_ASSERT(( boost::is_same<_local_t(0), VAR_LOCATION_TYPE&> )); \
+		if(!!_local(0)) \
+			stage::SourceInfoContext::set((x), new stage::SourceInfoContext(*(_local(0).get()))); \
+	}
 
 using namespace zillians::language::tree;
 

@@ -42,11 +42,11 @@ struct identifier
 struct nested_identifier
 {
 	DEFINE_ATTRIBUTES(Identifier*)
-	DEFINE_LOCALS(VAR_LOCATIONS)
+	DEFINE_LOCALS(VAR_LOCATION_TYPE)
 
 	BEGIN_ACTION(init_loc)
 	{
-		CACHE_LOCATIONS;
+		SET_LOCATION;
 	}
 	END_ACTION
 

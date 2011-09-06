@@ -100,11 +100,11 @@ typedef std::vector<BinaryExpr::OpCode::type> binary_ops_t;
 struct primary_expression
 {
 	DEFINE_ATTRIBUTES(Expression*)
-	DEFINE_LOCALS(VAR_LOCATIONS)
+	DEFINE_LOCALS(VAR_LOCATION_TYPE)
 
 	BEGIN_ACTION(init_loc)
 	{
-		CACHE_LOCATIONS;
+		SET_LOCATION;
 	}
 	END_ACTION
 
@@ -171,14 +171,14 @@ struct primary_expression
 struct postfix_expression
 {
 	DEFINE_ATTRIBUTES(Expression*)
-	DEFINE_LOCALS(VAR_LOCATIONS)
+	DEFINE_LOCALS(VAR_LOCATION_TYPE)
 
 	BEGIN_ACTION(init_primary_expression_and_loc)
 	{
 #ifdef DEBUG
 		printf("postfix_expression::init_primary_expression param(0) type = %s\n", typeid(_param_t(0)).name());
 #endif
-		CACHE_LOCATIONS;
+		SET_LOCATION;
 		_result = _param(0);
 	}
 	END_ACTION
