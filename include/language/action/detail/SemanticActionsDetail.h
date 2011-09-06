@@ -82,10 +82,10 @@
 				getParserContext().debug.line, \
 				getParserContext().debug.column))
 
-#define VAR_LOCATION_TYPE shared_ptr<stage::SourceInfoContext> // _local(0)
-#define SET_LOCATION \
+#define LOCATION_TYPE shared_ptr<stage::SourceInfoContext> // _local(0)
+#define CACHE_LOCATION \
 	{ \
-		BOOST_MPL_ASSERT(( boost::is_same<_local_t(0), VAR_LOCATION_TYPE&> )); \
+		BOOST_MPL_ASSERT(( boost::is_same<_local_t(0), LOCATION_TYPE&> )); \
 		if(!_local(0)) \
 			_local(0).reset(new stage::SourceInfoContext( \
 					getParserContext().debug.source_index, \
@@ -94,7 +94,7 @@
 	}
 #define BIND_CACHED_LOCATION(x) \
 	{ \
-		BOOST_MPL_ASSERT(( boost::is_same<_local_t(0), VAR_LOCATION_TYPE&> )); \
+		BOOST_MPL_ASSERT(( boost::is_same<_local_t(0), LOCATION_TYPE&> )); \
 		if(!!_local(0)) \
 			stage::SourceInfoContext::set((x), new stage::SourceInfoContext(*(_local(0).get()))); \
 	}

@@ -82,11 +82,11 @@ struct variable_decl
 struct variable_decl_stem
 {
 	DEFINE_ATTRIBUTES(Declaration*)
-	DEFINE_LOCALS(VAR_LOCATION_TYPE)
+	DEFINE_LOCALS(LOCATION_TYPE)
 
 	BEGIN_ACTION(init_loc)
 	{
-		SET_LOCATION;
+		CACHE_LOCATION;
 	}
 	END_ACTION
 
@@ -112,11 +112,11 @@ struct variable_decl_stem
 struct function_decl
 {
 	DEFINE_ATTRIBUTES(Declaration*)
-	DEFINE_LOCALS(VAR_LOCATION_TYPE)
+	DEFINE_LOCALS(LOCATION_TYPE)
 
 	BEGIN_ACTION(init_loc)
 	{
-		SET_LOCATION;
+		CACHE_LOCATION;
 	}
 	END_ACTION
 
@@ -155,11 +155,11 @@ struct function_decl
 struct typedef_decl
 {
 	DEFINE_ATTRIBUTES(Declaration*)
-	DEFINE_LOCALS(VAR_LOCATION_TYPE)
+	DEFINE_LOCALS(LOCATION_TYPE)
 
 	BEGIN_ACTION(init_loc)
 	{
-		SET_LOCATION;
+		CACHE_LOCATION;
 	}
 	END_ACTION
 
@@ -177,11 +177,11 @@ struct typedef_decl
 struct class_decl
 {
 	DEFINE_ATTRIBUTES(Declaration*)
-	DEFINE_LOCALS(VAR_LOCATION_TYPE)
+	DEFINE_LOCALS(LOCATION_TYPE)
 
 	BEGIN_ACTION(init_loc)
 	{
-		SET_LOCATION;
+		CACHE_LOCATION;
 	}
 	END_ACTION
 
@@ -257,11 +257,11 @@ struct class_member_decl
 struct interface_decl
 {
 	DEFINE_ATTRIBUTES(Declaration*)
-	DEFINE_LOCALS(VAR_LOCATION_TYPE)
+	DEFINE_LOCALS(LOCATION_TYPE)
 
 	BEGIN_ACTION(init_loc)
 	{
-		SET_LOCATION;
+		CACHE_LOCATION;
 	}
 	END_ACTION
 
@@ -284,11 +284,11 @@ struct interface_decl
 struct interface_member_function_decl
 {
 	DEFINE_ATTRIBUTES(Declaration*)
-	DEFINE_LOCALS(VAR_LOCATION_TYPE)
+	DEFINE_LOCALS(LOCATION_TYPE)
 
 	BEGIN_ACTION(init_loc)
 	{
-		SET_LOCATION;
+		CACHE_LOCATION;
 	}
 	END_ACTION
 
@@ -315,11 +315,11 @@ struct interface_member_function_decl
 struct enum_decl
 {
 	DEFINE_ATTRIBUTES(Declaration*)
-	DEFINE_LOCALS(VAR_LOCATION_TYPE)
+	DEFINE_LOCALS(LOCATION_TYPE)
 
 	BEGIN_ACTION(init_loc)
 	{
-		SET_LOCATION;
+		CACHE_LOCATION;
 	}
 	END_ACTION
 

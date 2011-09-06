@@ -27,11 +27,11 @@ namespace zillians { namespace language { namespace action {
 struct statement
 {
 	DEFINE_ATTRIBUTES(ASTNode*)
-	DEFINE_LOCALS(VAR_LOCATION_TYPE)
+	DEFINE_LOCALS(LOCATION_TYPE)
 
 	BEGIN_ACTION(init_loc)
 	{
-		SET_LOCATION;
+		CACHE_LOCATION;
 	}
 	END_ACTION
 
@@ -71,11 +71,11 @@ struct statement
 struct expression_statement
 {
 	DEFINE_ATTRIBUTES(Statement*)
-	DEFINE_LOCALS(VAR_LOCATION_TYPE)
+	DEFINE_LOCALS(LOCATION_TYPE)
 
 	BEGIN_ACTION(init_loc)
 	{
-		SET_LOCATION;
+		CACHE_LOCATION;
 	}
 	END_ACTION
 
@@ -93,11 +93,11 @@ struct expression_statement
 struct selection_statement
 {
 	DEFINE_ATTRIBUTES(Statement*)
-	DEFINE_LOCALS(VAR_LOCATION_TYPE)
+	DEFINE_LOCALS(LOCATION_TYPE)
 
 	BEGIN_ACTION(init_loc)
 	{
-		SET_LOCATION;
+		CACHE_LOCATION;
 	}
 	END_ACTION
 
@@ -139,7 +139,7 @@ struct selection_statement
 					fusion_vec_t &vec = boost::get<fusion_vec_t>(i);
 					Expression*            cond      = boost::fusion::at_c<0>(vec);
 					std::vector<ASTNode*> &block_vec = boost::fusion::at_c<1>(vec);
-					Block* block = new Block(); BIND_LOCATION(block);
+					Block* block = new Block(); BIND_CACHED_LOCATION(block);
 					block->appendObjects(block_vec);
 					cast<SwitchStmt>(_result)->addCase(Selection(cond, block));
 				}
@@ -147,7 +147,7 @@ struct selection_statement
 			case 1:
 				{
 					std::vector<ASTNode*> &block_vec = boost::get<std::vector<ASTNode*>>(i);
-					Block* block = new Block(); BIND_LOCATION(block);
+					Block* block = new Block(); BIND_CACHED_LOCATION(block);
 					block->appendObjects(block_vec);
 					cast<SwitchStmt>(_result)->setDefaultCase(block);
 				}
@@ -160,11 +160,11 @@ struct selection_statement
 struct iteration_statement
 {
 	DEFINE_ATTRIBUTES(Statement*)
-	DEFINE_LOCALS(VAR_LOCATION_TYPE)
+	DEFINE_LOCALS(LOCATION_TYPE)
 
 	BEGIN_ACTION(init_loc)
 	{
-		SET_LOCATION;
+		CACHE_LOCATION;
 	}
 	END_ACTION
 
@@ -219,11 +219,11 @@ struct iteration_statement
 struct branch_statement
 {
 	DEFINE_ATTRIBUTES(Statement*)
-	DEFINE_LOCALS(VAR_LOCATION_TYPE)
+	DEFINE_LOCALS(LOCATION_TYPE)
 
 	BEGIN_ACTION(init_loc)
 	{
-		SET_LOCATION;
+		CACHE_LOCATION;
 	}
 	END_ACTION
 

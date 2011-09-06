@@ -117,7 +117,9 @@ struct Identifier : qi::grammar<Iterator, typename SA::identifier::attribute_typ
 		start %= qi::lexeme[ ((unicode::alpha | L'_') > *(unicode::alnum | L'_')) - keyword ];
 
 		start_augmented
-			= (location >> start) [ typename SA::identifier::init() ]
+			=	(location [ typename SA::identifier::init_loc() ]
+					>> start
+				) [ typename SA::identifier::init() ]
 			;
 
 		start_augmented.name("IDENTIFIER");
@@ -147,7 +149,9 @@ struct IntegerLiteral : qi::grammar<Iterator, typename SA::integer_literal::attr
 			;
 
 		start_augmented
-			= (location >> start) [ typename SA::integer_literal::init() ]
+			=	(location [ typename SA::integer_literal::init_loc() ]
+					>> start
+				) [ typename SA::integer_literal::init() ]
 			;
 
 		start_augmented.name("INTEGER_LITERAL");
@@ -176,7 +180,9 @@ struct FloatLiteral : qi::grammar<Iterator, typename SA::float_literal::attribut
 			;
 
 		start_augmented
-			= (location >> start) [ typename SA::float_literal::init() ]
+			=	(location [ typename SA::float_literal::init_loc() ]
+					>> start
+				) [ typename SA::float_literal::init() ]
 			;
 
 		start_augmented.name("FLOAT_LITERAL");
@@ -221,7 +227,9 @@ struct StringLiteral : qi::grammar<Iterator, typename SA::string_literal::attrib
 			;
 
 		start_augmented
-			= (location >> start) [ typename SA::string_literal::init() ]
+			=	(location [ typename SA::string_literal::init_loc() ]
+					>> start
+				) [ typename SA::string_literal::init() ]
 			;
 
 		start_augmented.name("STRING_LITERAL");
@@ -426,28 +434,34 @@ struct ThorScript : qi::grammar<Iterator, typename SA::start::attribute_type, de
 			;
 
 		type_specifier
-			= qi::lit(L"void")                                                                     [ typename SA::type_specifier::template init_primitive_type<tree::PrimitiveType::VOID>() ]
-			| qi::lit(L"int8")                                                                     [ typename SA::type_specifier::template init_primitive_type<tree::PrimitiveType::INT8>() ]
-			| qi::lit(L"uint8")                                                                    [ typename SA::type_specifier::template init_primitive_type<tree::PrimitiveType::UINT8>() ]
-			| qi::lit(L"int16")                                                                    [ typename SA::type_specifier::template init_primitive_type<tree::PrimitiveType::INT16>() ]
-			| qi::lit(L"uint16")                                                                   [ typename SA::type_specifier::template init_primitive_type<tree::PrimitiveType::UINT16>() ]
-			| qi::lit(L"int32")                                                                    [ typename SA::type_specifier::template init_primitive_type<tree::PrimitiveType::INT32>() ]
-			| qi::lit(L"uint32")                                                                   [ typename SA::type_specifier::template init_primitive_type<tree::PrimitiveType::UINT32>() ]
-			| qi::lit(L"int64")                                                                    [ typename SA::type_specifier::template init_primitive_type<tree::PrimitiveType::INT64>() ]
-			| qi::lit(L"uint64")                                                                   [ typename SA::type_specifier::template init_primitive_type<tree::PrimitiveType::UINT64>() ]
-			| qi::lit(L"float32")                                                                  [ typename SA::type_specifier::template init_primitive_type<tree::PrimitiveType::FLOAT32>() ]
-			| qi::lit(L"float64")                                                                  [ typename SA::type_specifier::template init_primitive_type<tree::PrimitiveType::FLOAT64>() ]
-			| (nested_identifier > -(COMPARE_LT >> type_list_specifier > COMPARE_GT))              [ typename SA::type_specifier::init_type() ]
-			| (FUNCTION > LEFT_PAREN > -type_list_specifier > RIGHT_PAREN > -colon_type_specifier) [ typename SA::type_specifier::init_function_type() ]
-			| ELLIPSIS                                                                             [ typename SA::type_specifier::init_ellipsis() ]
+			= qi::eps [ typename SA::type_specifier::init_loc() ]
+				>>	( qi::lit(L"void")                                                                     [ typename SA::type_specifier::template init_primitive_type<tree::PrimitiveType::VOID>() ]
+					| qi::lit(L"int8")                                                                     [ typename SA::type_specifier::template init_primitive_type<tree::PrimitiveType::INT8>() ]
+					| qi::lit(L"uint8")                                                                    [ typename SA::type_specifier::template init_primitive_type<tree::PrimitiveType::UINT8>() ]
+					| qi::lit(L"int16")                                                                    [ typename SA::type_specifier::template init_primitive_type<tree::PrimitiveType::INT16>() ]
+					| qi::lit(L"uint16")                                                                   [ typename SA::type_specifier::template init_primitive_type<tree::PrimitiveType::UINT16>() ]
+					| qi::lit(L"int32")                                                                    [ typename SA::type_specifier::template init_primitive_type<tree::PrimitiveType::INT32>() ]
+					| qi::lit(L"uint32")                                                                   [ typename SA::type_specifier::template init_primitive_type<tree::PrimitiveType::UINT32>() ]
+					| qi::lit(L"int64")                                                                    [ typename SA::type_specifier::template init_primitive_type<tree::PrimitiveType::INT64>() ]
+					| qi::lit(L"uint64")                                                                   [ typename SA::type_specifier::template init_primitive_type<tree::PrimitiveType::UINT64>() ]
+					| qi::lit(L"float32")                                                                  [ typename SA::type_specifier::template init_primitive_type<tree::PrimitiveType::FLOAT32>() ]
+					| qi::lit(L"float64")                                                                  [ typename SA::type_specifier::template init_primitive_type<tree::PrimitiveType::FLOAT64>() ]
+					| (nested_identifier > -(COMPARE_LT >> type_list_specifier > COMPARE_GT))              [ typename SA::type_specifier::init_type() ]
+					| (FUNCTION > LEFT_PAREN > -type_list_specifier > RIGHT_PAREN > -colon_type_specifier) [ typename SA::type_specifier::init_function_type() ]
+					| ELLIPSIS                                                                             [ typename SA::type_specifier::init_ellipsis() ]
+					)
 			;
 
 		template_param_identifier
-			= (IDENTIFIER > -(COMPARE_LT > ((IDENTIFIER | (ELLIPSIS > qi::attr(true))) % COMMA) > COMPARE_GT)) [ typename SA::template_param_identifier::init() ]
+			= qi::eps [ typename SA::template_param_identifier::init_loc() ]
+				>>	(IDENTIFIER > -(COMPARE_LT > ((IDENTIFIER | (ELLIPSIS > qi::attr(true))) % COMMA) > COMPARE_GT)
+					) [ typename SA::template_param_identifier::init() ]
 			;
 
 		template_arg_identifier
-			= (IDENTIFIER > -(COMPARE_LT >> type_list_specifier > COMPARE_GT)) [ typename SA::template_arg_identifier::init() ]
+			= qi::eps [ typename SA::template_arg_identifier::init_loc() ]
+				>>	(IDENTIFIER > -(COMPARE_LT >> type_list_specifier > COMPARE_GT)
+					) [ typename SA::template_arg_identifier::init() ]
 			;
 
 		type_list_specifier
@@ -471,7 +485,8 @@ struct ThorScript : qi::grammar<Iterator, typename SA::start::attribute_type, de
 			;
 
 		annotation_specifiers
-			= (*annotation_specifier) [ typename SA::annotation_specifiers::init() ]
+			= qi::eps [ typename SA::annotation_specifiers::init_loc() ]
+				>> (*annotation_specifier) [ typename SA::annotation_specifiers::init() ]
 			;
 
 		annotation_specifier
@@ -485,9 +500,7 @@ struct ThorScript : qi::grammar<Iterator, typename SA::start::attribute_type, de
 
 		nested_identifier
 			= qi::eps [ typename SA::nested_identifier::init_loc() ]
-				>>	(IDENTIFIER
-						> *(DOT > IDENTIFIER)
-					) [ typename SA::nested_identifier::init() ]
+				>> (IDENTIFIER > *(DOT > IDENTIFIER)) [ typename SA::nested_identifier::init() ]
 			;
 
 		//
@@ -516,31 +529,34 @@ struct ThorScript : qi::grammar<Iterator, typename SA::start::attribute_type, de
 		//
 
 		primary_expression
-			= template_arg_identifier                 [ typename SA::primary_expression::init() ]
-			| INTEGER_LITERAL                         [ typename SA::primary_expression::init() ]
-			| FLOAT_LITERAL                           [ typename SA::primary_expression::init() ]
-			| STRING_LITERAL                          [ typename SA::primary_expression::init() ]
-			| _TRUE                                   [ typename SA::primary_expression::template init_bool<true>() ]
-			| _FALSE                                  [ typename SA::primary_expression::template init_bool<false>() ]
-			| _NULL                                   [ typename SA::primary_expression::template init_object_literal<tree::ObjectLiteral::LiteralType::NULL_OBJECT>() ]
-			| _SELF                                   [ typename SA::primary_expression::template init_object_literal<tree::ObjectLiteral::LiteralType::SELF_OBJECT>() ]
-			| _GLOBAL                                 [ typename SA::primary_expression::template init_object_literal<tree::ObjectLiteral::LiteralType::GLOBAL_OBJECT>() ]
-			| (LEFT_PAREN > expression > RIGHT_PAREN) [ typename SA::primary_expression::init_paren_expression() ]
-			|	(FUNCTION [ typename SA::primary_expression::init_loc() ]
-					> LEFT_PAREN > -typed_parameter_list > RIGHT_PAREN > -colon_type_specifier > block
-				) [ typename SA::primary_expression::init_lambda() ]
+			= qi::eps [ typename SA::primary_expression::init_loc() ]
+				>>	(template_arg_identifier                  [ typename SA::primary_expression::init() ]
+					| INTEGER_LITERAL                         [ typename SA::primary_expression::init() ]
+					| FLOAT_LITERAL                           [ typename SA::primary_expression::init() ]
+					| STRING_LITERAL                          [ typename SA::primary_expression::init() ]
+					| _TRUE                                   [ typename SA::primary_expression::template init_bool<true>() ]
+					| _FALSE                                  [ typename SA::primary_expression::template init_bool<false>() ]
+					| _NULL                                   [ typename SA::primary_expression::template init_object_literal<tree::ObjectLiteral::LiteralType::NULL_OBJECT>() ]
+					| _SELF                                   [ typename SA::primary_expression::template init_object_literal<tree::ObjectLiteral::LiteralType::SELF_OBJECT>() ]
+					| _GLOBAL                                 [ typename SA::primary_expression::template init_object_literal<tree::ObjectLiteral::LiteralType::GLOBAL_OBJECT>() ]
+					| (LEFT_PAREN > expression > RIGHT_PAREN) [ typename SA::primary_expression::init_paren_expression() ]
+					|	(FUNCTION > LEFT_PAREN > -typed_parameter_list > RIGHT_PAREN > -colon_type_specifier > block
+						) [ typename SA::primary_expression::init_lambda() ]
+					)
 			;
 
 		// postfix expression
 		// associativity: left-to-right
 		// rank: 0
 		postfix_expression
-			= primary_expression                                         [ typename SA::postfix_expression::init_primary_expression_and_loc() ]
-				>	*( (LEFT_BRACKET > expression > RIGHT_BRACKET)       [ typename SA::postfix_expression::append_postfix_array() ]
-					| (LEFT_PAREN > -(expression % COMMA) > RIGHT_PAREN) [ typename SA::postfix_expression::append_postfix_call() ]
-					| (DOT >> template_arg_identifier)                   [ typename SA::postfix_expression::append_postfix_member() ]
-					| INCREMENT                                          [ typename SA::postfix_expression::template append_postfix_step<tree::UnaryExpr::OpCode::POSTFIX_INCREMENT>() ]
-					| DECREMENT                                          [ typename SA::postfix_expression::template append_postfix_step<tree::UnaryExpr::OpCode::POSTFIX_DECREMENT>() ]
+			= qi::eps [ typename SA::postfix_expression::init_loc() ]
+				>>	(primary_expression                                          [ typename SA::postfix_expression::init_primary_expression() ]
+						>	*( (LEFT_BRACKET > expression > RIGHT_BRACKET)       [ typename SA::postfix_expression::append_postfix_array() ]
+							| (LEFT_PAREN > -(expression % COMMA) > RIGHT_PAREN) [ typename SA::postfix_expression::append_postfix_call() ]
+							| (DOT >> template_arg_identifier)                   [ typename SA::postfix_expression::append_postfix_member() ]
+							| INCREMENT                                          [ typename SA::postfix_expression::template append_postfix_step<tree::UnaryExpr::OpCode::POSTFIX_INCREMENT>() ]
+							| DECREMENT                                          [ typename SA::postfix_expression::template append_postfix_step<tree::UnaryExpr::OpCode::POSTFIX_DECREMENT>() ]
+							)
 					)
 			;
 
@@ -548,132 +564,152 @@ struct ThorScript : qi::grammar<Iterator, typename SA::start::attribute_type, de
 		// associativity: right-to-left
 		// rank: 1
 		prefix_expression
-			=	(postfix_expression
-				|	(
-						( INCREMENT        > qi::attr(tree::UnaryExpr::OpCode::PREFIX_INCREMENT)
-						| DECREMENT        > qi::attr(tree::UnaryExpr::OpCode::PREFIX_DECREMENT)
-						| BINARY_NOT       > qi::attr(tree::UnaryExpr::OpCode::BINARY_NOT)
-						| LOGICAL_NOT      > qi::attr(tree::UnaryExpr::OpCode::LOGICAL_NOT)
-						| ARITHMETIC_MINUS > qi::attr(tree::UnaryExpr::OpCode::ARITHMETIC_NEGATE)
-						| NEW              > qi::attr(tree::UnaryExpr::OpCode::NEW)
-						) > prefix_expression
-					)
-				) [ typename SA::prefix_expression::init() ]
+			= qi::eps [ typename SA::prefix_expression::init_loc() ]
+				>>	(postfix_expression
+					|	(
+							( INCREMENT        > qi::attr(tree::UnaryExpr::OpCode::PREFIX_INCREMENT)
+							| DECREMENT        > qi::attr(tree::UnaryExpr::OpCode::PREFIX_DECREMENT)
+							| BINARY_NOT       > qi::attr(tree::UnaryExpr::OpCode::BINARY_NOT)
+							| LOGICAL_NOT      > qi::attr(tree::UnaryExpr::OpCode::LOGICAL_NOT)
+							| ARITHMETIC_MINUS > qi::attr(tree::UnaryExpr::OpCode::ARITHMETIC_NEGATE)
+							| NEW              > qi::attr(tree::UnaryExpr::OpCode::NEW)
+							) > prefix_expression
+						)
+					) [ typename SA::prefix_expression::init() ]
 			;
 
 		// multiplicative expression
 		// associativity: left-to-right
 		// rank: 2
 		multiplicative_expression
-			=	(prefix_expression
-				%	( ARITHMETIC_MUL > qi::attr(tree::BinaryExpr::OpCode::ARITHMETIC_MUL)
-					| ARITHMETIC_DIV > qi::attr(tree::BinaryExpr::OpCode::ARITHMETIC_DIV)
-					| ARITHMETIC_MOD > qi::attr(tree::BinaryExpr::OpCode::ARITHMETIC_MOD)
-					) [ typename SA::left_to_right_binary_op_vec::append_op() ]
-				) [ typename SA::left_to_right_binary_op_vec::init() ]
+			= qi::eps [ typename SA::left_to_right_binary_op_vec::init_loc() ]
+			 	>>	(prefix_expression
+					%	( ARITHMETIC_MUL > qi::attr(tree::BinaryExpr::OpCode::ARITHMETIC_MUL)
+						| ARITHMETIC_DIV > qi::attr(tree::BinaryExpr::OpCode::ARITHMETIC_DIV)
+						| ARITHMETIC_MOD > qi::attr(tree::BinaryExpr::OpCode::ARITHMETIC_MOD)
+						) [ typename SA::left_to_right_binary_op_vec::append_op() ]
+					) [ typename SA::left_to_right_binary_op_vec::init() ]
 			;
 
 		// additive expression
 		// associativity: left-to-right
 		// rank: 3
 		additive_expression
-			=	(multiplicative_expression
-				%	( ARITHMETIC_PLUS  > qi::attr(tree::BinaryExpr::OpCode::ARITHMETIC_ADD)
-					| ARITHMETIC_MINUS > qi::attr(tree::BinaryExpr::OpCode::ARITHMETIC_SUB)
-					) [ typename SA::left_to_right_binary_op_vec::append_op() ]
-				) [ typename SA::left_to_right_binary_op_vec::init() ]
+			= qi::eps [ typename SA::left_to_right_binary_op_vec::init_loc() ]
+				>>	(multiplicative_expression
+					%	( ARITHMETIC_PLUS  > qi::attr(tree::BinaryExpr::OpCode::ARITHMETIC_ADD)
+						| ARITHMETIC_MINUS > qi::attr(tree::BinaryExpr::OpCode::ARITHMETIC_SUB)
+						) [ typename SA::left_to_right_binary_op_vec::append_op() ]
+					) [ typename SA::left_to_right_binary_op_vec::init() ]
 			;
 
 		// shift expression
 		// associativity: left-to-right
 		// rank: 4
 		shift_expression
-			=	(additive_expression
-				%	( RSHIFT > qi::attr(tree::BinaryExpr::OpCode::BINARY_RSHIFT)
-					| LSHIFT > qi::attr(tree::BinaryExpr::OpCode::BINARY_LSHIFT)
-					) [ typename SA::left_to_right_binary_op_vec::append_op() ]
-				) [ typename SA::left_to_right_binary_op_vec::init() ]
+			= qi::eps [ typename SA::left_to_right_binary_op_vec::init_loc() ]
+				>>	(additive_expression
+					%	( RSHIFT > qi::attr(tree::BinaryExpr::OpCode::BINARY_RSHIFT)
+						| LSHIFT > qi::attr(tree::BinaryExpr::OpCode::BINARY_LSHIFT)
+						) [ typename SA::left_to_right_binary_op_vec::append_op() ]
+					) [ typename SA::left_to_right_binary_op_vec::init() ]
 			;
 
 		// rational expression
 		// associativity: left-to-right
 		// rank: 5
 		relational_expression
-			=	(shift_expression
-				%	( COMPARE_GT > qi::attr(tree::BinaryExpr::OpCode::COMPARE_GT)
-					| COMPARE_LT > qi::attr(tree::BinaryExpr::OpCode::COMPARE_LT)
-					| COMPARE_GE > qi::attr(tree::BinaryExpr::OpCode::COMPARE_GE)
-					| COMPARE_LE > qi::attr(tree::BinaryExpr::OpCode::COMPARE_LE)
-					| INSTANCEOF > qi::attr(tree::BinaryExpr::OpCode::INSTANCEOF)
-					) [ typename SA::left_to_right_binary_op_vec::append_op() ]
-				) [ typename SA::left_to_right_binary_op_vec::init() ]
+			= qi::eps [ typename SA::left_to_right_binary_op_vec::init_loc() ]
+				>>	(shift_expression
+					%	( COMPARE_GT > qi::attr(tree::BinaryExpr::OpCode::COMPARE_GT)
+						| COMPARE_LT > qi::attr(tree::BinaryExpr::OpCode::COMPARE_LT)
+						| COMPARE_GE > qi::attr(tree::BinaryExpr::OpCode::COMPARE_GE)
+						| COMPARE_LE > qi::attr(tree::BinaryExpr::OpCode::COMPARE_LE)
+						| INSTANCEOF > qi::attr(tree::BinaryExpr::OpCode::INSTANCEOF)
+						) [ typename SA::left_to_right_binary_op_vec::append_op() ]
+					) [ typename SA::left_to_right_binary_op_vec::init() ]
 			;
 
 		// equality expression
 		// associativity: left-to-right
 		// rank: 6
 		equality_expression
-			=	(relational_expression
-				%	( COMPARE_EQ > qi::attr(tree::BinaryExpr::OpCode::COMPARE_EQ)
-					| COMPARE_NE > qi::attr(tree::BinaryExpr::OpCode::COMPARE_NE)
-					) [ typename SA::left_to_right_binary_op_vec::append_op() ]
-				) [ typename SA::left_to_right_binary_op_vec::init() ]
+			= qi::eps [ typename SA::left_to_right_binary_op_vec::init_loc() ]
+				>>	(relational_expression
+					%	( COMPARE_EQ > qi::attr(tree::BinaryExpr::OpCode::COMPARE_EQ)
+						| COMPARE_NE > qi::attr(tree::BinaryExpr::OpCode::COMPARE_NE)
+						) [ typename SA::left_to_right_binary_op_vec::append_op() ]
+					) [ typename SA::left_to_right_binary_op_vec::init() ]
 			;
 
 		// and expression
 		// associativity: left-to-right
 		// rank: 7
 		and_expression
-			= (equality_expression % BINARY_AND) [ typename SA::left_to_right_binary_op::template init<tree::BinaryExpr::OpCode::BINARY_AND>() ]
+			= qi::eps [ typename SA::left_to_right_binary_op::init_loc() ]
+				>>	(equality_expression % BINARY_AND
+					) [ typename SA::left_to_right_binary_op::template init<tree::BinaryExpr::OpCode::BINARY_AND>() ]
 			;
 
 		// xor expression
 		// associativity: left-to-right
 		// rank: 8
 		xor_expression
-			= (and_expression % BINARY_XOR) [ typename SA::left_to_right_binary_op::template init<tree::BinaryExpr::OpCode::BINARY_XOR>() ]
+			= qi::eps [ typename SA::left_to_right_binary_op::init_loc() ]
+				>>	(and_expression % BINARY_XOR
+					) [ typename SA::left_to_right_binary_op::template init<tree::BinaryExpr::OpCode::BINARY_XOR>() ]
 			;
 
 		// or expression
 		// associativity: left-to-right
 		// rank: 9
 		or_expression
-			= (xor_expression % BINARY_OR) [ typename SA::left_to_right_binary_op::template init<tree::BinaryExpr::OpCode::BINARY_OR>() ]
+			= qi::eps [ typename SA::left_to_right_binary_op::init_loc() ]
+				>>	(xor_expression % BINARY_OR
+					) [ typename SA::left_to_right_binary_op::template init<tree::BinaryExpr::OpCode::BINARY_OR>() ]
 			;
 
 		// logical and expression
 		// associativity: left-to-right
 		// rank: 10
 		logical_and_expression
-			= (or_expression % LOGICAL_AND) [ typename SA::left_to_right_binary_op::template init<tree::BinaryExpr::OpCode::LOGICAL_AND>() ]
+			= qi::eps [ typename SA::left_to_right_binary_op::init_loc() ]
+				>>	(or_expression % LOGICAL_AND
+					) [ typename SA::left_to_right_binary_op::template init<tree::BinaryExpr::OpCode::LOGICAL_AND>() ]
 			;
 
 		// logical or expression
 		// associativity: left-to-right
 		// rank: 11
 		logical_or_expression
-			= (logical_and_expression % LOGICAL_OR) [ typename SA::left_to_right_binary_op::template init<tree::BinaryExpr::OpCode::LOGICAL_OR>() ]
+			= qi::eps [ typename SA::left_to_right_binary_op::init_loc() ]
+				>>	(logical_and_expression % LOGICAL_OR
+					) [ typename SA::left_to_right_binary_op::template init<tree::BinaryExpr::OpCode::LOGICAL_OR>() ]
 			;
 
 		// range expression
 		// associativity: left-to-right
 		// rank: 12
 		range_expression
-			= (logical_or_expression > -(ELLIPSIS > logical_or_expression)) [ typename SA::range_expression::init() ]
+			= qi::eps [ typename SA::range_expression::init_loc() ]
+				>>	(logical_or_expression > -(ELLIPSIS > logical_or_expression)
+					) [ typename SA::range_expression::init() ]
 			;
 
 		// ternary expression
 		// associativity: right-to-left
 		// rank: 13
 		ternary_expression
-			= (range_expression > -(Q_MARK > range_expression > COLON > range_expression)) [ typename SA::ternary_expression::init() ]
+			= qi::eps [ typename SA::ternary_expression::init_loc() ]
+				>>	(range_expression > -(Q_MARK > range_expression > COLON > range_expression)
+					) [ typename SA::ternary_expression::init() ]
 			;
 
 		// assignment_expression
 		// associativity: right-to-left
 		// rank: 14
 		expression
-			= location
+			= location [ typename SA::right_to_left_binary_op_vec::init_loc() ]
 				>>	(ternary_expression
 					%	( ASSIGN        > qi::attr(tree::BinaryExpr::OpCode::ASSIGN)
 						| RSHIFT_ASSIGN > qi::attr(tree::BinaryExpr::OpCode::RSHIFT_ASSIGN)
@@ -753,10 +789,11 @@ struct ThorScript : qi::grammar<Iterator, typename SA::start::attribute_type, de
 			;
 
 		block
-			=	(LEFT_BRACE
-					> *statement
-					> RIGHT_BRACE
-				) [ typename SA::block::init() ]
+			= qi::eps [ typename SA::block::init_loc() ]
+				>>	(LEFT_BRACE
+						> *statement
+						> RIGHT_BRACE
+					) [ typename SA::block::init() ]
 			;
 
 		//
@@ -790,9 +827,7 @@ struct ThorScript : qi::grammar<Iterator, typename SA::start::attribute_type, de
 
 		variable_decl_stem
 			= qi::eps [ typename SA::variable_decl_stem::init_loc() ]
-				>>	(VAR > IDENTIFIER
-						> -colon_type_specifier
-					) [ typename SA::variable_decl_stem::init() ]
+				>> (VAR > IDENTIFIER > -colon_type_specifier) [ typename SA::variable_decl_stem::init() ]
 			;
 
 		function_decl
@@ -805,9 +840,7 @@ struct ThorScript : qi::grammar<Iterator, typename SA::start::attribute_type, de
 
 		typedef_decl
 			= qi::eps [ typename SA::typedef_decl::init_loc() ]
-				>>	(TYPEDEF > type_specifier > IDENTIFIER
-						> SEMICOLON
-					) [ typename SA::typedef_decl::init() ]
+				>> (TYPEDEF > type_specifier > IDENTIFIER > SEMICOLON) [ typename SA::typedef_decl::init() ]
 			;
 
 		class_decl
@@ -839,7 +872,7 @@ struct ThorScript : qi::grammar<Iterator, typename SA::start::attribute_type, de
 			;
 
 		interface_member_function_decl
-			= qi::eps [ typename SA::interface_member_function_decl::init_loc() ]
+			= location [ typename SA::interface_member_function_decl::init_loc() ]
 				>>	(-interface_visibility_specifier >> FUNCTION > IDENTIFIER
 						> LEFT_PAREN > -typed_parameter_list > RIGHT_PAREN > colon_type_specifier > SEMICOLON
 					) [ typename SA::interface_member_function_decl::init() ]
@@ -863,7 +896,7 @@ struct ThorScript : qi::grammar<Iterator, typename SA::start::attribute_type, de
 		//
 
 		program
-			= qi::eps                                          [ typename SA::program::init() ]
+			= location                                         [ typename SA::program::init_and_init_loc() ]
 				> -( (PACKAGE > nested_identifier > SEMICOLON) [ typename SA::program::append_package() ] )
 				> *( (IMPORT > nested_identifier > SEMICOLON)  [ typename SA::program::append_import() ] )
 				> *( declaration                               [ typename SA::program::append_declaration() ] )
