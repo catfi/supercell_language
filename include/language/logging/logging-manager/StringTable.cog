@@ -119,6 +119,7 @@ struct StringTable
 	};
 
 	struct attribute_table_t {
+		attribute_table_t() {}
 		attribute_table_t(log_type type, log_category category, uint32 level, log_id id) :
 			type(type), category(category), level(level), id(id) {}
 		log_type type;
@@ -146,7 +147,7 @@ struct StringTable
 		# Generate string tables for different language
 		for (id, trans) in translation_table.iteritems():
 			for (locale, trans) in trans.iteritems():
-				cog.outl(r'translation_table[%s]["%s"] = "%s";' % (id, locale, trans))
+				cog.outl(r'translation_table[%s]["%s"] = L"%s";' % (id, locale, trans))
 		]]]*/
 		//[[[end]]]
 	}
