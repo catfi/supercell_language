@@ -19,6 +19,8 @@
 
 #include "utility/UnicodeUtil.h"
 #include "language/logging/Logger.h"
+#include "language/logging/logging-manager/LoggerWrapper.h"
+#include "language/logging/logging-manager/StringTable.h"
 #include "language/logging/logging-manager/LoggingManager.h"
 
 namespace zillians { namespace language { namespace logging {
@@ -50,7 +52,7 @@ Logger& LoggingManager::getLogger()
 	return mLogger;
 }
 
-void LoggingManager::logging(std::wstring message)
+void LoggingManager::logging(uint32 id, std::wstring message)
 {
 	LOG4CXX_DEBUG(zillians::language::Logger::CompilerLogger, message);
 }

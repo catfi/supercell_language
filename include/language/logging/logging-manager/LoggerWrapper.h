@@ -21,7 +21,6 @@
 #define ZILLIANS_LANGUAGE_LOGGER_WRAPPER_H_
 
 #include "core/Prerequisite.h"
-#include "language/logging/logging-manager/StringTable.h"
 
 namespace po = boost::program_options;
 
@@ -30,7 +29,7 @@ namespace zillians { namespace language { namespace logging {
 class LoggerWrapper
 {
 public:
-	virtual void logging(std::wstring message) = 0;
+	virtual void logging(uint32 id, std::wstring message) = 0;
 };
 
 }}}

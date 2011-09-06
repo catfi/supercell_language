@@ -22,7 +22,6 @@
 
 #include "core/Prerequisite.h"
 #include "utility/UnicodeUtil.h"
-#include "language/logging/logging-manager/LoggerWrapper.h"
 #include <boost/parameter.hpp>
 #include <vector>
 #include <string>
@@ -32,6 +31,7 @@
 using namespace std;
 
 namespace zillians { namespace language { namespace logging {
+
 
 /**
  * StringTable is responsible to:
@@ -222,7 +222,7 @@ public:
 		for (var, type) in param_list:
 			cog.outl('\t translated = replace_substring(translated, %s);' % var)
 
-		cog.outl('\t mLogger->logging(translated);')
+		cog.outl('\t mLogger->logging(StringTable::%s, translated);' % id)
 		cog.outl('}');
 	]]]*/
 	//[[[end]]]
