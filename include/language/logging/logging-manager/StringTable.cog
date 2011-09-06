@@ -199,8 +199,8 @@ for param in all_parameters.keys():
 class Logger
 {
 public:
-	Logger();
-	virtual ~Logger();
+	Logger() {}
+	virtual ~Logger() {}
 
 	void setLocale(locale& locale) { mLocale = locale; }
 	void setStringTable(StringTable& string_table) { mStringTable = string_table; }
