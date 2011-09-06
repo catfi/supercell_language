@@ -276,7 +276,7 @@ private:
 
 private:
 	locale mLocale;
-	StringTable& mStringTable;
+	StringTable mStringTable;
 };
 
 }}}
