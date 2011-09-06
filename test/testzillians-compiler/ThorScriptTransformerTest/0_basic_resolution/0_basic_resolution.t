@@ -17,9 +17,10 @@ function f1(x:int32, y:int32):int32
 function main():void
 {
 	var x:uint64 = 10;
-	var y:uint64 = 20;
-	var z:uint64 = x+y;
+	//var y:uint64 = 20;
+	//var z:uint64 = x+y;
 	
+	/*
 	if(z == 30)
 	{
 		return;
@@ -30,6 +31,11 @@ function main():void
 	else
 		z = 60;
 	z = 70;
+	*/
+	while(x > 0)
+	{
+	   --x;
+	}
 	
 	return;
 	//compiler_test.f1(x,y);

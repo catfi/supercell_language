@@ -62,6 +62,8 @@ struct LLVMGeneratorVisitor : GenericDoubleVisitor
 
 	void generate(NumericLiteral& node)
 	{
+		if(hasValue(node)) return;
+
 		revisit(node);
 
 		llvm::Value* result = NULL;
@@ -82,11 +84,15 @@ struct LLVMGeneratorVisitor : GenericDoubleVisitor
 
 	void generate(ObjectLiteral& node)
 	{
+		if(hasValue(node)) return;
+
 		revisit(node);
 	}
 
 	void generate(StringLiteral& node)
 	{
+		if(hasValue(node)) return;
+
 		revisit(node);
 	}
 
@@ -128,8 +134,8 @@ struct LLVMGeneratorVisitor : GenericDoubleVisitor
 		// (all global variables are stored in a single game object, which is assembled by compiler)
 		if(isDeclaredInFunction(node))
 		{
-			if(isBlockInsertionMasked() || isBlockTerminated(currentBlock()))
-				return;
+			if(hasValue(node)) return;
+			if(isBlockInsertionMasked() || isBlockTerminated(currentBlock()))	return;
 
 			createAlloca(node);
 
@@ -153,8 +159,8 @@ struct LLVMGeneratorVisitor : GenericDoubleVisitor
 
 	void generate(DeclarativeStmt& node)
 	{
-		if(isBlockInsertionMasked() || isBlockTerminated(currentBlock()))
-			return;
+		if(hasValue(node)) return;
+		if(isBlockInsertionMasked() || isBlockTerminated(currentBlock()))	return;
 
 		revisit(node);
 
@@ -163,8 +169,8 @@ struct LLVMGeneratorVisitor : GenericDoubleVisitor
 
 	void generate(BranchStmt& node)
 	{
-		if(isBlockInsertionMasked() || isBlockTerminated(currentBlock()))
-			return;
+		if(hasValue(node)) return;
+		if(isBlockInsertionMasked() || isBlockTerminated(currentBlock()))	return;
 
 		revisit(node);
 
@@ -204,6 +210,8 @@ struct LLVMGeneratorVisitor : GenericDoubleVisitor
 
 	void generate(ExpressionStmt& node)
 	{
+		if(hasValue(node)) return;
+
 		revisit(node);
 
 		propagate(&node, node.expr);
@@ -211,8 +219,8 @@ struct LLVMGeneratorVisitor : GenericDoubleVisitor
 
 	void generate(IfElseStmt& node)
 	{
-		if(isBlockInsertionMasked() || isBlockTerminated(currentBlock()))
-			return;
+		if(hasValue(node)) return;
+		if(isBlockInsertionMasked() || isBlockTerminated(currentBlock()))	return;
 
 		// TODO simplify the blocks by removing or merging unnecessary blocks
 		// generate code into blocks
@@ -262,7 +270,7 @@ struct LLVMGeneratorVisitor : GenericDoubleVisitor
 
 			// for the last block
 			{
-				llvm::BasicBlock* block = createBasicBlock("if.continue", mFunctionContext.function);
+				llvm::BasicBlock* block = createBasicBlock("if.finalized", mFunctionContext.function);
 				llvm_blocks.push_back(block);
 			}
 		}
@@ -330,8 +338,8 @@ struct LLVMGeneratorVisitor : GenericDoubleVisitor
 
 	void generate(ForeachStmt& node)
 	{
-		if(isBlockInsertionMasked() || isBlockTerminated(currentBlock()))
-			return;
+		if(hasValue(node)) return;
+		if(isBlockInsertionMasked() || isBlockTerminated(currentBlock()))	return;
 
 //		if(node.if_branch.cond) user_visitor->
 //		if(node.if_branch.block) user_visitor->visit(*node.if_branch.block);
@@ -349,26 +357,56 @@ struct LLVMGeneratorVisitor : GenericDoubleVisitor
 
 	void generate(WhileStmt& node)
 	{
-		if(isBlockInsertionMasked() || isBlockTerminated(currentBlock()))
-			return;
-
-		revisit(node);
+		if(hasValue(node)) return;
+		if(isBlockInsertionMasked() || isBlockTerminated(currentBlock()))	return;
 
 		// emit the preamble and prepare blocks
 		if(node.style == WhileStmt::Style::WHILE)
 		{
+			llvm::BasicBlock* cond_block = createBasicBlock("while.eval", mFunctionContext.function);
+			llvm::BasicBlock* action_block = createBasicBlock("while.action", mFunctionContext.function);
+			llvm::BasicBlock* finalized_block = createBasicBlock("while.finalized", mFunctionContext.function);
 
+			// jump from current block to the condition evaluation block
+			enterBasicBlock(cond_block);
+			visit(*node.cond);
+
+			// conditional branch to either action block or finalized block
+			llvm::Value* llvm_cond = node.cond->get<llvm::Value>();
+			mBuilder.CreateCondBr(llvm_cond, action_block, finalized_block);
+
+			enterBasicBlock(action_block);
+			if(node.block) visit(*node.block);
+
+			// enter finalized block
+			enterBasicBlock(finalized_block);
 		}
 		else if(node.style == WhileStmt::Style::DO_WHILE)
 		{
+			llvm::BasicBlock* action_block = createBasicBlock("while.action", mFunctionContext.function);
+			llvm::BasicBlock* cond_block = createBasicBlock("while.eval", mFunctionContext.function);
+			llvm::BasicBlock* finalized_block = createBasicBlock("while.finalized", mFunctionContext.function);
 
+			// jump from current block to the condition evaluation block
+			enterBasicBlock(action_block);
+			if(node.block) visit(*node.block);
+
+			// conditional branch to either action block or finalized block
+			enterBasicBlock(cond_block);
+			visit(*node.cond);
+
+			llvm::Value* llvm_cond = node.cond->get<llvm::Value>();
+			mBuilder.CreateCondBr(llvm_cond, action_block, finalized_block);
+
+			// enter finalized block
+			enterBasicBlock(finalized_block);
 		}
 	}
 
 	void generate(SwitchStmt& node)
 	{
-		if(isBlockInsertionMasked() || isBlockTerminated(currentBlock()))
-			return;
+		if(hasValue(node)) return;
+		if(isBlockInsertionMasked() || isBlockTerminated(currentBlock()))	return;
 
 		revisit(node);
 		// emit the preamble and prepare blocks
@@ -376,8 +414,8 @@ struct LLVMGeneratorVisitor : GenericDoubleVisitor
 
 	void generate(PrimaryExpr& node)
 	{
-		if(isBlockInsertionMasked() || isBlockTerminated(currentBlock()))
-			return;
+		if(hasValue(node)) return;
+		if(isBlockInsertionMasked() || isBlockTerminated(currentBlock()))	return;
 
 		revisit(node);
 
@@ -394,8 +432,8 @@ struct LLVMGeneratorVisitor : GenericDoubleVisitor
 
 	void generate(UnaryExpr& node)
 	{
-		if(isBlockInsertionMasked() || isBlockTerminated(currentBlock()))
-			return;
+		if(hasValue(node)) return;
+		if(isBlockInsertionMasked() || isBlockTerminated(currentBlock()))	return;
 
 		revisit(node);
 
@@ -436,8 +474,8 @@ struct LLVMGeneratorVisitor : GenericDoubleVisitor
 
 	void generate(BinaryExpr& node)
 	{
-		if(isBlockInsertionMasked() || isBlockTerminated(currentBlock()))
-			return;
+		if(hasValue(node)) return;
+		if(isBlockInsertionMasked() || isBlockTerminated(currentBlock()))	return;
 
 		revisit(node);
 
@@ -573,8 +611,8 @@ struct LLVMGeneratorVisitor : GenericDoubleVisitor
 
 	void generate(TernaryExpr& node)
 	{
-		if(isBlockInsertionMasked() || isBlockTerminated(currentBlock()))
-			return;
+		if(hasValue(node)) return;
+		if(isBlockInsertionMasked() || isBlockTerminated(currentBlock()))	return;
 
 		revisit(node);
 
@@ -583,8 +621,8 @@ struct LLVMGeneratorVisitor : GenericDoubleVisitor
 
 	void generate(CallExpr& node)
 	{
-		if(isBlockInsertionMasked() || isBlockTerminated(currentBlock()))
-			return;
+		if(hasValue(node)) return;
+		if(isBlockInsertionMasked() || isBlockTerminated(currentBlock()))	return;
 
 		revisit(node);
 		// TODO depending on the LHS, if it's a directly-invokable function, just get the function prototype and invoke
@@ -594,8 +632,8 @@ struct LLVMGeneratorVisitor : GenericDoubleVisitor
 
 	void generate(CastExpr& node)
 	{
-		if(isBlockInsertionMasked() || isBlockTerminated(currentBlock()))
-			return;
+		if(hasValue(node)) return;
+		if(isBlockInsertionMasked() || isBlockTerminated(currentBlock()))	return;
 
 		revisit(node);
 		// TODO only generate code when there's type mismatch
@@ -603,8 +641,8 @@ struct LLVMGeneratorVisitor : GenericDoubleVisitor
 
 	void generate(MemberExpr& node)
 	{
-		if(isBlockInsertionMasked() || isBlockTerminated(currentBlock()))
-			return;
+		if(hasValue(node)) return;
+		if(isBlockInsertionMasked() || isBlockTerminated(currentBlock()))	return;
 
 		revisit(node);
 		// TODO if the node is resolved to a package, do nothing
@@ -773,6 +811,14 @@ private:
 		llvm_function_type = llvm::FunctionType::get(llvm_function_return_type, llvm_function_parameter_types, false /*not variadic*/);
 
 		return true;
+	}
+
+	bool hasValue(ASTNode& ast_node)
+	{
+		if(ast_node.get<llvm::Value>())
+			return true;
+		else
+			return false;
 	}
 
 	bool hasFunction(FunctionDecl& ast_function)
@@ -975,18 +1021,24 @@ private:
 	{
 		if(!from || !to) return false;
 
-		llvm::Value* v = from->get<llvm::Value>();
-		if(v)
-			to->set<llvm::Value>(v);
-		else
+		llvm::Value* existing_value = to->get<llvm::Value>();
+		if(!existing_value)
 		{
-			NodeInfoVisitor node_info_visitor;
-			node_info_visitor.visit(*from);
-			std::wstring from_info = node_info_visitor.stream.str();
-			node_info_visitor.visit(*to);
-			std::wstring to_info = node_info_visitor.stream.str();
+			llvm::Value* value = from->get<llvm::Value>();
+			if(value)
+			{
+				to->set<llvm::Value>(value);
+			}
+			else
+			{
+				NodeInfoVisitor node_info_visitor;
+				node_info_visitor.visit(*from);
+				std::wstring from_info = node_info_visitor.stream.str();
+				node_info_visitor.visit(*to);
+				std::wstring to_info = node_info_visitor.stream.str();
 
-			LOG4CXX_ERROR(Logger::GeneratorStage, L"failed to propagate NULL value from \"" << from_info << "\" to \"" << to_info << L"\"");
+				LOG4CXX_ERROR(Logger::GeneratorStage, L"failed to propagate NULL value from \"" << from_info << "\" to \"" << to_info << L"\"");
+			}
 		}
 
 		return true;
@@ -1000,6 +1052,8 @@ private:
 		llvm::Function* function;
 		llvm::BasicBlock* entry_block;
 		llvm::BasicBlock* return_block;
+		llvm::BasicBlock* continue_block;
+		llvm::BasicBlock* break_block;
 		llvm::Instruction* alloca_insert_point;
 		llvm::Value* return_value;
 		bool mask_insertion;
