@@ -22,10 +22,12 @@
 
 #include "core/Prerequisite.h"
 #include "language/logging/logging-manager/StringTable.h"
+#include "language/logging/logging-manager/LoggerWrapper.h"
 
 namespace po = boost::program_options;
 
 namespace zillians { namespace language { namespace logging {
+
 
 /**
  * LoggingManager provides the following features:
@@ -38,17 +40,20 @@ namespace zillians { namespace language { namespace logging {
  * 4. Output the specific warning or error messages according to the different locale setting
  *
  */
-class LoggingManager
+class LoggingManager : public LoggerWrapper
 {
 public:
 	LoggingManager();
 	virtual ~LoggingManager();
 
 public:
-	void initializeOptions(po::options_description& option_desc, po::positional_options_description& positional_desc);
-	bool parseOptions(po::variables_map& vm);
+	uint32 getCurrentWarningLevel();
+	void setWarningLevel(uint32 level);
 
 	Logger& getLogger();
+
+public:
+	virtual void logging(std::wstring message);
 
 private:
 	StringTable mStringTable;

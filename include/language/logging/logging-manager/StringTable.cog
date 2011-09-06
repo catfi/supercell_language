@@ -21,8 +21,8 @@
 #define ZILLIANS_LANGUAGE_STRINGTABLE_H_
 
 #include "core/Prerequisite.h"
-#include "language/logging/Logger.h"
 #include "utility/UnicodeUtil.h"
+#include "language/logging/logging-manager/LoggerWrapper.h"
 #include <boost/parameter.hpp>
 #include <vector>
 #include <string>
@@ -199,9 +199,10 @@ for param in all_parameters.keys():
 class Logger
 {
 public:
-	Logger() {}
+	Logger() : mLogger(NULL) {}
 	virtual ~Logger() {}
 
+	void setLogger(LoggerWrapper* logger) { mLogger = logger; }
 	void setLocale(locale& locale) { mLocale = locale; }
 	void setStringTable(StringTable& string_table) { mStringTable = string_table; }
 
@@ -221,7 +222,7 @@ public:
 		for (var, type) in param_list:
 			cog.outl('\t translated = replace_substring(translated, %s);' % var)
 
-		cog.outl('\t LOG4CXX_INFO(zillians::language::Logger::CompilerLogger, translated);')
+		cog.outl('\t mLogger->logging(translated);')
 		cog.outl('}');
 	]]]*/
 	//[[[end]]]
@@ -275,6 +276,7 @@ private:
 	}
 
 private:
+	LoggerWrapper* mLogger;
 	locale mLocale;
 	StringTable mStringTable;
 };

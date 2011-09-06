@@ -17,42 +17,22 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#include "utility/UnicodeUtil.h"
-#include "language/logging/Logger.h"
-#include "language/logging/logging-manager/LoggingManager.h"
+#ifndef ZILLIANS_LANGUAGE_LOGGER_WRAPPER_H_
+#define ZILLIANS_LANGUAGE_LOGGER_WRAPPER_H_
+
+#include "core/Prerequisite.h"
+#include "language/logging/logging-manager/StringTable.h"
+
+namespace po = boost::program_options;
 
 namespace zillians { namespace language { namespace logging {
 
-LoggingManager::LoggingManager()
+class LoggerWrapper
 {
-	mLogger.setLogger(this);
-	mLogger.setLocale(get_default_locale());
-	mLogger.setStringTable(mStringTable);
-}
-
-LoggingManager::~LoggingManager()
-{}
-
-
-uint32 LoggingManager::getCurrentWarningLevel()
-{
-	return mWarningLevel;
-}
-
-void LoggingManager::setWarningLevel(uint32 level)
-{
-	mWarningLevel = level;
-}
-
-Logger& LoggingManager::getLogger()
-{
-	return mLogger;
-}
-
-void LoggingManager::logging(std::wstring message)
-{
-	LOG4CXX_DEBUG(zillians::language::Logger::CompilerLogger, message);
-}
+public:
+	virtual void logging(std::wstring message) = 0;
+};
 
 }}}
 
+#endif /* ZILLIANS_LANAGUAGE_LOGGER_WRAPPER_H_ */
