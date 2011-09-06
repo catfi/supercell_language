@@ -45,11 +45,17 @@ struct LLVMGeneratorVisitor : GenericDoubleVisitor
 		mFunctionContext.entry_block = NULL;
 		mFunctionContext.return_block = NULL;
 		mFunctionContext.alloca_insert_point = NULL;
+		mFunctionContext.mask_insertion = false;
 
 		REGISTER_ALL_VISITABLE_ASTNODE(generateInvoker)
 	}
 
 	void generate(ASTNode& node)
+	{
+		revisit(node);
+	}
+
+	void generate(Block& node)
 	{
 		revisit(node);
 	}
@@ -122,6 +128,9 @@ struct LLVMGeneratorVisitor : GenericDoubleVisitor
 		// (all global variables are stored in a single game object, which is assembled by compiler)
 		if(isDeclaredInFunction(node))
 		{
+			if(isBlockInsertionMasked() || isBlockTerminated(currentBlock()))
+				return;
+
 			createAlloca(node);
 
 			if(node.initializer)
@@ -144,6 +153,9 @@ struct LLVMGeneratorVisitor : GenericDoubleVisitor
 
 	void generate(DeclarativeStmt& node)
 	{
+		if(isBlockInsertionMasked() || isBlockTerminated(currentBlock()))
+			return;
+
 		revisit(node);
 
 		propagate(&node, node.declaration);
@@ -151,6 +163,9 @@ struct LLVMGeneratorVisitor : GenericDoubleVisitor
 
 	void generate(BranchStmt& node)
 	{
+		if(isBlockInsertionMasked() || isBlockTerminated(currentBlock()))
+			return;
+
 		revisit(node);
 
 		llvm::Value* result = NULL;
@@ -163,10 +178,17 @@ struct LLVMGeneratorVisitor : GenericDoubleVisitor
 			break;
 		case BranchStmt::OpCode::RETURN:
 		{
-			llvm::Value* return_value = node.result->get<llvm::Value>();
-			BOOST_ASSERT(return_value && "invalid LLVM value");
-
-			result = mBuilder.CreateRet(return_value);
+			if(node.result)
+			{
+				llvm::Value* return_value = node.result->get<llvm::Value>();
+				BOOST_ASSERT(return_value && "invalid LLVM value");
+				result = mBuilder.CreateRet(return_value);
+			}
+			else
+			{
+				result = mBuilder.CreateRet(mFunctionContext.return_block);
+			}
+			setBlockInsertionMask();
 			break;
 		}
 		}
@@ -189,6 +211,9 @@ struct LLVMGeneratorVisitor : GenericDoubleVisitor
 
 	void generate(IfElseStmt& node)
 	{
+		if(isBlockInsertionMasked() || isBlockTerminated(currentBlock()))
+			return;
+
 		// TODO simplify the blocks by removing or merging unnecessary blocks
 		// generate code into blocks
 		std::vector<llvm::BasicBlock*> llvm_blocks;
@@ -196,13 +221,13 @@ struct LLVMGeneratorVisitor : GenericDoubleVisitor
 			// for if branch
 			{
 				llvm::BasicBlock* cond = createBasicBlock("if.eval", mFunctionContext.function);
-				mBuilder.CreateBr(cond); // jump from current block to the condition evaluation block
-
-				mBuilder.SetInsertPoint(cond);
+				// jump from current block to the condition evaluation block
+				enterBasicBlock(cond, true);
 				visit(*node.if_branch.cond);
 
 				llvm::BasicBlock* block = createBasicBlock("if.then", mFunctionContext.function);
-				mBuilder.SetInsertPoint(block);
+				// because we create linkage among blocks on our own in this if/else structure, so we don't emit branch instruction automatically
+				enterBasicBlock(block, false);
 				visit(*node.if_branch.block);
 
 				llvm_blocks.push_back(cond);
@@ -214,11 +239,11 @@ struct LLVMGeneratorVisitor : GenericDoubleVisitor
 				foreach(i, node.elseif_branches)
 				{
 					llvm::BasicBlock* cond = createBasicBlock("elif.eval", mFunctionContext.function);
-					mBuilder.SetInsertPoint(cond);
+					enterBasicBlock(cond, false);
 					visit(*i->cond);
 
 					llvm::BasicBlock* block = createBasicBlock("elif.then", mFunctionContext.function);
-					mBuilder.SetInsertPoint(block);
+					enterBasicBlock(block, false);
 					visit(*i->block);
 
 					llvm_blocks.push_back(cond);
@@ -230,8 +255,9 @@ struct LLVMGeneratorVisitor : GenericDoubleVisitor
 			if(node.else_block)
 			{
 				llvm::BasicBlock* block = createBasicBlock("else.then", mFunctionContext.function);
-				llvm_blocks.push_back(block);
+				enterBasicBlock(block, false);
 				visit(*node.else_block);
+				llvm_blocks.push_back(block);
 			}
 
 			// for the last block
@@ -246,11 +272,17 @@ struct LLVMGeneratorVisitor : GenericDoubleVisitor
 			// for if branch
 			{
 				llvm::Value* llvm_if_cond = node.if_branch.cond->get<llvm::Value>();
-				mBuilder.SetInsertPoint(llvm_blocks[0]); // [0] is the 'condition evaluation block for if branch'
-				mBuilder.CreateCondBr(llvm_if_cond, llvm_blocks[1], llvm_blocks[2]); // [1] is the 'then block for if branch', [2] could be the 'condition evaluation block for first elif branch', or the 'else block', or the 'end block'
+				if(!isBlockTerminated(llvm_blocks[0]))
+				{
+					mBuilder.SetInsertPoint(llvm_blocks[0]); // [0] is the 'condition evaluation block for if branch'
+					mBuilder.CreateCondBr(llvm_if_cond, llvm_blocks[1], llvm_blocks[2]); // [1] is the 'then block for if branch', [2] could be the 'condition evaluation block for first elif branch', or the 'else block', or the 'end block'
+				}
 
-				mBuilder.SetInsertPoint(llvm_blocks[1]); // [1] is the 'then block for if branch'
-				mBuilder.CreateBr(llvm_blocks.back()); // [back()] is the 'end block'
+				if(!isBlockTerminated(llvm_blocks[1]))
+				{
+					mBuilder.SetInsertPoint(llvm_blocks[1]); // [1] is the 'then block for if branch'
+					mBuilder.CreateBr(llvm_blocks.back()); // [back()] is the 'end block'
+				}
 			}
 
 			// for all elif branch
@@ -259,11 +291,17 @@ struct LLVMGeneratorVisitor : GenericDoubleVisitor
 				foreach(i, node.elseif_branches)
 				{
 					llvm::Value* llvm_elif_cond = i->cond->get<llvm::Value>();
-					mBuilder.SetInsertPoint(llvm_blocks[index]);
-					mBuilder.CreateCondBr(llvm_elif_cond, llvm_blocks[index+1], llvm_blocks[index+2]);
+					if(!isBlockTerminated(llvm_blocks[index]))
+					{
+						mBuilder.SetInsertPoint(llvm_blocks[index]);
+						mBuilder.CreateCondBr(llvm_elif_cond, llvm_blocks[index+1], llvm_blocks[index+2]);
+					}
 
-					mBuilder.SetInsertPoint(llvm_blocks[index+1]);
-					mBuilder.CreateBr(llvm_blocks.back());
+					if(!isBlockTerminated(llvm_blocks[index+1]))
+					{
+						mBuilder.SetInsertPoint(llvm_blocks[index+1]);
+						mBuilder.CreateBr(llvm_blocks.back());
+					}
 
 					index += 2;
 				}
@@ -272,14 +310,17 @@ struct LLVMGeneratorVisitor : GenericDoubleVisitor
 			// for else branch
 			if(node.else_block)
 			{
-				mBuilder.SetInsertPoint(llvm_blocks[index]);
-				mBuilder.CreateBr(llvm_blocks.back());
+				if(!isBlockTerminated(llvm_blocks[index]))
+				{
+					mBuilder.SetInsertPoint(llvm_blocks[index]);
+					mBuilder.CreateBr(llvm_blocks.back());
+				}
 				index += 1;
 			}
 
 			// for the last block
 			{
-				mBuilder.SetInsertPoint(llvm_blocks.back());
+				enterBasicBlock(llvm_blocks.back(), false);
 				index += 1;
 			}
 
@@ -289,6 +330,9 @@ struct LLVMGeneratorVisitor : GenericDoubleVisitor
 
 	void generate(ForeachStmt& node)
 	{
+		if(isBlockInsertionMasked() || isBlockTerminated(currentBlock()))
+			return;
+
 //		if(node.if_branch.cond) user_visitor->
 //		if(node.if_branch.block) user_visitor->visit(*node.if_branch.block);
 //		foreach(i, node.elseif_branches)
@@ -305,7 +349,11 @@ struct LLVMGeneratorVisitor : GenericDoubleVisitor
 
 	void generate(WhileStmt& node)
 	{
+		if(isBlockInsertionMasked() || isBlockTerminated(currentBlock()))
+			return;
+
 		revisit(node);
+
 		// emit the preamble and prepare blocks
 		if(node.style == WhileStmt::Style::WHILE)
 		{
@@ -319,12 +367,18 @@ struct LLVMGeneratorVisitor : GenericDoubleVisitor
 
 	void generate(SwitchStmt& node)
 	{
+		if(isBlockInsertionMasked() || isBlockTerminated(currentBlock()))
+			return;
+
 		revisit(node);
 		// emit the preamble and prepare blocks
 	}
 
 	void generate(PrimaryExpr& node)
 	{
+		if(isBlockInsertionMasked() || isBlockTerminated(currentBlock()))
+			return;
+
 		revisit(node);
 
 		switch(node.catagory)
@@ -340,6 +394,9 @@ struct LLVMGeneratorVisitor : GenericDoubleVisitor
 
 	void generate(UnaryExpr& node)
 	{
+		if(isBlockInsertionMasked() || isBlockTerminated(currentBlock()))
+			return;
+
 		revisit(node);
 
 		llvm::Value* result = NULL;
@@ -379,6 +436,9 @@ struct LLVMGeneratorVisitor : GenericDoubleVisitor
 
 	void generate(BinaryExpr& node)
 	{
+		if(isBlockInsertionMasked() || isBlockTerminated(currentBlock()))
+			return;
+
 		revisit(node);
 
 		llvm::Value* result = NULL;
@@ -513,6 +573,9 @@ struct LLVMGeneratorVisitor : GenericDoubleVisitor
 
 	void generate(TernaryExpr& node)
 	{
+		if(isBlockInsertionMasked() || isBlockTerminated(currentBlock()))
+			return;
+
 		revisit(node);
 
 		// TODO use predicate
@@ -520,6 +583,9 @@ struct LLVMGeneratorVisitor : GenericDoubleVisitor
 
 	void generate(CallExpr& node)
 	{
+		if(isBlockInsertionMasked() || isBlockTerminated(currentBlock()))
+			return;
+
 		revisit(node);
 		// TODO depending on the LHS, if it's a directly-invokable function, just get the function prototype and invoke
 		// TODO if it's not a directly-invokable function, which can be a class member function, pass this pointer to that function and make the call
@@ -528,12 +594,18 @@ struct LLVMGeneratorVisitor : GenericDoubleVisitor
 
 	void generate(CastExpr& node)
 	{
+		if(isBlockInsertionMasked() || isBlockTerminated(currentBlock()))
+			return;
+
 		revisit(node);
 		// TODO only generate code when there's type mismatch
 	}
 
 	void generate(MemberExpr& node)
 	{
+		if(isBlockInsertionMasked() || isBlockTerminated(currentBlock()))
+			return;
+
 		revisit(node);
 		// TODO if the node is resolved to a package, do nothing
 		// TODO otherwise, the node is resolved to a local variable, if the RHS is a member variable, use object resolver to resolve correct offset
@@ -746,6 +818,18 @@ private:
 		return llvm::BasicBlock::Create(mContext, name, parent, before);
 	}
 
+	void enterBasicBlock(llvm::BasicBlock* block, bool emit_branch_if_necessary = true)
+	{
+		if(emit_branch_if_necessary && !mBuilder.GetInsertBlock()->getTerminator())
+		{
+			mBuilder.CreateBr(block);
+		}
+
+		mBuilder.SetInsertPoint(block);
+
+		resetBlockInsertionMask();
+	}
+
 	bool createAlloca(VariableDecl& ast_variable)
 	{
 		if(!!ast_variable.get<llvm::Value>())
@@ -818,10 +902,7 @@ private:
 
 	bool finishFunction(FunctionDecl& ast_function)
 	{
-		if(mBuilder.GetInsertBlock() != mFunctionContext.return_block)
-		{
-			mBuilder.CreateBr(mFunctionContext.return_block);
-		}
+		enterBasicBlock(mFunctionContext.return_block);
 
 		if(!mFunctionContext.return_value || mFunctionContext.return_value->getType()->isVoidTy())
 		{
@@ -864,6 +945,31 @@ private:
 		return false;
 	}
 
+	bool isBlockInsertionMasked()
+	{
+		return mFunctionContext.mask_insertion;
+	}
+
+	void setBlockInsertionMask()
+	{
+		mFunctionContext.mask_insertion = true;
+	}
+
+	void resetBlockInsertionMask()
+	{
+		mFunctionContext.mask_insertion = false;
+	}
+
+	llvm::BasicBlock* currentBlock()
+	{
+		return mBuilder.GetInsertBlock();
+	}
+
+	bool isBlockTerminated(llvm::BasicBlock* block)
+	{
+		return (block->getTerminator()) ? true : false;
+	}
+
 private:
 	bool propagate(ASTNode* to, ASTNode* from)
 	{
@@ -896,6 +1002,7 @@ private:
 		llvm::BasicBlock* return_block;
 		llvm::Instruction* alloca_insert_point;
 		llvm::Value* return_value;
+		bool mask_insertion;
 		//std::stack<llvm::BasicBlock*> block_stack;
 	} mFunctionContext;
 };
