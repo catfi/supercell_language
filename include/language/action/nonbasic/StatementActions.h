@@ -29,12 +29,6 @@ struct statement
 	DEFINE_ATTRIBUTES(ASTNode*)
 	DEFINE_LOCALS(LOCATION_TYPE)
 
-	BEGIN_ACTION(init_loc)
-	{
-		CACHE_LOCATION;
-	}
-	END_ACTION
-
 	BEGIN_ACTION(init)
 	{
 #ifdef DEBUG
@@ -73,12 +67,6 @@ struct expression_statement
 	DEFINE_ATTRIBUTES(Statement*)
 	DEFINE_LOCALS(LOCATION_TYPE)
 
-	BEGIN_ACTION(init_loc)
-	{
-		CACHE_LOCATION;
-	}
-	END_ACTION
-
 	BEGIN_ACTION(init)
 	{
 #ifdef DEBUG
@@ -94,12 +82,6 @@ struct selection_statement
 {
 	DEFINE_ATTRIBUTES(Statement*)
 	DEFINE_LOCALS(LOCATION_TYPE)
-
-	BEGIN_ACTION(init_loc)
-	{
-		CACHE_LOCATION;
-	}
-	END_ACTION
 
 	BEGIN_ACTION(init_if_statement)
 	{
@@ -162,12 +144,6 @@ struct iteration_statement
 	DEFINE_ATTRIBUTES(Statement*)
 	DEFINE_LOCALS(LOCATION_TYPE)
 
-	BEGIN_ACTION(init_loc)
-	{
-		CACHE_LOCATION;
-	}
-	END_ACTION
-
 	BEGIN_ACTION(init_while_loop)
 	{
 #ifdef DEBUG
@@ -220,12 +196,6 @@ struct branch_statement
 {
 	DEFINE_ATTRIBUTES(Statement*)
 	DEFINE_LOCALS(LOCATION_TYPE)
-
-	BEGIN_ACTION(init_loc)
-	{
-		CACHE_LOCATION;
-	}
-	END_ACTION
 
 	BEGIN_ACTION(init_return)
 	{

@@ -84,12 +84,6 @@ struct variable_decl_stem
 	DEFINE_ATTRIBUTES(Declaration*)
 	DEFINE_LOCALS(LOCATION_TYPE)
 
-	BEGIN_ACTION(init_loc)
-	{
-		CACHE_LOCATION;
-	}
-	END_ACTION
-
 	BEGIN_ACTION(init)
 	{
 #ifdef DEBUG
@@ -113,12 +107,6 @@ struct function_decl
 {
 	DEFINE_ATTRIBUTES(Declaration*)
 	DEFINE_LOCALS(LOCATION_TYPE)
-
-	BEGIN_ACTION(init_loc)
-	{
-		CACHE_LOCATION;
-	}
-	END_ACTION
 
 	BEGIN_ACTION(init)
 	{
@@ -157,12 +145,6 @@ struct typedef_decl
 	DEFINE_ATTRIBUTES(Declaration*)
 	DEFINE_LOCALS(LOCATION_TYPE)
 
-	BEGIN_ACTION(init_loc)
-	{
-		CACHE_LOCATION;
-	}
-	END_ACTION
-
 	BEGIN_ACTION(init)
 	{
 #ifdef DEBUG
@@ -178,12 +160,6 @@ struct class_decl
 {
 	DEFINE_ATTRIBUTES(Declaration*)
 	DEFINE_LOCALS(LOCATION_TYPE)
-
-	BEGIN_ACTION(init_loc)
-	{
-		CACHE_LOCATION;
-	}
-	END_ACTION
 
 	BEGIN_ACTION(init)
 	{
@@ -259,12 +235,6 @@ struct interface_decl
 	DEFINE_ATTRIBUTES(Declaration*)
 	DEFINE_LOCALS(LOCATION_TYPE)
 
-	BEGIN_ACTION(init_loc)
-	{
-		CACHE_LOCATION;
-	}
-	END_ACTION
-
 	BEGIN_ACTION(init)
 	{
 #ifdef DEBUG
@@ -285,12 +255,6 @@ struct interface_member_function_decl
 {
 	DEFINE_ATTRIBUTES(Declaration*)
 	DEFINE_LOCALS(LOCATION_TYPE)
-
-	BEGIN_ACTION(init_loc)
-	{
-		CACHE_LOCATION;
-	}
-	END_ACTION
 
 	BEGIN_ACTION(init)
 	{
@@ -316,12 +280,6 @@ struct enum_decl
 {
 	DEFINE_ATTRIBUTES(Declaration*)
 	DEFINE_LOCALS(LOCATION_TYPE)
-
-	BEGIN_ACTION(init_loc)
-	{
-		CACHE_LOCATION;
-	}
-	END_ACTION
 
 	BEGIN_ACTION(init)
 	{

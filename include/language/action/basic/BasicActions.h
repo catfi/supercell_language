@@ -31,6 +31,12 @@ struct location
 	DEFINE_ATTRIBUTES(void)
 	DEFINE_LOCALS()
 
+	BEGIN_ACTION(init_loc)
+	{
+		CACHE_LOCATION;
+	}
+	END_ACTION
+
 	BEGIN_ACTION(init)
 	{
 #ifdef DEBUG
@@ -46,12 +52,6 @@ struct block
 {
 	DEFINE_ATTRIBUTES(Block*)
 	DEFINE_LOCALS(LOCATION_TYPE)
-
-	BEGIN_ACTION(init_loc)
-	{
-		CACHE_LOCATION;
-	}
-	END_ACTION
 
 	BEGIN_ACTION(init)
 	{

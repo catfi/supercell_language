@@ -44,12 +44,6 @@ struct type_specifier
 	DEFINE_ATTRIBUTES(TypeSpecifier*)
 	DEFINE_LOCALS(LOCATION_TYPE)
 
-	BEGIN_ACTION(init_loc)
-	{
-		CACHE_LOCATION;
-	}
-	END_ACTION
-
 	BEGIN_ACTION(init_type)
 	{
 #ifdef DEBUG
@@ -180,12 +174,6 @@ struct annotation_specifiers
 	DEFINE_ATTRIBUTES(Annotations*)
 	DEFINE_LOCALS(LOCATION_TYPE)
 
-	BEGIN_ACTION(init_loc)
-	{
-		CACHE_LOCATION;
-	}
-	END_ACTION
-
 	BEGIN_ACTION(init)
 	{
 #ifdef DEBUG
@@ -202,12 +190,6 @@ struct annotation_specifier
 {
 	DEFINE_ATTRIBUTES(Annotation*)
 	DEFINE_LOCALS(LOCATION_TYPE)
-
-	BEGIN_ACTION(init_loc)
-	{
-		CACHE_LOCATION;
-	}
-	END_ACTION
 
 	BEGIN_ACTION(init)
 	{

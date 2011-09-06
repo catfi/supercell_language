@@ -117,7 +117,7 @@ struct Identifier : qi::grammar<Iterator, typename SA::identifier::attribute_typ
 		start %= qi::lexeme[ ((unicode::alpha | L'_') > *(unicode::alnum | L'_')) - keyword ];
 
 		start_augmented
-			=	(location [ typename SA::identifier::init_loc() ]
+			=	(location [ typename SA::location::init_loc() ]
 					>> start
 				) [ typename SA::identifier::init() ]
 			;
@@ -149,7 +149,7 @@ struct IntegerLiteral : qi::grammar<Iterator, typename SA::integer_literal::attr
 			;
 
 		start_augmented
-			=	(location [ typename SA::integer_literal::init_loc() ]
+			=	(location [ typename SA::location::init_loc() ]
 					>> start
 				) [ typename SA::integer_literal::init() ]
 			;
@@ -180,7 +180,7 @@ struct FloatLiteral : qi::grammar<Iterator, typename SA::float_literal::attribut
 			;
 
 		start_augmented
-			=	(location [ typename SA::float_literal::init_loc() ]
+			=	(location [ typename SA::location::init_loc() ]
 					>> start
 				) [ typename SA::float_literal::init() ]
 			;
@@ -227,7 +227,7 @@ struct StringLiteral : qi::grammar<Iterator, typename SA::string_literal::attrib
 			;
 
 		start_augmented
-			=	(location [ typename SA::string_literal::init_loc() ]
+			=	(location [ typename SA::location::init_loc() ]
 					>> start
 				) [ typename SA::string_literal::init() ]
 			;
@@ -434,7 +434,7 @@ struct ThorScript : qi::grammar<Iterator, typename SA::start::attribute_type, de
 			;
 
 		type_specifier
-			= qi::eps [ typename SA::type_specifier::init_loc() ]
+			= qi::eps [ typename SA::location::init_loc() ]
 				>>	( qi::lit(L"void")                                                                     [ typename SA::type_specifier::template init_primitive_type<tree::PrimitiveType::VOID>() ]
 					| qi::lit(L"int8")                                                                     [ typename SA::type_specifier::template init_primitive_type<tree::PrimitiveType::INT8>() ]
 					| qi::lit(L"uint8")                                                                    [ typename SA::type_specifier::template init_primitive_type<tree::PrimitiveType::UINT8>() ]
@@ -453,13 +453,13 @@ struct ThorScript : qi::grammar<Iterator, typename SA::start::attribute_type, de
 			;
 
 		template_param_identifier
-			= qi::eps [ typename SA::template_param_identifier::init_loc() ]
+			= qi::eps [ typename SA::location::init_loc() ]
 				>>	(IDENTIFIER > -(COMPARE_LT > ((IDENTIFIER | (ELLIPSIS > qi::attr(true))) % COMMA) > COMPARE_GT)
 					) [ typename SA::template_param_identifier::init() ]
 			;
 
 		template_arg_identifier
-			= qi::eps [ typename SA::template_arg_identifier::init_loc() ]
+			= qi::eps [ typename SA::location::init_loc() ]
 				>>	(IDENTIFIER > -(COMPARE_LT >> type_list_specifier > COMPARE_GT)
 					) [ typename SA::template_arg_identifier::init() ]
 			;
@@ -485,12 +485,12 @@ struct ThorScript : qi::grammar<Iterator, typename SA::start::attribute_type, de
 			;
 
 		annotation_specifiers
-			= qi::eps [ typename SA::annotation_specifiers::init_loc() ]
+			= qi::eps [ typename SA::location::init_loc() ]
 				>> (*annotation_specifier) [ typename SA::annotation_specifiers::init() ]
 			;
 
 		annotation_specifier
-			= qi::eps [ typename SA::annotation_specifier::init_loc() ]
+			= qi::eps [ typename SA::location::init_loc() ]
 				>>	(AT_SYMBOL > IDENTIFIER
 						>	-(LEFT_BRACE > (
 							(IDENTIFIER > ASSIGN > primary_expression) % COMMA
@@ -499,7 +499,7 @@ struct ThorScript : qi::grammar<Iterator, typename SA::start::attribute_type, de
 			;
 
 		nested_identifier
-			= qi::eps [ typename SA::nested_identifier::init_loc() ]
+			= qi::eps [ typename SA::location::init_loc() ]
 				>> (IDENTIFIER > *(DOT > IDENTIFIER)) [ typename SA::nested_identifier::init() ]
 			;
 
@@ -529,7 +529,7 @@ struct ThorScript : qi::grammar<Iterator, typename SA::start::attribute_type, de
 		//
 
 		primary_expression
-			= qi::eps [ typename SA::primary_expression::init_loc() ]
+			= qi::eps [ typename SA::location::init_loc() ]
 				>>	(template_arg_identifier                  [ typename SA::primary_expression::init() ]
 					| INTEGER_LITERAL                         [ typename SA::primary_expression::init() ]
 					| FLOAT_LITERAL                           [ typename SA::primary_expression::init() ]
@@ -549,7 +549,7 @@ struct ThorScript : qi::grammar<Iterator, typename SA::start::attribute_type, de
 		// associativity: left-to-right
 		// rank: 0
 		postfix_expression
-			= qi::eps [ typename SA::postfix_expression::init_loc() ]
+			= qi::eps [ typename SA::location::init_loc() ]
 				>>	(primary_expression                                          [ typename SA::postfix_expression::init_primary_expression() ]
 						>	*( (LEFT_BRACKET > expression > RIGHT_BRACKET)       [ typename SA::postfix_expression::append_postfix_array() ]
 							| (LEFT_PAREN > -(expression % COMMA) > RIGHT_PAREN) [ typename SA::postfix_expression::append_postfix_call() ]
@@ -564,7 +564,7 @@ struct ThorScript : qi::grammar<Iterator, typename SA::start::attribute_type, de
 		// associativity: right-to-left
 		// rank: 1
 		prefix_expression
-			= qi::eps [ typename SA::prefix_expression::init_loc() ]
+			= qi::eps [ typename SA::location::init_loc() ]
 				>>	(postfix_expression
 					|	(
 							( INCREMENT        > qi::attr(tree::UnaryExpr::OpCode::PREFIX_INCREMENT)
@@ -582,7 +582,7 @@ struct ThorScript : qi::grammar<Iterator, typename SA::start::attribute_type, de
 		// associativity: left-to-right
 		// rank: 2
 		multiplicative_expression
-			= qi::eps [ typename SA::left_to_right_binary_op_vec::init_loc() ]
+			= qi::eps [ typename SA::location::init_loc() ]
 			 	>>	(prefix_expression
 					%	( ARITHMETIC_MUL > qi::attr(tree::BinaryExpr::OpCode::ARITHMETIC_MUL)
 						| ARITHMETIC_DIV > qi::attr(tree::BinaryExpr::OpCode::ARITHMETIC_DIV)
@@ -595,7 +595,7 @@ struct ThorScript : qi::grammar<Iterator, typename SA::start::attribute_type, de
 		// associativity: left-to-right
 		// rank: 3
 		additive_expression
-			= qi::eps [ typename SA::left_to_right_binary_op_vec::init_loc() ]
+			= qi::eps [ typename SA::location::init_loc() ]
 				>>	(multiplicative_expression
 					%	( ARITHMETIC_PLUS  > qi::attr(tree::BinaryExpr::OpCode::ARITHMETIC_ADD)
 						| ARITHMETIC_MINUS > qi::attr(tree::BinaryExpr::OpCode::ARITHMETIC_SUB)
@@ -607,7 +607,7 @@ struct ThorScript : qi::grammar<Iterator, typename SA::start::attribute_type, de
 		// associativity: left-to-right
 		// rank: 4
 		shift_expression
-			= qi::eps [ typename SA::left_to_right_binary_op_vec::init_loc() ]
+			= qi::eps [ typename SA::location::init_loc() ]
 				>>	(additive_expression
 					%	( RSHIFT > qi::attr(tree::BinaryExpr::OpCode::BINARY_RSHIFT)
 						| LSHIFT > qi::attr(tree::BinaryExpr::OpCode::BINARY_LSHIFT)
@@ -619,7 +619,7 @@ struct ThorScript : qi::grammar<Iterator, typename SA::start::attribute_type, de
 		// associativity: left-to-right
 		// rank: 5
 		relational_expression
-			= qi::eps [ typename SA::left_to_right_binary_op_vec::init_loc() ]
+			= qi::eps [ typename SA::location::init_loc() ]
 				>>	(shift_expression
 					%	( COMPARE_GT > qi::attr(tree::BinaryExpr::OpCode::COMPARE_GT)
 						| COMPARE_LT > qi::attr(tree::BinaryExpr::OpCode::COMPARE_LT)
@@ -634,7 +634,7 @@ struct ThorScript : qi::grammar<Iterator, typename SA::start::attribute_type, de
 		// associativity: left-to-right
 		// rank: 6
 		equality_expression
-			= qi::eps [ typename SA::left_to_right_binary_op_vec::init_loc() ]
+			= qi::eps [ typename SA::location::init_loc() ]
 				>>	(relational_expression
 					%	( COMPARE_EQ > qi::attr(tree::BinaryExpr::OpCode::COMPARE_EQ)
 						| COMPARE_NE > qi::attr(tree::BinaryExpr::OpCode::COMPARE_NE)
@@ -646,7 +646,7 @@ struct ThorScript : qi::grammar<Iterator, typename SA::start::attribute_type, de
 		// associativity: left-to-right
 		// rank: 7
 		and_expression
-			= qi::eps [ typename SA::left_to_right_binary_op::init_loc() ]
+			= qi::eps [ typename SA::location::init_loc() ]
 				>>	(equality_expression % BINARY_AND
 					) [ typename SA::left_to_right_binary_op::template init<tree::BinaryExpr::OpCode::BINARY_AND>() ]
 			;
@@ -655,7 +655,7 @@ struct ThorScript : qi::grammar<Iterator, typename SA::start::attribute_type, de
 		// associativity: left-to-right
 		// rank: 8
 		xor_expression
-			= qi::eps [ typename SA::left_to_right_binary_op::init_loc() ]
+			= qi::eps [ typename SA::location::init_loc() ]
 				>>	(and_expression % BINARY_XOR
 					) [ typename SA::left_to_right_binary_op::template init<tree::BinaryExpr::OpCode::BINARY_XOR>() ]
 			;
@@ -664,7 +664,7 @@ struct ThorScript : qi::grammar<Iterator, typename SA::start::attribute_type, de
 		// associativity: left-to-right
 		// rank: 9
 		or_expression
-			= qi::eps [ typename SA::left_to_right_binary_op::init_loc() ]
+			= qi::eps [ typename SA::location::init_loc() ]
 				>>	(xor_expression % BINARY_OR
 					) [ typename SA::left_to_right_binary_op::template init<tree::BinaryExpr::OpCode::BINARY_OR>() ]
 			;
@@ -673,7 +673,7 @@ struct ThorScript : qi::grammar<Iterator, typename SA::start::attribute_type, de
 		// associativity: left-to-right
 		// rank: 10
 		logical_and_expression
-			= qi::eps [ typename SA::left_to_right_binary_op::init_loc() ]
+			= qi::eps [ typename SA::location::init_loc() ]
 				>>	(or_expression % LOGICAL_AND
 					) [ typename SA::left_to_right_binary_op::template init<tree::BinaryExpr::OpCode::LOGICAL_AND>() ]
 			;
@@ -682,7 +682,7 @@ struct ThorScript : qi::grammar<Iterator, typename SA::start::attribute_type, de
 		// associativity: left-to-right
 		// rank: 11
 		logical_or_expression
-			= qi::eps [ typename SA::left_to_right_binary_op::init_loc() ]
+			= qi::eps [ typename SA::location::init_loc() ]
 				>>	(logical_and_expression % LOGICAL_OR
 					) [ typename SA::left_to_right_binary_op::template init<tree::BinaryExpr::OpCode::LOGICAL_OR>() ]
 			;
@@ -691,7 +691,7 @@ struct ThorScript : qi::grammar<Iterator, typename SA::start::attribute_type, de
 		// associativity: left-to-right
 		// rank: 12
 		range_expression
-			= qi::eps [ typename SA::range_expression::init_loc() ]
+			= qi::eps [ typename SA::location::init_loc() ]
 				>>	(logical_or_expression > -(ELLIPSIS > logical_or_expression)
 					) [ typename SA::range_expression::init() ]
 			;
@@ -700,7 +700,7 @@ struct ThorScript : qi::grammar<Iterator, typename SA::start::attribute_type, de
 		// associativity: right-to-left
 		// rank: 13
 		ternary_expression
-			= qi::eps [ typename SA::ternary_expression::init_loc() ]
+			= qi::eps [ typename SA::location::init_loc() ]
 				>>	(range_expression > -(Q_MARK > range_expression > COLON > range_expression)
 					) [ typename SA::ternary_expression::init() ]
 			;
@@ -709,7 +709,7 @@ struct ThorScript : qi::grammar<Iterator, typename SA::start::attribute_type, de
 		// associativity: right-to-left
 		// rank: 14
 		expression
-			= location [ typename SA::right_to_left_binary_op_vec::init_loc() ]
+			= location [ typename SA::location::init_loc() ]
 				>>	(ternary_expression
 					%	( ASSIGN        > qi::attr(tree::BinaryExpr::OpCode::ASSIGN)
 						| RSHIFT_ASSIGN > qi::attr(tree::BinaryExpr::OpCode::RSHIFT_ASSIGN)
@@ -735,7 +735,7 @@ struct ThorScript : qi::grammar<Iterator, typename SA::start::attribute_type, de
 		//
 
 		statement
-			= location [ typename SA::statement::init_loc() ]
+			= location [ typename SA::location::init_loc() ]
 				>>	(	(-annotation_specifiers
 							>>	( const_variable_decl
 								| expression_statement
@@ -749,12 +749,12 @@ struct ThorScript : qi::grammar<Iterator, typename SA::start::attribute_type, de
 			;
 
 		expression_statement
-			= qi::eps                         [ typename SA::expression_statement::init_loc() ]
+			= qi::eps                         [ typename SA::location::init_loc() ]
 				>> (-expression >> SEMICOLON) [ typename SA::expression_statement::init() ]
 			;
 
 		selection_statement
-			= qi::eps [ typename SA::selection_statement::init_loc() ]
+			= qi::eps [ typename SA::location::init_loc() ]
 				>>	(	(IF > LEFT_PAREN > expression > RIGHT_PAREN > statement
 							> *(ELIF > LEFT_PAREN > expression > RIGHT_PAREN > statement)
 							> -(ELSE > statement)
@@ -770,7 +770,7 @@ struct ThorScript : qi::grammar<Iterator, typename SA::start::attribute_type, de
 			;
 
 		iteration_statement
-			= qi::eps [ typename SA::iteration_statement::init_loc() ]
+			= qi::eps [ typename SA::location::init_loc() ]
 				>>	(	(WHILE > LEFT_PAREN > expression > RIGHT_PAREN > -statement
 						) [ typename SA::iteration_statement::init_while_loop() ]
 					|	(DO > statement > WHILE > LEFT_PAREN > expression > RIGHT_PAREN > SEMICOLON
@@ -781,7 +781,7 @@ struct ThorScript : qi::grammar<Iterator, typename SA::start::attribute_type, de
 			;
 
 		branch_statement
-			= qi::eps [ typename SA::branch_statement::init_loc() ]
+			= qi::eps [ typename SA::location::init_loc() ]
 				>>	(	(RETURN > expression_statement) [ typename SA::branch_statement::init_return() ]
 					|	(BREAK > SEMICOLON)             [ typename SA::branch_statement::template init<tree::BranchStmt::OpCode::BREAK>() ]
 					|	(CONTINUE > SEMICOLON)          [ typename SA::branch_statement::template init<tree::BranchStmt::OpCode::CONTINUE>() ]
@@ -789,7 +789,7 @@ struct ThorScript : qi::grammar<Iterator, typename SA::start::attribute_type, de
 			;
 
 		block
-			= qi::eps [ typename SA::block::init_loc() ]
+			= qi::eps [ typename SA::location::init_loc() ]
 				>>	(LEFT_BRACE
 						> *statement
 						> RIGHT_BRACE
@@ -826,12 +826,12 @@ struct ThorScript : qi::grammar<Iterator, typename SA::start::attribute_type, de
 			;
 
 		variable_decl_stem
-			= qi::eps [ typename SA::variable_decl_stem::init_loc() ]
+			= qi::eps                                         [ typename SA::location::init_loc() ]
 				>> (VAR > IDENTIFIER > -colon_type_specifier) [ typename SA::variable_decl_stem::init() ]
 			;
 
 		function_decl
-			= qi::eps [ typename SA::function_decl::init_loc() ]
+			= qi::eps [ typename SA::location::init_loc() ]
 				>>	(FUNCTION > (template_param_identifier | (NEW > qi::attr(true)))
 						> LEFT_PAREN > -typed_parameter_list > RIGHT_PAREN > -colon_type_specifier
 						> -block
@@ -839,12 +839,12 @@ struct ThorScript : qi::grammar<Iterator, typename SA::start::attribute_type, de
 			;
 
 		typedef_decl
-			= qi::eps [ typename SA::typedef_decl::init_loc() ]
+			= qi::eps                                                  [ typename SA::location::init_loc() ]
 				>> (TYPEDEF > type_specifier > IDENTIFIER > SEMICOLON) [ typename SA::typedef_decl::init() ]
 			;
 
 		class_decl
-			= qi::eps [ typename SA::class_decl::init_loc() ]
+			= qi::eps [ typename SA::location::init_loc() ]
 				>>	(CLASS > template_param_identifier
 						> -(EXTENDS > nested_identifier) > -((IMPLEMENTS > nested_identifier) % COMMA)
 							> LEFT_BRACE
@@ -863,7 +863,7 @@ struct ThorScript : qi::grammar<Iterator, typename SA::start::attribute_type, de
 			;
 
 		interface_decl
-			= qi::eps [ typename SA::interface_decl::init_loc() ]
+			= qi::eps [ typename SA::location::init_loc() ]
 				>>	(INTERFACE > IDENTIFIER
 						> LEFT_BRACE
 						> *interface_member_function_decl
@@ -872,14 +872,14 @@ struct ThorScript : qi::grammar<Iterator, typename SA::start::attribute_type, de
 			;
 
 		interface_member_function_decl
-			= location [ typename SA::interface_member_function_decl::init_loc() ]
+			= location [ typename SA::location::init_loc() ]
 				>>	(-interface_visibility_specifier >> FUNCTION > IDENTIFIER
 						> LEFT_PAREN > -typed_parameter_list > RIGHT_PAREN > colon_type_specifier > SEMICOLON
 					) [ typename SA::interface_member_function_decl::init() ]
 			;
 
 		enum_decl
-			= qi::eps [ typename SA::enum_decl::init_loc() ]
+			= qi::eps [ typename SA::location::init_loc() ]
 				>>	(ENUM > IDENTIFIER
 						> LEFT_BRACE
 						> (-annotation_specifiers > IDENTIFIER > -(ASSIGN > expression)) % COMMA

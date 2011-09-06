@@ -76,11 +76,13 @@
 #define _local(i)   boost::fusion::at_c<i>(context.locals)
 #define _local_t(i) decltype(boost::fusion::at_c<i>(context.locals))
 
+#if 0 // NOTE: unused
 #define BIND_LOCATION(x) \
 		stage::SourceInfoContext::set((x), new stage::SourceInfoContext( \
 				getParserContext().debug.source_index, \
 				getParserContext().debug.line, \
 				getParserContext().debug.column))
+#endif
 
 #define LOCATION_TYPE shared_ptr<stage::SourceInfoContext> // _local(0)
 #define CACHE_LOCATION \

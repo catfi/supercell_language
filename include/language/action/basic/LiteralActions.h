@@ -29,12 +29,6 @@ struct integer_literal
 	DEFINE_ATTRIBUTES(NumericLiteral*)
 	DEFINE_LOCALS(LOCATION_TYPE)
 
-	BEGIN_ACTION(init_loc)
-	{
-		CACHE_LOCATION;
-	}
-	END_ACTION
-
 	BEGIN_ACTION(init)
 	{
 #ifdef DEBUG
@@ -50,12 +44,6 @@ struct float_literal
 	DEFINE_ATTRIBUTES(NumericLiteral*)
 	DEFINE_LOCALS(LOCATION_TYPE)
 
-	BEGIN_ACTION(init_loc)
-	{
-		CACHE_LOCATION;
-	}
-	END_ACTION
-
 	BEGIN_ACTION(init)
 	{
 #ifdef DEBUG
@@ -70,12 +58,6 @@ struct string_literal
 {
 	DEFINE_ATTRIBUTES(StringLiteral*)
 	DEFINE_LOCALS(LOCATION_TYPE)
-
-	BEGIN_ACTION(init_loc)
-	{
-		CACHE_LOCATION;
-	}
-	END_ACTION
 
 	BEGIN_ACTION(init)
 	{

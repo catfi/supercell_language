@@ -102,12 +102,6 @@ struct primary_expression
 	DEFINE_ATTRIBUTES(Expression*)
 	DEFINE_LOCALS(LOCATION_TYPE)
 
-	BEGIN_ACTION(init_loc)
-	{
-		CACHE_LOCATION;
-	}
-	END_ACTION
-
 	BEGIN_ACTION(init)
 	{
 #ifdef DEBUG
@@ -173,12 +167,6 @@ struct postfix_expression
 	DEFINE_ATTRIBUTES(Expression*)
 	DEFINE_LOCALS(LOCATION_TYPE)
 
-	BEGIN_ACTION(init_loc)
-	{
-		CACHE_LOCATION;
-	}
-	END_ACTION
-
 	BEGIN_ACTION(init_primary_expression)
 	{
 #ifdef DEBUG
@@ -233,12 +221,6 @@ struct prefix_expression
 	DEFINE_ATTRIBUTES(Expression*)
 	DEFINE_LOCALS(LOCATION_TYPE)
 
-	BEGIN_ACTION(init_loc)
-	{
-		CACHE_LOCATION;
-	}
-	END_ACTION
-
 	BEGIN_ACTION(init)
 	{
 #ifdef DEBUG
@@ -266,12 +248,6 @@ struct left_to_right_binary_op_vec
 	DEFINE_ATTRIBUTES(Expression*)
 	DEFINE_LOCALS(LOCATION_TYPE, shared_ptr<binary_ops_t>)
 
-	BEGIN_ACTION(init_loc)
-	{
-		CACHE_LOCATION;
-	}
-	END_ACTION
-
 	BEGIN_ACTION(append_op)
 	{
 #ifdef DEBUG
@@ -297,12 +273,6 @@ struct right_to_left_binary_op_vec
 {
 	DEFINE_ATTRIBUTES(Expression*)
 	DEFINE_LOCALS(LOCATION_TYPE, shared_ptr<binary_ops_t>)
-
-	BEGIN_ACTION(init_loc)
-	{
-		CACHE_LOCATION;
-	}
-	END_ACTION
 
 	BEGIN_ACTION(append_op)
 	{
@@ -330,12 +300,6 @@ struct left_to_right_binary_op
 	DEFINE_ATTRIBUTES(Expression*)
 	DEFINE_LOCALS(LOCATION_TYPE)
 
-	BEGIN_ACTION(init_loc)
-	{
-		CACHE_LOCATION;
-	}
-	END_ACTION
-
 	BEGIN_TEMPLATED_ACTION(init, BinaryExpr::OpCode::type Type)
 	{
 #ifdef DEBUG
@@ -352,12 +316,6 @@ struct right_to_left_binary_op
 	DEFINE_ATTRIBUTES(Expression*)
 	DEFINE_LOCALS(LOCATION_TYPE)
 
-	BEGIN_ACTION(init_loc)
-	{
-		CACHE_LOCATION;
-	}
-	END_ACTION
-
 	BEGIN_TEMPLATED_ACTION(init, BinaryExpr::OpCode::type Type)
 	{
 #ifdef DEBUG
@@ -373,12 +331,6 @@ struct range_expression
 {
 	DEFINE_ATTRIBUTES(Expression*)
 	DEFINE_LOCALS(LOCATION_TYPE)
-
-	BEGIN_ACTION(init_loc)
-	{
-		CACHE_LOCATION;
-	}
-	END_ACTION
 
 	BEGIN_ACTION(init)
 	{
@@ -400,12 +352,6 @@ struct ternary_expression
 {
 	DEFINE_ATTRIBUTES(Expression*)
 	DEFINE_LOCALS(LOCATION_TYPE)
-
-	BEGIN_ACTION(init_loc)
-	{
-		CACHE_LOCATION;
-	}
-	END_ACTION
 
 	BEGIN_ACTION(init)
 	{

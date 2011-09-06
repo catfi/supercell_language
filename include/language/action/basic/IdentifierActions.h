@@ -29,12 +29,6 @@ struct identifier
 	DEFINE_ATTRIBUTES(SimpleIdentifier*)
 	DEFINE_LOCALS(LOCATION_TYPE)
 
-	BEGIN_ACTION(init_loc)
-	{
-		CACHE_LOCATION;
-	}
-	END_ACTION
-
 	BEGIN_ACTION(init)
 	{
 #ifdef DEBUG
@@ -49,12 +43,6 @@ struct nested_identifier
 {
 	DEFINE_ATTRIBUTES(Identifier*)
 	DEFINE_LOCALS(LOCATION_TYPE)
-
-	BEGIN_ACTION(init_loc)
-	{
-		CACHE_LOCATION;
-	}
-	END_ACTION
 
 	BEGIN_ACTION(init)
 	{
@@ -80,12 +68,6 @@ struct template_arg_identifier
 	DEFINE_ATTRIBUTES(Identifier*)
 	DEFINE_LOCALS(LOCATION_TYPE)
 
-	BEGIN_ACTION(init_loc)
-	{
-		CACHE_LOCATION;
-	}
-	END_ACTION
-
 	BEGIN_ACTION(init)
 	{
 #ifdef DEBUG
@@ -108,12 +90,6 @@ struct template_param_identifier
 {
 	DEFINE_ATTRIBUTES(Identifier*)
 	DEFINE_LOCALS(LOCATION_TYPE)
-
-	BEGIN_ACTION(init_loc)
-	{
-		CACHE_LOCATION;
-	}
-	END_ACTION
 
 	BEGIN_ACTION(init)
 	{
