@@ -19,8 +19,6 @@
 # Contact Information: info@zillians.com
 #
 
-ADD_SUBDIRECTORY(logging/logging-manager)
-
 INCLUDE_DIRECTORIES(
     ${PROJECT_COMMON_SOURCE_DIR}/include/
     ${PROJECT_FRAMEWORK_SOURCE_DIR}/include/
@@ -35,5 +33,4 @@ TARGET_LINK_LIBRARIES(thorscript-compiler
     zillians-common-core
     zillians-common-utility
     zillians-framework-language
-    zillians-thorscript-logging-logging-manager
     )
