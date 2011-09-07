@@ -86,8 +86,8 @@ struct StringTable
 	# Note: the parameter format is $VARIABLE(c++type), and do not have any space in it
 	translation_table = {
 		LOG_STRING.LOG_UNUSED_VARIABLE: {
-			'en_US': 'Undefined variable $ID(string) is used',
-			'zh_TW': '$ID(string) 未被使用'
+			'en_US': 'Undefined variable $ID(string) is used, $ID(string) should not be used',
+			'zh_TW': '$ID(string) 未被使用，$ID(string) 不應該被用'
 			},
 		LOG_STRING.LOG_UNDEFINED_VARIABLE: {
 			'en_US': 'Undefined variable $ID(string) in $FILE(string) in $LINE(uint32)',
@@ -167,12 +167,15 @@ struct StringTable
 
 /*[[[cog
 def extract_parameters(trans):
+	parameter_hub = {}	# Record appeared parameters
 	parameters = []
 	splitted = trans.split(' ')
 	for word in splitted:
 		if word[0] == '$':	# word is like $ID(string)
 			var, type = word[1:].split('(')
-			parameters.append((var, type.split(')')[0]))	# strip out $
+			if not parameter_hub.has_key(var):
+				parameters.append((var, type.split(')')[0]))	# strip out $
+				parameter_hub[var] = 1	# the value is no matter
 	return parameters
 
 # Examine each translation string (we choose en_US here) and parse the string with dollar sign as
@@ -220,7 +223,8 @@ public:
 		cog.outl('\t wstring translated = get_translated(StringTable::%s);' % id)
 
 		for (var, type) in param_list:
-			cog.outl('\t translated = replace_substring(translated, %s);' % var)
+			to_search = str('$') + str(var) + '(' + str(type) + ')'
+			cog.outl('\t substitute(translated, L"%s", %s);' % (to_search, var))
 
 		cog.outl('\t mLogger->logging(StringTable::%s, translated);' % id)
 		cog.outl('}');
@@ -243,36 +247,29 @@ private:
 	}
 
 	template <typename T>
-	wstring replace_substring(wstring& source, T replace)
+	bool substitute(wstring &s, const wstring &to_search, const T &to_replace)
 	{
 		wstringstream stream;
-		stream << replace;
-		return replace_substring(source, stream.str());
+		stream << to_replace;
+		return substitute(s, to_search, stream.str());
 	}
 
-	wstring replace_substring(wstring& source, string replace_string)
+	bool substitute(wstring &s, const wstring &to_search, string &to_replace)
 	{
-		return replace_substring(source, s_to_ws(replace_string));
+		return substitute(s, to_search, s_to_ws(to_replace));
 	}
 
-	wstring replace_substring(wstring& source, wstring replace_string)
+	bool substitute(wstring &s, const wstring &to_search, const wstring &to_replace)
 	{
-		wstring output = source;
-		wstring search_start(L"$");
-		wstring search_end(L")");
-
-		size_t pos;
-		if ( (pos = source.find(search_start)) != std::wstring::npos)
-		{
-			size_t pos2 = source.find(search_end, pos);
-			size_t diff = pos2 - pos + 1;
-
-			output.erase(pos, diff);
-			output.insert(pos, replace_string);
-
-		}
-
-		return output;
+		bool replace_found = false;
+	    wstring::size_type p = 0;
+	    while ((p = s.find(to_search, p)) != wstring::npos)
+	    {
+	        s.replace(p, to_search.size(), to_replace);
+	        p++;
+	        replace_found = true;
+	    }
+	    return replace_found;
 	}
 
 private:
