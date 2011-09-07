@@ -188,8 +188,7 @@ struct LLVMGeneratorVisitor : GenericDoubleVisitor
 			if(node.result)
 			{
 				llvm::Value* return_value = node.result->get<llvm::Value>();
-				BOOST_ASSERT(return_value && "invalid LLVM value");
-				//result = mBuilder.CreateRet(return_value);
+				BOOST_ASSERT(return_value && "invalid LLVM value for return instruction");
 				mBuilder.CreateStore(return_value, mFunctionContext.return_value);
 				result = mBuilder.CreateBr(mFunctionContext.return_block);
 			}
