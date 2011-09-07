@@ -1,86 +1,108 @@
-Semantic Check List
+SemanticCheck CheckList
 
-// For "interface"
-- All methods in interface should have no member scope specifier
-- All methods in interface can have no function body
-- All types must be explicitly specified for member function in interface
+///////////////////////////////////////
+// BASIC
+///////////////////////////////////////
 
-// For all templated identifier
-- There should be a limit on the many templated parameters allowed in a single templated identifier
+// templated identifier
+    - No parameter name conflict is allowed
+    - The "..." type is only allowed once at the end of template parameter list
+    - The "..." type is not allowed when the AST is processed and transformed. It should be expanded.
+    - There should be a limit on the many templated parameters allowed in a single templated identifier
 
-// For all global variables
-- The initializer must be constant expression (or can be deduced as constant expression)
+// annotations
+    - If there's no custom annotation..
 
-// For all local variables in function scope
-- The constant variable cannot be modified once it's set in the initializer
+///////////////////////////////////////
+// EXPRESSION
+///////////////////////////////////////
 
-// For all member variable in class scope
-- The static variables is just like global variable except it's within class scope
-- The variable name must not conflict with the class name or member function name
-- The variable names must not conflict with each other
+// unary expression
+    - Check whether the type can be applied with specific unary operation (for example, ~ or ! cannot be used with floating number)
 
-// For all templated identifier
-- No parameter name conflict is allowed
-- The "..." type is only allowed once at the end of template parameter list
-- The "..." type is not allowed when the AST is processed and transformed. It should be expanded.
+// binary expression 
+    - Check the type compatibility between LHS and RHS
+    - All expression must be fully resolved
 
-// For all member function in either interface or class or local scope
-- The function parameters must be fully resolved
-- Except member function in interface, function must have body block (local anonymous function must be renamed beforehand)
-- The function name cannot conflict with other function unless they have different parameter signature (name resolving conflict)
-- There should be a limit on the many parameters allowed in a single function
+// ternary expression
+    - Check the type compatibility between LHS and RHS
 
-// For all package
-- the package name should not conflict with its parent and sibling
+// call expression
+    - Check whether the node is callable
+    - If the callee is a MemberExpr and the RHS is resolved to a non-static member function, we need to check if the LHS is a variable of that instance
+    - If the callee is s MemberExpr and the RHS is resolved to a static member function, we just need to check the type of LHS
 
-// For function
-- If the function has non-void return type, check if all paths have return value (and are of the same type)
-- If the function has void return type, then there's no return (BranchStmt) allowed in the tree
+// cast expression
+    - Check whether the node is convertible to the desired type
 
-// For class declaration
-- The class name cannot conflict with other class (name resolving conflict)
-- The identifiers for interface implementation must refer to an interface
-- There can be more than one new function (constructor overload) as long as they have different parameter signature
-- There should be a limit on how many member variables allowed in a single class
+///////////////////////////////////////
+// SELECTION STATEMENT
+///////////////////////////////////////
 
-// For enum declaration
-- The identifiers must not conflict with each other
-- The initialization list must be constant (just like global variable) and of integral type
+// if/elseif/else statement
+    - The condition expression must be able to cast into a boolean variable (and insert cast operation when necessary)
+    - The both if and elseif Selection must have non-null condition
 
-// For typedef declaration
-- The "from" node must refer to a type, and the "to" node must be an simple identifier 
+// switch statement
+    - If the condition is a variable resolved to EnumDecl type, all cases must be covered or there's default case, otherwise generate a warning for it
 
-// For if/elseif/else statement
-- The condition expression must be able to cast into a boolean variable (and insert cast operation when necessary)
-- The both if and elseif Selection must have non-null condition 
+///////////////////////////////////////
+// ITERATION STATEMENT
+///////////////////////////////////////
 
-// For foreach statement
-- the range expression must be an instance of Range<T> type
-- the iterator must be a variable declaration or a primary expression resolved to a symbol
+// while/dowhile statement
+    - If the condition can be evaluated as constant expression and its value is always true and there's no break in the while/do-while block, generate infinite loop warning
 
-// For switch statement
-- If the condition is a variable resolved to EnumDecl type, all cases must be covered or there's default case, otherwise generate a warning for it
+// foreach statement
+    - the range expression must be an instance of Range<T> type
+    - the iterator must be a variable declaration or a primary expression resolved to a symbol
 
-// For while/do-while statement
-- If the condition can be evaluated as constant expression and its value is always true and there's no break in the while/do-while block, generate infinite loop warning
+///////////////////////////////////////
+// DECLARATION
+///////////////////////////////////////
 
-// For annotations
-- If there's no custom annotation, 
+// global variable
+    - The initializer must be constant expression (or can be deduced as constant expression)
 
-// For unary expression
-- Check whether the type can be applied with specific unary operation (for example, ~ or ! cannot be used with floating number)
+// local variable
+    - The constant variable cannot be modified once it's set in the initializer
 
-// For binary expression 
-- Check the type compatibility between LHS and RHS
-- All expression must be fully resolved 
+// function declaration
+    - If the function has non-void return type, check if all paths have return value (and are of the same type)
+    - If the function has void return type, then there's no return (BranchStmt) allowed in the tree
 
-// For ternary expression
-- Check the type compatibility between LHS and RHS
+// class declaration
+    - The class name cannot conflict with other class (name resolving conflict)
+    - The identifiers for interface implementation must refer to an interface
+    - There can be more than one new function (constructor overload) as long as they have different parameter signature
+    - There should be a limit on how many member variables allowed in a single class
 
-// For call expression
-- Check whether the node is callable
-- If the callee is a MemberExpr and the RHS is resolved to a non-static member function, we need to check if the LHS is a variable of that instance
-- If the callee is s MemberExpr and the RHS is resolved to a static member function, we just need to check the type of LHS
+// class member variable declaration
+    - The static variables is just like global variable except it's within class scope
+    - The variable name must not conflict with the class name or member function name
+    - The variable names must not conflict with each other
 
-// For cast expression
-- Check whether the node is convertible to the desired type
+// typedef declaration
+    - The "from" node must refer to a type, and the "to" node must be an simple identifier
+
+// enum declaration
+    - The identifiers must not conflict with each other
+    - The initialization list must be constant (just like global variable) and of integral type
+
+// interface declaration
+    - All methods in interface should have no member scope specifier
+    - All methods in interface can have no function body
+    - All types must be explicitly specified for member function in interface
+
+// class/interface member function
+    - The function parameters must be fully resolved
+    - Except member function in interface, function must have body block (local anonymous function must be renamed beforehand)
+    - The function name cannot conflict with other function unless they have different parameter signature (name resolving conflict)
+    - There should be a limit on the many parameters allowed in a single function
+
+///////////////////////////////////////
+// MODULE
+///////////////////////////////////////
+
+// package
+    - The package name should not conflict with its parent and sibling
