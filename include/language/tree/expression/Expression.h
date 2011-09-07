@@ -28,8 +28,12 @@
 
 namespace zillians { namespace language { namespace tree {
 
+struct Selection;
+
 struct Expression : public ASTNode
 {
+    friend class Selection;
+
 	DEFINE_VISITABLE();
 	DEFINE_HIERARCHY(Expression, (Expression)(ASTNode));
 
@@ -46,16 +50,27 @@ struct Expression : public ASTNode
 	bool isLValue() { return !isRValue(); }
 	virtual bool isRValue() = 0;
 
-    virtual bool isEqual(const ASTNode& rhs, ASTNodeSet& visited) const
+    virtual bool isEqualImpl(const ASTNode& rhs, ASTNodeSet& visited) const
     {
-        if (visited.count(this)) return true ;
+        if(visited.count(this))
+        {
+            return true ;
+        }
+
         const Expression* p = cast<const Expression>(&rhs);
-        if (p == NULL) return false;
+        if(p == NULL)
+        {
+            return false;
+        }
+
         // compare base class
         // The base is ASTNode, no need to compare
 
         // compare data member
-        if (!isASTNodeMemberEqual   (&Expression::annotations            , *this, *p, visited)) return false;
+        if(!isASTNodeMemberEqual(&Expression::annotations, *this, *p, visited))
+        {
+            return false;
+        }
 
         // add this to the visited table.
         visited.insert(this);
@@ -63,8 +78,9 @@ struct Expression : public ASTNode
     }
 
     template<typename Archive>
-    void serialize(Archive& ar, const unsigned int version) {
-        ::boost::serialization::base_object<ASTNode>(*this);
+    void serialize(Archive& ar, const unsigned int version)
+    {
+        boost::serialization::base_object<ASTNode>(*this);
         ar & annotations;
     }
 

@@ -49,22 +49,33 @@ struct FunctionDecl : public Declaration
 		parameters.push_back(std::make_pair(name, type));
 	}
 
-    virtual bool isEqual(const ASTNode& rhs, ASTNodeSet& visited) const
+    virtual bool isEqualImpl(const ASTNode& rhs, ASTNodeSet& visited) const
     {
-        if (visited.count(this)) return true ;
+        if(visited.count(this))
+        {
+            return true ;
+        }
+
         const FunctionDecl* p = cast<const FunctionDecl>(&rhs);
-        if (p == NULL) return false;
+        if(p == NULL)
+        {
+            return false;
+        }
+
         // compare base class
-        if (!Declaration::isEqual(*p, visited)) return false;
+        if(!Declaration::isEqualImpl(*p, visited))
+        {
+            return false;
+        }
 
         // compare data member
-        if (!isASTNodeMemberEqual   (&FunctionDecl::name            , *this, *p, visited)) return false;
-        if (!isPairVectorMemberEqual(&FunctionDecl::parameters      , *this, *p, visited)) return false;
-        if (!isASTNodeMemberEqual   (&FunctionDecl::type            , *this, *p, visited)) return false;
-        if (this->is_member  != p->is_member                                             ) return false;
-        if (this->visibility != p->visibility                                            ) return false;
-        if (this->storage    != p->storage                                               ) return false;
-        if (!isASTNodeMemberEqual   (&FunctionDecl::block           , *this, *p, visited)) return false;
+        if(!isASTNodeMemberEqual   (&FunctionDecl::name            , *this, *p, visited)) return false;
+        if(!isPairVectorMemberEqual(&FunctionDecl::parameters      , *this, *p, visited)) return false;
+        if(!isASTNodeMemberEqual   (&FunctionDecl::type            , *this, *p, visited)) return false;
+        if(is_member  != p->is_member                                                   ) return false;
+        if(visibility != p->visibility                                                  ) return false;
+        if(storage    != p->storage                                                     ) return false;
+        if(!isASTNodeMemberEqual   (&FunctionDecl::block           , *this, *p, visited)) return false;
 
         // add this to the visited table.
         visited.insert(this);
@@ -72,8 +83,9 @@ struct FunctionDecl : public Declaration
     }
 
     template<typename Archive>
-    void serialize(Archive& ar, const unsigned int version) {
-        ::boost::serialization::base_object<Declaration>(*this);
+    void serialize(Archive& ar, const unsigned int version)
+    {
+        boost::serialization::base_object<Declaration>(*this);
         //ar & name;
         ar & parameters;
         //ar & type;
@@ -95,6 +107,7 @@ struct FunctionDecl : public Declaration
 } } }
 
 namespace boost { namespace serialization {
+
 template<class Archive>
 inline void save_construct_data(Archive& ar, const zillians::language::tree::FunctionDecl* p, const unsigned int file_version)
 {
@@ -127,6 +140,7 @@ inline void load_construct_data(Archive& ar, zillians::language::tree::FunctionD
 
 	::new(p) FunctionDecl(name, type, is_member, visibility, storage, block);
 }
-}} // namespace boost::serialization
+
+} } // namespace boost::serialization
 
 #endif /* ZILLIANS_LANGUAGE_TREE_FUNCTIONDECL_H_ */

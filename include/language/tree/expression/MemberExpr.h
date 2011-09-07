@@ -46,17 +46,34 @@ struct MemberExpr : public Expression
 		return false;
 	}
 
-    virtual bool isEqual(const ASTNode& rhs, ASTNodeSet& visited) const
+    virtual bool isEqualImpl(const ASTNode& rhs, ASTNodeSet& visited) const
     {
-        if (visited.count(this)) return true ;
+        if(visited.count(this))
+        {
+            return true ;
+        }
+
         const MemberExpr* p = cast<const MemberExpr>(&rhs);
-        if (p == NULL) return false;
+        if(p == NULL)
+        {
+            return false;
+        }
+
         // compare base class
-        if (!Expression::isEqual(*p, visited)) return false;
+        if(!Expression::isEqualImpl(*p, visited))
+        {
+            return false;
+        }
 
         // compare data member
-        if (!isASTNodeMemberEqual   (&MemberExpr::node            , *this, *p, visited)) return false;
-        if (!isASTNodeMemberEqual   (&MemberExpr::member          , *this, *p, visited)) return false;
+        if(!isASTNodeMemberEqual(&MemberExpr::node, *this, *p, visited))
+        {
+            return false;
+        }
+        if(!isASTNodeMemberEqual(&MemberExpr::member, *this, *p, visited))
+        {
+            return false;
+        }
 
         // add this to the visited table.
         visited.insert(this);
@@ -64,8 +81,9 @@ struct MemberExpr : public Expression
     }
 
     template<typename Archive>
-    void serialize(Archive& ar, const unsigned int version) {
-        ::boost::serialization::base_object<Expression>(*this);
+    void serialize(Archive& ar, const unsigned int version)
+    {
+        boost::serialization::base_object<Expression>(*this);
     }
 
 	ASTNode* node;
@@ -75,6 +93,7 @@ struct MemberExpr : public Expression
 } } }
 
 namespace boost { namespace serialization {
+
 template<class Archive>
 inline void save_construct_data(Archive& ar, const zillians::language::tree::MemberExpr* p, const unsigned int file_version)
 {
@@ -93,6 +112,7 @@ inline void load_construct_data(Archive& ar, zillians::language::tree::MemberExp
     ar >> member;
 	::new(p) MemberExpr(node, member);
 }
-}} // namespace boost::serialization
+
+} } // namespace boost::serialization
 
 #endif /* ZILLIANS_LANGUAGE_TREE_MEMBEREXPR_H_ */

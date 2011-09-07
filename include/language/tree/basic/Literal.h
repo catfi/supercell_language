@@ -36,11 +36,18 @@ struct Literal : public ASTNode
 	DEFINE_VISITABLE();
 	DEFINE_HIERARCHY(Literal, (Literal)(ASTNode));
 
-    virtual bool isEqual(const ASTNode& rhs, ASTNodeSet& visited) const
+    virtual bool isEqualImpl(const ASTNode& rhs, ASTNodeSet& visited) const
     {
-        if (visited.count(this)) return true ;
+        if(visited.count(this))
+        {
+        	return true ;
+        }
+
         const Literal* p = cast<const Literal>(&rhs);
-        if (p == NULL) return false;
+        if(p == NULL)
+        {
+        	return false;
+        }
         // compare base class
         // base is ASTNode, no need to compare
 
@@ -53,8 +60,9 @@ struct Literal : public ASTNode
     }
 
     template<typename Archive>
-    void serialize(Archive& ar, const unsigned int version) {
-        ::boost::serialization::base_object<ASTNode>(*this);
+    void serialize(Archive& ar, const unsigned int version)
+    {
+        boost::serialization::base_object<ASTNode>(*this);
     }
 };
 
@@ -84,16 +92,30 @@ struct ObjectLiteral : public Literal
 	explicit ObjectLiteral(LiteralType::type t) : type(t)
 	{ }
 
-    virtual bool isEqual(const ASTNode& rhs, ASTNodeSet& visited) const
+    virtual bool isEqualImpl(const ASTNode& rhs, ASTNodeSet& visited) const
     {
-        if (visited.count(this)) return true ;
+        if(visited.count(this))
+        {
+        	return true ;
+        }
+
         const ObjectLiteral* p = cast<const ObjectLiteral>(&rhs);
-        if (p == NULL) return false;
+        if(p == NULL)
+        {
+        	return false;
+        }
+
         // compare base class
-        if (!Literal::isEqual(*p, visited)) return false;
+        if(!Literal::isEqualImpl(*p, visited))
+        {
+        	return false;
+        }
 
         // compare data member
-        if (this->type != p->type) return false;
+        if(type != p->type)
+        {
+        	return false;
+        }
 
         // add this to the visited table.
         visited.insert(this);
@@ -101,8 +123,9 @@ struct ObjectLiteral : public Literal
     }
 
     template<typename Archive>
-    void serialize(Archive& ar, const unsigned int version) {
-        ::boost::serialization::base_object<Literal>(*this);
+    void serialize(Archive& ar, const unsigned int version)
+    {
+        boost::serialization::base_object<Literal>(*this);
     }
 
 	LiteralType::type type;
@@ -127,28 +150,43 @@ struct NumericLiteral : public Literal
 	explicit NumericLiteral(float v)  { type = PrimitiveType::FLOAT32; value.f32 = v; }
 	explicit NumericLiteral(double v) { type = PrimitiveType::FLOAT64; value.f64 = v; }
 
-    virtual bool isEqual(const ASTNode& rhs, ASTNodeSet& visited) const
+    virtual bool isEqualImpl(const ASTNode& rhs, ASTNodeSet& visited) const
     {
-        if (visited.count(this)) return true ;
+        if(visited.count(this))
+        {
+        	return true ;
+        }
+
         const NumericLiteral* p = cast<const NumericLiteral>(&rhs);
-        if (p == NULL) return false;
+        if(p == NULL)
+        {
+        	return false;
+        }
+
         // compare base class
-        if (!Literal::isEqual(*p, visited)) return false;
+        if(!Literal::isEqualImpl(*p, visited))
+        {
+        	return false;
+        }
 
         // compare data member
-        if (this->type != p->type) return false;
-        switch (type) {
-        case PrimitiveType::type::BOOL    : if(this->value.b   != p->value.b  ) return false; break;
-        case PrimitiveType::type::UINT8   : if(this->value.i8  != p->value.i8 ) return false; break;
-        case PrimitiveType::type::UINT16  : if(this->value.i16 != p->value.i16) return false; break;
-        case PrimitiveType::type::UINT32  : if(this->value.i32 != p->value.i32) return false; break;
-        case PrimitiveType::type::UINT64  : if(this->value.i64 != p->value.i64) return false; break;
-        case PrimitiveType::type::INT8    : if(this->value.u8  != p->value.u8 ) return false; break;
-        case PrimitiveType::type::INT16   : if(this->value.u16 != p->value.u16) return false; break;
-        case PrimitiveType::type::INT32   : if(this->value.u32 != p->value.u32) return false; break;
-        case PrimitiveType::type::INT64   : if(this->value.u64 != p->value.u64) return false; break;
-        case PrimitiveType::type::FLOAT32 : if(this->value.f32 != p->value.f32) return false; break;
-        case PrimitiveType::type::FLOAT64 : if(this->value.f64 != p->value.f64) return false; break;
+        if(type != p->type)
+        {
+        	return false;
+        }
+        switch(type)
+        {
+        case PrimitiveType::type::BOOL    : if(value.b   != p->value.b  ) return false; break;
+        case PrimitiveType::type::UINT8   : if(value.i8  != p->value.i8 ) return false; break;
+        case PrimitiveType::type::UINT16  : if(value.i16 != p->value.i16) return false; break;
+        case PrimitiveType::type::UINT32  : if(value.i32 != p->value.i32) return false; break;
+        case PrimitiveType::type::UINT64  : if(value.i64 != p->value.i64) return false; break;
+        case PrimitiveType::type::INT8    : if(value.u8  != p->value.u8 ) return false; break;
+        case PrimitiveType::type::INT16   : if(value.u16 != p->value.u16) return false; break;
+        case PrimitiveType::type::INT32   : if(value.u32 != p->value.u32) return false; break;
+        case PrimitiveType::type::INT64   : if(value.u64 != p->value.u64) return false; break;
+        case PrimitiveType::type::FLOAT32 : if(value.f32 != p->value.f32) return false; break;
+        case PrimitiveType::type::FLOAT64 : if(value.f64 != p->value.f64) return false; break;
         }
 
         // add this to the visited table.
@@ -157,8 +195,9 @@ struct NumericLiteral : public Literal
     }
 
     template<typename Archive>
-    void serialize(Archive& ar, const unsigned int version) {
-        ::boost::serialization::base_object<Literal>(*this);
+    void serialize(Archive& ar, const unsigned int version)
+    {
+        boost::serialization::base_object<Literal>(*this);
     }
 
 	PrimitiveType::type type;
@@ -198,24 +237,40 @@ struct StringLiteral : public Literal
 			value.push_back(*begin++);
 	}
 
-    virtual bool isEqual(const ASTNode& rhs, ASTNodeSet& visited) const
+    virtual bool isEqualImpl(const ASTNode& rhs, ASTNodeSet& visited) const
     {
-        if (visited.count(this)) return true ;
+        if(visited.count(this))
+        {
+            return true ;
+        }
+
         const StringLiteral* p = cast<const StringLiteral>(&rhs);
-        if (p == NULL) return false;
+        if(p == NULL)
+        {
+            return false;
+        }
+
         // compare base class
-        if (!Literal::isEqual(*p, visited)) return false;
+        if(!Literal::isEqualImpl(*p, visited))
+        {
+            return false;
+        }
 
         // compare data member
-        if (this->value != p->value) return false;
+        if(value != p->value)
+        {
+            return false;
+        }
+
         // add this to the visited table.
         visited.insert(this);
         return true;
     }
 
     template<typename Archive>
-    void serialize(Archive& ar, const unsigned int version) {
-        ::boost::serialization::base_object<Literal>(*this);
+    void serialize(Archive& ar, const unsigned int version)
+    {
+        boost::serialization::base_object<Literal>(*this);
     }
 
 	std::wstring value;
@@ -316,6 +371,6 @@ inline void load_construct_data(Archive& ar, zillians::language::tree::StringLit
     new(p) StringLiteral(value);
 }
 
-}} // namespace boost::serialization
+} } // namespace boost::serialization
 
 #endif /* ZILLIANS_LANGUAGE_TREE_LITERAL_H_ */

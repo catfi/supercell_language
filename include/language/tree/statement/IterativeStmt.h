@@ -34,13 +34,24 @@ struct IterativeStmt : public Statement
 	DEFINE_VISITABLE();
 	DEFINE_HIERARCHY(IterativeStmt, (IterativeStmt)(Statement)(ASTNode));
 
-    virtual bool isEqual(const ASTNode& rhs, ASTNodeSet& visited) const
+    virtual bool isEqualImpl(const ASTNode& rhs, ASTNodeSet& visited) const
     {
-        if (visited.count(this)) return true ;
+        if(visited.count(this))
+        {
+            return true ;
+        }
+
         const IterativeStmt* p = cast<const IterativeStmt>(&rhs);
-        if (p == NULL) return false;
+        if(p == NULL)
+        {
+            return false;
+        }
+
         // compare base class
-        if (!Statement::isEqual(*p, visited)) return false;
+        if(!Statement::isEqualImpl(*p, visited))
+        {
+            return false;
+        }
 
         // compare data member
         // no data member
@@ -51,8 +62,9 @@ struct IterativeStmt : public Statement
     }
 
     template<typename Archive>
-    void serialize(Archive& ar, const unsigned int version) {
-        ::boost::serialization::base_object<Statement>(*this);
+    void serialize(Archive& ar, const unsigned int version)
+    {
+        boost::serialization::base_object<Statement>(*this);
     }
 };
 
@@ -71,18 +83,29 @@ struct ForeachStmt : public IterativeStmt
 		if(block) block->parent = this;
 	}
 
-    virtual bool isEqual(const ASTNode& rhs, ASTNodeSet& visited) const
+    virtual bool isEqualImpl(const ASTNode& rhs, ASTNodeSet& visited) const
     {
-        if (visited.count(this)) return true ;
+        if(visited.count(this))
+        {
+            return true ;
+        }
+
         const ForeachStmt* p = cast<const ForeachStmt>(&rhs);
-        if (p == NULL) return false;
+        if(p == NULL)
+        {
+            return false;
+        }
+
         // compare base class
-        if (!IterativeStmt::isEqual(*p, visited)) return false;
+        if(!IterativeStmt::isEqualImpl(*p, visited))
+        {
+            return false;
+        }
 
         // compare data member
-        if (!isASTNodeMemberEqual   (&ForeachStmt::iterator            , *this, *p, visited)) return false;
-        if (!isASTNodeMemberEqual   (&ForeachStmt::range               , *this, *p, visited)) return false;
-        if (!isASTNodeMemberEqual   (&ForeachStmt::block               , *this, *p, visited)) return false;
+        if(!isASTNodeMemberEqual   (&ForeachStmt::iterator            , *this, *p, visited)) return false;
+        if(!isASTNodeMemberEqual   (&ForeachStmt::range               , *this, *p, visited)) return false;
+        if(!isASTNodeMemberEqual   (&ForeachStmt::block               , *this, *p, visited)) return false;
 
         // add this to the visited table.
         visited.insert(this);
@@ -90,8 +113,9 @@ struct ForeachStmt : public IterativeStmt
     }
 
     template<typename Archive>
-    void serialize(Archive& ar, const unsigned int version) {
-        ::boost::serialization::base_object<IterativeStmt>(*this);
+    void serialize(Archive& ar, const unsigned int version)
+    {
+        boost::serialization::base_object<IterativeStmt>(*this);
         ar & iterator;
         ar & range;
         ar & block;
@@ -132,18 +156,29 @@ struct WhileStmt : public IterativeStmt
 		if(block) block->parent = this;
 	}
 
-    virtual bool isEqual(const ASTNode& rhs, ASTNodeSet& visited) const
+    virtual bool isEqualImpl(const ASTNode& rhs, ASTNodeSet& visited) const
     {
-        if (visited.count(this)) return true ;
+        if(visited.count(this))
+        {
+            return true ;
+        }
+
         const WhileStmt* p = cast<const WhileStmt>(&rhs);
-        if (p == NULL) return false;
+        if(p == NULL)
+        {
+            return false;
+        }
+
         // compare base class
-        if (!IterativeStmt::isEqual(*p, visited)) return false;
+        if(!IterativeStmt::isEqualImpl(*p, visited))
+        {
+            return false;
+        }
 
         // compare data member
-        if (this->style != p->style                                                       ) return false;
-        if (!isASTNodeMemberEqual   (&WhileStmt::cond                , *this, *p, visited)) return false;
-        if (!isASTNodeMemberEqual   (&WhileStmt::block               , *this, *p, visited)) return false;
+        if(style != p->style                                                             ) return false;
+        if(!isASTNodeMemberEqual   (&WhileStmt::cond                , *this, *p, visited)) return false;
+        if(!isASTNodeMemberEqual   (&WhileStmt::block               , *this, *p, visited)) return false;
 
         // add this to the visited table.
         visited.insert(this);
@@ -151,8 +186,9 @@ struct WhileStmt : public IterativeStmt
     }
 
     template<typename Archive>
-    void serialize(Archive& ar, const unsigned int version) {
-        ::boost::serialization::base_object<IterativeStmt>(*this);
+    void serialize(Archive& ar, const unsigned int version)
+    {
+        boost::serialization::base_object<IterativeStmt>(*this);
         ar & cond;
         ar & block;
     }
@@ -216,6 +252,6 @@ inline void load_construct_data(Archive& ar, zillians::language::tree::WhileStmt
 	::new(p) WhileStmt(static_cast<WhileStmt::Style::type>(style), cond, block);
 }
 
-}} // namespace boost::serialization
+} } // namespace boost::serialization
 
 #endif /* ZILLIANS_LANGUAGE_TREE_ITERATIVESTMT_H_ */

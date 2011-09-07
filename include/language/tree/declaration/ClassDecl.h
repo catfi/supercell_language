@@ -77,20 +77,31 @@ struct ClassDecl : public Declaration
 		implements.push_back(interface);
 	}
 
-    virtual bool isEqual(const ASTNode& rhs, ASTNodeSet& visited) const
+    virtual bool isEqualImpl(const ASTNode& rhs, ASTNodeSet& visited) const
     {
-        if (visited.count(this)) return true ;
+        if(visited.count(this))
+        {
+            return true ;
+        }
+
         const ClassDecl* p = cast<const ClassDecl>(&rhs);
-        if (p == NULL) return false;
+        if(p == NULL)
+        {
+            return false;
+        }
+
         // compare base class
-        if (!Declaration::isEqual(*p, visited)) return false;
+        if(!Declaration::isEqualImpl(*p, visited))
+        {
+            return false;
+        }
 
         // compare data member
-        if (!isASTNodeMemberEqual(&ClassDecl::name            , *this, *p, visited)) return false;
-        if (!isASTNodeMemberEqual(&ClassDecl::base            , *this, *p, visited)) return false;
-        if (!isVectorMemberEqual (&ClassDecl::implements      , *this, *p, visited)) return false;
-        if (!isVectorMemberEqual (&ClassDecl::member_functions, *this, *p, visited)) return false;
-        if (!isVectorMemberEqual (&ClassDecl::member_variables, *this, *p, visited)) return false;
+        if(!isASTNodeMemberEqual(&ClassDecl::name            , *this, *p, visited)) return false;
+        if(!isASTNodeMemberEqual(&ClassDecl::base            , *this, *p, visited)) return false;
+        if(!isVectorMemberEqual (&ClassDecl::implements      , *this, *p, visited)) return false;
+        if(!isVectorMemberEqual (&ClassDecl::member_functions, *this, *p, visited)) return false;
+        if(!isVectorMemberEqual (&ClassDecl::member_variables, *this, *p, visited)) return false;
 
         // add this to the visited table.
         visited.insert(this);
@@ -98,8 +109,9 @@ struct ClassDecl : public Declaration
     }
 
     template<typename Archive>
-    void serialize(Archive& ar, const unsigned int version) {
-        ::boost::serialization::base_object<Declaration>(*this) ;
+    void serialize(Archive& ar, const unsigned int version)
+    {
+        boost::serialization::base_object<Declaration>(*this) ;
         // NOTE: name is serialized in save_construct_data() function
         // see http://www.boost.org/doc/libs/1_47_0/libs/serialization/doc/serialization.html#constructors
         //ar & name;
@@ -119,6 +131,7 @@ struct ClassDecl : public Declaration
 } } }
 
 namespace boost { namespace serialization {
+
 template<class Archive>
 inline void save_construct_data(Archive& ar, const zillians::language::tree::ClassDecl* p, const unsigned int file_version)
 {
@@ -134,6 +147,7 @@ inline void load_construct_data(Archive& ar, zillians::language::tree::ClassDecl
 	ar >> name;
 	::new(p) ClassDecl(name);
 }
-}} // namespace boost::serialization
+
+} } // namespace boost::serialization
 
 #endif /* ZILLIANS_LANGUAGE_TREE_CLASSDECL_H_ */

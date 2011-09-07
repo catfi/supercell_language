@@ -51,17 +51,31 @@ struct Program : public ASTNode
 		imports.push_back(import);
 	}
 
-    virtual bool isEqual(const ASTNode& rhs, ASTNodeSet& visited) const
+    virtual bool isEqualImpl(const ASTNode& rhs, ASTNodeSet& visited) const
     {
-        if (visited.count(this)) return true ;
+        if(visited.count(this))
+        {
+            return true ;
+        }
+
         const Program* p = cast<const Program>(&rhs);
-        if (p == NULL) return false;
+        if(p == NULL)
+        {
+            return false;
+        }
+
         // compare base class
         // base is ASTNode, no need to compare
 
         // compare data member
-        if (!isASTNodeMemberEqual   (&Program::root                , *this, *p, visited)) return false;
-        if (!isVectorMemberEqual    (&Program::imports             , *this, *p, visited)) return false;
+        if(!isASTNodeMemberEqual(&Program::root, *this, *p, visited))
+        {
+            return false;
+        }
+        if(!isVectorMemberEqual(&Program::imports, *this, *p, visited))
+        {
+            return false;
+        }
 
         // add this to the visited table.
         visited.insert(this);
@@ -69,8 +83,9 @@ struct Program : public ASTNode
     }
 
     template<typename Archive>
-    void serialize(Archive& ar, const unsigned int version) {
-        ::boost::serialization::base_object<ASTNode>(*this);
+    void serialize(Archive& ar, const unsigned int version)
+    {
+        boost::serialization::base_object<ASTNode>(*this);
         ar & root;
         ar & imports;
     }

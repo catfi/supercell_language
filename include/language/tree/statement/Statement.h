@@ -43,16 +43,27 @@ struct Statement : public ASTNode
 		annotations = anns;
 	}
 
-    virtual bool isEqual(const ASTNode& rhs, ASTNodeSet& visited) const
+    virtual bool isEqualImpl(const ASTNode& rhs, ASTNodeSet& visited) const
     {
-        if (visited.count(this)) return true ;
+        if(visited.count(this))
+        {
+            return true ;
+        }
+
         const Statement* p = cast<const Statement>(&rhs);
-        if (p == NULL) return false;
+        if(p == NULL)
+        {
+            return false;
+        }
+
         // compare base class
         // base is ASTNode, no need to compare
 
         // compare data member
-        if (!isASTNodeMemberEqual   (&Statement::annotations         , *this, *p, visited)) return false;
+        if(!isASTNodeMemberEqual(&Statement::annotations, *this, *p, visited))
+        {
+            return false;
+        }
 
         // add this to the visited table.
         visited.insert(this);
@@ -60,8 +71,9 @@ struct Statement : public ASTNode
     }
 
     template<typename Archive>
-    void serialize(Archive& ar, const unsigned int version) {
-        ::boost::serialization::base_object<ASTNode>(*this);
+    void serialize(Archive& ar, const unsigned int version)
+    {
+        boost::serialization::base_object<ASTNode>(*this);
         ar & annotations;
     }
 

@@ -51,18 +51,35 @@ struct Block : public ASTNode
 		}
 	}
 
-    virtual bool isEqual(const ASTNode& rhs, ASTNodeSet& visited) const
+    virtual bool isEqualImpl(const ASTNode& rhs, ASTNodeSet& visited) const
     {
-        if (visited.count(this)) return true ;
+        if(visited.count(this))
+        {
+        	return true ;
+        }
+
         const Block* p = cast<const Block>(&rhs);
-        if (p == NULL) return false;
+        if(p == NULL)
+        {
+        	return false;
+        }
+
         // compare base class
         // The base is ASTNode, no need to be compared.
 
         // compare data member
-        if (this->is_pipelined_block != p->is_pipelined_block) return false;
-        if (this->is_async_block     != p->is_async_block    ) return false;
-        if (!isVectorMemberEqual(&Block::objects , *this, *p, visited)) return false;
+        if(is_pipelined_block != p->is_pipelined_block)
+        {
+        	return false;
+        }
+        if(is_async_block != p->is_async_block)
+        {
+        	return false;
+        }
+        if(!isVectorMemberEqual(&Block::objects , *this, *p, visited))
+        {
+        	return false;
+        }
 
         // add this to the visited table.
         visited.insert(this);
@@ -70,8 +87,9 @@ struct Block : public ASTNode
     }
 
 	template<typename Archive>
-    void serialize(Archive& ar, const unsigned int version) {
-        ::boost::serialization::base_object<ASTNode>(*this);
+    void serialize(Archive& ar, const unsigned int version)
+	{
+        boost::serialization::base_object<ASTNode>(*this);
         ar & is_pipelined_block;
         ar & is_async_block;
         ar & objects;

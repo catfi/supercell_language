@@ -41,16 +41,30 @@ struct DeclarativeStmt : public Statement
 		declaration->parent = this;
 	}
 
-    virtual bool isEqual(const ASTNode& rhs, ASTNodeSet& visited) const
+    virtual bool isEqualImpl(const ASTNode& rhs, ASTNodeSet& visited) const
     {
-        if (visited.count(this)) return true ;
+        if(visited.count(this))
+        {
+            return true ;
+        }
+
         const DeclarativeStmt* p = cast<const DeclarativeStmt>(&rhs);
-        if (p == NULL) return false;
+        if(p == NULL)
+        {
+            return false;
+        }
+
         // compare base class
-        if (!Statement::isEqual(*p, visited)) return false;
+        if(!Statement::isEqualImpl(*p, visited))
+        {
+            return false;
+        }
 
         // compare data member
-        if (!isASTNodeMemberEqual   (&DeclarativeStmt::declaration         , *this, *p, visited)) return false;
+        if(!isASTNodeMemberEqual(&DeclarativeStmt::declaration, *this, *p, visited))
+        {
+            return false;
+        }
 
         // add this to the visited table.
         visited.insert(this);
@@ -58,8 +72,9 @@ struct DeclarativeStmt : public Statement
     }
 
     template<typename Archive>
-    void serialize(Archive& ar, const unsigned int version) {
-        ::boost::serialization::base_object<Statement>(*this);
+    void serialize(Archive& ar, const unsigned int version)
+    {
+        boost::serialization::base_object<Statement>(*this);
     }
 
 	Declaration* declaration;
@@ -85,6 +100,6 @@ inline void load_construct_data(Archive& ar, zillians::language::tree::Declarati
 	::new(p) DeclarativeStmt(declaration);
 }
 
-}} // namespace boost::serialization
+} } // namespace boost::serialization
 
 #endif /* ZILLIANS_LANGUAGE_TREE_DECLARATIVESTMT_H_ */

@@ -40,17 +40,34 @@ struct TypedefDecl : public Declaration
 		to->parent = this;
 	}
 
-    virtual bool isEqual(const ASTNode& rhs, ASTNodeSet& visited) const
+    virtual bool isEqualImpl(const ASTNode& rhs, ASTNodeSet& visited) const
     {
-        if (visited.count(this)) return true ;
+        if(visited.count(this))
+        {
+            return true ;
+        }
+
         const TypedefDecl* p = cast<const TypedefDecl>(&rhs);
-        if (p == NULL) return false;
+        if(p == NULL)
+        {
+            return false;
+        }
+
         // compare base class
-        if (!Declaration::isEqual(*p, visited)) return false;
+        if(!Declaration::isEqualImpl(*p, visited))
+        {
+            return false;
+        }
 
         // compare data member
-        if (!isASTNodeMemberEqual   (&TypedefDecl::from            , *this, *p, visited)) return false;
-        if (!isASTNodeMemberEqual   (&TypedefDecl::to              , *this, *p, visited)) return false;
+        if(!isASTNodeMemberEqual(&TypedefDecl::from, *this, *p, visited))
+        {
+            return false;
+        }
+        if(!isASTNodeMemberEqual(&TypedefDecl::to  , *this, *p, visited))
+        {
+            return false;
+        }
 
         // add this to the visited table.
         visited.insert(this);
@@ -58,8 +75,9 @@ struct TypedefDecl : public Declaration
     }
 
     template<typename Archive>
-    void serialize(Archive& ar, const unsigned int version) {
-        ::boost::serialization::base_object<Declaration>(*this);
+    void serialize(Archive& ar, const unsigned int version)
+    {
+        boost::serialization::base_object<Declaration>(*this);
     }
 
 	TypeSpecifier* from;
@@ -69,6 +87,7 @@ struct TypedefDecl : public Declaration
 } } }
 
 namespace boost { namespace serialization {
+
 template<class Archive>
 inline void save_construct_data(Archive& ar, const zillians::language::tree::TypedefDecl* p, const unsigned int file_version)
 {
@@ -87,6 +106,7 @@ inline void load_construct_data(Archive& ar, zillians::language::tree::TypedefDe
     ar >> to;
 	::new(p) TypedefDecl(from, to);
 }
-}} // namespace boost::serialization
+
+} } // namespace boost::serialization
 
 #endif /* ZILLIANS_LANGUAGE_TREE_TYPEDEFDECL_H_ */
