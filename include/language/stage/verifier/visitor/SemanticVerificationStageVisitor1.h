@@ -21,6 +21,7 @@
 #define ZILLIANS_LANGUAGE_STAGE_VISITOR_SEMANTICVERIFICATIONSTAGEVISITOR1_H_
 
 #include "core/Prerequisite.h"
+#include "language/tree/visitor/general/GenericVisitor.h"
 #include "language/tree/visitor/general/GenericDoubleVisitor.h"
 #include "language/tree/visitor/general/NameManglingVisitor.h"
 #include "language/stage/transformer/context/ManglingStageContext.h"
