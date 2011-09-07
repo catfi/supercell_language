@@ -50,6 +50,24 @@ struct TernaryExpr : public Expression
 		return (true_node->isRValue() | false_node->isRValue());
 	}
 
+    virtual bool isEqual(const ASTNode& rhs, ASTNodeSet& visited) const
+    {
+        if (visited.count(this)) return true ;
+        const TernaryExpr* p = cast<const TernaryExpr>(&rhs);
+        if (p == NULL) return false;
+        // compare base class
+        if (!Expression::isEqual(*p, visited)) return false;
+
+        // compare data member
+        if (!isASTNodeMemberEqual   (&TernaryExpr::cond            , *this, *p, visited)) return false;
+        if (!isASTNodeMemberEqual   (&TernaryExpr::true_node       , *this, *p, visited)) return false;
+        if (!isASTNodeMemberEqual   (&TernaryExpr::false_node      , *this, *p, visited)) return false;
+
+        // add this to the visited table.
+        visited.insert(this);
+        return true;
+    }
+
     template<typename Archive>
     void serialize(Archive& ar, const unsigned int version) {
         ::boost::serialization::base_object<Expression>(*this);

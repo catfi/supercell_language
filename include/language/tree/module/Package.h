@@ -71,6 +71,24 @@ struct Package : public ASTNode
 		objects.push_back(object);
 	}
 
+    virtual bool isEqual(const ASTNode& rhs, ASTNodeSet& visited) const
+    {
+        if (visited.count(this)) return true ;
+        const Package* p = cast<const Package>(&rhs);
+        if (p == NULL) return false;
+        // compare base class
+        // base is ASTNode, no need to compare
+
+        // compare data member
+        if (!isASTNodeMemberEqual   (&Package::id                  , *this, *p, visited)) return false;
+        if (!isVectorMemberEqual    (&Package::children            , *this, *p, visited)) return false;
+        if (!isVectorMemberEqual    (&Package::objects             , *this, *p, visited)) return false;
+
+        // add this to the visited table.
+        visited.insert(this);
+        return true;
+    }
+
     template<typename Archive>
     void serialize(Archive& ar, const unsigned int version) {
         ::boost::serialization::base_object<ASTNode>(*this);
@@ -86,6 +104,7 @@ struct Package : public ASTNode
 } } }
 
 namespace boost { namespace serialization {
+
 template<class Archive>
 inline void save_construct_data(Archive& ar, const zillians::language::tree::Package* p, const unsigned int file_version)
 {
@@ -101,6 +120,7 @@ inline void load_construct_data(Archive& ar, zillians::language::tree::Package* 
     ar >> id;
 	::new(p) Package(id);
 }
+
 }} // namespace boost::serialization
 
 #endif /* ZILLIANS_LANGUAGE_TREE_PACKAGE_H_ */

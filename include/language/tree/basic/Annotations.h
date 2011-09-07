@@ -45,6 +45,33 @@ struct Annotation : public ASTNode
 		attribute_list.push_back(std::make_pair(key, value));
 	}
 
+    virtual bool isEqual(const ASTNode& rhs, ASTNodeSet& visited) const
+    {
+        // if this node is compared already, return true directly, avoid infinite recursive comparing.
+        if (visited.count(this))
+        {
+            return true ;
+        }
+
+        // check type
+        const Annotation* p = cast<const Annotation>(&rhs);
+        if (p == NULL)
+        {
+            return false; 
+        }
+
+        // compare base class
+        // The base is ASTNode, no need to be compared.
+
+        // compare data member
+        if (!isASTNodeMemberEqual   (&Annotation::name          , *this, *p, visited)) return false;
+        if (!isPairVectorMemberEqual(&Annotation::attribute_list, *this, *p, visited)) return false;
+
+        // add this to the visited table.
+        visited.insert(this);
+        return true;
+    }
+
     template<typename Archive>
     void serialize(Archive& ar, const unsigned int version) {
         ::boost::serialization::base_object<ASTNode>(*this);
@@ -68,6 +95,22 @@ struct Annotations : public ASTNode
 		annotation->parent = this;
 		annotation_list.push_back(annotation);
 	}
+
+    virtual bool isEqual(const ASTNode& rhs, ASTNodeSet& visited) const
+    {
+        if (visited.count(this)) return true ;
+        const Annotations* p = cast<const Annotations>(&rhs);
+        if (p == NULL) return false;
+        // compare base class
+        // The base is ASTNode, no need to be compared.
+
+        // compare data member
+        if (!isVectorMemberEqual (&Annotations::annotation_list , *this, *p, visited)) return false;
+
+        // add this to the visited table.
+        visited.insert(this);
+        return true;
+    }
 
     template<typename Archive>
     void serialize(Archive& ar, const unsigned int version) {
