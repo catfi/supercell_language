@@ -1,8 +1,8 @@
 SemanticCheck CheckList
 
-///////////////////////////////////////
-// BASIC
-///////////////////////////////////////
+/////////////////////////////////////////////////////////////////////
+/// BASIC
+/////////////////////////////////////////////////////////////////////
 
 // templated identifier
     - No parameter name conflict is allowed
@@ -13,9 +13,9 @@ SemanticCheck CheckList
 // annotations
     - If there's no custom annotation..
 
-///////////////////////////////////////
-// EXPRESSION
-///////////////////////////////////////
+/////////////////////////////////////////////////////////////////////
+/// EXPRESSION
+/////////////////////////////////////////////////////////////////////
 
 // unary expression
     - Check whether the type can be applied with specific unary operation (for example, ~ or ! cannot be used with floating number)
@@ -35,9 +35,9 @@ SemanticCheck CheckList
 // cast expression
     - Check whether the node is convertible to the desired type
 
-///////////////////////////////////////
-// SELECTION STATEMENT
-///////////////////////////////////////
+/////////////////////////////////////////////////////////////////////
+/// SELECTION STATEMENT
+/////////////////////////////////////////////////////////////////////
 
 // if/elseif/else statement
     - The condition expression must be able to cast into a boolean variable (and insert cast operation when necessary)
@@ -46,9 +46,9 @@ SemanticCheck CheckList
 // switch statement
     - If the condition is a variable resolved to EnumDecl type, all cases must be covered or there's default case, otherwise generate a warning for it
 
-///////////////////////////////////////
-// ITERATION STATEMENT
-///////////////////////////////////////
+/////////////////////////////////////////////////////////////////////
+/// ITERATION STATEMENT
+/////////////////////////////////////////////////////////////////////
 
 // while/dowhile statement
     - If the condition can be evaluated as constant expression and its value is always true and there's no break in the while/do-while block, generate infinite loop warning
@@ -57,9 +57,9 @@ SemanticCheck CheckList
     - the range expression must be an instance of Range<T> type
     - the iterator must be a variable declaration or a primary expression resolved to a symbol
 
-///////////////////////////////////////
-// DECLARATION
-///////////////////////////////////////
+/////////////////////////////////////////////////////////////////////
+/// DECLARATION
+/////////////////////////////////////////////////////////////////////
 
 // global variable
     - The initializer must be constant expression (or can be deduced as constant expression)
@@ -100,9 +100,9 @@ SemanticCheck CheckList
     - The function name cannot conflict with other function unless they have different parameter signature (name resolving conflict)
     - There should be a limit on the many parameters allowed in a single function
 
-///////////////////////////////////////
-// MODULE
-///////////////////////////////////////
+/////////////////////////////////////////////////////////////////////
+/// MODULE
+/////////////////////////////////////////////////////////////////////
 
 // package
     - The package name should not conflict with its parent and sibling
