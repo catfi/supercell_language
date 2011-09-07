@@ -36,35 +36,39 @@ SemanticCheck CheckList
     - Check whether the node is convertible to the desired type
 
 /////////////////////////////////////////////////////////////////////
-/// SELECTION STATEMENT
+/// STATEMENT
 /////////////////////////////////////////////////////////////////////
 
-// if/elseif/else statement
-    - The condition expression must be able to cast into a boolean variable (and insert cast operation when necessary)
-    - The both if and elseif Selection must have non-null condition
+    /////////////////////////////////////////////////////////////////////
+    /// SELECTION STATEMENT
+    /////////////////////////////////////////////////////////////////////
 
-// switch statement
-    - If the condition is a variable resolved to EnumDecl type, all cases must be covered or there's default case, otherwise generate a warning for it
+    // if/elseif/else statement
+        - The condition expression must be able to cast into a boolean variable (and insert cast operation when necessary)
+        - The both if and elseif Selection must have non-null condition
 
-/////////////////////////////////////////////////////////////////////
-/// ITERATION STATEMENT
-/////////////////////////////////////////////////////////////////////
+    // switch statement
+        - If the condition is a variable resolved to EnumDecl type, all cases must be covered or there's default case, otherwise generate a warning for it
 
-// while/dowhile statement
-    - If the condition can be evaluated as constant expression and its value is always true and there's no break in the while/do-while block, generate infinite loop warning
+    /////////////////////////////////////////////////////////////////////
+    /// ITERATION STATEMENT
+    /////////////////////////////////////////////////////////////////////
 
-// foreach statement
-    - the range expression must be an instance of Range<T> type
-    - the iterator must be a variable declaration or a primary expression resolved to a symbol
+    // while/dowhile statement
+        - If the condition can be evaluated as constant expression and its value is always true and there's no break in the while/do-while block, generate infinite loop warning
+
+    // foreach statement
+        - the range expression must be an instance of Range<T> type
+        - the iterator must be a variable declaration or a primary expression resolved to a symbol
 
 /////////////////////////////////////////////////////////////////////
 /// DECLARATION
 /////////////////////////////////////////////////////////////////////
 
-// global variable
+// global variable declaration
     - The initializer must be constant expression (or can be deduced as constant expression)
 
-// local variable
+// local variable declaration
     - The constant variable cannot be modified once it's set in the initializer
 
 // function declaration
@@ -94,7 +98,7 @@ SemanticCheck CheckList
     - All methods in interface can have no function body
     - All types must be explicitly specified for member function in interface
 
-// class/interface member function
+// class/interface member function declaration
     - The function parameters must be fully resolved
     - Except member function in interface, function must have body block (local anonymous function must be renamed beforehand)
     - The function name cannot conflict with other function unless they have different parameter signature (name resolving conflict)
