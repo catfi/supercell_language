@@ -83,4 +83,4 @@ Semantic Check List
 - If the callee is s MemberExpr and the RHS is resolved to a static member function, we just need to check the type of LHS
 
 // For cast expression
-- Check whether the node is covertible to the desired type
+- Check whether the node is convertible to the desired type

@@ -24,6 +24,7 @@
 #define ZILLIANS_LANGUAGE_TREE_VISITOR_PRETTYPRINTVISITOR_H_
 
 #include "core/Prerequisite.h"
+#include "language/tree/visitor/general/GenericVisitor.h"
 #include "core/Visitor.h"
 #include "language/tree/ASTNodeFactory.h"
 #include "language/stage/parser/context/SourceInfoContext.h"
@@ -37,60 +38,11 @@ namespace zillians { namespace language { namespace tree { namespace visitor {
 
 struct PrettyPrintVisitor : Visitor<const ASTNode, void>
 {
+	CREATE_INVOKER(printInvoker, print);
+
 	PrettyPrintVisitor(bool dump_source_info = false) : dump_source_info(dump_source_info)
 	{
-		REGISTER_VISITABLE(printInvoker,
-				// basic
-				ASTNode,
-				Annotations,
-				Annotation,
-				Block,
-				Identifier,
-					SimpleIdentifier,
-					NestedIdentifier,
-					TemplatedIdentifier,
-				Literal,
-					NumericLiteral,
-					StringLiteral,
-				TypeSpecifier,
-				FunctionType,
-
-				// module
-				Program,
-				Package,
-				Import,
-
-				// declaration
-				Declaration,
-					ClassDecl,
-					EnumDecl,
-					FunctionDecl,
-					InterfaceDecl,
-					VariableDecl,
-					TypedefDecl,
-
-				// statement
-				Statement,
-					DeclarativeStmt,
-					ExpressionStmt,
-					IterativeStmt,
-						ForeachStmt,
-						WhileStmt,
-					SelectionStmt,
-						IfElseStmt,
-						SwitchStmt,
-					BranchStmt,
-
-				// expression
-				Expression,
-					PrimaryExpr,
-					UnaryExpr,
-					BinaryExpr,
-					TernaryExpr,
-					MemberExpr,
-					CallExpr,
-					CastExpr
-				);
+		REGISTER_ALL_VISITABLE_ASTNODE(printInvoker)
 
 		depth = 0;
 	}
@@ -163,7 +115,7 @@ struct PrettyPrintVisitor : Visitor<const ASTNode, void>
 
 	void print(const NumericLiteral& node)
 	{
-		STREAM << L"<numeric_literal type=\"" << PrimitiveType::toString(node.type) << L"\"" << PrimitiveType::toString(node.type) << "\">" << std::endl;
+		STREAM << L"<numeric_literal type=\"" << PrimitiveType::toString(node.type) << L"\" value=\"" << node.value.u64 << "\">" << std::endl;
 		{
 			printSourceInfo(node);
 		}
@@ -1173,8 +1125,6 @@ private:
 	{
 		return ss << std::setfill(INDENT_CHAR) << std::setw(INDENT_WIDTH*depth) << L"";
 	}
-
-	CREATE_INVOKER(printInvoker, print);
 
 	int depth;
 

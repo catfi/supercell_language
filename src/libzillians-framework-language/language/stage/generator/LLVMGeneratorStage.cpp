@@ -19,6 +19,7 @@
 
 #include "language/stage/generator/LLVMGeneratorStage.h"
 #include "language/stage/generator/detail/LLVMForeach.h"
+#include "language/stage/generator/visitor/LLVMGeneratorPreambleVisitor.h"
 #include "language/stage/generator/visitor/LLVMGeneratorVisitor.h"
 #include "language/context/ParserContext.h"
 #include "language/context/GeneratorContext.h"
@@ -72,13 +73,17 @@ bool LLVMGeneratorStage::execute(bool& continue_execution)
 
 	//llvm::LLVMContext& context = llvm::getGlobalContext();
 	llvm::LLVMContext* context = new llvm::LLVMContext();
-	llvm::Module* module = new llvm::Module(llvm_module_name, llvm::getGlobalContext());
+	llvm::Module* module = new llvm::Module(llvm_module_name, *context);
 
 	// create visitor to walk through the entire tree and generate instructions accordingly
-	visitor::LLVMGeneratorVisitor visitor(*context, *module);
-
 	if(getParserContext().program)
 	{
+		// emit preamble code (declare all LLVM functions)
+		visitor::LLVMGeneratorPreambleVisitor preamble_visitor(*context, *module);
+		preamble_visitor.visit(*getParserContext().program);
+
+		// emit actual code into each function
+		visitor::LLVMGeneratorVisitor visitor(*context, *module);
 		visitor.visit(*getParserContext().program);
 	}
 

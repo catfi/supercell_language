@@ -31,6 +31,12 @@ struct location
 	DEFINE_ATTRIBUTES(void)
 	DEFINE_LOCALS()
 
+	BEGIN_ACTION(init_loc)
+	{
+		CACHE_LOCATION;
+	}
+	END_ACTION
+
 	BEGIN_ACTION(init)
 	{
 #ifdef DEBUG
@@ -45,14 +51,14 @@ struct location
 struct block
 {
 	DEFINE_ATTRIBUTES(Block*)
-	DEFINE_LOCALS()
+	DEFINE_LOCALS(LOCATION_TYPE)
 
 	BEGIN_ACTION(init)
 	{
 #ifdef DEBUG
 		printf("block param(0) type = %s\n", typeid(_param_t(0)).name());
 #endif
-		BIND_LOCATION(_result = new Block());
+		BIND_CACHED_LOCATION(_result = new Block());
 		_result->appendObjects(_param(0));
 	}
 	END_ACTION
