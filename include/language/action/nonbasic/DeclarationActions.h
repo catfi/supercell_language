@@ -82,7 +82,7 @@ struct variable_decl
 struct variable_decl_stem
 {
 	DEFINE_ATTRIBUTES(Declaration*)
-	DEFINE_LOCALS()
+	DEFINE_LOCALS(LOCATION_TYPE)
 
 	BEGIN_ACTION(init)
 	{
@@ -96,7 +96,7 @@ struct variable_decl_stem
 		Declaration::VisibilitySpecifier::type visibility  = Declaration::VisibilitySpecifier::PUBLIC;
 		Declaration::StorageSpecifier::type    storage     = Declaration::StorageSpecifier::NONE;
 		bool                                   is_member   = false;
-		REGISTER_LOCATION(_result = new VariableDecl(
+		BIND_CACHED_LOCATION(_result = new VariableDecl(
 				name, type, is_member, visibility, storage, initializer
 				));
 	}
@@ -106,7 +106,7 @@ struct variable_decl_stem
 struct function_decl
 {
 	DEFINE_ATTRIBUTES(Declaration*)
-	DEFINE_LOCALS()
+	DEFINE_LOCALS(LOCATION_TYPE)
 
 	BEGIN_ACTION(init)
 	{
@@ -123,7 +123,7 @@ struct function_decl
 			name = boost::get<Identifier*>(_param(0));
 			break;
 		case 1:
-			REGISTER_LOCATION(name = new SimpleIdentifier(L"new"));
+			BIND_CACHED_LOCATION(name = new SimpleIdentifier(L"new"));
 			break;
 		}
 		typed_parameter_list::value_t*         parameters = _param(1).is_initialized() ? (*_param(1)).get() : NULL;
@@ -132,7 +132,7 @@ struct function_decl
 		Declaration::VisibilitySpecifier::type visibility = Declaration::VisibilitySpecifier::PUBLIC;
 		Declaration::StorageSpecifier::type    storage    = Declaration::StorageSpecifier::NONE;
 		bool                                   is_member  = false;
-		REGISTER_LOCATION(_result = new FunctionDecl(name, type, is_member, visibility, storage, block));
+		BIND_CACHED_LOCATION(_result = new FunctionDecl(name, type, is_member, visibility, storage, block));
 		if(!!parameters)
 			deduced_foreach_value(i, *parameters)
 				cast<FunctionDecl>(_result)->appendParameter(i.first, i.second);
@@ -143,7 +143,7 @@ struct function_decl
 struct typedef_decl
 {
 	DEFINE_ATTRIBUTES(Declaration*)
-	DEFINE_LOCALS()
+	DEFINE_LOCALS(LOCATION_TYPE)
 
 	BEGIN_ACTION(init)
 	{
@@ -151,7 +151,7 @@ struct typedef_decl
 		printf("typedef_decl param(0) type = %s\n", typeid(_param_t(0)).name());
 		printf("typedef_decl param(1) type = %s\n", typeid(_param_t(1)).name());
 #endif
-		REGISTER_LOCATION(_result = new TypedefDecl(_param(0), _param(1)));
+		BIND_CACHED_LOCATION(_result = new TypedefDecl(_param(0), _param(1)));
 	}
 	END_ACTION
 };
@@ -159,7 +159,7 @@ struct typedef_decl
 struct class_decl
 {
 	DEFINE_ATTRIBUTES(Declaration*)
-	DEFINE_LOCALS()
+	DEFINE_LOCALS(LOCATION_TYPE)
 
 	BEGIN_ACTION(init)
 	{
@@ -173,14 +173,14 @@ struct class_decl
 		Identifier* extends_from_ident = _param(1).is_initialized() ? *_param(1) : NULL;
 		TypeSpecifier* extends_from = NULL;
 		if(!!extends_from_ident)
-			REGISTER_LOCATION(extends_from = new TypeSpecifier(extends_from_ident));
-		REGISTER_LOCATION(_result = new ClassDecl(name));
+			BIND_CACHED_LOCATION(extends_from = new TypeSpecifier(extends_from_ident));
+		BIND_CACHED_LOCATION(_result = new ClassDecl(name));
 		if(!!extends_from)
 			cast<ClassDecl>(_result)->setBase(extends_from);
 		if(_param(2).is_initialized())
 			deduced_foreach_value(i, *_param(2))
 			{
-				TypeSpecifier* type = new TypeSpecifier(i); REGISTER_LOCATION(type);
+				TypeSpecifier* type = new TypeSpecifier(i); BIND_CACHED_LOCATION(type);
 				cast<ClassDecl>(_result)->addInterface(type);
 			}
 		deduced_foreach_value(i, _param(3))
@@ -233,7 +233,7 @@ struct class_member_decl
 struct interface_decl
 {
 	DEFINE_ATTRIBUTES(Declaration*)
-	DEFINE_LOCALS()
+	DEFINE_LOCALS(LOCATION_TYPE)
 
 	BEGIN_ACTION(init)
 	{
@@ -241,7 +241,7 @@ struct interface_decl
 		printf("interface_decl param(0) type = %s\n", typeid(_param_t(0)).name());
 		printf("interface_decl param(1) type = %s\n", typeid(_param_t(1)).name());
 #endif
-		REGISTER_LOCATION(_result = new InterfaceDecl(_param(0)));
+		BIND_CACHED_LOCATION(_result = new InterfaceDecl(_param(0)));
 		deduced_foreach_value(i, _param(1))
 		{
 			cast<InterfaceDecl>(_result)->addFunction(cast<FunctionDecl>(i));
@@ -254,7 +254,7 @@ struct interface_decl
 struct interface_member_function_decl
 {
 	DEFINE_ATTRIBUTES(Declaration*)
-	DEFINE_LOCALS()
+	DEFINE_LOCALS(LOCATION_TYPE)
 
 	BEGIN_ACTION(init)
 	{
@@ -268,7 +268,7 @@ struct interface_member_function_decl
 		typed_parameter_list::value_t*         parameters = _param(2).is_initialized() ? (*_param(2)).get() : NULL;
 		Declaration::StorageSpecifier::type    storage    = Declaration::StorageSpecifier::NONE;
 		bool                                   is_member  = false;
-		REGISTER_LOCATION(_result = new FunctionDecl(_param(1), _param(3), is_member, visibility, storage, NULL));
+		BIND_CACHED_LOCATION(_result = new FunctionDecl(_param(1), _param(3), is_member, visibility, storage, NULL));
 		if(!!parameters)
 			deduced_foreach_value(i, *parameters)
 				cast<FunctionDecl>(_result)->appendParameter(i.first, i.second);
@@ -279,7 +279,7 @@ struct interface_member_function_decl
 struct enum_decl
 {
 	DEFINE_ATTRIBUTES(Declaration*)
-	DEFINE_LOCALS()
+	DEFINE_LOCALS(LOCATION_TYPE)
 
 	BEGIN_ACTION(init)
 	{
@@ -287,7 +287,7 @@ struct enum_decl
 		printf("enum_decl param(0) type = %s\n", typeid(_param_t(0)).name());
 		printf("enum_decl param(1) type = %s\n", typeid(_param_t(1)).name());
 #endif
-		REGISTER_LOCATION(_result = new EnumDecl(_param(0)));
+		BIND_CACHED_LOCATION(_result = new EnumDecl(_param(0)));
 		deduced_foreach_value(i, _param(1))
 		{
 			boost::optional<Annotations*> &optional_annotations = boost::fusion::at_c<0>(i);

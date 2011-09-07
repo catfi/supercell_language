@@ -40,10 +40,36 @@ struct TypedefDecl : public Declaration
 		to->parent = this;
 	}
 
+    template<typename Archive>
+    void serialize(Archive& ar, const unsigned int version) {
+        ::boost::serialization::base_object<Declaration>(*this);
+    }
+
 	TypeSpecifier* from;
 	SimpleIdentifier* to;
 };
 
 } } }
+
+namespace boost { namespace serialization {
+template<class Archive>
+inline void save_construct_data(Archive& ar, const zillians::language::tree::TypedefDecl* p, const unsigned int file_version)
+{
+	ar << p->from;
+	ar << p->to;
+}
+
+template<class Archive>
+inline void load_construct_data(Archive& ar, zillians::language::tree::TypedefDecl* p, const unsigned int file_version)
+{
+    using namespace zillians::language::tree;
+
+    TypeSpecifier* from;
+	SimpleIdentifier* to;
+	ar >> from;
+    ar >> to;
+	::new(p) TypedefDecl(from, to);
+}
+}} // namespace boost::serialization
 
 #endif /* ZILLIANS_LANGUAGE_TREE_TYPEDEFDECL_H_ */

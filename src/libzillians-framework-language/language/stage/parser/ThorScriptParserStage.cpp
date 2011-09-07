@@ -25,6 +25,7 @@
 #include "language/ThorScriptCompiler.h"
 #include "utility/Foreach.h"
 #include "utility/UnicodeUtil.h"
+#include <boost/filesystem.hpp>
 
 namespace classic = boost::spirit::classic;
 namespace qi = boost::spirit::qi;
@@ -49,7 +50,7 @@ static void expand_tabs(const std::wstring& input, std::wstring& output, int num
 
 }
 
-ThorScriptParserStage::ThorScriptParserStage() : dump_parse(false), dump_parse_and_stop(false), skip_parse(false)
+ThorScriptParserStage::ThorScriptParserStage() : dump_parse(false), dump_parse_and_stop(false), skip_parse(false), use_relative_path(false)
 { }
 
 ThorScriptParserStage::~ThorScriptParserStage()
@@ -66,6 +67,7 @@ void ThorScriptParserStage::initializeOptions(po::options_description& option_de
     ("dump-parse",                                     "dump parse for debugging purpose")
 	("dump-parse-and-stop",                            "dump parse for debugging purpose and stop processing")
 	("skip-parse",                                     "skip parsing stage and use provided parser context")
+	("use-relative-path",                              "use relative file path instead of absolute path (for debugging info generation)")
     ("input,i", po::value<std::vector<std::string>>(), "thorscript files");
     positional_desc.add("input", -1);
 }
@@ -76,6 +78,8 @@ bool ThorScriptParserStage::parseOptions(po::variables_map& vm)
 	dump_parse_and_stop = (vm.count("dump-parse-and-stop") > 0);
 	dump_parse |= dump_parse_and_stop;
 	skip_parse = (vm.count("skip-parse") > 0);
+	use_relative_path = (vm.count("use-relative-path") > 0);
+
 	if(vm.count("input") > 0)
 	{
 		inputs = vm["input"].as<std::vector<std::string>>();
@@ -126,6 +130,13 @@ bool ThorScriptParserStage::parse(std::string filename)
         }
     }
 
+    if(!use_relative_path)
+    {
+    	boost::filesystem::path f(filename);
+    	boost::filesystem::path f_complete = boost::filesystem::absolute(f);
+    	filename = f_complete.string();
+    }
+
     std::string source_code_raw;
 	in.unsetf(std::ios::skipws); // disable white space skipping
 	std::copy(std::istream_iterator<char>(in), std::istream_iterator<char>(), std::back_inserter(source_code_raw));
@@ -141,7 +152,7 @@ bool ThorScriptParserStage::parse(std::string filename)
     getParserContext().enable_semantic_action = !dump_parse;
     getParserContext().debug.source_index = ModuleSourceInfoContext::get(getParserContext().program)->addSource(filename);
     getParserContext().debug.line = 1;
-    getParserContext().debug.column = 0;
+    getParserContext().debug.column = 1;
 
     // try to parse
 	typedef classic::position_iterator2<std::wstring::iterator> pos_iterator_type;

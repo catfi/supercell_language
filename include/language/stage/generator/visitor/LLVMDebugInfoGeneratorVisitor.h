@@ -23,15 +23,12 @@
 #include "core/Prerequisite.h"
 #include <boost/filesystem.hpp>
 
-#include "llvm/Support/Dwarf.h"
-#include "llvm/Analysis/DebugInfo.h"
-
 #include "language/tree/visitor/general/GenericDoubleVisitor.h"
-#include "language/stage/generator/detail/LLVMHelper.h"
 #include "language/context/ParserContext.h"
 #include "language/stage/parser/context/SourceInfoContext.h"
 #include "language/stage/transformer/context/ManglingStageContext.h"
 #include "language/stage/generator/context/DebugInfoContext.h"
+#include "language/stage/generator/detail/LLVMForeach.h"
 #include "utility/UnicodeUtil.h"
 
 using namespace zillians::language::tree;
@@ -49,10 +46,10 @@ struct LLVMDebugInfoGeneratorVisitor: GenericDoubleVisitor
 {
 	CREATE_INVOKER(generateInvoker, generate)
 
-	typedef std::map<TypeSpecifier::PrimitiveType::type, llvm::DIBasicType> type_cache_t;
+	typedef std::map<PrimitiveType::type, llvm::DIBasicType> type_cache_t;
 
 	LLVMDebugInfoGeneratorVisitor(llvm::LLVMContext& context, llvm::Module& current_module) :
-		context(context), current_module(current_module), factory(current_module), builder(context), helper(context, current_module, builder)
+		context(context), current_module(current_module), factory(current_module)
 	{
 		REGISTER_ALL_VISITABLE_ASTNODE(generateInvoker)
 	}
@@ -258,7 +255,7 @@ struct LLVMDebugInfoGeneratorVisitor: GenericDoubleVisitor
 	}
 
 private:
-	llvm::DIBasicType createPrimitiveType(type_cache_t& primitive_type_cache, llvm::DIFile& file, TypeSpecifier::PrimitiveType::type type)
+	llvm::DIBasicType createPrimitiveType(type_cache_t& primitive_type_cache, llvm::DIFile& file, PrimitiveType::type type)
 	{
 		int bits = 0;
 		int alignment = 0;
@@ -272,31 +269,31 @@ private:
 
 		switch (type)
 		{
-		case TypeSpecifier::PrimitiveType::VOID: break;
-		case TypeSpecifier::PrimitiveType::INT8: break;
-		case TypeSpecifier::PrimitiveType::INT16: break;
-		case TypeSpecifier::PrimitiveType::INT32: break;
-		case TypeSpecifier::PrimitiveType::INT64: break;
-		case TypeSpecifier::PrimitiveType::UINT8: break;
-		case TypeSpecifier::PrimitiveType::UINT16: break;
-		case TypeSpecifier::PrimitiveType::UINT32:
+		case PrimitiveType::VOID: break;
+		case PrimitiveType::INT8: break;
+		case PrimitiveType::INT16: break;
+		case PrimitiveType::INT32: break;
+		case PrimitiveType::INT64: break;
+		case PrimitiveType::UINT8: break;
+		case PrimitiveType::UINT16: break;
+		case PrimitiveType::UINT32:
 		{
 			bits = 32; alignment = 32; offset = 0;
 			encoding = llvm::dwarf::DW_ATE_unsigned;
 			break;
 		}
-		case TypeSpecifier::PrimitiveType::UINT64: break;
-		case TypeSpecifier::PrimitiveType::FLOAT32: break;
-		case TypeSpecifier::PrimitiveType::FLOAT64: break;
-		case TypeSpecifier::PrimitiveType::ANONYMOUS_OBJECT: break;
-		case TypeSpecifier::PrimitiveType::ANONYMOUS_FUNCTION: break;
-		case TypeSpecifier::PrimitiveType::VARIADIC_ELLIPSIS: break;
+		case PrimitiveType::UINT64: break;
+		case PrimitiveType::FLOAT32: break;
+		case PrimitiveType::FLOAT64: break;
+		case PrimitiveType::ANONYMOUS_OBJECT: break;
+		case PrimitiveType::ANONYMOUS_FUNCTION: break;
+		case PrimitiveType::VARIADIC_ELLIPSIS: break;
 		default:
 			BOOST_ASSERT(false && "Unknown basic type");
 		}
 
 		llvm::DIBasicType basic_type = factory.CreateBasicType(file,
-				llvm::StringRef(ws_to_s(TypeSpecifier::PrimitiveType::toString(type)).c_str()),
+				llvm::StringRef(ws_to_s(PrimitiveType::toString(type)).c_str()),
 				file, /* line */ 0, bits, alignment, offset, /*flags*/ 0, encoding);
 
 		return (primitive_type_cache[type] = basic_type);
@@ -305,8 +302,6 @@ private:
 private:
 	llvm::LLVMContext& context;
 	llvm::Module& current_module;
-	llvm::IRBuilder<> builder;
-	LLVMHelper helper;
 
 	llvm::DIFactory factory;
 

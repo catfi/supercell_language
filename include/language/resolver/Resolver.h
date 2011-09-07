@@ -73,7 +73,7 @@ struct Resolver
 		}
 	}
 
-	bool resolveSymbol(tree::ASTNode& scope, tree::Identifier& node, bool no_action = false)
+	bool resolveSymbol(tree::ASTNode& attach, tree::ASTNode& scope, tree::Identifier& node, bool no_action = false)
 	{
 		using namespace zillians::language::tree;
 
@@ -82,7 +82,7 @@ struct Resolver
 		LOG4CXX_DEBUG(Logger::Resolver, L"trying to resolve symbol: \"" << node.toString() << L"\" from scope \"" << node_info_visitor.stream.str() << "\"");
 		node_info_visitor.reset();
 
-		if(!ResolvedSymbol::get(&node))
+		if(!ResolvedSymbol::get(&attach))
 		{
 			resolution_visitor.reset();
 			resolution_visitor.search(&node);
@@ -96,7 +96,7 @@ struct Resolver
 
 			resolution_visitor.visit(scope);
 
-			return checkResolvedSymbol(node, no_action);
+			return checkResolvedSymbol(attach, node, no_action);
 		}
 		else
 		{
@@ -104,13 +104,13 @@ struct Resolver
 		}
 	}
 
-	bool resolveSymbol(tree::Identifier& node, bool no_action = false)
+	bool resolveSymbol(tree::ASTNode& attach, tree::Identifier& node, bool no_action = false)
 	{
 		using namespace zillians::language::tree;
 
 		LOG4CXX_DEBUG(Logger::Resolver, L"trying to resolve symbol: \"" << node.toString() << L"\"");
 
-		if(!ResolvedSymbol::get(&node))
+		if(!ResolvedSymbol::get(&attach))
 		{
 			// set the look-for target
 			resolution_visitor.reset();
@@ -126,7 +126,7 @@ struct Resolver
 				resolution_visitor.visit(**scope);
 			}
 
-			return checkResolvedSymbol(node, no_action);
+			return checkResolvedSymbol(attach, node, no_action);
 		}
 		else
 		{
@@ -134,7 +134,7 @@ struct Resolver
 		}
 	}
 
-	bool checkResolvedSymbol(tree::Identifier& node, bool no_action)
+	bool checkResolvedSymbol(tree::ASTNode& attach, tree::Identifier& node, bool no_action)
 	{
 		using namespace zillians::language::tree;
 
@@ -150,15 +150,15 @@ struct Resolver
 			bool valid = true;
 			if(isa<Identifier>(ref))
 			{
-				if(!no_action) ResolvedSymbol::set(&node, ref);
+				if(!no_action) ResolvedSymbol::set(&attach, ref);
 			}
 			else if(isa<VariableDecl>(ref))
 			{
-				if(!no_action) ResolvedSymbol::set(&node, ref);
+				if(!no_action) ResolvedSymbol::set(&attach, ref);
 			}
 			else if(isa<FunctionDecl>(ref))
 			{
-				if(!no_action) ResolvedSymbol::set(&node, ref);
+				if(!no_action) ResolvedSymbol::set(&attach, ref);
 			}
 			else
 			{
@@ -320,7 +320,7 @@ struct Resolver
 		}
 	}
 
-	bool resolvePackage(tree::ASTNode& scope, tree::Identifier& node, bool no_action = false)
+	bool resolvePackage(tree::ASTNode& attach, tree::ASTNode& scope, tree::Identifier& node, bool no_action = false)
 	{
 		using namespace zillians::language::tree;
 
@@ -329,7 +329,7 @@ struct Resolver
 		LOG4CXX_DEBUG(Logger::Resolver, L"trying to resolve package: \"" << node.toString() << L"\" from scope \"" << node_info_visitor.stream.str() << L"\"");
 		node_info_visitor.reset();
 
-		if(!ResolvedPackage::get(&node))
+		if(!ResolvedPackage::get(&attach))
 		{
 			resolution_visitor.reset();
 			resolution_visitor.search(&node);
@@ -337,7 +337,7 @@ struct Resolver
 
 			resolution_visitor.visit(scope);
 
-			return checkResolvedPackage(node, no_action);
+			return checkResolvedPackage(attach, node, no_action);
 		}
 		else
 		{
@@ -345,13 +345,13 @@ struct Resolver
 		}
 	}
 
-	bool resolvePackage(tree::Identifier& node, bool no_action = false)
+	bool resolvePackage(tree::ASTNode& attach, tree::Identifier& node, bool no_action = false)
 	{
 		using namespace zillians::language::tree;
 
 		LOG4CXX_DEBUG(Logger::Resolver, L"trying to resolve package: \"" << node.toString() << L"\"");
 
-		if(!ResolvedPackage::get(&node))
+		if(!ResolvedPackage::get(&attach))
 		{
 			resolution_visitor.reset();
 			resolution_visitor.search(&node);
@@ -362,7 +362,7 @@ struct Resolver
 				resolution_visitor.visit(**scope);
 			}
 
-			return checkResolvedPackage(node, no_action);
+			return checkResolvedPackage(attach, node, no_action);
 		}
 		else
 		{
@@ -370,7 +370,7 @@ struct Resolver
 		}
 	}
 
-	bool checkResolvedPackage(tree::Identifier& node, bool no_action)
+	bool checkResolvedPackage(tree::ASTNode& attach, tree::Identifier& node, bool no_action)
 	{
 		using namespace zillians::language::tree;
 
@@ -386,7 +386,7 @@ struct Resolver
 			bool valid = true;
 			if(isa<Package>(ref))
 			{
-				if(!no_action) ResolvedPackage::set(&node, ref);
+				if(!no_action) ResolvedPackage::set(&attach, ref);
 			}
 			else
 			{

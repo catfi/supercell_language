@@ -56,8 +56,6 @@ int StageConductor::main(int argc, const char** argv)
 	// call implementation's initialize() to append stages
 	initialize();
 
-	tree::printASTNodeDebugInfo();
-
 	if(true)
 	{
 		po::options_description option_desc;

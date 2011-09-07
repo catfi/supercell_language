@@ -24,6 +24,7 @@
 #define ZILLIANS_LANGUAGE_TREE_VISITOR_PRETTYPRINTVISITOR_H_
 
 #include "core/Prerequisite.h"
+#include "language/tree/visitor/general/GenericVisitor.h"
 #include "core/Visitor.h"
 #include "language/tree/ASTNodeFactory.h"
 #include "language/stage/parser/context/SourceInfoContext.h"
@@ -37,60 +38,11 @@ namespace zillians { namespace language { namespace tree { namespace visitor {
 
 struct PrettyPrintVisitor : Visitor<const ASTNode, void>
 {
+	CREATE_INVOKER(printInvoker, print);
+
 	PrettyPrintVisitor(bool dump_source_info = false) : dump_source_info(dump_source_info)
 	{
-		REGISTER_VISITABLE(printInvoker,
-				// basic
-				ASTNode,
-				Annotations,
-				Annotation,
-				Block,
-				Identifier,
-					SimpleIdentifier,
-					NestedIdentifier,
-					TemplatedIdentifier,
-				Literal,
-					NumericLiteral,
-					StringLiteral,
-				TypeSpecifier,
-				FunctionType,
-
-				// module
-				Program,
-				Package,
-				Import,
-
-				// declaration
-				Declaration,
-					ClassDecl,
-					EnumDecl,
-					FunctionDecl,
-					InterfaceDecl,
-					VariableDecl,
-					TypedefDecl,
-
-				// statement
-				Statement,
-					DeclarativeStmt,
-					ExpressionStmt,
-					IterativeStmt,
-						ForeachStmt,
-						WhileStmt,
-					SelectionStmt,
-						IfElseStmt,
-						SwitchStmt,
-					BranchStmt,
-
-				// expression
-				Expression,
-					PrimaryExpr,
-					UnaryExpr,
-					BinaryExpr,
-					TernaryExpr,
-					MemberExpr,
-					CallExpr,
-					CastExpr
-				);
+		REGISTER_ALL_VISITABLE_ASTNODE(printInvoker)
 
 		depth = 0;
 	}
@@ -163,26 +115,9 @@ struct PrettyPrintVisitor : Visitor<const ASTNode, void>
 
 	void print(const NumericLiteral& node)
 	{
-		STREAM << L"<numeric_literal type=\"" << NumericLiteral::LiteralType::toString(node.type) << L"\">" << std::endl;
+		STREAM << L"<numeric_literal type=\"" << PrimitiveType::toString(node.type) << L"\" value=\"" << node.value.u64 << "\">" << std::endl;
 		{
 			printSourceInfo(node);
-		}
-		{
-			increaseIdent();
-			switch(node.type)
-			{
-			case NumericLiteral::LiteralType::I8: STREAM << L"<i8 value=\"" << (int64)node.value.i8 << L"\"/>" << std::endl; break;
-			case NumericLiteral::LiteralType::I16: STREAM << L"<i16 value=\"" << (int64)node.value.i16 << L"\"/>" << std::endl; break;
-			case NumericLiteral::LiteralType::I32: STREAM << L"<i32 value=\"" << (int64)node.value.i32 << L"\"/>" << std::endl; break;
-			case NumericLiteral::LiteralType::I64: STREAM << L"<i64 value=\"" << (int64)node.value.i64 << L"\"/>" << std::endl; break;
-			case NumericLiteral::LiteralType::U8: STREAM << L"<u8 value=\"" << (uint64)node.value.i8 << L"\"/>" << std::endl; break;
-			case NumericLiteral::LiteralType::U16: STREAM << L"<u16 value=\"" << (uint64)node.value.i16 << L"\"/>" << std::endl; break;
-			case NumericLiteral::LiteralType::U32: STREAM << L"<u32 value=\"" << (uint64)node.value.i32 << L"\"/>" << std::endl; break;
-			case NumericLiteral::LiteralType::U64: STREAM << L"<u64 value=\"" << (uint64)node.value.i64 << L"\"/>" << std::endl; break;
-			case NumericLiteral::LiteralType::F32: STREAM << L"<f32 value=\"" << node.value.f32 << L"\"/>" << std::endl; break;
-			case NumericLiteral::LiteralType::F64: STREAM << L"<f32 value=\"" << node.value.f64 << L"\"/>" << std::endl; break;
-			}
-			decreaseIdent();
 		}
 		STREAM << L"</numeric_literal>" << std::endl;
 	}
@@ -281,7 +216,7 @@ struct PrettyPrintVisitor : Visitor<const ASTNode, void>
 			case TypeSpecifier::ReferredType::UNSPECIFIED: if(node.referred.unspecified) visit(*node.referred.unspecified); break;
 			case TypeSpecifier::ReferredType::PRIMITIVE:
 			{
-				STREAM << L"<primitive type=\"" << TypeSpecifier::PrimitiveType::toString(node.referred.primitive) << L"\"/>" << std::endl;
+				STREAM << L"<primitive type=\"" << PrimitiveType::toString(node.referred.primitive) << L"\"/>" << std::endl;
 				break;
 			}
 			}
@@ -1158,7 +1093,7 @@ private:
 			case TypeSpecifier::ReferredType::FUNCTION_DECL: return t->referred.function_decl->name->toString();
 			case TypeSpecifier::ReferredType::ENUM_DECL: return t->referred.enum_decl->name->toString();
 			case TypeSpecifier::ReferredType::TYPEDEF_DECL: return t->referred.typedef_decl->to->toString();
-			case TypeSpecifier::ReferredType::PRIMITIVE: return TypeSpecifier::PrimitiveType::toString(t->referred.primitive);
+			case TypeSpecifier::ReferredType::PRIMITIVE: return PrimitiveType::toString(t->referred.primitive);
 			case TypeSpecifier::ReferredType::UNSPECIFIED: return t->referred.unspecified->toString();
 			case TypeSpecifier::ReferredType::FUNCTION_TYPE: return decodeFunctionType(t->referred.function_type);
 			}
@@ -1190,8 +1125,6 @@ private:
 	{
 		return ss << std::setfill(INDENT_CHAR) << std::setw(INDENT_WIDTH*depth) << L"";
 	}
-
-	CREATE_INVOKER(printInvoker, print);
 
 	int depth;
 

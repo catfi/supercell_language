@@ -75,6 +75,15 @@ bool LLVMBitCodeGeneratorStage::execute(bool& continue_execution)
 
 		GeneratorContext& generator_context = getGeneratorContext();
 		std::string error_info;
+
+		foreach(m, generator_context.modules)
+		{
+			if(llvm::verifyModule(**m, llvm::PrintMessageAction, &error_info))
+			{
+				LOG4CXX_ERROR(Logger::GeneratorStage, "failed to verify LLVM module: " << error_info);
+			}
+		}
+
 		llvm::raw_fd_ostream stream("test.bc", error_info, llvm::raw_fd_ostream::F_Binary);
 		if(stream.has_error())
 		{

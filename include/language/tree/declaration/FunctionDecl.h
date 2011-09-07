@@ -49,6 +49,18 @@ struct FunctionDecl : public Declaration
 		parameters.push_back(std::make_pair(name, type));
 	}
 
+    template<typename Archive>
+    void serialize(Archive& ar, const unsigned int version) {
+        ::boost::serialization::base_object<Declaration>(*this);
+        //ar & name;
+        ar & parameters;
+        //ar & type;
+        //ar & is_member;
+        //ar & static_cast<int&>(visibility);
+        //ar & static_cast<int&>(storage);
+        //ar & block;
+    }
+
 	Identifier* name;
 	std::vector<std::pair<SimpleIdentifier*, TypeSpecifier*>> parameters;
 	TypeSpecifier* type;
@@ -59,5 +71,40 @@ struct FunctionDecl : public Declaration
 };
 
 } } }
+
+namespace boost { namespace serialization {
+template<class Archive>
+inline void save_construct_data(Archive& ar, const zillians::language::tree::FunctionDecl* p, const unsigned int file_version)
+{
+	ar << p->name;
+    ar << p->type;
+    ar << p->is_member;
+    ar << p->visibility;
+    ar << p->storage;
+    ar << p->block;
+}
+
+template<class Archive>
+inline void load_construct_data(Archive& ar, zillians::language::tree::FunctionDecl* p, const unsigned int file_version)
+{
+    using namespace zillians::language::tree;
+
+	Identifier* name;
+    TypeSpecifier* type;
+    bool is_member;
+    Declaration::VisibilitySpecifier::type visibility;
+    Declaration::StorageSpecifier::type storage;
+    Block* block;
+
+	ar >> name;
+    ar >> type;
+    ar >> is_member;
+    ar >> visibility;
+    ar >> storage;
+    ar >> block;
+
+	::new(p) FunctionDecl(name, type, is_member, visibility, storage, block);
+}
+}} // namespace boost::serialization
 
 #endif /* ZILLIANS_LANGUAGE_TREE_FUNCTIONDECL_H_ */

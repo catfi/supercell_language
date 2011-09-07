@@ -43,6 +43,12 @@ struct Statement : public ASTNode
 		annotations = anns;
 	}
 
+    template<typename Archive>
+    void serialize(Archive& ar, const unsigned int version) {
+        ::boost::serialization::base_object<ASTNode>(*this);
+        ar & annotations;
+    }
+
 	Annotations* annotations;
 };
 

@@ -24,12 +24,12 @@ INCLUDE_DIRECTORIES(
     ${PROJECT_FRAMEWORK_SOURCE_DIR}/include/
     )
 
-ADD_EXECUTABLE(ThorScriptTransformerTest_TypeInferenceTest TypeInferenceTest.cpp)
+ADD_EXECUTABLE(ThorScriptTreeTest_SerializationTest SerializationTest.cpp)
 
-TARGET_LINK_LIBRARIES(ThorScriptTransformerTest_TypeInferenceTest
+TARGET_LINK_LIBRARIES(ThorScriptTreeTest_SerializationTest
     zillians-common-core
     zillians-framework-language
     )
 
-zillians_add_simple_test(TARGET ThorScriptTransformerTest_TypeInferenceTest)
-zillians_add_test_to_subject(SUBJECT thorscript-transformer-test-all TARGET ThorScriptTransformerTest_TypeInferenceTest)
+zillians_add_simple_test(TARGET ThorScriptTreeTest_SerializationTest)
+zillians_add_test_to_subject(SUBJECT thorscript-tree-test TARGET ThorScriptTreeTest_SerializationTest)
