@@ -49,6 +49,28 @@ struct FunctionDecl : public Declaration
 		parameters.push_back(std::make_pair(name, type));
 	}
 
+    virtual bool isEqual(const ASTNode& rhs, ASTNodeSet& visited) const
+    {
+        if (visited.count(this)) return true ;
+        const FunctionDecl* p = cast<const FunctionDecl>(&rhs);
+        if (p == NULL) return false;
+        // compare base class
+        if (!Declaration::isEqual(*p, visited)) return false;
+
+        // compare data member
+        if (!isASTNodeMemberEqual   (&FunctionDecl::name            , *this, *p, visited)) return false;
+        if (!isPairVectorMemberEqual(&FunctionDecl::parameters      , *this, *p, visited)) return false;
+        if (!isASTNodeMemberEqual   (&FunctionDecl::type            , *this, *p, visited)) return false;
+        if (this->is_member  != p->is_member                                             ) return false;
+        if (this->visibility != p->visibility                                            ) return false;
+        if (this->storage    != p->storage                                               ) return false;
+        if (!isASTNodeMemberEqual   (&FunctionDecl::block           , *this, *p, visited)) return false;
+
+        // add this to the visited table.
+        visited.insert(this);
+        return true;
+    }
+
     template<typename Archive>
     void serialize(Archive& ar, const unsigned int version) {
         ::boost::serialization::base_object<Declaration>(*this);

@@ -155,6 +155,33 @@ struct TypeSpecifier : public ASTNode
 		referred.unspecified = unspecified;
 	}
 
+    virtual bool isEqual(const ASTNode& rhs, ASTNodeSet& visited) const
+    {
+        if (visited.count(this)) return true ;
+        const TypeSpecifier* p = cast<const TypeSpecifier>(&rhs);
+        if (p == NULL) return false;
+        // compare base class
+        // base is ASTNode, no need to compare
+
+        // compare data member
+        if (this->type != p->type) return false;
+        switch(p->type)
+        {
+        case TypeSpecifier::ReferredType::CLASS_DECL     : if(!isASTNodeMemberEqual(&ReferredUnion::class_decl    , this->referred, p->referred, visited)) return false; break ;
+        case TypeSpecifier::ReferredType::INTERFACE_DECL : if(!isASTNodeMemberEqual(&ReferredUnion::interface_decl, this->referred, p->referred, visited)) return false; break ;
+        case TypeSpecifier::ReferredType::FUNCTION_DECL  : if(!isASTNodeMemberEqual(&ReferredUnion::function_decl , this->referred, p->referred, visited)) return false; break ;
+        case TypeSpecifier::ReferredType::ENUM_DECL      : if(!isASTNodeMemberEqual(&ReferredUnion::enum_decl     , this->referred, p->referred, visited)) return false; break ;
+        case TypeSpecifier::ReferredType::TYPEDEF_DECL   : if(!isASTNodeMemberEqual(&ReferredUnion::typedef_decl  , this->referred, p->referred, visited)) return false; break ;
+        case TypeSpecifier::ReferredType::FUNCTION_TYPE  : if(!isASTNodeMemberEqual(&ReferredUnion::function_type , this->referred, p->referred, visited)) return false; break ;
+        case TypeSpecifier::ReferredType::PRIMITIVE      : if(this->referred.primitive != p->referred.primitive                                          ) return false; break ;
+        case TypeSpecifier::ReferredType::UNSPECIFIED    : if(!isASTNodeMemberEqual(&ReferredUnion::unspecified   , this->referred, p->referred, visited)) return false; break ;
+        }
+
+        // add this to the visited table.
+        visited.insert(this);
+        return true;
+    }
+
     template<typename Archive>
     void serialize(Archive& ar, const unsigned int version) {
         ::boost::serialization::base_object<ASTNode>(*this);
@@ -162,7 +189,7 @@ struct TypeSpecifier : public ASTNode
 
 	ReferredType::type type;
 
-	union
+	union ReferredUnion
 	{
 		ClassDecl* class_decl;
 		InterfaceDecl* interface_decl;
@@ -178,6 +205,7 @@ struct TypeSpecifier : public ASTNode
 } } }
 
 namespace boost { namespace serialization {
+
 template<class Archive>
 inline void save_construct_data(Archive& ar, const zillians::language::tree::TypeSpecifier* p, const unsigned int file_version)
 {
@@ -226,6 +254,7 @@ inline void load_construct_data(Archive& ar, zillians::language::tree::TypeSpeci
     case TypeSpecifier::ReferredType::UNSPECIFIED       : ar >> unspecified    ; ::new(p) TypeSpecifier(unspecified   ); break ;
     }
 }
+
 }} // namespace boost::serialization
 
 #endif /* ZILLIANS_LANGUAGE_TREE_TYPESPECIFIER_H_ */

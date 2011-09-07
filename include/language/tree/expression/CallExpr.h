@@ -49,6 +49,23 @@ struct CallExpr : public Expression
 		return true;
 	}
 
+    virtual bool isEqual(const ASTNode& rhs, ASTNodeSet& visited) const
+    {
+        if (visited.count(this)) return true ;
+        const CallExpr* p = cast<const CallExpr>(&rhs);
+        if (p == NULL) return false;
+        // compare base class
+        if (!Expression::isEqual(*p, visited)) return false;
+
+        // compare data member
+        if (!isASTNodeMemberEqual   (&CallExpr::node            , *this, *p, visited)) return false;
+        if (!isVectorMemberEqual    (&CallExpr::parameters      , *this, *p, visited)) return false;
+
+        // add this to the visited table.
+        visited.insert(this);
+        return true;
+    }
+
     template<typename Archive>
     void serialize(Archive& ar, const unsigned int version) {
         ::boost::serialization::base_object<Expression>(*this);

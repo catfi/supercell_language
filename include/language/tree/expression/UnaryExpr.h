@@ -84,6 +84,23 @@ struct UnaryExpr : public Expression
 		}
 	}
 
+    virtual bool isEqual(const ASTNode& rhs, ASTNodeSet& visited) const
+    {
+        if (visited.count(this)) return true ;
+        const UnaryExpr* p = cast<const UnaryExpr>(&rhs);
+        if (p == NULL) return false;
+        // compare base class
+        if (!Expression::isEqual(*p, visited)) return false;
+
+        // compare data member
+        if (this->opcode != p->opcode                                                 ) return false;
+        if (!isASTNodeMemberEqual   (&UnaryExpr::node            , *this, *p, visited)) return false;
+
+        // add this to the visited table.
+        visited.insert(this);
+        return true;
+    }
+
     template<typename Archive>
     void serialize(Archive& ar, const unsigned int version) {
         ::boost::serialization::base_object<Expression>(*this);
