@@ -24,6 +24,7 @@
 #include "language/tree/visitor/general/GenericDoubleVisitor.h"
 #include "language/tree/visitor/general/NodeInfoVisitor.h"
 #include "language/stage/generator/detail/LLVMForeach.h"
+#include "language/stage/generator/detail/LLVMHelper.h"
 #include "language/resolver/context/ResolverContext.h"
 #include "language/stage/transformer/context/ManglingStageContext.h"
 
@@ -39,7 +40,7 @@ struct LLVMGeneratorVisitor : GenericDoubleVisitor
 	CREATE_INVOKER(generateInvoker, generate)
 
 	LLVMGeneratorVisitor(llvm::LLVMContext& context, llvm::Module& module) :
-		mContext(context), mModule(module), mBuilder(context)
+		mContext(context), mModule(module), mBuilder(context), mHelper(context)
 	{
 		mFunctionContext.function = NULL;
 		mFunctionContext.entry_block = NULL;
@@ -62,6 +63,8 @@ struct LLVMGeneratorVisitor : GenericDoubleVisitor
 
 	void generate(NumericLiteral& node)
 	{
+		if(hasValue(node)) return;
+
 		revisit(node);
 
 		llvm::Value* result = NULL;
@@ -82,11 +85,15 @@ struct LLVMGeneratorVisitor : GenericDoubleVisitor
 
 	void generate(ObjectLiteral& node)
 	{
+		if(hasValue(node)) return;
+
 		revisit(node);
 	}
 
 	void generate(StringLiteral& node)
 	{
+		if(hasValue(node)) return;
+
 		revisit(node);
 	}
 
@@ -98,7 +105,7 @@ struct LLVMGeneratorVisitor : GenericDoubleVisitor
 
 	void generate(FunctionDecl& node)
 	{
-		if(!hasFunction(node))
+		if(!isFunctionVisited(node))
 		{
 			// create function signature (if necessary) and emit prologue of function
 			if(!startFunction(node))
@@ -128,8 +135,8 @@ struct LLVMGeneratorVisitor : GenericDoubleVisitor
 		// (all global variables are stored in a single game object, which is assembled by compiler)
 		if(isDeclaredInFunction(node))
 		{
-			if(isBlockInsertionMasked() || isBlockTerminated(currentBlock()))
-				return;
+			if(hasValue(node)) return;
+			if(isBlockInsertionMasked() || isBlockTerminated(currentBlock()))	return;
 
 			createAlloca(node);
 
@@ -153,8 +160,8 @@ struct LLVMGeneratorVisitor : GenericDoubleVisitor
 
 	void generate(DeclarativeStmt& node)
 	{
-		if(isBlockInsertionMasked() || isBlockTerminated(currentBlock()))
-			return;
+		if(hasValue(node)) return;
+		if(isBlockInsertionMasked() || isBlockTerminated(currentBlock()))	return;
 
 		revisit(node);
 
@@ -163,8 +170,8 @@ struct LLVMGeneratorVisitor : GenericDoubleVisitor
 
 	void generate(BranchStmt& node)
 	{
-		if(isBlockInsertionMasked() || isBlockTerminated(currentBlock()))
-			return;
+		if(hasValue(node)) return;
+		if(isBlockInsertionMasked() || isBlockTerminated(currentBlock()))	return;
 
 		revisit(node);
 
@@ -181,12 +188,13 @@ struct LLVMGeneratorVisitor : GenericDoubleVisitor
 			if(node.result)
 			{
 				llvm::Value* return_value = node.result->get<llvm::Value>();
-				BOOST_ASSERT(return_value && "invalid LLVM value");
-				result = mBuilder.CreateRet(return_value);
+				BOOST_ASSERT(return_value && "invalid LLVM value for return instruction");
+				mBuilder.CreateStore(return_value, mFunctionContext.return_value);
+				result = mBuilder.CreateBr(mFunctionContext.return_block);
 			}
 			else
 			{
-				result = mBuilder.CreateRet(mFunctionContext.return_block);
+				result = mBuilder.CreateBr(mFunctionContext.return_block);
 			}
 			setBlockInsertionMask();
 			break;
@@ -204,6 +212,8 @@ struct LLVMGeneratorVisitor : GenericDoubleVisitor
 
 	void generate(ExpressionStmt& node)
 	{
+		if(hasValue(node)) return;
+
 		revisit(node);
 
 		propagate(&node, node.expr);
@@ -211,8 +221,8 @@ struct LLVMGeneratorVisitor : GenericDoubleVisitor
 
 	void generate(IfElseStmt& node)
 	{
-		if(isBlockInsertionMasked() || isBlockTerminated(currentBlock()))
-			return;
+		if(hasValue(node)) return;
+		if(isBlockInsertionMasked() || isBlockTerminated(currentBlock()))	return;
 
 		// TODO simplify the blocks by removing or merging unnecessary blocks
 		// generate code into blocks
@@ -262,7 +272,7 @@ struct LLVMGeneratorVisitor : GenericDoubleVisitor
 
 			// for the last block
 			{
-				llvm::BasicBlock* block = createBasicBlock("if.continue", mFunctionContext.function);
+				llvm::BasicBlock* block = createBasicBlock("if.finalized", mFunctionContext.function);
 				llvm_blocks.push_back(block);
 			}
 		}
@@ -330,8 +340,8 @@ struct LLVMGeneratorVisitor : GenericDoubleVisitor
 
 	void generate(ForeachStmt& node)
 	{
-		if(isBlockInsertionMasked() || isBlockTerminated(currentBlock()))
-			return;
+		if(hasValue(node)) return;
+		if(isBlockInsertionMasked() || isBlockTerminated(currentBlock()))	return;
 
 //		if(node.if_branch.cond) user_visitor->
 //		if(node.if_branch.block) user_visitor->visit(*node.if_branch.block);
@@ -349,26 +359,56 @@ struct LLVMGeneratorVisitor : GenericDoubleVisitor
 
 	void generate(WhileStmt& node)
 	{
-		if(isBlockInsertionMasked() || isBlockTerminated(currentBlock()))
-			return;
-
-		revisit(node);
+		if(hasValue(node)) return;
+		if(isBlockInsertionMasked() || isBlockTerminated(currentBlock()))	return;
 
 		// emit the preamble and prepare blocks
 		if(node.style == WhileStmt::Style::WHILE)
 		{
+			llvm::BasicBlock* cond_block = createBasicBlock("while.eval", mFunctionContext.function);
+			llvm::BasicBlock* action_block = createBasicBlock("while.action", mFunctionContext.function);
+			llvm::BasicBlock* finalized_block = createBasicBlock("while.finalized", mFunctionContext.function);
 
+			// jump from current block to the condition evaluation block
+			enterBasicBlock(cond_block);
+			visit(*node.cond);
+
+			// conditional branch to either action block or finalized block
+			llvm::Value* llvm_cond = node.cond->get<llvm::Value>();
+			mBuilder.CreateCondBr(llvm_cond, action_block, finalized_block);
+
+			enterBasicBlock(action_block);
+			if(node.block) visit(*node.block);
+
+			// enter finalized block
+			enterBasicBlock(finalized_block);
 		}
 		else if(node.style == WhileStmt::Style::DO_WHILE)
 		{
+			llvm::BasicBlock* action_block = createBasicBlock("while.action", mFunctionContext.function);
+			llvm::BasicBlock* cond_block = createBasicBlock("while.eval", mFunctionContext.function);
+			llvm::BasicBlock* finalized_block = createBasicBlock("while.finalized", mFunctionContext.function);
 
+			// jump from current block to the condition evaluation block
+			enterBasicBlock(action_block);
+			if(node.block) visit(*node.block);
+
+			// conditional branch to either action block or finalized block
+			enterBasicBlock(cond_block);
+			visit(*node.cond);
+
+			llvm::Value* llvm_cond = node.cond->get<llvm::Value>();
+			mBuilder.CreateCondBr(llvm_cond, action_block, finalized_block);
+
+			// enter finalized block
+			enterBasicBlock(finalized_block);
 		}
 	}
 
 	void generate(SwitchStmt& node)
 	{
-		if(isBlockInsertionMasked() || isBlockTerminated(currentBlock()))
-			return;
+		if(hasValue(node)) return;
+		if(isBlockInsertionMasked() || isBlockTerminated(currentBlock()))	return;
 
 		revisit(node);
 		// emit the preamble and prepare blocks
@@ -376,8 +416,8 @@ struct LLVMGeneratorVisitor : GenericDoubleVisitor
 
 	void generate(PrimaryExpr& node)
 	{
-		if(isBlockInsertionMasked() || isBlockTerminated(currentBlock()))
-			return;
+		if(hasValue(node)) return;
+		if(isBlockInsertionMasked() || isBlockTerminated(currentBlock()))	return;
 
 		revisit(node);
 
@@ -394,33 +434,50 @@ struct LLVMGeneratorVisitor : GenericDoubleVisitor
 
 	void generate(UnaryExpr& node)
 	{
-		if(isBlockInsertionMasked() || isBlockTerminated(currentBlock()))
-			return;
+		if(hasValue(node)) return;
+		if(isBlockInsertionMasked() || isBlockTerminated(currentBlock()))	return;
 
 		revisit(node);
 
 		llvm::Value* result = NULL;
-		llvm::Value* operand = node.node->get<llvm::Value>();
-		llvm::Value* operand_value = llvm::isa<llvm::AllocaInst>(operand) ? mBuilder.CreateLoad(operand) : operand;
+//		llvm::Value* operand = node.node->get<llvm::Value>();
+//		llvm::Value* operand_value = llvm::isa<llvm::AllocaInst>(operand) ? mBuilder.CreateLoad(operand) : operand;
+
+		ASTNode* operand_resolved;
+		llvm::Value* operand_value_for_read;
+		llvm::Value* operand_value_for_write;
+		if(!getValue(*node.node, operand_resolved, operand_value_for_read, operand_value_for_write, (node.opcode >= UnaryExpr::OpCode::POSTFIX_INCREMENT && node.opcode <= UnaryExpr::OpCode::PREFIX_DECREMENT)))
+		{
+			BOOST_ASSERT(false && "failed to resolve LLVM value for operand");
+			terminateRevisit();
+		}
 
 		// TODO handle the differences between postfix and prefix increment/decrement
 		switch(node.opcode)
 		{
 		case UnaryExpr::OpCode::POSTFIX_INCREMENT:
-			result = mBuilder.CreateAdd(operand_value, llvm::ConstantInt::get(operand_value->getType(), 1, false)); break;
+			result = mBuilder.CreateAdd(operand_value_for_read, llvm::ConstantInt::get(operand_value_for_read->getType(), 1, false));
+			mBuilder.CreateStore(result, operand_value_for_write);
+			break;
 		case UnaryExpr::OpCode::POSTFIX_DECREMENT:
-			result = mBuilder.CreateSub(operand_value, llvm::ConstantInt::get(operand_value->getType(), 1, false)); break;
+			result = mBuilder.CreateSub(operand_value_for_read, llvm::ConstantInt::get(operand_value_for_read->getType(), 1, false));
+			mBuilder.CreateStore(result, operand_value_for_write);
+			break;
 		case UnaryExpr::OpCode::PREFIX_INCREMENT:
-			result = mBuilder.CreateAdd(operand_value, llvm::ConstantInt::get(operand_value->getType(), 1, false)); break;
+			result = mBuilder.CreateAdd(operand_value_for_read, llvm::ConstantInt::get(operand_value_for_read->getType(), 1, false));
+			mBuilder.CreateStore(result, operand_value_for_write);
+			break;
 		case UnaryExpr::OpCode::PREFIX_DECREMENT:
-			result = mBuilder.CreateAdd(operand_value, llvm::ConstantInt::get(operand_value->getType(), 1, false)); break;
+			result = mBuilder.CreateSub(operand_value_for_read, llvm::ConstantInt::get(operand_value_for_read->getType(), 1, false));
+			mBuilder.CreateStore(result, operand_value_for_write);
+			break;
 		case UnaryExpr::OpCode::BINARY_NOT:
-			result = mBuilder.CreateNot(operand_value); break;
+			result = mBuilder.CreateNot(operand_value_for_read); break;
 		case UnaryExpr::OpCode::LOGICAL_NOT:
 			BOOST_ASSERT(false && "not yet implemented");
 			break;
 		case UnaryExpr::OpCode::ARITHMETIC_NEGATE:
-			result = (isFloatType(node)) ? mBuilder.CreateFNeg(operand_value) : mBuilder.CreateNeg(operand_value); break;
+			result = (isFloatType(node)) ? mBuilder.CreateFNeg(operand_value_for_read) : mBuilder.CreateNeg(operand_value_for_read); break;
 		case UnaryExpr::OpCode::NEW:
 			break;
 		}
@@ -436,97 +493,106 @@ struct LLVMGeneratorVisitor : GenericDoubleVisitor
 
 	void generate(BinaryExpr& node)
 	{
-		if(isBlockInsertionMasked() || isBlockTerminated(currentBlock()))
-			return;
+		if(hasValue(node)) return;
+		if(isBlockInsertionMasked() || isBlockTerminated(currentBlock()))	return;
 
 		revisit(node);
 
-		llvm::Value* result = NULL;
-		llvm::Value* lhs = node.left->get<llvm::Value>();
-		llvm::Value* rhs = node.right->get<llvm::Value>();
+		ASTNode* lhs_resolved;
+		llvm::Value* lhs_value_for_read;
+		llvm::Value* lhs_value_for_write;
+		if(!getValue(*node.left, lhs_resolved, lhs_value_for_read, lhs_value_for_write, (node.opcode >= BinaryExpr::OpCode::ADD_ASSIGN && node.opcode <= BinaryExpr::OpCode::XOR_ASSIGN)))
+		{
+			BOOST_ASSERT(false && "failed to resolve LLVM value for LHS");
+			terminateRevisit();
+		}
 
-		// TODO implement load instruction cache here to prevent reduntent load
-		// if either LHS or RHS is a AllocaInst, we need to load its value to register
-		llvm::Value* lhs_value = (node.opcode != BinaryExpr::OpCode::ASSIGN) ? llvm::isa<llvm::AllocaInst>(lhs) ? mBuilder.CreateLoad(lhs) : lhs : NULL;
-		llvm::Value* rhs_value = llvm::isa<llvm::AllocaInst>(rhs) ? mBuilder.CreateLoad(rhs) : rhs;
+		ASTNode* rhs_resolved;
+		llvm::Value* rhs_value_for_read;
+		llvm::Value* rhs_value_for_write;
+		if(!getValue(*node.right, rhs_resolved, rhs_value_for_read, rhs_value_for_write, (node.opcode >= BinaryExpr::OpCode::ADD_ASSIGN && node.opcode <= BinaryExpr::OpCode::XOR_ASSIGN)))
+		{
+			BOOST_ASSERT(false && "failed to resolve LLVM value for RHS");
+			terminateRevisit();
+		}
+
+		llvm::Value* result = NULL;
 		llvm::Value* temporary = NULL;
 
 		switch(node.opcode)
 		{
 			// Assignments Operations
 		case BinaryExpr::OpCode::ASSIGN:
-			result = mBuilder.CreateStore(rhs_value, lhs);
+			result = mBuilder.CreateStore(rhs_value_for_read, lhs_value_for_write);
 			break;
 		case BinaryExpr::OpCode::ADD_ASSIGN:
-			temporary = (isFloatType(node)) ? mBuilder.CreateFAdd(lhs_value, rhs_value) : mBuilder.CreateAdd(lhs_value, rhs_value);
-			result = mBuilder.CreateStore(temporary, lhs);
+			temporary = (isFloatType(node)) ? mBuilder.CreateFAdd(lhs_value_for_read, rhs_value_for_read) : mBuilder.CreateAdd(lhs_value_for_read, rhs_value_for_read);
+			result = mBuilder.CreateStore(temporary, lhs_value_for_write);
 			break;
 		case BinaryExpr::OpCode::SUB_ASSIGN:
-			temporary = (isFloatType(node)) ? mBuilder.CreateFSub(lhs_value, rhs_value) : mBuilder.CreateSub(lhs_value, rhs_value);
-			result = mBuilder.CreateStore(temporary, lhs);
+			temporary = (isFloatType(node)) ? mBuilder.CreateFSub(lhs_value_for_read, rhs_value_for_read) : mBuilder.CreateSub(lhs_value_for_read, rhs_value_for_read);
+			result = mBuilder.CreateStore(temporary, lhs_value_for_write);
 			break;
 		case BinaryExpr::OpCode::MUL_ASSIGN:
-			temporary = (isFloatType(node)) ? mBuilder.CreateFMul(lhs_value, rhs_value) : mBuilder.CreateMul(lhs_value, rhs_value);
-			result = mBuilder.CreateStore(temporary, lhs);
+			temporary = (isFloatType(node)) ? mBuilder.CreateFMul(lhs_value_for_read, rhs_value_for_read) : mBuilder.CreateMul(lhs_value_for_read, rhs_value_for_read);
+			result = mBuilder.CreateStore(temporary, lhs_value_for_write);
 			break;
 		case BinaryExpr::OpCode::DIV_ASSIGN:
-			temporary = (isFloatType(node)) ? mBuilder.CreateFDiv(lhs_value, rhs_value) : mBuilder.CreateUDiv(lhs_value, rhs_value);
-			result = mBuilder.CreateStore(temporary, lhs);
+			temporary = (isFloatType(node)) ? mBuilder.CreateFDiv(lhs_value_for_read, rhs_value_for_read) : mBuilder.CreateUDiv(lhs_value_for_read, rhs_value_for_read);
+			result = mBuilder.CreateStore(temporary, lhs_value_for_write);
 			break;
 		case BinaryExpr::OpCode::MOD_ASSIGN:
-			temporary = (isFloatType(node)) ? mBuilder.CreateFRem(lhs_value, rhs_value) : mBuilder.CreateURem(lhs_value, rhs_value);
-			result = mBuilder.CreateStore(temporary, lhs);
+			temporary = (isFloatType(node)) ? mBuilder.CreateFRem(lhs_value_for_read, rhs_value_for_read) : mBuilder.CreateURem(lhs_value_for_read, rhs_value_for_read);
+			result = mBuilder.CreateStore(temporary, lhs_value_for_write);
 			break;
 		case BinaryExpr::OpCode::AND_ASSIGN:
-			temporary = mBuilder.CreateAnd(lhs_value, rhs_value);
-			result = mBuilder.CreateStore(temporary, lhs);
+			temporary = mBuilder.CreateAnd(lhs_value_for_read, rhs_value_for_read);
+			result = mBuilder.CreateStore(temporary, lhs_value_for_write);
 			break;
 		case BinaryExpr::OpCode::OR_ASSIGN:
-			temporary = mBuilder.CreateOr(lhs_value, rhs_value);
-			result = mBuilder.CreateStore(temporary, lhs);
+			temporary = mBuilder.CreateOr(lhs_value_for_read, rhs_value_for_read);
+			result = mBuilder.CreateStore(temporary, lhs_value_for_write);
 			break;
 		case BinaryExpr::OpCode::XOR_ASSIGN:
-			temporary = mBuilder.CreateXor(lhs_value, rhs_value);
-			result = mBuilder.CreateStore(temporary, lhs);
+			temporary = mBuilder.CreateXor(lhs_value_for_read, rhs_value_for_read);
+			result = mBuilder.CreateStore(temporary, lhs_value_for_write);
 			break;
 
 			// Arithmetic Operations
 		case BinaryExpr::OpCode::ARITHMETIC_ADD:
-			result = (isFloatType(node)) ? mBuilder.CreateFAdd(lhs_value, rhs_value) : mBuilder.CreateAdd(lhs_value, rhs_value); break;
+			result = (isFloatType(node)) ? mBuilder.CreateFAdd(lhs_value_for_read, rhs_value_for_read) : mBuilder.CreateAdd(lhs_value_for_read, rhs_value_for_read); break;
 		case BinaryExpr::OpCode::ARITHMETIC_SUB:
-			result = (isFloatType(node)) ? mBuilder.CreateFSub(lhs_value, rhs_value) : mBuilder.CreateSub(lhs_value, rhs_value); break;
+			result = (isFloatType(node)) ? mBuilder.CreateFSub(lhs_value_for_read, rhs_value_for_read) : mBuilder.CreateSub(lhs_value_for_read, rhs_value_for_read); break;
 		case BinaryExpr::OpCode::ARITHMETIC_MUL:
-			result = (isFloatType(node)) ? mBuilder.CreateFMul(lhs_value, rhs_value) : mBuilder.CreateMul(lhs_value, rhs_value); break;
+			result = (isFloatType(node)) ? mBuilder.CreateFMul(lhs_value_for_read, rhs_value_for_read) : mBuilder.CreateMul(lhs_value_for_read, rhs_value_for_read); break;
 		case BinaryExpr::OpCode::ARITHMETIC_DIV:
 			// TODO should be use CreateUDiv or CreateSDiv? depending on whether LHS or RHS is signed or unsigned
 			// TODO current zscript does not handle this correctly
 			// TODO see clang CGExprScalar.cpp:1737 hasUnsignedIntegerRepresentation()
-			result = (isFloatType(node)) ? mBuilder.CreateFDiv(lhs_value, rhs_value) : mBuilder.CreateUDiv(lhs_value, rhs_value); break;
+			result = (isFloatType(node)) ? mBuilder.CreateFDiv(lhs_value_for_read, rhs_value_for_read) : mBuilder.CreateUDiv(lhs_value_for_read, rhs_value_for_read); break;
 		case BinaryExpr::OpCode::ARITHMETIC_MOD:
-			result = (isFloatType(node)) ? mBuilder.CreateFRem(lhs_value, rhs_value) : mBuilder.CreateURem(lhs_value, rhs_value); break;
+			result = (isFloatType(node)) ? mBuilder.CreateFRem(lhs_value_for_read, rhs_value_for_read) : mBuilder.CreateURem(lhs_value_for_read, rhs_value_for_read); break;
 
 			// Arithmetic Bitwise Operations
 		case BinaryExpr::OpCode::BINARY_AND:
-			result = mBuilder.CreateAnd(lhs_value, rhs_value); break;
+			result = mBuilder.CreateAnd(lhs_value_for_read, rhs_value_for_read); break;
 		case BinaryExpr::OpCode::BINARY_OR:
-			result = mBuilder.CreateOr(lhs_value, rhs_value); break;
+			result = mBuilder.CreateOr(lhs_value_for_read, rhs_value_for_read); break;
 		case BinaryExpr::OpCode::BINARY_XOR:
-			result = mBuilder.CreateXor(lhs_value, rhs_value); break;
+			result = mBuilder.CreateXor(lhs_value_for_read, rhs_value_for_read); break;
 		case BinaryExpr::OpCode::BINARY_LSHIFT:
 			BOOST_ASSERT(false && "not yet implemented");
 			// TODO what's the left shift operation?
 			break;
 		case BinaryExpr::OpCode::BINARY_RSHIFT:
 			// TODO should we use CreateAShr or CreateLShr? depending on the object type?
-			result = mBuilder.CreateAShr(lhs_value, rhs_value); break;
+			result = mBuilder.CreateAShr(lhs_value_for_read, rhs_value_for_read); break;
 
 			// Logic Operations
 		case BinaryExpr::OpCode::LOGICAL_AND:
-			BOOST_ASSERT(false && "not yet implemented");
-			break;
+			result = mBuilder.CreateAnd(lhs_value_for_read, rhs_value_for_read); break;
 		case BinaryExpr::OpCode::LOGICAL_OR:
-			BOOST_ASSERT(false && "not yet implemented");
-			break;
+			result = mBuilder.CreateOr(lhs_value_for_read, rhs_value_for_read); break;
 
 			// Instance Of (Type testing)
 		case BinaryExpr::OpCode::INSTANCEOF:
@@ -535,17 +601,17 @@ struct LLVMGeneratorVisitor : GenericDoubleVisitor
 
 			// Logical Comparison
 		case BinaryExpr::OpCode::COMPARE_EQ:
-			result = (isFloatType(node)) ? mBuilder.CreateFCmp(llvm::CmpInst::Predicate::FCMP_UEQ, lhs_value, rhs_value) : mBuilder.CreateICmp(llvm::CmpInst::Predicate::ICMP_EQ, lhs_value, rhs_value); break;
+			result = (isFloatType(node)) ? mBuilder.CreateFCmp(llvm::CmpInst::Predicate::FCMP_UEQ, lhs_value_for_read, rhs_value_for_read) : mBuilder.CreateICmp(llvm::CmpInst::Predicate::ICMP_EQ, lhs_value_for_read, rhs_value_for_read); break;
 		case BinaryExpr::OpCode::COMPARE_NE:
-			result = (isFloatType(node)) ? mBuilder.CreateFCmp(llvm::CmpInst::Predicate::FCMP_UNE, lhs_value, rhs_value) : mBuilder.CreateICmp(llvm::CmpInst::Predicate::ICMP_NE, lhs_value, rhs_value); break;
+			result = (isFloatType(node)) ? mBuilder.CreateFCmp(llvm::CmpInst::Predicate::FCMP_UNE, lhs_value_for_read, rhs_value_for_read) : mBuilder.CreateICmp(llvm::CmpInst::Predicate::ICMP_NE, lhs_value_for_read, rhs_value_for_read); break;
 		case BinaryExpr::OpCode::COMPARE_GT:
-			result = (isFloatType(node)) ? mBuilder.CreateFCmp(llvm::CmpInst::Predicate::FCMP_UGT, lhs_value, rhs_value) : mBuilder.CreateICmp(llvm::CmpInst::Predicate::ICMP_UGT, lhs_value, rhs_value); break;
+			result = (isFloatType(node)) ? mBuilder.CreateFCmp(llvm::CmpInst::Predicate::FCMP_UGT, lhs_value_for_read, rhs_value_for_read) : mBuilder.CreateICmp(llvm::CmpInst::Predicate::ICMP_UGT, lhs_value_for_read, rhs_value_for_read); break;
 		case BinaryExpr::OpCode::COMPARE_LT:
-			result = (isFloatType(node)) ? mBuilder.CreateFCmp(llvm::CmpInst::Predicate::FCMP_ULT, lhs_value, rhs_value) : mBuilder.CreateICmp(llvm::CmpInst::Predicate::ICMP_ULT, lhs_value, rhs_value); break;
+			result = (isFloatType(node)) ? mBuilder.CreateFCmp(llvm::CmpInst::Predicate::FCMP_ULT, lhs_value_for_read, rhs_value_for_read) : mBuilder.CreateICmp(llvm::CmpInst::Predicate::ICMP_ULT, lhs_value_for_read, rhs_value_for_read); break;
 		case BinaryExpr::OpCode::COMPARE_GE:
-			result = (isFloatType(node)) ? mBuilder.CreateFCmp(llvm::CmpInst::Predicate::FCMP_UGE, lhs_value, rhs_value) : mBuilder.CreateICmp(llvm::CmpInst::Predicate::ICMP_UGE, lhs_value, rhs_value); break;
+			result = (isFloatType(node)) ? mBuilder.CreateFCmp(llvm::CmpInst::Predicate::FCMP_UGE, lhs_value_for_read, rhs_value_for_read) : mBuilder.CreateICmp(llvm::CmpInst::Predicate::ICMP_UGE, lhs_value_for_read, rhs_value_for_read); break;
 		case BinaryExpr::OpCode::COMPARE_LE:
-			result = (isFloatType(node)) ? mBuilder.CreateFCmp(llvm::CmpInst::Predicate::FCMP_ULE, lhs_value, rhs_value) : mBuilder.CreateICmp(llvm::CmpInst::Predicate::ICMP_ULE, lhs_value, rhs_value); break;
+			result = (isFloatType(node)) ? mBuilder.CreateFCmp(llvm::CmpInst::Predicate::FCMP_ULE, lhs_value_for_read, rhs_value_for_read) : mBuilder.CreateICmp(llvm::CmpInst::Predicate::ICMP_ULE, lhs_value_for_read, rhs_value_for_read); break;
 
 			// Range Operator
 		case BinaryExpr::OpCode::RANGE_ELLIPSIS:
@@ -573,20 +639,93 @@ struct LLVMGeneratorVisitor : GenericDoubleVisitor
 
 	void generate(TernaryExpr& node)
 	{
-		if(isBlockInsertionMasked() || isBlockTerminated(currentBlock()))
-			return;
+		if(hasValue(node)) return;
+		if(isBlockInsertionMasked() || isBlockTerminated(currentBlock()))	return;
 
-		revisit(node);
+		llvm::BasicBlock* cond_block = createBasicBlock("ternary.eval", mFunctionContext.function);
+		llvm::BasicBlock* true_block = createBasicBlock("ternary.true", mFunctionContext.function);
+		llvm::BasicBlock* false_block = createBasicBlock("ternary.false", mFunctionContext.function);
+		llvm::BasicBlock* final_block = createBasicBlock("ternary.finalized", mFunctionContext.function);
 
-		// TODO use predicate
+		// jump from current block to the condition evaluation block
+		enterBasicBlock(cond_block);
+		{
+			visit(*node.cond);
+
+			// conditional branch to either action block or finalized block
+			llvm::Value* llvm_cond = node.cond->get<llvm::Value>();
+			mBuilder.CreateCondBr(llvm_cond, true_block, false_block);
+		}
+
+		// try entering true block and get the value
+		enterBasicBlock(true_block);
+		if(node.true_node)
+		{
+			visit(*node.true_node);
+			mBuilder.CreateBr(final_block);
+		}
+
+		// try entering true block and get the value
+		enterBasicBlock(false_block);
+		if(node.false_node)
+		{
+			visit(*node.false_node);
+			mBuilder.CreateBr(final_block);
+		}
+
+		// try enter finalized block and create branch from true block
+		enterBasicBlock(final_block);
+		{
+			llvm::Value* true_value = node.true_node->get<llvm::Value>();
+			llvm::Value* false_value = node.false_node->get<llvm::Value>();
+			llvm::PHINode* phi = mBuilder.CreatePHI(true_value->getType());
+			phi->addIncoming(true_value, true_block);
+			phi->addIncoming(false_value, false_block);
+
+			node.set<llvm::Value>(phi);
+		}
 	}
 
 	void generate(CallExpr& node)
 	{
-		if(isBlockInsertionMasked() || isBlockTerminated(currentBlock()))
-			return;
+		if(hasValue(node)) return;
+		if(isBlockInsertionMasked() || isBlockTerminated(currentBlock()))	return;
 
 		revisit(node);
+
+		std::vector<llvm::Value*> arguments;
+		foreach(i, node.parameters)
+		{
+			ASTNode* parameter_resolved;
+			llvm::Value* parameter_value_for_read;
+			llvm::Value* parameter_value_for_write;
+			if(!getValue(**i, parameter_resolved, parameter_value_for_read, parameter_value_for_write, false))
+			{
+				BOOST_ASSERT(false && "invalid LLVM parameter value for function call");
+				terminateRevisit();
+			}
+
+			arguments.push_back(parameter_value_for_read);
+		}
+
+		ASTNode* resolved = ResolvedSymbol::get(node.node);
+		if(isa<FunctionDecl>(resolved))
+		{
+			llvm::Function* llvm_function = resolved->get<llvm::Function>();
+			if(llvm_function)
+			{
+				llvm::Value* result = mBuilder.CreateCall(llvm_function, arguments.begin(), arguments.end());
+				node.set<llvm::Value>(result);
+			}
+			else
+			{
+				BOOST_ASSERT(false && "invalid LLVM function object");
+			}
+		}
+		else
+		{
+			BOOST_ASSERT(false && "calling non-invokable value");
+		}
 		// TODO depending on the LHS, if it's a directly-invokable function, just get the function prototype and invoke
 		// TODO if it's not a directly-invokable function, which can be a class member function, pass this pointer to that function and make the call
 		// TODO if it's a class member function and it's virtual, we have different calling convention here
@@ -594,8 +733,8 @@ struct LLVMGeneratorVisitor : GenericDoubleVisitor
 
 	void generate(CastExpr& node)
 	{
-		if(isBlockInsertionMasked() || isBlockTerminated(currentBlock()))
-			return;
+		if(hasValue(node)) return;
+		if(isBlockInsertionMasked() || isBlockTerminated(currentBlock()))	return;
 
 		revisit(node);
 		// TODO only generate code when there's type mismatch
@@ -603,8 +742,8 @@ struct LLVMGeneratorVisitor : GenericDoubleVisitor
 
 	void generate(MemberExpr& node)
 	{
-		if(isBlockInsertionMasked() || isBlockTerminated(currentBlock()))
-			return;
+		if(hasValue(node)) return;
+		if(isBlockInsertionMasked() || isBlockTerminated(currentBlock()))	return;
 
 		revisit(node);
 		// TODO if the node is resolved to a package, do nothing
@@ -614,205 +753,6 @@ struct LLVMGeneratorVisitor : GenericDoubleVisitor
 	}
 
 private:
-
-	bool getType(PrimitiveType::type type, /*OUT*/ const llvm::Type*& result, /*OUT*/ llvm::Attributes& modifier)
-	{
-		bool resolved = false;
-
-		switch(type)
-		{
-		case PrimitiveType::ANONYMOUS_OBJECT:
-		{
-			// return generic pointer type, which is an unsigned int32
-			modifier |= llvm::Attribute::ZExt;
-			result = llvm::IntegerType::getInt32Ty(mContext);
-			resolved = true; break;
-		}
-		case PrimitiveType::ANONYMOUS_FUNCTION:
-		{
-			// TODO return pointer to function type
-			result = NULL;
-			resolved = true; break;
-		}
-		case PrimitiveType::VOID:
-		{
-			result = llvm::Type::getVoidTy(mContext);
-			resolved = true; break;
-		}
-		case PrimitiveType::INT8:
-		{
-			modifier |= llvm::Attribute::SExt;
-			result = llvm::IntegerType::getInt8Ty(mContext);
-			resolved = true; break;
-		}
-		case PrimitiveType::UINT8:
-		{
-			modifier |= llvm::Attribute::ZExt;
-			result = llvm::IntegerType::getInt8Ty(mContext);
-			resolved = true; break;
-		}
-		case PrimitiveType::INT16:
-		{
-			modifier |= llvm::Attribute::SExt;
-			result = llvm::IntegerType::getInt16Ty(mContext);
-			resolved = true; break;
-		}
-		case PrimitiveType::UINT16:
-		{
-			modifier |= llvm::Attribute::ZExt;
-			result = llvm::IntegerType::getInt16Ty(mContext);
-			resolved = true; break;
-		}
-		case PrimitiveType::INT32:
-		{
-			modifier |= llvm::Attribute::SExt;
-			result = llvm::IntegerType::getInt32Ty(mContext);
-			resolved = true; break;
-		}
-		case PrimitiveType::UINT32:
-		{
-			modifier |= llvm::Attribute::ZExt;
-			result = llvm::IntegerType::getInt32Ty(mContext);
-			resolved = true; break;
-		}
-		case PrimitiveType::INT64:
-		{
-			modifier |= llvm::Attribute::SExt;
-			result = llvm::IntegerType::getInt64Ty(mContext);
-			resolved = true; break;
-		}
-		case PrimitiveType::UINT64:
-		{
-			modifier |= llvm::Attribute::ZExt;
-			result = llvm::IntegerType::getInt64Ty(mContext);
-			resolved = true; break;
-		}
-		case PrimitiveType::FLOAT32:
-		{
-			result = llvm::Type::getFloatTy(mContext);
-			resolved = true; break;
-		}
-		case PrimitiveType::FLOAT64:
-		{
-			result = llvm::Type::getDoubleTy(mContext);
-			resolved = true; break;
-		}
-		}
-
-		return resolved;
-	}
-
-	bool getType(TypeSpecifier& specifier, /*OUT*/ const llvm::Type*& result, /*OUT*/ llvm::Attributes& modifier)
-	{
-		bool resolved = false;
-
-		switch(specifier.type)
-		{
-		case TypeSpecifier::ReferredType::CLASS_DECL: // TODO return pointer type
-		case TypeSpecifier::ReferredType::INTERFACE_DECL: // TODO return pointer type
-		{
-			// return generic pointer type, which is an unsigned int32
-			modifier |= llvm::Attribute::ZExt;
-			result = llvm::IntegerType::getInt32Ty(mContext);
-			resolved = true; break;
-		}
-		case TypeSpecifier::ReferredType::FUNCTION_DECL:
-		case TypeSpecifier::ReferredType::FUNCTION_TYPE:
-		{
-			// TODO return pointer to function type
-			result = NULL;
-			resolved = false; break;
-		}
-		case TypeSpecifier::ReferredType::ENUM_DECL:
-		{
-			modifier |= llvm::Attribute::ZExt;
-			result = llvm::IntegerType::getInt32Ty(mContext);
-			resolved = true; break;
-		}
-		case TypeSpecifier::ReferredType::PRIMITIVE:
-		{
-			return getType(specifier.referred.primitive, result, modifier);
-		}
-		case TypeSpecifier::ReferredType::TYPEDEF_DECL:
-		case TypeSpecifier::ReferredType::UNSPECIFIED:
-			// TODO these are cases that shouldn't happen
-			result = NULL;
-			resolved = false; break;
-		}
-		return resolved;
-	}
-
-	bool getFunctionType(FunctionDecl& ast_function, /*OUT*/ llvm::FunctionType*& llvm_function_type, /*OUT*/ std::vector<llvm::AttributeWithIndex>& llvm_function_parameter_type_attributes, /*OUT*/ llvm::Attributes& llvm_function_return_type_attribute)
-	{
-		// prepare LLVM function parameter type list
-		std::vector<const llvm::Type*> llvm_function_parameter_types;
-		{
-			int index = 0;
-			foreach(i, ast_function.parameters)
-			{
-				llvm::Attributes attr = llvm::Attribute::None;
-				const llvm::Type* t = NULL;
-
-				if(!getType(*i->second, t, attr))
-					return false;
-
-				llvm_function_parameter_types.push_back(t);
-				llvm_function_parameter_type_attributes.push_back(llvm::AttributeWithIndex::get(index, attr));
-
-				++index;
-			}
-		}
-
-		// prepare LLVM function return type
-		const llvm::Type* llvm_function_return_type = NULL;
-		{
-			if(!getType(*ast_function.type, llvm_function_return_type, llvm_function_return_type_attribute))
-				return false;
-		}
-
-		llvm_function_type = llvm::FunctionType::get(llvm_function_return_type, llvm_function_parameter_types, false /*not variadic*/);
-
-		return true;
-	}
-
-	bool hasFunction(FunctionDecl& ast_function)
-	{
-		if(ast_function.get<llvm::Function>())
-			return true;
-		else
-			return false;
-	}
-
-	bool getFunction(FunctionDecl& ast_function, /*OUT*/ llvm::Function*& llvm_function)
-	{
-		if(!!(llvm_function = ast_function.get<llvm::Function>()))
-			return true;
-
-		llvm::BasicBlock* bb;
-
-		llvm::FunctionType* llvm_function_type = NULL;
-		std::vector<llvm::AttributeWithIndex> llvm_function_parameter_type_attributes;
-		llvm::Attributes llvm_function_return_type_attribute;
-
-		// try to resolve function type
-		if(!getFunctionType(ast_function, llvm_function_type, llvm_function_parameter_type_attributes, llvm_function_return_type_attribute))
-			return false;
-
-		// TODO we should provide some generator name manging helper
-		llvm_function = llvm::Function::Create(llvm_function_type, llvm::Function::ExternalLinkage, NameManglingContext::get(&ast_function)->managled_name, &mModule);
-
-		if(!llvm_function)
-			return false;
-
-		// set function attributes (modifiers)
-		llvm_function->setAttributes(llvm::AttrListPtr::get(llvm_function_parameter_type_attributes.begin(), llvm_function_parameter_type_attributes.end()));
-
-		// associate the LLVM function object with AST FunctionDecl object
-		ast_function.set<llvm::Function>(llvm_function);
-
-		return true;
-	}
-
 	llvm::BasicBlock* createBasicBlock(llvm::StringRef name = "", llvm::Function* parent = NULL, llvm::BasicBlock* before = NULL)
 	{
 		return llvm::BasicBlock::Create(mContext, name, parent, before);
@@ -830,6 +770,17 @@ private:
 		resetBlockInsertionMask();
 	}
 
+	llvm::AllocaInst* createAlloca(const llvm::Type* type, const llvm::Twine& name = "")
+	{
+		llvm::AllocaInst* llvm_alloca_inst = NULL;
+		if(mBuilder.isNamePreserving())
+			llvm_alloca_inst = new llvm::AllocaInst(type, 0, name, mFunctionContext.alloca_insert_point);
+		else
+			llvm_alloca_inst = new llvm::AllocaInst(type, 0, "", mFunctionContext.alloca_insert_point);
+
+		return llvm_alloca_inst;
+	}
+
 	bool createAlloca(VariableDecl& ast_variable)
 	{
 		if(!!ast_variable.get<llvm::Value>())
@@ -837,7 +788,7 @@ private:
 
 		const llvm::Type* llvm_variable_type = NULL;
 		llvm::Attributes llvm_variable_modifier = llvm::Attribute::None;
-		if(!getType(*ast_variable.type, llvm_variable_type, llvm_variable_modifier))
+		if(!mHelper.getType(*ast_variable.type, llvm_variable_type, llvm_variable_modifier))
 			return false;
 
 //		llvm_variable_type->dump();
@@ -861,9 +812,13 @@ private:
 		BOOST_ASSERT(!mFunctionContext.return_block);
 		BOOST_ASSERT(!mFunctionContext.alloca_insert_point);
 
-		llvm::Function* llvm_function = NULL;
-		if(!getFunction(ast_function, llvm_function))
+		llvm::Function* llvm_function = ast_function.get<llvm::Function>();
+		if(!llvm_function)
+		{
+			BOOST_ASSERT(false && "invalid LLVM function object");
+			terminateRevisit();
 			return false;
+		}
 
 		// create basic entry blocks
 		mFunctionContext.entry_block = createBasicBlock("entry", llvm_function);
@@ -884,7 +839,7 @@ private:
 		{
 			const llvm::Type* type;
 			llvm::Attributes modifier;
-			if(getType(*ast_function.type, type, modifier) && type && !type->isVoidTy())
+			if(mHelper.getType(*ast_function.type, type, modifier) && type && !type->isVoidTy())
 			{
 				mFunctionContext.return_value = new llvm::AllocaInst(type, 0, "retval", mFunctionContext.alloca_insert_point);
 			}
@@ -904,10 +859,14 @@ private:
 	{
 		enterBasicBlock(mFunctionContext.return_block);
 
-		if(!mFunctionContext.return_value || mFunctionContext.return_value->getType()->isVoidTy())
+		if(!mFunctionContext.return_value)
 		{
-			mBuilder.SetInsertPoint(mFunctionContext.return_block);
 			mBuilder.CreateRetVoid();
+		}
+		else
+		{
+			BOOST_ASSERT(!mFunctionContext.return_value->getType()->isVoidTy());
+			mBuilder.CreateRet(mBuilder.CreateLoad(mFunctionContext.return_value));
 		}
 
 		mFunctionContext.alloca_insert_point->eraseFromParent();
@@ -921,6 +880,97 @@ private:
 		mFunctionContext.function = NULL;
 		mFunctionContext.entry_block = NULL;
 		mFunctionContext.return_block = NULL;
+
+		return true;
+	}
+
+private:
+	bool getValue(ASTNode& node, /*OUT*/ ASTNode*& resolved_symbol, /*OUT*/ llvm::Value*& llvm_value_for_read, /*OUT*/ llvm::Value*& llvm_value_for_write, bool require_write_access = false)
+	{
+		llvm_value_for_read = node.get<llvm::Value>();
+		if(llvm_value_for_read)
+		{
+			if(llvm::isa<llvm::AllocaInst>(llvm_value_for_read))
+			{
+				llvm_value_for_write = llvm_value_for_read;
+				llvm_value_for_read = mBuilder.CreateLoad(llvm_value_for_read);
+			}
+			else
+			{
+				if(require_write_access)
+				{
+					BOOST_ASSERT(false && "writing to read-only LLVM value");
+					return false;
+				}
+			}
+			resolved_symbol = &node;
+			return true;
+		}
+		else
+		{
+			resolved_symbol = ResolvedSymbol::get(&node);
+			if(!resolved_symbol)
+				return false;
+
+			llvm_value_for_read = resolved_symbol->get<llvm::Value>();
+
+			if(llvm_value_for_read)
+			{
+				if(llvm::isa<llvm::AllocaInst>(llvm_value_for_read))
+				{
+					llvm_value_for_write = llvm_value_for_read;
+					llvm_value_for_read = mBuilder.CreateLoad(llvm_value_for_read);
+				}
+				else
+				{
+					if(require_write_access)
+					{
+						BOOST_ASSERT(false && "writing to read-only LLVM value");
+						return false;
+					}
+				}
+			}
+			else if(isFunctionParameter(*resolved_symbol))
+			{
+				FunctionDecl* ast_function = getContainingFunction(*resolved_symbol);
+				int index = getFunctionParameterIndex(*resolved_symbol);
+
+				llvm::Function* llvm_function = ast_function->get<llvm::Function>();
+
+				llvm::Function::arg_iterator llvm_function_parameter_iterator = llvm_function->arg_begin();
+				// because argument iterator is not a randome access iterator, we have to advance the iterator step-by-step
+				for(int r = 0; r < index; ++r, ++llvm_function_parameter_iterator);
+
+				llvm_value_for_read = &(*(llvm_function_parameter_iterator));
+
+				if(require_write_access)
+				{
+					const llvm::Type* t;
+					llvm::Attributes modifier;
+					if(mHelper.getType(*ast_function->parameters[index].second, t, modifier) && t && !t->isVoidTy())
+					{
+						llvm_value_for_write = createAlloca(t, NameManglingContext::get(resolved_symbol)->managled_name);
+						mBuilder.CreateStore(llvm_value_for_read, llvm_value_for_write);
+
+						// TODO this can be removed since it's the very first time we create alloca and store parameter value into it
+						llvm_value_for_read = mBuilder.CreateLoad(llvm_value_for_write);
+
+						// store the alloca in the parameter
+						resolved_symbol->set<llvm::Value>(llvm_value_for_write);
+					}
+					else
+					{
+						BOOST_ASSERT(false && "writing to read-only LLVM type");
+						return false;
+					}
+				}
+			}
+			else
+			{
+				// nested value resolve
+				return getValue(*resolved_symbol, resolved_symbol, llvm_value_for_read, llvm_value_for_write, require_write_access);
+			}
+		}
 
 		return true;
 	}
@@ -943,6 +993,86 @@ private:
 		}
 
 		return false;
+	}
+
+	bool isFunctionParameter(ASTNode& node)
+	{
+		if(!isa<SimpleIdentifier>(&node))
+			return false;
+
+		if(!node.parent)
+			return false;
+
+		if(!isa<FunctionDecl>(node.parent))
+			return false;
+
+		return true;
+	}
+
+	int getFunctionParameterIndex(ASTNode& node)
+	{
+		if(!isa<SimpleIdentifier>(&node))
+			return -1;
+
+		if(!node.parent)
+			return -1;
+
+		if(!isa<FunctionDecl>(node.parent))
+			return -1;
+
+		SimpleIdentifier* p = cast<SimpleIdentifier>(&node);
+		FunctionDecl* f = cast<FunctionDecl>(node.parent);
+
+		int index = 0;
+		foreach(i, f->parameters)
+		{
+			if(i->first == p) break;
+			++index;
+		}
+
+		if(index >= f->parameters.size())
+			return -1;
+
+		return index;
+	}
+
+	FunctionDecl* getContainingFunction(ASTNode& node)
+	{
+		if(!isa<SimpleIdentifier>(&node))
+			return NULL;
+
+		if(!node.parent)
+			return NULL;
+
+		return cast<FunctionDecl>(node.parent);
+	}
+
+	bool hasValue(ASTNode& ast_node)
+	{
+		if(ast_node.get<llvm::Value>())
+			return true;
+		else
+			return false;
+	}
+
+	bool isResolved(ASTNode& ast_node)
+	{
+		if(ResolvedSymbol::get(&ast_node))
+			return true;
+		else
+			return false;
+	}
+
+	bool isFunctionVisited(FunctionDecl& ast_function)
+	{
+		llvm::Function* llvm_function = ast_function.get<llvm::Function>();
+		if(!llvm_function)
+			return false;
+
+		if(llvm_function->getBasicBlockList().size() == 0 )
+			return false;
+
+		return true;
 	}
 
 	bool isBlockInsertionMasked()
@@ -975,18 +1105,24 @@ private:
 	{
 		if(!from || !to) return false;
 
-		llvm::Value* v = from->get<llvm::Value>();
-		if(v)
-			to->set<llvm::Value>(v);
-		else
+		llvm::Value* existing_value = to->get<llvm::Value>();
+		if(!existing_value)
 		{
-			NodeInfoVisitor node_info_visitor;
-			node_info_visitor.visit(*from);
-			std::wstring from_info = node_info_visitor.stream.str();
-			node_info_visitor.visit(*to);
-			std::wstring to_info = node_info_visitor.stream.str();
+			llvm::Value* value = from->get<llvm::Value>();
+			if(value)
+			{
+				to->set<llvm::Value>(value);
+			}
+			else
+			{
+				NodeInfoVisitor node_info_visitor;
+				node_info_visitor.visit(*from);
+				std::wstring from_info = node_info_visitor.stream.str();
+				node_info_visitor.visit(*to);
+				std::wstring to_info = node_info_visitor.stream.str();
 
-			LOG4CXX_ERROR(Logger::GeneratorStage, L"failed to propagate NULL value from \"" << from_info << "\" to \"" << to_info << L"\"");
+				LOG4CXX_ERROR(Logger::GeneratorStage, L"failed to propagate NULL value from \"" << from_info << "\" to \"" << to_info << L"\"");
+			}
 		}
 
 		return true;
@@ -995,11 +1131,14 @@ private:
 	llvm::LLVMContext &mContext;
 	llvm::Module& mModule;
 	llvm::IRBuilder<> mBuilder;
+	LLVMHelper mHelper;
 
 	struct {
 		llvm::Function* function;
 		llvm::BasicBlock* entry_block;
 		llvm::BasicBlock* return_block;
+		llvm::BasicBlock* continue_block;
+		llvm::BasicBlock* break_block;
 		llvm::Instruction* alloca_insert_point;
 		llvm::Value* return_value;
 		bool mask_insertion;

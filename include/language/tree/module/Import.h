@@ -44,6 +44,22 @@ struct Import : public ASTNode
 		ns->parent = this;
 	}
 
+    virtual bool isEqual(const ASTNode& rhs, ASTNodeSet& visited) const
+    {
+        if (visited.count(this)) return true ;
+        const Import* p = cast<const Import>(&rhs);
+        if (p == NULL) return false;
+        // compare base class
+        // The base is ASTNode, don't need to be compared.
+
+        // compare data member
+        if (!isASTNodeMemberEqual    (&Import::ns, *this, *p, visited)) return false;
+
+        // add this to the visited table.
+        visited.insert(this);
+        return true;
+    }
+
     template<typename Archive>
     void serialize(Archive& ar, const unsigned int version) {
         ::boost::serialization::base_object<ASTNode>(*this);

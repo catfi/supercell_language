@@ -27,14 +27,15 @@ namespace zillians { namespace language { namespace action {
 struct program
 {
 	DEFINE_ATTRIBUTES(void)
-	DEFINE_LOCALS()
+	DEFINE_LOCALS(LOCATION_TYPE)
 
-	BEGIN_ACTION(init)
+	BEGIN_ACTION(init_and_init_loc)
 	{
 #ifdef DEBUG
 		printf("program param(0) type = %s\n", typeid(_param_t(0)).name());
 #endif
-		BIND_LOCATION(getParserContext().program);
+		CACHE_LOCATION;
+		BIND_CACHED_LOCATION(getParserContext().program);
 		getParserContext().active_package = getParserContext().program->root;
 	}
 	END_ACTION
@@ -51,7 +52,7 @@ struct program
 			Package *package = prev_package->findPackage(i->toString());
 			if(!package)
 			{
-				BIND_LOCATION(package = new Package(cast<SimpleIdentifier>(i)));
+				BIND_CACHED_LOCATION(package = new Package(cast<SimpleIdentifier>(i)));
 				prev_package->addPackage(package);
 			}
 			prev_package = package;
@@ -67,7 +68,7 @@ struct program
 #endif
 		if(!!getParserContext().program)
 		{
-			Import* import = new Import(_param(0)); BIND_LOCATION(import);
+			Import* import = new Import(_param(0)); BIND_CACHED_LOCATION(import);
 			getParserContext().program->addImport(import);
 		}
 	}

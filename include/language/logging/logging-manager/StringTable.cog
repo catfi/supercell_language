@@ -1,0 +1,286 @@
+/**
+ * Zillians MMO
+ * Copyright (C) 2007-2011 Zillians.com, Inc.
+ * For more information see http://www.zillians.com
+ *
+ * Zillians MMO is the library and runtime for massive multiplayer online game
+ * development in utility computing model, which runs as a service for every
+ * developer to build their virtual world running on our GPU-assisted machines.
+ *
+ * This is a close source library intended to be used solely within Zillians.com
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * COPYRIGHT HOLDER(S) BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN
+ * AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+ * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ */
+
+#ifndef ZILLIANS_LANGUAGE_STRINGTABLE_H_
+#define ZILLIANS_LANGUAGE_STRINGTABLE_H_
+
+#include "core/Prerequisite.h"
+#include "utility/UnicodeUtil.h"
+#include <boost/parameter.hpp>
+#include <vector>
+#include <string>
+#include <sstream>
+#include <map>
+
+using namespace std;
+
+namespace zillians { namespace language { namespace logging {
+
+
+/**
+ * StringTable is responsible to:
+ *
+ * 1. Tables for warning and error string
+ */
+struct StringTable
+{
+	/*[[[cog
+
+	class Repo:
+		""" Helper class to create attributes on the fly """
+		def __init__(self):
+			self.repo = []
+
+		def create(self, name):
+			if hasattr(self, name):
+				raise AttributeError, 'Attribute %s Already Exist' % name
+			setattr(self, name, name)
+			self.repo.append(getattr(self, name))
+
+
+	#########################################################
+	# This is the place you gonna extend
+	#########################################################
+
+	# Define constant string
+	LOG_STRING = Repo()
+	LOG_STRING.create('LOG_UNUSED_VARIABLE')
+	LOG_STRING.create('LOG_UNDEFINED_VARIABLE')
+
+	# Define category
+	LOG_CATEGORY = Repo()
+	LOG_CATEGORY.create('CATEGORY_SYMBOL')
+	LOG_CATEGORY.create('CATEGORY_FUNCTION')
+	LOG_CATEGORY.create('CATEGORY_OBJECT_TYPE')
+	LOG_CATEGORY.create('CATEGORY_MISC')
+
+	# Define log type
+	LOG_TYPE = Repo()
+	LOG_TYPE.create('LOG_TYPE_WARNING')
+	LOG_TYPE.create('LOG_TYPE_ERROR')
+	LOG_TYPE.create('LOG_TYPE_FATAL')
+
+	# Define log string attributes
+	attribute_table = {
+		LOG_STRING.LOG_UNUSED_VARIABLE: (LOG_TYPE.LOG_TYPE_WARNING, LOG_CATEGORY.CATEGORY_SYMBOL, 0, LOG_STRING.LOG_UNUSED_VARIABLE),
+		LOG_STRING.LOG_UNDEFINED_VARIABLE: (LOG_TYPE.LOG_TYPE_ERROR, LOG_CATEGORY.CATEGORY_SYMBOL, 0, LOG_STRING.LOG_UNDEFINED_VARIABLE),
+		}
+
+	# Define translation table
+	# Note: the parameter format is $VARIABLE(c++type), and do not have any space in it
+	translation_table = {
+		LOG_STRING.LOG_UNUSED_VARIABLE: {
+			'en_US': 'Undefined variable $ID(string) is used',
+			'zh_TW': '$ID(string) 未被使用'
+			},
+		LOG_STRING.LOG_UNDEFINED_VARIABLE: {
+			'en_US': 'Undefined variable $ID(string) in $FILE(string) in $LINE(uint32)',
+			'zh_TW': '變數 $ID(string) 在 $FILE(string) 中第 $LINE(uint32) 行未被定義'
+			},
+	 	}
+
+	]]]*/
+	//[[[end]]]
+
+	enum log_id {
+		/*[[[cog
+		import cog
+
+		# Generate all log id
+		for i in range(len(LOG_STRING.repo)):
+			cog.outl('\t %s,' % LOG_STRING.repo[i]);
+		]]]*/
+		//[[[end]]]
+	};
+
+	enum log_type {
+		/*[[[cog
+
+		# Generate all log type
+		for i in range(len(LOG_TYPE.repo)):
+			cog.outl('\t %s,' % LOG_TYPE.repo[i]);
+		]]]*/
+		//[[[end]]]
+	};
+
+	enum log_category {
+		/*[[[cog
+
+		# Generate all log type
+		for i in range(len(LOG_CATEGORY.repo)):
+			cog.outl('\t %s,' % LOG_CATEGORY.repo[i]);
+		]]]*/
+		//[[[end]]]
+	};
+
+	struct attribute_table_t {
+		attribute_table_t() {}
+		attribute_table_t(log_type type, log_category category, uint32 level, log_id id) :
+			type(type), category(category), level(level), id(id) {}
+		log_type type;
+		log_category category;
+		uint32 level;
+		log_id id;
+	};
+
+	typedef map<string, wstring> locale_translate_map_t;
+
+	// Each message id has its own attributes
+	map<log_id, attribute_table_t> attribute_table;
+
+	// Each log id has a translation map, which includes the locale and the specific string mapping
+	map<log_id, locale_translate_map_t>  translation_table;
+
+
+	StringTable()
+	{
+		/*[[[cog
+		# Generate attribute tables
+		for (id, attr) in attribute_table.iteritems():
+			cog.outl('attribute_table[%s] = attribute_table_t(%s, %s, %d, %s);' % ( (id,) + attr) );
+
+		# Generate string tables for different language
+		for (id, locale_trans) in translation_table.iteritems():
+			for (locale, trans) in locale_trans.iteritems():
+				cog.outl('translation_table[%s]["%s"] = L"%s";' % (id, locale, trans))
+		]]]*/
+		//[[[end]]]
+	}
+};
+
+
+/*[[[cog
+def extract_parameters(trans):
+	parameters = []
+	splitted = trans.split(' ')
+	for word in splitted:
+		if word[0] == '$':	# word is like $ID(string)
+			var, type = word[1:].split('(')
+			parameters.append((var, type.split(')')[0]))	# strip out $
+	return parameters
+
+# Examine each translation string (we choose en_US here) and parse the string with dollar sign as
+# the parameters
+
+parameter_list = {}	# will store something like, {LOG_UNUSED_VARIABLE: [('FILE', 'string'), ('LINE', 'uint32')]}
+all_parameters = {} # use dict feature to record which all the parameters
+
+for (id, locale_trans) in translation_table.iteritems():
+	trans = locale_trans['en_US']
+	parameter_list[id] = extract_parameters(trans)
+
+	# setup the all parameters
+	for (param, type) in parameter_list[id]:
+		all_parameters[param] = 1	# the value is no matter
+
+# Generate all the parameters
+for param in all_parameters.keys():
+	cog.outl('BOOST_PARAMETER_NAME(%s)' % param)
+
+]]]*/
+//[[[end]]]
+
+class Logger
+{
+public:
+	Logger() : mLogger(NULL) {}
+	virtual ~Logger() {}
+
+	void setLogger(LoggerWrapper* logger) { mLogger = logger; }
+	void setLocale(locale& locale) { mLocale = locale; }
+	void setStringTable(StringTable& string_table) { mStringTable = string_table; }
+
+public:
+	/*[[[cog
+
+	# Generate all functions
+	for (id, param_list) in parameter_list.iteritems():
+		param_list_string = ''
+		for (var, type) in param_list:	# will generate like this (FILE(string))(LINE(string))
+			param_list_string = param_list_string + '(' + str(var) + ',(' + str(type) + ')' + ')'
+		cog.outl('BOOST_PARAMETER_MEMBER_FUNCTION( (void), %s, tag, (required %s )) {' % (id.lower(), param_list_string))
+
+		# Generate the implementation
+		cog.outl('\t wstring translated = get_translated(StringTable::%s);' % id)
+
+		for (var, type) in param_list:
+			cog.outl('\t translated = replace_substring(translated, %s);' % var)
+
+		cog.outl('\t mLogger->logging(StringTable::%s, translated);' % id)
+		cog.outl('}');
+	]]]*/
+	//[[[end]]]
+
+private:
+	wstring get_translated(StringTable::log_id id)
+	{
+		string locale_name = mLocale.name();
+		BOOST_ASSERT(mStringTable.translation_table.find(id) != mStringTable.translation_table.end() && "Unknown Log Id");
+
+		StringTable::locale_translate_map_t& translate_map = mStringTable.translation_table[id];
+		if (translate_map.find(locale_name) == translate_map.end())
+		{
+			// use default -- en_US
+			locale_name = "en_US";
+		}
+		return translate_map[locale_name];
+	}
+
+	template <typename T>
+	wstring replace_substring(wstring& source, T replace)
+	{
+		wstringstream stream;
+		stream << replace;
+		return replace_substring(source, stream.str());
+	}
+
+	wstring replace_substring(wstring& source, string replace_string)
+	{
+		return replace_substring(source, s_to_ws(replace_string));
+	}
+
+	wstring replace_substring(wstring& source, wstring replace_string)
+	{
+		wstring output = source;
+		wstring search_start(L"$");
+		wstring search_end(L")");
+
+		size_t pos;
+		if ( (pos = source.find(search_start)) != std::wstring::npos)
+		{
+			size_t pos2 = source.find(search_end, pos);
+			size_t diff = pos2 - pos + 1;
+
+			output.erase(pos, diff);
+			output.insert(pos, replace_string);
+
+		}
+
+		return output;
+	}
+
+private:
+	LoggerWrapper* mLogger;
+	locale mLocale;
+	StringTable mStringTable;
+};
+
+}}}
+
+#endif /* ZILLIANS_LANGUAGE_STRINGTABLE_H_ */

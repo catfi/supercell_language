@@ -77,6 +77,26 @@ struct ClassDecl : public Declaration
 		implements.push_back(interface);
 	}
 
+    virtual bool isEqual(const ASTNode& rhs, ASTNodeSet& visited) const
+    {
+        if (visited.count(this)) return true ;
+        const ClassDecl* p = cast<const ClassDecl>(&rhs);
+        if (p == NULL) return false;
+        // compare base class
+        if (!Declaration::isEqual(*p, visited)) return false;
+
+        // compare data member
+        if (!isASTNodeMemberEqual(&ClassDecl::name            , *this, *p, visited)) return false;
+        if (!isASTNodeMemberEqual(&ClassDecl::base            , *this, *p, visited)) return false;
+        if (!isVectorMemberEqual (&ClassDecl::implements      , *this, *p, visited)) return false;
+        if (!isVectorMemberEqual (&ClassDecl::member_functions, *this, *p, visited)) return false;
+        if (!isVectorMemberEqual (&ClassDecl::member_variables, *this, *p, visited)) return false;
+
+        // add this to the visited table.
+        visited.insert(this);
+        return true;
+    }
+
     template<typename Archive>
     void serialize(Archive& ar, const unsigned int version) {
         ::boost::serialization::base_object<Declaration>(*this) ;

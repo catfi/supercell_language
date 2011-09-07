@@ -82,24 +82,37 @@ using namespace zillians::language::tree::visitor;
 
 BOOST_AUTO_TEST_SUITE( ThorScriptTreeTest_SerializationTestSuite )
 
-BOOST_AUTO_TEST_CASE( ThorScriptTreeTest_SerializationTestCase1 )
+template <typename TreeCreateFunction>
+bool CreateSaveRestoreComare(TreeCreateFunction f)
 {
-    PrettyPrintVisitor printer;
+    // create and save program ast to file
+    ASTNode* origProgram = f();
     {
-        ASTNode* program = createSample1();
-        //printer.visit(*program);
         std::ofstream ofs("p1.txt");
         boost::archive::text_oarchive oa(ofs);
-        oa << program;
+        oa << origProgram;
     }
 
+    // restore ast from saved file
+    ASTNode* restoredProgram = NULL;
     {
-        ASTNode* program = NULL;
         std::ifstream ifs("p1.txt");
         boost::archive::text_iarchive ia(ifs);
-        ia >> program;
-        //printer.visit(*program);
+        ia >> restoredProgram;
     }
+
+    // compare
+    ASTNode::ASTNodeSet visited ;
+    BOOST_CHECK(origProgram->isEqual(*restoredProgram, visited));
+}
+
+BOOST_AUTO_TEST_CASE( ThorScriptTreeTest_SerializationTestCase1 )
+{
+    CreateSaveRestoreComare(createSample1);
+    CreateSaveRestoreComare(createSample2);
+    CreateSaveRestoreComare(createSample3);
+    CreateSaveRestoreComare(createSample4);
+    CreateSaveRestoreComare(createSample5);
 }
 
 BOOST_AUTO_TEST_SUITE_END()

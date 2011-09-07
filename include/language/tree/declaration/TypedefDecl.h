@@ -40,6 +40,23 @@ struct TypedefDecl : public Declaration
 		to->parent = this;
 	}
 
+    virtual bool isEqual(const ASTNode& rhs, ASTNodeSet& visited) const
+    {
+        if (visited.count(this)) return true ;
+        const TypedefDecl* p = cast<const TypedefDecl>(&rhs);
+        if (p == NULL) return false;
+        // compare base class
+        if (!Declaration::isEqual(*p, visited)) return false;
+
+        // compare data member
+        if (!isASTNodeMemberEqual   (&TypedefDecl::from            , *this, *p, visited)) return false;
+        if (!isASTNodeMemberEqual   (&TypedefDecl::to              , *this, *p, visited)) return false;
+
+        // add this to the visited table.
+        visited.insert(this);
+        return true;
+    }
+
     template<typename Archive>
     void serialize(Archive& ar, const unsigned int version) {
         ::boost::serialization::base_object<Declaration>(*this);

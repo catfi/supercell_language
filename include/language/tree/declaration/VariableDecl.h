@@ -43,6 +43,27 @@ struct VariableDecl : public Declaration
 		if(initializer) initializer->parent = this;
 	}
 
+    virtual bool isEqual(const ASTNode& rhs, ASTNodeSet& visited) const
+    {
+        if (visited.count(this)) return true ;
+        const VariableDecl* p = cast<const VariableDecl>(&rhs);
+        if (p == NULL) return false;
+        // compare base class
+        if (!Declaration::isEqual(*p, visited)) return false;
+
+        // compare data member
+        if (!isASTNodeMemberEqual   (&VariableDecl::name            , *this, *p, visited)) return false;
+        if (!isASTNodeMemberEqual   (&VariableDecl::type            , *this, *p, visited)) return false;
+        if (this->is_member  != p->is_member                                             ) return false;
+        if (this->visibility != p->visibility                                            ) return false;
+        if (this->storage    != p->storage                                               ) return false;
+        if (!isASTNodeMemberEqual   (&VariableDecl::initializer     , *this, *p, visited)) return false;
+
+        // add this to the visited table.
+        visited.insert(this);
+        return true;
+    }
+
     template<typename Archive>
     void serialize(Archive& ar, const unsigned int version) {
         ::boost::serialization::base_object<Declaration>(*this);

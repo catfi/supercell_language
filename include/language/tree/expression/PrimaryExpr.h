@@ -82,6 +82,27 @@ struct PrimaryExpr : public Expression
 		}
 	}
 
+    virtual bool isEqual(const ASTNode& rhs, ASTNodeSet& visited) const
+    {
+        if (visited.count(this)) return true ;
+        const PrimaryExpr* p = cast<const PrimaryExpr>(&rhs);
+        if (p == NULL) return false;
+        // compare base class
+        if (!Expression::isEqual(*p, visited)) return false;
+
+        // compare data member
+        if (this->catagory != p->catagory) return false;
+        switch (this->catagory) {
+        case Catagory::IDENTIFIER: if (!isASTNodeMemberEqual(&PrimaryExpr::ValueUnion::identifier, this->value, p->value, visited)) return false; break;
+        case Catagory::LITERAL   : if (!isASTNodeMemberEqual(&PrimaryExpr::ValueUnion::literal   , this->value, p->value, visited)) return false; break;
+        case Catagory::LAMBDA    : if (!isASTNodeMemberEqual(&PrimaryExpr::ValueUnion::lambda    , this->value, p->value, visited)) return false; break;
+        }
+
+        // add this to the visited table.
+        visited.insert(this);
+        return true;
+    }
+
     template<typename Archive>
     void serialize(Archive& ar, const unsigned int version) {
         ::boost::serialization::base_object<Expression>(*this);
@@ -89,7 +110,7 @@ struct PrimaryExpr : public Expression
 
 	Catagory::type catagory;
 
-	union
+	union ValueUnion
 	{
 		Identifier* identifier;
 		Literal* literal;

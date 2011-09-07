@@ -30,6 +30,7 @@ namespace zillians { namespace language {
 
 log4cxx::LoggerPtr Logger::Compiler(log4cxx::Logger::getLogger("compiler"));
 log4cxx::LoggerPtr Logger::Resolver(log4cxx::Logger::getLogger("compiler.resolver"));
+log4cxx::LoggerPtr Logger::CompilerLogger(log4cxx::Logger::getLogger("compiler.compilelogger"));
 log4cxx::LoggerPtr Logger::ParserStage(log4cxx::Logger::getLogger("compiler.parser"));
 log4cxx::LoggerPtr Logger::TransformerStage(log4cxx::Logger::getLogger("compiler.transformer"));
 log4cxx::LoggerPtr Logger::GeneratorStage(log4cxx::Logger::getLogger("compiler.generator"));

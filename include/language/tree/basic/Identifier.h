@@ -49,6 +49,22 @@ struct Identifier : public ASTNode
 	virtual const std::wstring& toString() const = 0;
 	virtual bool isEmpty() const = 0;
 
+    virtual bool isEqual(const ASTNode& rhs, ASTNodeSet& visited) const
+    {
+        if (visited.count(this)) return true ;
+        const Identifier* p = cast<const Identifier>(&rhs);
+        if (p == NULL) return false;
+        // compare base class
+        // base is ASTNode, no need to compare
+
+        // compare data member
+        // no data member
+
+        // add this to the visited table.
+        visited.insert(this);
+        return true;
+    }
+
     template<typename Archive>
     void serialize(Archive& ar, const unsigned int version) {
         ::boost::serialization::base_object<ASTNode>(*this);
@@ -81,6 +97,22 @@ struct SimpleIdentifier : public Identifier
 	{
 		return (name.length() == 0);
 	}
+
+    virtual bool isEqual(const ASTNode& rhs, ASTNodeSet& visited) const
+    {
+        if (visited.count(this)) return true ;
+        const SimpleIdentifier* p = cast<const SimpleIdentifier>(&rhs);
+        if (p == NULL) return false;
+        // compare base class
+        if (!Identifier::isEqual(*p, visited)) return false;
+
+        // compare data member
+        if (this->name != p->name) return false;
+
+        // add this to the visited table.
+        visited.insert(this);
+        return true;
+    }
 
     template<typename Archive>
     void serialize(Archive& ar, const unsigned int version) {
@@ -132,6 +164,22 @@ struct NestedIdentifier : public Identifier
 		id->parent = this;
 		identifier_list.push_back(id);
 	}
+
+    virtual bool isEqual(const ASTNode& rhs, ASTNodeSet& visited) const
+    {
+        if (visited.count(this)) return true ;
+        const NestedIdentifier* p = cast<const NestedIdentifier>(&rhs);
+        if (p == NULL) return false;
+        // compare base class
+        if (!Identifier::isEqual(*p, visited)) return false;
+
+        // compare data member
+        if (!isVectorMemberEqual   (&NestedIdentifier::identifier_list , *this, *p, visited)) return false;
+
+        // add this to the visited table.
+        visited.insert(this);
+        return true;
+    }
 
     template<typename Archive>
     void serialize(Archive& ar, const unsigned int version) {
@@ -227,6 +275,24 @@ struct TemplatedIdentifier : public Identifier
 		argument->parent = this;
 		templated_type_list.push_back(argument);
 	}
+
+    virtual bool isEqual(const ASTNode& rhs, ASTNodeSet& visited) const
+    {
+        if (visited.count(this)) return true ;
+        const TemplatedIdentifier* p = cast<const TemplatedIdentifier>(&rhs);
+        if (p == NULL) return false;
+        // compare base class
+        if (!Identifier::isEqual(*p, visited)) return false;
+
+        // compare data member
+        if (this->type != p->type                                                                    ) return false;
+        if (!isASTNodeMemberEqual   (&TemplatedIdentifier::id                   , *this, *p, visited)) return false;
+        if (!isVectorMemberEqual    (&TemplatedIdentifier::templated_type_list  , *this, *p, visited)) return false;
+
+        // add this to the visited table.
+        visited.insert(this);
+        return true;
+    }
 
     template<typename Archive>
     void serialize(Archive& ar, const unsigned int version) {

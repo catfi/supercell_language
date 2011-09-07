@@ -46,6 +46,23 @@ struct InterfaceDecl : public Declaration
 		member_functions.push_back(func);
 	}
 
+    virtual bool isEqual(const ASTNode& rhs, ASTNodeSet& visited) const
+    {
+        if (visited.count(this)) return true ;
+        const InterfaceDecl* p = cast<const InterfaceDecl>(&rhs);
+        if (p == NULL) return false;
+        // compare base class
+        if (!Declaration::isEqual(*p, visited)) return false;
+
+        // compare data member
+        if (!isASTNodeMemberEqual   (&InterfaceDecl::name            , *this, *p, visited)) return false;
+        if (!isVectorMemberEqual    (&InterfaceDecl::member_functions, *this, *p, visited)) return false;
+
+        // add this to the visited table.
+        visited.insert(this);
+        return true;
+    }
+
     template<typename Archive>
     void serialize(Archive& ar, const unsigned int version) {
         ::boost::serialization::base_object<Declaration>(*this);

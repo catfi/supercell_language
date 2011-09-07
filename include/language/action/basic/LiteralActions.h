@@ -27,14 +27,14 @@ namespace zillians { namespace language { namespace action {
 struct integer_literal
 {
 	DEFINE_ATTRIBUTES(NumericLiteral*)
-	DEFINE_LOCALS()
+	DEFINE_LOCALS(LOCATION_TYPE)
 
 	BEGIN_ACTION(init)
 	{
 #ifdef DEBUG
 		printf("integer_literal param(0) type = %s\n", typeid(_param_t(0)).name());
 #endif
-		BIND_LOCATION(_result = new NumericLiteral(_param(0)));
+		BIND_CACHED_LOCATION(_result = new NumericLiteral(_param(0)));
 	}
 	END_ACTION
 };
@@ -42,14 +42,14 @@ struct integer_literal
 struct float_literal
 {
 	DEFINE_ATTRIBUTES(NumericLiteral*)
-	DEFINE_LOCALS()
+	DEFINE_LOCALS(LOCATION_TYPE)
 
 	BEGIN_ACTION(init)
 	{
 #ifdef DEBUG
 		printf("float_literal param(0) type = %s\n", typeid(_param_t(0)).name());
 #endif
-		BIND_LOCATION(_result = new NumericLiteral(_param(0)));
+		BIND_CACHED_LOCATION(_result = new NumericLiteral(_param(0)));
 	}
 	END_ACTION
 };
@@ -57,14 +57,14 @@ struct float_literal
 struct string_literal
 {
 	DEFINE_ATTRIBUTES(StringLiteral*)
-	DEFINE_LOCALS()
+	DEFINE_LOCALS(LOCATION_TYPE)
 
 	BEGIN_ACTION(init)
 	{
 #ifdef DEBUG
 		printf("string_literal param(0) type = %s\n", typeid(_param_t(0)).name());
 #endif
-		BIND_LOCATION(_result = new StringLiteral(_param(0)));
+		BIND_CACHED_LOCATION(_result = new StringLiteral(_param(0)));
 	}
 	END_ACTION
 };

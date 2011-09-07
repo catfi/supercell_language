@@ -33,7 +33,7 @@
 				if(is_begin_of_deduced_foreach(i, _param(0))) \
 					left = *i; \
 				else \
-					BIND_LOCATION(left = new BinaryExpr(op_code, left, *i)); \
+					BIND_CACHED_LOCATION(left = new BinaryExpr(op_code, left, *i)); \
 			_result = left; \
 		} \
 	}
@@ -49,7 +49,7 @@
 				if(is_begin_of_deduced_reverse_foreach(i, _param(0))) \
 					right = *i; \
 				else \
-					BIND_LOCATION(right = new BinaryExpr(op_code, *i, right)); \
+					BIND_CACHED_LOCATION(right = new BinaryExpr(op_code, *i, right)); \
 			_result = right; \
 		} \
 	}
@@ -67,7 +67,7 @@
 					left = *i; \
 					continue; \
 				} \
-				BIND_LOCATION(left = new BinaryExpr(*j, left, *i)); \
+				BIND_CACHED_LOCATION(left = new BinaryExpr(*j, left, *i)); \
 				j++; \
 			} \
 			_result = left; \
@@ -86,7 +86,7 @@
 					right = *i; \
 					continue; \
 				} \
-				BIND_LOCATION(right = new BinaryExpr(*j, *i, right)); \
+				BIND_CACHED_LOCATION(right = new BinaryExpr(*j, *i, right)); \
 				j++; \
 			} \
 			_result = right; \
@@ -100,20 +100,14 @@ typedef std::vector<BinaryExpr::OpCode::type> binary_ops_t;
 struct primary_expression
 {
 	DEFINE_ATTRIBUTES(Expression*)
-	DEFINE_LOCALS(VAR_LOCATIONS(2))
-
-	BEGIN_ACTION(init_loc)
-	{
-		CACHE_LOCATIONS(2);
-	}
-	END_ACTION
+	DEFINE_LOCALS(LOCATION_TYPE)
 
 	BEGIN_ACTION(init)
 	{
 #ifdef DEBUG
 		printf("primary_expression param(0) type = %s\n", typeid(_param_t(0)).name());
 #endif
-		BIND_LOCATION(_result = new PrimaryExpr(_param(0)));
+		BIND_CACHED_LOCATION(_result = new PrimaryExpr(_param(0)));
 	}
 	END_ACTION
 
@@ -122,8 +116,8 @@ struct primary_expression
 #ifdef DEBUG
 		printf("primary_expression::init_bool param(0) type = %s\n", typeid(_param_t(0)).name());
 #endif
-		Literal* literal = new NumericLiteral(Value); BIND_LOCATION(literal);
-		BIND_LOCATION(_result = new PrimaryExpr(literal));
+		Literal* literal = new NumericLiteral(Value); BIND_CACHED_LOCATION(literal);
+		BIND_CACHED_LOCATION(_result = new PrimaryExpr(literal));
 	}
 	END_ACTION
 
@@ -132,8 +126,8 @@ struct primary_expression
 #ifdef DEBUG
 		printf("primary_expression::init_object_literal param(0) type = %s\n", typeid(_param_t(0)).name());
 #endif
-		Literal* literal = new ObjectLiteral(Type); BIND_LOCATION(literal);
-		BIND_LOCATION(_result = new PrimaryExpr(literal));
+		Literal* literal = new ObjectLiteral(Type); BIND_CACHED_LOCATION(literal);
+		BIND_CACHED_LOCATION(_result = new PrimaryExpr(literal));
 	}
 	END_ACTION
 
@@ -164,7 +158,6 @@ struct primary_expression
 			deduced_foreach_value(i, *parameters)
 				function_decl->appendParameter(i.first, i.second);
 		BIND_CACHED_LOCATION(_result = new PrimaryExpr(function_decl));
-		FREE_UNBOUND_CACHED_LOCATIONS;
 	}
 	END_ACTION
 };
@@ -172,14 +165,13 @@ struct primary_expression
 struct postfix_expression
 {
 	DEFINE_ATTRIBUTES(Expression*)
-	DEFINE_LOCALS(VAR_LOCATIONS(1))
+	DEFINE_LOCALS(LOCATION_TYPE)
 
-	BEGIN_ACTION(init_primary_expression_and_loc)
+	BEGIN_ACTION(init_primary_expression)
 	{
 #ifdef DEBUG
 		printf("postfix_expression::init_primary_expression param(0) type = %s\n", typeid(_param_t(0)).name());
 #endif
-		CACHE_LOCATIONS(1);
 		_result = _param(0);
 	}
 	END_ACTION
@@ -189,7 +181,7 @@ struct postfix_expression
 #ifdef DEBUG
 		printf("postfix_expression::init_postfix_array param(0) type = %s\n", typeid(_param_t(0)).name());
 #endif
-		BIND_LOCATION(_result = new BinaryExpr(BinaryExpr::OpCode::ARRAY_SUBSCRIPT, _result, _param(0)));
+		BIND_CACHED_LOCATION(_result = new BinaryExpr(BinaryExpr::OpCode::ARRAY_SUBSCRIPT, _result, _param(0)));
 	}
 	END_ACTION
 
@@ -202,7 +194,6 @@ struct postfix_expression
 		if(_param(0).is_initialized())
 			deduced_foreach_value(i, *_param(0))
 				cast<CallExpr>(_result)->appendParameter(i);
-		FREE_UNBOUND_CACHED_LOCATIONS;
 	}
 	END_ACTION
 
@@ -211,7 +202,7 @@ struct postfix_expression
 #ifdef DEBUG
 		printf("postfix_expression::init_postfix_member param(0) type = %s\n", typeid(_param_t(0)).name());
 #endif
-		BIND_LOCATION(_result = new MemberExpr(_result, _param(0)));
+		BIND_CACHED_LOCATION(_result = new MemberExpr(_result, _param(0)));
 	}
 	END_ACTION
 
@@ -220,7 +211,7 @@ struct postfix_expression
 #ifdef DEBUG
 		printf("postfix_expression::append_postfix_step param(0) type = %s\n", typeid(_param_t(0)).name());
 #endif
-		BIND_LOCATION(_result = new UnaryExpr(Type, _result));
+		BIND_CACHED_LOCATION(_result = new UnaryExpr(Type, _result));
 	}
 	END_ACTION
 };
@@ -228,7 +219,7 @@ struct postfix_expression
 struct prefix_expression
 {
 	DEFINE_ATTRIBUTES(Expression*)
-	DEFINE_LOCALS()
+	DEFINE_LOCALS(LOCATION_TYPE)
 
 	BEGIN_ACTION(init)
 	{
@@ -245,7 +236,7 @@ struct prefix_expression
 			fusion_vec_t &vec = boost::get<fusion_vec_t>(_param(0));
 			UnaryExpr::OpCode::type type = boost::fusion::at_c<0>(vec);
 			Expression*             expr = boost::fusion::at_c<1>(vec);
-			BIND_LOCATION(_result = new UnaryExpr(type, expr));
+			BIND_CACHED_LOCATION(_result = new UnaryExpr(type, expr));
 			break;
 		}
 	}
@@ -255,16 +246,16 @@ struct prefix_expression
 struct left_to_right_binary_op_vec
 {
 	DEFINE_ATTRIBUTES(Expression*)
-	DEFINE_LOCALS(shared_ptr<binary_ops_t>)
+	DEFINE_LOCALS(LOCATION_TYPE, shared_ptr<binary_ops_t>)
 
 	BEGIN_ACTION(append_op)
 	{
 #ifdef DEBUG
 		printf("left_to_right_binary_op_vec::append_op param(0) type = %s\n", typeid(_param_t(0)).name());
 #endif
-		if(!_local(0))
-			_local(0).reset(new binary_ops_t());
-		_local(0)->push_back(_param(0));
+		if(!_local(1))
+			_local(1).reset(new binary_ops_t());
+		_local(1)->push_back(_param(0));
 	}
 	END_ACTION
 
@@ -273,7 +264,7 @@ struct left_to_right_binary_op_vec
 #ifdef DEBUG
 		printf("left_to_right_binary_op_vec param(0) type = %s\n", typeid(_param_t(0)).name());
 #endif
-		LEFT_TO_RIGHT_VEC(*_local(0));
+		LEFT_TO_RIGHT_VEC(*_local(1));
 	}
 	END_ACTION
 };
@@ -281,16 +272,16 @@ struct left_to_right_binary_op_vec
 struct right_to_left_binary_op_vec
 {
 	DEFINE_ATTRIBUTES(Expression*)
-	DEFINE_LOCALS(shared_ptr<binary_ops_t>)
+	DEFINE_LOCALS(LOCATION_TYPE, shared_ptr<binary_ops_t>)
 
 	BEGIN_ACTION(append_op)
 	{
 #ifdef DEBUG
 		printf("right_to_left_binary_op_vec::append_op param(0) type = %s\n", typeid(_param_t(0)).name());
 #endif
-		if(!_local(0))
-			_local(0).reset(new binary_ops_t());
-		_local(0)->push_back(_param(0));
+		if(!_local(1))
+			_local(1).reset(new binary_ops_t());
+		_local(1)->push_back(_param(0));
 	}
 	END_ACTION
 
@@ -299,7 +290,7 @@ struct right_to_left_binary_op_vec
 #ifdef DEBUG
 		printf("right_to_left_binary_op_vec param(0) type = %s\n", typeid(_param_t(0)).name());
 #endif
-		RIGHT_TO_LEFT_VEC(*_local(0));
+		RIGHT_TO_LEFT_VEC(*_local(1));
 	}
 	END_ACTION
 };
@@ -307,7 +298,7 @@ struct right_to_left_binary_op_vec
 struct left_to_right_binary_op
 {
 	DEFINE_ATTRIBUTES(Expression*)
-	DEFINE_LOCALS()
+	DEFINE_LOCALS(LOCATION_TYPE)
 
 	BEGIN_TEMPLATED_ACTION(init, BinaryExpr::OpCode::type Type)
 	{
@@ -323,7 +314,7 @@ struct left_to_right_binary_op
 struct right_to_left_binary_op
 {
 	DEFINE_ATTRIBUTES(Expression*)
-	DEFINE_LOCALS()
+	DEFINE_LOCALS(LOCATION_TYPE)
 
 	BEGIN_TEMPLATED_ACTION(init, BinaryExpr::OpCode::type Type)
 	{
@@ -339,7 +330,7 @@ struct right_to_left_binary_op
 struct range_expression
 {
 	DEFINE_ATTRIBUTES(Expression*)
-	DEFINE_LOCALS()
+	DEFINE_LOCALS(LOCATION_TYPE)
 
 	BEGIN_ACTION(init)
 	{
@@ -352,7 +343,7 @@ struct range_expression
 			_result = _param(0);
 			return;
 		}
-		BIND_LOCATION(_result = new BinaryExpr(BinaryExpr::OpCode::RANGE_ELLIPSIS, _param(0), *_param(1)));
+		BIND_CACHED_LOCATION(_result = new BinaryExpr(BinaryExpr::OpCode::RANGE_ELLIPSIS, _param(0), *_param(1)));
 	}
 	END_ACTION
 };
@@ -360,7 +351,7 @@ struct range_expression
 struct ternary_expression
 {
 	DEFINE_ATTRIBUTES(Expression*)
-	DEFINE_LOCALS()
+	DEFINE_LOCALS(LOCATION_TYPE)
 
 	BEGIN_ACTION(init)
 	{
@@ -375,7 +366,7 @@ struct ternary_expression
 		}
 		Expression* true_node  = boost::fusion::at_c<0>(*_param(1));
 		Expression* false_node = boost::fusion::at_c<1>(*_param(1));
-		BIND_LOCATION(_result = new TernaryExpr(_param(0), true_node, false_node));
+		BIND_CACHED_LOCATION(_result = new TernaryExpr(_param(0), true_node, false_node));
 	}
 	END_ACTION
 };

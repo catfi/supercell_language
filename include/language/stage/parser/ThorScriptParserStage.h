@@ -44,6 +44,7 @@ private:
 	bool dump_parse;
 	bool dump_parse_and_stop;
 	bool skip_parse;
+	bool use_relative_path;
 	std::vector<std::string> inputs;
 };
 
