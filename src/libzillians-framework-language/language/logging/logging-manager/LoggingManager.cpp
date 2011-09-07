@@ -21,6 +21,16 @@
 #include "language/logging/Logger.h"
 #include "language/logging/logging-manager/LoggingManager.h"
 
+#include <log4cxx/logstring.h>
+#include <log4cxx/basicconfigurator.h>
+#include <log4cxx/patternlayout.h>
+#include <log4cxx/consoleappender.h>
+#include <log4cxx/logmanager.h>
+#include <log4cxx/logger.h>
+
+
+namespace zl = zillians::language;
+
 namespace zillians { namespace language { namespace logging {
 
 LoggingManager::LoggingManager() :
@@ -52,7 +62,34 @@ Logger& LoggingManager::getLogger()
 
 void LoggingManager::logging(uint32 id, std::wstring message)
 {
-	LOG4CXX_DEBUG(zillians::language::Logger::CompilerLogger, message);
+	BOOST_ASSERT(mStringTable.attribute_table.find(id) != mStringTable.attribute_table.end() && "Given wrong Log ID");
+	logging::StringTable::attribute_table_t& attribute_table = mStringTable.attribute_table[id];
+
+	// Decide the level
+	log4cxx::LevelPtr level;
+	switch (attribute_table.type)
+	{
+	case logging::StringTable::LOG_TYPE_WARNING:
+	{
+		level = log4cxx::Level::getWarn();
+		break;
+	}
+	case logging::StringTable::LOG_TYPE_FATAL:
+	{
+		level = log4cxx::Level::getFatal();
+		break;
+	}
+	case logging::StringTable::LOG_TYPE_ERROR:
+	{
+		level = log4cxx::Level::getError();
+		break;
+	}
+	default:
+		BOOST_ASSERT(false && "Not defined log type");
+		break;
+	}
+
+	LOG4CXX_LOG(zl::Logger::CompilerLogger, level, message);
 }
 
 }}}
