@@ -126,8 +126,8 @@ struct ResolutionStageVisitor : GenericDoubleVisitor
 			// try to resolve parameter type
 			foreach(i, node.parameters)
 			{
-				if(i->second)
-					try_to_resolve_type(i->second);
+				if(i->get<1>())
+					try_to_resolve_type(i->get<1>());
 			}
 
 		}
