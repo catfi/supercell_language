@@ -53,17 +53,34 @@ struct BranchStmt : public Statement
 		if(result) result->parent = this;
 	}
 
-    virtual bool isEqual(const ASTNode& rhs, ASTNodeSet& visited) const
+    virtual bool isEqualImpl(const ASTNode& rhs, ASTNodeSet& visited) const
     {
-        if (visited.count(this)) return true ;
+        if(visited.count(this))
+        {
+            return true ;
+        }
+
         const BranchStmt* p = cast<const BranchStmt>(&rhs);
-        if (p == NULL) return false;
+        if(p == NULL)
+        {
+            return false;
+        }
+
         // compare base class
-        if (!Statement::isEqual(*p, visited)) return false;
+        if(!Statement::isEqualImpl(*p, visited))
+        {
+            return false;
+        }
 
         // compare data member
-        if (this->opcode != p->opcode                                                      ) return false;
-        if (!isASTNodeMemberEqual   (&BranchStmt::result              , *this, *p, visited)) return false;
+        if(opcode != p->opcode)
+        {
+            return false;
+        }
+        if(!isASTNodeMemberEqual(&BranchStmt::result, *this, *p, visited))
+        {
+            return false;
+        }
 
         // add this to the visited table.
         visited.insert(this);
@@ -71,8 +88,9 @@ struct BranchStmt : public Statement
     }
 
     template<typename Archive>
-    void serialize(Archive& ar, const unsigned int version) {
-        ::boost::serialization::base_object<Statement>(*this);
+    void serialize(Archive& ar, const unsigned int version)
+    {
+        boost::serialization::base_object<Statement>(*this);
     }
 
 	OpCode::type opcode;
@@ -102,6 +120,6 @@ inline void load_construct_data(Archive& ar, zillians::language::tree::BranchStm
 	::new(p) BranchStmt(static_cast<BranchStmt::OpCode::type>(opcode), result);
 }
 
-}} // namespace boost::serialization
+} } // namespace boost::serialization
 
 #endif /* ZILLIANS_LANGUAGE_TREE_BRANCHSTMT_H_ */

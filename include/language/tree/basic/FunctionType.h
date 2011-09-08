@@ -88,18 +88,26 @@ struct FunctionType: public ASTNode
 		return_type = type;
 	}
 
-    virtual bool isEqual(const ASTNode& rhs, ASTNodeSet& visited) const
+    virtual bool isEqualImpl(const ASTNode& rhs, ASTNodeSet& visited) const
     {
-        if (visited.count(this)) return true ;
+        if(visited.count(this))
+        {
+        	return true ;
+        }
+
         const FunctionType* p = cast<const FunctionType>(&rhs);
-        if (p == NULL) return false;
+        if(p == NULL)
+        {
+        	return false;
+        }
+
         // compare base class
         // base is ASTNode, no need to compare.
 
         // compare data member
-        if (!isVectorMemberEqual    (&FunctionType::templated_parameters, *this, *p, visited)) return false;
-        if (!isVectorMemberEqual    (&FunctionType::argument_types      , *this, *p, visited)) return false;
-        if (!isASTNodeMemberEqual   (&FunctionType::return_type         , *this, *p, visited)) return false;
+        if(!isVectorMemberEqual    (&FunctionType::templated_parameters, *this, *p, visited)) return false;
+        if(!isVectorMemberEqual    (&FunctionType::argument_types      , *this, *p, visited)) return false;
+        if(!isASTNodeMemberEqual   (&FunctionType::return_type         , *this, *p, visited)) return false;
 
         // add this to the visited table.
         visited.insert(this);
@@ -107,8 +115,9 @@ struct FunctionType: public ASTNode
     }
 
     template<typename Archive>
-    void serialize(Archive& ar, const unsigned int version) {
-        ::boost::serialization::base_object<ASTNode>(*this);
+    void serialize(Archive& ar, const unsigned int version)
+    {
+        boost::serialization::base_object<ASTNode>(*this);
         ar & templated_parameters;
         ar & argument_types;
         ar & return_type;

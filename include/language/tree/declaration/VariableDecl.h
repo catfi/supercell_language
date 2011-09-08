@@ -43,21 +43,32 @@ struct VariableDecl : public Declaration
 		if(initializer) initializer->parent = this;
 	}
 
-    virtual bool isEqual(const ASTNode& rhs, ASTNodeSet& visited) const
+    virtual bool isEqualImpl(const ASTNode& rhs, ASTNodeSet& visited) const
     {
-        if (visited.count(this)) return true ;
+        if(visited.count(this))
+        {
+            return true ;
+        }
+
         const VariableDecl* p = cast<const VariableDecl>(&rhs);
-        if (p == NULL) return false;
+        if(p == NULL)
+        {
+            return false;
+        }
+
         // compare base class
-        if (!Declaration::isEqual(*p, visited)) return false;
+        if(!Declaration::isEqualImpl(*p, visited))
+        {
+            return false;
+        }
 
         // compare data member
-        if (!isASTNodeMemberEqual   (&VariableDecl::name            , *this, *p, visited)) return false;
-        if (!isASTNodeMemberEqual   (&VariableDecl::type            , *this, *p, visited)) return false;
-        if (this->is_member  != p->is_member                                             ) return false;
-        if (this->visibility != p->visibility                                            ) return false;
-        if (this->storage    != p->storage                                               ) return false;
-        if (!isASTNodeMemberEqual   (&VariableDecl::initializer     , *this, *p, visited)) return false;
+        if(!isASTNodeMemberEqual   (&VariableDecl::name            , *this, *p, visited)) return false;
+        if(!isASTNodeMemberEqual   (&VariableDecl::type            , *this, *p, visited)) return false;
+        if(is_member  != p->is_member                                                   ) return false;
+        if(visibility != p->visibility                                                  ) return false;
+        if(storage    != p->storage                                                     ) return false;
+        if(!isASTNodeMemberEqual   (&VariableDecl::initializer     , *this, *p, visited)) return false;
 
         // add this to the visited table.
         visited.insert(this);
@@ -65,8 +76,9 @@ struct VariableDecl : public Declaration
     }
 
     template<typename Archive>
-    void serialize(Archive& ar, const unsigned int version) {
-        ::boost::serialization::base_object<Declaration>(*this);
+    void serialize(Archive& ar, const unsigned int version)
+    {
+        boost::serialization::base_object<Declaration>(*this);
     }
 
 	Identifier* name;
@@ -80,6 +92,7 @@ struct VariableDecl : public Declaration
 } } }
 
 namespace boost { namespace serialization {
+
 template<class Archive>
 inline void save_construct_data(Archive& ar, const zillians::language::tree::VariableDecl* p, const unsigned int file_version)
 {
@@ -112,6 +125,7 @@ inline void load_construct_data(Archive& ar, zillians::language::tree::VariableD
 
 	::new(p) VariableDecl(name, type, is_member, visibility, storage, initializer);
 }
-}} // namespace boost::serialization
+
+} } // namespace boost::serialization
 
 #endif /* ZILLIANS_LANGUAGE_TREE_VARIABLEDECL_H_ */

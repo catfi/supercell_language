@@ -82,38 +82,33 @@ BOOST_AUTO_TEST_CASE( ThorScriptTreeTest_BasicTreeGenerationTestCase3 )
 BOOST_AUTO_TEST_CASE( ThorScriptTreeTest_TreeEqualityTest )
 {
     {
-        ASTNode::ASTNodeSet visited;
         ASTNode* p1_1 = createSample1() ;
         ASTNode* p1_2 = createSample1() ;
-        BOOST_CHECK(p1_1->isEqual(*p1_2, visited));
+        BOOST_CHECK(p1_1->isEqual(*p1_2));
     }
 
     {
-        ASTNode::ASTNodeSet visited;
         ASTNode* p2_1 = createSample2() ;
         ASTNode* p2_2 = createSample2() ;
-        BOOST_CHECK(p2_1->isEqual(*p2_2, visited));
+        BOOST_CHECK(p2_1->isEqual(*p2_2));
     }
 
     {
-        ASTNode::ASTNodeSet visited;
         ASTNode* p3_1 = createSample3() ;
         ASTNode* p3_2 = createSample3() ;
-        BOOST_CHECK(p3_1->isEqual(*p3_2, visited));
+        BOOST_CHECK(p3_1->isEqual(*p3_2));
     }
 
     {
-        ASTNode::ASTNodeSet visited;
         ASTNode* p4_1 = createSample4() ;
         ASTNode* p4_2 = createSample4() ;
-        BOOST_CHECK(p4_1->isEqual(*p4_2, visited));
+        BOOST_CHECK(p4_1->isEqual(*p4_2));
     }
 
     {
-        ASTNode::ASTNodeSet visited;
         ASTNode* p5_1 = createSample5() ;
         ASTNode* p5_2 = createSample5() ;
-        BOOST_CHECK(p5_1->isEqual(*p5_2, visited));
+        BOOST_CHECK(p5_1->isEqual(*p5_2));
     }
 }
 

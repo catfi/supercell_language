@@ -40,16 +40,30 @@ struct ExpressionStmt : public Statement
 		expr->parent = this;
 	}
 
-    virtual bool isEqual(const ASTNode& rhs, ASTNodeSet& visited) const
+    virtual bool isEqualImpl(const ASTNode& rhs, ASTNodeSet& visited) const
     {
-        if (visited.count(this)) return true ;
+        if(visited.count(this))
+        {
+            return true ;
+        }
+
         const ExpressionStmt* p = cast<const ExpressionStmt>(&rhs);
-        if (p == NULL) return false;
+        if(p == NULL)
+        {
+            return false;
+        }
+
         // compare base class
-        if (!Statement::isEqual(*p, visited)) return false;
+        if(!Statement::isEqualImpl(*p, visited))
+        {
+            return false;
+        }
 
         // compare data member
-        if (!isASTNodeMemberEqual   (&ExpressionStmt::expr                , *this, *p, visited)) return false;
+        if(!isASTNodeMemberEqual(&ExpressionStmt::expr, *this, *p, visited))
+        {
+            return false;
+        }
 
         // add this to the visited table.
         visited.insert(this);
@@ -57,8 +71,9 @@ struct ExpressionStmt : public Statement
     }
 
     template<typename Archive>
-    void serialize(Archive& ar, const unsigned int version) {
-        ::boost::serialization::base_object<Statement>(*this);
+    void serialize(Archive& ar, const unsigned int version)
+    {
+        boost::serialization::base_object<Statement>(*this);
     }
 
 	Expression* expr;
@@ -85,6 +100,6 @@ inline void load_construct_data(Archive& ar, zillians::language::tree::Expressio
 	::new(p) ExpressionStmt(expr);
 }
 
-}} // namespace boost::serialization
+} } // namespace boost::serialization
 
 #endif /* ZILLIANS_LANGUAGE_TREE_EXPRESSIONSTMT_H_ */
