@@ -381,11 +381,11 @@ struct ResolutionVisitor : Visitor<ASTNode, void, VisitorImplementation::recursi
 				foreach(i, node.parameters)
 				{
 					bool is_template_partial_match = false;
-					if(compare(current, i->first, is_template_partial_match))
+					if(compare(current, i->get<0>(), is_template_partial_match))
 					{
 						if(isLast())
 						{
-							enlist(i->first, is_template_partial_match);
+							enlist(i->get<0>(), is_template_partial_match);
 						}
 					}
 				}

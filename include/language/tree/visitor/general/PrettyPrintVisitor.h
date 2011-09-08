@@ -394,10 +394,32 @@ struct PrettyPrintVisitor : Visitor<const ASTNode, void>
 			{
 				foreach(i, node.parameters)
 				{
-					STREAM << L"<parameters name=\"" << i->first->toString() << "\">" << std::endl;
+					STREAM << L"<parameters name=\"" << i->get<0>()->toString() << "\">" << std::endl;
 					{
 						increaseIdent();
-						visit(*i->second);
+						{
+							if(i->get<1>())
+							{
+								STREAM << L"<type>" << std::endl;
+								{
+									increaseIdent();
+									visit(*i->get<1>());
+									decreaseIdent();
+								}
+								STREAM << L"</type>" << std::endl;
+							}
+
+							if(i->get<2>())
+							{
+								STREAM << L"<initializer>" << std::endl;
+								{
+									increaseIdent();
+									visit(*i->get<2>());
+									decreaseIdent();
+								}
+								STREAM << L"</type>" << std::endl;
+							}
+						}
 						decreaseIdent();
 					}
 					STREAM << L"</parameters>" << std::endl;

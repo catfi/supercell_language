@@ -188,8 +188,9 @@ struct LLVMDebugInfoGeneratorVisitor: GenericDoubleVisitor
 		if(node.name) generate(*node.name);
 		foreach(i, node.parameters)
 		{
-			if(i->first) generate(*i->first);
-			if(i->second) generate(*i->second);
+			if(i->get<0>()) generate(*i->get<0>());
+			if(i->get<1>()) generate(*i->get<1>());
+			if(i->get<2>()) generate(*i->get<2>());
 		}
 		if(node.block) generate(*node.block);
 		if(node.annotations) generate(*node.annotations);

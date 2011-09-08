@@ -290,6 +290,42 @@ public:
         return true ;
     }
 
+    /**
+     * @brief Compare is two std::vector<boost::tuple<ASTNode*, ASTNode*, ASTNode*>> data member equal.
+     * @param dataMember The data member to be compared.
+     * @param lhs Left hand side object to get the @p pairVec.
+     * @param rhs Right hand side object to get the @p pairVec.
+     * @param visited Recording the compared ASTNode, prevent infinite resursive compare.
+     * @return @p true if two vectors are value-sementically equal, @p false if not.
+     */
+    template<typename TupleVectorMember, typename T>
+    static bool isTupleVectorMemberEqual(TupleVectorMember pairVec, const T& lhs, const T& rhs, ASTNodeSet& visited)
+    {
+        auto& leftVec = lhs.*pairVec ;
+        auto& rightVec = rhs.*pairVec ;
+        if(leftVec.size() != rightVec.size())
+        {
+            return false;
+        }
+
+        for(size_t i = 0; i < leftVec.size(); ++i)
+        {
+			if(!isASTNodePointerEqual(leftVec[i].get<0>(), rightVec[i].get<0>(), visited))
+			{
+				return false;
+			}
+			if(!isASTNodePointerEqual(leftVec[i].get<1>(), rightVec[i].get<1>(), visited))
+			{
+				return false;
+			}
+			if(!isASTNodePointerEqual(leftVec[i].get<2>(), rightVec[i].get<2>(), visited))
+			{
+				return false;
+			}
+        }
+
+        return true ;
+    }
 public:
     template<typename Archive>
     void serialize(Archive& ar, const unsigned int version)

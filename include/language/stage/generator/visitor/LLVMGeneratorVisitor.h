@@ -947,7 +947,7 @@ private:
 				{
 					const llvm::Type* t;
 					llvm::Attributes modifier;
-					if(mHelper.getType(*ast_function->parameters[index].second, t, modifier) && t && !t->isVoidTy())
+					if(mHelper.getType(*ast_function->parameters[index].get<1>(), t, modifier) && t && !t->isVoidTy())
 					{
 						llvm_value_for_write = createAlloca(t, NameManglingContext::get(resolved_symbol)->managled_name);
 						mBuilder.CreateStore(llvm_value_for_read, llvm_value_for_write);
@@ -1026,7 +1026,7 @@ private:
 		int index = 0;
 		foreach(i, f->parameters)
 		{
-			if(i->first == p) break;
+			if(i->get<0>() == p) break;
 			++index;
 		}
 
