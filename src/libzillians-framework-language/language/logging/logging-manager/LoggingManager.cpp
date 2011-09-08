@@ -62,8 +62,9 @@ Logger& LoggingManager::getLogger()
 
 void LoggingManager::logging(uint32 id, std::wstring message)
 {
-	BOOST_ASSERT(mStringTable.attribute_table.find(id) != mStringTable.attribute_table.end() && "Given wrong Log ID");
-	logging::StringTable::attribute_table_t& attribute_table = mStringTable.attribute_table[id];
+	logging::StringTable::log_id log_id = static_cast<logging::StringTable::log_id>(id);
+	BOOST_ASSERT(mStringTable.attribute_table.find(log_id) != mStringTable.attribute_table.end() && "Given wrong Log ID");
+	logging::StringTable::attribute_table_t& attribute_table = mStringTable.attribute_table[log_id];
 
 	// Decide the level
 	log4cxx::LevelPtr level;
