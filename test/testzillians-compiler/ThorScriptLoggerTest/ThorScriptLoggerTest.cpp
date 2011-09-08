@@ -18,6 +18,7 @@
  */
 
 #include "core/Prerequisite.h"
+#include "language/logging/Logger.h"
 #include "language/logging/logging-manager/LoggingManager.h"
 #include <iostream>
 #include <string>
@@ -27,6 +28,9 @@ using namespace zillians::language::logging;
 
 int main()
 {
+	// TODO: We temporarily use setlocale to force the application to use system default locale.
+	// TODO: To make compile logger support utf8 encoding.
+	setlocale(LC_ALL, "");
 	log4cxx::BasicConfigurator::configure();
 
 	LoggingManager log_manager;
