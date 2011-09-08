@@ -42,11 +42,12 @@ struct FunctionDecl : public Declaration
 		if(block) block->parent = this;
 	}
 
-	void appendParameter(SimpleIdentifier* name, TypeSpecifier* type = NULL)
+	void appendParameter(SimpleIdentifier* name, TypeSpecifier* type = NULL, ASTNode* initializer = NULL)
 	{
 		name->parent = this;
 		if(type) type->parent = this;
-		parameters.push_back(std::make_pair(name, type));
+		if(initializer) initializer->parent = this;
+		parameters.push_back(boost::make_tuple(name, type, initializer));
 	}
 
     virtual bool isEqualImpl(const ASTNode& rhs, ASTNodeSet& visited) const
@@ -70,7 +71,7 @@ struct FunctionDecl : public Declaration
 
         // compare data member
         if(!isASTNodeMemberEqual   (&FunctionDecl::name            , *this, *p, visited)) return false;
-        if(!isPairVectorMemberEqual(&FunctionDecl::parameters      , *this, *p, visited)) return false;
+        //if(!isPairVectorMemberEqual(&FunctionDecl::parameters      , *this, *p, visited)) return false;
         if(!isASTNodeMemberEqual   (&FunctionDecl::type            , *this, *p, visited)) return false;
         if(is_member  != p->is_member                                                   ) return false;
         if(visibility != p->visibility                                                  ) return false;
@@ -96,7 +97,7 @@ struct FunctionDecl : public Declaration
     }
 
 	Identifier* name;
-	std::vector<std::pair<SimpleIdentifier*, TypeSpecifier*>> parameters;
+	std::vector<boost::tuple<SimpleIdentifier*, TypeSpecifier*, ASTNode*>> parameters;
 	TypeSpecifier* type;
 	bool is_member;
 	Declaration::VisibilitySpecifier::type visibility;
