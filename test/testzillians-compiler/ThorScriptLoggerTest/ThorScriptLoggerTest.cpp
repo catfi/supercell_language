@@ -20,6 +20,7 @@
 #include "core/Prerequisite.h"
 #include "language/logging/Logger.h"
 #include "language/logging/logging-manager/LoggingManager.h"
+#include "language/tree/basic/Block.h"
 #include <iostream>
 #include <string>
 #include <limits>
@@ -36,10 +37,13 @@ int main()
 	LoggingManager log_manager;
 	Logger& logger = log_manager.getLogger();
 
-	logger.log_undefined_variable(_ID="mString", _FILE="Super.cpp", _LINE=3);
-	logger.log_undefined_variable(_FILE="Super.cpp", _LINE=3, _ID="mString");
+	// Create a fake ASTNode
+	zillians::language::tree::Block node;
 
-	logger.log_unused_variable(_ID="x");
+	logger.log_undefined_variable(_node = node, _ID="mString", _FILE="Super.cpp", _LINE=3);
+	logger.log_undefined_variable(_FILE="Super.cpp", _LINE=3, _node = node, _ID="mString");
+
+	logger.log_unused_variable(_ID="x", _node = node);
 
 	return 0;
 }
