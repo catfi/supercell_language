@@ -21,7 +21,10 @@
 #define ZILLIANS_LANGUAGE_STRINGTABLE_H_
 
 #include "core/Prerequisite.h"
+#include "utility/StringUtil.h"
 #include "utility/UnicodeUtil.h"
+#include "language/tree/ASTNode.h"
+#include "language/context/StaticTestContext.h"
 #include <boost/parameter.hpp>
 #include <vector>
 #include <string>
@@ -71,15 +74,15 @@ struct StringTable
 	LOG_CATEGORY.create('CATEGORY_MISC')
 
 	# Define log type
-	LOG_TYPE = Repo()
-	LOG_TYPE.create('LOG_TYPE_WARNING')
-	LOG_TYPE.create('LOG_TYPE_ERROR')
-	LOG_TYPE.create('LOG_TYPE_FATAL')
+	LOG_LEVEL = Repo()
+	LOG_LEVEL.create('LOG_LEVEL_WARNING')
+	LOG_LEVEL.create('LOG_LEVEL_ERROR')
+	LOG_LEVEL.create('LOG_LEVEL_FATAL')
 
 	# Define log string attributes
 	attribute_table = {
-		LOG_STRING.LOG_UNUSED_VARIABLE: (LOG_TYPE.LOG_TYPE_WARNING, LOG_CATEGORY.CATEGORY_SYMBOL, 0, LOG_STRING.LOG_UNUSED_VARIABLE),
-		LOG_STRING.LOG_UNDEFINED_VARIABLE: (LOG_TYPE.LOG_TYPE_ERROR, LOG_CATEGORY.CATEGORY_SYMBOL, 0, LOG_STRING.LOG_UNDEFINED_VARIABLE),
+		LOG_STRING.LOG_UNUSED_VARIABLE: (LOG_LEVEL.LOG_LEVEL_WARNING, LOG_CATEGORY.CATEGORY_SYMBOL, 0, LOG_STRING.LOG_UNUSED_VARIABLE),
+		LOG_STRING.LOG_UNDEFINED_VARIABLE: (LOG_LEVEL.LOG_LEVEL_ERROR, LOG_CATEGORY.CATEGORY_SYMBOL, 0, LOG_STRING.LOG_UNDEFINED_VARIABLE),
 		}
 
 	# Define translation table
@@ -113,8 +116,8 @@ struct StringTable
 		/*[[[cog
 
 		# Generate all log type
-		for i in range(len(LOG_TYPE.repo)):
-			cog.outl('\t %s,' % LOG_TYPE.repo[i]);
+		for i in range(len(LOG_LEVEL.repo)):
+			cog.outl('\t %s,' % LOG_LEVEL.repo[i]);
 		]]]*/
 		//[[[end]]]
 	};
@@ -131,11 +134,11 @@ struct StringTable
 
 	struct attribute_table_t {
 		attribute_table_t() {}
-		attribute_table_t(log_level type, log_category category, uint32 level, log_id id) :
-			type(type), category(category), level(level), id(id) {}
-		log_level type;
+		attribute_table_t(log_level level, log_category category, uint32 degree, log_id id) :
+			level(level), category(category), degree(degree), id(id) {}
+		log_level level;
 		log_category category;
-		uint32 level;
+		uint32 degree;
 		log_id id;
 	};
 
@@ -164,6 +167,8 @@ struct StringTable
 	}
 };
 
+// The first parameter in the following function is always node
+BOOST_PARAMETER_NAME(node)
 
 /*[[[cog
 def extract_parameters(trans):
@@ -217,7 +222,12 @@ public:
 		param_list_string = ''
 		for (var, type) in param_list:	# will generate like this (FILE(string))(LINE(string))
 			param_list_string = param_list_string + '(' + str(var) + ',(' + str(type) + ')' + ')'
-		cog.outl('BOOST_PARAMETER_MEMBER_FUNCTION( (void), %s, tag, (required %s )) {' % (id.lower(), param_list_string))
+		cog.outl('BOOST_PARAMETER_MEMBER_FUNCTION( (void), %s, tag, (required (node, (tree::ASTNode&)) %s )) {' % (id.lower(), param_list_string))
+
+		# Variable declaration
+		cog.outl('\t map<wstring, wstring> parameters;')
+		cog.outl('\t wstring str_level(L"%s");' % attribute_table[id][0].lower())
+		cog.outl('\t wstring str_id(L"%s");' % id.lower())
 
 		# Generate the implementation
 		cog.outl('\t wstring translated = get_translated(StringTable::%s);' % id)
@@ -225,6 +235,9 @@ public:
 		for (var, type) in param_list:
 			to_search = str('$') + str(var) + '(' + str(type) + ')'
 			cog.outl('\t substitute(translated, L"%s", %s);' % (to_search, var))
+			cog.outl('\t insert_parameters(parameters, L"%s", %s);' % (var.lower(), var))
+
+		cog.outl('\t stage::ErrorInfoContext::set(&node, new stage::ErrorInfoContext(str_level, str_id, parameters));')
 
 		cog.outl('\t mLogger->logging(StringTable::%s, translated);' % id)
 		cog.outl('}');
@@ -234,7 +247,8 @@ public:
 private:
 	wstring get_translated(StringTable::log_id id)
 	{
-		string locale_name = mLocale.name();
+		string locale_name = get_lc_message();
+
 		BOOST_ASSERT(mStringTable.translation_table.find(id) != mStringTable.translation_table.end() && "Unknown Log Id");
 
 		StringTable::locale_translate_map_t& translate_map = mStringTable.translation_table[id];
@@ -244,6 +258,29 @@ private:
 			locale_name = "en_US";
 		}
 		return translate_map[locale_name];
+	}
+
+	string get_lc_message()
+	{
+		string lc_all = mLocale.name();
+		vector<string> locale_categories = StringUtil::tokenize(lc_all, ";", false);
+
+		for (int i = 0; i < locale_categories.size(); i++)
+		{
+			// We will have something like this: LC_MESSAGES, en_US.UTF-8
+			vector<string> category = StringUtil::tokenize(locale_categories[i], "=", false);
+			if (category.size() != 2) continue;
+			if (category[0] != "LC_MESSAGES") continue;
+
+			// Now we have lang_encoding = "en_US.UTF-8"
+			string lang_encoding = category[1];
+
+			// Strip out ".UTF-8", we only need "en_US"
+			string lang = StringUtil::tokenize(lang_encoding, ".", false)[0];
+			return lang;
+		}
+
+		return "en_US";
 	}
 
 	template <typename T>
@@ -270,6 +307,24 @@ private:
 	        replace_found = true;
 	    }
 	    return replace_found;
+	}
+
+	template <typename T>
+	void insert_parameters(map<wstring, wstring>& parameters, const wstring& key, const T& value)
+	{
+		wstringstream stream;
+		stream << value;
+		insert_parameters(parameters, key, stream.str());
+	}
+
+	void insert_parameters(map<wstring, wstring>& parameters, const wstring& key, const string& value)
+	{
+		insert_parameters(parameters, key, s_to_ws(value));
+	}
+
+	void insert_parameters(map<wstring, wstring>& parameters, const wstring& key, const wstring& value)
+	{
+		parameters[key] = value;
 	}
 
 private:

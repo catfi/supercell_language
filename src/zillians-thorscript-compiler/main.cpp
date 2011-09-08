@@ -25,6 +25,10 @@
 
 int main(int argc, const char** argv)
 {
+	// TODO: We temporarily use setlocale to force the application to use system default locale.
+	// TODO: To make compile logger support utf8 encoding.
+	setlocale(LC_ALL, "");
+
 	zillians::language::ThorScriptCompiler compiler;
 	return compiler.main(argc, argv);
 }

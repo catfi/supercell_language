@@ -33,7 +33,7 @@ namespace zillians { namespace language { namespace logging {
  *
  * 1. Parse options: which includes,
  *    a. Set ignore warning types
- *    b. Set warning level
+ *    b. Set warning degree
  * 2. Query the level for specific warning message
  * 3. Compile stage assert if the parser mis-used the specific the function which comes from the message type.
  * 4. Output the specific warning or error messages according to the different locale setting
@@ -46,8 +46,8 @@ public:
 	virtual ~LoggingManager();
 
 public:
-	uint32 getCurrentWarningLevel();
-	void setWarningLevel(uint32 level);
+	uint32 getCurrentWarningDegree();
+	void setWarningDegree(uint32 level);
 
 	Logger& getLogger();
 
@@ -57,7 +57,7 @@ public:
 private:
 	StringTable mStringTable;
 	Logger mLogger;
-	uint32 mWarningLevel;
+	uint32 mWarningDegree;
 };
 
 }}}
