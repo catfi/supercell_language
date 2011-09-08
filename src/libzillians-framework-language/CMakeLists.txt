@@ -23,20 +23,12 @@ include_directories( ${PROJECT_COMMON_SOURCE_DIR}/include/
     ${PROJECT_FRAMEWORK_SOURCE_DIR}/include/
     )
 
-set(StringTablePath ${PROJECT_FRAMEWORK_SOURCE_DIR}/include/language/logging/logging-manager)
-# Generate StringTable.h
-add_custom_command(OUTPUT ${StringTablePath}/StringTable.h
-	COMMAND cog.py -d -o ${StringTablePath}/StringTable.h ${StringTablePath}/StringTable.cog
-	MAIN_DEPENDENCY ${StringTablePath}/StringTable.cog
-	COMMENT "Generate StringTable.h by using cog.py"
-	)
 
 add_library(zillians-framework-language
     language/context/ConfigurationContext.cpp
     language/context/ParserContext.cpp
     language/logging/Logger.cpp
     language/logging/logging-manager/LoggingManager.cpp
-	${StringTablePath}/StringTable.h	# Put it here, so it will trigger the add_custom_command below
     language/stage/StageConductor.cpp
     language/stage/basic/TreeDebugStage.cpp
     language/stage/parser/ThorScriptParserStage.cpp
@@ -47,6 +39,18 @@ add_library(zillians-framework-language
     language/stage/verifier/SemanticVerificationStage0.cpp
     language/stage/verifier/SemanticVerificationStage1.cpp
 	)
+
+set(StringTablePath ${PROJECT_FRAMEWORK_SOURCE_DIR}/include/language/logging/logging-manager)
+
+# Generate StringTable.h
+add_custom_command(OUTPUT ${StringTablePath}/StringTable.h
+	COMMAND cog.py -d -o ${StringTablePath}/StringTable.h ${StringTablePath}/StringTable.cog
+	DEPENDS ${StringTablePath}/StringTable.cog
+	COMMENT "Generate StringTable.h by using cog.py"
+	)
+
+add_custom_target(generate-string-table ALL echo DEPENDS ${StringTablePath}/StringTable.h COMMENT "generate-string-table depends on StringTable.h")
+add_dependencies(zillians-framework-language generate-string-table)
 
 if(LLVM_FOUND)
     add_definitions( ${LLVM_CPPFLAGS} )
