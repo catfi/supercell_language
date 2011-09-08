@@ -85,7 +85,7 @@ struct PrettyPrintVisitor : Visitor<const ASTNode, void>
 	{
 		if(hasSourceInfo(node))
 		{
-			STREAM << L"<annotation name=\"" << node.name->toString() << L">" << std::endl;
+			STREAM << L"<annotation name=\"" << ((node.name) ? node.name->toString() : L"<unspecified>") << L">" << std::endl;
 			{
 				printSourceInfo(node);
 			}
