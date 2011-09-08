@@ -1,6 +1,6 @@
 # 
 # Zillians MMO
-# Copyright (C) 2007-2009 Zillians.com, Inc.
+# Copyright (C) 2007-2010 Zillians.com, Inc.
 # For more information see http:#www.zillians.com
 #
 # Zillians MMO is the library and runtime for massive multiplayer online game
@@ -19,14 +19,16 @@
 # Contact Information: info@zillians.com
 #
 
-zillians_create_test_subject(SUBJECT thorscript-tree-test)
+INCLUDE_DIRECTORIES(
+    ${PROJECT_COMMON_SOURCE_DIR}/include/
+    ${PROJECT_FRAMEWORK_SOURCE_DIR}/include/
+    )
 
-zillians_add_subject_to_subject(PARENT framework-compiler-critical CHILD thorscript-tree-test)
+ADD_EXECUTABLE(ThorScriptTreeTest_ErrorMessageAnnotationCheckVisitorTest ErrorMessageAnnotationCheckVisitorTest.cpp)
 
-ADD_SUBDIRECTORY(GenericVisitorTest)
-ADD_SUBDIRECTORY(GarbageCollectionVisitorTest)
-ADD_SUBDIRECTORY(BasicTreeGenerationTest)
-ADD_SUBDIRECTORY(PrettyPrintVisitorTest)
-ADD_SUBDIRECTORY(StructureVerificationVisitorTest)
-ADD_SUBDIRECTORY(SerializationTest)
-ADD_SUBDIRECTORY(ErrorMessageAnnotationCheckVisitorTest)
+TARGET_LINK_LIBRARIES(ThorScriptTreeTest_ErrorMessageAnnotationCheckVisitorTest
+    zillians-common-core
+    )
+
+zillians_add_simple_test(TARGET ThorScriptTreeTest_ErrorMessageAnnotationCheckVisitorTest)
+zillians_add_test_to_subject(SUBJECT thorscript-tree-test TARGET ThorScriptTreeTest_ErrorMessageAnnotationCheckVisitorTest)
