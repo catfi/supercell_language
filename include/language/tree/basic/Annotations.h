@@ -35,7 +35,7 @@ struct Annotation : public ASTNode
 
 	Annotation(SimpleIdentifier* name) : name(name)
 	{
-		name->parent = this;
+		if(name) name->parent = this;
 	}
 
 	void appendKeyValue(SimpleIdentifier* key, ASTNode* value)
