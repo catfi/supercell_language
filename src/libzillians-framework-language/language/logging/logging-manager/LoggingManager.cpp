@@ -34,7 +34,7 @@ namespace zl = zillians::language;
 namespace zillians { namespace language { namespace logging {
 
 LoggingManager::LoggingManager() :
-		mWarningLevel(0)
+		mWarningDegree(0)
 {
 	mLogger.setLogger(this);
 	mLogger.setLocale(get_default_locale());
@@ -45,14 +45,14 @@ LoggingManager::~LoggingManager()
 {}
 
 
-uint32 LoggingManager::getCurrentWarningLevel()
+uint32 LoggingManager::getCurrentWarningDegree()
 {
-	return mWarningLevel;
+	return mWarningDegree;
 }
 
-void LoggingManager::setWarningLevel(uint32 level)
+void LoggingManager::setWarningDegree(uint32 degree)
 {
-	mWarningLevel = level;
+	mWarningDegree = degree;
 }
 
 Logger& LoggingManager::getLogger()
@@ -68,19 +68,19 @@ void LoggingManager::logging(uint32 id, std::wstring message)
 
 	// Decide the level
 	log4cxx::LevelPtr level;
-	switch (attribute_table.type)
+	switch (attribute_table.level)
 	{
-	case logging::StringTable::LOG_TYPE_WARNING:
+	case logging::StringTable::LOG_LEVEL_WARNING:
 	{
 		level = log4cxx::Level::getWarn();
 		break;
 	}
-	case logging::StringTable::LOG_TYPE_FATAL:
+	case logging::StringTable::LOG_LEVEL_FATAL:
 	{
 		level = log4cxx::Level::getFatal();
 		break;
 	}
-	case logging::StringTable::LOG_TYPE_ERROR:
+	case logging::StringTable::LOG_LEVEL_ERROR:
 	{
 		level = log4cxx::Level::getError();
 		break;
