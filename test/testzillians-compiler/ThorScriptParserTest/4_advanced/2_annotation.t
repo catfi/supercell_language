@@ -20,3 +20,8 @@ class my_class
 function g():void
 {
 }
+
+@tag { key = 37, key2 = { key = 41, key2 = 43 } }
+function h():void
+{
+}

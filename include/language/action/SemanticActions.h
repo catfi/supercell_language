@@ -70,6 +70,7 @@ struct ThorScriptTreeAction
 	typedef action::visibility_specifier      visibility_specifier;
 	typedef action::annotation_specifiers     annotation_specifiers;
 	typedef action::annotation_specifier      annotation_specifier;
+	typedef action::annotation_specifier_stem annotation_specifier_stem;
 	typedef action::nested_identifier         nested_identifier;
 
 	//////////////////////////////////////////////////////////////////////

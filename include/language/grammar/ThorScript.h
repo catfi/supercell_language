@@ -491,11 +491,15 @@ struct ThorScript : qi::grammar<Iterator, typename SA::start::attribute_type, de
 
 		annotation_specifier
 			= qi::eps [ typename SA::location::init_loc() ]
-				>>	(AT_SYMBOL > IDENTIFIER
-						>	-(LEFT_BRACE > (
-							(IDENTIFIER > ASSIGN > primary_expression) % COMMA
-							) > RIGHT_BRACE)
-					) [ typename SA::annotation_specifier::init() ]
+				>> (AT_SYMBOL > IDENTIFIER > -annotation_specifier_stem) [ typename SA::annotation_specifier::init() ]
+			;
+
+		annotation_specifier_stem
+			= qi::eps [ typename SA::location::init_loc() ]
+				>>	(LEFT_BRACE
+						> ((IDENTIFIER > ASSIGN > (primary_expression | annotation_specifier_stem)) % COMMA)
+						> RIGHT_BRACE
+					) [ typename SA::annotation_specifier_stem::init() ]
 			;
 
 		nested_identifier
@@ -1126,6 +1130,7 @@ struct ThorScript : qi::grammar<Iterator, typename SA::start::attribute_type, de
 	qi::rule<Iterator, typename SA::visibility_specifier::attribute_type,      detail::WhiteSpace<Iterator>, typename SA::visibility_specifier::local_type>      interface_visibility_specifier;
 	qi::rule<Iterator, typename SA::annotation_specifiers::attribute_type,     detail::WhiteSpace<Iterator>, typename SA::annotation_specifiers::local_type>     annotation_specifiers;
 	qi::rule<Iterator, typename SA::annotation_specifier::attribute_type,      detail::WhiteSpace<Iterator>, typename SA::annotation_specifier::local_type>      annotation_specifier;
+	qi::rule<Iterator, typename SA::annotation_specifier_stem::attribute_type, detail::WhiteSpace<Iterator>, typename SA::annotation_specifier_stem::local_type> annotation_specifier_stem;
 
 	// expression
 	qi::rule<Iterator, typename SA::right_to_left_binary_op_vec::attribute_type, detail::WhiteSpace<Iterator>, typename SA::right_to_left_binary_op_vec::local_type> expression;
