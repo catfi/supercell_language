@@ -2,52 +2,56 @@ SEMANTIC CHECK CHECKLIST
 
 ERRORS:
 
-    E1. UNDEFINED NAME
+    E1. UNDEFINED NAME (V)
     E2. NAME COLLISION
-        a. DUPLICATE DEFINE/DECLARE
-        b. AMBIGUOUS REFERENCE
+        a. DUPLICATE DEFINE/DECLARE (J) (S0)
+        b. AMBIGUOUS REFERENCE (V)
     E3. INCOMPATIBLE TYPE
-        a. EXPLICIT CAST FAIL
+        a. EXPLICIT CAST FAIL (SDK)
         b. IMPLICIT CAST FAIL
-            I.   EXPRESSION WITH INVALID OPERANDS (INCL. ASSIGN FAIL)
-            II.  STATEMENT WITH INVALID ARGUMENTS (INCL. NON-BOOL USED AS CONDITION)
-            III. DECLARATION WITH INVALID ARGUMENTS
-        c. NON-EXIST SUBSCRIPT
+            I.   EXPRESSION WITH INVALID OPERANDS (INCL. ASSIGN FAIL) (SDK)
+            II.  STATEMENT WITH INVALID ARGUMENTS (INCL. NON-BOOL USED AS CONDITION) (SDK)
+            III. DECLARATION WITH INVALID ARGUMENTS (SDK)
+        c. NON-EXIST SUBSCRIPT (J) (S1)
         d. FUNCTION
-            I.   CALL NON-FUNCTION
-            II.  CALL FUNCTION WITH WRONG ARGUMENT COUNT/TYPE
-            III. RETURN STATEMENT WITH WRONG ARGUMENT COUNT/TYPE (INCL. MISSING RETURN STATEMENT)
+            I.   CALL NON-FUNCTION (J) (S1)
+            II.  CALL FUNCTION WITH WRONG ARGUMENT COUNT/TYPE (J) (S1)
+            III. RETURN STATEMENT WITH WRONG ARGUMENT COUNT/TYPE (INCL. MISSING RETURN STATEMENT) (J) (S1)
     E4. MODIFIER POLICY VIOLATION
         a. STORAGE VIOLATION
             I. CONST-RELATED
-                i.  MODIFY CONST
-                ii. ASSIGN NON-CONST EXPRESSION TO CONST
+                i.  MODIFY CONST (J) (S1)
+                ii. ASSIGN NON-CONST EXPRESSION TO CONST (J) (S1)
             II. STATIC-RELATED
-                i.   CALL NON-STATIC FUNCTION WITHOUT INSTANCE
-                ii.  CALL STATIC FUNCTION WITH INSTANCE
-                iii. NON-STATIC VAR ACCESSED IN STATIC FUNCTION
-        b. VISIBILITY VIOLATION
-    E5. BREAK/CONTINUE NOT INSIDE ITERATION
+                i.   CALL NON-STATIC FUNCTION WITHOUT INSTANCE (J) (S1)
+                ii.  CALL STATIC FUNCTION WITH INSTANCE (J) (S1)
+                iii. NON-STATIC VAR ACCESSED IN STATIC FUNCTION (J) (S1)
+        b. VISIBILITY VIOLATION (J) (S1)
+    E5. BREAK/CONTINUE NOT INSIDE ITERATION (J) (S0)
     E6. PARAMETER
-        a. PARAMETER INITIALIZED WITH NON-CONST EXPRESSION
-        b. NON-OPTIONAL PARAMETER CANNOT APPEAR AFTER OPTIONAL PARAMETER
-        c. VARIADIC PARAMETER NOT LAST PARAMETER
+        a. PARAMETER INITIALIZED WITH NON-CONST EXPRESSION (J) (S1)
+        b. NON-OPTIONAL PARAMETER CANNOT APPEAR AFTER OPTIONAL PARAMETER (J) (S0)
+        c. VARIADIC PARAMETER NOT LAST PARAMETER (J) (S0)
     E7. LANGUAGE LIMIT VIOLATION
-
+    	a. FUNCTION CALL PARAMETER COUNT LIMIT (J) (S0)
+    	b. TEMPLATE PARAMETER COUNT LIMIT (EITHER DECLARATION OR SPECIALIZATION) (J) (S0)
+	E8. VARIABLE
+		a. INITIALIZATION LIST SHOULD BE CONSTANT
+		
 WARNINGS:
 
     W1. CONDITION
-        a. CONST EXPRESSION USED AS CONDITION
-        b. UNINITIALIZED VAR USED AS CONDITION
+        a. CONST EXPRESSION USED AS CONDITION (NO_WARN)
+        b. UNINITIALIZED VAR USED AS CONDITION (J) (S2)
     W2. CODE PATH
-        a. UNUSED DEFINE/DECLARE
-        b. DEAD CODE NEVER EXECUTES (NOTE: ALWAYS BRANCH BEFORE THIS LINE)
-        c. NOT ALL CODE PATHS RETURN A VALUE
-        d. CODE EXECUTES, BUT HAS NO USEFUL EFFECT
-        e. NOT ALL ENUM VALUES COVERED BY SWITCH CASES (INCL. MISSING DEFAULT)
+        a. UNUSED DEFINE/DECLARE (J) (S2)
+        b. DEAD CODE NEVER EXECUTES (NOTE: ALWAYS BRANCH BEFORE THIS LINE) (J) (S0)
+        c. NOT ALL CODE PATHS RETURN A VALUE (J) (S0)
+        d. CODE EXECUTES, BUT HAS NO USEFUL EFFECT (J) (S2)
+        e. NOT ALL ENUM VALUES COVERED BY SWITCH CASES (INCL. MISSING DEFAULT) (J) (S1)
     W3. MISC
-        b. DECLARATION SHADOWS OTHER DECLARATION IN OUTTER SCOPE
-        c. RECURSIVE CALL ALWAYS REACHABLE FROM FUNCTION START
+        b. DECLARATION SHADOWS OTHER DECLARATION IN OUTTER SCOPE (X)
+        c. RECURSIVE CALL ALWAYS REACHABLE FROM FUNCTION START (J) (S?)
 
 /////////////////////////////////////////////////////////////////////
 /// BASIC
@@ -131,7 +135,6 @@ WARNINGS:
     (E7) - There should be a limit on how many member variables allowed in a single class
 
 // class member variable declaration
-    () - The static variables is just like global variable except it's within class scope
     (E2.a) - The variable name must not conflict with the class name or member function name
     (E2.a) - The variable names must not conflict with each other
 
@@ -143,8 +146,8 @@ WARNINGS:
     () - The initialization list must be constant (just like global variable) and of integral type
 
 // interface declaration
-    () - All methods in interface should have no member scope specifier
-    () - All methods in interface should have no function body
+    (E4.b) - All methods in interface should not have "private" member scope specifier
+    (PARSER) - All methods in interface should have no function body
     (E1) - All types must be explicitly specified for member function in interface
 
 // class/interface member function declaration
