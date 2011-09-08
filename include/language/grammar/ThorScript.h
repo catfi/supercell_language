@@ -886,7 +886,7 @@ struct ThorScript : qi::grammar<Iterator, typename SA::start::attribute_type, de
 			= qi::eps [ typename SA::location::init_loc() ]
 				>>	(ENUM > IDENTIFIER
 						> LEFT_BRACE
-						> ((-annotation_specifiers > IDENTIFIER > -(ASSIGN > expression)) % COMMA)
+						> (-annotation_specifiers > IDENTIFIER > -(ASSIGN > expression)) % COMMA
 						> RIGHT_BRACE
 					) [ typename SA::enum_decl::init() ]
 			;
