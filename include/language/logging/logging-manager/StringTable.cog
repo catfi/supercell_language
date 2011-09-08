@@ -21,6 +21,7 @@
 #define ZILLIANS_LANGUAGE_STRINGTABLE_H_
 
 #include "core/Prerequisite.h"
+#include "utility/StringUtil.h"
 #include "utility/UnicodeUtil.h"
 #include <boost/parameter.hpp>
 #include <vector>
@@ -234,7 +235,8 @@ public:
 private:
 	wstring get_translated(StringTable::log_id id)
 	{
-		string locale_name = mLocale.name();
+		string locale_name = get_lc_message();
+
 		BOOST_ASSERT(mStringTable.translation_table.find(id) != mStringTable.translation_table.end() && "Unknown Log Id");
 
 		StringTable::locale_translate_map_t& translate_map = mStringTable.translation_table[id];
@@ -244,6 +246,29 @@ private:
 			locale_name = "en_US";
 		}
 		return translate_map[locale_name];
+	}
+
+	string get_lc_message()
+	{
+		string lc_all = mLocale.name();
+		vector<string> locale_categories = StringUtil::tokenize(lc_all, ";", false);
+
+		for (int i = 0; i < locale_categories.size(); i++)
+		{
+			// We will have something like this: LC_MESSAGES, en_US.UTF-8
+			vector<string> category = StringUtil::tokenize(locale_categories[i], "=", false);
+			if (category.size() != 2) continue;
+			if (category[0] != "LC_MESSAGES") continue;
+
+			// Now we have lang_encoding = "en_US.UTF-8"
+			string lang_encoding = category[1];
+
+			// Strip out ".UTF-8", we only need "en_US"
+			string lang = StringUtil::tokenize(lang_encoding, ".", false)[0];
+			return lang;
+		}
+
+		return "en_US";
 	}
 
 	template <typename T>
