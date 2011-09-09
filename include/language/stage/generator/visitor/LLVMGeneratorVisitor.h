@@ -683,10 +683,10 @@ struct LLVMGeneratorVisitor : GenericDoubleVisitor
 			llvm::Value* false_value = node.false_node->get<llvm::Value>();
 			if(node.isRValue())
 			{
-				if(llvm::isa<llvm::AllocaInst>(true_value))
+				if(true_value->getType()->isPointerTy())
 					true_value = mBuilder.CreateLoad(true_value);
 
-				if(llvm::isa<llvm::AllocaInst>(false_value))
+				if(false_value->getType()->isPointerTy())
 					false_value = mBuilder.CreateLoad(false_value);
 			}
 
@@ -902,7 +902,7 @@ private:
 		llvm_value_for_read = node.get<llvm::Value>();
 		if(llvm_value_for_read)
 		{
-			if(llvm::isa<llvm::AllocaInst>(llvm_value_for_read))
+			if(llvm_value_for_read->getType()->isPointerTy())
 			{
 				llvm_value_for_write = llvm_value_for_read;
 				llvm_value_for_read = mBuilder.CreateLoad(llvm_value_for_read);
@@ -928,7 +928,7 @@ private:
 
 			if(llvm_value_for_read)
 			{
-				if(llvm::isa<llvm::AllocaInst>(llvm_value_for_read))
+				if(llvm_value_for_read->getType()->isPointerTy())
 				{
 					llvm_value_for_write = llvm_value_for_read;
 					llvm_value_for_read = mBuilder.CreateLoad(llvm_value_for_read);
