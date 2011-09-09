@@ -24,6 +24,7 @@
 #include "utility/StringUtil.h"
 #include "utility/UnicodeUtil.h"
 #include "language/tree/ASTNode.h"
+#include "language/logging/LoggingManager.h"
 #include "language/context/StaticTestContext.h"
 #include <boost/parameter.hpp>
 #include <vector>
@@ -33,7 +34,7 @@
 
 using namespace std;
 
-namespace zillians { namespace language { namespace logging {
+namespace zillians { namespace language {
 
 
 /**
@@ -210,9 +211,9 @@ public:
 	Logger() : mLogger(NULL) {}
 	virtual ~Logger() {}
 
-	void setLogger(LoggerWrapper* logger) { mLogger = logger; }
+	void setLogger(LoggingManager* logger) { mLogger = logger; }
 	void setLocale(locale& locale) { mLocale = locale; }
-	void setStringTable(StringTable& string_table) { mStringTable = string_table; }
+	void setStringTable(StringTable* string_table) { mStringTable = string_table; }
 
 public:
 	/*[[[cog
@@ -239,7 +240,7 @@ public:
 
 		cog.outl('\t stage::ErrorInfoContext::set(&node, new stage::ErrorInfoContext(str_level, str_id, parameters));')
 
-		cog.outl('\t mLogger->logging(StringTable::%s, translated);' % id)
+		cog.outl('\t mLogger->log(StringTable::%s, translated);' % id)
 		cog.outl('}');
 	]]]*/
 	//[[[end]]]
@@ -249,9 +250,9 @@ private:
 	{
 		string locale_name = get_lc_message();
 
-		BOOST_ASSERT(mStringTable.translation_table.find(id) != mStringTable.translation_table.end() && "Unknown Log Id");
+		BOOST_ASSERT(mStringTable->translation_table.find(id) != mStringTable->translation_table.end() && "Unknown Log Id");
 
-		StringTable::locale_translate_map_t& translate_map = mStringTable.translation_table[id];
+		StringTable::locale_translate_map_t& translate_map = mStringTable->translation_table[id];
 		if (translate_map.find(locale_name) == translate_map.end())
 		{
 			// use default -- en_US
@@ -328,11 +329,11 @@ private:
 	}
 
 private:
-	LoggerWrapper* mLogger;
+	LoggingManager* mLogger;
 	locale mLocale;
-	StringTable mStringTable;
+	StringTable* mStringTable;
 };
 
-}}}
+}}
 
 #endif /* ZILLIANS_LANGUAGE_STRINGTABLE_H_ */

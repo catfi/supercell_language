@@ -1122,7 +1122,7 @@ private:
 				node_info_visitor.visit(*to);
 				std::wstring to_info = node_info_visitor.stream.str();
 
-				LOG4CXX_ERROR(Logger::GeneratorStage, L"failed to propagate NULL value from \"" << from_info << "\" to \"" << to_info << L"\"");
+				LOG4CXX_ERROR(LoggingManager::GeneratorStage, L"failed to propagate NULL value from \"" << from_info << "\" to \"" << to_info << L"\"");
 			}
 		}
 

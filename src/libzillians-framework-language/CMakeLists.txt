@@ -28,8 +28,7 @@ include_directories( ${PROJECT_COMMON_SOURCE_DIR}/include/
 add_library(zillians-framework-language
     language/context/ConfigurationContext.cpp
     language/context/ParserContext.cpp
-    language/logging/Logger.cpp
-    language/logging/logging-manager/LoggingManager.cpp
+    language/logging/LoggingManager.cpp
     language/stage/StageConductor.cpp
     language/stage/basic/TreeDebugStage.cpp
     language/stage/parser/ThorScriptParserStage.cpp
@@ -41,7 +40,7 @@ add_library(zillians-framework-language
     language/stage/verifier/SemanticVerificationStage1.cpp
 	)
 
-set(StringTablePath ${PROJECT_FRAMEWORK_SOURCE_DIR}/include/language/logging/logging-manager)
+set(StringTablePath ${PROJECT_FRAMEWORK_SOURCE_DIR}/include/language/logging)
 
 # Generate StringTable.h
 #add_custom_command(OUTPUT ${StringTablePath}/StringTable.h

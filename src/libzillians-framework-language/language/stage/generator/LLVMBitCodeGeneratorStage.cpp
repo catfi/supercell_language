@@ -80,14 +80,14 @@ bool LLVMBitCodeGeneratorStage::execute(bool& continue_execution)
 		{
 			if(llvm::verifyModule(**m, llvm::PrintMessageAction, &error_info))
 			{
-				LOG4CXX_ERROR(Logger::GeneratorStage, "failed to verify LLVM module: " << error_info);
+				LOG4CXX_ERROR(LoggingManager::GeneratorStage, "failed to verify LLVM module: " << error_info);
 			}
 		}
 
 		llvm::raw_fd_ostream stream("test.bc", error_info, llvm::raw_fd_ostream::F_Binary);
 		if(stream.has_error())
 		{
-			LOG4CXX_ERROR(Logger::GeneratorStage, "failed to prepare stream for writing LLVM bitcode: " << error_info);
+			LOG4CXX_ERROR(LoggingManager::GeneratorStage, "failed to prepare stream for writing LLVM bitcode: " << error_info);
 			return false;
 		}
 

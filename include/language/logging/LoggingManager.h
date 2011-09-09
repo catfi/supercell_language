@@ -21,12 +21,11 @@
 #define ZILLIANS_LANGUAGE_LOGGING_MANAGER_H_
 
 #include "core/Prerequisite.h"
-#include "language/logging/logging-manager/LoggerWrapper.h"
-#include "language/logging/logging-manager/StringTable.h"
 
-namespace po = boost::program_options;
+namespace zillians { namespace language {
 
-namespace zillians { namespace language { namespace logging {
+class StringTable;
+class Logger;
 
 /**
  * LoggingManager provides the following features:
@@ -39,8 +38,9 @@ namespace zillians { namespace language { namespace logging {
  * 4. Output the specific warning or error messages according to the different locale setting
  *
  */
-class LoggingManager : public LoggerWrapper
+class LoggingManager
 {
+
 public:
 	LoggingManager();
 	virtual ~LoggingManager();
@@ -49,17 +49,30 @@ public:
 	uint32 getCurrentWarningDegree();
 	void setWarningDegree(uint32 level);
 
-	Logger& getLogger();
+	Logger* getLogger();
 
 public:
-	virtual void logging(uint32 id, std::wstring message);
+	virtual void log(uint32 id, std::wstring message);
+
+public:
+	static void initialize();
+
+	static log4cxx::LoggerPtr Compiler;
+	static log4cxx::LoggerPtr Resolver;
+	static log4cxx::LoggerPtr CompilerLogger;
+	static log4cxx::LoggerPtr BasicStage;
+	static log4cxx::LoggerPtr ParserStage;
+	static log4cxx::LoggerPtr TransformerStage;
+	static log4cxx::LoggerPtr GeneratorStage;
+	static log4cxx::LoggerPtr DebugInfoGeneratorStage;
+	static log4cxx::LoggerPtr VM;
 
 private:
-	StringTable mStringTable;
-	Logger mLogger;
+	StringTable* mStringTable;
+	Logger* mLogger;
 	uint32 mWarningDegree;
 };
 
-}}}
+}}
 
 #endif /* ZILLIANS_LANAGUAGE_LOGGING_MANAGER_H_ */
