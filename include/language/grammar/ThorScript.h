@@ -742,15 +742,17 @@ struct ThorScript : qi::grammar<Iterator, typename SA::start::attribute_type, de
 		///
 
 		statement
-			=	(-annotation_specifiers
-						>>	( decl_statement
-							| expression_statement
-							| selection_statement
-							| iteration_statement
-							| branch_statement
-							)
-				) [ typename SA::statement::init() ]
-			| block [ typename SA::statement::init_block() ]
+			= location [ typename SA::location::init_loc() ]
+			>>	(	(-annotation_specifiers
+							>>	( decl_statement
+								| expression_statement
+								| selection_statement
+								| iteration_statement
+								| branch_statement
+								)
+					) [ typename SA::statement::init() ]
+				| block [ typename SA::statement::init_block() ]
+				)
 			;
 
 		decl_statement

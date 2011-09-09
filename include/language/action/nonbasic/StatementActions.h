@@ -27,7 +27,7 @@ namespace zillians { namespace language { namespace action {
 struct statement
 {
 	DEFINE_ATTRIBUTES(ASTNode*)
-	DEFINE_LOCALS()
+	DEFINE_LOCALS(LOCATION_TYPE)
 
 	BEGIN_ACTION(init)
 	{
