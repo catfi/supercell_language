@@ -61,12 +61,13 @@ struct ThorScriptTreeAction
 	// basic
 	typedef action::location                  location;
 	typedef action::typed_parameter_list      typed_parameter_list;
+	typedef action::typed_parameter_list_with_init typed_parameter_list_with_init;
+	typedef action::init_specifier            init_specifier;
 	typedef action::colon_type_specifier      colon_type_specifier;
 	typedef action::type_specifier            type_specifier;
 	typedef action::template_param_identifier template_param_identifier;
 	typedef action::template_arg_identifier   template_arg_identifier;
 	typedef action::type_list_specifier       type_list_specifier;
-	typedef action::storage_specifier         storage_specifier;
 	typedef action::visibility_specifier      visibility_specifier;
 	typedef action::annotation_specifiers     annotation_specifiers;
 	typedef action::annotation_specifier      annotation_specifier;
@@ -91,9 +92,9 @@ struct ThorScriptTreeAction
 
 	// declaration
 	typedef action::declaration         declaration;
-	typedef action::const_variable_decl const_variable_decl;
 	typedef action::variable_decl       variable_decl;
 	typedef action::variable_decl_stem  variable_decl_stem;
+	typedef action::const_decl          const_decl;
 	typedef action::function_decl       function_decl;
 	typedef action::typedef_decl        typedef_decl;
 	typedef action::class_decl          class_decl;
@@ -107,6 +108,7 @@ struct ThorScriptTreeAction
 
 	// statement
 	typedef action::statement            statement;
+	typedef action::decl_statement       decl_statement;
 	typedef action::block                block;
 	typedef action::expression_statement expression_statement;
 	typedef action::selection_statement  selection_statement;

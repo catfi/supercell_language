@@ -87,6 +87,48 @@ struct typed_parameter_list
 	END_ACTION
 };
 
+struct typed_parameter_list_with_init
+{
+	typedef std::vector<boost::tuple<SimpleIdentifier*, TypeSpecifier*, Expression*>> value_t;
+	DEFINE_ATTRIBUTES(shared_ptr<value_t>)
+	DEFINE_LOCALS()
+
+	BEGIN_ACTION(init)
+	{
+#ifdef DEBUG
+		printf("typed_parameter_list_with_init param(0) type = %s\n", typeid(_param_t(0)).name());
+		printf("typed_parameter_list_with_init param(1) type = %s\n", typeid(_param_t(1)).name());
+		printf("typed_parameter_list_with_init param(2) type = %s\n", typeid(_param_t(2)).name());
+#endif
+		_result.reset(new value_t);
+		deduced_foreach_value(i, _param(0))
+		{
+			SimpleIdentifier*                name          = boost::fusion::at_c<0>(i);
+			boost::optional<TypeSpecifier*> &optional_type = boost::fusion::at_c<1>(i);
+			boost::optional<Expression*>    &optional_expr = boost::fusion::at_c<2>(i);
+			TypeSpecifier* type = optional_type.is_initialized() ? *optional_type : NULL;
+			Expression*    expr = optional_expr.is_initialized() ? *optional_expr : NULL;
+			_result->push_back(value_t::value_type(name, type, expr));
+		}
+	}
+	END_ACTION
+};
+
+struct init_specifier
+{
+	DEFINE_ATTRIBUTES(Expression*)
+	DEFINE_LOCALS()
+
+	BEGIN_ACTION(init)
+	{
+#ifdef DEBUG
+		printf("init_specifier param(0) type = %s\n", typeid(_param_t(0)).name());
+#endif
+		_result = _param(0);
+	}
+	END_ACTION
+};
+
 } } }
 
 #endif /* ZILLIANS_LANGUAGE_ACTION_BASIC_BASICACTIONS_H_ */

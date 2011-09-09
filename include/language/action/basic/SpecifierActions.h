@@ -127,24 +127,6 @@ struct type_list_specifier
 	END_ACTION
 };
 
-struct storage_specifier
-{
-	DEFINE_ATTRIBUTES(Declaration::StorageSpecifier::type)
-	DEFINE_LOCALS()
-
-	BEGIN_ACTION(init_static)
-	{
-		_result = Declaration::StorageSpecifier::STATIC;
-	}
-	END_ACTION
-
-	BEGIN_ACTION(init_const)
-	{
-		_result = Declaration::StorageSpecifier::CONST;
-	}
-	END_ACTION
-};
-
 struct visibility_specifier
 {
 	DEFINE_ATTRIBUTES(Declaration::VisibilitySpecifier::type)
