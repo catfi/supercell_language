@@ -56,6 +56,8 @@ struct LLVMDebugInfoGeneratorVisitor: GenericDoubleVisitor
 
 	void generate(ASTNode& node)
 	{
+		LOG4CXX_DEBUG(Logger::DebugInfoGeneratorStage, __PRETTY_FUNCTION__);
+
 		// By pass the last time debug information to the child. We exepect there is some node will create
 		// debug information later.
 		if (node.parent)
@@ -65,8 +67,7 @@ struct LLVMDebugInfoGeneratorVisitor: GenericDoubleVisitor
 			// Only Program and Package has no debug info context. So we could safely skip them
 			if (parent_debug_info)
 			{
-				DebugInfoContext::set(&node, new DebugInfoContext(
-						parent_debug_info->compile_unit, parent_debug_info->file, parent_debug_info->context));
+				DebugInfoContext::set(&node, new DebugInfoContext(*parent_debug_info));
 			}
 		}
 		revisit(node);
@@ -158,7 +159,6 @@ struct LLVMDebugInfoGeneratorVisitor: GenericDoubleVisitor
 
 		// TODO: Generate debug information of parameters' type
 
-
 		// Create DISubprogram for the function
 		llvm::Function * llvm_function = node.get<llvm::Function>();
 		llvm::DISubprogram subprogram = factory.CreateSubprogram(
@@ -168,7 +168,7 @@ struct LLVMDebugInfoGeneratorVisitor: GenericDoubleVisitor
 				llvm::StringRef(mangling->managled_name.c_str()),
 				program_context->files[source_index],
 				source_info->line,
-				*return_type->type, //createType(llvm::Type::IntegerTyID, program_context->files[function_file_info->source_index], type_caches[function_file_info->source_index]),	// TODO: Decide function type
+				*return_type->type,
 				false, //bool isLocalToUnit,
 				true, //bool isDefinition,
 				llvm::dwarf::DW_VIRTUALITY_none, //unsigned VK = 0
@@ -260,6 +260,20 @@ struct LLVMDebugInfoGeneratorVisitor: GenericDoubleVisitor
 		}
 
 		revisit(node);
+	}
+
+	void generate(BinaryExpr& node)
+	{
+		LOG4CXX_DEBUG(Logger::DebugInfoGeneratorStage, __PRETTY_FUNCTION__);
+
+		DebugInfoContext* parent_debug_info = DebugInfoContext::get(node.parent);
+		SourceInfoContext* source_info = SourceInfoContext::get(&node);
+
+		llvm::Instruction* inst = llvm::cast<llvm::Instruction>(node.get<llvm::Value>());
+		inst->setDebugLoc(llvm::DebugLoc::get(source_info->line, source_info->column, parent_debug_info->context));
+
+		// Generate the current node debug info context
+		DebugInfoContext::set(&node, new DebugInfoContext(*parent_debug_info));
 	}
 
 private:
