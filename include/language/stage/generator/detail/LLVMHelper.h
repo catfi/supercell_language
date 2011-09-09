@@ -193,6 +193,17 @@ struct LLVMHelper
 		return true;
 	}
 
+	static llvm::BasicBlock* getPredecessorBlock(llvm::BasicBlock* block, int index)
+	{
+		int i=0;
+		for (llvm::pred_iterator it = llvm::pred_begin(block), it_end = llvm::pred_end(block); it != it_end; ++it, ++i)
+		{
+			if(i == index)
+				return *it;
+		}
+		return NULL;
+	}
+
 private:
 	llvm::LLVMContext& mContext;
 };
