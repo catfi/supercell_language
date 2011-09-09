@@ -70,19 +70,19 @@ ASTNode* createSample3()
 							new SimpleIdentifier(L"some_member_function"),
 							NULL,
 							true,
-							Declaration::VisibilitySpecifier::PUBLIC,
-							Declaration::StorageSpecifier::NONE);
+							false,
+							Declaration::VisibilitySpecifier::PUBLIC);
 					class_decl->addFunction(some_member_function);
 					{
 						Block* block = some_member_function->block;
 
 						{
-							DeclarativeStmt* stmt = new DeclarativeStmt(new VariableDecl(new SimpleIdentifier(L"a"), new TypeSpecifier(PrimitiveType::INT32), false, Declaration::VisibilitySpecifier::DEFAULT, Declaration::StorageSpecifier::NONE));
+							DeclarativeStmt* stmt = new DeclarativeStmt(new VariableDecl(new SimpleIdentifier(L"a"), new TypeSpecifier(PrimitiveType::INT32), false, false, false, Declaration::VisibilitySpecifier::DEFAULT));
 							block->appendObject(stmt);
 						}
 
 						{
-							DeclarativeStmt* stmt = new DeclarativeStmt(new VariableDecl(new SimpleIdentifier(L"b"), new TypeSpecifier(PrimitiveType::INT32), false, Declaration::VisibilitySpecifier::DEFAULT, Declaration::StorageSpecifier::NONE));
+							DeclarativeStmt* stmt = new DeclarativeStmt(new VariableDecl(new SimpleIdentifier(L"b"), new TypeSpecifier(PrimitiveType::INT32), false, false, false, Declaration::VisibilitySpecifier::DEFAULT));
 							block->appendObject(stmt);
 						}
 
@@ -95,19 +95,15 @@ ASTNode* createSample3()
 					VariableDecl* some_member_variable1 = new VariableDecl(
 							new SimpleIdentifier(L"some_member_variable1"),
 							new TypeSpecifier(PrimitiveType::FLOAT64),
-							true,
-							Declaration::VisibilitySpecifier::PUBLIC,
-							Declaration::StorageSpecifier::STATIC
-							);
+							true, false, false,
+							Declaration::VisibilitySpecifier::PUBLIC);
 					class_decl->addVariable(some_member_variable1);
 
 					VariableDecl* some_member_variable2 = new VariableDecl(
 							new SimpleIdentifier(L"some_member_variable2"),
 							new TypeSpecifier(PrimitiveType::FLOAT32),
-							true,
-							Declaration::VisibilitySpecifier::PUBLIC,
-							Declaration::StorageSpecifier::STATIC
-							);
+							true, false, false,
+							Declaration::VisibilitySpecifier::PUBLIC);
 					class_decl->addVariable(some_member_variable2);
 				}
 			}
@@ -133,20 +129,19 @@ ASTNode* createSample4()
 					FunctionDecl* some_member_function = new FunctionDecl(
 							new SimpleIdentifier(L"some_member_function"),
 							NULL,
-							true,
-							Declaration::VisibilitySpecifier::PUBLIC,
-							Declaration::StorageSpecifier::NONE);
+							true, false,
+							Declaration::VisibilitySpecifier::PUBLIC);
 					class_decl->addFunction(some_member_function);
 					{
 						Block* block = some_member_function->block;
 
 						{
-							DeclarativeStmt* stmt = new DeclarativeStmt(new VariableDecl(new SimpleIdentifier(L"a"), new TypeSpecifier(new SimpleIdentifier(L"some_class")), false, Declaration::VisibilitySpecifier::DEFAULT, Declaration::StorageSpecifier::NONE));
+							DeclarativeStmt* stmt = new DeclarativeStmt(new VariableDecl(new SimpleIdentifier(L"a"), new TypeSpecifier(new SimpleIdentifier(L"some_class")), false, false, false, Declaration::VisibilitySpecifier::DEFAULT));
 							block->appendObject(stmt);
 						}
 
 						{
-							DeclarativeStmt* stmt = new DeclarativeStmt(new VariableDecl(new SimpleIdentifier(L"b"), new TypeSpecifier(new SimpleIdentifier(L"some_class")), false, Declaration::VisibilitySpecifier::DEFAULT, Declaration::StorageSpecifier::NONE));
+							DeclarativeStmt* stmt = new DeclarativeStmt(new VariableDecl(new SimpleIdentifier(L"b"), new TypeSpecifier(new SimpleIdentifier(L"some_class")), false, false, false, Declaration::VisibilitySpecifier::DEFAULT));
 							block->appendObject(stmt);
 						}
 
@@ -159,19 +154,15 @@ ASTNode* createSample4()
 					VariableDecl* some_member_variable1 = new VariableDecl(
 							new SimpleIdentifier(L"some_member_variable1"),
 							new TypeSpecifier(new SimpleIdentifier(L"some_class")),
-							true,
-							Declaration::VisibilitySpecifier::PUBLIC,
-							Declaration::StorageSpecifier::STATIC
-							);
+							true, false, false,
+							Declaration::VisibilitySpecifier::PUBLIC);
 					class_decl->addVariable(some_member_variable1);
 
 					VariableDecl* some_member_variable2 = new VariableDecl(
 							new SimpleIdentifier(L"some_member_variable2"),
 							new TypeSpecifier(new SimpleIdentifier(L"some_class")),
-							true,
-							Declaration::VisibilitySpecifier::PUBLIC,
-							Declaration::StorageSpecifier::STATIC
-							);
+							true, false, false,
+							Declaration::VisibilitySpecifier::PUBLIC);
 					class_decl->addVariable(some_member_variable2);
 				}
 			}
@@ -197,20 +188,19 @@ ASTNode* createSample5()
 					FunctionDecl* some_member_function = new FunctionDecl(
 							new SimpleIdentifier(L"some_member_function"),
 							NULL,
-							true,
-							Declaration::VisibilitySpecifier::PUBLIC,
-							Declaration::StorageSpecifier::NONE);
+							true, false,
+							Declaration::VisibilitySpecifier::PUBLIC);
 					class_decl->addFunction(some_member_function);
 					{
 						Block* block = some_member_function->block;
 
 						{
-							DeclarativeStmt* stmt = new DeclarativeStmt(new VariableDecl(new SimpleIdentifier(L"a"), new TypeSpecifier(class_decl), false, Declaration::VisibilitySpecifier::DEFAULT, Declaration::StorageSpecifier::NONE));
+							DeclarativeStmt* stmt = new DeclarativeStmt(new VariableDecl(new SimpleIdentifier(L"a"), new TypeSpecifier(class_decl), false, false, false, Declaration::VisibilitySpecifier::DEFAULT));
 							block->appendObject(stmt);
 						}
 
 						{
-							DeclarativeStmt* stmt = new DeclarativeStmt(new VariableDecl(new SimpleIdentifier(L"b"), new TypeSpecifier(class_decl), false, Declaration::VisibilitySpecifier::DEFAULT, Declaration::StorageSpecifier::NONE));
+							DeclarativeStmt* stmt = new DeclarativeStmt(new VariableDecl(new SimpleIdentifier(L"b"), new TypeSpecifier(class_decl), false, false, false, Declaration::VisibilitySpecifier::DEFAULT));
 							block->appendObject(stmt);
 						}
 
@@ -223,19 +213,15 @@ ASTNode* createSample5()
 					VariableDecl* some_member_variable1 = new VariableDecl(
 							new SimpleIdentifier(L"some_member_variable1"),
 							new TypeSpecifier(class_decl),
-							true,
-							Declaration::VisibilitySpecifier::PUBLIC,
-							Declaration::StorageSpecifier::STATIC
-							);
+							true, false, false,
+							Declaration::VisibilitySpecifier::PUBLIC);
 					class_decl->addVariable(some_member_variable1);
 
 					VariableDecl* some_member_variable2 = new VariableDecl(
 							new SimpleIdentifier(L"some_member_variable2"),
 							new TypeSpecifier(class_decl),
-							true,
-							Declaration::VisibilitySpecifier::PUBLIC,
-							Declaration::StorageSpecifier::STATIC
-							);
+							true, false, false,
+							Declaration::VisibilitySpecifier::PUBLIC);
 					class_decl->addVariable(some_member_variable2);
 				}
 			}
