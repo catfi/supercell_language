@@ -279,11 +279,16 @@ private:
 		case PrimitiveType::UINT16: break;
 		case PrimitiveType::UINT32:
 		{
-			bits = 32; alignment = 32; offset = 0;
+			bits = 32; alignment = 32;
 			encoding = llvm::dwarf::DW_ATE_unsigned;
 			break;
 		}
-		case PrimitiveType::UINT64: break;
+		case PrimitiveType::UINT64:
+		{
+			bits = 64; alignment = 64;
+			encoding = llvm::dwarf::DW_ATE_unsigned;
+			break;
+		}
 		case PrimitiveType::FLOAT32: break;
 		case PrimitiveType::FLOAT64: break;
 		case PrimitiveType::ANONYMOUS_OBJECT: break;
