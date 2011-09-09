@@ -20,7 +20,7 @@
 #include "core/Prerequisite.h"
 #include "language/tree/ASTNode.h"
 #include "language/tree/ASTNodeFactory.h"
-#include "language/tree/visitor/check/ErrorMessageAnnotationCheckVisitor.h"
+#include "language/stage/verifier/visitor/ErrorMessageAnnotationCheckVisitor.h"
 #include "../ASTNodeSamples.h"
 #include <iostream>
 #include <string>
