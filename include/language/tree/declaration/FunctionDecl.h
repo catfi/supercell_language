@@ -35,7 +35,7 @@ struct FunctionDecl : public Declaration
 	DEFINE_VISITABLE();
 	DEFINE_HIERARCHY(FunctionDecl, (FunctionDecl)(Declaration)(ASTNode));
 
-	explicit FunctionDecl(Identifier* name, TypeSpecifier* type, bool is_member, Declaration::VisibilitySpecifier::type visibility, Declaration::StorageSpecifier::type storage, Block* block = NULL) : name(name), type(type), is_member(is_member), visibility(visibility), storage(storage), block( (block == NULL) ? new Block() : block )
+	explicit FunctionDecl(Identifier* name, TypeSpecifier* type, bool is_member, bool is_static, Declaration::VisibilitySpecifier::type visibility, Block* block = NULL) : name(name), type(type), is_member(is_member), is_static(is_static), visibility(visibility), block( (block == NULL) ? new Block() : block )
 	{
 		if(name) name->parent = this;
 		if(type) type->parent = this;
@@ -74,8 +74,8 @@ struct FunctionDecl : public Declaration
         //if(!isPairVectorMemberEqual(&FunctionDecl::parameters      , *this, *p, visited)) return false;
         if(!isASTNodeMemberEqual   (&FunctionDecl::type            , *this, *p, visited)) return false;
         if(is_member  != p->is_member                                                   ) return false;
+        if(is_static  != p->is_static                                                   ) return false;
         if(visibility != p->visibility                                                  ) return false;
-        if(storage    != p->storage                                                     ) return false;
         if(!isASTNodeMemberEqual   (&FunctionDecl::block           , *this, *p, visited)) return false;
 
         // add this to the visited table.
@@ -100,8 +100,8 @@ struct FunctionDecl : public Declaration
 	std::vector<boost::tuple<SimpleIdentifier*, TypeSpecifier*, ASTNode*>> parameters;
 	TypeSpecifier* type;
 	bool is_member;
+	bool is_static;
 	Declaration::VisibilitySpecifier::type visibility;
-	Declaration::StorageSpecifier::type storage;
 	Block* block;
 };
 
@@ -115,8 +115,8 @@ inline void save_construct_data(Archive& ar, const zillians::language::tree::Fun
 	ar << p->name;
     ar << p->type;
     ar << p->is_member;
+    ar << p->is_static;
     ar << p->visibility;
-    ar << p->storage;
     ar << p->block;
 }
 
@@ -128,18 +128,18 @@ inline void load_construct_data(Archive& ar, zillians::language::tree::FunctionD
 	Identifier* name;
     TypeSpecifier* type;
     bool is_member;
+    bool is_static;
     Declaration::VisibilitySpecifier::type visibility;
-    Declaration::StorageSpecifier::type storage;
     Block* block;
 
 	ar >> name;
     ar >> type;
     ar >> is_member;
+    ar >> is_static;
     ar >> visibility;
-    ar >> storage;
     ar >> block;
 
-	::new(p) FunctionDecl(name, type, is_member, visibility, storage, block);
+	::new(p) FunctionDecl(name, type, is_member, is_static, visibility, block);
 }
 
 } } // namespace boost::serialization
