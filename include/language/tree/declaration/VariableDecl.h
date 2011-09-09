@@ -43,6 +43,13 @@ struct VariableDecl : public Declaration
 		if(initializer) initializer->parent = this;
 	}
 
+	void setInitializer(ASTNode* init)
+	{
+		if(initializer) initializer->parent = NULL;
+		initializer = init;
+		if(initializer) initializer->parent = this;
+	}
+
     virtual bool isEqualImpl(const ASTNode& rhs, ASTNodeSet& visited) const
     {
         if(visited.count(this))

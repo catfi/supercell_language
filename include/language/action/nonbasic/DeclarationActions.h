@@ -56,7 +56,7 @@ struct variable_decl
 #endif
 		_result = _param(0);
 		ASTNode* initializer = _param(1).is_initialized() ? *_param(1) : NULL;
-		cast<VariableDecl>(_result)->initializer = initializer;
+		cast<VariableDecl>(_result)->setInitializer(initializer);
 	}
 	END_ACTION
 };
