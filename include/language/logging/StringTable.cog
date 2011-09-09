@@ -25,7 +25,7 @@
 #include "utility/UnicodeUtil.h"
 #include "language/tree/ASTNode.h"
 #include "language/logging/LoggingManager.h"
-#include "language/context/StaticTestContext.h"
+#include "language/context/LogContext.h"
 #include <boost/parameter.hpp>
 #include <vector>
 #include <string>
@@ -238,7 +238,7 @@ public:
 			cog.outl('\t substitute(translated, L"%s", %s);' % (to_search, var))
 			cog.outl('\t insert_parameters(parameters, L"%s", %s);' % (var.lower(), var))
 
-		cog.outl('\t stage::ErrorInfoContext::set(&node, new stage::ErrorInfoContext(str_level, str_id, parameters));')
+		cog.outl('\t stage::LogInfoContext::set(&node, new stage::LogInfoContext(str_level, str_id, parameters));')
 
 		cog.outl('\t mLogger->log(StringTable::%s, translated);' % id)
 		cog.outl('}');

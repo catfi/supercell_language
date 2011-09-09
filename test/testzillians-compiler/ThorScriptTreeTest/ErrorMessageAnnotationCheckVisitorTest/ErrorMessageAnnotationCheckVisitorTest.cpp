@@ -88,11 +88,11 @@ ASTNode* createOKSample()
 							std::map<std::wstring, std::wstring> m;
 							m[L"id"] = L"mCount";
 							m[L"type"] = L"int";
-							auto errorContext = new zillians::language::stage::ErrorInfoContext(L"warning", L"undeclared_variable", m);
+							auto errorContext = new zillians::language::stage::LogInfoContext(L"warning", L"undeclared_variable", m);
 
 							ExpressionStmt* stmt = new ExpressionStmt(new BinaryExpr(BinaryExpr::OpCode::ASSIGN, new PrimaryExpr(new SimpleIdentifier(L"undeclared_variable_name")), new PrimaryExpr(new SimpleIdentifier(L"b"))));
 							stmt->setAnnotation(annos);
-							stmt->set<zillians::language::stage::ErrorInfoContext>(errorContext);
+							stmt->set<zillians::language::stage::LogInfoContext>(errorContext);
 
 							block->appendObject(stmt);
 						}
@@ -157,11 +157,11 @@ ASTNode* createFailSample()
 							m[L"id"] = L"mCount";
 							m[L"type"] = L"int";
 							m[L"extra_fail_key"] = L"extra_fail_value";
-							auto errorContext = new zillians::language::stage::ErrorInfoContext(L"warning", L"undeclared_variable", m);
+							auto errorContext = new zillians::language::stage::LogInfoContext(L"warning", L"undeclared_variable", m);
 
 							ExpressionStmt* stmt = new ExpressionStmt(new BinaryExpr(BinaryExpr::OpCode::ASSIGN, new PrimaryExpr(new SimpleIdentifier(L"undeclared_variable_name")), new PrimaryExpr(new SimpleIdentifier(L"b"))));
 							stmt->setAnnotation(annos);
-							stmt->set<zillians::language::stage::ErrorInfoContext>(errorContext);
+							stmt->set<zillians::language::stage::LogInfoContext>(errorContext);
 
 							block->appendObject(stmt);
 						}
