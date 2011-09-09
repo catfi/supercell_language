@@ -64,7 +64,7 @@ struct decl_statement
 #endif
 		VariableDecl* decl = dynamic_cast<VariableDecl*>(_param(1));
 		if(_param(0).is_initialized())
-			decl->storage = Declaration::StorageSpecifier::STATIC;
+			decl->is_static = true;
 		BIND_CACHED_LOCATION(_result = new DeclarativeStmt(decl));
 	}
 	END_ACTION

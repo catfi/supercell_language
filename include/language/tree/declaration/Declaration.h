@@ -30,25 +30,6 @@ struct Declaration : public ASTNode
 	DEFINE_VISITABLE();
 	DEFINE_HIERARCHY(Declaration, (Declaration)(ASTNode));
 
-	struct StorageSpecifier
-	{
-		enum type {
-			NONE,
-			CONST,
-			STATIC,
-		};
-
-		static const wchar_t* toString(type t)
-		{
-			switch(t)
-			{
-			case NONE: return L"none";
-			case CONST: return L"const";
-			case STATIC: return L"static";
-			}
-		}
-	};
-
 	struct VisibilitySpecifier
 	{
 		enum type {
