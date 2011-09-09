@@ -34,8 +34,7 @@ function main():void
 	{
 	   --x;
 	}
-	x = (x > 0) ? x+1 : x+2;
-	
+	x = (x > 0) ? x : x;
 	
 	return;
 	//compiler_test.f1(x,y);

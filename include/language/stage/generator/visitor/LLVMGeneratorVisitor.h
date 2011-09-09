@@ -425,7 +425,9 @@ struct LLVMGeneratorVisitor : GenericDoubleVisitor
 		switch(node.catagory)
 		{
 		case PrimaryExpr::Catagory::IDENTIFIER:
-			propagate(&node, ResolvedSymbol::get(node.value.identifier)); break;
+		{
+			propagate(&node, ResolvedSymbol::get(&node)); break;
+		}
 		case PrimaryExpr::Catagory::LITERAL:
 			propagate(&node, node.value.literal); break;
 		case PrimaryExpr::Catagory::LAMBDA:
@@ -678,7 +680,13 @@ struct LLVMGeneratorVisitor : GenericDoubleVisitor
 		enterBasicBlock(final_block);
 		{
 			llvm::Value* true_value = node.true_node->get<llvm::Value>();
+			if(llvm::isa<llvm::AllocaInst>(true_value))
+				true_value = mBuilder.CreateLoad(true_value);
+
 			llvm::Value* false_value = node.false_node->get<llvm::Value>();
+			if(llvm::isa<llvm::AllocaInst>(false_value))
+				false_value = mBuilder.CreateLoad(false_value);
+
 			llvm::PHINode* phi = mBuilder.CreatePHI(true_value->getType());
 			phi->addIncoming(true_value, true_block);
 			phi->addIncoming(false_value, false_block);
