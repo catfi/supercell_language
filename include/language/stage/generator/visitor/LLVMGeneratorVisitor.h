@@ -680,12 +680,15 @@ struct LLVMGeneratorVisitor : GenericDoubleVisitor
 		enterBasicBlock(final_block);
 		{
 			llvm::Value* true_value = node.true_node->get<llvm::Value>();
-			if(llvm::isa<llvm::AllocaInst>(true_value))
-				true_value = mBuilder.CreateLoad(true_value);
-
 			llvm::Value* false_value = node.false_node->get<llvm::Value>();
-			if(llvm::isa<llvm::AllocaInst>(false_value))
-				false_value = mBuilder.CreateLoad(false_value);
+			if(node.isRValue())
+			{
+				if(llvm::isa<llvm::AllocaInst>(true_value))
+					true_value = mBuilder.CreateLoad(true_value);
+
+				if(llvm::isa<llvm::AllocaInst>(false_value))
+					false_value = mBuilder.CreateLoad(false_value);
+			}
 
 			llvm::PHINode* phi = mBuilder.CreatePHI(true_value->getType());
 			phi->addIncoming(true_value, true_block);
