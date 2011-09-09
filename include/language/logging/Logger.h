@@ -27,17 +27,7 @@ namespace zillians { namespace language {
 
 struct Logger
 {
-	static void initialize();
 
-	static log4cxx::LoggerPtr Compiler;
-	static log4cxx::LoggerPtr Resolver;
-	static log4cxx::LoggerPtr CompilerLogger;
-	static log4cxx::LoggerPtr BasicStage;
-	static log4cxx::LoggerPtr ParserStage;
-	static log4cxx::LoggerPtr TransformerStage;
-	static log4cxx::LoggerPtr GeneratorStage;
-	static log4cxx::LoggerPtr DebugInfoGeneratorStage;
-	static log4cxx::LoggerPtr VM;
 };
 
 } }

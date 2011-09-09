@@ -72,7 +72,7 @@ bool ResolutionStage::resolveTypes(bool report_error_summary)
 		if(!parser_context.program)
 			return false;
 
-		LOG4CXX_DEBUG(Logger::TransformerStage, L"trying to resolve types");
+		LOG4CXX_DEBUG(LoggingManager::TransformerStage, L"trying to resolve types");
 
 		tree::Program& program = *parser_context.program;
 
@@ -106,13 +106,13 @@ bool ResolutionStage::resolveTypes(bool report_error_summary)
 
 			if(report_error_summary)
 			{
-				LOG4CXX_ERROR(Logger::TransformerStage, L"there're " << total_unresolved_count << L" unresolved types found");
+				LOG4CXX_ERROR(LoggingManager::TransformerStage, L"there're " << total_unresolved_count << L" unresolved types found");
 
 				tree::visitor::NodeInfoVisitor node_info_visitor;
 				for(__gnu_cxx::hash_set<ASTNode*>::iterator it = visitor.unresolved_nodes.begin(); it != visitor.unresolved_nodes.end(); ++it)
 				{
 					node_info_visitor.visit(**it);
-					LOG4CXX_ERROR(Logger::TransformerStage, L"failed to resolve type: \"" << node_info_visitor.stream.str() << L"\"");
+					LOG4CXX_ERROR(LoggingManager::TransformerStage, L"failed to resolve type: \"" << node_info_visitor.stream.str() << L"\"");
 				}
 			}
 
@@ -121,7 +121,7 @@ bool ResolutionStage::resolveTypes(bool report_error_summary)
 	}
 	else
 	{
-		LOG4CXX_ERROR(Logger::TransformerStage, L"empty program node");
+		LOG4CXX_ERROR(LoggingManager::TransformerStage, L"empty program node");
 	}
 
 	return true;
@@ -139,7 +139,7 @@ bool ResolutionStage::resolveSymbols(bool report_error_summary)
 		if(!parser_context.program)
 			return false;
 
-		LOG4CXX_DEBUG(Logger::TransformerStage, "trying to resolve symbols");
+		LOG4CXX_DEBUG(LoggingManager::TransformerStage, "trying to resolve symbols");
 
 		tree::Program& program = *parser_context.program;
 
@@ -173,13 +173,13 @@ bool ResolutionStage::resolveSymbols(bool report_error_summary)
 
 			if(report_error_summary)
 			{
-				LOG4CXX_ERROR(Logger::TransformerStage, L"there're " << total_unresolved_count << L" unresolved symbol found");
+				LOG4CXX_ERROR(LoggingManager::TransformerStage, L"there're " << total_unresolved_count << L" unresolved symbol found");
 
 				tree::visitor::NodeInfoVisitor node_info_visitor;
 				for(__gnu_cxx::hash_set<ASTNode*>::iterator it = visitor.unresolved_nodes.begin(); it != visitor.unresolved_nodes.end(); ++it)
 				{
 					node_info_visitor.visit(**it);
-					LOG4CXX_ERROR(Logger::TransformerStage, L"failed to resolve symbol: \"" << node_info_visitor.stream.str() << L"\"");
+					LOG4CXX_ERROR(LoggingManager::TransformerStage, L"failed to resolve symbol: \"" << node_info_visitor.stream.str() << L"\"");
 				}
 			}
 
@@ -188,7 +188,7 @@ bool ResolutionStage::resolveSymbols(bool report_error_summary)
 	}
 	else
 	{
-		LOG4CXX_ERROR(Logger::TransformerStage, L"empty program node");
+		LOG4CXX_ERROR(LoggingManager::TransformerStage, L"empty program node");
 	}
 
 	return true;

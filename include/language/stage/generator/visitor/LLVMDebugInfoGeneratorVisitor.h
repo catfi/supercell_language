@@ -56,6 +56,8 @@ struct LLVMDebugInfoGeneratorVisitor: GenericDoubleVisitor
 
 	void generate(ASTNode& node)
 	{
+		LOG4CXX_DEBUG(LoggingManager::DebugInfoGeneratorStage, __PRETTY_FUNCTION__);
+
 		// By pass the last time debug information to the child. We exepect there is some node will create
 		// debug information later.
 		if (node.parent)
@@ -65,8 +67,7 @@ struct LLVMDebugInfoGeneratorVisitor: GenericDoubleVisitor
 			// Only Program and Package has no debug info context. So we could safely skip them
 			if (parent_debug_info)
 			{
-				DebugInfoContext::set(&node, new DebugInfoContext(
-						parent_debug_info->compile_unit, parent_debug_info->file, parent_debug_info->context));
+				DebugInfoContext::set(&node, new DebugInfoContext(*parent_debug_info));
 			}
 		}
 		revisit(node);
@@ -74,7 +75,7 @@ struct LLVMDebugInfoGeneratorVisitor: GenericDoubleVisitor
 
 	void generate(Program& node)
 	{
-		LOG4CXX_DEBUG(Logger::DebugInfoGeneratorStage, __PRETTY_FUNCTION__);
+		LOG4CXX_DEBUG(LoggingManager::DebugInfoGeneratorStage, __PRETTY_FUNCTION__);
 		ModuleSourceInfoContext* module_info = ModuleSourceInfoContext::get(&node);
 
 		DebugInfoProgramContext *program_context = new DebugInfoProgramContext();
@@ -82,21 +83,21 @@ struct LLVMDebugInfoGeneratorVisitor: GenericDoubleVisitor
 		// Create compile units
 		for (int i = 0; i < module_info->source_files.size(); i++)
 		{
-			LOG4CXX_DEBUG(Logger::DebugInfoGeneratorStage, "<Program> Ori path: " << module_info->source_files[i]);
+			LOG4CXX_DEBUG(LoggingManager::DebugInfoGeneratorStage, "<Program> Ori path: " << module_info->source_files[i]);
 			boost::filesystem::path file_path(module_info->source_files[i]);
 			std::string folder = file_path.parent_path().generic_string();
 			std::string filename = file_path.filename().generic_string();
 
-			LOG4CXX_DEBUG(Logger::DebugInfoGeneratorStage, "<Program> folder: " << folder);
-			LOG4CXX_DEBUG(Logger::DebugInfoGeneratorStage, "<Program> filename: " << filename);
+			LOG4CXX_DEBUG(LoggingManager::DebugInfoGeneratorStage, "<Program> folder: " << folder);
+			LOG4CXX_DEBUG(LoggingManager::DebugInfoGeneratorStage, "<Program> filename: " << filename);
 
 			llvm::DICompileUnit compile_unit = factory.CreateCompileUnit(llvm::dwarf::DW_LANG_C_plus_plus,
 				llvm::StringRef(filename.c_str()), llvm::StringRef(folder.c_str()), llvm::StringRef(COMPANY_INFORMATION), true);
 
 			llvm::DIFile file = factory.CreateFile(llvm::StringRef(filename.c_str()), llvm::StringRef(folder.c_str()), compile_unit);
 
-			LOG4CXX_DEBUG(Logger::DebugInfoGeneratorStage, "<Program> compile_unit: " << compile_unit);
-			LOG4CXX_DEBUG(Logger::DebugInfoGeneratorStage, "<Program> file: " << file);
+			LOG4CXX_DEBUG(LoggingManager::DebugInfoGeneratorStage, "<Program> compile_unit: " << compile_unit);
+			LOG4CXX_DEBUG(LoggingManager::DebugInfoGeneratorStage, "<Program> file: " << file);
 
 			// The index of the compile_units corresponds to the index of module_info->source_files
 			program_context->addProgramContext(compile_unit, file);
@@ -109,7 +110,7 @@ struct LLVMDebugInfoGeneratorVisitor: GenericDoubleVisitor
 
 	void generate(TypeSpecifier& node)
 	{
-		LOG4CXX_DEBUG(Logger::DebugInfoGeneratorStage, __PRETTY_FUNCTION__);
+		LOG4CXX_DEBUG(LoggingManager::DebugInfoGeneratorStage, __PRETTY_FUNCTION__);
 		SourceInfoContext* source_info = SourceInfoContext::get(&node);
 		DebugInfoProgramContext* program_context = DebugInfoProgramContext::get(getParserContext().program);
 
@@ -140,24 +141,23 @@ struct LLVMDebugInfoGeneratorVisitor: GenericDoubleVisitor
 
 	void generate(FunctionDecl& node)
 	{
-		LOG4CXX_DEBUG(Logger::DebugInfoGeneratorStage, __PRETTY_FUNCTION__);
-		LOG4CXX_DEBUG(Logger::DebugInfoGeneratorStage, "<Function> function name: " << ws_to_s(node.name->toString()));
+		LOG4CXX_DEBUG(LoggingManager::DebugInfoGeneratorStage, __PRETTY_FUNCTION__);
+		LOG4CXX_DEBUG(LoggingManager::DebugInfoGeneratorStage, "<Function> function name: " << ws_to_s(node.name->toString()));
 
 		SourceInfoContext* source_info = SourceInfoContext::get(&node);
 		NameManglingContext* mangling = NameManglingContext::get(&node);
 
 		int32 source_index = source_info->source_index;
-		LOG4CXX_DEBUG(Logger::DebugInfoGeneratorStage,"<Function> mangling name: " << mangling->managled_name);
+		LOG4CXX_DEBUG(LoggingManager::DebugInfoGeneratorStage,"<Function> mangling name: " << mangling->managled_name);
 
 		DebugInfoProgramContext* program_context = DebugInfoProgramContext::get(getParserContext().program);
-		LOG4CXX_DEBUG(Logger::DebugInfoGeneratorStage, "<Function> file: " << program_context->files[source_index]);
+		LOG4CXX_DEBUG(LoggingManager::DebugInfoGeneratorStage, "<Function> file: " << program_context->files[source_index]);
 
 		// Generate return type debug information
 		generate(*node.type);
 		DebugInfoTypeContext* return_type = DebugInfoTypeContext::get(node.type);
 
 		// TODO: Generate debug information of parameters' type
-
 
 		// Create DISubprogram for the function
 		llvm::Function * llvm_function = node.get<llvm::Function>();
@@ -168,7 +168,7 @@ struct LLVMDebugInfoGeneratorVisitor: GenericDoubleVisitor
 				llvm::StringRef(mangling->managled_name.c_str()),
 				program_context->files[source_index],
 				source_info->line,
-				*return_type->type, //createType(llvm::Type::IntegerTyID, program_context->files[function_file_info->source_index], type_caches[function_file_info->source_index]),	// TODO: Decide function type
+				*return_type->type,
 				false, //bool isLocalToUnit,
 				true, //bool isDefinition,
 				llvm::dwarf::DW_VIRTUALITY_none, //unsigned VK = 0
@@ -181,7 +181,7 @@ struct LLVMDebugInfoGeneratorVisitor: GenericDoubleVisitor
 		DebugInfoContext::set(&node, new DebugInfoContext(program_context->compile_units[source_index],
 				program_context->files[source_index], subprogram));
 
-		LOG4CXX_DEBUG(Logger::DebugInfoGeneratorStage, "<Function> subprogram: " << subprogram << " mdnode: " << (llvm::MDNode*)subprogram);
+		LOG4CXX_DEBUG(LoggingManager::DebugInfoGeneratorStage, "<Function> subprogram: " << subprogram << " mdnode: " << (llvm::MDNode*)subprogram);
 
 		// Visit other attributes
 		if(node.name) generate(*node.name);
@@ -197,33 +197,33 @@ struct LLVMDebugInfoGeneratorVisitor: GenericDoubleVisitor
 
 	void generate(Block& node)
 	{
-		LOG4CXX_DEBUG(Logger::DebugInfoGeneratorStage, __PRETTY_FUNCTION__);
+		LOG4CXX_DEBUG(LoggingManager::DebugInfoGeneratorStage, __PRETTY_FUNCTION__);
 		BOOST_ASSERT(node.parent && "Block has no parent!");
 
 		// Retrieve parent node debug information, since we need its context
 		DebugInfoContext* parent_debug_info = DebugInfoContext::get(node.parent);
 		SourceInfoContext* source_info = SourceInfoContext::get(&node);
 
-		LOG4CXX_DEBUG(Logger::DebugInfoGeneratorStage, "<Block> parent: " << parent_debug_info->context << " mdnode: " << (llvm::MDNode*)parent_debug_info->context);
+		LOG4CXX_DEBUG(LoggingManager::DebugInfoGeneratorStage, "<Block> parent: " << parent_debug_info->context << " mdnode: " << (llvm::MDNode*)parent_debug_info->context);
 		llvm::DILexicalBlock function_block = factory.CreateLexicalBlock(
 				parent_debug_info->context, parent_debug_info->file, source_info->line, source_info->column);
 
 		DebugInfoContext::set(&node, new DebugInfoContext(
 				parent_debug_info->compile_unit, parent_debug_info->file,	// inherit from parent node
 				function_block));
-		LOG4CXX_DEBUG(Logger::DebugInfoGeneratorStage, "<Block> context: " << function_block);
+		LOG4CXX_DEBUG(LoggingManager::DebugInfoGeneratorStage, "<Block> context: " << function_block);
 		revisit(node);
 	}
 
 	void generate(VariableDecl& node)
 	{
-		LOG4CXX_DEBUG(Logger::DebugInfoGeneratorStage, __PRETTY_FUNCTION__);
+		LOG4CXX_DEBUG(LoggingManager::DebugInfoGeneratorStage, __PRETTY_FUNCTION__);
 		BOOST_ASSERT(node.parent && "Variable declaration has no parent!");
 
 		DebugInfoContext* parent_debug_info = DebugInfoContext::get(node.parent);
 		SourceInfoContext* source_info = SourceInfoContext::get(&node);
 
-		LOG4CXX_DEBUG(Logger::DebugInfoGeneratorStage, "<Variable> parent context: " << parent_debug_info->context);
+		LOG4CXX_DEBUG(LoggingManager::DebugInfoGeneratorStage, "<Variable> parent context: " << parent_debug_info->context);
 
 		// Generate type debug information
 		generate(*node.type);
@@ -245,8 +245,8 @@ struct LLVMDebugInfoGeneratorVisitor: GenericDoubleVisitor
 		llvm::Value* value = node.get<llvm::Value>();
 		llvm::BasicBlock* block = llvm::cast<llvm::Instruction>(value)->getParent();
 
-		LOG4CXX_DEBUG(Logger::DebugInfoGeneratorStage, "<Variable> value: " << value);
-		LOG4CXX_DEBUG(Logger::DebugInfoGeneratorStage, "<Variable> block: " << block);
+		LOG4CXX_DEBUG(LoggingManager::DebugInfoGeneratorStage, "<Variable> value: " << value);
+		LOG4CXX_DEBUG(LoggingManager::DebugInfoGeneratorStage, "<Variable> block: " << block);
 
 		llvm::Instruction* variable_inst = factory.InsertDeclare(value, variable, block);
 		llvm::MDNode* scope = parent_debug_info->context;
@@ -260,6 +260,20 @@ struct LLVMDebugInfoGeneratorVisitor: GenericDoubleVisitor
 		}
 
 		revisit(node);
+	}
+
+	void generate(BinaryExpr& node)
+	{
+		LOG4CXX_DEBUG(LoggingManager::DebugInfoGeneratorStage, __PRETTY_FUNCTION__);
+
+		DebugInfoContext* parent_debug_info = DebugInfoContext::get(node.parent);
+		SourceInfoContext* source_info = SourceInfoContext::get(&node);
+
+		llvm::Instruction* inst = llvm::cast<llvm::Instruction>(node.get<llvm::Value>());
+		inst->setDebugLoc(llvm::DebugLoc::get(source_info->line, source_info->column, parent_debug_info->context));
+
+		// Generate the current node debug info context
+		DebugInfoContext::set(&node, new DebugInfoContext(*parent_debug_info));
 	}
 
 private:
