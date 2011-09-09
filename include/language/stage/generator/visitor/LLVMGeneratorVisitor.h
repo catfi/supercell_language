@@ -152,7 +152,8 @@ struct LLVMGeneratorVisitor : GenericDoubleVisitor
 //					llvm_init->getType()->dump();
 					BOOST_ASSERT(llvm::cast<llvm::AllocaInst>(llvm_alloca_inst)->getAllocatedType() == llvm_init->getType());
 					BOOST_ASSERT(llvm::cast<llvm::PointerType>(llvm_alloca_inst->getType())->getElementType() == llvm_init->getType());
-					mBuilder.CreateStore(llvm_init, llvm_alloca_inst);
+					llvm::StoreInst* store_inst = mBuilder.CreateStore(llvm_init, llvm_alloca_inst);
+					node.set<llvm::StoreInst>(store_inst);
 				}
 			}
 		}

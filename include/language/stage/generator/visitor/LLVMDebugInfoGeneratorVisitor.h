@@ -113,7 +113,6 @@ struct LLVMDebugInfoGeneratorVisitor: GenericDoubleVisitor
 		SourceInfoContext* source_info = SourceInfoContext::get(&node);
 		DebugInfoProgramContext* program_context = DebugInfoProgramContext::get(getParserContext().program);
 
-		// TODO: temprarty workaound
 		int32 source_index = source_info->source_index;
 
 		llvm::DIType* type = NULL;
@@ -252,6 +251,14 @@ struct LLVMDebugInfoGeneratorVisitor: GenericDoubleVisitor
 		llvm::Instruction* variable_inst = factory.InsertDeclare(value, variable, block);
 		llvm::MDNode* scope = parent_debug_info->context;
 		variable_inst->setDebugLoc(llvm::DebugLoc::get(source_info->line, source_info->column, scope));
+
+		// Check if the variable has initialization
+		llvm::StoreInst* store_inst = node.get<llvm::StoreInst>();
+		if (store_inst)
+		{
+			store_inst->setDebugLoc(llvm::DebugLoc::get(source_info->line, source_info->column, scope));
+		}
+
 		revisit(node);
 	}
 
