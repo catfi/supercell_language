@@ -1171,17 +1171,17 @@ struct ThorScript : qi::grammar<Iterator, typename SA::start::attribute_type, de
 	qi::rule<Iterator, typename SA::branch_statement::attribute_type,     detail::WhiteSpace<Iterator>, typename SA::branch_statement::local_type>     branch_statement;
 
 	// declaration
-	qi::rule<Iterator, typename SA::declaration::attribute_type,         detail::WhiteSpace<Iterator>, typename SA::declaration::local_type>         declaration;
-	qi::rule<Iterator, typename SA::variable_decl::attribute_type,       detail::WhiteSpace<Iterator>, typename SA::variable_decl::local_type>       variable_decl;
-	qi::rule<Iterator, typename SA::variable_decl_stem::attribute_type,  detail::WhiteSpace<Iterator>, typename SA::variable_decl_stem::local_type>  variable_decl_stem;
-	qi::rule<Iterator, typename SA::const_decl::attribute_type,          detail::WhiteSpace<Iterator>, typename SA::const_decl::local_type>          const_decl;
-	qi::rule<Iterator, typename SA::function_decl::attribute_type,       detail::WhiteSpace<Iterator>, typename SA::function_decl::local_type>       function_decl;
-	qi::rule<Iterator, typename SA::typedef_decl::attribute_type,        detail::WhiteSpace<Iterator>, typename SA::typedef_decl::local_type>        typedef_decl;
-	qi::rule<Iterator, typename SA::class_decl::attribute_type,          detail::WhiteSpace<Iterator>, typename SA::class_decl::local_type>          class_decl;
-	qi::rule<Iterator, typename SA::class_member_decl::attribute_type,   detail::WhiteSpace<Iterator>, typename SA::class_member_decl::local_type>   class_member_decl;
-	qi::rule<Iterator, typename SA::interface_decl::attribute_type,      detail::WhiteSpace<Iterator>, typename SA::interface_decl::local_type>      interface_decl;
+	qi::rule<Iterator, typename SA::declaration::attribute_type,        detail::WhiteSpace<Iterator>, typename SA::declaration::local_type>        declaration;
+	qi::rule<Iterator, typename SA::variable_decl::attribute_type,      detail::WhiteSpace<Iterator>, typename SA::variable_decl::local_type>      variable_decl;
+	qi::rule<Iterator, typename SA::variable_decl_stem::attribute_type, detail::WhiteSpace<Iterator>, typename SA::variable_decl_stem::local_type> variable_decl_stem;
+	qi::rule<Iterator, typename SA::const_decl::attribute_type,         detail::WhiteSpace<Iterator>, typename SA::const_decl::local_type>         const_decl;
+	qi::rule<Iterator, typename SA::function_decl::attribute_type,      detail::WhiteSpace<Iterator>, typename SA::function_decl::local_type>      function_decl;
+	qi::rule<Iterator, typename SA::typedef_decl::attribute_type,       detail::WhiteSpace<Iterator>, typename SA::typedef_decl::local_type>       typedef_decl;
+	qi::rule<Iterator, typename SA::class_decl::attribute_type,         detail::WhiteSpace<Iterator>, typename SA::class_decl::local_type>         class_decl;
+	qi::rule<Iterator, typename SA::class_member_decl::attribute_type,  detail::WhiteSpace<Iterator>, typename SA::class_member_decl::local_type>  class_member_decl;
+	qi::rule<Iterator, typename SA::interface_decl::attribute_type,     detail::WhiteSpace<Iterator>, typename SA::interface_decl::local_type>     interface_decl;
 	qi::rule<Iterator, typename SA::interface_member_function_decl::attribute_type, detail::WhiteSpace<Iterator>, typename SA::interface_member_function_decl::local_type> interface_member_function_decl;
-	qi::rule<Iterator, typename SA::enum_decl::attribute_type,           detail::WhiteSpace<Iterator>, typename SA::enum_decl::local_type>           enum_decl;
+	qi::rule<Iterator, typename SA::enum_decl::attribute_type,          detail::WhiteSpace<Iterator>, typename SA::enum_decl::local_type>          enum_decl;
 
 	// module
 	qi::rule<Iterator, typename SA::program::attribute_type, detail::WhiteSpace<Iterator>, typename SA::program::local_type> program;

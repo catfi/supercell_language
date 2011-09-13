@@ -221,19 +221,18 @@ struct class_member_decl
 #endif
 		Annotations*                           annotations = _param(0).is_initialized() ? *_param(0) : NULL;
 		Declaration::VisibilitySpecifier::type visibility  = _param(1).is_initialized() ? *_param(1) : Declaration::VisibilitySpecifier::DEFAULT;
+		bool                                   is_static   = _param(2).is_initialized();
 		_result = _param(3);
 		cast<Declaration>(_result)->setAnnotation(annotations);
 		if(isa<VariableDecl>(_result))
 		{
 			cast<VariableDecl>(_result)->visibility = visibility;
-			if(_param(2).is_initialized())
-				cast<VariableDecl>(_result)->is_static = true;
+			cast<VariableDecl>(_result)->is_static = is_static;
 		}
 		else if(isa<FunctionDecl>(_result))
 		{
 			cast<FunctionDecl>(_result)->visibility = visibility;
-			if(_param(2).is_initialized())
-				cast<FunctionDecl>(_result)->is_static = true;
+			cast<FunctionDecl>(_result)->is_static = is_static;
 		}
 	}
 	END_ACTION
