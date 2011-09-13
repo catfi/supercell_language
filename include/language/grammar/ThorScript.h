@@ -45,8 +45,8 @@
 
 #define DISTINCT_IDENTIFIER(x)   distinct(unicode::alnum | L'_')[x]
 #define DISTINCT_NONASSIGN_OP(x) distinct(L'=')[x]
-#define DEFINE_RULE(x)           qi::rule<Iterator, typename SA::x::attribute_type, detail::WhiteSpace<Iterator>, typename SA::x::local_type> x;
-#define DEFINE_RULE_EX(x, sa)    qi::rule<Iterator, typename SA::sa::attribute_type, detail::WhiteSpace<Iterator>, typename SA::sa::local_type> x;
+#define DECL_RULE(x)           qi::rule<Iterator, typename SA::x::attribute_type, detail::WhiteSpace<Iterator>, typename SA::x::local_type> x;
+#define DECL_RULE_EX(x, sa)    qi::rule<Iterator, typename SA::sa::attribute_type, detail::WhiteSpace<Iterator>, typename SA::sa::local_type> x;
 #define INIT_RULE(x) \
 		x.name(#x); \
 		if(getParserContext().dump_rule_debug) \
@@ -1065,67 +1065,67 @@ struct ThorScript : qi::grammar<Iterator, typename SA::start::attribute_type, de
 	detail::StringLiteral<Iterator, SA>  STRING_LITERAL;
 
 	// basic
-	DEFINE_RULE(    location);
-	DEFINE_RULE(    typed_parameter_list);
-	DEFINE_RULE(    typed_parameter_list_with_init);
-	DEFINE_RULE(    init_specifier);
-	DEFINE_RULE(    colon_type_specifier);
-	DEFINE_RULE(    type_specifier);
-	DEFINE_RULE(    template_param_identifier);
-	DEFINE_RULE(    template_arg_identifier);
-	DEFINE_RULE(    type_list_specifier);
-	DEFINE_RULE(    visibility_specifier);
-	DEFINE_RULE_EX( interface_visibility_specifier, visibility_specifier );
-	DEFINE_RULE(    annotation_specifiers);
-	DEFINE_RULE(    annotation_specifier);
-	DEFINE_RULE(    annotation_specifier_stem);
-	DEFINE_RULE(    nested_identifier);
+	DECL_RULE(    location);
+	DECL_RULE(    typed_parameter_list);
+	DECL_RULE(    typed_parameter_list_with_init);
+	DECL_RULE(    init_specifier);
+	DECL_RULE(    colon_type_specifier);
+	DECL_RULE(    type_specifier);
+	DECL_RULE(    template_param_identifier);
+	DECL_RULE(    template_arg_identifier);
+	DECL_RULE(    type_list_specifier);
+	DECL_RULE(    visibility_specifier);
+	DECL_RULE_EX( interface_visibility_specifier, visibility_specifier );
+	DECL_RULE(    annotation_specifiers);
+	DECL_RULE(    annotation_specifier);
+	DECL_RULE(    annotation_specifier_stem);
+	DECL_RULE(    nested_identifier);
 
 	// expression
-	DEFINE_RULE(    primary_expression);
-	DEFINE_RULE(    postfix_expression);
-	DEFINE_RULE(    prefix_expression);
-	DEFINE_RULE_EX( multiplicative_expression, left_to_right_binary_op_vec );
-	DEFINE_RULE_EX( additive_expression,       left_to_right_binary_op_vec );
-	DEFINE_RULE_EX( shift_expression,          left_to_right_binary_op_vec );
-	DEFINE_RULE_EX( relational_expression,     left_to_right_binary_op_vec );
-	DEFINE_RULE_EX( equality_expression,       left_to_right_binary_op_vec );
-	DEFINE_RULE_EX( and_expression,            left_to_right_binary_op_vec );
-	DEFINE_RULE_EX( xor_expression,            left_to_right_binary_op_vec );
-	DEFINE_RULE_EX( or_expression,             left_to_right_binary_op_vec );
-	DEFINE_RULE_EX( logical_and_expression,    left_to_right_binary_op_vec );
-	DEFINE_RULE_EX( logical_or_expression,     left_to_right_binary_op_vec );
-	DEFINE_RULE(    range_expression);
-	DEFINE_RULE(    ternary_expression);
-	DEFINE_RULE_EX( expression,                right_to_left_binary_op_vec );
+	DECL_RULE(    primary_expression);
+	DECL_RULE(    postfix_expression);
+	DECL_RULE(    prefix_expression);
+	DECL_RULE_EX( multiplicative_expression, left_to_right_binary_op_vec );
+	DECL_RULE_EX( additive_expression,       left_to_right_binary_op_vec );
+	DECL_RULE_EX( shift_expression,          left_to_right_binary_op_vec );
+	DECL_RULE_EX( relational_expression,     left_to_right_binary_op_vec );
+	DECL_RULE_EX( equality_expression,       left_to_right_binary_op_vec );
+	DECL_RULE_EX( and_expression,            left_to_right_binary_op_vec );
+	DECL_RULE_EX( xor_expression,            left_to_right_binary_op_vec );
+	DECL_RULE_EX( or_expression,             left_to_right_binary_op_vec );
+	DECL_RULE_EX( logical_and_expression,    left_to_right_binary_op_vec );
+	DECL_RULE_EX( logical_or_expression,     left_to_right_binary_op_vec );
+	DECL_RULE(    range_expression);
+	DECL_RULE(    ternary_expression);
+	DECL_RULE_EX( expression,                right_to_left_binary_op_vec );
 
 	// statement
-	DEFINE_RULE(statement);
-	DEFINE_RULE(decl_statement);
-	DEFINE_RULE(expression_statement);
-	DEFINE_RULE(selection_statement);
-	DEFINE_RULE(iteration_statement);
-	DEFINE_RULE(branch_statement);
-	DEFINE_RULE(block);
+	DECL_RULE(statement);
+	DECL_RULE(decl_statement);
+	DECL_RULE(expression_statement);
+	DECL_RULE(selection_statement);
+	DECL_RULE(iteration_statement);
+	DECL_RULE(branch_statement);
+	DECL_RULE(block);
 
 	// declaration
-	DEFINE_RULE(declaration);
-	DEFINE_RULE(variable_decl);
-	DEFINE_RULE(variable_decl_stem);
-	DEFINE_RULE(const_decl);
-	DEFINE_RULE(function_decl);
-	DEFINE_RULE(typedef_decl);
-	DEFINE_RULE(class_decl);
-	DEFINE_RULE(class_member_decl);
-	DEFINE_RULE(interface_decl);
-	DEFINE_RULE(interface_member_function_decl);
-	DEFINE_RULE(enum_decl);
+	DECL_RULE(declaration);
+	DECL_RULE(variable_decl);
+	DECL_RULE(variable_decl_stem);
+	DECL_RULE(const_decl);
+	DECL_RULE(function_decl);
+	DECL_RULE(typedef_decl);
+	DECL_RULE(class_decl);
+	DECL_RULE(class_member_decl);
+	DECL_RULE(interface_decl);
+	DECL_RULE(interface_member_function_decl);
+	DECL_RULE(enum_decl);
 
 	// module
-	DEFINE_RULE(program);
+	DECL_RULE(program);
 
 	// start
-	DEFINE_RULE(start);
+	DECL_RULE(start);
 };
 
 } } }
