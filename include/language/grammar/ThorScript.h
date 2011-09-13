@@ -45,8 +45,9 @@
 
 #define DISTINCT_IDENTIFIER(x)   distinct(unicode::alnum | L'_')[x]
 #define DISTINCT_NONASSIGN_OP(x) distinct(L'=')[x]
-#define DECL_RULE(x)           qi::rule<Iterator, typename SA::x::attribute_type, detail::WhiteSpace<Iterator>, typename SA::x::local_type> x;
-#define DECL_RULE_EX(x, sa)    qi::rule<Iterator, typename SA::sa::attribute_type, detail::WhiteSpace<Iterator>, typename SA::sa::local_type> x;
+#define DECL_TOKEN_RULE(x)       qi::rule<Iterator, typename SA::x::attribute_type, typename SA::x::local_type> x;
+#define DECL_RULE(x)             qi::rule<Iterator, typename SA::x::attribute_type, detail::WhiteSpace<Iterator>, typename SA::x::local_type> x;
+#define DECL_RULE_EX(x, sa)      qi::rule<Iterator, typename SA::sa::attribute_type, detail::WhiteSpace<Iterator>, typename SA::sa::local_type> x;
 #define INIT_RULE(x) \
 		x.name(#x); \
 		if(getParserContext().dump_rule_debug) \
@@ -96,7 +97,7 @@ struct WhiteSpace : qi::grammar<Iterator>
 template <typename Iterator, typename SA>
 struct Identifier : qi::grammar<Iterator, typename SA::identifier::attribute_type, typename SA::identifier::local_type>
 {
-	Identifier() : Identifier::base_type(start_augmented)
+	Identifier() : Identifier::base_type(identifier)
 	{
 		location
 			= omit[ iter_pos[ typename SA::location::init() ] ]
@@ -122,28 +123,26 @@ struct Identifier : qi::grammar<Iterator, typename SA::identifier::attribute_typ
 
 		start %= qi::lexeme[ ((unicode::alpha | L'_') > *(unicode::alnum | L'_')) - keyword ];
 
-		start_augmented
+		identifier
 			=	(location [ typename SA::location::init_loc() ]
 					>> start
 				) [ typename SA::identifier::init() ]
 			;
 
-		start_augmented.name("IDENTIFIER");
-		if(getParserContext().dump_rule_debug)
-			debug(start_augmented);
+		INIT_RULE(identifier);
 	}
 
 	qi::rule<Iterator, typename SA::location::attribute_type, typename SA::location::local_type> location;
 	qi::symbols<wchar_t const> keyword_sym;
 	qi::rule<Iterator, std::wstring()> keyword;
 	qi::rule<Iterator, std::wstring()> start;
-	qi::rule<Iterator, typename SA::identifier::attribute_type, typename SA::identifier::local_type> start_augmented;
+	DECL_TOKEN_RULE(identifier);
 };
 
 template <typename Iterator, typename SA>
 struct IntegerLiteral : qi::grammar<Iterator, typename SA::integer_literal::attribute_type, typename SA::integer_literal::local_type>
 {
-	IntegerLiteral() : IntegerLiteral::base_type(start_augmented)
+	IntegerLiteral() : IntegerLiteral::base_type(integer_literal)
 	{
 		location
 			= omit[ iter_pos[ typename SA::location::init() ] ]
@@ -154,26 +153,24 @@ struct IntegerLiteral : qi::grammar<Iterator, typename SA::integer_literal::attr
 			|	qi::lit(L"0x") > qi::hex
 			;
 
-		start_augmented
+		integer_literal
 			=	(location [ typename SA::location::init_loc() ]
 					>> start
 				) [ typename SA::integer_literal::init() ]
 			;
 
-		start_augmented.name("INTEGER_LITERAL");
-		if(getParserContext().dump_rule_debug)
-			debug(start_augmented);
+		INIT_RULE(integer_literal);
 	}
 
 	qi::rule<Iterator, typename SA::location::attribute_type, typename SA::location::local_type> location;
 	qi::rule<Iterator, uint64()> start;
-	qi::rule<Iterator, typename SA::integer_literal::attribute_type, typename SA::integer_literal::local_type> start_augmented;
+	DECL_TOKEN_RULE(integer_literal);
 };
 
 template <typename Iterator, typename SA>
 struct FloatLiteral : qi::grammar<Iterator, typename SA::float_literal::attribute_type, typename SA::float_literal::local_type>
 {
-	FloatLiteral() : FloatLiteral::base_type(start_augmented)
+	FloatLiteral() : FloatLiteral::base_type(float_literal)
 	{
 		location
 			= omit[ iter_pos[ typename SA::location::init() ] ]
@@ -185,27 +182,25 @@ struct FloatLiteral : qi::grammar<Iterator, typename SA::float_literal::attribut
 				) > -no_case[L'f']
 			;
 
-		start_augmented
+		float_literal
 			=	(location [ typename SA::location::init_loc() ]
 					>> start
 				) [ typename SA::float_literal::init() ]
 			;
 
-		start_augmented.name("FLOAT_LITERAL");
-		if(getParserContext().dump_rule_debug)
-			debug(start_augmented);
+		INIT_RULE(float_literal);
 	}
 
 	qi::rule<Iterator, typename SA::location::attribute_type, typename SA::location::local_type> location;
 	qi::real_parser<double, qi::strict_ureal_policies<double> > builtin_float_parser;
 	qi::rule<Iterator, double()> start;
-	qi::rule<Iterator, typename SA::float_literal::attribute_type, typename SA::float_literal::local_type> start_augmented;
+	DECL_TOKEN_RULE(float_literal);
 };
 
 template <typename Iterator, typename SA>
 struct StringLiteral : qi::grammar<Iterator, typename SA::string_literal::attribute_type, typename SA::string_literal::local_type>
 {
-	StringLiteral() : StringLiteral::base_type(start_augmented)
+	StringLiteral() : StringLiteral::base_type(string_literal)
 	{
 		location
 			= omit[ iter_pos[ typename SA::location::init() ] ]
@@ -232,21 +227,19 @@ struct StringLiteral : qi::grammar<Iterator, typename SA::string_literal::attrib
 				>	L'\"'
 			;
 
-		start_augmented
+		string_literal
 			=	(location [ typename SA::location::init_loc() ]
 					>> start
 				) [ typename SA::string_literal::init() ]
 			;
 
-		start_augmented.name("STRING_LITERAL");
-		if(getParserContext().dump_rule_debug)
-			debug(start_augmented);
+		INIT_RULE(string_literal);
 	}
 
 	qi::rule<Iterator, typename SA::location::attribute_type, typename SA::location::local_type> location;
 	qi::symbols<wchar_t const, wchar_t const> unescaped_char_sym;
 	qi::rule<Iterator, std::wstring()> start;
-	qi::rule<Iterator, typename SA::string_literal::attribute_type, typename SA::string_literal::local_type> start_augmented;
+	DECL_TOKEN_RULE(string_literal);
 };
 
 }
