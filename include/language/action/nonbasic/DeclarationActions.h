@@ -43,24 +43,6 @@ struct declaration
 	END_ACTION
 };
 
-struct const_variable_decl
-{
-	DEFINE_ATTRIBUTES(Declaration*)
-	DEFINE_LOCALS()
-
-	BEGIN_ACTION(init)
-	{
-#ifdef DEBUG
-		printf("const_variable_decl param(0) type = %s\n", typeid(_param_t(0)).name());
-		printf("const_variable_decl param(1) type = %s\n", typeid(_param_t(1)).name());
-#endif
-		_result = _param(1);
-		if(_param(0).is_initialized())
-			cast<VariableDecl>(_result)->storage = Declaration::StorageSpecifier::CONST;
-	}
-	END_ACTION
-};
-
 struct variable_decl
 {
 	DEFINE_ATTRIBUTES(Declaration*)
@@ -74,7 +56,7 @@ struct variable_decl
 #endif
 		_result = _param(0);
 		ASTNode* initializer = _param(1).is_initialized() ? *_param(1) : NULL;
-		cast<VariableDecl>(_result)->initializer = initializer;
+		cast<VariableDecl>(_result)->setInitializer(initializer);
 	}
 	END_ACTION
 };
@@ -94,10 +76,33 @@ struct variable_decl_stem
 		TypeSpecifier*                         type        = _param(1).is_initialized() ? *_param(1) : NULL;
 		ASTNode*                               initializer = NULL;
 		Declaration::VisibilitySpecifier::type visibility  = Declaration::VisibilitySpecifier::PUBLIC;
-		Declaration::StorageSpecifier::type    storage     = Declaration::StorageSpecifier::NONE;
 		bool                                   is_member   = false;
 		BIND_CACHED_LOCATION(_result = new VariableDecl(
-				name, type, is_member, visibility, storage, initializer
+				name, type, is_member, false, false, visibility, initializer
+				));
+	}
+	END_ACTION
+};
+
+struct const_decl
+{
+	DEFINE_ATTRIBUTES(Declaration*)
+	DEFINE_LOCALS(LOCATION_TYPE)
+
+	BEGIN_ACTION(init)
+	{
+#ifdef DEBUG
+		printf("const_decl param(0) type = %s\n", typeid(_param_t(0)).name());
+		printf("const_decl param(1) type = %s\n", typeid(_param_t(1)).name());
+		printf("const_decl param(2) type = %s\n", typeid(_param_t(2)).name());
+#endif
+		Identifier*                            name        = _param(0);
+		TypeSpecifier*                         type        = _param(1).is_initialized() ? *_param(1) : NULL;
+		ASTNode*                               initializer = _param(2);
+		Declaration::VisibilitySpecifier::type visibility  = Declaration::VisibilitySpecifier::PUBLIC;
+		bool                                   is_member   = false;
+		BIND_CACHED_LOCATION(_result = new VariableDecl(
+				name, type, is_member, false, true, visibility, initializer
 				));
 	}
 	END_ACTION
@@ -126,16 +131,15 @@ struct function_decl
 			BIND_CACHED_LOCATION(name = new SimpleIdentifier(L"new"));
 			break;
 		}
-		typed_parameter_list::value_t*         parameters = _param(1).is_initialized() ? (*_param(1)).get() : NULL;
-		TypeSpecifier*                         type       = _param(2).is_initialized() ? *_param(2) : NULL;
-		Block*                                 block      = _param(3).is_initialized() ? *_param(3) : NULL;
-		Declaration::VisibilitySpecifier::type visibility = Declaration::VisibilitySpecifier::PUBLIC;
-		Declaration::StorageSpecifier::type    storage    = Declaration::StorageSpecifier::NONE;
-		bool                                   is_member  = false;
-		BIND_CACHED_LOCATION(_result = new FunctionDecl(name, type, is_member, visibility, storage, block));
+		typed_parameter_list_with_init::value_t* parameters = _param(1).is_initialized() ? (*_param(1)).get() : NULL;
+		TypeSpecifier*                           type       = _param(2).is_initialized() ? *_param(2) : NULL;
+		Block*                                   block      = _param(3).is_initialized() ? *_param(3) : NULL;
+		Declaration::VisibilitySpecifier::type   visibility = Declaration::VisibilitySpecifier::PUBLIC;
+		bool                                     is_member  = false;
+		BIND_CACHED_LOCATION(_result = new FunctionDecl(name, type, is_member, false, visibility, block));
 		if(!!parameters)
 			deduced_foreach_value(i, *parameters)
-				cast<FunctionDecl>(_result)->appendParameter(i.first, i.second);
+				cast<FunctionDecl>(_result)->appendParameter(boost::get<0>(i), boost::get<1>(i), boost::get<2>(i));
 	}
 	END_ACTION
 };
@@ -178,12 +182,15 @@ struct class_decl
 		if(!!extends_from)
 			cast<ClassDecl>(_result)->setBase(extends_from);
 		if(_param(2).is_initialized())
+		{
 			deduced_foreach_value(i, *_param(2))
 			{
 				TypeSpecifier* type = new TypeSpecifier(i); BIND_CACHED_LOCATION(type);
 				cast<ClassDecl>(_result)->addInterface(type);
 			}
+		}
 		deduced_foreach_value(i, _param(3))
+		{
 			if(isa<VariableDecl>(i))
 			{
 				cast<ClassDecl>(_result)->addVariable(cast<VariableDecl>(i));
@@ -194,6 +201,7 @@ struct class_decl
 				cast<ClassDecl>(_result)->addFunction(cast<FunctionDecl>(i));
 				cast<FunctionDecl>(i)->is_member = true;
 			}
+		}
 	}
 	END_ACTION
 };
@@ -213,18 +221,18 @@ struct class_member_decl
 #endif
 		Annotations*                           annotations = _param(0).is_initialized() ? *_param(0) : NULL;
 		Declaration::VisibilitySpecifier::type visibility  = _param(1).is_initialized() ? *_param(1) : Declaration::VisibilitySpecifier::DEFAULT;
-		Declaration::StorageSpecifier::type    storage     = _param(2).is_initialized() ? *_param(2) : Declaration::StorageSpecifier::NONE;
+		bool                                   is_static   = _param(2).is_initialized();
 		_result = _param(3);
 		cast<Declaration>(_result)->setAnnotation(annotations);
 		if(isa<VariableDecl>(_result))
 		{
 			cast<VariableDecl>(_result)->visibility = visibility;
-			cast<VariableDecl>(_result)->storage = storage;
+			cast<VariableDecl>(_result)->is_static = is_static;
 		}
 		else if(isa<FunctionDecl>(_result))
 		{
 			cast<FunctionDecl>(_result)->visibility = visibility;
-			cast<FunctionDecl>(_result)->storage = storage;
+			cast<FunctionDecl>(_result)->is_static = is_static;
 		}
 	}
 	END_ACTION
@@ -266,9 +274,8 @@ struct interface_member_function_decl
 #endif
 		Declaration::VisibilitySpecifier::type visibility = _param(0).is_initialized() ? *_param(0) : Declaration::VisibilitySpecifier::DEFAULT;
 		typed_parameter_list::value_t*         parameters = _param(2).is_initialized() ? (*_param(2)).get() : NULL;
-		Declaration::StorageSpecifier::type    storage    = Declaration::StorageSpecifier::NONE;
 		bool                                   is_member  = false;
-		BIND_CACHED_LOCATION(_result = new FunctionDecl(_param(1), _param(3), is_member, visibility, storage, NULL));
+		BIND_CACHED_LOCATION(_result = new FunctionDecl(_param(1), _param(3), is_member, false, visibility, NULL));
 		if(!!parameters)
 			deduced_foreach_value(i, *parameters)
 				cast<FunctionDecl>(_result)->appendParameter(i.first, i.second);

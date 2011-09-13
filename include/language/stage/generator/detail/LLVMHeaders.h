@@ -36,5 +36,6 @@
 #include <llvm/Assembly/PrintModulePass.h>
 #include <llvm/Support/IRBuilder.h>
 #include <llvm/Support/raw_ostream.h>
+#include <llvm/Support/CFG.h>
 
 #endif /* ZILLIANS_LANGUAGE_STAGE_GENERATOR_DETAIL_LLVMHEADERS_H_ */

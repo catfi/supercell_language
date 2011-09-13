@@ -16,17 +16,45 @@
  * AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-
-#ifndef ZILLIANS_LANGUAGE_LOGGER_H_
-#define ZILLIANS_LANGUAGE_LOGGER_H_
+ 
+#ifndef ZILLIANS_LANGUAGE_LOGGING_MANAGER_H_
+#define ZILLIANS_LANGUAGE_LOGGING_MANAGER_H_
 
 #include "core/Prerequisite.h"
-#include "core/Singleton.h"
 
 namespace zillians { namespace language {
 
-struct Logger
+class StringTable;
+class Logger;
+
+/**
+ * LoggingManager provides the following features:
+ *
+ * 1. Parse options: which includes,
+ *    a. Set ignore warning types
+ *    b. Set warning degree
+ * 2. Query the level for specific warning message
+ * 3. Compile stage assert if the parser mis-used the specific the function which comes from the message type.
+ * 4. Output the specific warning or error messages according to the different locale setting
+ *
+ */
+class LoggingManager
 {
+
+public:
+	LoggingManager();
+	virtual ~LoggingManager();
+
+public:
+	uint32 getCurrentWarningDegree();
+	void setWarningDegree(uint32 level);
+
+	Logger* getLogger();
+
+public:
+	virtual void log(const uint32 id, const std::wstring& file, const uint32 line, std::wstring& message);
+
+public:
 	static void initialize();
 
 	static log4cxx::LoggerPtr Compiler;
@@ -38,8 +66,13 @@ struct Logger
 	static log4cxx::LoggerPtr GeneratorStage;
 	static log4cxx::LoggerPtr DebugInfoGeneratorStage;
 	static log4cxx::LoggerPtr VM;
+
+private:
+	StringTable* mStringTable;
+	Logger* mLogger;
+	uint32 mWarningDegree;
 };
 
-} }
+}}
 
-#endif /* ZILLIANS_LANGUAGE_LOGGER_H_ */
+#endif /* ZILLIANS_LANAGUAGE_LOGGING_MANAGER_H_ */

@@ -47,7 +47,7 @@ struct TernaryExpr : public Expression
 	virtual bool isRValue()
 	{
 		// it's R-value if either "true block" or "false block" is R-value
-		return (true_node->isRValue() | false_node->isRValue());
+		return (true_node->isRValue() || false_node->isRValue());
 	}
 
     virtual bool isEqualImpl(const ASTNode& rhs, ASTNodeSet& visited) const

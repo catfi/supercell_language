@@ -24,7 +24,9 @@
 #include "utility/StringUtil.h"
 #include "utility/UnicodeUtil.h"
 #include "language/tree/ASTNode.h"
-#include "language/context/StaticTestContext.h"
+#include "language/logging/LoggingManager.h"
+#include "language/context/LogContext.h"
+#include "language/stage/parser/context/SourceInfoContext.h"
 #include <boost/parameter.hpp>
 #include <vector>
 #include <string>
@@ -33,7 +35,7 @@
 
 using namespace std;
 
-namespace zillians { namespace language { namespace logging {
+namespace zillians { namespace language {
 
 
 /**
@@ -167,9 +169,11 @@ struct StringTable
 	}
 };
 
-// The first parameter in the following function is always node
+// Default parameters appear in each function
+BOOST_PARAMETER_NAME(program_node)
 BOOST_PARAMETER_NAME(node)
 
+// Generated parameters appear among all the messages
 /*[[[cog
 def extract_parameters(trans):
 	parameter_hub = {}	# Record appeared parameters
@@ -210,9 +214,9 @@ public:
 	Logger() : mLogger(NULL) {}
 	virtual ~Logger() {}
 
-	void setLogger(LoggerWrapper* logger) { mLogger = logger; }
+	void setLogger(LoggingManager* logger) { mLogger = logger; }
 	void setLocale(locale& locale) { mLocale = locale; }
-	void setStringTable(StringTable& string_table) { mStringTable = string_table; }
+	void setStringTable(StringTable* string_table) { mStringTable = string_table; }
 
 public:
 	/*[[[cog
@@ -222,7 +226,7 @@ public:
 		param_list_string = ''
 		for (var, type) in param_list:	# will generate like this (FILE(string))(LINE(string))
 			param_list_string = param_list_string + '(' + str(var) + ',(' + str(type) + ')' + ')'
-		cog.outl('BOOST_PARAMETER_MEMBER_FUNCTION( (void), %s, tag, (required (node, (tree::ASTNode&)) %s )) {' % (id.lower(), param_list_string))
+		cog.outl('BOOST_PARAMETER_MEMBER_FUNCTION( (void), %s, tag, (required (program_node, (tree::Program&))(node, (tree::ASTNode&)) %s )) {' % (id.lower(), param_list_string))
 
 		# Variable declaration
 		cog.outl('\t map<wstring, wstring> parameters;')
@@ -237,9 +241,13 @@ public:
 			cog.outl('\t substitute(translated, L"%s", %s);' % (to_search, var))
 			cog.outl('\t insert_parameters(parameters, L"%s", %s);' % (var.lower(), var))
 
-		cog.outl('\t stage::ErrorInfoContext::set(&node, new stage::ErrorInfoContext(str_level, str_id, parameters));')
+		cog.outl('\t stage::LogInfoContext::set(&node, new stage::LogInfoContext(str_level, str_id, parameters));')
 
-		cog.outl('\t mLogger->logging(StringTable::%s, translated);' % id)
+		# Generate header like : "test.cpp:32: "
+		cog.outl('\t vector<string>& files = stage::ModuleSourceInfoContext::get(&program_node)->source_files;')
+		cog.outl('\t stage::SourceInfoContext* source_info = stage::SourceInfoContext::get(&node);')
+
+		cog.outl('\t mLogger->log(StringTable::%s, s_to_ws(files[source_info->source_index]), source_info->line, translated);' % id)
 		cog.outl('}');
 	]]]*/
 	//[[[end]]]
@@ -249,9 +257,9 @@ private:
 	{
 		string locale_name = get_lc_message();
 
-		BOOST_ASSERT(mStringTable.translation_table.find(id) != mStringTable.translation_table.end() && "Unknown Log Id");
+		BOOST_ASSERT(mStringTable->translation_table.find(id) != mStringTable->translation_table.end() && "Unknown Log Id");
 
-		StringTable::locale_translate_map_t& translate_map = mStringTable.translation_table[id];
+		StringTable::locale_translate_map_t& translate_map = mStringTable->translation_table[id];
 		if (translate_map.find(locale_name) == translate_map.end())
 		{
 			// use default -- en_US
@@ -328,11 +336,11 @@ private:
 	}
 
 private:
-	LoggerWrapper* mLogger;
+	LoggingManager* mLogger;
 	locale mLocale;
-	StringTable mStringTable;
+	StringTable* mStringTable;
 };
 
-}}}
+}}
 
 #endif /* ZILLIANS_LANGUAGE_STRINGTABLE_H_ */

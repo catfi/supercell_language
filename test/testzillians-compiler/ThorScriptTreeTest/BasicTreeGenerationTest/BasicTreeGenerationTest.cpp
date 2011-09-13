@@ -56,7 +56,7 @@ BOOST_AUTO_TEST_CASE( ThorScriptTreeTest_BasicTreeGenerationTestCase1_IsA )
 	}
 
 	{
-		VariableDecl* node = new VariableDecl(new SimpleIdentifier(L"test"), new TypeSpecifier(PrimitiveType::FLOAT32), false, Declaration::VisibilitySpecifier::DEFAULT, Declaration::StorageSpecifier::CONST);
+		VariableDecl* node = new VariableDecl(new SimpleIdentifier(L"test"), new TypeSpecifier(PrimitiveType::FLOAT32), false, false, true, Declaration::VisibilitySpecifier::DEFAULT);
 		BOOST_CHECK(isa<VariableDecl>(node));
 		BOOST_CHECK(isa<Declaration>(node));
 	}

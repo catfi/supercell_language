@@ -113,7 +113,7 @@ bool ThorScriptParserStage::parse(std::string filename)
 
 	if(!in.good())
 	{
-		LOG4CXX_ERROR(Logger::ParserStage, "failed to open file: " << filename);
+		LOG4CXX_ERROR(LoggingManager::ParserStage, "failed to open file: " << filename);
 		return false;
 	}
 

@@ -29,7 +29,7 @@ for ARG in "$@"; do
         continue
     fi
     $EXEC $ARG --dump-parse-and-stop |& grep -v "[DEBUG]" > $TEMP_FILE_A
-    ERROR_CODE="$?"
+    ERROR_CODE="${PIPESTATUS[0]}" # NOTE: need PIPESTATUS because piped grep always succeeds
     if [ $ERROR_CODE -ne 0 ]; then
         cat $TEMP_FILE_A # NOTE: for convenience of reference
         echo "ERROR: parse fail!"

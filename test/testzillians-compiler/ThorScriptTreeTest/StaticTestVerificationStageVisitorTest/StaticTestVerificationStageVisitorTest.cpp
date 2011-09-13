@@ -53,19 +53,19 @@ ASTNode* createOKSample()
 							new SimpleIdentifier(L"some_member_function"),
 							NULL,
 							true,
-							Declaration::VisibilitySpecifier::PUBLIC,
-							Declaration::StorageSpecifier::NONE);
+							false,
+							Declaration::VisibilitySpecifier::PUBLIC);
 					class_decl->addFunction(some_member_function);
 					{
 						Block* block = some_member_function->block;
 
 						{
-							DeclarativeStmt* stmt = new DeclarativeStmt(new VariableDecl(new SimpleIdentifier(L"a"), new TypeSpecifier(PrimitiveType::INT32), false, Declaration::VisibilitySpecifier::DEFAULT, Declaration::StorageSpecifier::NONE));
+							DeclarativeStmt* stmt = new DeclarativeStmt(new VariableDecl(new SimpleIdentifier(L"a"), new TypeSpecifier(PrimitiveType::INT32), false, false, false, Declaration::VisibilitySpecifier::DEFAULT));
 							block->appendObject(stmt);
 						}
 
 						{
-							DeclarativeStmt* stmt = new DeclarativeStmt(new VariableDecl(new SimpleIdentifier(L"b"), new TypeSpecifier(PrimitiveType::INT32), false, Declaration::VisibilitySpecifier::DEFAULT, Declaration::StorageSpecifier::NONE));
+							DeclarativeStmt* stmt = new DeclarativeStmt(new VariableDecl(new SimpleIdentifier(L"b"), new TypeSpecifier(PrimitiveType::INT32), false, false, false, Declaration::VisibilitySpecifier::DEFAULT));
 							block->appendObject(stmt);
 						}
 
@@ -88,11 +88,11 @@ ASTNode* createOKSample()
 							std::map<std::wstring, std::wstring> m;
 							m[L"id"] = L"mCount";
 							m[L"type"] = L"int";
-							auto errorContext = new zillians::language::stage::ErrorInfoContext(L"warning", L"undeclared_variable", m);
+							auto errorContext = new zillians::language::stage::LogInfoContext(L"warning", L"undeclared_variable", m);
 
 							ExpressionStmt* stmt = new ExpressionStmt(new BinaryExpr(BinaryExpr::OpCode::ASSIGN, new PrimaryExpr(new SimpleIdentifier(L"undeclared_variable_name")), new PrimaryExpr(new SimpleIdentifier(L"b"))));
 							stmt->setAnnotation(annos);
-							stmt->set<zillians::language::stage::ErrorInfoContext>(errorContext);
+							stmt->set<zillians::language::stage::LogInfoContext>(errorContext);
 
 							block->appendObject(stmt);
 						}
@@ -121,19 +121,19 @@ ASTNode* createFailSample()
 							new SimpleIdentifier(L"some_member_function"),
 							NULL,
 							true,
-							Declaration::VisibilitySpecifier::PUBLIC,
-							Declaration::StorageSpecifier::NONE);
+							false,
+							Declaration::VisibilitySpecifier::PUBLIC);
 					class_decl->addFunction(some_member_function);
 					{
 						Block* block = some_member_function->block;
 
 						{
-							DeclarativeStmt* stmt = new DeclarativeStmt(new VariableDecl(new SimpleIdentifier(L"a"), new TypeSpecifier(PrimitiveType::INT32), false, Declaration::VisibilitySpecifier::DEFAULT, Declaration::StorageSpecifier::NONE));
+							DeclarativeStmt* stmt = new DeclarativeStmt(new VariableDecl(new SimpleIdentifier(L"a"), new TypeSpecifier(PrimitiveType::INT32), false, false, false, Declaration::VisibilitySpecifier::DEFAULT));
 							block->appendObject(stmt);
 						}
 
 						{
-							DeclarativeStmt* stmt = new DeclarativeStmt(new VariableDecl(new SimpleIdentifier(L"b"), new TypeSpecifier(PrimitiveType::INT32), false, Declaration::VisibilitySpecifier::DEFAULT, Declaration::StorageSpecifier::NONE));
+							DeclarativeStmt* stmt = new DeclarativeStmt(new VariableDecl(new SimpleIdentifier(L"b"), new TypeSpecifier(PrimitiveType::INT32), false, false, false, Declaration::VisibilitySpecifier::DEFAULT));
 							block->appendObject(stmt);
 						}
 
@@ -157,11 +157,12 @@ ASTNode* createFailSample()
 							std::map<std::wstring, std::wstring> m;
 							m[L"id"] = L"mCount";
 							m[L"type"] = L"int";
-							auto errorContext = new zillians::language::stage::ErrorInfoContext(L"warning", L"undeclared_variable", m);
+							m[L"extra_fail_key"] = L"extra_fail_value";
+							auto errorContext = new zillians::language::stage::LogInfoContext(L"warning", L"undeclared_variable", m);
 
 							ExpressionStmt* stmt = new ExpressionStmt(new BinaryExpr(BinaryExpr::OpCode::ASSIGN, new PrimaryExpr(new SimpleIdentifier(L"undeclared_variable_name")), new PrimaryExpr(new SimpleIdentifier(L"b"))));
 							stmt->setAnnotation(annos);
-							stmt->set<zillians::language::stage::ErrorInfoContext>(errorContext);
+							stmt->set<zillians::language::stage::LogInfoContext>(errorContext);
 
 							block->appendObject(stmt);
 						}

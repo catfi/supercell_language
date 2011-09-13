@@ -84,7 +84,7 @@ ENDIF(ANTLR3_FOUND)
 ADD_SUBDIRECTORY(zillians-ptx-parser)
 ADD_SUBDIRECTORY(zillians-ptx-parser-grammar)
 
-ADD_SUBDIRECTORY(libptx-backend)
+#ADD_SUBDIRECTORY(libptx-backend)
 ADD_SUBDIRECTORY(lib-cuda-backend)
 
 ADD_SUBDIRECTORY(zillians-crypto)

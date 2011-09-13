@@ -380,9 +380,8 @@ struct PrettyPrintVisitor : Visitor<const ASTNode, void>
 				L"name=\"" << ((node.name) ? node.name->toString() : L"<unspecified-null>") << L"\" " <<
 				L"type=\"" << decodeType(node.type) << L"\" " <<
 				L"is_member=\"" << (node.is_member ? L"true" : L"false") << L"\" " <<
-				L"visibility=\"" << Declaration::VisibilitySpecifier::toString(node.visibility) << L"\" " <<
-				L"storage=\"" << Declaration::StorageSpecifier::toString(node.storage) << L"\"" <<
-				L">" << std::endl;
+				L"is_static=\"" << (node.is_static ? L"true" : L"false") << L"\" " <<
+				L"visibility=\"" << Declaration::VisibilitySpecifier::toString(node.visibility) << L"\">" << std::endl;
 		{
 			printSourceInfo(node);
 		}
@@ -467,8 +466,9 @@ struct PrettyPrintVisitor : Visitor<const ASTNode, void>
 				L"name=\"" << node.name->toString() << L"\" " <<
 				L"type=\"" << decodeType(node.type) << L"\" "
 				L"is_member=\"" << (node.is_member ? L"true" : L"false") << L"\" " <<
-				L"visibility=\"" << Declaration::VisibilitySpecifier::toString(node.visibility) << L"\" " <<
-				L"storage=\"" << Declaration::StorageSpecifier::toString(node.storage) << L"\">" << std::endl;
+				L"is_static=\"" << (node.is_static ? L"true" : L"false") << L"\" " <<
+				L"is_const=\"" << (node.is_const ? L"true" : L"false") << L"\" " <<
+				L"visibility=\"" << Declaration::VisibilitySpecifier::toString(node.visibility) << L"\">" << std::endl;
 		{
 			printSourceInfo(node);
 		}

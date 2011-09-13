@@ -18,14 +18,16 @@
  */
 
 #include "core/Prerequisite.h"
-#include "language/logging/Logger.h"
-#include "language/logging/logging-manager/LoggingManager.h"
+#include "language/logging/LoggingManager.h"
+#include "language/logging/StringTable.h"
 #include "language/tree/basic/Block.h"
+#include "language/tree/module/Program.h"
+#include "language/stage/parser/context/SourceInfoContext.h"
 #include <iostream>
 #include <string>
 #include <limits>
 
-using namespace zillians::language::logging;
+using namespace zillians::language;
 
 int main()
 {
@@ -35,15 +37,24 @@ int main()
 	log4cxx::BasicConfigurator::configure();
 
 	LoggingManager log_manager;
-	Logger& logger = log_manager.getLogger();
+	Logger* logger = log_manager.getLogger();
 
-	// Create a fake ASTNode
+	// Create fake ASTNodes
 	zillians::language::tree::Block node;
+	zillians::language::tree::Program program_node;
 
-	logger.log_undefined_variable(_node = node, _ID="mString", _FILE="Super.cpp", _LINE=3);
-	logger.log_undefined_variable(_FILE="Super.cpp", _LINE=3, _node = node, _ID="mString");
+	int source_index = 0;
+	stage::ModuleSourceInfoContext* module_info = new stage::ModuleSourceInfoContext();
+	source_index = module_info->addSource("test.cpp");
+	source_index = module_info->addSource("hello.cpp");
 
-	logger.log_unused_variable(_ID="x", _node = node);
+	stage::ModuleSourceInfoContext::set(&program_node, module_info);
+	stage::SourceInfoContext::set(&node, new stage::SourceInfoContext(source_index, 32, 10) );
+
+	logger->log_undefined_variable(_program_node = program_node, _node = node, _ID="mString", _FILE="Super.cpp", _LINE=3);
+	logger->log_undefined_variable(_FILE="Super.cpp", _LINE=3, _node = node, _ID="mString", _program_node = program_node);
+
+	logger->log_unused_variable(_ID="x", _node = node, _program_node = program_node);
 
 	return 0;
 }

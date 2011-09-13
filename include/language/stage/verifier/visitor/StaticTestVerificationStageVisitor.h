@@ -29,7 +29,7 @@
 #include "language/tree/ASTNodeFactory.h"
 #include "language/tree/visitor/general/GenericDoubleVisitor.h"
 #include "language/stage/parser/context/SourceInfoContext.h"
-#include "language/context/StaticTestContext.h"
+#include "language/context/LogContext.h"
 
 namespace zillians { namespace language { namespace tree { namespace visitor {
 
@@ -54,21 +54,20 @@ struct StaticTestVerificationStageVisitor : public GenericDoubleVisitor
 
 	void check(Annotation& node)
 	{
-		using zillians::language::stage::ErrorInfoContext ;
+		using zillians::language::stage::LogInfoContext ;
 		if (node.name->name == L"static_test")
 		{
 			// get error info context on node
 			// the parent of Annotation is Annotations,
 			// the error info context is hooked on the parent of Annotations.
-			ErrorInfoContext* errorInfo = ErrorInfoContext::get(node.parent/*Annotations*/->parent);
+			LogInfoContext* errorInfo = LogInfoContext::get(node.parent/*Annotations*/->parent);
 			if(errorInfo == NULL)
 			{
 				mAllMatch = false;
 				return;
 			}
-			ErrorInfoContext constructedErrorInfo = constructErrorContextFromAnnotation(node);
-			// Compare (key, value) pairs only listed in annotation
-			foreach(i, constructedErrorInfo.parameters)
+			LogInfoContext constructedErrorInfo = constructErrorContextFromAnnotation(node);
+			if(*errorInfo != constructedErrorInfo)
 			{
 				if(!errorInfo->parameters.count(i->first))
 				{
@@ -80,10 +79,10 @@ struct StaticTestVerificationStageVisitor : public GenericDoubleVisitor
 	}
 
 private:
-	zillians::language::stage::ErrorInfoContext constructErrorContextFromAnnotation(Annotation& node)
+	zillians::language::stage::LogInfoContext constructErrorContextFromAnnotation(Annotation& node)
 	{
 		using zillians::language::tree::cast;
-		//zillians::language::stage::ErrorInfoContext result;
+		//zillians::language::stage::LogInfoContext result;
 		BOOST_ASSERT(node.attribute_list.size() == 1);
 		// expect-message
 		std::pair<SimpleIdentifier*, ASTNode*>& expectMessage = node.attribute_list[0];
@@ -121,12 +120,12 @@ private:
 			BOOST_ASSERT(paramValue != NULL);
 			std::wstring key = paramKey->name;
 			std::wstring value = paramValue->value;
-			//zillians::language::stage::ErrorInfoContext::parameter_type_t param(key, value);
+			//zillians::language::stage::LogInfoContext::parameter_type_t param(key, value);
 			std::pair<std::wstring, std::wstring> param(key, value);
 			paramsResult.insert(std::make_pair(key, value));
 		}
 
-		return zillians::language::stage::ErrorInfoContext(levelString, idString, paramsResult);
+		return zillians::language::stage::LogInfoContext(levelString, idString, paramsResult);
 	}
 
 private:

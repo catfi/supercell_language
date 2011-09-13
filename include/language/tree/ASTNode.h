@@ -27,7 +27,7 @@
 #include "core/ContextHub.h"
 #include "core/Visitor.h"
 #include "language/tree/GarbageCollector.h"
-#include "language/logging/Logger.h"
+#include "language/logging/LoggingManager.h"
 #include <boost/preprocessor.hpp>
 #include <boost/archive/text_oarchive.hpp>
 #include <boost/archive/text_iarchive.hpp>

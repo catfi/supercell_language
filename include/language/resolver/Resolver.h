@@ -51,7 +51,7 @@ struct Resolver
 	{
 		tree::visitor::NodeInfoVisitor node_info_visitor;
 		node_info_visitor.visit(node);
-		LOG4CXX_DEBUG(Logger::Resolver, L"entering scope: \"" << node_info_visitor.stream.str() << L"\"");
+		LOG4CXX_DEBUG(LoggingManager::Resolver, L"entering scope: \"" << node_info_visitor.stream.str() << L"\"");
 
 		current_scopes.insert(&node);
 	}
@@ -60,7 +60,7 @@ struct Resolver
 	{
 		tree::visitor::NodeInfoVisitor node_info_visitor;
 		node_info_visitor.visit(node);
-		LOG4CXX_DEBUG(Logger::Resolver, L"leaving scope: \"" << node_info_visitor.stream.str() << L"\"");
+		LOG4CXX_DEBUG(LoggingManager::Resolver, L"leaving scope: \"" << node_info_visitor.stream.str() << L"\"");
 
 		__gnu_cxx::hash_set<tree::ASTNode*>::iterator scope = current_scopes.find(&node);
 		if(scope != current_scopes.end())
@@ -69,7 +69,7 @@ struct Resolver
 		}
 		else
 		{
-			LOG4CXX_ERROR(Logger::Resolver, L"leaving unknown scope: \"" << node_info_visitor.stream.str() << L"\"");
+			LOG4CXX_ERROR(LoggingManager::Resolver, L"leaving unknown scope: \"" << node_info_visitor.stream.str() << L"\"");
 		}
 	}
 
@@ -79,7 +79,7 @@ struct Resolver
 
 		tree::visitor::NodeInfoVisitor node_info_visitor;
 		node_info_visitor.visit(scope);
-		LOG4CXX_DEBUG(Logger::Resolver, L"trying to resolve symbol: \"" << node.toString() << L"\" from scope \"" << node_info_visitor.stream.str() << "\"");
+		LOG4CXX_DEBUG(LoggingManager::Resolver, L"trying to resolve symbol: \"" << node.toString() << L"\" from scope \"" << node_info_visitor.stream.str() << "\"");
 		node_info_visitor.reset();
 
 		if(!ResolvedSymbol::get(&attach))
@@ -91,7 +91,7 @@ struct Resolver
 			{
 				tree::visitor::NodeInfoVisitor node_info_visitor;
 				node_info_visitor.visit(scope);
-				LOG4CXX_DEBUG(Logger::Resolver, L"looking at scope: " << node_info_visitor.stream.str());
+				LOG4CXX_DEBUG(LoggingManager::Resolver, L"looking at scope: " << node_info_visitor.stream.str());
 			}
 
 			resolution_visitor.visit(scope);
@@ -108,7 +108,7 @@ struct Resolver
 	{
 		using namespace zillians::language::tree;
 
-		LOG4CXX_DEBUG(Logger::Resolver, L"trying to resolve symbol: \"" << node.toString() << L"\"");
+		LOG4CXX_DEBUG(LoggingManager::Resolver, L"trying to resolve symbol: \"" << node.toString() << L"\"");
 
 		if(!ResolvedSymbol::get(&attach))
 		{
@@ -121,7 +121,7 @@ struct Resolver
 			{
 				tree::visitor::NodeInfoVisitor node_info_visitor;
 				node_info_visitor.visit(**scope);
-				LOG4CXX_DEBUG(Logger::Resolver, L"looking at scope: \"" << node_info_visitor.stream.str() << L"\"");
+				LOG4CXX_DEBUG(LoggingManager::Resolver, L"looking at scope: \"" << node_info_visitor.stream.str() << L"\"");
 
 				resolution_visitor.visit(**scope);
 			}
@@ -144,7 +144,7 @@ struct Resolver
 
 			tree::visitor::NodeInfoVisitor node_info_visitor;
 			node_info_visitor.visit(*ref);
-			LOG4CXX_DEBUG(Logger::Resolver, L"symbol \"" << node.toString() << L"\" is resolved to: \"" << node_info_visitor.stream.str() << L"\"");
+			LOG4CXX_DEBUG(LoggingManager::Resolver, L"symbol \"" << node.toString() << L"\" is resolved to: \"" << node_info_visitor.stream.str() << L"\"");
 			node_info_visitor.reset();
 
 			bool valid = true;
@@ -162,7 +162,7 @@ struct Resolver
 			}
 			else
 			{
-				LOG4CXX_ERROR(Logger::Resolver, L"resolve symbol \"" << node.toString() << L"\" to unkown symbol");
+				LOG4CXX_ERROR(LoggingManager::Resolver, L"resolve symbol \"" << node.toString() << L"\" to unkown symbol");
 				valid = false;
 			}
 
@@ -174,20 +174,20 @@ struct Resolver
 			if(resolution_visitor.candidates.size() > 1)
 			{
 				// mode than one candidate
-				LOG4CXX_ERROR(Logger::Resolver, L"ambiguous symbol \"" << node.toString() << L"\"");
+				LOG4CXX_ERROR(LoggingManager::Resolver, L"ambiguous symbol \"" << node.toString() << L"\"");
 
 				tree::visitor::NodeInfoVisitor node_info_visitor;
 				foreach(i, resolution_visitor.candidates)
 				{
 					node_info_visitor.visit(**i);
-					LOG4CXX_DEBUG(Logger::Resolver, L"symbol can be resolved to: \"" << node_info_visitor.stream.str());
+					LOG4CXX_DEBUG(LoggingManager::Resolver, L"symbol can be resolved to: \"" << node_info_visitor.stream.str());
 					node_info_visitor.reset();
 				}
 			}
 			else
 			{
 				// no candidate
-				LOG4CXX_ERROR(Logger::Resolver, L"unresolved symbol \"" << node.toString() << L"\"");
+				LOG4CXX_ERROR(LoggingManager::Resolver, L"unresolved symbol \"" << node.toString() << L"\"");
 			}
 
 			resolution_visitor.reset();
@@ -201,7 +201,7 @@ struct Resolver
 
 		tree::visitor::NodeInfoVisitor node_info_visitor;
 		node_info_visitor.visit(scope);
-		LOG4CXX_DEBUG(Logger::Resolver, L"trying to resolve type: \"" << node.referred.unspecified->toString() << L"\" from scope \"" << node_info_visitor.stream.str() << L"\"");
+		LOG4CXX_DEBUG(LoggingManager::Resolver, L"trying to resolve type: \"" << node.referred.unspecified->toString() << L"\" from scope \"" << node_info_visitor.stream.str() << L"\"");
 		node_info_visitor.reset();
 
 		if(node.type == TypeSpecifier::ReferredType::UNSPECIFIED)
@@ -224,7 +224,7 @@ struct Resolver
 	{
 		using namespace zillians::language::tree;
 
-		LOG4CXX_DEBUG(Logger::Resolver, L"trying to resolve type: \"" << node.referred.unspecified->toString() << L"\"");
+		LOG4CXX_DEBUG(LoggingManager::Resolver, L"trying to resolve type: \"" << node.referred.unspecified->toString() << L"\"");
 
 		if(node.type == TypeSpecifier::ReferredType::UNSPECIFIED)
 		{
@@ -256,13 +256,13 @@ struct Resolver
 
 			tree::visitor::NodeInfoVisitor node_info_visitor;
 			node_info_visitor.visit(*ref);
-			LOG4CXX_DEBUG(Logger::Resolver, L"type \"" << node.referred.unspecified->toString() << L"\" is resolved to: \"" << node_info_visitor.stream.str() << L"\"");
+			LOG4CXX_DEBUG(LoggingManager::Resolver, L"type \"" << node.referred.unspecified->toString() << L"\" is resolved to: \"" << node_info_visitor.stream.str() << L"\"");
 			node_info_visitor.reset();
 
 			bool valid = true;
 			if(isa<ClassDecl>(ref))
 			{
-				LOG4CXX_DEBUG(Logger::Resolver, L"resolve type \"" << node.referred.unspecified->toString() << L"\" to \"" << cast<ClassDecl>(ref)->name->toString() << L"\"");
+				LOG4CXX_DEBUG(LoggingManager::Resolver, L"resolve type \"" << node.referred.unspecified->toString() << L"\" to \"" << cast<ClassDecl>(ref)->name->toString() << L"\"");
 				if(!no_action) node.update(cast<ClassDecl>(ref));
 			}
 			else if(isa<InterfaceDecl>(ref))
@@ -287,7 +287,7 @@ struct Resolver
 			}
 			else
 			{
-				LOG4CXX_FATAL(Logger::Resolver, L"resolve type \"" << node.referred.unspecified->toString() << L"\" to unknown type");
+				LOG4CXX_FATAL(LoggingManager::Resolver, L"resolve type \"" << node.referred.unspecified->toString() << L"\" to unknown type");
 				valid = false;
 			}
 
@@ -299,20 +299,20 @@ struct Resolver
 			if(resolution_visitor.candidates.size() > 1)
 			{
 				// mode than one candidate
-				LOG4CXX_ERROR(Logger::Resolver, L"ambiguous type \"" << node.referred.unspecified->toString() << L"\"");
+				LOG4CXX_ERROR(LoggingManager::Resolver, L"ambiguous type \"" << node.referred.unspecified->toString() << L"\"");
 
 				tree::visitor::NodeInfoVisitor node_info_visitor;
 				foreach(i, resolution_visitor.candidates)
 				{
 					node_info_visitor.visit(**i);
-					LOG4CXX_DEBUG(Logger::Resolver, L"type can be resolved to: \"" << node_info_visitor.stream.str() << L"\"");
+					LOG4CXX_DEBUG(LoggingManager::Resolver, L"type can be resolved to: \"" << node_info_visitor.stream.str() << L"\"");
 					node_info_visitor.reset();
 				}
 			}
 			else
 			{
 				// no candidate
-				LOG4CXX_ERROR(Logger::Resolver, L"unresolved type \"" << node.referred.unspecified->toString() << L"\"");
+				LOG4CXX_ERROR(LoggingManager::Resolver, L"unresolved type \"" << node.referred.unspecified->toString() << L"\"");
 			}
 
 			resolution_visitor.reset();
@@ -326,7 +326,7 @@ struct Resolver
 
 		tree::visitor::NodeInfoVisitor node_info_visitor;
 		node_info_visitor.visit(scope);
-		LOG4CXX_DEBUG(Logger::Resolver, L"trying to resolve package: \"" << node.toString() << L"\" from scope \"" << node_info_visitor.stream.str() << L"\"");
+		LOG4CXX_DEBUG(LoggingManager::Resolver, L"trying to resolve package: \"" << node.toString() << L"\" from scope \"" << node_info_visitor.stream.str() << L"\"");
 		node_info_visitor.reset();
 
 		if(!ResolvedPackage::get(&attach))
@@ -349,7 +349,7 @@ struct Resolver
 	{
 		using namespace zillians::language::tree;
 
-		LOG4CXX_DEBUG(Logger::Resolver, L"trying to resolve package: \"" << node.toString() << L"\"");
+		LOG4CXX_DEBUG(LoggingManager::Resolver, L"trying to resolve package: \"" << node.toString() << L"\"");
 
 		if(!ResolvedPackage::get(&attach))
 		{
@@ -380,7 +380,7 @@ struct Resolver
 
 			tree::visitor::NodeInfoVisitor node_info_visitor;
 			node_info_visitor.visit(*ref);
-			LOG4CXX_DEBUG(Logger::Resolver, L"package \"" << node.toString() << L"\" is resolved to: \"" << node_info_visitor.stream.str() << L"\"");
+			LOG4CXX_DEBUG(LoggingManager::Resolver, L"package \"" << node.toString() << L"\" is resolved to: \"" << node_info_visitor.stream.str() << L"\"");
 			node_info_visitor.reset();
 
 			bool valid = true;
@@ -390,7 +390,7 @@ struct Resolver
 			}
 			else
 			{
-				LOG4CXX_FATAL(Logger::Resolver, L"resolve package \"" << node.toString() << L"\" to unknown type");
+				LOG4CXX_FATAL(LoggingManager::Resolver, L"resolve package \"" << node.toString() << L"\" to unknown type");
 				valid = false;
 			}
 
@@ -402,20 +402,20 @@ struct Resolver
 			if(resolution_visitor.candidates.size() > 1)
 			{
 				// mode than one candidate
-				LOG4CXX_ERROR(Logger::Resolver, L"ambiguous package \"" << node.toString() << L"\"");
+				LOG4CXX_ERROR(LoggingManager::Resolver, L"ambiguous package \"" << node.toString() << L"\"");
 
 				tree::visitor::NodeInfoVisitor node_info_visitor;
 				foreach(i, resolution_visitor.candidates)
 				{
 					node_info_visitor.visit(**i);
-					LOG4CXX_DEBUG(Logger::Resolver, L"package can be resolved to: \"" << node_info_visitor.stream.str() << L"\"");
+					LOG4CXX_DEBUG(LoggingManager::Resolver, L"package can be resolved to: \"" << node_info_visitor.stream.str() << L"\"");
 					node_info_visitor.reset();
 				}
 			}
 			else
 			{
 				// no candidate
-				LOG4CXX_ERROR(Logger::Resolver, L"unresolved package \"" << node.toString() << L"\"");
+				LOG4CXX_ERROR(LoggingManager::Resolver, L"unresolved package \"" << node.toString() << L"\"");
 			}
 
 			resolution_visitor.reset();
