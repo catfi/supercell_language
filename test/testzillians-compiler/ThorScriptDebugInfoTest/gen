@@ -1,0 +1,16 @@
+#!/bin/bash
+INPUT_THOR="$1.t"
+INPUT_WRAP="$2.c"
+
+TMP_BC="$1.bc"
+TMP_ASM="$1.s"
+
+BINARY_THOR="$1.o"
+BINARY_WRAP="$2.o"
+
+gcc -c -g $INPUT_WRAP
+thorscript-compiler --dump-llvm --emit-llvm  --debug --dump-ast --dump-ast-location $INPUT_THOR
+llc-2.8 -O0 $TMP_BC
+llvm-dis-2.8 $TMP_BC
+gcc -c $TMP_ASM
+gcc $BINARY_THOR $BINARY_WRAP

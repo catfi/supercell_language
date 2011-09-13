@@ -1,6 +1,0 @@
-gcc -c -g wrap.c
-thorscript-compiler --dump-llvm --emit-llvm  --debug --dump-ast --dump-ast-location test.t
-llc-2.8 test.bc
-llvm-dis-2.8 test.bc
-gcc -c test.s
-gcc test.o wrap.o
