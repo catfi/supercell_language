@@ -53,19 +53,19 @@ ASTNode* createOKSample()
 							new SimpleIdentifier(L"some_member_function"),
 							NULL,
 							true,
-							Declaration::VisibilitySpecifier::PUBLIC,
-							Declaration::StorageSpecifier::NONE);
+							false,
+							Declaration::VisibilitySpecifier::PUBLIC);
 					class_decl->addFunction(some_member_function);
 					{
 						Block* block = some_member_function->block;
 
 						{
-							DeclarativeStmt* stmt = new DeclarativeStmt(new VariableDecl(new SimpleIdentifier(L"a"), new TypeSpecifier(PrimitiveType::INT32), false, Declaration::VisibilitySpecifier::DEFAULT, Declaration::StorageSpecifier::NONE));
+							DeclarativeStmt* stmt = new DeclarativeStmt(new VariableDecl(new SimpleIdentifier(L"a"), new TypeSpecifier(PrimitiveType::INT32), false, false, false, Declaration::VisibilitySpecifier::DEFAULT));
 							block->appendObject(stmt);
 						}
 
 						{
-							DeclarativeStmt* stmt = new DeclarativeStmt(new VariableDecl(new SimpleIdentifier(L"b"), new TypeSpecifier(PrimitiveType::INT32), false, Declaration::VisibilitySpecifier::DEFAULT, Declaration::StorageSpecifier::NONE));
+							DeclarativeStmt* stmt = new DeclarativeStmt(new VariableDecl(new SimpleIdentifier(L"b"), new TypeSpecifier(PrimitiveType::INT32), false, false, false, Declaration::VisibilitySpecifier::DEFAULT));
 							block->appendObject(stmt);
 						}
 
@@ -121,19 +121,19 @@ ASTNode* createFailSample()
 							new SimpleIdentifier(L"some_member_function"),
 							NULL,
 							true,
-							Declaration::VisibilitySpecifier::PUBLIC,
-							Declaration::StorageSpecifier::NONE);
+							false,
+							Declaration::VisibilitySpecifier::PUBLIC);
 					class_decl->addFunction(some_member_function);
 					{
 						Block* block = some_member_function->block;
 
 						{
-							DeclarativeStmt* stmt = new DeclarativeStmt(new VariableDecl(new SimpleIdentifier(L"a"), new TypeSpecifier(PrimitiveType::INT32), false, Declaration::VisibilitySpecifier::DEFAULT, Declaration::StorageSpecifier::NONE));
+							DeclarativeStmt* stmt = new DeclarativeStmt(new VariableDecl(new SimpleIdentifier(L"a"), new TypeSpecifier(PrimitiveType::INT32), false, false, false, Declaration::VisibilitySpecifier::DEFAULT));
 							block->appendObject(stmt);
 						}
 
 						{
-							DeclarativeStmt* stmt = new DeclarativeStmt(new VariableDecl(new SimpleIdentifier(L"b"), new TypeSpecifier(PrimitiveType::INT32), false, Declaration::VisibilitySpecifier::DEFAULT, Declaration::StorageSpecifier::NONE));
+							DeclarativeStmt* stmt = new DeclarativeStmt(new VariableDecl(new SimpleIdentifier(L"b"), new TypeSpecifier(PrimitiveType::INT32), false, false, false, Declaration::VisibilitySpecifier::DEFAULT));
 							block->appendObject(stmt);
 						}
 
