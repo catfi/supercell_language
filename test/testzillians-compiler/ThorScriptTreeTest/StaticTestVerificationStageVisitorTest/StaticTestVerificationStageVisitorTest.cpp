@@ -20,13 +20,13 @@
 #include "core/Prerequisite.h"
 #include "language/tree/ASTNode.h"
 #include "language/tree/ASTNodeFactory.h"
-#include "language/tree/visitor/check/ErrorMessageAnnotationCheckVisitor.h"
+#include "language/stage/verifier/visitor/StaticTestVerificationStageVisitor.h"
 #include "../ASTNodeSamples.h"
 #include <iostream>
 #include <string>
 #include <limits>
 
-#define BOOST_TEST_MODULE ThorScriptTreeTest_ErrorMessageAnnotationCheckVisitorTest
+#define BOOST_TEST_MODULE ThorScriptTreeTest_StaticTestVerificationStageVisitorTest
 #define BOOST_TEST_MAIN
 #include <boost/test/unit_test.hpp>
 
@@ -34,7 +34,7 @@ using namespace zillians;
 using namespace zillians::language::tree;
 using namespace zillians::language::tree::visitor;
 
-BOOST_AUTO_TEST_SUITE( ThorScriptTreeTest_ErrorMessageAnnotationCheckVisitorTestSuite )
+BOOST_AUTO_TEST_SUITE( ThorScriptTreeTest_StaticTestVerificationStageVisitorTestTestSuite )
 
 ASTNode* createOKSample()
 {
@@ -142,6 +142,7 @@ ASTNode* createFailSample()
 							Annotation* msgParams = new Annotation(NULL);
 							msgParams->appendKeyValue(new SimpleIdentifier(L"id"), new StringLiteral(L"mCount"));
 							msgParams->appendKeyValue(new SimpleIdentifier(L"type"), new StringLiteral(L"int"));
+							msgParams->appendKeyValue(new SimpleIdentifier(L"extra_fail_key"), new StringLiteral(L"extra_fail_value"));
 							Annotation* levelIdParams = new Annotation(NULL);
 							levelIdParams->appendKeyValue(new SimpleIdentifier(L"level"), new StringLiteral(L"warning"));
 							levelIdParams->appendKeyValue(new SimpleIdentifier(L"id"), new StringLiteral(L"undeclared_variable"));
@@ -173,9 +174,9 @@ ASTNode* createFailSample()
 	return program;
 }
 
-BOOST_AUTO_TEST_CASE( ThorScriptTreeTest_ErrorMessageAnnotationCheckVisitorTestCase1 )
+BOOST_AUTO_TEST_CASE( ThorScriptTreeTest_StaticTestVerificationStageVisitorTestCase1 )
 {
-	ErrorMessageAnnotationCheckVisitor checker;
+	StaticTestVerificationStageVisitor checker;
 	ASTNode* okProgram = createOKSample();
 	checker.check(*okProgram);
 	BOOST_CHECK(checker.isAllMatch());

@@ -70,7 +70,7 @@ namespace __gnu_cxx {
     template<>
     struct hash<const zillians::language::tree::ASTNode*>
     {
-        size_t operator() (const zillians::language::tree::ASTNode* p)
+        size_t operator() (const zillians::language::tree::ASTNode* p) const
         {
             return reinterpret_cast<size_t>(p);
         }

@@ -33,11 +33,11 @@
 
 namespace zillians { namespace language { namespace tree { namespace visitor {
 
-struct ErrorMessageAnnotationCheckVisitor : public GenericDoubleVisitor
+struct StaticTestVerificationStageVisitor : public GenericDoubleVisitor
 {
 	CREATE_INVOKER(errorMessageAnnotationCheckInvoker, check);
 
-	ErrorMessageAnnotationCheckVisitor() : mAllMatch(true)
+	StaticTestVerificationStageVisitor() : mAllMatch(true)
 	{
 		REGISTER_ALL_VISITABLE_ASTNODE(errorMessageAnnotationCheckInvoker)
 	}
@@ -69,8 +69,11 @@ struct ErrorMessageAnnotationCheckVisitor : public GenericDoubleVisitor
 			LogInfoContext constructedErrorInfo = constructErrorContextFromAnnotation(node);
 			if(*errorInfo != constructedErrorInfo)
 			{
-				mAllMatch = false;
-				return;
+				if(!errorInfo->parameters.count(i->first))
+				{
+					mAllMatch = false;
+					return;
+				}
 			}
 		}
 	}

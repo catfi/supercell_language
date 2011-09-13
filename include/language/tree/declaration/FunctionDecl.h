@@ -23,10 +23,30 @@
 #ifndef ZILLIANS_LANGUAGE_TREE_FUNCTIONDECL_H_
 #define ZILLIANS_LANGUAGE_TREE_FUNCTIONDECL_H_
 
+#include <boost/preprocessor.hpp>
 #include "language/tree/declaration/Declaration.h"
 #include "language/tree/basic/Identifier.h"
 #include "language/tree/basic/TypeSpecifier.h"
 #include "language/tree/basic/Block.h"
+
+namespace boost { namespace serialization {
+
+#define GENERATE_ELEMENT_SERIALIZE(z,which,unused) \
+    ar & boost::serialization::make_nvp("element",t.get< which >());
+
+#define GENERATE_TUPLE_SERIALIZE(z,nargs,unused)                        \
+    template< typename Archive, BOOST_PP_ENUM_PARAMS(nargs,typename T) > \
+    void serialize(Archive & ar,                                        \
+                   boost::tuple< BOOST_PP_ENUM_PARAMS(nargs,T) > & t,   \
+                   const unsigned int version)                          \
+    {                                                                   \
+      BOOST_PP_REPEAT_FROM_TO(0,nargs,GENERATE_ELEMENT_SERIALIZE,~);    \
+    }
+
+
+    BOOST_PP_REPEAT_FROM_TO(1,6,GENERATE_TUPLE_SERIALIZE,~);
+
+}}
 
 namespace zillians { namespace language { namespace tree {
 
