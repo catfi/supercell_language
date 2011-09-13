@@ -58,15 +58,22 @@ struct StringTable
 			setattr(self, name, name)
 			self.repo.append(getattr(self, name))
 
+	class LogRepo(Repo):
+		def __init__(self):
+			Repo.__init__(self)
+			self.attribute_table = {}
+			self.translation_table = {}
+
+		def create(self, name, level, category, warn_level, trans):
+			Repo.create(self, name)
+			log_id = getattr(self, name)
+			self.attribute_table[log_id] = (level, category, warn_level, log_id)
+			self.translation_table[log_id] = trans
+
 
 	#########################################################
 	# This is the place you gonna extend
 	#########################################################
-
-	# Define constant string
-	LOG_STRING = Repo()
-	LOG_STRING.create('LOG_UNUSED_VARIABLE')
-	LOG_STRING.create('LOG_UNDEFINED_VARIABLE')
 
 	# Define category
 	LOG_CATEGORY = Repo()
@@ -75,30 +82,29 @@ struct StringTable
 	LOG_CATEGORY.create('CATEGORY_OBJECT_TYPE')
 	LOG_CATEGORY.create('CATEGORY_MISC')
 
-	# Define log type
+	# Define log level
 	LOG_LEVEL = Repo()
 	LOG_LEVEL.create('LOG_LEVEL_WARNING')
 	LOG_LEVEL.create('LOG_LEVEL_ERROR')
 	LOG_LEVEL.create('LOG_LEVEL_FATAL')
 
+	# Define constant string
+	LOG_STRING = LogRepo()
+	LOG_STRING.create('LOG_UNUSED_VARIABLE', LOG_LEVEL.LOG_LEVEL_WARNING, LOG_CATEGORY.CATEGORY_SYMBOL, 0, dict(
+			en_US = 'Undefined variable $ID(string) is used, $ID(string) should not be used',
+			zh_TW = '$ID(string) 未被使用，$ID(string) 不應該被用'
+			))
+	LOG_STRING.create('LOG_UNDEFINED_VARIABLE', LOG_LEVEL.LOG_LEVEL_ERROR, LOG_CATEGORY.CATEGORY_SYMBOL, 0, dict(
+			en_US = 'Undefined variable $ID(string) in $FILE(string) in $LINE(uint32)',
+			zh_TW = '變數 $ID(string) 在 $FILE(string) 中第 $LINE(uint32) 行未被定義'
+			))
+
 	# Define log string attributes
-	attribute_table = {
-		LOG_STRING.LOG_UNUSED_VARIABLE: (LOG_LEVEL.LOG_LEVEL_WARNING, LOG_CATEGORY.CATEGORY_SYMBOL, 0, LOG_STRING.LOG_UNUSED_VARIABLE),
-		LOG_STRING.LOG_UNDEFINED_VARIABLE: (LOG_LEVEL.LOG_LEVEL_ERROR, LOG_CATEGORY.CATEGORY_SYMBOL, 0, LOG_STRING.LOG_UNDEFINED_VARIABLE),
-		}
+	attribute_table = LOG_STRING.attribute_table
 
 	# Define translation table
 	# Note: the parameter format is $VARIABLE(c++type), and do not have any space in it
-	translation_table = {
-		LOG_STRING.LOG_UNUSED_VARIABLE: {
-			'en_US': 'Undefined variable $ID(string) is used, $ID(string) should not be used',
-			'zh_TW': '$ID(string) 未被使用，$ID(string) 不應該被用'
-			},
-		LOG_STRING.LOG_UNDEFINED_VARIABLE: {
-			'en_US': 'Undefined variable $ID(string) in $FILE(string) in $LINE(uint32)',
-			'zh_TW': '變數 $ID(string) 在 $FILE(string) 中第 $LINE(uint32) 行未被定義'
-			},
-	 	}
+	translation_table = LOG_STRING.translation_table
 
 	]]]*/
 	//[[[end]]]
