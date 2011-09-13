@@ -157,7 +157,6 @@ ASTNode* createFailSample()
 							std::map<std::wstring, std::wstring> m;
 							m[L"id"] = L"mCount";
 							m[L"type"] = L"int";
-							m[L"extra_fail_key"] = L"extra_fail_value";
 							auto errorContext = new zillians::language::stage::LogInfoContext(L"warning", L"undeclared_variable", m);
 
 							ExpressionStmt* stmt = new ExpressionStmt(new BinaryExpr(BinaryExpr::OpCode::ASSIGN, new PrimaryExpr(new SimpleIdentifier(L"undeclared_variable_name")), new PrimaryExpr(new SimpleIdentifier(L"b"))));
@@ -176,7 +175,7 @@ ASTNode* createFailSample()
 
 BOOST_AUTO_TEST_CASE( ThorScriptTreeTest_StaticTestVerificationStageVisitorTestCase1 )
 {
-	StaticTestVerificationStageVisitor checker;
+	zillians::language::stage::visitor::StaticTestVerificationStageVisitor checker;
 	ASTNode* okProgram = createOKSample();
 	checker.check(*okProgram);
 	BOOST_CHECK(checker.isAllMatch());

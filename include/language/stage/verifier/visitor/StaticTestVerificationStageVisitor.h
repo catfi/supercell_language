@@ -36,7 +36,7 @@ using zillians::language::tree::visitor::GenericDoubleVisitor;
 
 namespace zillians { namespace language { namespace stage { namespace visitor {
 
-struct StaticTestVerificationStageVisitor : public GenericDoubleVisitor
+struct StaticTestVerificationStageVisitor : public zillians::language::tree::visitor::GenericDoubleVisitor
 {
 	CREATE_INVOKER(errorMessageAnnotationCheckInvoker, check);
 
@@ -50,12 +50,12 @@ struct StaticTestVerificationStageVisitor : public GenericDoubleVisitor
 		return mAllMatch;
 	}
 
-	void check(ASTNode& node)
+	void check(zillians::language::tree::ASTNode& node)
 	{
 		revisit(node);
 	}
 
-	void check(Annotation& node)
+	void check(zillians::language::tree::Annotation& node)
 	{
 		using zillians::language::stage::LogInfoContext ;
 		if (node.name->name == L"static_test")
@@ -82,8 +82,9 @@ struct StaticTestVerificationStageVisitor : public GenericDoubleVisitor
 	}
 
 private:
-	zillians::language::stage::LogInfoContext constructErrorContextFromAnnotation(Annotation& node)
+	zillians::language::stage::LogInfoContext constructErrorContextFromAnnotation(zillians::language::tree::Annotation& node)
 	{
+		using namespace zillians::language::tree;
 		using zillians::language::tree::cast;
 		//zillians::language::stage::LogInfoContext result;
 		BOOST_ASSERT(node.attribute_list.size() == 1);

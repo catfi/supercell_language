@@ -1,6 +1,6 @@
 /**
  * Zillians MMO
- * Copyright (C) 2007-2010 Zillians.com, Inc.
+ * Copyright (C) 2007-2011 Zillians.com, Inc.
  * For more information see http://www.zillians.com
  *
  * Zillians MMO is the library and runtime for massive multiplayer online game
@@ -16,81 +16,46 @@
  * AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-/**
- * @date Aug 5, 2011 sdk - Initial version created.
- */
 
-#ifndef ZILLIANS_LANGUAGE_TREE_VISITOR_STAGE0_STRUCTUREVERIFICATIONVISITOR_H_
-#define ZILLIANS_LANGUAGE_TREE_VISITOR_STAGE0_STRUCTUREVERIFICATIONVISITOR_H_
+#ifndef ZILLIANS_LANGUAGE_TREE_VISITOR_STAGE1_SEMANTICVERIFICATIONVISITOR_H_
+#define ZILLIANS_LANGUAGE_TREE_VISITOR_STAGE1_SEMANTICVERIFICATIONVISITOR_H_
 
 #include "core/Prerequisite.h"
 #include "language/tree/visitor/general/GenericComposableVisitor.h"
 
-namespace zillians { namespace language { namespace tree { namespace visitor { namespace stage0 {
+namespace zillians { namespace language { namespace tree { namespace visitor { namespace stage1 {
 
 template<bool Composed = false>
-struct StructureVerificationVisitor : GenericDoubleVisitor
+struct SemanticVerificationVisitor : GenericDoubleVisitor
 {
 	CREATE_INVOKER(verifyInvoker, verify);
 
-	StructureVerificationVisitor()
+	SemanticVerificationVisitor() : passed(true)
 	{
 		REGISTER_ALL_VISITABLE_ASTNODE(verifyInvoker)
 	}
 
-	void verify(const ASTNode& node)
+	void verify(ASTNode& node)
 	{
 		if(!Composed)
 			revisit(node);
 	}
 
-	void verify(const Program& node)
+	void verify(TypeSpecifier& node)
 	{
-
-	}
-
-	void verify(const Package& node)
-	{
-	}
-
-	void verify(const Block& node)
-	{
-		if(node.is_async_block && node.is_pipelined_block)
+		if(node.type == TypeSpecifier::ReferredType::UNSPECIFIED)
 		{
-			// LOG ERROR HERE
+			unspecified_nodes.push_back(&node);
+			passed = false;
 		}
-		revisit(node);
+		if(!Composed)
+			revisit(node);
 	}
 
-	void verify(const Identifier& node)
-	{
-	}
-
-	void verify(const TemplatedIdentifier& node)
-	{
-	}
-
-	void verify(const NumericLiteral& node)
-	{
-	}
-
-	void verify(const StringLiteral& node)
-	{
-	}
-
-	void verify(const PrimaryExpr& node)
-	{
-	}
-
-	void verify(const UnaryExpr& node)
-	{
-	}
-
-	void verify(const BinaryExpr& node)
-	{
-	}
+	std::vector<ASTNode*> unspecified_nodes;
+	bool passed;
 };
 
 } } } } }
 
-#endif /* ZILLIANS_LANGUAGE_TREE_VISITOR_STAGE0_STRUCTUREVERIFICATIONVISITOR_H_ */
+#endif /* ZILLIANS_LANGUAGE_TREE_VISITOR_STAGE1_SEMANTICVERIFICATIONVISITOR_H_ */
