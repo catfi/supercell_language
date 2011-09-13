@@ -23,10 +23,30 @@
 #ifndef ZILLIANS_LANGUAGE_TREE_FUNCTIONDECL_H_
 #define ZILLIANS_LANGUAGE_TREE_FUNCTIONDECL_H_
 
+#include <boost/preprocessor.hpp>
 #include "language/tree/declaration/Declaration.h"
 #include "language/tree/basic/Identifier.h"
 #include "language/tree/basic/TypeSpecifier.h"
 #include "language/tree/basic/Block.h"
+
+namespace boost { namespace serialization {
+
+#define GENERATE_ELEMENT_SERIALIZE(z,which,unused) \
+    ar & boost::serialization::make_nvp("element",t.get< which >());
+
+#define GENERATE_TUPLE_SERIALIZE(z,nargs,unused)                        \
+    template< typename Archive, BOOST_PP_ENUM_PARAMS(nargs,typename T) > \
+    void serialize(Archive & ar,                                        \
+                   boost::tuple< BOOST_PP_ENUM_PARAMS(nargs,T) > & t,   \
+                   const unsigned int version)                          \
+    {                                                                   \
+      BOOST_PP_REPEAT_FROM_TO(0,nargs,GENERATE_ELEMENT_SERIALIZE,~);    \
+    }
+
+
+    BOOST_PP_REPEAT_FROM_TO(1,6,GENERATE_TUPLE_SERIALIZE,~);
+
+}}
 
 namespace zillians { namespace language { namespace tree {
 
@@ -35,23 +55,58 @@ struct FunctionDecl : public Declaration
 	DEFINE_VISITABLE();
 	DEFINE_HIERARCHY(FunctionDecl, (FunctionDecl)(Declaration)(ASTNode));
 
-	explicit FunctionDecl(Identifier* name, TypeSpecifier* type, bool is_member, Declaration::VisibilitySpecifier::type visibility, Declaration::StorageSpecifier::type storage, Block* block = NULL) : name(name), type(type), is_member(is_member), visibility(visibility), storage(storage), block( (block == NULL) ? new Block() : block )
+	explicit FunctionDecl(Identifier* name, TypeSpecifier* type, bool is_member, bool is_static, Declaration::VisibilitySpecifier::type visibility, Block* block = NULL) : name(name), type(type), is_member(is_member), is_static(is_static), visibility(visibility), block( (block == NULL) ? new Block() : block )
 	{
 		if(name) name->parent = this;
 		if(type) type->parent = this;
 		if(block) block->parent = this;
 	}
 
-	void appendParameter(SimpleIdentifier* name, TypeSpecifier* type = NULL)
+	void appendParameter(SimpleIdentifier* name, TypeSpecifier* type = NULL, ASTNode* initializer = NULL)
 	{
 		name->parent = this;
 		if(type) type->parent = this;
-		parameters.push_back(std::make_pair(name, type));
+		if(initializer) initializer->parent = this;
+		parameters.push_back(boost::make_tuple(name, type, initializer));
 	}
 
+    virtual bool isEqualImpl(const ASTNode& rhs, ASTNodeSet& visited) const
+    {
+        if(visited.count(this))
+        {
+            return true ;
+        }
+
+        const FunctionDecl* p = cast<const FunctionDecl>(&rhs);
+        if(p == NULL)
+        {
+            return false;
+        }
+
+        // compare base class
+        if(!Declaration::isEqualImpl(*p, visited))
+        {
+            return false;
+        }
+
+        // compare data member
+        if(!isASTNodeMemberEqual   (&FunctionDecl::name            , *this, *p, visited)) return false;
+        //if(!isPairVectorMemberEqual(&FunctionDecl::parameters      , *this, *p, visited)) return false;
+        if(!isASTNodeMemberEqual   (&FunctionDecl::type            , *this, *p, visited)) return false;
+        if(is_member  != p->is_member                                                   ) return false;
+        if(is_static  != p->is_static                                                   ) return false;
+        if(visibility != p->visibility                                                  ) return false;
+        if(!isASTNodeMemberEqual   (&FunctionDecl::block           , *this, *p, visited)) return false;
+
+        // add this to the visited table.
+        visited.insert(this);
+        return true;
+    }
+
     template<typename Archive>
-    void serialize(Archive& ar, const unsigned int version) {
-        ::boost::serialization::base_object<Declaration>(*this);
+    void serialize(Archive& ar, const unsigned int version)
+    {
+        boost::serialization::base_object<Declaration>(*this);
         //ar & name;
         ar & parameters;
         //ar & type;
@@ -62,25 +117,26 @@ struct FunctionDecl : public Declaration
     }
 
 	Identifier* name;
-	std::vector<std::pair<SimpleIdentifier*, TypeSpecifier*>> parameters;
+	std::vector<boost::tuple<SimpleIdentifier*, TypeSpecifier*, ASTNode*>> parameters;
 	TypeSpecifier* type;
 	bool is_member;
+	bool is_static;
 	Declaration::VisibilitySpecifier::type visibility;
-	Declaration::StorageSpecifier::type storage;
 	Block* block;
 };
 
 } } }
 
 namespace boost { namespace serialization {
+
 template<class Archive>
 inline void save_construct_data(Archive& ar, const zillians::language::tree::FunctionDecl* p, const unsigned int file_version)
 {
 	ar << p->name;
     ar << p->type;
     ar << p->is_member;
+    ar << p->is_static;
     ar << p->visibility;
-    ar << p->storage;
     ar << p->block;
 }
 
@@ -92,19 +148,20 @@ inline void load_construct_data(Archive& ar, zillians::language::tree::FunctionD
 	Identifier* name;
     TypeSpecifier* type;
     bool is_member;
+    bool is_static;
     Declaration::VisibilitySpecifier::type visibility;
-    Declaration::StorageSpecifier::type storage;
     Block* block;
 
 	ar >> name;
     ar >> type;
     ar >> is_member;
+    ar >> is_static;
     ar >> visibility;
-    ar >> storage;
     ar >> block;
 
-	::new(p) FunctionDecl(name, type, is_member, visibility, storage, block);
+	::new(p) FunctionDecl(name, type, is_member, is_static, visibility, block);
 }
-}} // namespace boost::serialization
+
+} } // namespace boost::serialization
 
 #endif /* ZILLIANS_LANGUAGE_TREE_FUNCTIONDECL_H_ */

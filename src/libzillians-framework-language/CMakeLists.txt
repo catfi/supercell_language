@@ -19,15 +19,16 @@
 # Contact Information: info@zillians.com
 #
 
-include_directories(
-    ${PROJECT_COMMON_SOURCE_DIR}/include/
+INCLUDE(UsingCog)
+
+include_directories( ${PROJECT_COMMON_SOURCE_DIR}/include/
     ${PROJECT_FRAMEWORK_SOURCE_DIR}/include/
     )
 
 add_library(zillians-framework-language
     language/context/ConfigurationContext.cpp
     language/context/ParserContext.cpp
-    language/logging/Logger.cpp
+    language/logging/LoggingManager.cpp
     language/stage/StageConductor.cpp
     language/stage/basic/TreeDebugStage.cpp
     language/stage/parser/ThorScriptParserStage.cpp
@@ -37,7 +38,27 @@ add_library(zillians-framework-language
     language/stage/transformer/TypeInferenceStage.cpp
     language/stage/verifier/SemanticVerificationStage0.cpp
     language/stage/verifier/SemanticVerificationStage1.cpp
+	language/stage/verifier/StaticTestVerificationStage.cpp
 	)
+
+set(StringTablePath ${PROJECT_FRAMEWORK_SOURCE_DIR}/include/language/logging)
+
+# Generate StringTable.h
+#add_custom_command(OUTPUT ${StringTablePath}/StringTable.h
+#	COMMAND cog.py -d -o ${StringTablePath}/StringTable.h ${StringTablePath}/StringTable.cog
+#	DEPENDS ${StringTablePath}/StringTable.cog
+#	COMMENT "Generate StringTable.h by using cog.py"
+#	)
+
+SET(out_files "")
+COG_GEN(
+    OUTPUT out_files
+    COG_FILE ${StringTablePath}/StringTable.cog
+    COMMENT "cog.py -- Generating StringTable.h from StringTable.cog .."
+    )
+
+add_custom_target(generate-string-table ALL echo DEPENDS ${out_files} COMMENT "generate-string-table depends on StringTable.h")
+add_dependencies(zillians-framework-language generate-string-table)
 
 if(LLVM_FOUND)
     add_definitions( ${LLVM_CPPFLAGS} )
@@ -68,3 +89,5 @@ else()
         zillians-common-utility
         )
 endif()
+
+

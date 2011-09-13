@@ -127,24 +127,6 @@ struct type_list_specifier
 	END_ACTION
 };
 
-struct storage_specifier
-{
-	DEFINE_ATTRIBUTES(Declaration::StorageSpecifier::type)
-	DEFINE_LOCALS()
-
-	BEGIN_ACTION(init_static)
-	{
-		_result = Declaration::StorageSpecifier::STATIC;
-	}
-	END_ACTION
-
-	BEGIN_ACTION(init_const)
-	{
-		_result = Declaration::StorageSpecifier::CONST;
-	}
-	END_ACTION
-};
-
 struct visibility_specifier
 {
 	DEFINE_ATTRIBUTES(Declaration::VisibilitySpecifier::type)
@@ -197,15 +179,44 @@ struct annotation_specifier
 		printf("annotation_specifier::init param(0) type = %s\n", typeid(_param_t(0)).name());
 		printf("annotation_specifier::init param(1) type = %s\n", typeid(_param_t(1)).name());
 #endif
-		BIND_CACHED_LOCATION(_result = new Annotation(_param(0)));
-		if(_param(1).is_initialized())
-			deduced_foreach_value(i, *_param(1))
+		SimpleIdentifier* name = _param(0);
+		if(!_param(1).is_initialized())
+			BIND_CACHED_LOCATION(_result = new Annotation(name)) // NOTE: do not add semicolon
+		else
+		{
+			_result = *_param(1);
+			_result->name = name;
+		}
+	}
+	END_ACTION
+};
+
+struct annotation_specifier_stem
+{
+	DEFINE_ATTRIBUTES(Annotation*)
+	DEFINE_LOCALS(LOCATION_TYPE)
+
+	BEGIN_ACTION(init)
+	{
+#ifdef DEBUG
+		printf("annotation_specifier_stem::init param(0) type = %s\n", typeid(_param_t(0)).name());
+#endif
+		BIND_CACHED_LOCATION(_result = new Annotation(NULL));
+		deduced_foreach_value(i, _param(0))
+		{
+			SimpleIdentifier* key = boost::fusion::at_c<0>(i);
+			ASTNode* value = NULL;
+			switch(boost::fusion::at_c<1>(i).which())
 			{
-				typedef boost::fusion::vector2<SimpleIdentifier*, Expression*> fusion_vec_t;
-				SimpleIdentifier* key   = boost::fusion::at_c<0>(i);
-				Expression*       value = boost::fusion::at_c<1>(i);
-				_result->appendKeyValue(key, value);
+			case 0:
+				value = boost::get<Expression*>(boost::fusion::at_c<1>(i));
+				break;
+			case 1:
+				value = boost::get<Annotation*>(boost::fusion::at_c<1>(i));
+				break;
 			}
+			_result->appendKeyValue(key, value);
+		}
 	}
 	END_ACTION
 };

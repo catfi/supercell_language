@@ -150,10 +150,9 @@ struct primary_expression
 		typed_parameter_list::value_t*         parameters = _param(0).is_initialized() ? (*_param(0)).get() : NULL;
 		TypeSpecifier*                         type       = _param(1).is_initialized() ? *_param(1) : NULL;
 		Declaration::VisibilitySpecifier::type visibility = Declaration::VisibilitySpecifier::PUBLIC;
-		Declaration::StorageSpecifier::type    storage    = Declaration::StorageSpecifier::NONE;
 		bool                                   is_member  = false;
 		FunctionDecl* function_decl =
-				new FunctionDecl(NULL, type, is_member, visibility, storage, _param(2)); BIND_CACHED_LOCATION(function_decl);
+				new FunctionDecl(NULL, type, is_member, false, visibility, _param(2)); BIND_CACHED_LOCATION(function_decl);
 		if(!!parameters)
 			deduced_foreach_value(i, *parameters)
 				function_decl->appendParameter(i.first, i.second);

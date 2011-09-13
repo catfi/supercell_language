@@ -27,7 +27,7 @@
 #include "core/ContextHub.h"
 #include "core/Visitor.h"
 #include "language/tree/GarbageCollector.h"
-#include "language/logging/Logger.h"
+#include "language/logging/LoggingManager.h"
 #include <boost/preprocessor.hpp>
 #include <boost/archive/text_oarchive.hpp>
 #include <boost/archive/text_iarchive.hpp>
@@ -40,7 +40,7 @@
 	{ \
 		return (int)ASTNodeType::ASTNode; \
 	} \
-	virtual bool checkType(int type) = 0;
+	virtual bool checkType(int type) const = 0;
 
 #define DEFINE_HIERARCHY_STATIC_IMPL(r, data, i, elem)	\
     BOOST_PP_IIF(BOOST_PP_EQUAL(i, 0), BOOST_PP_EMPTY(), ||)              \
@@ -55,10 +55,27 @@
 	{ \
 		return (int)ASTNodeType::self; \
 	} \
-	virtual bool checkType(int type) \
+	virtual bool checkType(int type) const\
 	{ \
 		return ((BOOST_PP_SEQ_FOR_EACH_I(DEFINE_HIERARCHY_DYNAMIC_IMPL, _, hierarchy))) ? true : false; \
 	}
+
+namespace zillians { namespace language { namespace tree {
+
+struct ASTNode;
+
+} } }
+
+namespace __gnu_cxx {
+    template<>
+    struct hash<const zillians::language::tree::ASTNode*>
+    {
+        size_t operator() (const zillians::language::tree::ASTNode* p) const
+        {
+            return reinterpret_cast<size_t>(p);
+        }
+    } ;
+}
 
 namespace zillians { namespace language { namespace tree {
 
@@ -161,13 +178,158 @@ struct ASTNode : public VisitableBase<ASTNode>, ContextHub<ContextOwnership::tra
 	DEFINE_VISITABLE();
 	DEFINE_HIERARCHY_BASE();
 
-	ASTNode() : parent(NULL)
-	{
-		GarbageCollector<const ASTNode>::instance()->add(this);
-	}
+public:
+    typedef __gnu_cxx::hash_set<const ASTNode*> ASTNodeSet;
 
+    /**
+     * @brief Compare is AST equal.
+     * @param rhs Another AST to be compared with.
+     * @return @p true if two AST are value-sementically equal, @p false if not.
+     */
+    bool isEqual(const ASTNode& rhs) const {
+    	ASTNodeSet visited;
+    	return isEqualImpl(rhs, visited);
+    }
+
+    virtual bool isEqualImpl(const ASTNode& rhs, ASTNodeSet& visited) const = 0 ;
+
+    /**
+     * @brief Compare is two ASTNode* is equal value-semantically.
+     * @return @p true if two ASTNode* are value-sementically equal, @p false if not.
+     *
+     * If both pointers are @p NULL, return @p true.
+     * If one is @p NULL, another is not, return @p false.
+     * if both are not @p NULL, return the value-semantically compare result.
+     */
+    static bool isASTNodePointerEqual(const ASTNode* lhs, const ASTNode* rhs, ASTNodeSet& visited)
+    {
+        if(lhs == NULL && rhs == NULL)
+        {
+            return true;
+        }
+        if(lhs == NULL)
+        {
+            return false;
+        }
+        if(rhs == NULL)
+        {
+            return false;
+        }
+        return lhs->isEqualImpl(*rhs, visited);
+    }
+
+    /**
+     * @brief Compare is two ASTNode data member equal.
+     * @param dataMember The data member to be compared.
+     * @param lhs Left hand side object to get the @p dataMember.
+     * @param rhs Right hand side object to get the @p dataMember.
+     * @param visited Recording the compared ASTNode, prevent infinite resursive compare.
+     * @return @p true if two ASTNode::*member are value-sementically equal, @p false if not.
+     */
+    template<typename ASTMember, typename T>
+    static bool isASTNodeMemberEqual(ASTMember dataMember, const T& lhs, const T& rhs, ASTNodeSet& visited)
+    {
+        return isASTNodePointerEqual(lhs.*dataMember, rhs.*dataMember, visited);
+    }
+
+    /**
+     * @brief Compare is two std::vector<ASTNode*> data member equal.
+     * @param dataMember The data member to be compared.
+     * @param lhs Left hand side object to get the @p vec.
+     * @param rhs Right hand side object to get the @p vec.
+     * @param visited Recording the compared ASTNode, prevent infinite resursive compare.
+     * @return @p true if two vectors are value-sementically equal, @p false if not.
+     */
+    template<typename VectorMember, typename T>
+    static bool isVectorMemberEqual(VectorMember vec, const T& lhs, const T& rhs, ASTNodeSet& visited)
+    {
+        auto& leftVec = lhs.*vec ;
+        auto& rightVec = rhs.*vec ;
+        if(leftVec.size() != rightVec.size())
+        {
+            return false;
+        }
+        for(size_t i = 0; i < leftVec.size(); ++i)
+        {
+            if(!isASTNodePointerEqual(leftVec[i], rightVec[i], visited))
+            {
+                return false;
+            }
+        }
+        return true ;
+    }
+
+    /**
+     * @brief Compare is two std::vector<std::pair<ASTNode*, ASTNode*>> data member equal.
+     * @param dataMember The data member to be compared.
+     * @param lhs Left hand side object to get the @p pairVec.
+     * @param rhs Right hand side object to get the @p pairVec.
+     * @param visited Recording the compared ASTNode, prevent infinite resursive compare.
+     * @return @p true if two vectors are value-sementically equal, @p false if not.
+     */
+    template<typename PairVectorMember, typename T>
+    static bool isPairVectorMemberEqual(PairVectorMember pairVec, const T& lhs, const T& rhs, ASTNodeSet& visited)
+    {
+        auto& leftVec = lhs.*pairVec ;
+        auto& rightVec = rhs.*pairVec ;
+        if(leftVec.size() != rightVec.size())
+        {
+            return false;
+        }
+        for(size_t i = 0; i < leftVec.size(); ++i)
+        {
+            if(!isASTNodePointerEqual(leftVec[i].first, rightVec[i].first, visited))
+            {
+                return false;
+            }
+            if(!isASTNodePointerEqual(leftVec[i].second, rightVec[i].second, visited))
+            {
+                return false;
+            }
+        }
+        return true ;
+    }
+
+    /**
+     * @brief Compare is two std::vector<boost::tuple<ASTNode*, ASTNode*, ASTNode*>> data member equal.
+     * @param dataMember The data member to be compared.
+     * @param lhs Left hand side object to get the @p pairVec.
+     * @param rhs Right hand side object to get the @p pairVec.
+     * @param visited Recording the compared ASTNode, prevent infinite resursive compare.
+     * @return @p true if two vectors are value-sementically equal, @p false if not.
+     */
+    template<typename TupleVectorMember, typename T>
+    static bool isTupleVectorMemberEqual(TupleVectorMember pairVec, const T& lhs, const T& rhs, ASTNodeSet& visited)
+    {
+        auto& leftVec = lhs.*pairVec ;
+        auto& rightVec = rhs.*pairVec ;
+        if(leftVec.size() != rightVec.size())
+        {
+            return false;
+        }
+
+        for(size_t i = 0; i < leftVec.size(); ++i)
+        {
+			if(!isASTNodePointerEqual(leftVec[i].get<0>(), rightVec[i].get<0>(), visited))
+			{
+				return false;
+			}
+			if(!isASTNodePointerEqual(leftVec[i].get<1>(), rightVec[i].get<1>(), visited))
+			{
+				return false;
+			}
+			if(!isASTNodePointerEqual(leftVec[i].get<2>(), rightVec[i].get<2>(), visited))
+			{
+				return false;
+			}
+        }
+
+        return true ;
+    }
+public:
     template<typename Archive>
-    void serialize(Archive& ar, const unsigned int version) {
+    void serialize(Archive& ar, const unsigned int version)
+    {
     	// TODO: serialize ContextHub.
     	//
     	// Currently the ContextHub can not be serialized because of the lackness of type information
@@ -177,6 +339,13 @@ struct ASTNode : public VisitableBase<ASTNode>, ContextHub<ContextOwnership::tra
         ar & parent;
     }
 
+protected:
+	ASTNode() : parent(NULL)
+	{
+		GarbageCollector<const ASTNode>::instance()->add(this);
+	}
+
+public:
 	ASTNode* parent;
 };
 

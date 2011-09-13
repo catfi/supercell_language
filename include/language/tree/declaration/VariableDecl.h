@@ -34,7 +34,7 @@ struct VariableDecl : public Declaration
 	DEFINE_VISITABLE();
 	DEFINE_HIERARCHY(VariableDecl, (VariableDecl)(Declaration)(ASTNode));
 
-	explicit VariableDecl(Identifier* name, TypeSpecifier* type, bool is_member, Declaration::VisibilitySpecifier::type visibility, Declaration::StorageSpecifier::type storage, ASTNode* initializer = NULL) : name(name), type(type), is_member(is_member), visibility(visibility), storage(storage), initializer(initializer)
+	explicit VariableDecl(Identifier* name, TypeSpecifier* type, bool is_member, bool is_static, bool is_const, Declaration::VisibilitySpecifier::type visibility, ASTNode* initializer = NULL) : name(name), type(type), is_member(is_member), is_static(is_static), is_const(is_const), visibility(visibility), initializer(initializer)
 	{
 		BOOST_ASSERT(name && "null variable name is not allowed");
 
@@ -43,30 +43,74 @@ struct VariableDecl : public Declaration
 		if(initializer) initializer->parent = this;
 	}
 
+	void setInitializer(ASTNode* init)
+	{
+		if(initializer) initializer->parent = NULL;
+		initializer = init;
+		if(initializer) initializer->parent = this;
+	}
+
+    virtual bool isEqualImpl(const ASTNode& rhs, ASTNodeSet& visited) const
+    {
+        if(visited.count(this))
+        {
+            return true ;
+        }
+
+        const VariableDecl* p = cast<const VariableDecl>(&rhs);
+        if(p == NULL)
+        {
+            return false;
+        }
+
+        // compare base class
+        if(!Declaration::isEqualImpl(*p, visited))
+        {
+            return false;
+        }
+
+        // compare data member
+        if(!isASTNodeMemberEqual   (&VariableDecl::name            , *this, *p, visited)) return false;
+        if(!isASTNodeMemberEqual   (&VariableDecl::type            , *this, *p, visited)) return false;
+        if(is_member  != p->is_member                                                   ) return false;
+        if(is_static  != p->is_static                                                   ) return false;
+        if(is_const   != p->is_const                                                    ) return false;
+        if(visibility != p->visibility                                                  ) return false;
+        if(!isASTNodeMemberEqual   (&VariableDecl::initializer     , *this, *p, visited)) return false;
+
+        // add this to the visited table.
+        visited.insert(this);
+        return true;
+    }
+
     template<typename Archive>
-    void serialize(Archive& ar, const unsigned int version) {
-        ::boost::serialization::base_object<Declaration>(*this);
+    void serialize(Archive& ar, const unsigned int version)
+    {
+        boost::serialization::base_object<Declaration>(*this);
     }
 
 	Identifier* name;
 	TypeSpecifier* type;
 	bool is_member;
+	bool is_static;
+	bool is_const;
 	Declaration::VisibilitySpecifier::type visibility;
-	Declaration::StorageSpecifier::type storage;
 	ASTNode* initializer;
 };
 
 } } }
 
 namespace boost { namespace serialization {
+
 template<class Archive>
 inline void save_construct_data(Archive& ar, const zillians::language::tree::VariableDecl* p, const unsigned int file_version)
 {
 	ar << p->name;
     ar << p->type;
     ar << p->is_member;
+    ar << p->is_static;
+    ar << p->is_const;
     ar << p->visibility;
-    ar << p->storage;
     ar << p->initializer;
 }
 
@@ -78,19 +122,22 @@ inline void load_construct_data(Archive& ar, zillians::language::tree::VariableD
 	Identifier* name;
 	TypeSpecifier* type;
 	bool is_member;
+	bool is_static;
+	bool is_const;
 	Declaration::VisibilitySpecifier::type visibility;
-	Declaration::StorageSpecifier::type storage;
 	ASTNode* initializer;
 
 	ar >> name;
     ar >> type;
     ar >> is_member;
+    ar >> is_static;
+    ar >> is_const;
     ar >> visibility;
-    ar >> storage;
     ar >> initializer;
 
-	::new(p) VariableDecl(name, type, is_member, visibility, storage, initializer);
+	::new(p) VariableDecl(name, type, is_member, is_static, is_const, visibility, initializer);
 }
-}} // namespace boost::serialization
+
+} } // namespace boost::serialization
 
 #endif /* ZILLIANS_LANGUAGE_TREE_VARIABLEDECL_H_ */

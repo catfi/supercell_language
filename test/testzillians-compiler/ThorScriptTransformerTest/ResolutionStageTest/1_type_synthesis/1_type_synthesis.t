@@ -14,6 +14,7 @@ function f1(x:uint64, y:uint64):uint64
 
 function main():void
 {
+	/*
 	var x:uint64 = 10;
 	var y:uint64 = 20;
 	var z:uint64 = f1(x, y);
@@ -34,9 +35,11 @@ function main():void
 	{
 	   --x;
 	}
-	x = (x > 0) ? x+1 : x+2;
+	x = (x > 0) ? x : x;
+	*/
 	
-	
+	var x:uint64 = 10;
+	x = (x > 0) ? x : x;
 	return;
 	//compiler_test.f1(x,y);
 	//zillians.compiler_test.f1(x,y);

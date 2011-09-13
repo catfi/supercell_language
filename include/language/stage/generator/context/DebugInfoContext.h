@@ -56,6 +56,11 @@ struct DebugInfoContext
 		compile_unit(compile_unit), file(file), context(context)
 	{}
 
+	DebugInfoContext(DebugInfoContext& dbg_context)
+	{
+		*this = dbg_context;
+	}
+
 	static DebugInfoContext* get(tree::ASTNode* node)
 	{
 		return node->get<DebugInfoContext>();

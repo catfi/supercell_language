@@ -35,18 +35,7 @@ struct statement
 		printf("statement param(0) type = %s\n", typeid(_param_t(0)).name());
 		printf("statement param(1) type = %s\n", typeid(_param_t(1)).name());
 #endif
-		switch(_param(1).which())
-		{
-		case 0:
-			{
-				Declaration* decl = boost::get<Declaration*>(_param(1));
-				BIND_CACHED_LOCATION(_result = new DeclarativeStmt(decl));
-			}
-			break;
-		case 1:
-			_result = boost::get<Statement*>(_param(1));
-			break;
-		}
+		_result = _param(1);
 		if(_param(0).is_initialized())
 			cast<Statement>(_result)->setAnnotation(*_param(0));
 	}
@@ -58,6 +47,24 @@ struct statement
 		printf("statement::init_block param(0) type = %s\n", typeid(_param_t(0)).name());
 #endif
 		_result = _param(0);
+	}
+	END_ACTION
+};
+
+struct decl_statement
+{
+	DEFINE_ATTRIBUTES(Statement*)
+	DEFINE_LOCALS(LOCATION_TYPE)
+
+	BEGIN_ACTION(init)
+	{
+#ifdef DEBUG
+		printf("expression_statement param(0) type = %s\n", typeid(_param_t(0)).name());
+		printf("expression_statement param(1) type = %s\n", typeid(_param_t(1)).name());
+#endif
+		VariableDecl* decl = dynamic_cast<VariableDecl*>(_param(1));
+		decl->is_static = _param(0).is_initialized();
+		BIND_CACHED_LOCATION(_result = new DeclarativeStmt(decl));
 	}
 	END_ACTION
 };

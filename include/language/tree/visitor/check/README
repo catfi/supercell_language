@@ -1,86 +1,162 @@
-Semantic Check List
+SEMANTIC CHECK CHECKLIST
 
-// For "interface"
-- All methods in interface should have no member scope specifier
-- All methods in interface can have no function body
-- All types must be explicitly specified for member function in interface
+ERRORS:
 
-// For all templated identifier
-- There should be a limit on the many templated parameters allowed in a single templated identifier
+    E1. UNDEFINED NAME (V)
+    E2. NAME COLLISION
+        a. DUPLICATE DEFINE/DECLARE (J) (S0)
+        b. AMBIGUOUS REFERENCE (V)
+    E3. INCOMPATIBLE TYPE
+        a. CAST FAIL (SDK)
+            I.   EXPRESSION WITH INVALID OPERANDS (INCL. ASSIGN FAIL) (SDK)
+            II.  STATEMENT WITH INVALID ARGUMENTS (INCL. NON-BOOL USED AS CONDITION) (SDK)
+            III. DECLARATION WITH INVALID ARGUMENTS (SDK)
+        b. NON-EXIST SUBSCRIPT (J) (S1)
+        c. FUNCTION
+            I.   CALL NON-FUNCTION (J) (S1)
+            II.  CALL FUNCTION WITH WRONG ARGUMENT COUNT/TYPE (J) (S1)
+            III. RETURN STATEMENT WITH WRONG ARGUMENT COUNT/TYPE (INCL. MISSING RETURN STATEMENT) (J) (S1)
+    E4. MODIFIER POLICY VIOLATION
+        a. STORAGE VIOLATION
+            I. CONST-RELATED
+                i.  MODIFY CONST (J) (S1)
+                ii. ASSIGN NON-CONST EXPRESSION TO CONST (J) (S1)
+            II. STATIC-RELATED
+                i.   CALL NON-STATIC FUNCTION WITHOUT INSTANCE (J) (S1)
+                ii.  CALL STATIC FUNCTION WITH INSTANCE (J) (S1)
+                iii. NON-STATIC VAR ACCESSED IN STATIC FUNCTION (J) (S1)
+        b. VISIBILITY VIOLATION (J) (S1)
+    E5. BREAK/CONTINUE NOT INSIDE ITERATION (J) (S0)
+    E6. VARIABLE
+        a. GLOBAL/MEMBER INITIALIZATION LIST SHOULD BE CONST
+        b. PARAMETER
+            I.  NON-OPTIONAL PARAMETER CANNOT APPEAR AFTER OPTIONAL PARAMETER (J) (S0)
+            II. VARIADIC PARAMETER NOT LAST PARAMETER (J) (S0)
+    E7. LANGUAGE LIMIT VIOLATION
+    	a. FUNCTION CALL PARAMETER COUNT LIMIT (J) (S0)
+    	b. TEMPLATE PARAMETER COUNT LIMIT (EITHER DECLARATION OR SPECIALIZATION) (J) (S0)
 
-// For all global variables
-- The initializer must be constant expression (or can be deduced as constant expression)
+WARNINGS:
 
-// For all local variables in function scope
-- The constant variable cannot be modified once it's set in the initializer
+    W1. CONDITION
+        a. CONST EXPRESSION USED AS CONDITION (NO_WARN)
+        b. UNINITIALIZED VAR USED AS CONDITION (J) (S2)
+    W2. CODE PATH
+        a. UNUSED DEFINE/DECLARE (J) (S2)
+        b. DEAD CODE NEVER EXECUTES (NOTE: ALWAYS BRANCH BEFORE THIS LINE) (J) (S0)
+        c. NOT ALL CODE PATHS RETURN A VALUE (J) (S0)
+        d. CODE EXECUTES, BUT HAS NO USEFUL EFFECT (J) (S2)
+        e. NOT ALL ENUM VALUES COVERED BY SWITCH CASES (INCL. MISSING DEFAULT) (J) (S1)
+    W3. MISC
+        b. DECLARATION SHADOWS OTHER DECLARATION IN OUTTER SCOPE (X)
+        c. RECURSIVE CALL ALWAYS REACHABLE FROM FUNCTION START (J) (S?)
 
-// For all member variable in class scope
-- The static variables is just like global variable except it's within class scope
-- The variable name must not conflict with the class name or member function name
-- The variable names must not conflict with each other
+/////////////////////////////////////////////////////////////////////
+/// BASIC
+/////////////////////////////////////////////////////////////////////
 
-// For all templated identifier
-- No parameter name conflict is allowed
-- The "..." type is only allowed once at the end of template parameter list
-- The "..." type is not allowed when the AST is processed and transformed. It should be expanded.
+// templated identifier
+    (E2.a) - No parameter name conflict is allowed
+    () - The "..." type is only allowed once at the end of template parameter list
+    (E1) - The "..." type is not allowed when the AST is processed and transformed. It should be expanded.
+    (E7) - There should be a limit on the many templated parameters allowed in a single templated identifier
 
-// For all member function in either interface or class or local scope
-- The function parameters must be fully resolved
-- Except member function in interface, function must have body block (local anonymous function must be renamed beforehand)
-- The function name cannot conflict with other function unless they have different parameter signature (name resolving conflict)
-- There should be a limit on the many parameters allowed in a single function
+// annotations
+    () - If there's no custom annotation..
 
-// For all package
-- the package name should not conflict with its parent and sibling
+/////////////////////////////////////////////////////////////////////
+/// EXPRESSION
+/////////////////////////////////////////////////////////////////////
 
-// For function
-- If the function has non-void return type, check if all paths have return value (and are of the same type)
-- If the function has void return type, then there's no return (BranchStmt) allowed in the tree
+// unary expression
+    (E3.a.I) - Check whether the type can be applied with specific unary operation (for example, ~ or ! cannot be used with floating number)
 
-// For class declaration
-- The class name cannot conflict with other class (name resolving conflict)
-- The identifiers for interface implementation must refer to an interface
-- There can be more than one new function (constructor overload) as long as they have different parameter signature
-- There should be a limit on how many member variables allowed in a single class
+// binary expression 
+    (E3.a.I) - Check the type compatibility between LHS and RHS
+    (E1) - All expression must be fully resolved
 
-// For enum declaration
-- The identifiers must not conflict with each other
-- The initialization list must be constant (just like global variable) and of integral type
+// ternary expression
+    (E3.a.I) - Check the type compatibility between LHS and RHS
 
-// For typedef declaration
-- The "from" node must refer to a type, and the "to" node must be an simple identifier 
+// call expression
+    (E3.a.I) - Check whether the node is callable
+    (E4.a.II.i) - If the callee is a MemberExpr and the RHS is resolved to a non-static member function, we need to check if the LHS is a variable of that instance
+    (E4.a.II.ii) - If the callee is s MemberExpr and the RHS is resolved to a static member function, we just need to check the type of LHS
 
-// For if/elseif/else statement
-- The condition expression must be able to cast into a boolean variable (and insert cast operation when necessary)
-- The both if and elseif Selection must have non-null condition 
+// cast expression
+    (E3.a) - Check whether the node is convertible to the desired type
 
-// For foreach statement
-- the range expression must be an instance of Range<T> type
-- the iterator must be a variable declaration or a primary expression resolved to a symbol
+/////////////////////////////////////////////////////////////////////
+/// STATEMENT
+/////////////////////////////////////////////////////////////////////
 
-// For switch statement
-- If the condition is a variable resolved to EnumDecl type, all cases must be covered or there's default case, otherwise generate a warning for it
+    /////////////////////////////////////////////////////////////////////
+    /// SELECTION STATEMENT
+    /////////////////////////////////////////////////////////////////////
 
-// For while/do-while statement
-- If the condition can be evaluated as constant expression and its value is always true and there's no break in the while/do-while block, generate infinite loop warning
+    // if/elseif/else statement
+        (E3.a.II) - The both if and elseif Selection must have non-null condition
+        (E3.a.I) - The condition expression must be able to cast into a boolean variable (and insert cast operation when necessary)
 
-// For annotations
-- If there's no custom annotation, 
+    // switch statement
+        (W2.e) - If the condition is a variable resolved to EnumDecl type, all cases must be covered or there's default case, otherwise generate a warning for it
 
-// For unary expression
-- Check whether the type can be applied with specific unary operation (for example, ~ or ! cannot be used with floating number)
+    /////////////////////////////////////////////////////////////////////
+    /// ITERATION STATEMENT
+    /////////////////////////////////////////////////////////////////////
 
-// For binary expression 
-- Check the type compatibility between LHS and RHS
-- All expression must be fully resolved 
+    // while/dowhile statement
+        (W1.a) - If the condition can be evaluated as constant expression and its value is always true and there's no break in the while/do-while block, generate infinite loop warning
 
-// For ternary expression
-- Check the type compatibility between LHS and RHS
+    // foreach statement
+        (E3.a.II) - The range expression must be an instance of Range<T> type
+        (E3.a.II) - The iterator must be a variable declaration or a primary expression resolved to a symbol
 
-// For call expression
-- Check whether the node is callable
-- If the callee is a MemberExpr and the RHS is resolved to a non-static member function, we need to check if the LHS is a variable of that instance
-- If the callee is s MemberExpr and the RHS is resolved to a static member function, we just need to check the type of LHS
+/////////////////////////////////////////////////////////////////////
+/// DECLARATION
+/////////////////////////////////////////////////////////////////////
 
-// For cast expression
-- Check whether the node is covertible to the desired type
+// global variable declaration
+    () - The initializer must be constant expression (or can be deduced as constant expression)
+
+// local variable declaration
+    (E4.a.I.i) - The constant variable cannot be modified once it's set in the initializer
+
+// function declaration
+    (W2.c) - If the function has non-void return type, check if all paths have return value (and are of the same type)
+    (E3.a.III) - If the function has void return type, then there's no return (BranchStmt) allowed in the tree
+
+// class declaration
+    (E2.a) - The class name cannot conflict with other class (name resolving conflict)
+    (E3.a.III) - The identifiers for interface implementation must refer to an interface
+    (E2.a) - There can be more than one new function (constructor overload) as long as they have different parameter signature
+    (E7) - There should be a limit on how many member variables allowed in a single class
+
+// class member variable declaration
+    (E2.a) - The variable name must not conflict with the class name or member function name
+    (E2.a) - The variable names must not conflict with each other
+
+// typedef declaration
+    (E3.a.III) - The "from" node must refer to a type, and the "to" node must be an simple identifier
+
+// enum declaration
+    (E2.a) - The identifiers must not conflict with each other
+    () - The initialization list must be constant (just like global variable) and of integral type
+
+// interface declaration
+    (E4.b) - All methods in interface should not have "private" member scope specifier
+    (PARSER) - All methods in interface should have no function body
+    (E1) - All types must be explicitly specified for member function in interface
+
+// class/interface member function declaration
+    (E1) - The function parameters must be fully resolved
+    () - Except member function in interface, function must have body block (local anonymous function must be renamed beforehand)
+    (E2.a) - The function name cannot conflict with other function unless they have different parameter signature (name resolving conflict)
+    (E7) - There should be a limit on the many parameters allowed in a single function
+
+/////////////////////////////////////////////////////////////////////
+/// MODULE
+/////////////////////////////////////////////////////////////////////
+
+// package
+    (E2.a) - The package name should not conflict with its parent and sibling

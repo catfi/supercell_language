@@ -35,7 +35,7 @@ struct Annotation : public ASTNode
 
 	Annotation(SimpleIdentifier* name) : name(name)
 	{
-		name->parent = this;
+		if(name) name->parent = this;
 	}
 
 	void appendKeyValue(SimpleIdentifier* key, ASTNode* value)
@@ -45,9 +45,43 @@ struct Annotation : public ASTNode
 		attribute_list.push_back(std::make_pair(key, value));
 	}
 
+    virtual bool isEqualImpl(const ASTNode& rhs, ASTNodeSet& visited) const
+    {
+        // if this node is compared already, return true directly, avoid infinite recursive comparing.
+        if(visited.count(this))
+        {
+            return true ;
+        }
+
+        // check type
+        const Annotation* p = cast<const Annotation>(&rhs);
+        if(p == NULL)
+        {
+            return false; 
+        }
+
+        // compare base class
+        // The base is ASTNode, no need to be compared.
+
+        // compare data member
+        if(!isASTNodeMemberEqual(&Annotation::name, *this, *p, visited))
+        {
+        	return false;
+        }
+        if(!isPairVectorMemberEqual(&Annotation::attribute_list, *this, *p, visited))
+        {
+        	return false;
+        }
+
+        // add this to the visited table.
+        visited.insert(this);
+        return true;
+    }
+
     template<typename Archive>
-    void serialize(Archive& ar, const unsigned int version) {
-        ::boost::serialization::base_object<ASTNode>(*this);
+    void serialize(Archive& ar, const unsigned int version)
+    {
+        boost::serialization::base_object<ASTNode>(*this);
         // NOTE: name is serialized in save_construct_data() function
         // see http://www.boost.org/doc/libs/1_47_0/libs/serialization/doc/serialization.html#constructors
         //ar & name;
@@ -55,7 +89,7 @@ struct Annotation : public ASTNode
     }
 
 	SimpleIdentifier* name;
-	std::vector<std::pair<ASTNode*/*key*/, ASTNode*/*value*/>> attribute_list;
+	std::vector<std::pair<SimpleIdentifier*/*key*/, ASTNode*/*value*/>> attribute_list;
 };
 
 struct Annotations : public ASTNode
@@ -69,9 +103,37 @@ struct Annotations : public ASTNode
 		annotation_list.push_back(annotation);
 	}
 
+    virtual bool isEqualImpl(const ASTNode& rhs, ASTNodeSet& visited) const
+    {
+        if(visited.count(this))
+        {
+        	return true ;
+        }
+
+        const Annotations* p = cast<const Annotations>(&rhs);
+        if(p == NULL)
+        {
+        	return false;
+        }
+
+        // compare base class
+        // The base is ASTNode, no need to be compared.
+
+        // compare data member
+        if(!isVectorMemberEqual(&Annotations::annotation_list, *this, *p, visited))
+        {
+        	return false;
+        }
+
+        // add this to the visited table.
+        visited.insert(this);
+        return true;
+    }
+
     template<typename Archive>
-    void serialize(Archive& ar, const unsigned int version) {
-        ::boost::serialization::base_object<ASTNode>(*this);
+    void serialize(Archive& ar, const unsigned int version)
+    {
+        boost::serialization::base_object<ASTNode>(*this);
         ar & annotation_list;
     }
 
@@ -81,6 +143,7 @@ struct Annotations : public ASTNode
 } } }
 
 namespace boost { namespace serialization {
+
 template<class Archive>
 inline void save_construct_data(Archive& ar, const zillians::language::tree::Annotation* p, const unsigned int file_version)
 {
@@ -96,6 +159,7 @@ inline void load_construct_data(Archive& ar, zillians::language::tree::Annotatio
 	ar >> name;
 	::new(p) Annotation(name);
 }
-}} // namespace boost::serialization
+
+} } // namespace boost::serialization
 
 #endif /* ZILLIANS_LANGUAGE_TREE_ANNOTATIONS_H_ */

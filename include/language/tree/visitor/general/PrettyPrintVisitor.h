@@ -24,6 +24,7 @@
 #define ZILLIANS_LANGUAGE_TREE_VISITOR_PRETTYPRINTVISITOR_H_
 
 #include "core/Prerequisite.h"
+#include "language/tree/visitor/general/GenericVisitor.h"
 #include "core/Visitor.h"
 #include "language/tree/ASTNodeFactory.h"
 #include "language/stage/parser/context/SourceInfoContext.h"
@@ -37,60 +38,11 @@ namespace zillians { namespace language { namespace tree { namespace visitor {
 
 struct PrettyPrintVisitor : Visitor<const ASTNode, void>
 {
+	CREATE_INVOKER(printInvoker, print);
+
 	PrettyPrintVisitor(bool dump_source_info = false) : dump_source_info(dump_source_info)
 	{
-		REGISTER_VISITABLE(printInvoker,
-				// basic
-				ASTNode,
-				Annotations,
-				Annotation,
-				Block,
-				Identifier,
-					SimpleIdentifier,
-					NestedIdentifier,
-					TemplatedIdentifier,
-				Literal,
-					NumericLiteral,
-					StringLiteral,
-				TypeSpecifier,
-				FunctionType,
-
-				// module
-				Program,
-				Package,
-				Import,
-
-				// declaration
-				Declaration,
-					ClassDecl,
-					EnumDecl,
-					FunctionDecl,
-					InterfaceDecl,
-					VariableDecl,
-					TypedefDecl,
-
-				// statement
-				Statement,
-					DeclarativeStmt,
-					ExpressionStmt,
-					IterativeStmt,
-						ForeachStmt,
-						WhileStmt,
-					SelectionStmt,
-						IfElseStmt,
-						SwitchStmt,
-					BranchStmt,
-
-				// expression
-				Expression,
-					PrimaryExpr,
-					UnaryExpr,
-					BinaryExpr,
-					TernaryExpr,
-					MemberExpr,
-					CallExpr,
-					CastExpr
-				);
+		REGISTER_ALL_VISITABLE_ASTNODE(printInvoker)
 
 		depth = 0;
 	}
@@ -131,18 +83,33 @@ struct PrettyPrintVisitor : Visitor<const ASTNode, void>
 
 	void print(const Annotation& node)
 	{
-		if(hasSourceInfo(node))
+		STREAM << L"<annotation name=\"" << ((node.name) ? node.name->toString() : L"<unspecified>") << L"\">" << std::endl;
 		{
-			STREAM << L"<annotation name=\"" << node.name->toString() << L">" << std::endl;
+			printSourceInfo(node);
+		}
+		foreach(i, node.attribute_list)
+		{
+			increaseIdent();
 			{
-				printSourceInfo(node);
+				STREAM << L"<key>" << std::endl;
+				{
+					increaseIdent();
+					visit(*i->first);
+					decreaseIdent();
+				}
+				STREAM << L"</key>" << std::endl;
+
+				STREAM << L"<value>" << std::endl;
+				{
+					increaseIdent();
+					visit(*i->second);
+					decreaseIdent();
+				}
+				STREAM << L"</value>" << std::endl;
 			}
-			STREAM << L"</annotation>" << std::endl;
+			decreaseIdent();
 		}
-		else
-		{
-			STREAM << L"<annotation name=\"" << node.name->toString() << L"/>" << std::endl;
-		}
+		STREAM << L"</annotation>" << std::endl;
 	}
 
 	void print(const Identifier& node)
@@ -163,7 +130,7 @@ struct PrettyPrintVisitor : Visitor<const ASTNode, void>
 
 	void print(const NumericLiteral& node)
 	{
-		STREAM << L"<numeric_literal type=\"" << PrimitiveType::toString(node.type) << L"\"" << PrimitiveType::toString(node.type) << "\">" << std::endl;
+		STREAM << L"<numeric_literal type=\"" << PrimitiveType::toString(node.type) << L"\" value=\"" << node.value.u64 << "\">" << std::endl;
 		{
 			printSourceInfo(node);
 		}
@@ -413,9 +380,8 @@ struct PrettyPrintVisitor : Visitor<const ASTNode, void>
 				L"name=\"" << ((node.name) ? node.name->toString() : L"<unspecified-null>") << L"\" " <<
 				L"type=\"" << decodeType(node.type) << L"\" " <<
 				L"is_member=\"" << (node.is_member ? L"true" : L"false") << L"\" " <<
-				L"visibility=\"" << Declaration::VisibilitySpecifier::toString(node.visibility) << L"\" " <<
-				L"storage=\"" << Declaration::StorageSpecifier::toString(node.storage) << L"\"" <<
-				L">" << std::endl;
+				L"is_static=\"" << (node.is_static ? L"true" : L"false") << L"\" " <<
+				L"visibility=\"" << Declaration::VisibilitySpecifier::toString(node.visibility) << L"\">" << std::endl;
 		{
 			printSourceInfo(node);
 		}
@@ -427,10 +393,32 @@ struct PrettyPrintVisitor : Visitor<const ASTNode, void>
 			{
 				foreach(i, node.parameters)
 				{
-					STREAM << L"<parameters name=\"" << i->first->toString() << "\">" << std::endl;
+					STREAM << L"<parameters name=\"" << i->get<0>()->toString() << "\">" << std::endl;
 					{
 						increaseIdent();
-						visit(*i->second);
+						{
+							if(i->get<1>())
+							{
+								STREAM << L"<type>" << std::endl;
+								{
+									increaseIdent();
+									visit(*i->get<1>());
+									decreaseIdent();
+								}
+								STREAM << L"</type>" << std::endl;
+							}
+
+							if(i->get<2>())
+							{
+								STREAM << L"<initializer>" << std::endl;
+								{
+									increaseIdent();
+									visit(*i->get<2>());
+									decreaseIdent();
+								}
+								STREAM << L"</type>" << std::endl;
+							}
+						}
 						decreaseIdent();
 					}
 					STREAM << L"</parameters>" << std::endl;
@@ -478,8 +466,9 @@ struct PrettyPrintVisitor : Visitor<const ASTNode, void>
 				L"name=\"" << node.name->toString() << L"\" " <<
 				L"type=\"" << decodeType(node.type) << L"\" "
 				L"is_member=\"" << (node.is_member ? L"true" : L"false") << L"\" " <<
-				L"visibility=\"" << Declaration::VisibilitySpecifier::toString(node.visibility) << L"\" " <<
-				L"storage=\"" << Declaration::StorageSpecifier::toString(node.storage) << L"\">" << std::endl;
+				L"is_static=\"" << (node.is_static ? L"true" : L"false") << L"\" " <<
+				L"is_const=\"" << (node.is_const ? L"true" : L"false") << L"\" " <<
+				L"visibility=\"" << Declaration::VisibilitySpecifier::toString(node.visibility) << L"\">" << std::endl;
 		{
 			printSourceInfo(node);
 		}
@@ -1173,8 +1162,6 @@ private:
 	{
 		return ss << std::setfill(INDENT_CHAR) << std::setw(INDENT_WIDTH*depth) << L"";
 	}
-
-	CREATE_INVOKER(printInvoker, print);
 
 	int depth;
 

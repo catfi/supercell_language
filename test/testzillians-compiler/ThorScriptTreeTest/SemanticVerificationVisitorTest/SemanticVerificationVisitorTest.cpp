@@ -1,6 +1,6 @@
 /**
  * Zillians MMO
- * Copyright (C) 2007-2011 Zillians.com, Inc.
+ * Copyright (C) 2007-2010 Zillians.com, Inc.
  * For more information see http://www.zillians.com
  *
  * Zillians MMO is the library and runtime for massive multiplayer online game
@@ -17,28 +17,33 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef ZILLIANS_LANGUAGE_LOGGER_H_
-#define ZILLIANS_LANGUAGE_LOGGER_H_
-
 #include "core/Prerequisite.h"
-#include "core/Singleton.h"
+#include "language/tree/ASTNode.h"
+#include "language/tree/ASTNodeFactory.h"
+#include "language/tree/visitor/stage0/SemanticVerificationVisitor.h"
+#include "language/tree/visitor/stage1/SemanticVerificationVisitor.h"
+#include "language/tree/visitor/general/PrettyPrintVisitor.h"
+#include "../ASTNodeSamples.h"
+#include <iostream>
+#include <string>
+#include <limits>
 
-namespace zillians { namespace language {
+#define BOOST_TEST_MODULE ThorScriptTreeTest_SemanticVerificationVisitorTest
+#define BOOST_TEST_MAIN
+#include <boost/test/unit_test.hpp>
 
-struct Logger
+using namespace zillians;
+using namespace zillians::language::tree;
+using namespace zillians::language::tree::visitor;
+
+BOOST_AUTO_TEST_SUITE( ThorScriptTreeTest_GenericVisitorTestSuite )
+
+BOOST_AUTO_TEST_CASE( ThorScriptTreeTest_GenericVisitorTestCase1 )
 {
-	static void initialize();
+}
 
-	static log4cxx::LoggerPtr Compiler;
-	static log4cxx::LoggerPtr Resolver;
-	static log4cxx::LoggerPtr BasicStage;
-	static log4cxx::LoggerPtr ParserStage;
-	static log4cxx::LoggerPtr TransformerStage;
-	static log4cxx::LoggerPtr GeneratorStage;
-	static log4cxx::LoggerPtr DebugInfoGeneratorStage;
-	static log4cxx::LoggerPtr VM;
-};
+BOOST_AUTO_TEST_CASE( ThorScriptTreeTest_GenericVisitorTestCase2 )
+{
+}
 
-} }
-
-#endif /* ZILLIANS_LANGUAGE_LOGGER_H_ */
+BOOST_AUTO_TEST_SUITE_END()

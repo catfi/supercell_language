@@ -30,25 +30,6 @@ struct Declaration : public ASTNode
 	DEFINE_VISITABLE();
 	DEFINE_HIERARCHY(Declaration, (Declaration)(ASTNode));
 
-	struct StorageSpecifier
-	{
-		enum type {
-			NONE,
-			CONST,
-			STATIC,
-		};
-
-		static const wchar_t* toString(type t)
-		{
-			switch(t)
-			{
-			case NONE: return L"none";
-			case CONST: return L"const";
-			case STATIC: return L"static";
-			}
-		}
-	};
-
 	struct VisibilitySpecifier
 	{
 		enum type {
@@ -80,9 +61,37 @@ struct Declaration : public ASTNode
 		annotations = anns;
 	}
 
+    virtual bool isEqualImpl(const ASTNode& rhs, ASTNodeSet& visited) const
+    {
+        if(visited.count(this))
+        {
+            return true ;
+        }
+
+        const Declaration* p = cast<const Declaration>(&rhs);
+        if(p == NULL)
+        {
+            return false;
+        }
+
+        // compare base class
+        // The base is ASTNode, no need to be compared.
+
+        // compare data member
+        if(!isASTNodeMemberEqual(&Declaration::annotations, *this, *p, visited))
+        {
+            return false;
+        }
+
+        // add this to the visited table.
+        visited.insert(this);
+        return true;
+    }
+
     template<typename Archive>
-    void serialize(Archive& ar, const unsigned int version) {
-        ::boost::serialization::base_object<ASTNode>(*this);
+    void serialize(Archive& ar, const unsigned int version)
+    {
+        boost::serialization::base_object<ASTNode>(*this);
         ar & annotations;
     }
 

@@ -46,9 +46,44 @@ struct InterfaceDecl : public Declaration
 		member_functions.push_back(func);
 	}
 
+    virtual bool isEqualImpl(const ASTNode& rhs, ASTNodeSet& visited) const
+    {
+        if(visited.count(this))
+        {
+            return true ;
+        }
+
+        const InterfaceDecl* p = cast<const InterfaceDecl>(&rhs);
+        if(p == NULL)
+        {
+            return false;
+        }
+
+        // compare base class
+        if(!Declaration::isEqualImpl(*p, visited))
+        {
+            return false;
+        }
+
+        // compare data member
+        if(!isASTNodeMemberEqual(&InterfaceDecl::name, *this, *p, visited))
+        {
+            return false;
+        }
+        if(!isVectorMemberEqual(&InterfaceDecl::member_functions, *this, *p, visited))
+        {
+            return false;
+        }
+
+        // add this to the visited table.
+        visited.insert(this);
+        return true;
+    }
+
     template<typename Archive>
-    void serialize(Archive& ar, const unsigned int version) {
-        ::boost::serialization::base_object<Declaration>(*this);
+    void serialize(Archive& ar, const unsigned int version)
+    {
+        boost::serialization::base_object<Declaration>(*this);
         //ar & name;
         ar & member_functions;
     }
@@ -60,6 +95,7 @@ struct InterfaceDecl : public Declaration
 } } }
 
 namespace boost { namespace serialization {
+
 template<class Archive>
 inline void save_construct_data(Archive& ar, const zillians::language::tree::InterfaceDecl* p, const unsigned int file_version)
 {
@@ -75,6 +111,7 @@ inline void load_construct_data(Archive& ar, zillians::language::tree::Interface
 	ar >> name;
 	::new(p) InterfaceDecl(name);
 }
-}} // namespace boost::serialization
+
+} } // namespace boost::serialization
 
 #endif /* ZILLIANS_LANGUAGE_TREE_INTERFACEDECL_H_ */

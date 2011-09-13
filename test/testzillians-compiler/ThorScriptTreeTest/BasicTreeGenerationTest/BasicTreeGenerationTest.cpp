@@ -21,6 +21,7 @@
 #include "language/tree/ASTNode.h"
 #include "language/tree/ASTNodeFactory.h"
 #include "language/tree/visitor/general/GarbageCollectionVisitor.h"
+#include "../ASTNodeSamples.h"
 #include <iostream>
 #include <string>
 #include <limits>
@@ -55,7 +56,7 @@ BOOST_AUTO_TEST_CASE( ThorScriptTreeTest_BasicTreeGenerationTestCase1_IsA )
 	}
 
 	{
-		VariableDecl* node = new VariableDecl(new SimpleIdentifier(L"test"), new TypeSpecifier(PrimitiveType::FLOAT32), false, Declaration::VisibilitySpecifier::DEFAULT, Declaration::StorageSpecifier::CONST);
+		VariableDecl* node = new VariableDecl(new SimpleIdentifier(L"test"), new TypeSpecifier(PrimitiveType::FLOAT32), false, false, true, Declaration::VisibilitySpecifier::DEFAULT);
 		BOOST_CHECK(isa<VariableDecl>(node));
 		BOOST_CHECK(isa<Declaration>(node));
 	}
@@ -76,6 +77,39 @@ BOOST_AUTO_TEST_CASE( ThorScriptTreeTest_BasicTreeGenerationTestCase2 )
 
 BOOST_AUTO_TEST_CASE( ThorScriptTreeTest_BasicTreeGenerationTestCase3 )
 {
+}
+
+BOOST_AUTO_TEST_CASE( ThorScriptTreeTest_TreeEqualityTest )
+{
+    {
+        ASTNode* p1_1 = createSample1() ;
+        ASTNode* p1_2 = createSample1() ;
+        BOOST_CHECK(p1_1->isEqual(*p1_2));
+    }
+
+    {
+        ASTNode* p2_1 = createSample2() ;
+        ASTNode* p2_2 = createSample2() ;
+        BOOST_CHECK(p2_1->isEqual(*p2_2));
+    }
+
+    {
+        ASTNode* p3_1 = createSample3() ;
+        ASTNode* p3_2 = createSample3() ;
+        BOOST_CHECK(p3_1->isEqual(*p3_2));
+    }
+
+    {
+        ASTNode* p4_1 = createSample4() ;
+        ASTNode* p4_2 = createSample4() ;
+        BOOST_CHECK(p4_1->isEqual(*p4_2));
+    }
+
+    {
+        ASTNode* p5_1 = createSample5() ;
+        ASTNode* p5_2 = createSample5() ;
+        BOOST_CHECK(p5_1->isEqual(*p5_2));
+    }
 }
 
 BOOST_AUTO_TEST_SUITE_END()

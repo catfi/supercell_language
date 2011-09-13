@@ -47,12 +47,42 @@ struct TernaryExpr : public Expression
 	virtual bool isRValue()
 	{
 		// it's R-value if either "true block" or "false block" is R-value
-		return (true_node->isRValue() | false_node->isRValue());
+		return (true_node->isRValue() || false_node->isRValue());
 	}
 
+    virtual bool isEqualImpl(const ASTNode& rhs, ASTNodeSet& visited) const
+    {
+        if(visited.count(this))
+        {
+            return true ;
+        }
+
+        const TernaryExpr* p = cast<const TernaryExpr>(&rhs);
+        if(p == NULL)
+        {
+            return false;
+        }
+
+        // compare base class
+        if(!Expression::isEqualImpl(*p, visited))
+        {
+            return false;
+        }
+
+        // compare data member
+        if(!isASTNodeMemberEqual   (&TernaryExpr::cond            , *this, *p, visited)) return false;
+        if(!isASTNodeMemberEqual   (&TernaryExpr::true_node       , *this, *p, visited)) return false;
+        if(!isASTNodeMemberEqual   (&TernaryExpr::false_node      , *this, *p, visited)) return false;
+
+        // add this to the visited table.
+        visited.insert(this);
+        return true;
+    }
+
     template<typename Archive>
-    void serialize(Archive& ar, const unsigned int version) {
-        ::boost::serialization::base_object<Expression>(*this);
+    void serialize(Archive& ar, const unsigned int version)
+    {
+        boost::serialization::base_object<Expression>(*this);
     }
 
 	Expression* cond;
@@ -63,6 +93,7 @@ struct TernaryExpr : public Expression
 } } }
 
 namespace boost { namespace serialization {
+
 template<class Archive>
 inline void save_construct_data(Archive& ar, const zillians::language::tree::TernaryExpr* p, const unsigned int file_version)
 {
@@ -86,6 +117,7 @@ inline void load_construct_data(Archive& ar, zillians::language::tree::TernaryEx
 
 	::new(p) TernaryExpr(cond, true_node, false_node);
 }
-}} // namespace boost::serialization
+
+} } // namespace boost::serialization
 
 #endif /* ZILLIANS_LANGUAGE_TREE_TERNARYEXPR_H_ */

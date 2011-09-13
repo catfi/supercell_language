@@ -152,7 +152,8 @@ struct LLVMGeneratorVisitor : GenericDoubleVisitor
 //					llvm_init->getType()->dump();
 					BOOST_ASSERT(llvm::cast<llvm::AllocaInst>(llvm_alloca_inst)->getAllocatedType() == llvm_init->getType());
 					BOOST_ASSERT(llvm::cast<llvm::PointerType>(llvm_alloca_inst->getType())->getElementType() == llvm_init->getType());
-					mBuilder.CreateStore(llvm_init, llvm_alloca_inst);
+					llvm::StoreInst* store_inst = mBuilder.CreateStore(llvm_init, llvm_alloca_inst);
+					node.set<llvm::StoreInst>(store_inst);
 				}
 			}
 		}
@@ -188,8 +189,7 @@ struct LLVMGeneratorVisitor : GenericDoubleVisitor
 			if(node.result)
 			{
 				llvm::Value* return_value = node.result->get<llvm::Value>();
-				BOOST_ASSERT(return_value && "invalid LLVM value");
-				//result = mBuilder.CreateRet(return_value);
+				BOOST_ASSERT(return_value && "invalid LLVM value for return instruction");
 				mBuilder.CreateStore(return_value, mFunctionContext.return_value);
 				result = mBuilder.CreateBr(mFunctionContext.return_block);
 			}
@@ -425,7 +425,9 @@ struct LLVMGeneratorVisitor : GenericDoubleVisitor
 		switch(node.catagory)
 		{
 		case PrimaryExpr::Catagory::IDENTIFIER:
-			propagate(&node, ResolvedSymbol::get(node.value.identifier)); break;
+		{
+			propagate(&node, ResolvedSymbol::get(&node)); break;
+		}
 		case PrimaryExpr::Catagory::LITERAL:
 			propagate(&node, node.value.literal); break;
 		case PrimaryExpr::Catagory::LAMBDA:
@@ -679,6 +681,15 @@ struct LLVMGeneratorVisitor : GenericDoubleVisitor
 		{
 			llvm::Value* true_value = node.true_node->get<llvm::Value>();
 			llvm::Value* false_value = node.false_node->get<llvm::Value>();
+			if(node.isRValue())
+			{
+				if(true_value->getType()->isPointerTy())
+					true_value = mBuilder.CreateLoad(true_value);
+
+				if(false_value->getType()->isPointerTy())
+					false_value = mBuilder.CreateLoad(false_value);
+			}
+
 			llvm::PHINode* phi = mBuilder.CreatePHI(true_value->getType());
 			phi->addIncoming(true_value, true_block);
 			phi->addIncoming(false_value, false_block);
@@ -891,7 +902,7 @@ private:
 		llvm_value_for_read = node.get<llvm::Value>();
 		if(llvm_value_for_read)
 		{
-			if(llvm::isa<llvm::AllocaInst>(llvm_value_for_read))
+			if(llvm_value_for_read->getType()->isPointerTy())
 			{
 				llvm_value_for_write = llvm_value_for_read;
 				llvm_value_for_read = mBuilder.CreateLoad(llvm_value_for_read);
@@ -917,7 +928,7 @@ private:
 
 			if(llvm_value_for_read)
 			{
-				if(llvm::isa<llvm::AllocaInst>(llvm_value_for_read))
+				if(llvm_value_for_read->getType()->isPointerTy())
 				{
 					llvm_value_for_write = llvm_value_for_read;
 					llvm_value_for_read = mBuilder.CreateLoad(llvm_value_for_read);
@@ -948,7 +959,7 @@ private:
 				{
 					const llvm::Type* t;
 					llvm::Attributes modifier;
-					if(mHelper.getType(*ast_function->parameters[index].second, t, modifier) && t && !t->isVoidTy())
+					if(mHelper.getType(*ast_function->parameters[index].get<1>(), t, modifier) && t && !t->isVoidTy())
 					{
 						llvm_value_for_write = createAlloca(t, NameManglingContext::get(resolved_symbol)->managled_name);
 						mBuilder.CreateStore(llvm_value_for_read, llvm_value_for_write);
@@ -1027,7 +1038,7 @@ private:
 		int index = 0;
 		foreach(i, f->parameters)
 		{
-			if(i->first == p) break;
+			if(i->get<0>() == p) break;
 			++index;
 		}
 
@@ -1122,7 +1133,7 @@ private:
 				node_info_visitor.visit(*to);
 				std::wstring to_info = node_info_visitor.stream.str();
 
-				LOG4CXX_ERROR(Logger::GeneratorStage, L"failed to propagate NULL value from \"" << from_info << "\" to \"" << to_info << L"\"");
+				LOG4CXX_ERROR(LoggingManager::GeneratorStage, L"failed to propagate NULL value from \"" << from_info << "\" to \"" << to_info << L"\"");
 			}
 		}
 

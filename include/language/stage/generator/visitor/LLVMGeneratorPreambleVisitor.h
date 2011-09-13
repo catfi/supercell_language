@@ -81,7 +81,7 @@ struct LLVMGeneratorPreambleVisitor : GenericDoubleVisitor
 			int index = 0;
 			for(llvm::Function::arg_iterator i = llvm_function->arg_begin(); i != llvm_function->arg_end(); ++i, ++index)
 			{
-				i->setName(NameManglingContext::get(node.parameters[index].first)->managled_name);
+				i->setName(NameManglingContext::get(node.parameters[index].get<0>())->managled_name);
 			}
 
 			// associate the LLVM function object with AST FunctionDecl object

@@ -84,9 +84,44 @@ struct UnaryExpr : public Expression
 		}
 	}
 
+    virtual bool isEqualImpl(const ASTNode& rhs, ASTNodeSet& visited) const
+    {
+        if(visited.count(this))
+        {
+            return true ;
+        }
+
+        const UnaryExpr* p = cast<const UnaryExpr>(&rhs);
+        if(p == NULL)
+        {
+            return false;
+        }
+
+        // compare base class
+        if(!Expression::isEqualImpl(*p, visited))
+        {
+            return false;
+        }
+
+        // compare data member
+        if(opcode != p->opcode)
+        {
+            return false;
+        }
+        if(!isASTNodeMemberEqual(&UnaryExpr::node, *this, *p, visited))
+        {
+            return false;
+        }
+
+        // add this to the visited table.
+        visited.insert(this);
+        return true;
+    }
+
     template<typename Archive>
-    void serialize(Archive& ar, const unsigned int version) {
-        ::boost::serialization::base_object<Expression>(*this);
+    void serialize(Archive& ar, const unsigned int version)
+    {
+        boost::serialization::base_object<Expression>(*this);
     }
 
 	OpCode::type opcode;
@@ -96,6 +131,7 @@ struct UnaryExpr : public Expression
 } } }
 
 namespace boost { namespace serialization {
+
 template<class Archive>
 inline void save_construct_data(Archive& ar, const zillians::language::tree::UnaryExpr* p, const unsigned int file_version)
 {
@@ -116,6 +152,7 @@ inline void load_construct_data(Archive& ar, zillians::language::tree::UnaryExpr
 
 	::new(p) UnaryExpr(static_cast<UnaryExpr::OpCode::type>(opcode), node);
 }
-}} // namespace boost::serialization
+
+} } // namespace boost::serialization
 
 #endif /* ZILLIANS_LANGUAGE_TREE_UNARYEXPR_H_ */

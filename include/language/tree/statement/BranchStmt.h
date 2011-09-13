@@ -53,9 +53,44 @@ struct BranchStmt : public Statement
 		if(result) result->parent = this;
 	}
 
+    virtual bool isEqualImpl(const ASTNode& rhs, ASTNodeSet& visited) const
+    {
+        if(visited.count(this))
+        {
+            return true ;
+        }
+
+        const BranchStmt* p = cast<const BranchStmt>(&rhs);
+        if(p == NULL)
+        {
+            return false;
+        }
+
+        // compare base class
+        if(!Statement::isEqualImpl(*p, visited))
+        {
+            return false;
+        }
+
+        // compare data member
+        if(opcode != p->opcode)
+        {
+            return false;
+        }
+        if(!isASTNodeMemberEqual(&BranchStmt::result, *this, *p, visited))
+        {
+            return false;
+        }
+
+        // add this to the visited table.
+        visited.insert(this);
+        return true;
+    }
+
     template<typename Archive>
-    void serialize(Archive& ar, const unsigned int version) {
-        ::boost::serialization::base_object<Statement>(*this);
+    void serialize(Archive& ar, const unsigned int version)
+    {
+        boost::serialization::base_object<Statement>(*this);
     }
 
 	OpCode::type opcode;
@@ -65,6 +100,7 @@ struct BranchStmt : public Statement
 } } }
 
 namespace boost { namespace serialization {
+
 template<class Archive>
 inline void save_construct_data(Archive& ar, const zillians::language::tree::BranchStmt* p, const unsigned int file_version)
 {
@@ -83,6 +119,7 @@ inline void load_construct_data(Archive& ar, zillians::language::tree::BranchStm
     ar >> result;
 	::new(p) BranchStmt(static_cast<BranchStmt::OpCode::type>(opcode), result);
 }
-}} // namespace boost::serialization
+
+} } // namespace boost::serialization
 
 #endif /* ZILLIANS_LANGUAGE_TREE_BRANCHSTMT_H_ */

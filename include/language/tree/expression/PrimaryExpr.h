@@ -82,14 +82,51 @@ struct PrimaryExpr : public Expression
 		}
 	}
 
+    virtual bool isEqualImpl(const ASTNode& rhs, ASTNodeSet& visited) const
+    {
+        if(visited.count(this))
+        {
+            return true ;
+        }
+
+        const PrimaryExpr* p = cast<const PrimaryExpr>(&rhs);
+        if(p == NULL)
+        {
+            return false;
+        }
+
+        // compare base class
+        if(!Expression::isEqualImpl(*p, visited))
+        {
+            return false;
+        }
+
+        // compare data member
+        if(catagory != p->catagory)
+        {
+            return false;
+        }
+        switch (catagory)
+        {
+        case Catagory::IDENTIFIER: if(!isASTNodeMemberEqual(&PrimaryExpr::ValueUnion::identifier, value, p->value, visited)) return false; break;
+        case Catagory::LITERAL   : if(!isASTNodeMemberEqual(&PrimaryExpr::ValueUnion::literal   , value, p->value, visited)) return false; break;
+        case Catagory::LAMBDA    : if(!isASTNodeMemberEqual(&PrimaryExpr::ValueUnion::lambda    , value, p->value, visited)) return false; break;
+        }
+
+        // add this to the visited table.
+        visited.insert(this);
+        return true;
+    }
+
     template<typename Archive>
-    void serialize(Archive& ar, const unsigned int version) {
-        ::boost::serialization::base_object<Expression>(*this);
+    void serialize(Archive& ar, const unsigned int version)
+    {
+        boost::serialization::base_object<Expression>(*this);
     }
 
 	Catagory::type catagory;
 
-	union
+	union ValueUnion
 	{
 		Identifier* identifier;
 		Literal* literal;
@@ -100,6 +137,7 @@ struct PrimaryExpr : public Expression
 } } }
 
 namespace boost { namespace serialization {
+
 template<class Archive>
 inline void save_construct_data(Archive& ar, const zillians::language::tree::PrimaryExpr* p, const unsigned int file_version)
 {
@@ -139,7 +177,8 @@ inline void load_construct_data(Archive& ar, zillians::language::tree::PrimaryEx
         break;
     }
 }
-}} // namespace boost::serialization
+
+} } // namespace boost::serialization
 
 
 #endif /* ZILLIANS_LANGUAGE_TREE_PRIMARYEXPR_H_ */

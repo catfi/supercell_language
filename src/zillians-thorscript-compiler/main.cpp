@@ -20,11 +20,15 @@
  * @date Jul 18, 2011 sdk - Initial version created.
  */
 
-#include "language/logging/Logger.h"
+#include "language/logging/LoggingManager.h"
 #include "language/ThorScriptCompiler.h"
 
 int main(int argc, const char** argv)
 {
+	// TODO: We temporarily use setlocale to force the application to use system default locale.
+	// TODO: To make compile logger support utf8 encoding.
+	setlocale(LC_ALL, "");
+
 	zillians::language::ThorScriptCompiler compiler;
 	return compiler.main(argc, argv);
 }

@@ -48,9 +48,44 @@ struct EnumDecl : public Declaration
 		enumeration_list.push_back(std::make_pair(tag, value));
 	}
 
+    virtual bool isEqualImpl(const ASTNode& rhs, ASTNodeSet& visited) const
+    {
+        if(visited.count(this))
+        {
+            return true ;
+        }
+
+        const EnumDecl* p = cast<const EnumDecl>(&rhs);
+        if(p == NULL)
+        {
+            return false;
+        }
+
+        // compare base class
+        if(!Declaration::isEqualImpl(*p, visited))
+        {
+            return false;
+        }
+
+        // compare data member
+        if(!isASTNodeMemberEqual(&EnumDecl::name, *this, *p, visited))
+        {
+            return false;
+        }
+        if(!isPairVectorMemberEqual(&EnumDecl::enumeration_list, *this, *p, visited))
+        {
+            return false;
+        }
+
+        // add this to the visited table.
+        visited.insert(this);
+        return true;
+    }
+
     template<typename Archive>
-    void serialize(Archive& ar, const unsigned int version) {
-        ::boost::serialization::base_object<Declaration>(*this);
+    void serialize(Archive& ar, const unsigned int version)
+    {
+        boost::serialization::base_object<Declaration>(*this);
         //ar & name;
         ar & enumeration_list;
     }
@@ -62,6 +97,7 @@ struct EnumDecl : public Declaration
 } } }
 
 namespace boost { namespace serialization {
+
 template<class Archive>
 inline void save_construct_data(Archive& ar, const zillians::language::tree::EnumDecl* p, const unsigned int file_version)
 {
@@ -77,6 +113,7 @@ inline void load_construct_data(Archive& ar, zillians::language::tree::EnumDecl*
 	ar >> name;
 	::new(p) EnumDecl(name);
 }
-}} // namespace boost::serialization
+
+} } // namespace boost::serialization
 
 #endif /* ZILLIANS_LANGUAGE_TREE_ENUMDECL_H_ */

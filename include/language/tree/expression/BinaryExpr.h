@@ -203,9 +203,39 @@ struct BinaryExpr : public Expression
 		}
 	}
 
+    virtual bool isEqualImpl(const ASTNode& rhs, ASTNodeSet& visited) const
+    {
+        if(visited.count(this))
+        {
+            return true ;
+        }
+
+        const BinaryExpr* p = cast<const BinaryExpr>(&rhs);
+        if(p == NULL)
+        {
+            return false;
+        }
+
+        // compare base class
+        if(!Expression::isEqualImpl(*p, visited))
+        {
+            return false;
+        }
+
+        // compare data member
+        if(opcode != p->opcode                                                        ) return false;
+        if(!isASTNodeMemberEqual   (&BinaryExpr::left            , *this, *p, visited)) return false;
+        if(!isASTNodeMemberEqual   (&BinaryExpr::right           , *this, *p, visited)) return false;
+
+        // add this to the visited table.
+        visited.insert(this);
+        return true;
+    }
+
     template<typename Archive>
-    void serialize(Archive& ar, const unsigned int version) {
-        ::boost::serialization::base_object<Expression>(*this);
+    void serialize(Archive& ar, const unsigned int version)
+    {
+        boost::serialization::base_object<Expression>(*this);
     }
 
 	OpCode::type opcode;
@@ -216,6 +246,7 @@ struct BinaryExpr : public Expression
 } } }
 
 namespace boost { namespace serialization {
+
 template<class Archive>
 inline void save_construct_data(Archive& ar, const zillians::language::tree::BinaryExpr* p, const unsigned int file_version)
 {
@@ -239,6 +270,7 @@ inline void load_construct_data(Archive& ar, zillians::language::tree::BinaryExp
 
 	::new(p) BinaryExpr(static_cast<BinaryExpr::OpCode::type>(opcode), left, right);
 }
-}} // namespace boost::serialization
+
+} } // namespace boost::serialization
 
 #endif /* ZILLIANS_LANGUAGE_TREE_BINARYEXPR_H_ */

@@ -69,6 +69,7 @@ struct PrimitiveType
 		switch(t)
 		{
 		case VOID:	return L"void";
+		case BOOL:  return L"bool";
 		case INT8:  return L"int8";
 		case INT16: return L"int16";
 		case INT32: return L"int32";
