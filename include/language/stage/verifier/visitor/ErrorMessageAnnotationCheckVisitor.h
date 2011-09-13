@@ -67,10 +67,14 @@ struct ErrorMessageAnnotationCheckVisitor : public GenericDoubleVisitor
 				return;
 			}
 			ErrorInfoContext constructedErrorInfo = constructErrorContextFromAnnotation(node);
-			if(*errorInfo != constructedErrorInfo)
+			// Compare (key, value) pairs only listed in annotation
+			foreach(i, constructedErrorInfo.parameters)
 			{
-				mAllMatch = false;
-				return;
+				if(!errorInfo->parameters.count(i->first))
+				{
+					mAllMatch = false;
+					return;
+				}
 			}
 		}
 	}
