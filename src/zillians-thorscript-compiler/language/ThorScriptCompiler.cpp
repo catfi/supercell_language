@@ -30,6 +30,7 @@
 #include "language/stage/generator/LLVMBitCodeGeneratorStage.h"
 #include "language/stage/verifier/SemanticVerificationStage0.h"
 #include "language/stage/verifier/SemanticVerificationStage1.h"
+#include "language/stage/verifier/StaticTestVerificationStage.h"
 
 using namespace zillians::language::stage;
 
@@ -49,6 +50,7 @@ void ThorScriptCompiler::initialize()
 
 	shared_ptr<Stage> resolution(new ResolutionStage());
 	shared_ptr<Stage> semantic_verification_1(new SemanticVerificationStage1());
+	shared_ptr<Stage> staticTestVerification(new StaticTestVerificationStage());
 
 	shared_ptr<Stage> mangling(new ManglingStage());
 
@@ -62,6 +64,7 @@ void ThorScriptCompiler::initialize()
 
 	appendStage(resolution);
 	appendStage(semantic_verification_1);
+	appendStage(staticTestVerification);
 	appendStage(mangling);
 
 	appendStage(llvm_generator);
