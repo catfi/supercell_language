@@ -63,8 +63,7 @@ struct decl_statement
 		printf("expression_statement param(1) type = %s\n", typeid(_param_t(1)).name());
 #endif
 		VariableDecl* decl = dynamic_cast<VariableDecl*>(_param(1));
-		if(_param(0).is_initialized())
-			decl->is_static = true;
+		decl->is_static = _param(0).is_initialized();
 		BIND_CACHED_LOCATION(_result = new DeclarativeStmt(decl));
 	}
 	END_ACTION
