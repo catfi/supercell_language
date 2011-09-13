@@ -7,13 +7,12 @@ ERRORS:
         a. DUPLICATE DEFINE/DECLARE (J) (S0)
         b. AMBIGUOUS REFERENCE (V)
     E3. INCOMPATIBLE TYPE
-        a. EXPLICIT CAST FAIL (SDK)
-        b. IMPLICIT CAST FAIL
+        a. CAST FAIL (SDK)
             I.   EXPRESSION WITH INVALID OPERANDS (INCL. ASSIGN FAIL) (SDK)
             II.  STATEMENT WITH INVALID ARGUMENTS (INCL. NON-BOOL USED AS CONDITION) (SDK)
             III. DECLARATION WITH INVALID ARGUMENTS (SDK)
-        c. NON-EXIST SUBSCRIPT (J) (S1)
-        d. FUNCTION
+        b. NON-EXIST SUBSCRIPT (J) (S1)
+        c. FUNCTION
             I.   CALL NON-FUNCTION (J) (S1)
             II.  CALL FUNCTION WITH WRONG ARGUMENT COUNT/TYPE (J) (S1)
             III. RETURN STATEMENT WITH WRONG ARGUMENT COUNT/TYPE (INCL. MISSING RETURN STATEMENT) (J) (S1)
@@ -29,10 +28,9 @@ ERRORS:
         b. VISIBILITY VIOLATION (J) (S1)
     E5. BREAK/CONTINUE NOT INSIDE ITERATION (J) (S0)
     E6. VARIABLE
-        a. MEMBER
-            I. INITIALIZATION LIST SHOULD BE CONST
+        a. GLOBAL/MEMBER INITIALIZATION LIST SHOULD BE CONST
         b. PARAMETER
-            I. NON-OPTIONAL PARAMETER CANNOT APPEAR AFTER OPTIONAL PARAMETER (J) (S0)
+            I.  NON-OPTIONAL PARAMETER CANNOT APPEAR AFTER OPTIONAL PARAMETER (J) (S0)
             II. VARIADIC PARAMETER NOT LAST PARAMETER (J) (S0)
     E7. LANGUAGE LIMIT VIOLATION
     	a. FUNCTION CALL PARAMETER COUNT LIMIT (J) (S0)
@@ -71,17 +69,17 @@ WARNINGS:
 /////////////////////////////////////////////////////////////////////
 
 // unary expression
-    (E3.b.I) - Check whether the type can be applied with specific unary operation (for example, ~ or ! cannot be used with floating number)
+    (E3.a.I) - Check whether the type can be applied with specific unary operation (for example, ~ or ! cannot be used with floating number)
 
 // binary expression 
-    (E3.b.I) - Check the type compatibility between LHS and RHS
+    (E3.a.I) - Check the type compatibility between LHS and RHS
     (E1) - All expression must be fully resolved
 
 // ternary expression
-    (E3.b.I) - Check the type compatibility between LHS and RHS
+    (E3.a.I) - Check the type compatibility between LHS and RHS
 
 // call expression
-    (E3.d.I) - Check whether the node is callable
+    (E3.a.I) - Check whether the node is callable
     (E4.a.II.i) - If the callee is a MemberExpr and the RHS is resolved to a non-static member function, we need to check if the LHS is a variable of that instance
     (E4.a.II.ii) - If the callee is s MemberExpr and the RHS is resolved to a static member function, we just need to check the type of LHS
 
@@ -97,8 +95,8 @@ WARNINGS:
     /////////////////////////////////////////////////////////////////////
 
     // if/elseif/else statement
-        (E3.b.II) - The both if and elseif Selection must have non-null condition
-        (E3.b.I) - The condition expression must be able to cast into a boolean variable (and insert cast operation when necessary)
+        (E3.a.II) - The both if and elseif Selection must have non-null condition
+        (E3.a.I) - The condition expression must be able to cast into a boolean variable (and insert cast operation when necessary)
 
     // switch statement
         (W2.e) - If the condition is a variable resolved to EnumDecl type, all cases must be covered or there's default case, otherwise generate a warning for it
@@ -111,8 +109,8 @@ WARNINGS:
         (W1.a) - If the condition can be evaluated as constant expression and its value is always true and there's no break in the while/do-while block, generate infinite loop warning
 
     // foreach statement
-        (E3.b.II) - The range expression must be an instance of Range<T> type
-        (E3.b.II) - The iterator must be a variable declaration or a primary expression resolved to a symbol
+        (E3.a.II) - The range expression must be an instance of Range<T> type
+        (E3.a.II) - The iterator must be a variable declaration or a primary expression resolved to a symbol
 
 /////////////////////////////////////////////////////////////////////
 /// DECLARATION
@@ -126,11 +124,11 @@ WARNINGS:
 
 // function declaration
     (W2.c) - If the function has non-void return type, check if all paths have return value (and are of the same type)
-    (E3.d.III) - If the function has void return type, then there's no return (BranchStmt) allowed in the tree
+    (E3.a.III) - If the function has void return type, then there's no return (BranchStmt) allowed in the tree
 
 // class declaration
     (E2.a) - The class name cannot conflict with other class (name resolving conflict)
-    (E3.b.III) - The identifiers for interface implementation must refer to an interface
+    (E3.a.III) - The identifiers for interface implementation must refer to an interface
     (E2.a) - There can be more than one new function (constructor overload) as long as they have different parameter signature
     (E7) - There should be a limit on how many member variables allowed in a single class
 
@@ -139,7 +137,7 @@ WARNINGS:
     (E2.a) - The variable names must not conflict with each other
 
 // typedef declaration
-    (E3.b.III) - The "from" node must refer to a type, and the "to" node must be an simple identifier
+    (E3.a.III) - The "from" node must refer to a type, and the "to" node must be an simple identifier
 
 // enum declaration
     (E2.a) - The identifiers must not conflict with each other
