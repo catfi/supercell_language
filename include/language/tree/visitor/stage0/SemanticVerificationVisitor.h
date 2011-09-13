@@ -20,8 +20,8 @@
  * @date Aug 5, 2011 sdk - Initial version created.
  */
 
-#ifndef ZILLIANS_LANGUAGE_TREE_VISITOR_STAGE0_STRUCTUREVERIFICATIONVISITOR_H_
-#define ZILLIANS_LANGUAGE_TREE_VISITOR_STAGE0_STRUCTUREVERIFICATIONVISITOR_H_
+#ifndef ZILLIANS_LANGUAGE_TREE_VISITOR_STAGE0_SEMANTICVERIFICATIONVISITOR_H_
+#define ZILLIANS_LANGUAGE_TREE_VISITOR_STAGE0_SEMANTICVERIFICATIONVISITOR_H_
 
 #include "core/Prerequisite.h"
 #include "language/tree/visitor/general/GenericComposableVisitor.h"
@@ -29,11 +29,11 @@
 namespace zillians { namespace language { namespace tree { namespace visitor { namespace stage0 {
 
 template<bool Composed = false>
-struct StructureVerificationVisitor : GenericDoubleVisitor
+struct SemanticVerificationVisitor : GenericDoubleVisitor
 {
 	CREATE_INVOKER(verifyInvoker, verify);
 
-	StructureVerificationVisitor()
+	SemanticVerificationVisitor()
 	{
 		REGISTER_ALL_VISITABLE_ASTNODE(verifyInvoker)
 	}
@@ -93,4 +93,4 @@ struct StructureVerificationVisitor : GenericDoubleVisitor
 
 } } } } }
 
-#endif /* ZILLIANS_LANGUAGE_TREE_VISITOR_STAGE0_STRUCTUREVERIFICATIONVISITOR_H_ */
+#endif /* ZILLIANS_LANGUAGE_TREE_VISITOR_STAGE0_SEMANTICVERIFICATIONVISITOR_H_ */
