@@ -3,3 +3,4 @@
 *.o
 *.s
 a.out
+core
