@@ -56,20 +56,40 @@ struct LLVMDebugInfoGeneratorVisitor: GenericDoubleVisitor
 
 	void generate(ASTNode& node)
 	{
+		/**
+		 * Generic implementation:
+		 *
+		 * 1. Propagate the debug info from parent node to child node
+		 * 2. Insert default debug information (line, column, context)
+		 *
+		 * Usually, this function is good for the leaf nodes. If the node is not leaf, we need to specify the context manually, like function, block.
+		 */
 		LOG4CXX_DEBUG(LoggingManager::DebugInfoGeneratorStage, __PRETTY_FUNCTION__);
 
-		// By pass the last time debug information to the child. We exepect there is some node will create
-		// debug information later.
 		if (node.parent)
 		{
+			// By pass the debug information from parent to the child.
 			DebugInfoContext* parent_debug_info = DebugInfoContext::get(node.parent);
 
 			// Only Program and Package has no debug info context. So we could safely skip them
 			if (parent_debug_info)
 			{
+				// Propagate the debug info to the current node
 				DebugInfoContext::set(&node, new DebugInfoContext(*parent_debug_info));
+
+				SourceInfoContext* source_info = SourceInfoContext::get(&node);
+				llvm::Value* llvm_value = node.get<llvm::Value>();
+
+				if (llvm_value)
+				{
+					llvm::Instruction* llvm_inst = llvm::dyn_cast<llvm::Instruction>(llvm_value);
+					if (llvm_inst)
+						llvm_inst->setDebugLoc(llvm::DebugLoc::get(source_info->line, source_info->column, parent_debug_info->context));
+				}
+
 			}
 		}
+
 		revisit(node);
 	}
 
@@ -274,7 +294,24 @@ struct LLVMDebugInfoGeneratorVisitor: GenericDoubleVisitor
 
 		// Generate the current node debug info context
 		DebugInfoContext::set(&node, new DebugInfoContext(*parent_debug_info));
+		revisit(node);
 	}
+
+	void generate(IfElseStmt& node)
+	{
+		LOG4CXX_DEBUG(LoggingManager::DebugInfoGeneratorStage, __PRETTY_FUNCTION__);
+
+		DebugInfoContext* parent_debug_info = DebugInfoContext::get(node.parent);
+		DebugInfoContext::set(&node, new DebugInfoContext(*parent_debug_info));
+
+		SourceInfoContext* source_info = SourceInfoContext::get(&node);
+
+		revisit(node);
+
+		llvm::Instruction* inst = llvm::cast<llvm::Instruction>(node.if_branch.cond->get<llvm::Value>());
+		inst->setDebugLoc(llvm::DebugLoc::get(source_info->line, source_info->column, parent_debug_info->context));
+	}
+
 
 private:
 	llvm::DIBasicType createPrimitiveType(type_cache_t& primitive_type_cache, llvm::DIFile& file, PrimitiveType::type type)
