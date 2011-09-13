@@ -31,7 +31,10 @@
 #include "language/stage/parser/context/SourceInfoContext.h"
 #include "language/context/LogContext.h"
 
-namespace zillians { namespace language { namespace tree { namespace visitor {
+using namespace zillians::language::tree;
+using zillians::language::tree::visitor::GenericDoubleVisitor;
+
+namespace zillians { namespace language { namespace stage { namespace visitor {
 
 struct StaticTestVerificationStageVisitor : public GenericDoubleVisitor
 {
@@ -67,7 +70,7 @@ struct StaticTestVerificationStageVisitor : public GenericDoubleVisitor
 				return;
 			}
 			LogInfoContext constructedErrorInfo = constructErrorContextFromAnnotation(node);
-			if(*errorInfo != constructedErrorInfo)
+			foreach(i, constructedErrorInfo.parameters)
 			{
 				if(!errorInfo->parameters.count(i->first))
 				{

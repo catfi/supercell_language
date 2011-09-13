@@ -38,6 +38,7 @@ add_library(zillians-framework-language
     language/stage/transformer/TypeInferenceStage.cpp
     language/stage/verifier/SemanticVerificationStage0.cpp
     language/stage/verifier/SemanticVerificationStage1.cpp
+	language/stage/verifier/StaticTestVerificationStage.cpp
 	)
 
 set(StringTablePath ${PROJECT_FRAMEWORK_SOURCE_DIR}/include/language/logging)
