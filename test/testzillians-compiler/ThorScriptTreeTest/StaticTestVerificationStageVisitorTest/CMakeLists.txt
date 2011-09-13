@@ -24,11 +24,11 @@ INCLUDE_DIRECTORIES(
     ${PROJECT_FRAMEWORK_SOURCE_DIR}/include/
     )
 
-ADD_EXECUTABLE(ThorScriptTreeTest_ErrorMessageAnnotationCheckVisitorTest ErrorMessageAnnotationCheckVisitorTest.cpp)
+ADD_EXECUTABLE(ThorScriptTreeTest_StaticTestVerificationStageVisitorTest StaticTestVerificationStageVisitorTest.cpp)
 
-TARGET_LINK_LIBRARIES(ThorScriptTreeTest_ErrorMessageAnnotationCheckVisitorTest
+TARGET_LINK_LIBRARIES(ThorScriptTreeTest_StaticTestVerificationStageVisitorTest
     zillians-common-core
     )
 
-zillians_add_simple_test(TARGET ThorScriptTreeTest_ErrorMessageAnnotationCheckVisitorTest)
-zillians_add_test_to_subject(SUBJECT thorscript-tree-test TARGET ThorScriptTreeTest_ErrorMessageAnnotationCheckVisitorTest)
+zillians_add_simple_test(TARGET ThorScriptTreeTest_StaticTestVerificationStageVisitorTest)
+zillians_add_test_to_subject(SUBJECT thorscript-tree-test TARGET ThorScriptTreeTest_StaticTestVerificationStageVisitorTest)

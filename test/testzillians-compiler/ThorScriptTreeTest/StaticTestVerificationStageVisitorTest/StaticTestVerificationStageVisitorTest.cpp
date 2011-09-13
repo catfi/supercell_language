@@ -20,13 +20,13 @@
 #include "core/Prerequisite.h"
 #include "language/tree/ASTNode.h"
 #include "language/tree/ASTNodeFactory.h"
-#include "language/stage/verifier/visitor/ErrorMessageAnnotationCheckVisitor.h"
+#include "language/stage/verifier/visitor/StaticTestVerificationStageVisitor.h"
 #include "../ASTNodeSamples.h"
 #include <iostream>
 #include <string>
 #include <limits>
 
-#define BOOST_TEST_MODULE ThorScriptTreeTest_ErrorMessageAnnotationCheckVisitorTest
+#define BOOST_TEST_MODULE ThorScriptTreeTest_StaticTestVerificationStageVisitorTest
 #define BOOST_TEST_MAIN
 #include <boost/test/unit_test.hpp>
 
@@ -34,7 +34,7 @@ using namespace zillians;
 using namespace zillians::language::tree;
 using namespace zillians::language::tree::visitor;
 
-BOOST_AUTO_TEST_SUITE( ThorScriptTreeTest_ErrorMessageAnnotationCheckVisitorTestSuite )
+BOOST_AUTO_TEST_SUITE( ThorScriptTreeTest_StaticTestVerificationStageVisitorTestTestSuite )
 
 ASTNode* createOKSample()
 {
@@ -173,9 +173,9 @@ ASTNode* createFailSample()
 	return program;
 }
 
-BOOST_AUTO_TEST_CASE( ThorScriptTreeTest_ErrorMessageAnnotationCheckVisitorTestCase1 )
+BOOST_AUTO_TEST_CASE( ThorScriptTreeTest_StaticTestVerificationStageVisitorTestCase1 )
 {
-	ErrorMessageAnnotationCheckVisitor checker;
+	StaticTestVerificationStageVisitor checker;
 	ASTNode* okProgram = createOKSample();
 	checker.check(*okProgram);
 	BOOST_CHECK(checker.isAllMatch());
