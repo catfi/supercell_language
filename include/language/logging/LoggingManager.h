@@ -52,7 +52,7 @@ public:
 	Logger* getLogger();
 
 public:
-	virtual void log(uint32 id, std::wstring message);
+	virtual void log(const uint32 id, const std::wstring& file, const uint32 line, std::wstring& message);
 
 public:
 	static void initialize();

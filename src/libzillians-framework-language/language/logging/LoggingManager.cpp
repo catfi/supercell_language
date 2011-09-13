@@ -98,7 +98,7 @@ Logger* LoggingManager::getLogger()
 	return mLogger;
 }
 
-void LoggingManager::log(uint32 id, std::wstring message)
+void LoggingManager::log(const uint32 id, const std::wstring& file, const uint32 line, std::wstring& message)
 {
 	StringTable::log_id log_id = static_cast<StringTable::log_id>(id);
 	BOOST_ASSERT(mStringTable->attribute_table.find(log_id) != mStringTable->attribute_table.end() && "Given wrong Log ID");
@@ -128,7 +128,7 @@ void LoggingManager::log(uint32 id, std::wstring message)
 		break;
 	}
 
-	LOG4CXX_LOG(CompilerLogger, level, message);
+	LOG4CXX_LOG(CompilerLogger, level, file << ":" << line << ": " << message);
 }
 
 }}
