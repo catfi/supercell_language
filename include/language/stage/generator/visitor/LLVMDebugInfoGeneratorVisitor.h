@@ -274,6 +274,20 @@ struct LLVMDebugInfoGeneratorVisitor: GenericDoubleVisitor
 
 		// Generate the current node debug info context
 		DebugInfoContext::set(&node, new DebugInfoContext(*parent_debug_info));
+		revisit(node);
+	}
+	void generate(UnaryExpr& node)
+	{
+		LOG4CXX_DEBUG(LoggingManager::DebugInfoGeneratorStage, __PRETTY_FUNCTION__);
+
+		DebugInfoContext* parent_debug_info = DebugInfoContext::get(node.parent);
+		DebugInfoContext::set(&node, new DebugInfoContext(*parent_debug_info));
+
+		SourceInfoContext* source_info = SourceInfoContext::get(&node);
+		llvm::Instruction* inst = llvm::cast<llvm::Instruction>(node.get<llvm::Value>());
+		inst->setDebugLoc(llvm::DebugLoc::get(source_info->line, source_info->column, parent_debug_info->context));
+
+		revisit(node);
 	}
 
 private:
