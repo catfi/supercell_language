@@ -54,6 +54,7 @@ bool StaticTestVerificationStage::execute(bool& continue_execution)
 	if(parser_context.program)
 	{
 		visitor::StaticTestVerificationStageVisitor verifier;
+		verifier.programNode = parser_context.program;
 		verifier.visit(*parser_context.program);
 		if(verifier.isAllMatch())
 		{

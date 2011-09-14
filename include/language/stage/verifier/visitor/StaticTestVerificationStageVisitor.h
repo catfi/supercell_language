@@ -59,6 +59,9 @@ struct StaticTestVerificationStageVisitor : public zillians::language::tree::vis
 
 	void check(zillians::language::tree::Annotation& node)
 	{
+		LoggingManager log_manager;
+		Logger* logger = log_manager.getLogger();
+
 		using zillians::language::stage::LogInfoContext ;
 		if (node.name->name == L"static_test")
 		{
@@ -69,6 +72,7 @@ struct StaticTestVerificationStageVisitor : public zillians::language::tree::vis
 			if(errorInfo == NULL)
 			{
 				mAllMatch = false;
+				logger->log_wrong_static_test_annotation_format(_program_node = *programNode, _node = node, _DETAIL = "No LogInfContext on node");
 				return;
 			}
 			LogInfoContext constructedErrorInfo = constructErrorContextFromAnnotation(node);
@@ -76,6 +80,7 @@ struct StaticTestVerificationStageVisitor : public zillians::language::tree::vis
 			{
 				if(!errorInfo->parameters.count(i->first))
 				{
+					logger->log_wrong_static_test_annotation_format(_program_node = *programNode, _node = node, _DETAIL = "LogInfContext on node if different from the annotation on the node");
 					mAllMatch = false;
 					return;
 				}
