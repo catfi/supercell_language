@@ -68,6 +68,69 @@ struct IterativeStmt : public Statement
     }
 };
 
+struct ForStmt : public IterativeStmt
+{
+	DEFINE_VISITABLE();
+	DEFINE_HIERARCHY(ForStmt, (ForStmt)(IterativeStmt)(Statement)(ASTNode));
+
+	explicit ForStmt(ASTNode* init, ASTNode* cond, ASTNode* after, ASTNode* block = NULL) : init(init), cond(cond), after(after), block(block)
+	{
+		BOOST_ASSERT(init && "null init for for statement is not allowed");
+		BOOST_ASSERT(cond && "null cond for for  statement is not allowed");
+		BOOST_ASSERT(after && "null after for for  statement is not allowed");
+
+		init->parent = this;
+		cond->parent = this;
+		after->parent = this;
+		if(block) block->parent = this;
+	}
+
+    virtual bool isEqualImpl(const ASTNode& rhs, ASTNodeSet& visited) const
+    {
+        if(visited.count(this))
+        {
+            return true ;
+        }
+
+        const ForStmt* p = cast<const ForStmt>(&rhs);
+        if(p == NULL)
+        {
+            return false;
+        }
+
+        // compare base class
+        if(!IterativeStmt::isEqualImpl(*p, visited))
+        {
+            return false;
+        }
+
+        // compare data member
+        if(!isASTNodeMemberEqual   (&ForStmt::init            , *this, *p, visited)) return false;
+        if(!isASTNodeMemberEqual   (&ForStmt::cond            , *this, *p, visited)) return false;
+        if(!isASTNodeMemberEqual   (&ForStmt::after           , *this, *p, visited)) return false;
+        if(!isASTNodeMemberEqual   (&ForStmt::block           , *this, *p, visited)) return false;
+
+        // add this to the visited table.
+        visited.insert(this);
+        return true;
+    }
+
+    template<typename Archive>
+    void serialize(Archive& ar, const unsigned int version)
+    {
+        boost::serialization::base_object<IterativeStmt>(*this);
+        ar & init;
+        ar & cond;
+        ar & after;
+        ar & block;
+    }
+
+	ASTNode* init;
+	ASTNode* cond;
+	ASTNode* after;
+	ASTNode* block;
+};
+
 struct ForeachStmt : public IterativeStmt
 {
 	DEFINE_VISITABLE();
@@ -203,6 +266,34 @@ struct WhileStmt : public IterativeStmt
 namespace boost { namespace serialization {
 
 // ForStmt
+template<class Archive>
+inline void save_construct_data(Archive& ar, const zillians::language::tree::ForStmt* p, const unsigned int file_version)
+{
+    ar << p->init;
+    ar << p->cond;
+    ar << p->after;
+    ar << p->block;
+}
+
+template<class Archive>
+inline void load_construct_data(Archive& ar, zillians::language::tree::ForStmt* p, const unsigned int file_version)
+{
+    using namespace zillians::language::tree;
+
+	ASTNode* init; // TODO semantic-check: it must be L-value expression or declarative statement
+	ASTNode* cond;
+	ASTNode* after;
+	ASTNode* block;
+
+    ar >> init;
+    ar >> cond;
+    ar >> after;
+    ar >> block;
+
+	::new(p) ForStmt(init, cond, block);
+}
+
+// ForeachStmt
 template<class Archive>
 inline void save_construct_data(Archive& ar, const zillians::language::tree::ForeachStmt* p, const unsigned int file_version)
 {

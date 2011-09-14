@@ -154,6 +154,7 @@ enum class ASTNodeType : int
 		DeclarativeStmt,
 		ExpressionStmt,
 		IterativeStmt,
+			ForStmt,
 			ForeachStmt,
 			WhileStmt,
 		SelectionStmt,
@@ -173,7 +174,7 @@ enum class ASTNodeType : int
 	InvalidType,
 };
 
-struct ASTNode : public VisitableBase<ASTNode>, ContextHub<ContextOwnership::transfer>
+struct ASTNode : public VisitableBase<ASTNode>, ContextHub<ContextOwnership::keep>
 {
 	DEFINE_VISITABLE();
 	DEFINE_HIERARCHY_BASE();
