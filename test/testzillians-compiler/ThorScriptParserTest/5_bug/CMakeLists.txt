@@ -19,14 +19,19 @@
 # Contact Information: info@zillians.com
 #
 
-zillians_create_test_subject(SUBJECT thorscript-parser-test-all)
-zillians_create_test_subject(SUBJECT thorscript-parser-test-ast-all)
-zillians_add_subject_to_subject(PARENT framework-compiler-critical CHILD thorscript-parser-test-all)
-zillians_add_subject_to_subject(PARENT framework-compiler-critical CHILD thorscript-parser-test-ast-all)
+zillians_add_complex_test(
+    TARGET thorscript-parser-test-bug
+    SHELL ${CMAKE_CURRENT_SOURCE_DIR}/../scripts/test.sh ${TCC} ${SPIRIT_LOG_FILTER} 0
+            ${CMAKE_CURRENT_SOURCE_DIR}/bug_2011_09_13.t
+    DEPENDS ${TCC} ${SPIRIT_LOG_FILTER}
+    )
 
-ADD_SUBDIRECTORY(0_lexer)
-ADD_SUBDIRECTORY(1_basic)
-ADD_SUBDIRECTORY(2_terminal)
-ADD_SUBDIRECTORY(3_control_structure)
-ADD_SUBDIRECTORY(4_advanced)
-ADD_SUBDIRECTORY(5_bug)
+zillians_add_complex_test(
+    TARGET thorscript-parser-test-ast-bug
+    SHELL ${CMAKE_CURRENT_SOURCE_DIR}/../scripts/test.sh ${TCC} ${SPIRIT_LOG_FILTER} 1
+            ${CMAKE_CURRENT_SOURCE_DIR}/bug_2011_09_13.t
+    DEPENDS ${TCC} ${SPIRIT_LOG_FILTER}
+    )
+
+zillians_add_test_to_subject(SUBJECT thorscript-parser-test-all TARGET thorscript-parser-test-bug)
+zillians_add_test_to_subject(SUBJECT thorscript-parser-test-ast-all TARGET thorscript-parser-test-ast-bug)

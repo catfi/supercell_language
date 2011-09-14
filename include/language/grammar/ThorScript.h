@@ -453,7 +453,7 @@ struct ThorScript : qi::grammar<Iterator, typename SA::start::attribute_type, de
 					| qi::lit(L"uint64")                                                                   [ typename SA::type_specifier::template init_primitive_type<tree::PrimitiveType::UINT64>() ]
 					| qi::lit(L"float32")                                                                  [ typename SA::type_specifier::template init_primitive_type<tree::PrimitiveType::FLOAT32>() ]
 					| qi::lit(L"float64")                                                                  [ typename SA::type_specifier::template init_primitive_type<tree::PrimitiveType::FLOAT64>() ]
-					| (nested_identifier > -(COMPARE_LT >> type_list_specifier > COMPARE_GT))              [ typename SA::type_specifier::init_type() ]
+					| (nested_identifier > -(COMPARE_LT >> type_list_specifier >> COMPARE_GT))             [ typename SA::type_specifier::init_type() ]
 					| (FUNCTION > LEFT_PAREN > -type_list_specifier > RIGHT_PAREN > -colon_type_specifier) [ typename SA::type_specifier::init_function_type() ]
 					| ELLIPSIS                                                                             [ typename SA::type_specifier::init_ellipsis() ]
 					)
@@ -461,13 +461,13 @@ struct ThorScript : qi::grammar<Iterator, typename SA::start::attribute_type, de
 
 		template_param_identifier
 			= qi::eps [ typename SA::location::init_loc() ]
-				>>	(IDENTIFIER > -(COMPARE_LT > ((IDENTIFIER | (ELLIPSIS > qi::attr(true))) % COMMA) > COMPARE_GT)
+				>>	(IDENTIFIER > -(COMPARE_LT >> ((IDENTIFIER | (ELLIPSIS > qi::attr(true))) % COMMA) >> COMPARE_GT)
 					) [ typename SA::template_param_identifier::init() ]
 			;
 
 		template_arg_identifier
 			= qi::eps [ typename SA::location::init_loc() ]
-				>>	(IDENTIFIER > -(COMPARE_LT >> type_list_specifier > COMPARE_GT)
+				>>	(IDENTIFIER > -(COMPARE_LT >> type_list_specifier >> COMPARE_GT)
 					) [ typename SA::template_arg_identifier::init() ]
 			;
 
