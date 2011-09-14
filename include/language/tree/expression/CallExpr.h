@@ -83,37 +83,10 @@ struct CallExpr : public Expression
         return true;
     }
 
-    template<typename Archive>
-    void serialize(Archive& ar, const unsigned int version)
-    {
-        boost::serialization::base_object<Expression>(*this);
-        ar & parameters;
-    }
-
 	ASTNode* node;
 	std::vector<Expression*> parameters;
 };
 
 } } }
-
-namespace boost { namespace serialization {
-
-template<class Archive>
-inline void save_construct_data(Archive& ar, const zillians::language::tree::CallExpr* p, const unsigned int file_version)
-{
-	ar << p->node;
-}
-
-template<class Archive>
-inline void load_construct_data(Archive& ar, zillians::language::tree::CallExpr* p, const unsigned int file_version)
-{
-    using namespace zillians::language::tree;
-
-    ASTNode* node;
-	ar >> node;
-	::new(p) CallExpr(node);
-}
-
-} } // namespace boost::serialization
 
 #endif /* ZILLIANS_LANGUAGE_TREE_CALLEXPR_H_ */

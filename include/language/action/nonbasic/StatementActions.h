@@ -197,6 +197,31 @@ struct iteration_statement
 		BIND_CACHED_LOCATION(_result = new ForeachStmt(iterator, range, block));
 	}
 	END_ACTION
+
+	BEGIN_ACTION(init_for)
+	{
+#ifdef DEBUG
+		printf("iteration_statement::init_for param(0) type = %s\n", typeid(_param_t(0)).name());
+		printf("iteration_statement::init_for param(1) type = %s\n", typeid(_param_t(1)).name());
+		printf("iteration_statement::init_for param(2) type = %s\n", typeid(_param_t(2)).name());
+		printf("iteration_statement::init_for param(3) type = %s\n", typeid(_param_t(3)).name());
+#endif
+		ASTNode* init = NULL;
+		switch(_param(0).which())
+		{
+		case 0:
+			init = boost::get<Declaration*>(_param(0));
+			break;
+		case 1:
+			init = boost::get<Expression*>(_param(0));
+			break;
+		}
+		Expression* cond = _param(1);
+		Expression* step = _param(2);
+		ASTNode*    block = _param(3).is_initialized() ? *_param(3) : NULL;
+		BIND_CACHED_LOCATION(_result = new ForStmt(init, cond, step, block));
+	}
+	END_ACTION
 };
 
 struct branch_statement

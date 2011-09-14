@@ -194,6 +194,16 @@ struct NodeInfoVisitor : Visitor<ASTNode, void, VisitorImplementation::recursive
 		stream << L"[expr_stmt]";
 	}
 
+	void info(ForStmt& node)
+	{
+		if(node.parent) visit(*node.parent);
+
+		if(stream.str().length() > 0)
+			stream << L".";
+
+		stream << L"[for_stmt]";
+	}
+
 	void info(ForeachStmt& node)
 	{
 		if(node.parent) visit(*node.parent);

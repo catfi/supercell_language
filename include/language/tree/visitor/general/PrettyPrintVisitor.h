@@ -542,6 +542,78 @@ struct PrettyPrintVisitor : Visitor<const ASTNode, void>
 		STREAM << L"</expression_stmt>" << std::endl;
 	}
 
+	void print(const ForStmt& node)
+	{
+		STREAM << L"<for_stmt>" << std::endl;
+		{
+			printSourceInfo(node);
+		}
+		{
+			printAnnotation(node.annotations);
+		}
+		{
+			increaseIdent();
+			if(node.init)
+			{
+				STREAM << L"<init>" << std::endl;
+				{
+					increaseIdent();
+					visit(*node.init);
+					decreaseIdent();
+				}
+				STREAM << L"</init>" << std::endl;
+			}
+			else
+			{
+				STREAM << L"<invalid_iterator/>" << std::endl;
+			}
+			if(node.cond)
+			{
+				STREAM << L"<cond>" << std::endl;
+				{
+					increaseIdent();
+					visit(*node.cond);
+					decreaseIdent();
+				}
+				STREAM << L"</cond>" << std::endl;
+			}
+			else
+			{
+				STREAM << L"<invalid_range/>" << std::endl;
+			}
+			if(node.step)
+			{
+				STREAM << L"<step>" << std::endl;
+				{
+					increaseIdent();
+					visit(*node.step);
+					decreaseIdent();
+				}
+				STREAM << L"</step>" << std::endl;
+			}
+			else
+			{
+				STREAM << L"<invalid_range/>" << std::endl;
+			}
+			if(node.block)
+			{
+				STREAM << L"<block>" << std::endl;
+				{
+					increaseIdent();
+					visit(*node.block);
+					decreaseIdent();
+				}
+				STREAM << L"</block>" << std::endl;
+			}
+			else
+			{
+				STREAM << L"<null_block/>" << std::endl;
+			}
+			decreaseIdent();
+		}
+		STREAM << L"</for_stmt>" << std::endl;
+	}
+
 	void print(const ForeachStmt& node)
 	{
 		STREAM << L"<foreach_stmt>" << std::endl;

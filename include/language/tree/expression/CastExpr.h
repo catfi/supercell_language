@@ -81,39 +81,10 @@ struct CastExpr : public Expression
         return true;
     }
 
-    template<typename Archive>
-    void serialize(Archive& ar, const unsigned int version)
-    {
-        boost::serialization::base_object<Expression>(*this);
-    }
-
 	Expression* node;
 	TypeSpecifier* type;
 };
 
 } } }
-
-namespace boost { namespace serialization {
-
-template<class Archive>
-inline void save_construct_data(Archive& ar, const zillians::language::tree::CastExpr* p, const unsigned int file_version)
-{
-	ar << p->node;
-    ar << p->type;
-}
-
-template<class Archive>
-inline void load_construct_data(Archive& ar, zillians::language::tree::CastExpr* p, const unsigned int file_version)
-{
-    using namespace zillians::language::tree;
-
-	Expression* node;
-	TypeSpecifier* type;
-	ar >> node;
-    ar >> type;
-	::new(p) CastExpr(node, type);
-}
-
-} } // namespace boost::serialization
 
 #endif /* ZILLIANS_LANGUAGE_TREE_CASTEXPR_H_ */

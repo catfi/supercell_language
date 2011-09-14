@@ -73,12 +73,6 @@ struct Identifier : public ASTNode
         return true;
     }
 
-    template<typename Archive>
-    void serialize(Archive& ar, const unsigned int version)
-    {
-        boost::serialization::base_object<ASTNode>(*this);
-    }
-
 //	ASTNode* resolved;
 };
 
@@ -132,12 +126,6 @@ struct SimpleIdentifier : public Identifier
         // add this to the visited table.
         visited.insert(this);
         return true;
-    }
-
-    template<typename Archive>
-    void serialize(Archive& ar, const unsigned int version)
-    {
-        boost::serialization::base_object<Identifier>(*this);
     }
 
 	const std::wstring name;
@@ -214,13 +202,6 @@ struct NestedIdentifier : public Identifier
         // add this to the visited table.
         visited.insert(this);
         return true;
-    }
-
-    template<typename Archive>
-    void serialize(Archive& ar, const unsigned int version)
-    {
-        boost::serialization::base_object<Identifier>(*this);
-        ar & identifier_list;
     }
 
 	std::vector<Identifier*> identifier_list;
@@ -341,58 +322,11 @@ struct TemplatedIdentifier : public Identifier
         return true;
     }
 
-    template<typename Archive>
-    void serialize(Archive& ar, const unsigned int version)
-    {
-        boost::serialization::base_object<Identifier>(*this);
-        ar & templated_type_list;
-    }
-
 	Usage::type type;
 	Identifier* id;
 	std::vector<ASTNode*> templated_type_list;
 };
 
 } } }
-
-namespace boost { namespace serialization {
-
-template<class Archive>
-inline void save_construct_data(Archive& ar, const zillians::language::tree::SimpleIdentifier* p, const unsigned int file_version)
-{
-    ar << p->name;
-}
-
-template<class Archive>
-inline void load_construct_data(Archive& ar, zillians::language::tree::SimpleIdentifier* p, const unsigned int file_version)
-{
-    using namespace zillians::language::tree;
-
-	std::wstring name;
-    ar >> name;
-	::new(p) SimpleIdentifier(name);
-}
-
-template<class Archive>
-inline void save_construct_data(Archive& ar, const zillians::language::tree::TemplatedIdentifier* p, const unsigned int file_version)
-{
-    ar << (int&)p->type;
-    ar << p->id;
-}
-
-template<class Archive>
-inline void load_construct_data(Archive& ar, zillians::language::tree::TemplatedIdentifier* p, const unsigned int file_version)
-{
-    using namespace zillians::language::tree;
-
-	int type;
-	Identifier* id;
-    ar >> type;
-    ar >> id;
-
-	::new(p) TemplatedIdentifier(static_cast<TemplatedIdentifier::Usage::type>(type), id);
-}
-
-} } // namespace boost::serialization
 
 #endif /* ZILLIANS_LANGUAGE_TREE_IDENTIFIER_H_ */
