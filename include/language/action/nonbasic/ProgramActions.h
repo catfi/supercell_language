@@ -29,7 +29,7 @@ struct program
 	DEFINE_ATTRIBUTES(void)
 	DEFINE_LOCALS(LOCATION_TYPE)
 
-	BEGIN_ACTION(init_and_init_loc)
+	BEGIN_ACTION(init_and_cache_loc)
 	{
 #ifdef DEBUG
 		printf("program param(0) type = %s\n", typeid(_param_t(0)).name());
