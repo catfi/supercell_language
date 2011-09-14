@@ -77,13 +77,6 @@ struct Expression : public ASTNode
         return true;
     }
 
-    template<typename Archive>
-    void serialize(Archive& ar, const unsigned int version)
-    {
-        boost::serialization::base_object<ASTNode>(*this);
-        ar & annotations;
-    }
-
 	Annotations* annotations;
 };
 

@@ -86,15 +86,6 @@ struct Block : public ASTNode
         return true;
     }
 
-	template<typename Archive>
-    void serialize(Archive& ar, const unsigned int version)
-	{
-        boost::serialization::base_object<ASTNode>(*this);
-        ar & is_pipelined_block;
-        ar & is_async_block;
-        ar & objects;
-    }
-
 	bool is_pipelined_block;
 	bool is_async_block;
 	std::vector<ASTNode*> objects;

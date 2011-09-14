@@ -327,18 +327,6 @@ public:
 
         return true ;
     }
-public:
-    template<typename Archive>
-    void serialize(Archive& ar, const unsigned int version)
-    {
-    	// TODO: serialize ContextHub.
-    	//
-    	// Currently the ContextHub can not be serialized because of the lackness of type information
-    	// ContextHub uses a special trick to map type to a integer in, and uses std::vector<shared_ptr<void>> to store data.
-    	// Survey boost::any and modify the implementation to make it possible to be serialized.
-        boost::serialization::base_object<ContextHub<ContextOwnership::transfer>>(*this);
-        ar & parent;
-    }
 
 protected:
 	ASTNode() : parent(NULL)

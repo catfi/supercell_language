@@ -87,39 +87,10 @@ struct BranchStmt : public Statement
         return true;
     }
 
-    template<typename Archive>
-    void serialize(Archive& ar, const unsigned int version)
-    {
-        boost::serialization::base_object<Statement>(*this);
-    }
-
 	OpCode::type opcode;
 	ASTNode* result;
 };
 
 } } }
-
-namespace boost { namespace serialization {
-
-template<class Archive>
-inline void save_construct_data(Archive& ar, const zillians::language::tree::BranchStmt* p, const unsigned int file_version)
-{
-    ar << p->opcode;
-    ar << p->result;
-}
-
-template<class Archive>
-inline void load_construct_data(Archive& ar, zillians::language::tree::BranchStmt* p, const unsigned int file_version)
-{
-    using namespace zillians::language::tree;
-
-	int opcode;
-	ASTNode* result;
-	ar >> opcode;
-    ar >> result;
-	::new(p) BranchStmt(static_cast<BranchStmt::OpCode::type>(opcode), result);
-}
-
-} } // namespace boost::serialization
 
 #endif /* ZILLIANS_LANGUAGE_TREE_BRANCHSTMT_H_ */

@@ -61,11 +61,6 @@ struct IterativeStmt : public Statement
         return true;
     }
 
-    template<typename Archive>
-    void serialize(Archive& ar, const unsigned int version)
-    {
-        boost::serialization::base_object<Statement>(*this);
-    }
 };
 
 struct ForStmt : public IterativeStmt
@@ -113,16 +108,6 @@ struct ForStmt : public IterativeStmt
         // add this to the visited table.
         visited.insert(this);
         return true;
-    }
-
-    template<typename Archive>
-    void serialize(Archive& ar, const unsigned int version)
-    {
-        boost::serialization::base_object<IterativeStmt>(*this);
-        ar & init;
-        ar & cond;
-        ar & step;
-        ar & block;
     }
 
 	ASTNode* init;
@@ -173,15 +158,6 @@ struct ForeachStmt : public IterativeStmt
         // add this to the visited table.
         visited.insert(this);
         return true;
-    }
-
-    template<typename Archive>
-    void serialize(Archive& ar, const unsigned int version)
-    {
-        boost::serialization::base_object<IterativeStmt>(*this);
-        ar & iterator;
-        ar & range;
-        ar & block;
     }
 
 	ASTNode* iterator; // TODO semantic-check: it must be L-value expression or declarative statement
@@ -248,101 +224,11 @@ struct WhileStmt : public IterativeStmt
         return true;
     }
 
-    template<typename Archive>
-    void serialize(Archive& ar, const unsigned int version)
-    {
-        boost::serialization::base_object<IterativeStmt>(*this);
-        ar & cond;
-        ar & block;
-    }
-
 	Style::type style;
 	Expression* cond;
 	ASTNode* block;
 };
 
 } } }
-
-namespace boost { namespace serialization {
-
-// ForStmt
-template<class Archive>
-inline void save_construct_data(Archive& ar, const zillians::language::tree::ForStmt* p, const unsigned int file_version)
-{
-    ar << p->init;
-    ar << p->cond;
-    ar << p->step;
-    ar << p->block;
-}
-
-template<class Archive>
-inline void load_construct_data(Archive& ar, zillians::language::tree::ForStmt* p, const unsigned int file_version)
-{
-    using namespace zillians::language::tree;
-
-	ASTNode* init; // TODO semantic-check: it must be L-value expression or declarative statement
-	ASTNode* cond;
-	ASTNode* step;
-	ASTNode* block;
-
-    ar >> init;
-    ar >> cond;
-    ar >> step;
-    ar >> block;
-
-	::new(p) ForStmt(init, cond, block);
-}
-
-// ForeachStmt
-template<class Archive>
-inline void save_construct_data(Archive& ar, const zillians::language::tree::ForeachStmt* p, const unsigned int file_version)
-{
-    ar << p->iterator;
-    ar << p->range;
-    ar << p->block;
-}
-
-template<class Archive>
-inline void load_construct_data(Archive& ar, zillians::language::tree::ForeachStmt* p, const unsigned int file_version)
-{
-    using namespace zillians::language::tree;
-
-	ASTNode* iterator; // TODO semantic-check: it must be L-value expression or declarative statement
-	Expression* range;
-	ASTNode* block;
-
-    ar >> iterator;
-    ar >> range;
-    ar >> block;
-
-	::new(p) ForeachStmt(iterator, range, block);
-}
-
-// WhileStmt
-template<class Archive>
-inline void save_construct_data(Archive& ar, const zillians::language::tree::WhileStmt* p, const unsigned int file_version)
-{
-    ar << (int&)p->style;
-    ar << p->cond;
-    ar << p->block;
-}
-
-template<class Archive>
-inline void load_construct_data(Archive& ar, zillians::language::tree::WhileStmt* p, const unsigned int file_version)
-{
-    using namespace zillians::language::tree;
-
-	int style;
-	Expression* cond;
-	ASTNode* block;
-
-    ar >> style;
-    ar >> cond;
-    ar >> block;
-
-	::new(p) WhileStmt(static_cast<WhileStmt::Style::type>(style), cond, block);
-}
-
-} } // namespace boost::serialization
 
 #endif /* ZILLIANS_LANGUAGE_TREE_ITERATIVESTMT_H_ */

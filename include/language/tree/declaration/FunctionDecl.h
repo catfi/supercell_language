@@ -29,25 +29,6 @@
 #include "language/tree/basic/TypeSpecifier.h"
 #include "language/tree/basic/Block.h"
 
-namespace boost { namespace serialization {
-
-#define GENERATE_ELEMENT_SERIALIZE(z,which,unused) \
-    ar & boost::serialization::make_nvp("element",t.get< which >());
-
-#define GENERATE_TUPLE_SERIALIZE(z,nargs,unused)                        \
-    template< typename Archive, BOOST_PP_ENUM_PARAMS(nargs,typename T) > \
-    void serialize(Archive & ar,                                        \
-                   boost::tuple< BOOST_PP_ENUM_PARAMS(nargs,T) > & t,   \
-                   const unsigned int version)                          \
-    {                                                                   \
-      BOOST_PP_REPEAT_FROM_TO(0,nargs,GENERATE_ELEMENT_SERIALIZE,~);    \
-    }
-
-
-    BOOST_PP_REPEAT_FROM_TO(1,6,GENERATE_TUPLE_SERIALIZE,~);
-
-}}
-
 namespace zillians { namespace language { namespace tree {
 
 struct FunctionDecl : public Declaration
@@ -103,19 +84,6 @@ struct FunctionDecl : public Declaration
         return true;
     }
 
-    template<typename Archive>
-    void serialize(Archive& ar, const unsigned int version)
-    {
-        boost::serialization::base_object<Declaration>(*this);
-        //ar & name;
-        ar & parameters;
-        //ar & type;
-        //ar & is_member;
-        //ar & static_cast<int&>(visibility);
-        //ar & static_cast<int&>(storage);
-        //ar & block;
-    }
-
 	Identifier* name;
 	std::vector<boost::tuple<SimpleIdentifier*, TypeSpecifier*, ASTNode*>> parameters;
 	TypeSpecifier* type;
@@ -126,42 +94,5 @@ struct FunctionDecl : public Declaration
 };
 
 } } }
-
-namespace boost { namespace serialization {
-
-template<class Archive>
-inline void save_construct_data(Archive& ar, const zillians::language::tree::FunctionDecl* p, const unsigned int file_version)
-{
-	ar << p->name;
-    ar << p->type;
-    ar << p->is_member;
-    ar << p->is_static;
-    ar << p->visibility;
-    ar << p->block;
-}
-
-template<class Archive>
-inline void load_construct_data(Archive& ar, zillians::language::tree::FunctionDecl* p, const unsigned int file_version)
-{
-    using namespace zillians::language::tree;
-
-	Identifier* name;
-    TypeSpecifier* type;
-    bool is_member;
-    bool is_static;
-    Declaration::VisibilitySpecifier::type visibility;
-    Block* block;
-
-	ar >> name;
-    ar >> type;
-    ar >> is_member;
-    ar >> is_static;
-    ar >> visibility;
-    ar >> block;
-
-	::new(p) FunctionDecl(name, type, is_member, is_static, visibility, block);
-}
-
-} } // namespace boost::serialization
 
 #endif /* ZILLIANS_LANGUAGE_TREE_FUNCTIONDECL_H_ */

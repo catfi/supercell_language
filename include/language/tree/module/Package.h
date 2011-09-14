@@ -97,39 +97,11 @@ struct Package : public ASTNode
         return true;
     }
 
-    template<typename Archive>
-    void serialize(Archive& ar, const unsigned int version)
-    {
-        boost::serialization::base_object<ASTNode>(*this);
-        ar & children;
-        ar & objects;
-    }
-
 	SimpleIdentifier* id;
 	std::vector<Package*> children;
 	std::vector<ASTNode*> objects;
 };
 
 } } }
-
-namespace boost { namespace serialization {
-
-template<class Archive>
-inline void save_construct_data(Archive& ar, const zillians::language::tree::Package* p, const unsigned int file_version)
-{
-    ar << p->id;
-}
-
-template<class Archive>
-inline void load_construct_data(Archive& ar, zillians::language::tree::Package* p, const unsigned int file_version)
-{
-    using namespace zillians::language::tree;
-
-    SimpleIdentifier* id;
-    ar >> id;
-	::new(p) Package(id);
-}
-
-} } // namespace boost::serialization
 
 #endif /* ZILLIANS_LANGUAGE_TREE_PACKAGE_H_ */

@@ -78,16 +78,6 @@ struct Annotation : public ASTNode
         return true;
     }
 
-    template<typename Archive>
-    void serialize(Archive& ar, const unsigned int version)
-    {
-        boost::serialization::base_object<ASTNode>(*this);
-        // NOTE: name is serialized in save_construct_data() function
-        // see http://www.boost.org/doc/libs/1_47_0/libs/serialization/doc/serialization.html#constructors
-        //ar & name;
-        ar & attribute_list;
-    }
-
 	SimpleIdentifier* name;
 	std::vector<std::pair<SimpleIdentifier*/*key*/, ASTNode*/*value*/>> attribute_list;
 };
@@ -130,36 +120,10 @@ struct Annotations : public ASTNode
         return true;
     }
 
-    template<typename Archive>
-    void serialize(Archive& ar, const unsigned int version)
-    {
-        boost::serialization::base_object<ASTNode>(*this);
-        ar & annotation_list;
-    }
-
 	std::vector<Annotation*> annotation_list;
 };
 
 } } }
 
-namespace boost { namespace serialization {
-
-template<class Archive>
-inline void save_construct_data(Archive& ar, const zillians::language::tree::Annotation* p, const unsigned int file_version)
-{
-	ar << p->name;
-}
-
-template<class Archive>
-inline void load_construct_data(Archive& ar, zillians::language::tree::Annotation* p, const unsigned int file_version)
-{
-    using namespace zillians::language::tree;
-
-	SimpleIdentifier* name;
-	ar >> name;
-	::new(p) Annotation(name);
-}
-
-} } // namespace boost::serialization
 
 #endif /* ZILLIANS_LANGUAGE_TREE_ANNOTATIONS_H_ */

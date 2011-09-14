@@ -59,11 +59,6 @@ struct Literal : public ASTNode
         return true;
     }
 
-    template<typename Archive>
-    void serialize(Archive& ar, const unsigned int version)
-    {
-        boost::serialization::base_object<ASTNode>(*this);
-    }
 };
 
 struct ObjectLiteral : public Literal
@@ -120,12 +115,6 @@ struct ObjectLiteral : public Literal
         // add this to the visited table.
         visited.insert(this);
         return true;
-    }
-
-    template<typename Archive>
-    void serialize(Archive& ar, const unsigned int version)
-    {
-        boost::serialization::base_object<Literal>(*this);
     }
 
 	LiteralType::type type;
@@ -192,12 +181,6 @@ struct NumericLiteral : public Literal
         // add this to the visited table.
         visited.insert(this);
         return true;
-    }
-
-    template<typename Archive>
-    void serialize(Archive& ar, const unsigned int version)
-    {
-        boost::serialization::base_object<Literal>(*this);
     }
 
 	PrimitiveType::type type;
@@ -267,110 +250,9 @@ struct StringLiteral : public Literal
         return true;
     }
 
-    template<typename Archive>
-    void serialize(Archive& ar, const unsigned int version)
-    {
-        boost::serialization::base_object<Literal>(*this);
-    }
-
 	std::wstring value;
 };
 
 } } }
-
-namespace boost { namespace serialization {
-
-// ObjectLiteral
-template<class Archive>
-inline void save_construct_data(Archive& ar, const zillians::language::tree::ObjectLiteral* p, const unsigned int file_version)
-{
-    ar << (int&)p->type;
-}
-
-template<class Archive>
-inline void load_construct_data(Archive& ar, zillians::language::tree::ObjectLiteral* p, const unsigned int file_version)
-{
-    using namespace zillians::language::tree;
-    int type;
-    ar >> type;
-    new(p) ObjectLiteral(static_cast<ObjectLiteral::LiteralType::type>(type));
-}
-
-// NumericLiteral
-template<class Archive>
-inline void save_construct_data(Archive& ar, const zillians::language::tree::NumericLiteral* p, const unsigned int file_version)
-{
-    using namespace zillians::language::tree;
-
-    ar << (int&)p->type;
-    switch(p->type)
-    {
-    case PrimitiveType::type::BOOL     : ar << p->value.b  ; break;
-    case PrimitiveType::type::UINT8    : ar << p->value.u8 ; break;
-    case PrimitiveType::type::UINT16   : ar << p->value.u16; break;
-    case PrimitiveType::type::UINT32   : ar << p->value.u32; break;
-    case PrimitiveType::type::UINT64   : ar << p->value.u64; break;
-    case PrimitiveType::type::INT8     : ar << p->value.i8 ; break;
-    case PrimitiveType::type::INT16    : ar << p->value.i16; break;
-    case PrimitiveType::type::INT32    : ar << p->value.i32; break;
-    case PrimitiveType::type::INT64    : ar << p->value.i64; break;
-    case PrimitiveType::type::FLOAT32  : ar << p->value.f32; break;
-    case PrimitiveType::type::FLOAT64  : ar << p->value.f64; break;
-    }
-}
-
-template<class Archive>
-inline void load_construct_data(Archive& ar, zillians::language::tree::NumericLiteral* p, const unsigned int file_version)
-{
-    using namespace zillians::language::tree;
-
-    int type;
-    ar >> type;
-
-    bool              b   ;
-    zillians::int8    i8  ;
-    zillians::int16   i16 ;
-    zillians::int32   i32 ;
-    zillians::int64   i64 ;
-    zillians::uint8   u8  ;
-    zillians::uint16  u16 ;
-    zillians::uint32  u32 ;
-    zillians::uint64  u64 ;
-    float             f32 ;
-    double            f64 ;
-
-    switch(type)
-    {
-    case PrimitiveType::type::BOOL     : ar >> b  ; ::new(p) NumericLiteral(b  ); break;
-    case PrimitiveType::type::UINT8    : ar >> u8 ; ::new(p) NumericLiteral(u8 ); break;
-    case PrimitiveType::type::UINT16   : ar >> u16; ::new(p) NumericLiteral(u16); break;
-    case PrimitiveType::type::UINT32   : ar >> u32; ::new(p) NumericLiteral(u32); break;
-    case PrimitiveType::type::UINT64   : ar >> u64; ::new(p) NumericLiteral(u64); break;
-    case PrimitiveType::type::INT8     : ar >> i8 ; ::new(p) NumericLiteral(i8 ); break;
-    case PrimitiveType::type::INT16    : ar >> i16; ::new(p) NumericLiteral(i16); break;
-    case PrimitiveType::type::INT32    : ar >> i32; ::new(p) NumericLiteral(i32); break;
-    case PrimitiveType::type::INT64    : ar >> i64; ::new(p) NumericLiteral(i64); break;
-    case PrimitiveType::type::FLOAT32  : ar >> f32; ::new(p) NumericLiteral(f32); break;
-    case PrimitiveType::type::FLOAT64  : ar >> f64; ::new(p) NumericLiteral(f64); break;
-    }
-}
-
-// StringLiteral
-template<class Archive>
-inline void save_construct_data(Archive& ar, const zillians::language::tree::StringLiteral* p, const unsigned int file_version)
-{
-    ar << p->value;
-}
-
-template<class Archive>
-inline void load_construct_data(Archive& ar, zillians::language::tree::StringLiteral* p, const unsigned int file_version)
-{
-    using namespace zillians::language::tree;
-    std::wstring value;
-    ar >> value;
-    new(p) StringLiteral(value);
-}
-
-} } // namespace boost::serialization
 
 #endif /* ZILLIANS_LANGUAGE_TREE_LITERAL_H_ */

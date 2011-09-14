@@ -118,12 +118,6 @@ struct PrimaryExpr : public Expression
         return true;
     }
 
-    template<typename Archive>
-    void serialize(Archive& ar, const unsigned int version)
-    {
-        boost::serialization::base_object<Expression>(*this);
-    }
-
 	Catagory::type catagory;
 
 	union ValueUnion
@@ -135,50 +129,5 @@ struct PrimaryExpr : public Expression
 };
 
 } } }
-
-namespace boost { namespace serialization {
-
-template<class Archive>
-inline void save_construct_data(Archive& ar, const zillians::language::tree::PrimaryExpr* p, const unsigned int file_version)
-{
-    ar << (int&)p->catagory ;
-    switch(p->catagory)
-    {
-    case zillians::language::tree::PrimaryExpr::Catagory::IDENTIFIER : ar << p->value.identifier; break;
-    case zillians::language::tree::PrimaryExpr::Catagory::LITERAL    : ar << p->value.literal; break;
-    case zillians::language::tree::PrimaryExpr::Catagory::LAMBDA     : ar << p->value.lambda; break;
-    }
-}
-
-template<class Archive>
-inline void load_construct_data(Archive& ar, zillians::language::tree::PrimaryExpr* p, const unsigned int file_version)
-{
-    using namespace zillians::language::tree;
-
-    int type;
-    ar >> type;
-    
-    switch(static_cast<PrimaryExpr::Catagory::type>(type))
-    {
-    case PrimaryExpr::Catagory::IDENTIFIER :
-        Identifier* identifier;
-        ar >> identifier;
-        ::new(p) PrimaryExpr(identifier);
-        break;
-    case PrimaryExpr::Catagory::LITERAL    :
-        Literal* literal;
-        ar >> literal;
-        ::new(p) PrimaryExpr(literal);
-        break;
-    case PrimaryExpr::Catagory::LAMBDA     :
-        FunctionDecl* functionDecl;
-        ar >> functionDecl;
-        ::new(p) PrimaryExpr(functionDecl);
-        break;
-    }
-}
-
-} } // namespace boost::serialization
-
 
 #endif /* ZILLIANS_LANGUAGE_TREE_PRIMARYEXPR_H_ */
