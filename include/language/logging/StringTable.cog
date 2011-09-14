@@ -98,6 +98,10 @@ struct StringTable
 			en_US = 'Undefined variable $ID(string) in $FILE(string) in $LINE(uint32)',
 			zh_TW = '變數 $ID(string) 在 $FILE(string) 中第 $LINE(uint32) 行未被定義'
 			))
+	LOG_STRING.create('LOG_WRONG_STATIC_TEST_ANNOTATION_FORMAT', LOG_LEVEL.LOG_LEVEL_ERROR, LOG_CATEGORY.CATEGORY_MISC, 0, dict(
+			en_US = 'Wrong static test annotation format $DETAIL(string)',
+			zh_TW = '錯誤的 static test annotation 格式 $DETAIL(string)'
+			))
 
 	# Define log string attributes
 	attribute_table = LOG_STRING.attribute_table

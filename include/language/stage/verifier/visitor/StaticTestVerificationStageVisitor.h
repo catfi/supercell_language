@@ -25,6 +25,8 @@
 
 #include <string>
 #include "core/Prerequisite.h"
+#include "language/logging/LoggingManager.h"
+#include "language/logging/StringTable.h"
 #include "core/Visitor.h"
 #include "language/tree/ASTNodeFactory.h"
 #include "language/tree/visitor/general/GenericDoubleVisitor.h"
@@ -84,44 +86,129 @@ struct StaticTestVerificationStageVisitor : public zillians::language::tree::vis
 private:
 	zillians::language::stage::LogInfoContext constructErrorContextFromAnnotation(zillians::language::tree::Annotation& node)
 	{
+		LoggingManager log_manager;
+		Logger* logger = log_manager.getLogger();
+		int source_index = 0;
+		stage::ModuleSourceInfoContext* module_info = new stage::ModuleSourceInfoContext();
+		source_index = module_info->addSource("test.cpp");
+		source_index = module_info->addSource("hello.cpp");
+		zillians::language::tree::Program program_node;
+		stage::ModuleSourceInfoContext::set(&program_node, module_info);
+		stage::SourceInfoContext::set(&node, new stage::SourceInfoContext(source_index, 32, 10) );
+
 		using namespace zillians::language::tree;
 		using zillians::language::tree::cast;
 		//zillians::language::stage::LogInfoContext result;
 		BOOST_ASSERT(node.attribute_list.size() == 1);
-		// expect-message
+		if (node.attribute_list.size() != 1 )
+		{
+			logger->log_wrong_static_test_annotation_format(_program_node = program_node, _node = node, _DETAIL = "number of attribute list should be 1");
+		}
+
 		std::pair<SimpleIdentifier*, ASTNode*>& expectMessage = node.attribute_list[0];
-		//BOOST_ASSERT(expectMessage != NULL);
 		BOOST_ASSERT(cast<SimpleIdentifier>(expectMessage.first)->name == L"expect_message");
+		if (cast<SimpleIdentifier>(expectMessage.first) == NULL)
+		{
+			logger->log_wrong_static_test_annotation_format(_program_node = program_node, _node = node, _DETAIL = "key should be \"expect_message\"");
+		}
+
 		BOOST_ASSERT(cast<Annotation>(expectMessage.second) != NULL);
+		if (cast<Annotation>(expectMessage.second) == NULL)
+		{
+			logger->log_wrong_static_test_annotation_format(_program_node = program_node, _node = node, _DETAIL = "child of Annotations should be Annotation");
+		}
+
 		BOOST_ASSERT(cast<Annotation>(expectMessage.second)->attribute_list.size() == 3);
+		if (cast<Annotation>(expectMessage.second)->attribute_list.size() != 3)
+		{
+			logger->log_wrong_static_test_annotation_format(_program_node = program_node, _node = node, _DETAIL = "number of attribute list should be 3");
+		}
 
 		// log level
 		std::pair<SimpleIdentifier*, ASTNode*> logLevel = cast<Annotation>(expectMessage.second)->attribute_list[0];
 		BOOST_ASSERT(cast<SimpleIdentifier>(logLevel.first) != NULL);
+		if (cast<SimpleIdentifier>(logLevel.first) == NULL)
+		{
+			logger->log_wrong_static_test_annotation_format(_program_node = program_node, _node = node, _DETAIL = "key should be SimpleIdentifier");
+		}
+
 		BOOST_ASSERT(cast<SimpleIdentifier>(logLevel.first)->name == L"level");
-		BOOST_ASSERT(cast<StringLiteral>(logLevel.second) != NULL);
-		std::wstring levelString = cast<StringLiteral>(logLevel.second)->value;
+		if (cast<SimpleIdentifier>(logLevel.first)->name != L"level")
+		{
+			logger->log_wrong_static_test_annotation_format(_program_node = program_node, _node = node, _DETAIL = "key should be \"level\"");
+		}
+
+		BOOST_ASSERT(cast<PrimaryExpr>(logLevel.second) != NULL);
+		BOOST_ASSERT(cast<StringLiteral>(cast<PrimaryExpr>(logLevel.second)->value.literal) != NULL);
+		if (cast<PrimaryExpr>(logLevel.second) == NULL || cast<StringLiteral>(cast<PrimaryExpr>(logLevel.second)->value.literal) == NULL)
+		{
+			logger->log_wrong_static_test_annotation_format(_program_node = program_node, _node = node, _DETAIL = "value should be StringLiteral");
+		}
+
+		std::wstring levelString = cast<StringLiteral>(cast<PrimaryExpr>(logLevel.second)->value.literal)->value;
 
 		// log id
 		std::pair<SimpleIdentifier*, ASTNode*> logId = cast<Annotation>(expectMessage.second)->attribute_list[1];
 		BOOST_ASSERT(cast<SimpleIdentifier>(logId.first) != NULL);
+		if (cast<SimpleIdentifier>(logId.first) == NULL)
+		{
+			logger->log_wrong_static_test_annotation_format(_program_node = program_node, _node = node, _DETAIL = "key should be SimpleIdentifier");
+		}
+
 		BOOST_ASSERT(cast<SimpleIdentifier>(logId.first)->name == L"id");
-		BOOST_ASSERT(cast<StringLiteral>(logId.second) != NULL);
-		std::wstring idString = cast<StringLiteral>(logId.second)->value;
+		if (cast<SimpleIdentifier>(logId.first)->name != L"id")
+		{
+			logger->log_wrong_static_test_annotation_format(_program_node = program_node, _node = node, _DETAIL = "key shoule be \"id\"");
+		}
+
+		BOOST_ASSERT(cast<PrimaryExpr>(logId.second) != NULL);
+		BOOST_ASSERT(cast<StringLiteral>(cast<PrimaryExpr>(logId.second)->value.literal) != NULL);
+		if (cast<PrimaryExpr>(logId.second) == NULL || cast<StringLiteral>(cast<PrimaryExpr>(logId.second)->value.literal) == NULL)
+		{
+			logger->log_wrong_static_test_annotation_format(_program_node = program_node, _node = node, _DETAIL = "value should be StringLiteral");
+		}
+
+		std::wstring idString = cast<StringLiteral>(cast<PrimaryExpr>(logId.second)->value.literal)->value;
 
 		// parameter pairs
 		std::pair<SimpleIdentifier*, ASTNode*> paramPairs = cast<Annotation>(expectMessage.second)->attribute_list[2];
 		BOOST_ASSERT(cast<SimpleIdentifier>(paramPairs.first) != NULL);
+		if (cast<SimpleIdentifier>(paramPairs.first) == NULL)
+		{
+			logger->log_wrong_static_test_annotation_format(_program_node = program_node, _node = node, _DETAIL = "key should be SimpleIdentifier");
+		}
+
 		BOOST_ASSERT(cast<SimpleIdentifier>(paramPairs.first)->name == L"parameters");
+		if (cast<SimpleIdentifier>(paramPairs.first)->name != L"parameters")
+		{
+			logger->log_wrong_static_test_annotation_format(_program_node = program_node, _node = node, _DETAIL = "key should be \"parameters\"");
+		}
+
 		BOOST_ASSERT(cast<Annotation>(paramPairs.second) != NULL);
+		if (cast<Annotation>(paramPairs.second) == NULL)
+		{
+			logger->log_wrong_static_test_annotation_format(_program_node = program_node, _node = node, _DETAIL = "value should be Annotation");
+		}
+
 		Annotation* params = cast<Annotation>(paramPairs.second);
 		std::map<std::wstring, std::wstring> paramsResult;
 		foreach(i, params->attribute_list)
 		{
 			SimpleIdentifier *paramKey = cast<SimpleIdentifier>(i->first);
 			BOOST_ASSERT(paramKey != NULL);
-			StringLiteral *paramValue = cast<StringLiteral>(i->second);
+			if (paramKey == NULL)
+			{
+				logger->log_wrong_static_test_annotation_format(_program_node = program_node, _node = node, _DETAIL = "key should be SimpleIdentifier");
+			}
+
+			BOOST_ASSERT(cast<PrimaryExpr>(i->second) != NULL);
+			StringLiteral *paramValue = cast<StringLiteral>(cast<PrimaryExpr>(i->second)->value.literal);
 			BOOST_ASSERT(paramValue != NULL);
+			if (cast<PrimaryExpr>(i->second) == NULL || paramValue == NULL)
+			{
+				logger->log_wrong_static_test_annotation_format(_program_node = program_node, _node = node, _DETAIL = "value should be StringLiteral");
+			}
+
 			std::wstring key = paramKey->name;
 			std::wstring value = paramValue->value;
 			//zillians::language::stage::LogInfoContext::parameter_type_t param(key, value);
