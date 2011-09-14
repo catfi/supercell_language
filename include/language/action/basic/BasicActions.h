@@ -37,7 +37,7 @@ struct location
 	}
 	END_ACTION
 
-	BEGIN_ACTION(init)
+	BEGIN_ACTION(init) // NOTE: _result_t will not be "void" if used by other SA
 	{
 #ifdef DEBUG
 		printf("location param(0) type = %s\n", typeid(_param_t(0)).name());

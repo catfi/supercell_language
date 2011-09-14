@@ -43,15 +43,17 @@
 #include "language/tree/ASTNodeFactory.h"
 #include "language/context/ParserContext.h"
 
-#define DISTINCT_IDENTIFIER(x)   distinct(unicode::alnum | L'_')[x]
-#define DISTINCT_NONASSIGN_OP(x) distinct(L'=')[x]
-#define DECL_TOKEN_RULE(x)       qi::rule<Iterator, typename SA::x::attribute_type, typename SA::x::local_type> x;
-#define DECL_RULE(x)             qi::rule<Iterator, typename SA::x::attribute_type, detail::WhiteSpace<Iterator>, typename SA::x::local_type> x;
-#define DECL_RULE_EX(x, sa)      qi::rule<Iterator, typename SA::sa::attribute_type, detail::WhiteSpace<Iterator>, typename SA::sa::local_type> x;
+#define DISTINCT_IDENTIFIER(x)       distinct(unicode::alnum | L'_')[x]
+#define DISTINCT_NO_ASSIGN_FOLLOW(x) distinct(L'=')[x]
+#define DECL_RULE_LEXEME(x)          qi::rule<Iterator, typename SA::x::attribute_type, typename SA::x::local_type> x
+#define DECL_RULE(x)                 qi::rule<Iterator, typename SA::x::attribute_type, detail::WhiteSpace<Iterator>, typename SA::x::local_type> x
+#define DECL_RULE_CUSTOM_SA(x, sa)   qi::rule<Iterator, typename SA::sa::attribute_type, detail::WhiteSpace<Iterator>, typename SA::sa::local_type> x
 #define INIT_RULE(x) \
-		x.name(#x); \
-		if(getParserContext().dump_rule_debug) \
-			debug(x); \
+		{ \
+			x.name(#x); \
+			if(getParserContext().dump_rule_debug) \
+				debug(x); \
+		}
 
 namespace qi = boost::spirit::qi;
 namespace unicode = boost::spirit::unicode;
@@ -132,11 +134,11 @@ struct Identifier : qi::grammar<Iterator, typename SA::identifier::attribute_typ
 		INIT_RULE(identifier);
 	}
 
-	DECL_TOKEN_RULE(location);
+	DECL_RULE_LEXEME(location);
 	qi::symbols<wchar_t const> keyword_sym;
 	qi::rule<Iterator, std::wstring()> keyword;
 	qi::rule<Iterator, std::wstring()> start;
-	DECL_TOKEN_RULE(identifier);
+	DECL_RULE_LEXEME(identifier);
 };
 
 template <typename Iterator, typename SA>
@@ -162,9 +164,9 @@ struct IntegerLiteral : qi::grammar<Iterator, typename SA::integer_literal::attr
 		INIT_RULE(integer_literal);
 	}
 
-	DECL_TOKEN_RULE(location);
+	DECL_RULE_LEXEME(location);
 	qi::rule<Iterator, uint64()> start;
-	DECL_TOKEN_RULE(integer_literal);
+	DECL_RULE_LEXEME(integer_literal);
 };
 
 template <typename Iterator, typename SA>
@@ -191,10 +193,10 @@ struct FloatLiteral : qi::grammar<Iterator, typename SA::float_literal::attribut
 		INIT_RULE(float_literal);
 	}
 
-	DECL_TOKEN_RULE(location);
+	DECL_RULE_LEXEME(location);
 	qi::real_parser<double, qi::strict_ureal_policies<double> > builtin_float_parser;
 	qi::rule<Iterator, double()> start;
-	DECL_TOKEN_RULE(float_literal);
+	DECL_RULE_LEXEME(float_literal);
 };
 
 template <typename Iterator, typename SA>
@@ -236,10 +238,10 @@ struct StringLiteral : qi::grammar<Iterator, typename SA::string_literal::attrib
 		INIT_RULE(string_literal);
 	}
 
-	DECL_TOKEN_RULE(location);
+	DECL_RULE_LEXEME(location);
 	qi::symbols<wchar_t const, wchar_t const> unescaped_char_sym;
 	qi::rule<Iterator, std::wstring()> start;
-	DECL_TOKEN_RULE(string_literal);
+	DECL_RULE_LEXEME(string_literal);
 };
 
 }
@@ -272,7 +274,7 @@ struct ThorScript : qi::grammar<Iterator, typename SA::start::attribute_type, de
 
 			// assignments
 			{
-				ASSIGN        = DISTINCT_NONASSIGN_OP(L'=');
+				ASSIGN        = DISTINCT_NO_ASSIGN_FOLLOW(L'=');
 				RSHIFT_ASSIGN = qi::lit(L">>=");
 				LSHIFT_ASSIGN = qi::lit(L"<<=");
 				PLUS_ASSIGN   = qi::lit(L"+=");
@@ -295,30 +297,30 @@ struct ThorScript : qi::grammar<Iterator, typename SA::start::attribute_type, de
 			{
 				ARITHMETIC_PLUS  = distinct(qi::lit(L'+') | L'=')[qi::lit(L'+')];
 				ARITHMETIC_MINUS = distinct(qi::lit(L'-') | L'=')[qi::lit(L'-')];
-				ARITHMETIC_MUL   = DISTINCT_NONASSIGN_OP(qi::lit(L'*'));
-				ARITHMETIC_DIV   = DISTINCT_NONASSIGN_OP(qi::lit(L'/'));
-				ARITHMETIC_MOD   = DISTINCT_NONASSIGN_OP(qi::lit(L'%'));
+				ARITHMETIC_MUL   = DISTINCT_NO_ASSIGN_FOLLOW(qi::lit(L'*'));
+				ARITHMETIC_DIV   = DISTINCT_NO_ASSIGN_FOLLOW(qi::lit(L'/'));
+				ARITHMETIC_MOD   = DISTINCT_NO_ASSIGN_FOLLOW(qi::lit(L'%'));
 			}
 
 			// binary operators
 			{
 				BINARY_AND = distinct(qi::lit(L'&') | L'=')[qi::lit(L'&')];
 				BINARY_OR  = distinct(qi::lit(L'|') | L'=')[qi::lit(L'|')];
-				BINARY_XOR = DISTINCT_NONASSIGN_OP(qi::lit(L'^'));
+				BINARY_XOR = DISTINCT_NO_ASSIGN_FOLLOW(qi::lit(L'^'));
 				BINARY_NOT = qi::lit(L'~');
 			}
 
 			// shift operators
 			{
-				RSHIFT = DISTINCT_NONASSIGN_OP(qi::lit(L">>"));
-				LSHIFT = DISTINCT_NONASSIGN_OP(qi::lit(L"<<"));
+				RSHIFT = DISTINCT_NO_ASSIGN_FOLLOW(qi::lit(L">>"));
+				LSHIFT = DISTINCT_NO_ASSIGN_FOLLOW(qi::lit(L"<<"));
 			}
 
 			// logical operators
 			{
 				LOGICAL_AND = qi::lit(L"&&");
 				LOGICAL_OR  = qi::lit(L"||");
-				LOGICAL_NOT = DISTINCT_NONASSIGN_OP(qi::lit(L'!'));
+				LOGICAL_NOT = DISTINCT_NO_ASSIGN_FOLLOW(qi::lit(L'!'));
 			}
 
 			// comparison
@@ -1063,42 +1065,42 @@ struct ThorScript : qi::grammar<Iterator, typename SA::start::attribute_type, de
 	detail::StringLiteral<Iterator, SA>  STRING_LITERAL;
 
 	// location
-	DECL_TOKEN_RULE(location);
+	DECL_RULE_LEXEME(location);
 
 	// basic
-	DECL_RULE(    typed_parameter_list);
-	DECL_RULE(    typed_parameter_list_with_init);
-	DECL_RULE(    init_specifier);
-	DECL_RULE(    colon_type_specifier);
-	DECL_RULE(    type_specifier);
-	DECL_RULE(    template_param_identifier);
-	DECL_RULE(    template_arg_identifier);
-	DECL_RULE_EX( lt_type_list_specifier, type_list_specifier);
-	DECL_RULE(    type_list_specifier);
-	DECL_RULE(    visibility_specifier);
-	DECL_RULE_EX( interface_visibility_specifier, visibility_specifier );
-	DECL_RULE(    annotation_specifiers);
-	DECL_RULE(    annotation_specifier);
-	DECL_RULE(    annotation_specifier_stem);
-	DECL_RULE(    nested_identifier);
+	DECL_RULE(           typed_parameter_list);
+	DECL_RULE(           typed_parameter_list_with_init);
+	DECL_RULE(           init_specifier);
+	DECL_RULE(           colon_type_specifier);
+	DECL_RULE(           type_specifier);
+	DECL_RULE(           template_param_identifier);
+	DECL_RULE(           template_arg_identifier);
+	DECL_RULE_CUSTOM_SA( lt_type_list_specifier, type_list_specifier);
+	DECL_RULE(           type_list_specifier);
+	DECL_RULE(           visibility_specifier);
+	DECL_RULE_CUSTOM_SA( interface_visibility_specifier, visibility_specifier );
+	DECL_RULE(           annotation_specifiers);
+	DECL_RULE(           annotation_specifier);
+	DECL_RULE(           annotation_specifier_stem);
+	DECL_RULE(           nested_identifier);
 
 	// expression
-	DECL_RULE(    primary_expression);
-	DECL_RULE(    postfix_expression);
-	DECL_RULE(    prefix_expression);
-	DECL_RULE_EX( multiplicative_expression, left_to_right_binary_op_vec );
-	DECL_RULE_EX( additive_expression,       left_to_right_binary_op_vec );
-	DECL_RULE_EX( shift_expression,          left_to_right_binary_op_vec );
-	DECL_RULE_EX( relational_expression,     left_to_right_binary_op_vec );
-	DECL_RULE_EX( equality_expression,       left_to_right_binary_op_vec );
-	DECL_RULE_EX( and_expression,            left_to_right_binary_op_vec );
-	DECL_RULE_EX( xor_expression,            left_to_right_binary_op_vec );
-	DECL_RULE_EX( or_expression,             left_to_right_binary_op_vec );
-	DECL_RULE_EX( logical_and_expression,    left_to_right_binary_op_vec );
-	DECL_RULE_EX( logical_or_expression,     left_to_right_binary_op_vec );
-	DECL_RULE(    range_expression);
-	DECL_RULE(    ternary_expression);
-	DECL_RULE_EX( expression,                right_to_left_binary_op_vec );
+	DECL_RULE(           primary_expression);
+	DECL_RULE(           postfix_expression);
+	DECL_RULE(           prefix_expression);
+	DECL_RULE_CUSTOM_SA( multiplicative_expression, left_to_right_binary_op_vec );
+	DECL_RULE_CUSTOM_SA( additive_expression,       left_to_right_binary_op_vec );
+	DECL_RULE_CUSTOM_SA( shift_expression,          left_to_right_binary_op_vec );
+	DECL_RULE_CUSTOM_SA( relational_expression,     left_to_right_binary_op_vec );
+	DECL_RULE_CUSTOM_SA( equality_expression,       left_to_right_binary_op_vec );
+	DECL_RULE_CUSTOM_SA( and_expression,            left_to_right_binary_op_vec );
+	DECL_RULE_CUSTOM_SA( xor_expression,            left_to_right_binary_op_vec );
+	DECL_RULE_CUSTOM_SA( or_expression,             left_to_right_binary_op_vec );
+	DECL_RULE_CUSTOM_SA( logical_and_expression,    left_to_right_binary_op_vec );
+	DECL_RULE_CUSTOM_SA( logical_or_expression,     left_to_right_binary_op_vec );
+	DECL_RULE(           range_expression);
+	DECL_RULE(           ternary_expression);
+	DECL_RULE_CUSTOM_SA( expression,                right_to_left_binary_op_vec );
 
 	// statement
 	DECL_RULE(statement);
