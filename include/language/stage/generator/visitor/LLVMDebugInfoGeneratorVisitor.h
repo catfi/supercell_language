@@ -46,7 +46,7 @@ struct LLVMDebugInfoGeneratorVisitor: GenericDoubleVisitor
 {
 	CREATE_INVOKER(generateInvoker, generate)
 
-	typedef std::map<PrimitiveType::type, llvm::DIBasicType> type_cache_t;
+	typedef std::map<PrimitiveType::type, llvm::DIType> type_cache_t;
 
 	LLVMDebugInfoGeneratorVisitor(llvm::LLVMContext& context, llvm::Module& current_module) :
 		context(context), current_module(current_module), factory(current_module)
@@ -111,11 +111,13 @@ struct LLVMDebugInfoGeneratorVisitor: GenericDoubleVisitor
 			LOG4CXX_DEBUG(LoggingManager::DebugInfoGeneratorStage, "<Program> folder: " << folder);
 			LOG4CXX_DEBUG(LoggingManager::DebugInfoGeneratorStage, "<Program> filename: " << filename);
 
-			llvm::DICompileUnit compile_unit = factory.CreateCompileUnit(llvm::dwarf::DW_LANG_C_plus_plus,
-				llvm::StringRef(filename.c_str()), llvm::StringRef(folder.c_str()), llvm::StringRef(COMPANY_INFORMATION), true);
+			factory.createCompileUnit(llvm::dwarf::DW_LANG_C_plus_plus,
+				llvm::StringRef(filename.c_str()), llvm::StringRef(folder.c_str()), llvm::StringRef(COMPANY_INFORMATION),
+				/*optimized*/false, /*flags*/llvm::StringRef(""), /*runtime version*/0);
 
-			llvm::DIFile file = factory.CreateFile(llvm::StringRef(filename.c_str()), llvm::StringRef(folder.c_str()), compile_unit);
+			llvm::DIFile file = factory.createFile(llvm::StringRef(filename.c_str()), llvm::StringRef(folder.c_str()));
 
+			llvm::DICompileUnit compile_unit(factory.getCU());
 			LOG4CXX_DEBUG(LoggingManager::DebugInfoGeneratorStage, "<Program> compile_unit: " << compile_unit);
 			LOG4CXX_DEBUG(LoggingManager::DebugInfoGeneratorStage, "<Program> file: " << file);
 
@@ -136,7 +138,7 @@ struct LLVMDebugInfoGeneratorVisitor: GenericDoubleVisitor
 
 		int32 source_index = source_info->source_index;
 
-		llvm::DIType* type = NULL;
+		llvm::DIType type;
 		switch(node.type)
 		{
 		case TypeSpecifier::ReferredType::CLASS_DECL: break;
@@ -147,16 +149,14 @@ struct LLVMDebugInfoGeneratorVisitor: GenericDoubleVisitor
 		case TypeSpecifier::ReferredType::UNSPECIFIED: break;
 		case TypeSpecifier::ReferredType::PRIMITIVE:
 		{
-			type = new llvm::DIBasicType();
-			*type = createPrimitiveType(
+			type = createPrimitiveType(
 					primitive_type_caches[source_index],
-					program_context->files[source_index],
 					node.referred.primitive);
 			break;
 		}
 		}
 
-		DebugInfoTypeContext::set(&node, new DebugInfoTypeContext(shared_ptr<llvm::DIType>(type)));
+		DebugInfoTypeContext::set(&node, new DebugInfoTypeContext(type));
 	}
 
 	void generate(FunctionDecl& node)
@@ -181,20 +181,16 @@ struct LLVMDebugInfoGeneratorVisitor: GenericDoubleVisitor
 
 		// Create DISubprogram for the function
 		llvm::Function * llvm_function = node.get<llvm::Function>();
-		llvm::DISubprogram subprogram = factory.CreateSubprogram(
+		llvm::DISubprogram subprogram = factory.createFunction(
 				program_context->files[source_index], // TODO: Last context
-				llvm::StringRef(ws_to_s(node.name->toString()).c_str()),
 				llvm::StringRef(ws_to_s(node.name->toString()).c_str()),
 				llvm::StringRef(mangling->managled_name.c_str()),
 				program_context->files[source_index],
 				source_info->line,
-				*return_type->type,
+				return_type->type,
 				false, //bool isLocalToUnit,
 				true, //bool isDefinition,
-				llvm::dwarf::DW_VIRTUALITY_none, //unsigned VK = 0
-				0, //unsigned VIndex = 0
-				llvm::DIType(), //DIType = DIType() parameter types
-				false, //bool isArtificial = 0
+				false, // unsigned flags: is this function prototyped or not
 				false, //bool isOptimized = false
 				llvm_function);
 
@@ -225,7 +221,7 @@ struct LLVMDebugInfoGeneratorVisitor: GenericDoubleVisitor
 		SourceInfoContext* source_info = SourceInfoContext::get(&node);
 
 		LOG4CXX_DEBUG(LoggingManager::DebugInfoGeneratorStage, "<Block> parent: " << parent_debug_info->context << " mdnode: " << (llvm::MDNode*)parent_debug_info->context);
-		llvm::DILexicalBlock function_block = factory.CreateLexicalBlock(
+		llvm::DILexicalBlock function_block = factory.createLexicalBlock(
 				parent_debug_info->context, parent_debug_info->file, source_info->line, source_info->column);
 
 		DebugInfoContext::set(&node, new DebugInfoContext(
@@ -250,11 +246,11 @@ struct LLVMDebugInfoGeneratorVisitor: GenericDoubleVisitor
 		DebugInfoTypeContext* type_info = DebugInfoTypeContext::get(node.type);
 
 		// TODO: Need to decide the type
-		llvm::DIVariable variable = factory.CreateVariable(
+		llvm::DIVariable variable = factory.createLocalVariable(
 				llvm::dwarf::DW_TAG_auto_variable,
 				parent_debug_info->context, llvm::StringRef(ws_to_s(node.name->toString()).c_str()),
 				parent_debug_info->file, source_info->line,
-				*type_info->type
+				type_info->type
 				);
 
 		DebugInfoContext::set(&node, new DebugInfoContext(
@@ -268,7 +264,8 @@ struct LLVMDebugInfoGeneratorVisitor: GenericDoubleVisitor
 		LOG4CXX_DEBUG(LoggingManager::DebugInfoGeneratorStage, "<Variable> value: " << value);
 		LOG4CXX_DEBUG(LoggingManager::DebugInfoGeneratorStage, "<Variable> block: " << block);
 
-		llvm::Instruction* variable_inst = factory.InsertDeclare(value, variable, block);
+		// TODO: decide to insert at end of block or before an specific instruction
+		llvm::Instruction* variable_inst = factory.insertDeclare(value, variable, block);
 		llvm::MDNode* scope = parent_debug_info->context;
 		variable_inst->setDebugLoc(llvm::DebugLoc::get(source_info->line, source_info->column, scope));
 
@@ -299,11 +296,10 @@ struct LLVMDebugInfoGeneratorVisitor: GenericDoubleVisitor
 
 
 private:
-	llvm::DIBasicType createPrimitiveType(type_cache_t& primitive_type_cache, llvm::DIFile& file, PrimitiveType::type type)
+	llvm::DIType createPrimitiveType(type_cache_t& primitive_type_cache, PrimitiveType::type type)
 	{
 		int bits = 0;
 		int alignment = 0;
-		int offset = 0;
 		llvm::dwarf::dwarf_constants encoding;
 
 		if (primitive_type_cache.find(type) != primitive_type_cache.end())
@@ -341,9 +337,9 @@ private:
 			BOOST_ASSERT(false && "Unknown basic type");
 		}
 
-		llvm::DIBasicType basic_type = factory.CreateBasicType(file,
+		llvm::DIType basic_type = factory.createBasicType(
 				llvm::StringRef(ws_to_s(PrimitiveType::toString(type)).c_str()),
-				file, /* line */ 0, bits, alignment, offset, /*flags*/ 0, encoding);
+				bits, alignment, encoding);
 
 		return (primitive_type_cache[type] = basic_type);
 	}
@@ -352,7 +348,7 @@ private:
 	llvm::LLVMContext& context;
 	llvm::Module& current_module;
 
-	llvm::DIFactory factory;
+	llvm::DIBuilder factory;
 
 	// The first key is the source index, each source
 	std::map< unsigned int, type_cache_t > primitive_type_caches;

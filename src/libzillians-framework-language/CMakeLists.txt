@@ -81,6 +81,7 @@ if(LLVM_FOUND)
     target_link_libraries(zillians-framework-language-llvm
         zillians-common-core
         zillians-common-utility
+		${LLVM_LDFLAGS}
         ${LLVM_ALL_LIBS}
         )
 else()
