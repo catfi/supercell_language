@@ -31,7 +31,7 @@ struct location
 	DEFINE_ATTRIBUTES(void)
 	DEFINE_LOCALS()
 
-	BEGIN_ACTION(init_loc)
+	BEGIN_ACTION(cache_loc)
 	{
 		CACHE_LOCATION;
 	}
