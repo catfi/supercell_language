@@ -453,7 +453,7 @@ struct ThorScript : qi::grammar<Iterator, typename SA::start::attribute_type, de
 					| qi::lit(L"uint64")                                                                   [ typename SA::type_specifier::template init_primitive_type<tree::PrimitiveType::UINT64>() ]
 					| qi::lit(L"float32")                                                                  [ typename SA::type_specifier::template init_primitive_type<tree::PrimitiveType::FLOAT32>() ]
 					| qi::lit(L"float64")                                                                  [ typename SA::type_specifier::template init_primitive_type<tree::PrimitiveType::FLOAT64>() ]
-					| (nested_identifier > -(COMPARE_LT >> type_list_specifier >> COMPARE_GT))             [ typename SA::type_specifier::init_type() ]
+					| (nested_identifier > -lt_type_list_specifier)                                        [ typename SA::type_specifier::init_type() ]
 					| (FUNCTION > LEFT_PAREN > -type_list_specifier > RIGHT_PAREN > -colon_type_specifier) [ typename SA::type_specifier::init_function_type() ]
 					| ELLIPSIS                                                                             [ typename SA::type_specifier::init_ellipsis() ]
 					)
@@ -467,8 +467,12 @@ struct ThorScript : qi::grammar<Iterator, typename SA::start::attribute_type, de
 
 		template_arg_identifier
 			= qi::eps [ typename SA::location::init_loc() ]
-				>>	(IDENTIFIER > -(COMPARE_LT >> type_list_specifier >> COMPARE_GT)
+				>>	(IDENTIFIER > -lt_type_list_specifier
 					) [ typename SA::template_arg_identifier::init() ]
+			;
+
+		lt_type_list_specifier
+			= (COMPARE_LT >> type_list_specifier >> COMPARE_GT) [ typename SA::type_list_specifier::init() ]
 			;
 
 		type_list_specifier
@@ -476,14 +480,14 @@ struct ThorScript : qi::grammar<Iterator, typename SA::start::attribute_type, de
 			;
 
 		visibility_specifier
-			= PUBLIC    [ typename SA::visibility_specifier::init_public() ]
-			| PROTECTED [ typename SA::visibility_specifier::init_protected() ]
-			| PRIVATE   [ typename SA::visibility_specifier::init_private() ]
+			= PUBLIC    [ typename SA::visibility_specifier::template init<tree::Declaration::VisibilitySpecifier::PUBLIC>() ]
+			| PROTECTED [ typename SA::visibility_specifier::template init<tree::Declaration::VisibilitySpecifier::PROTECTED>() ]
+			| PRIVATE   [ typename SA::visibility_specifier::template init<tree::Declaration::VisibilitySpecifier::PRIVATE>() ]
 			;
 
 		interface_visibility_specifier
-			= PUBLIC    [ typename SA::visibility_specifier::init_public() ]
-			| PROTECTED [ typename SA::visibility_specifier::init_protected() ]
+			= PUBLIC    [ typename SA::visibility_specifier::template init<tree::Declaration::VisibilitySpecifier::PUBLIC>() ]
+			| PROTECTED [ typename SA::visibility_specifier::template init<tree::Declaration::VisibilitySpecifier::PROTECTED>() ]
 			;
 
 		annotation_specifiers
@@ -964,6 +968,7 @@ struct ThorScript : qi::grammar<Iterator, typename SA::start::attribute_type, de
 		INIT_RULE(type_specifier);
 		INIT_RULE(template_param_identifier);
 		INIT_RULE(template_arg_identifier);
+		INIT_RULE(lt_type_list_specifier);
 		INIT_RULE(type_list_specifier);
 		INIT_RULE(visibility_specifier);
 		INIT_RULE(interface_visibility_specifier);
@@ -1068,6 +1073,7 @@ struct ThorScript : qi::grammar<Iterator, typename SA::start::attribute_type, de
 	DECL_RULE(    type_specifier);
 	DECL_RULE(    template_param_identifier);
 	DECL_RULE(    template_arg_identifier);
+	DECL_RULE_EX( lt_type_list_specifier, type_list_specifier);
 	DECL_RULE(    type_list_specifier);
 	DECL_RULE(    visibility_specifier);
 	DECL_RULE_EX( interface_visibility_specifier, visibility_specifier );

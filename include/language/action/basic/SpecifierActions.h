@@ -132,21 +132,9 @@ struct visibility_specifier
 	DEFINE_ATTRIBUTES(Declaration::VisibilitySpecifier::type)
 	DEFINE_LOCALS()
 
-	BEGIN_ACTION(init_public)
+	BEGIN_TEMPLATED_ACTION(init, Declaration::VisibilitySpecifier::type Type)
 	{
-		_result = Declaration::VisibilitySpecifier::PUBLIC;
-	}
-	END_ACTION
-
-	BEGIN_ACTION(init_protected)
-	{
-		_result = Declaration::VisibilitySpecifier::PROTECTED;
-	}
-	END_ACTION
-
-	BEGIN_ACTION(init_private)
-	{
-		_result = Declaration::VisibilitySpecifier::PRIVATE;
+		_result = Type;
 	}
 	END_ACTION
 };
