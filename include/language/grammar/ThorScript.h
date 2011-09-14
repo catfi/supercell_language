@@ -132,7 +132,7 @@ struct Identifier : qi::grammar<Iterator, typename SA::identifier::attribute_typ
 		INIT_RULE(identifier);
 	}
 
-	qi::rule<Iterator, typename SA::location::attribute_type, typename SA::location::local_type> location;
+	DECL_TOKEN_RULE(location);
 	qi::symbols<wchar_t const> keyword_sym;
 	qi::rule<Iterator, std::wstring()> keyword;
 	qi::rule<Iterator, std::wstring()> start;
@@ -162,7 +162,7 @@ struct IntegerLiteral : qi::grammar<Iterator, typename SA::integer_literal::attr
 		INIT_RULE(integer_literal);
 	}
 
-	qi::rule<Iterator, typename SA::location::attribute_type, typename SA::location::local_type> location;
+	DECL_TOKEN_RULE(location);
 	qi::rule<Iterator, uint64()> start;
 	DECL_TOKEN_RULE(integer_literal);
 };
@@ -191,7 +191,7 @@ struct FloatLiteral : qi::grammar<Iterator, typename SA::float_literal::attribut
 		INIT_RULE(float_literal);
 	}
 
-	qi::rule<Iterator, typename SA::location::attribute_type, typename SA::location::local_type> location;
+	DECL_TOKEN_RULE(location);
 	qi::real_parser<double, qi::strict_ureal_policies<double> > builtin_float_parser;
 	qi::rule<Iterator, double()> start;
 	DECL_TOKEN_RULE(float_literal);
@@ -236,7 +236,7 @@ struct StringLiteral : qi::grammar<Iterator, typename SA::string_literal::attrib
 		INIT_RULE(string_literal);
 	}
 
-	qi::rule<Iterator, typename SA::location::attribute_type, typename SA::location::local_type> location;
+	DECL_TOKEN_RULE(location);
 	qi::symbols<wchar_t const, wchar_t const> unescaped_char_sym;
 	qi::rule<Iterator, std::wstring()> start;
 	DECL_TOKEN_RULE(string_literal);
@@ -1057,8 +1057,10 @@ struct ThorScript : qi::grammar<Iterator, typename SA::start::attribute_type, de
 	detail::FloatLiteral<Iterator, SA>   FLOAT_LITERAL;
 	detail::StringLiteral<Iterator, SA>  STRING_LITERAL;
 
+	// location
+	DECL_TOKEN_RULE(location);
+
 	// basic
-	DECL_RULE(    location);
 	DECL_RULE(    typed_parameter_list);
 	DECL_RULE(    typed_parameter_list_with_init);
 	DECL_RULE(    init_specifier);
