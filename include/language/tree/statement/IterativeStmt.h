@@ -73,15 +73,15 @@ struct ForStmt : public IterativeStmt
 	DEFINE_VISITABLE();
 	DEFINE_HIERARCHY(ForStmt, (ForStmt)(IterativeStmt)(Statement)(ASTNode));
 
-	explicit ForStmt(ASTNode* init, ASTNode* cond, ASTNode* after, ASTNode* block = NULL) : init(init), cond(cond), after(after), block(block)
+	explicit ForStmt(ASTNode* init, ASTNode* cond, ASTNode* step, ASTNode* block = NULL) : init(init), cond(cond), step(step), block(block)
 	{
 		BOOST_ASSERT(init && "null init for for statement is not allowed");
 		BOOST_ASSERT(cond && "null cond for for  statement is not allowed");
-		BOOST_ASSERT(after && "null after for for  statement is not allowed");
+		BOOST_ASSERT(step && "null step for for  statement is not allowed");
 
 		init->parent = this;
 		cond->parent = this;
-		after->parent = this;
+		step->parent = this;
 		if(block) block->parent = this;
 	}
 
@@ -107,7 +107,7 @@ struct ForStmt : public IterativeStmt
         // compare data member
         if(!isASTNodeMemberEqual   (&ForStmt::init            , *this, *p, visited)) return false;
         if(!isASTNodeMemberEqual   (&ForStmt::cond            , *this, *p, visited)) return false;
-        if(!isASTNodeMemberEqual   (&ForStmt::after           , *this, *p, visited)) return false;
+        if(!isASTNodeMemberEqual   (&ForStmt::step           , *this, *p, visited)) return false;
         if(!isASTNodeMemberEqual   (&ForStmt::block           , *this, *p, visited)) return false;
 
         // add this to the visited table.
@@ -121,13 +121,13 @@ struct ForStmt : public IterativeStmt
         boost::serialization::base_object<IterativeStmt>(*this);
         ar & init;
         ar & cond;
-        ar & after;
+        ar & step;
         ar & block;
     }
 
 	ASTNode* init;
 	ASTNode* cond;
-	ASTNode* after;
+	ASTNode* step;
 	ASTNode* block;
 };
 
@@ -271,7 +271,7 @@ inline void save_construct_data(Archive& ar, const zillians::language::tree::For
 {
     ar << p->init;
     ar << p->cond;
-    ar << p->after;
+    ar << p->step;
     ar << p->block;
 }
 
@@ -282,12 +282,12 @@ inline void load_construct_data(Archive& ar, zillians::language::tree::ForStmt* 
 
 	ASTNode* init; // TODO semantic-check: it must be L-value expression or declarative statement
 	ASTNode* cond;
-	ASTNode* after;
+	ASTNode* step;
 	ASTNode* block;
 
     ar >> init;
     ar >> cond;
-    ar >> after;
+    ar >> step;
     ar >> block;
 
 	::new(p) ForStmt(init, cond, block);

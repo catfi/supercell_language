@@ -332,7 +332,7 @@ struct GenericVisitor : Visitor<const ASTNode, void, VisitorImplementation::recu
 	{
 		if(node.init)  visit(*node.init);
 		if(node.cond)  visit(*node.cond);
-		if(node.after) visit(*node.after);
+		if(node.step) visit(*node.step);
 		if(node.block) visit(*node.block);
 
 		if(node.annotations) visit(*node.annotations);

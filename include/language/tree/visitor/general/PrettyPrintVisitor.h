@@ -581,15 +581,15 @@ struct PrettyPrintVisitor : Visitor<const ASTNode, void>
 			{
 				STREAM << L"<invalid_range/>" << std::endl;
 			}
-			if(node.after)
+			if(node.step)
 			{
-				STREAM << L"<after>" << std::endl;
+				STREAM << L"<step>" << std::endl;
 				{
 					increaseIdent();
-					visit(*node.after);
+					visit(*node.step);
 					decreaseIdent();
 				}
-				STREAM << L"</after>" << std::endl;
+				STREAM << L"</step>" << std::endl;
 			}
 			else
 			{
