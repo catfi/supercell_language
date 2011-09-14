@@ -71,9 +71,9 @@ struct StringTable
 			self.translation_table[log_id] = trans
 
 
-	#########################################################
-	# This is the place you gonna extend
-	#########################################################
+	#################################################################
+	# BEGIN MANUAL EDIT SOURCE
+	#################################################################
 
 	# Define category
 	LOG_CATEGORY = Repo()
@@ -90,6 +90,7 @@ struct StringTable
 
 	# Define constant string
 	LOG_STRING = LogRepo()
+	############################################# SAMPLE
 	LOG_STRING.create('LOG_UNUSED_VARIABLE', LOG_LEVEL.LOG_LEVEL_WARNING, LOG_CATEGORY.CATEGORY_SYMBOL, 0, dict(
 			en_US = 'Undefined variable $ID(string) is used, $ID(string) should not be used',
 			zh_TW = '$ID(string) 未被使用，$ID(string) 不應該被用'
@@ -98,10 +99,152 @@ struct StringTable
 			en_US = 'Undefined variable $ID(string) in $FILE(string) in $LINE(uint32)',
 			zh_TW = '變數 $ID(string) 在 $FILE(string) 中第 $LINE(uint32) 行未被定義'
 			))
+	############################################# PARSER_STAGE
+	############################################# STATIC_TEST_VERIFICATION_STAGE
 	LOG_STRING.create('LOG_WRONG_STATIC_TEST_ANNOTATION_FORMAT', LOG_LEVEL.LOG_LEVEL_ERROR, LOG_CATEGORY.CATEGORY_MISC, 0, dict(
 			en_US = 'Wrong static test annotation format $DETAIL(string)',
 			zh_TW = '錯誤的 static test annotation 格式 $DETAIL(string)'
 			))
+	############################################# TRANSFORMER_STAGE
+	############################################# SEMANTIC_VERIFICATION_STAGE (ERRORS)
+	LOG_STRING.create('LOG_UNKNOWN_NAME', LOG_LEVEL.LOG_LEVEL_ERROR, LOG_CATEGORY.CATEGORY_MISC, 0, dict(
+			en_US = '$ID(string) was not declared in this scope',
+			zh_TW = 'TODO: 提供中文翻譯 ==> LOG_UNKNOWN_NAME'
+			))
+	LOG_STRING.create('UNDEFINED_REF', LOG_LEVEL.LOG_LEVEL_ERROR, LOG_CATEGORY.CATEGORY_MISC, 0, dict(
+			en_US = 'undefined reference to $ID(string)',
+			zh_TW = 'TODO: 提供中文翻譯 ==> UNDEFINED_REF'
+			))
+	LOG_STRING.create('DUPE_NAME', LOG_LEVEL.LOG_LEVEL_ERROR, LOG_CATEGORY.CATEGORY_MISC, 0, dict(
+			en_US = 'redeclaration/redefinition of $ID(string)',
+			zh_TW = 'TODO: 提供中文翻譯 ==> DUPE_NAME'
+			))
+	LOG_STRING.create('AMBIGUOUS_REF', LOG_LEVEL.LOG_LEVEL_ERROR, LOG_CATEGORY.CATEGORY_MISC, 0, dict(
+			en_US = 'TODO: need message ==> AMBIGUOUS_REF',
+			zh_TW = 'TODO: 提供中文翻譯 ==>  AMBIGUOUS_REF'
+			))
+	LOG_STRING.create('WRITE_RVALUE', LOG_LEVEL.LOG_LEVEL_ERROR, LOG_CATEGORY.CATEGORY_MISC, 0, dict(
+			en_US = 'lvalue required as left operand of assignment',
+			zh_TW = 'TODO: 提供中文翻譯 ==> WRITE_RVALUE'
+			))
+	LOG_STRING.create('INVALID_CONV', LOG_LEVEL.LOG_LEVEL_ERROR, LOG_CATEGORY.CATEGORY_MISC, 0, dict(
+			en_US = 'invalid conversion from $SRC_TYPE(string) to $DEST_TYPE(string)',
+			zh_TW = 'TODO: 提供中文翻譯 ==> INVALID_CONV'
+			))
+	LOG_STRING.create('NO_MATCHING_FUNC', LOG_LEVEL.LOG_LEVEL_ERROR, LOG_CATEGORY.CATEGORY_MISC, 0, dict(
+			en_US = 'no matching function for call to $FUNC_ID(string)',
+			zh_TW = 'TODO: 提供中文翻譯 ==> NO_MATCHING_FUNC'
+			))
+	LOG_STRING.create('INVALID_CONV_BOOL', LOG_LEVEL.LOG_LEVEL_ERROR, LOG_CATEGORY.CATEGORY_MISC, 0, dict(
+			en_US = 'could not convert $SRC_TYPE(string) to \'bool\'',
+			zh_TW = 'TODO: 提供中文翻譯 ==> INVALID_CONV_BOOL'
+			))
+	LOG_STRING.create('INVALID_MEMBER', LOG_LEVEL.LOG_LEVEL_ERROR, LOG_CATEGORY.CATEGORY_MISC, 0, dict(
+			en_US = 'request for member $MEMBER_ID(string) in $PRIMARY_ID(string), which is of non-class type $PRIMARY_TYPE(string)',
+			zh_TW = 'TODO: 提供中文翻譯 ==> INVALID_MEMBER'
+			))
+	LOG_STRING.create('NO_MATCHING_MEMBER', LOG_LEVEL.LOG_LEVEL_ERROR, LOG_CATEGORY.CATEGORY_MISC, 0, dict(
+			en_US = '$PRIMARY_TYPE(string) has no member named $MEMBER_ID(string)',
+			zh_TW = 'TODO: 提供中文翻譯 ==> NO_MATCHING_MEMBER'
+			))
+	#LOG_STRING.create('INVALID_SUBSCRIPT', LOG_LEVEL.LOG_LEVEL_ERROR, LOG_CATEGORY.CATEGORY_MISC, 0, dict(
+	#		en_US = 'invalid types $PRIMARY_TYPE(string)\[$SUBSCRIPT_TYPE(string)\] for array subscript',
+	#		zh_TW = 'TODO: 提供中文翻譯 ==> INVALID_SUBSCRIPT'
+	#		))
+	LOG_STRING.create('CALL_NONFUNC', LOG_LEVEL.LOG_LEVEL_ERROR, LOG_CATEGORY.CATEGORY_MISC, 0, dict(
+			en_US = '$FUNC_ID(string) cannot be used as a function',
+			zh_TW = 'TODO: 提供中文翻譯 ==> CALL_NONFUNC'
+			))
+	LOG_STRING.create('NO_MATCHING_FUNC_ARGNUM', LOG_LEVEL.LOG_LEVEL_ERROR, LOG_CATEGORY.CATEGORY_MISC, 0, dict(
+			en_US = 'too many/few arguments to function $FUNC_ID(string)',
+			zh_TW = 'TODO: 提供中文翻譯 ==> NO_MATCHING_FUNC_ARGNUM'
+			))
+	LOG_STRING.create('INVALID_RETURN_VALUE', LOG_LEVEL.LOG_LEVEL_ERROR, LOG_CATEGORY.CATEGORY_MISC, 0, dict(
+			en_US = 'return-statement with a value, in function returning \'void\'',
+			zh_TW = 'TODO: 提供中文翻譯 ==> INVALID_RETURN_VALUE'
+			))
+	LOG_STRING.create('MISSING_RETURN_VALUE', LOG_LEVEL.LOG_LEVEL_ERROR, LOG_CATEGORY.CATEGORY_MISC, 0, dict(
+			en_US = 'return-statement with no value, in function returning $TYPE(string)',
+			zh_TW = 'TODO: 提供中文翻譯 ==> MISSING_RETURN_VALUE'
+			))
+	LOG_STRING.create('CONST_MISSING_INIT', LOG_LEVEL.LOG_LEVEL_ERROR, LOG_CATEGORY.CATEGORY_MISC, 0, dict(
+			en_US = 'uninitialized const $VAR_ID(string)',
+			zh_TW = 'TODO: 提供中文翻譯 ==> CONST_MISSING_INIT'
+			))
+	LOG_STRING.create('WRITE_CONST', LOG_LEVEL.LOG_LEVEL_ERROR, LOG_CATEGORY.CATEGORY_MISC, 0, dict(
+			en_US = 'assignment of read-only variable $VAR_ID(string)',
+			zh_TW = 'TODO: 提供中文翻譯 ==> WRITE_CONST'
+			))
+	LOG_STRING.create('INVALID_NONSTATIC_CALL', LOG_LEVEL.LOG_LEVEL_ERROR, LOG_CATEGORY.CATEGORY_MISC, 0, dict(
+			en_US = 'cannot call member function $FUNC_ID(string) without object',
+			zh_TW = 'TODO: 提供中文翻譯 ==> INVALID_NONSTATIC_CALL'
+			))
+	LOG_STRING.create('INVALID_NONSTATIC_REF', LOG_LEVEL.LOG_LEVEL_ERROR, LOG_CATEGORY.CATEGORY_MISC, 0, dict(
+			en_US = 'invalid use of member $MEMBER_ID(string) in static member function',
+			zh_TW = 'TODO: 提供中文翻譯 ==> INVALID_NONSTATIC_REF'
+			))
+	LOG_STRING.create('VIS_VIOLATION', LOG_LEVEL.LOG_LEVEL_ERROR, LOG_CATEGORY.CATEGORY_MISC, 0, dict(
+			en_US = '$ID(string) is private/protected',
+			zh_TW = 'TODO: 提供中文翻譯 ==> VIS_VIOLATION'
+			))
+	LOG_STRING.create('BREAK_MISSING_TARGET', LOG_LEVEL.LOG_LEVEL_ERROR, LOG_CATEGORY.CATEGORY_MISC, 0, dict(
+			en_US = 'break statement not within loop or switch',
+			zh_TW = 'TODO: 提供中文翻譯 ==> BREAK_MISSING_TARGET'
+			))
+	LOG_STRING.create('CONTINUE_MISSING_TARGET', LOG_LEVEL.LOG_LEVEL_ERROR, LOG_CATEGORY.CATEGORY_MISC, 0, dict(
+			en_US = 'continue statement not within a loop',
+			zh_TW = 'TODO: 提供中文翻譯 ==> CONTINUE_MISSING_TARGET'
+			))
+	LOG_STRING.create('HEAP_VAR_INIT_NONCONST', LOG_LEVEL.LOG_LEVEL_ERROR, LOG_CATEGORY.CATEGORY_MISC, 0, dict(
+			en_US = 'TODO: need message ==> HEAP_VAR_INIT_NONCONST',
+			zh_TW = 'TODO: 提供中文翻譯 ==> HEAP_VAR_INIT_NONCONST'
+			))
+	LOG_STRING.create('PARAM_MISSING_INIT', LOG_LEVEL.LOG_LEVEL_ERROR, LOG_CATEGORY.CATEGORY_MISC, 0, dict(
+			en_US = 'default argument missing for parameter $PARAM_INDEX(uint32) of $FUNC_ID(string)',
+			zh_TW = 'TODO: 提供中文翻譯 ==> PARAM_MISSING_INIT'
+			))
+	LOG_STRING.create('UNEXPECT_VARIADIC_PARAM', LOG_LEVEL.LOG_LEVEL_ERROR, LOG_CATEGORY.CATEGORY_MISC, 0, dict(
+			en_US = 'TODO: need message ==> UNEXPECT_VARIADIC_PARAM',
+			zh_TW = 'TODO: 提供中文翻譯 ==> UNEXPECT_VARIADIC_PARAM'
+			))
+	LOG_STRING.create('EXCEED_PARAM_LIMIT', LOG_LEVEL.LOG_LEVEL_ERROR, LOG_CATEGORY.CATEGORY_MISC, 0, dict(
+			en_US = 'TODO: need message ==> EXCEED_PARAM_LIMIT',
+			zh_TW = 'TODO: 提供中文翻譯 ==> EXCEED_PARAM_LIMIT'
+			))
+	############################################# SEMANTIC_VERIFICATION_STAGE (WARNINGS)
+	LOG_STRING.create('PASS_UNINIT_ARG', LOG_LEVEL.LOG_LEVEL_WARNING, LOG_CATEGORY.CATEGORY_MISC, 0, dict(
+			en_US = '$VAR_ID(string) is used uninitialized in this function',
+			zh_TW = 'TODO: 提供中文翻譯 ==> PASS_UNINIT_ARG'
+			))
+	LOG_STRING.create('UNUSED_VAR', LOG_LEVEL.LOG_LEVEL_WARNING, LOG_CATEGORY.CATEGORY_MISC, 0, dict(
+			en_US = 'unused variable $VAR_ID(string)',
+			zh_TW = 'TODO: 提供中文翻譯 ==> UNUSED_VAR'
+			))
+	LOG_STRING.create('DEAD_CODE', LOG_LEVEL.LOG_LEVEL_WARNING, LOG_CATEGORY.CATEGORY_MISC, 0, dict(
+			en_US = 'TODO: need message ==> DEAD_CODE',
+			zh_TW = 'TODO: 提供中文翻譯 ==> DEAD_CODE'
+			))
+	LOG_STRING.create('CONTROL_REACHES_END', LOG_LEVEL.LOG_LEVEL_WARNING, LOG_CATEGORY.CATEGORY_MISC, 0, dict(
+			en_US = 'control reaches end of non-void function',
+			zh_TW = 'TODO: 提供中文翻譯 ==> CONTROL_REACHES_END'
+			))
+	LOG_STRING.create('MISSING_CASE', LOG_LEVEL.LOG_LEVEL_WARNING, LOG_CATEGORY.CATEGORY_MISC, 0, dict(
+			en_US = 'enumeration value $ENUM_ID(string) not handled in switch',
+			zh_TW = 'TODO: 提供中文翻譯 ==> MISSING_CASE'
+			))
+	LOG_STRING.create('INFINITE_RECURSION', LOG_LEVEL.LOG_LEVEL_WARNING, LOG_CATEGORY.CATEGORY_MISC, 0, dict(
+			en_US = 'TODO: need message ==> INFINITE_RECURSION',
+			zh_TW = 'TODO: 提供中文翻譯 ==> INFINITE_RECURSION'
+			))
+	LOG_STRING.create('MISSING_RETURN', LOG_LEVEL.LOG_LEVEL_WARNING, LOG_CATEGORY.CATEGORY_MISC, 0, dict(
+			en_US = 'no return statement in function returning non-void',
+			zh_TW = 'TODO: 提供中文翻譯 ==> MISSING_RETURN'
+			))
+	#############################################
+
+	#################################################################
+	# END MANUAL EDIT SOURCE
+	#################################################################
 
 	# Define log string attributes
 	attribute_table = LOG_STRING.attribute_table
@@ -317,14 +460,14 @@ private:
 	bool substitute(wstring &s, const wstring &to_search, const wstring &to_replace)
 	{
 		bool replace_found = false;
-	    wstring::size_type p = 0;
-	    while ((p = s.find(to_search, p)) != wstring::npos)
-	    {
-	        s.replace(p, to_search.size(), to_replace);
-	        p++;
-	        replace_found = true;
-	    }
-	    return replace_found;
+		wstring::size_type p = 0;
+		while ((p = s.find(to_search, p)) != wstring::npos)
+		{
+			s.replace(p, to_search.size(), to_replace);
+			p++;
+			replace_found = true;
+		}
+		return replace_found;
 	}
 
 	template <typename T>
