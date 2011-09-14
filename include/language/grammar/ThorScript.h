@@ -116,7 +116,7 @@ struct Identifier : qi::grammar<Iterator, typename SA::identifier::attribute_typ
 			L"var", L"function",
 			L"if", L"elif", L"else",
 			L"switch", L"case", L"default",
-			L"foreach", L"in", L"do", L"while",
+			L"while", L"do", L"foreach", L"in", L"for",
 			L"break", L"continue", L"return",
 			L"new", L"as", L"instanceof",
 			L"package", L"import",
@@ -356,8 +356,8 @@ struct ThorScript : qi::grammar<Iterator, typename SA::start::attribute_type, de
 			DECL_TOKEN(_TRUE, L"true");
 			DECL_TOKEN(_FALSE, L"false");
 			DECL_TOKEN(_NULL, L"null");
-			DECL_TOKEN(_SELF, L"self");
-			DECL_TOKEN(_GLOBAL, L"global");
+			DECL_TOKEN(SELF, L"self");
+			DECL_TOKEN(GLOBAL, L"global");
 
 			DECL_TOKEN(CONST, L"const");
 			DECL_TOKEN(STATIC, L"static");
@@ -394,10 +394,11 @@ struct ThorScript : qi::grammar<Iterator, typename SA::start::attribute_type, de
 			DECL_TOKEN(CASE, L"case");
 			DECL_TOKEN(DEFAULT, L"default");
 
+			DECL_TOKEN(WHILE, L"while");
+			DECL_TOKEN(DO, L"do");
 			DECL_TOKEN(FOREACH, L"foreach");
 			DECL_TOKEN(IN, L"in");
-			DECL_TOKEN(DO, L"do");
-			DECL_TOKEN(WHILE, L"while");
+			DECL_TOKEN(FOR, L"for");
 
 			DECL_TOKEN(RETURN, L"return");
 			DECL_TOKEN(BREAK, L"break");
@@ -549,8 +550,8 @@ struct ThorScript : qi::grammar<Iterator, typename SA::start::attribute_type, de
 					| _TRUE                                   [ typename SA::primary_expression::template init_bool<true>() ]
 					| _FALSE                                  [ typename SA::primary_expression::template init_bool<false>() ]
 					| _NULL                                   [ typename SA::primary_expression::template init_object_literal<tree::ObjectLiteral::LiteralType::NULL_OBJECT>() ]
-					| _SELF                                   [ typename SA::primary_expression::template init_object_literal<tree::ObjectLiteral::LiteralType::SELF_OBJECT>() ]
-					| _GLOBAL                                 [ typename SA::primary_expression::template init_object_literal<tree::ObjectLiteral::LiteralType::GLOBAL_OBJECT>() ]
+					| SELF                                   [ typename SA::primary_expression::template init_object_literal<tree::ObjectLiteral::LiteralType::SELF_OBJECT>() ]
+					| GLOBAL                                 [ typename SA::primary_expression::template init_object_literal<tree::ObjectLiteral::LiteralType::GLOBAL_OBJECT>() ]
 					| (LEFT_PAREN > expression > RIGHT_PAREN) [ typename SA::primary_expression::init_paren_expression() ]
 					|	(FUNCTION > LEFT_PAREN > -typed_parameter_list > RIGHT_PAREN > -colon_type_specifier > block
 						) [ typename SA::primary_expression::init_lambda() ]
@@ -794,6 +795,8 @@ struct ThorScript : qi::grammar<Iterator, typename SA::start::attribute_type, de
 						) [ typename SA::iteration_statement::init_do_while_loop() ]
 					|	(FOREACH > LEFT_PAREN > (variable_decl_stem | postfix_expression) > IN > expression > RIGHT_PAREN > -statement
 						) [ typename SA::iteration_statement::init_foreach() ]
+					|	(FOR > LEFT_PAREN > (variable_decl | (expression > SEMICOLON)) > expression > SEMICOLON > expression > RIGHT_PAREN > -statement
+						) [ typename SA::iteration_statement::init_for() ]
 					)
 			;
 
@@ -1044,7 +1047,7 @@ struct ThorScript : qi::grammar<Iterator, typename SA::start::attribute_type, de
 
 	// keywords
 	qi::rule<Iterator, detail::WhiteSpace<Iterator> >
-		_TRUE, _FALSE, _NULL, _SELF, _GLOBAL,
+		_TRUE, _FALSE, _NULL, SELF, GLOBAL,
 		CONST, STATIC,
 		INT8, UINT8, INT16, UINT16, INT32, UINT32, INT64, UINT64, FLOAT32, FLOAT64, VOID,
 		TYPEDEF, CLASS, INTERFACE, ENUM,
@@ -1052,7 +1055,7 @@ struct ThorScript : qi::grammar<Iterator, typename SA::start::attribute_type, de
 		VAR, FUNCTION,
 		IF, ELIF, ELSE,
 		SWITCH, CASE, DEFAULT,
-		FOREACH, IN, DO, WHILE,
+		WHILE, DO, FOREACH, IN, FOR,
 		RETURN, BREAK, CONTINUE,
 		NEW, AS, INSTANCEOF,
 		PACKAGE, IMPORT,
