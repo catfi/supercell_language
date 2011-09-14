@@ -61,6 +61,7 @@
 					DeclarativeStmt, \
 					ExpressionStmt, \
 					IterativeStmt, \
+						ForStmt, \
 						ForeachStmt, \
 						WhileStmt, \
 					SelectionStmt, \
@@ -112,6 +113,7 @@
 					DeclarativeStmt, \
 					ExpressionStmt, \
 					IterativeStmt, \
+						ForStmt, \
 						ForeachStmt, \
 						WhileStmt, \
 					SelectionStmt, \
@@ -322,6 +324,16 @@ struct GenericVisitor : Visitor<const ASTNode, void, VisitorImplementation::recu
 		if(node.iterator) visit(*node.iterator);
 		if(node.range)    visit(*node.range);
 		if(node.block)    visit(*node.block);
+
+		if(node.annotations) visit(*node.annotations);
+	}
+
+	void apply(const ForStmt& node)
+	{
+		if(node.init)  visit(*node.init);
+		if(node.cond)  visit(*node.cond);
+		if(node.after) visit(*node.after);
+		if(node.block) visit(*node.block);
 
 		if(node.annotations) visit(*node.annotations);
 	}

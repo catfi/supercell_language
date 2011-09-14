@@ -222,6 +222,16 @@ struct GenericDoubleVisitor : Visitor<ASTNode, void, VisitorImplementation::recu
 			if(node.annotations) user_visitor->visit(*node.annotations);
 		}
 
+		void apply(ForStmt& node)
+		{
+			if(node.init) user_visitor->visit(*node.init);
+			if(node.cond) user_visitor->visit(*node.cond);
+			if(node.after) user_visitor->visit(*node.after);
+			if(node.block) user_visitor->visit(*node.block);
+
+			if(node.annotations) user_visitor->visit(*node.annotations);
+		}
+
 		void apply(ForeachStmt& node)
 		{
 			if(node.iterator) user_visitor->visit(*node.iterator);
