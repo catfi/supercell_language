@@ -13,11 +13,12 @@ ERRORS:
             I.   EXPRESSION WITH INVALID OPERANDS (INCL. ASSIGN FAIL) (SDK)
             II.  STATEMENT WITH INVALID ARGUMENTS (INCL. NON-BOOL USED AS CONDITION) (SDK)
             III. DECLARATION WITH INVALID ARGUMENTS (SDK)
-        b. NON-EXIST SUBSCRIPT (J) (S1)
-        c. FUNCTION
+        b. INVALID MEMBER (J) (S1)
+        c. NON-EXIST MEMBER (J) (S1)
+        d. INVALID SUBSCRIPT (J) (S1)
+        e. FUNCTION
             I.   CALL NON-FUNCTION (J) (S1)
             II.  CALL FUNCTION WITH WRONG ARGUMENT COUNT (J) (S1)
-            III. RETURN STATEMENT WITH WRONG ARGUMENT COUNT/TYPE (INCL. MISSING RETURN STATEMENT) (J) (S1)
     E4. MODIFIER POLICY VIOLATION
         a. STORAGE VIOLATION
             I.  ASSIGN NON-CONST EXPRESSION TO CONST
@@ -37,55 +38,66 @@ ERRORS:
 
 WARNINGS:
 
-    W1. USING UNINITIALIZED VAR (J) (S2)
+    W1. USING UNINITIALIZED VAR (J) (FUTURE)
     W2. CODE PATH
-        a. UNUSED DEFINE/DECLARE (J) (S2)
+        a. UNUSED DEFINE/DECLARE (J) (FUTURE)
         b. DEAD CODE NEVER EXECUTES (NOTE: ALWAYS BRANCH BEFORE THIS LINE) (J) (S0)
         c. NOT ALL CODE PATHS RETURN A VALUE (J) (S0)
-        d. CODE EXECUTES, BUT HAS NO USEFUL EFFECT (J) (S2)
+        d. CODE EXECUTES, BUT HAS NO USEFUL EFFECT (J) (FUTURE)
         e. NOT ALL ENUM VALUES COVERED BY SWITCH CASES (INCL. MISSING DEFAULT) (J) (S1)
-    W3. RECURSIVE CALL ALWAYS REACHABLE FROM FUNCTION START (J) (S?)
+    W3. RECURSIVE CALL ALWAYS REACHABLE FROM FUNCTION START (J) (FUTURE)
+    W4. RETURN STATEMENT WITH WRONG ARGUMENT COUNT/TYPE (INCL. MISSING RETURN STATEMENT) (J) (S1)
 
 MESSAGES:
 
-    E1.a:       ‘ID’ was not declared in this scope
-    E1.b:       undefined reference to `ID'
-    E2.a:       error: redeclaration/redefinition of ‘ID’
-                error: ‘ID’ previously declared here <<< additional message >>>
-    E2.b:       <<< no c++ equivalence >>>
-    E3.a.I:     error: invalid conversion from ‘ID’ to ‘ID2’
-                error: no matching function for call to ‘ID’
-                note: candidates are: ID <<< additional message >>>
-    E3.a.II:    error: could not convert ‘ID’ to ‘bool’
-    E3.a.III:   <<< no c++ equivalence >>>
-    E3.b:       error: request for member ‘ID’ in ‘ID2’, which is of non-class type ‘ID3’
-    E3.c.I:     error: ‘ID’ cannot be used as a function
-    E3.c.II:    error: too many/few arguments to function ‘ID’
-    E3.c.III:   error: return-statement with a value, in function returning 'void'
-                error: return-statement with no value, in function returning ‘ID’
-                warning: no return statement in function returning non-void <<< additional message, may be stand-alone >>>
-    E4.a.I:     error: uninitialized const ‘ID’
-                error: assignment of read-only variable ‘ID’
-    E4.a.II.i:  error: cannot call member function ‘ID’ without object
-    E4.a.II.ii: error: invalid use of member ‘ID’ in static member function
-                error: from this location <<< additional message >>>
-    E4.b:       error: ‘ID’ is private/protected
-                error: within this context
-    E5:         error: break statement not within loop or switch
-                error: continue statement not within a loop
-    E6.a:       <<< no c++ equivalence >>>
-    E6.b.I:     error: default argument missing for parameter #NUM of ‘ID’
-    E6.b.II:    <<< syntax-error in gcc >>>
-    E7:         <<< no c++ equivalence >>>
+    ERRORS:
 
-    W1:         warning: ‘ID’ is used uninitialized in this function
-    W2.a:       In function ‘ID’: <<< additional message >>>
-                warning: unused variable ‘ID2’
-    W2.b:       <<< no c++ equivalence >>>
-    W2.c:       warning: control reaches end of non-void function
-    W2.d:       warning: unused variable ‘x’
-    W2.e:       warning: enumeration value ‘ID’ not handled in switch
-    W3:         <<< no c++ equivalence >>>
+    E1.a:       UNKNOWN_NAME            = $ID was not declared in this scope
+    E1.b:       UNDEFINED_REF           = undefined reference to $ID
+    E2.a:       DUPE_NAME               = redeclaration/redefinition of $ID
+    E2.b:       AMBIGUOUS_REF           = <<< no c++ equivalence >>>
+    E3.a.I:     WRITE_RVALUE            = lvalue required as left operand of assignment
+                INVALID_CONV            = invalid conversion from $ID to $ID2
+                NO_MATCHING_FUNC        = no matching function for call to $ID
+    E3.a.II:    INVALID_CONV_BOOL       = could not convert $ID to 'bool'
+    E3.a.III:   (...)                   = <<< no c++ equivalence >>>
+    E3.b:       INVALID_MEMBER          = request for member $ID in $ID2, which is of non-class type $ID3
+    E3.c:       NO_MATCHING_MEMBER      = $ID has no member named $ID2
+    E3.d:       INVALID_SUBSCRIPT       = invalid types $ID[$ID2] for array subscript
+    E3.e.I:     CALL_NONFUNC            = $ID cannot be used as a function
+    E3.e.II:    NO_MATCHING_FUNC_ARGNUM = too many/few arguments to function $ID
+    E3.e.III:   INVALID_RETURN_VALUE    = return-statement with a value, in function returning 'void'
+                MISSING_RETURN_VALUE    = return-statement with no value, in function returning $ID
+    E4.a.I:     CONST_MISSING_INIT      = uninitialized const $ID
+                WRITE_CONST             = assignment of read-only variable $ID
+    E4.a.II.i:  INVALID_NONSTATIC_CALL  = cannot call member function $ID without object
+    E4.a.II.ii: INVALID_NONSTATIC_REF   = invalid use of member $ID in static member function
+    E4.b:       VIS_VIOLATION           = $ID is private/protected
+    E5:         BREAK_MISSING_TARGET    = break statement not within loop or switch
+                CONTINUE_MISSING_TARGET = continue statement not within a loop
+    E6.a:       HEAP_VAR_INIT_NONCONST  = <<< no c++ equivalence >>>
+    E6.b.I:     PARAM_MISSING_INIT      = default argument missing for parameter $INT of $ID
+    E6.b.II:    UNEXPECT_VARIADIC_PARAM = <<< syntax-error in gcc >>>
+    E7.a:       EXCEED_PARAM_LIMIT      = <<< no c++ equivalence >>>
+    E7.b:       EXCEED_PARAM_LIMIT      = <<< no c++ equivalence >>>
+
+    WARNINGS:
+
+    W1:         PASS_UNINIT_ARG     = $ID is used uninitialized in this function
+    W2.a:       UNUSED_VAR          = unused variable $ID
+    W2.b:       DEAD_CODE           = <<< no c++ equivalence >>>
+    W2.c:       CONTROL_REACHES_END = control reaches end of non-void function
+    W2.d:       UNUSED_VAR          = unused variable $ID
+    W2.e:       MISSING_CASE        = enumeration value $ID not handled in switch
+    W3:         INFINITE_RECURSION  = <<< no c++ equivalence >>>
+    W4:         MISSING_RETURN      = no return statement in function returning non-void
+
+    HINTS:
+                PREV_DECL_HERE = $ID previously declared here
+                CANDIDATES_ARE = note: candidates are: ID
+                FROM_HERE      = from this location
+                IN_FUNCTION    = In [static] [member] function $ID:
+                IN_CONTEXT     = within this context
 
 /////////////////////////////////////////////////////////////////////
 /// BASIC
