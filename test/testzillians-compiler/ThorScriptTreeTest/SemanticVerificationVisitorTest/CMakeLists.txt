@@ -30,5 +30,29 @@ TARGET_LINK_LIBRARIES(ThorScriptTreeTest_SemanticVerificationVisitorTest
     zillians-common-core
     )
 
+zillians_add_complex_test(
+    TARGET ThorScriptTreeTest_SemanticVerificationVisitorTest_WRONG_STATIC_TEST_ANNOTATION_FORMAT_FAIL
+    SHELL ${CMAKE_CURRENT_SOURCE_DIR}/expect_fail.sh ${TCC} ${CMAKE_CURRENT_SOURCE_DIR}/data/_WRONG_STATIC_TEST_ANNOTATION_FORMAT_FAIL.t
+    DEPENDS ${TCC} ${CMAKE_CURRENT_SOURCE_DIR}/expect_fail.sh
+    )
+
+zillians_add_complex_test(
+    TARGET ThorScriptTreeTest_SemanticVerificationVisitorTest_WRONG_STATIC_TEST_ANNOTATION_FORMAT_PASS
+    SHELL ${TCC} ${CMAKE_CURRENT_SOURCE_DIR}/data/_WRONG_STATIC_TEST_ANNOTATION_FORMAT_PASS.t
+    DEPENDS ${TCC}
+    )
+
+zillians_add_complex_test(
+    TARGET ThorScriptTreeTest_SemanticVerificationVisitorTest_AMBIGUOUS_REF
+    SHELL ${TCC} ${CMAKE_CURRENT_SOURCE_DIR}/data/AMBIGUOUS_REF.t
+    DEPENDS ${TCC}
+    )
+
+zillians_add_complex_test(
+    TARGET ThorScriptTreeTest_SemanticVerificationVisitorTest_CALL_NONFUNC
+    SHELL ${TCC} ${CMAKE_CURRENT_SOURCE_DIR}/data/CALL_NONFUNC.t
+    DEPENDS ${TCC}
+    )
+
 zillians_add_simple_test(TARGET ThorScriptTreeTest_SemanticVerificationVisitorTest)
 zillians_add_test_to_subject(SUBJECT thorscript-tree-test TARGET ThorScriptTreeTest_SemanticVerificationVisitorTest)
