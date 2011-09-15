@@ -102,136 +102,157 @@ struct StringTable
 	############################################# SEMANTIC_VERIFICATION_STAGE (ERRORS)
 	LOG_STRING.create('UNKNOWN_NAME', LOG_LEVEL.LEVEL_ERROR, 0, dict(
 			en_US = '$ID(string) was not declared in this scope',
-			zh_TW = 'TODO: 提供中文翻譯 ==> LOG_UNKNOWN_NAME'
+			zh_TW = 'NOTE: 暫無中文翻譯 ==> LOG_UNKNOWN_NAME'
 			))
 	LOG_STRING.create('UNDEFINED_REF', LOG_LEVEL.LEVEL_ERROR, 0, dict(
 			en_US = 'undefined reference to $ID(string)',
-			zh_TW = 'TODO: 提供中文翻譯 ==> UNDEFINED_REF'
+			zh_TW = 'NOTE: 暫無中文翻譯 ==> UNDEFINED_REF'
 			))
 	LOG_STRING.create('DUPE_NAME', LOG_LEVEL.LEVEL_ERROR, 0, dict(
 			en_US = 'redeclaration/redefinition of $ID(string)',
-			zh_TW = 'TODO: 提供中文翻譯 ==> DUPE_NAME'
+			zh_TW = 'NOTE: 暫無中文翻譯 ==> DUPE_NAME'
 			))
 	LOG_STRING.create('AMBIGUOUS_REF', LOG_LEVEL.LEVEL_ERROR, 0, dict(
-			en_US = 'TODO: need message ==> AMBIGUOUS_REF',
-			zh_TW = 'TODO: 提供中文翻譯 ==>  AMBIGUOUS_REF'
+			en_US = 'NOTE: lacking message for ==> AMBIGUOUS_REF',
+			zh_TW = 'NOTE: 暫無中文翻譯 ==>  AMBIGUOUS_REF'
 			))
 	LOG_STRING.create('WRITE_RVALUE', LOG_LEVEL.LEVEL_ERROR, 0, dict(
 			en_US = 'lvalue required as left operand of assignment',
-			zh_TW = 'TODO: 提供中文翻譯 ==> WRITE_RVALUE'
+			zh_TW = 'NOTE: 暫無中文翻譯 ==> WRITE_RVALUE'
 			))
 	LOG_STRING.create('INVALID_CONV', LOG_LEVEL.LEVEL_ERROR, 0, dict(
 			en_US = 'invalid conversion from $SRC_TYPE(string) to $DEST_TYPE(string)',
-			zh_TW = 'TODO: 提供中文翻譯 ==> INVALID_CONV'
+			zh_TW = 'NOTE: 暫無中文翻譯 ==> INVALID_CONV'
 			))
 	LOG_STRING.create('NO_MATCHING_FUNC', LOG_LEVEL.LEVEL_ERROR, 0, dict(
 			en_US = 'no matching function for call to $FUNC_ID(string)',
-			zh_TW = 'TODO: 提供中文翻譯 ==> NO_MATCHING_FUNC'
+			zh_TW = 'NOTE: 暫無中文翻譯 ==> NO_MATCHING_FUNC'
 			))
 	LOG_STRING.create('INVALID_CONV_BOOL', LOG_LEVEL.LEVEL_ERROR, 0, dict(
 			en_US = 'could not convert $SRC_TYPE(string) to \'bool\'',
-			zh_TW = 'TODO: 提供中文翻譯 ==> INVALID_CONV_BOOL'
+			zh_TW = 'NOTE: 暫無中文翻譯 ==> INVALID_CONV_BOOL'
 			))
 	LOG_STRING.create('INVALID_MEMBER', LOG_LEVEL.LEVEL_ERROR, 0, dict(
 			en_US = 'request for member $MEMBER_ID(string) in $PRIMARY_ID(string), which is of non-class type $PRIMARY_TYPE(string)',
-			zh_TW = 'TODO: 提供中文翻譯 ==> INVALID_MEMBER'
+			zh_TW = 'NOTE: 暫無中文翻譯 ==> INVALID_MEMBER'
 			))
 	LOG_STRING.create('NO_MATCHING_MEMBER', LOG_LEVEL.LEVEL_ERROR, 0, dict(
 			en_US = '$PRIMARY_TYPE(string) has no member named $MEMBER_ID(string)',
-			zh_TW = 'TODO: 提供中文翻譯 ==> NO_MATCHING_MEMBER'
+			zh_TW = 'NOTE: 暫無中文翻譯 ==> NO_MATCHING_MEMBER'
 			))
 	LOG_STRING.create('INVALID_SUBSCRIPT', LOG_LEVEL.LEVEL_ERROR, 0, dict(
 			en_US = 'invalid types $PRIMARY_TYPE(string) and $SUBSCRIPT_TYPE(string) for array subscript',
-			zh_TW = 'TODO: 提供中文翻譯 ==> INVALID_SUBSCRIPT'
+			zh_TW = 'NOTE: 暫無中文翻譯 ==> INVALID_SUBSCRIPT'
 			))
 	LOG_STRING.create('CALL_NONFUNC', LOG_LEVEL.LEVEL_ERROR, 0, dict(
 			en_US = '$FUNC_ID(string) cannot be used as a function',
-			zh_TW = 'TODO: 提供中文翻譯 ==> CALL_NONFUNC'
+			zh_TW = 'NOTE: 暫無中文翻譯 ==> CALL_NONFUNC'
 			))
 	LOG_STRING.create('NO_MATCHING_FUNC_ARGNUM', LOG_LEVEL.LEVEL_ERROR, 0, dict(
 			en_US = 'too many/few arguments to function $FUNC_ID(string)',
-			zh_TW = 'TODO: 提供中文翻譯 ==> NO_MATCHING_FUNC_ARGNUM'
+			zh_TW = 'NOTE: 暫無中文翻譯 ==> NO_MATCHING_FUNC_ARGNUM'
 			))
 	LOG_STRING.create('INVALID_RETURN_VALUE', LOG_LEVEL.LEVEL_ERROR, 0, dict(
 			en_US = 'return-statement with a value, in function returning \'void\'',
-			zh_TW = 'TODO: 提供中文翻譯 ==> INVALID_RETURN_VALUE'
+			zh_TW = 'NOTE: 暫無中文翻譯 ==> INVALID_RETURN_VALUE'
 			))
 	LOG_STRING.create('MISSING_RETURN_VALUE', LOG_LEVEL.LEVEL_ERROR, 0, dict(
 			en_US = 'return-statement with no value, in function returning $TYPE(string)',
-			zh_TW = 'TODO: 提供中文翻譯 ==> MISSING_RETURN_VALUE'
+			zh_TW = 'NOTE: 暫無中文翻譯 ==> MISSING_RETURN_VALUE'
 			))
 	LOG_STRING.create('CONST_MISSING_INIT', LOG_LEVEL.LEVEL_ERROR, 0, dict(
 			en_US = 'uninitialized const $VAR_ID(string)',
-			zh_TW = 'TODO: 提供中文翻譯 ==> CONST_MISSING_INIT'
+			zh_TW = 'NOTE: 暫無中文翻譯 ==> CONST_MISSING_INIT'
 			))
 	LOG_STRING.create('WRITE_CONST', LOG_LEVEL.LEVEL_ERROR, 0, dict(
 			en_US = 'assignment of read-only variable $VAR_ID(string)',
-			zh_TW = 'TODO: 提供中文翻譯 ==> WRITE_CONST'
+			zh_TW = 'NOTE: 暫無中文翻譯 ==> WRITE_CONST'
 			))
 	LOG_STRING.create('INVALID_NONSTATIC_CALL', LOG_LEVEL.LEVEL_ERROR, 0, dict(
 			en_US = 'cannot call member function $FUNC_ID(string) without object',
-			zh_TW = 'TODO: 提供中文翻譯 ==> INVALID_NONSTATIC_CALL'
+			zh_TW = 'NOTE: 暫無中文翻譯 ==> INVALID_NONSTATIC_CALL'
 			))
 	LOG_STRING.create('INVALID_NONSTATIC_REF', LOG_LEVEL.LEVEL_ERROR, 0, dict(
 			en_US = 'invalid use of member $MEMBER_ID(string) in static member function',
-			zh_TW = 'TODO: 提供中文翻譯 ==> INVALID_NONSTATIC_REF'
+			zh_TW = 'NOTE: 暫無中文翻譯 ==> INVALID_NONSTATIC_REF'
 			))
 	LOG_STRING.create('VIS_VIOLATION', LOG_LEVEL.LEVEL_ERROR, 0, dict(
 			en_US = '$ID(string) is private/protected',
-			zh_TW = 'TODO: 提供中文翻譯 ==> VIS_VIOLATION'
+			zh_TW = 'NOTE: 暫無中文翻譯 ==> VIS_VIOLATION'
 			))
 	LOG_STRING.create('BREAK_MISSING_TARGET', LOG_LEVEL.LEVEL_ERROR, 0, dict(
 			en_US = 'break statement not within loop or switch',
-			zh_TW = 'TODO: 提供中文翻譯 ==> BREAK_MISSING_TARGET'
+			zh_TW = 'NOTE: 暫無中文翻譯 ==> BREAK_MISSING_TARGET'
 			))
 	LOG_STRING.create('CONTINUE_MISSING_TARGET', LOG_LEVEL.LEVEL_ERROR, 0, dict(
 			en_US = 'continue statement not within a loop',
-			zh_TW = 'TODO: 提供中文翻譯 ==> CONTINUE_MISSING_TARGET'
+			zh_TW = 'NOTE: 暫無中文翻譯 ==> CONTINUE_MISSING_TARGET'
 			))
 	LOG_STRING.create('HEAP_VAR_INIT_NONCONST', LOG_LEVEL.LEVEL_ERROR, 0, dict(
-			en_US = 'TODO: need message ==> HEAP_VAR_INIT_NONCONST',
-			zh_TW = 'TODO: 提供中文翻譯 ==> HEAP_VAR_INIT_NONCONST'
+			en_US = 'NOTE: lacking message for ==> HEAP_VAR_INIT_NONCONST',
+			zh_TW = 'NOTE: 暫無中文翻譯 ==> HEAP_VAR_INIT_NONCONST'
 			))
 	LOG_STRING.create('PARAM_MISSING_INIT', LOG_LEVEL.LEVEL_ERROR, 0, dict(
 			en_US = 'default argument missing for parameter $PARAM_INDEX(uint32) of $FUNC_ID(string)',
-			zh_TW = 'TODO: 提供中文翻譯 ==> PARAM_MISSING_INIT'
+			zh_TW = 'NOTE: 暫無中文翻譯 ==> PARAM_MISSING_INIT'
 			))
 	LOG_STRING.create('UNEXPECT_VARIADIC_PARAM', LOG_LEVEL.LEVEL_ERROR, 0, dict(
-			en_US = 'TODO: need message ==> UNEXPECT_VARIADIC_PARAM',
-			zh_TW = 'TODO: 提供中文翻譯 ==> UNEXPECT_VARIADIC_PARAM'
+			en_US = 'NOTE: lacking message for ==> UNEXPECT_VARIADIC_PARAM',
+			zh_TW = 'NOTE: 暫無中文翻譯 ==> UNEXPECT_VARIADIC_PARAM'
 			))
 	LOG_STRING.create('EXCEED_PARAM_LIMIT', LOG_LEVEL.LEVEL_ERROR, 0, dict(
-			en_US = 'TODO: need message ==> EXCEED_PARAM_LIMIT',
-			zh_TW = 'TODO: 提供中文翻譯 ==> EXCEED_PARAM_LIMIT'
+			en_US = 'NOTE: lacking message for ==> EXCEED_PARAM_LIMIT',
+			zh_TW = 'NOTE: 暫無中文翻譯 ==> EXCEED_PARAM_LIMIT'
 			))
 	############################################# SEMANTIC_VERIFICATION_STAGE (WARNINGS)
 	LOG_STRING.create('PASS_UNINIT_ARG', LOG_LEVEL.LEVEL_WARNING, 0, dict(
 			en_US = '$VAR_ID(string) is used uninitialized in this function',
-			zh_TW = 'TODO: 提供中文翻譯 ==> PASS_UNINIT_ARG'
+			zh_TW = 'NOTE: 暫無中文翻譯 ==> PASS_UNINIT_ARG'
 			))
 	LOG_STRING.create('UNUSED_VAR', LOG_LEVEL.LEVEL_WARNING, 0, dict(
 			en_US = 'unused variable $VAR_ID(string)',
-			zh_TW = 'TODO: 提供中文翻譯 ==> UNUSED_VAR'
+			zh_TW = 'NOTE: 暫無中文翻譯 ==> UNUSED_VAR'
 			))
 	LOG_STRING.create('DEAD_CODE', LOG_LEVEL.LEVEL_WARNING, 0, dict(
-			en_US = 'TODO: need message ==> DEAD_CODE',
-			zh_TW = 'TODO: 提供中文翻譯 ==> DEAD_CODE'
+			en_US = 'NOTE: lacking message for ==> DEAD_CODE',
+			zh_TW = 'NOTE: 暫無中文翻譯 ==> DEAD_CODE'
 			))
 	LOG_STRING.create('CONTROL_REACHES_END', LOG_LEVEL.LEVEL_WARNING, 0, dict(
 			en_US = 'control reaches end of non-void function',
-			zh_TW = 'TODO: 提供中文翻譯 ==> CONTROL_REACHES_END'
+			zh_TW = 'NOTE: 暫無中文翻譯 ==> CONTROL_REACHES_END'
 			))
 	LOG_STRING.create('MISSING_CASE', LOG_LEVEL.LEVEL_WARNING, 0, dict(
 			en_US = 'enumeration value $ENUM_ID(string) not handled in switch',
-			zh_TW = 'TODO: 提供中文翻譯 ==> MISSING_CASE'
+			zh_TW = 'NOTE: 暫無中文翻譯 ==> MISSING_CASE'
 			))
 	LOG_STRING.create('INFINITE_RECURSION', LOG_LEVEL.LEVEL_WARNING, 0, dict(
-			en_US = 'TODO: need message ==> INFINITE_RECURSION',
-			zh_TW = 'TODO: 提供中文翻譯 ==> INFINITE_RECURSION'
+			en_US = 'NOTE: lacking message for ==> INFINITE_RECURSION',
+			zh_TW = 'NOTE: 暫無中文翻譯 ==> INFINITE_RECURSION'
 			))
 	LOG_STRING.create('MISSING_RETURN', LOG_LEVEL.LEVEL_WARNING, 0, dict(
 			en_US = 'no return statement in function returning non-void',
-			zh_TW = 'TODO: 提供中文翻譯 ==> MISSING_RETURN'
+			zh_TW = 'NOTE: 暫無中文翻譯 ==> MISSING_RETURN'
+			))
+	############################################# SEMANTIC_VERIFICATION_STAGE (HELPERS)
+	LOG_STRING.create('PREV_DECL_HERE', LOG_LEVEL.LEVEL_WARNING, 0, dict(
+			en_US = '$ID(string) previously declared here',
+			zh_TW = 'NOTE: 暫無中文翻譯 ==> PREV_DECL_HERE'
+			))
+	LOG_STRING.create('CANDIDATES_ARE', LOG_LEVEL.LEVEL_WARNING, 0, dict(
+			en_US = 'note: candidates are: $ID(string)',
+			zh_TW = 'NOTE: 暫無中文翻譯 ==> CANDIDATES_ARE'
+			))
+	LOG_STRING.create('FROM_HERE', LOG_LEVEL.LEVEL_WARNING, 0, dict(
+			en_US = 'from this location',
+			zh_TW = 'NOTE: 暫無中文翻譯 ==> FROM_HERE'
+			))
+	LOG_STRING.create('IN_FUNCTION', LOG_LEVEL.LEVEL_WARNING, 0, dict(
+			en_US = 'In function $ID(string):',
+			zh_TW = 'NOTE: 暫無中文翻譯 ==> IN_FUNCTION'
+			))
+	LOG_STRING.create('IN_CONTEXT', LOG_LEVEL.LEVEL_WARNING, 0, dict(
+			en_US = 'within this context',
+			zh_TW = 'NOTE: 暫無中文翻譯 ==> IN_CONTEXT'
 			))
 	#############################################
 
