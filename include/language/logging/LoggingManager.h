@@ -21,6 +21,7 @@
 #define ZILLIANS_LANGUAGE_LOGGING_MANAGER_H_
 
 #include "core/Prerequisite.h"
+#include "core/Singleton.h"
 
 namespace zillians { namespace language {
 
@@ -38,10 +39,10 @@ class Logger;
  * 4. Output the specific warning or error messages according to the different locale setting
  *
  */
-class LoggingManager
+class LoggingManager : public Singleton<LoggingManager, SingletonInitialization::automatic>
 {
-
-public:
+	friend class Singleton;
+private:
 	LoggingManager();
 	virtual ~LoggingManager();
 

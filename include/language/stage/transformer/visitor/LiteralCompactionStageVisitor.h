@@ -24,6 +24,9 @@
 #include "language/tree/visitor/general/GenericDoubleVisitor.h"
 #include "language/tree/visitor/general/NameManglingVisitor.h"
 #include "language/stage/transformer/context/ManglingStageContext.h"
+#include "language/logging/LoggingManager.h"
+#include "language/logging/StringTable.h"
+#include "language/context/LogContext.h"
 
 using namespace zillians::language::tree;
 using zillians::language::tree::visitor::GenericDoubleVisitor;
@@ -35,7 +38,7 @@ struct LiteralCompactionStageVisitor : GenericDoubleVisitor
 {
 	CREATE_INVOKER(compactInvoker, compact)
 
-	LiteralCompactionStageVisitor()
+	LiteralCompactionStageVisitor() : program(NULL)
 	{
 		REGISTER_ALL_VISITABLE_ASTNODE(compactInvoker)
 	}
@@ -45,8 +48,15 @@ struct LiteralCompactionStageVisitor : GenericDoubleVisitor
 		revisit(node);
 	}
 
+	void compact(Program& node)
+	{
+		program = &node;
+	}
+
 	void compact(NumericLiteral& node)
 	{
+		using zillians::language::stage::LogInfoContext;
+
 		bool negate = false;
 		if(node.parent && isa<UnaryExpr>(node.parent) && cast<UnaryExpr>(node.parent)->opcode == UnaryExpr::OpCode::ARITHMETIC_NEGATE)
 		{
@@ -106,6 +116,7 @@ struct LiteralCompactionStageVisitor : GenericDoubleVisitor
 				else
 				{
 					// potential overflowed literal, warning here
+					LoggingManager::instance()->getLogger()->NUMERIC_LITERAL_OVERFLOW(_program_node = *program, _node = node);
 				}
 			}
 		}
@@ -145,6 +156,8 @@ struct LiteralCompactionStageVisitor : GenericDoubleVisitor
 			}
 		}
 	}
+
+	Program* program;
 };
 
 } } } }

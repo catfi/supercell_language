@@ -102,6 +102,10 @@ struct StringTable
 			zh_TW = '錯誤的 static test annotation 格式 $DETAIL(string)'
 			))
 	############################################# TRANSFORMER_STAGE
+	LOG_STRING.create('NUMERIC_LITERAL_OVERFLOW', LOG_LEVEL.LEVEL_ERROR, 0, dict(
+			en_US = 'the given numeric literal is overflowed',
+			zh_TW = 'NOTE: 暫無中文翻譯 ==> NUMERIC_LITERAL_OVERFLOW'
+			))
 	############################################# SEMANTIC_VERIFICATION_STAGE (ERRORS)
 	LOG_STRING.create('UNKNOWN_NAME', LOG_LEVEL.LEVEL_ERROR, 0, dict(
 			en_US = '$ID(string) was not declared in this scope',
