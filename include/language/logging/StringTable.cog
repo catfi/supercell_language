@@ -39,9 +39,11 @@ namespace zillians { namespace language {
 
 
 /**
- * StringTable is responsible to:
+ * StringTable is a data center for log messages, and it provides:
  *
- * 1. Tables for warning and error string
+ * 1. Tables of attributes for each message
+ * 2. Translation for each message
+ *
  */
 struct StringTable
 {
@@ -344,6 +346,10 @@ for param in all_parameters.keys():
 ]]]*/
 //[[[end]]]
 
+
+/**
+ * Logger initializes each log message as an API
+ */
 class Logger
 {
 public:
