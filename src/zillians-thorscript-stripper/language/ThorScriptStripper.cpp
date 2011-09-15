@@ -17,11 +17,24 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#include "language/logging/LoggingManager.h"
-#include "language/ThorScriptVM.h"
+#include "language/ThorScriptStripper.h"
 
-int main(int argc, char** argv)
+using namespace zillians::language::stage;
+
+namespace zillians { namespace language {
+
+ThorScriptStripper::ThorScriptStripper()
+{ }
+
+ThorScriptStripper::~ThorScriptStripper()
+{ }
+
+void ThorScriptStripper::initialize()
 {
-	zillians::language::ThorScriptVM vm;
-	return vm.main(argc, argv);
 }
+
+void ThorScriptStripper::finalize()
+{
+}
+
+} }

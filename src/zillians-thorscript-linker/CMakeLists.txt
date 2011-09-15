@@ -24,16 +24,16 @@ include_directories(
     ${PROJECT_FRAMEWORK_SOURCE_DIR}/include/
     )
 
-add_executable(ts-compile
+add_executable(ts-link
     main.cpp
-    language/ThorScriptCompiler.cpp
+    language/ThorScriptLinker.cpp
     )
     
-target_link_libraries(ts-compile
+target_link_libraries(ts-link
     zillians-common-core
     zillians-common-utility
     zillians-framework-language
     )
     
-get_target_property(ThorScriptCompiler ts-compile LOCATION)
-message(STATUS "Using ThorScript Compiler: \"${ThorScriptCompiler}\"")
+get_target_property(ThorScriptLinker ts-link LOCATION)
+message(STATUS "Using ThorScript Linker: \"${ThorScriptLinker}\"")
