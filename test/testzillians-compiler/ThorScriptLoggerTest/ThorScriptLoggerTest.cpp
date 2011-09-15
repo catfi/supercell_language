@@ -51,10 +51,10 @@ int main()
 	stage::ModuleSourceInfoContext::set(&program_node, module_info);
 	stage::SourceInfoContext::set(&node, new stage::SourceInfoContext(source_index, 32, 10) );
 
-	logger->log_undefined_variable(_program_node = program_node, _node = node, _ID="mString", _FILE="Super.cpp", _LINE=3);
-	logger->log_undefined_variable(_FILE="Super.cpp", _LINE=3, _node = node, _ID="mString", _program_node = program_node);
+	logger->EXAMPLE_UNDEFINED_VARIABLE(_program_node = program_node, _node = node, _ID="mString", _FILE="Super.cpp", _LINE=3);
+	logger->EXAMPLE_UNDEFINED_VARIABLE(_FILE="Super.cpp", _LINE=3, _node = node, _ID="mString", _program_node = program_node);
 
-	logger->log_unused_variable(_ID="x", _node = node, _program_node = program_node);
+	logger->EXAMPLE_UNUSED_VARIABLE(_ID="x", _node = node, _program_node = program_node);
 
 	return 0;
 }
