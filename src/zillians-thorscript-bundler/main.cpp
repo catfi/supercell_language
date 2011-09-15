@@ -16,12 +16,19 @@
  * AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
+/**
+ * @date Jul 18, 2011 sdk - Initial version created.
+ */
 
 #include "language/logging/LoggingManager.h"
-#include "language/ThorScriptVM.h"
+#include "language/ThorScriptDriver.h"
 
-int main(int argc, char** argv)
+int main(int argc, const char** argv)
 {
-	zillians::language::ThorScriptVM vm;
-	return vm.main(argc, argv);
+	// TODO: We temporarily use setlocale to force the application to use system default locale.
+	// TODO: To make compile logger support utf8 encoding.
+	setlocale(LC_ALL, "");
+
+	zillians::language::ThorScriptBundler bundler;
+	return bundler.main(argc, argv);
 }

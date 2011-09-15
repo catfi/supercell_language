@@ -1,6 +1,6 @@
 /**
  * Zillians MMO
- * Copyright (C) 2007-2010 Zillians.com, Inc.
+ * Copyright (C) 2007-2011 Zillians.com, Inc.
  * For more information see http://www.zillians.com
  *
  * Zillians MMO is the library and runtime for massive multiplayer online game
@@ -17,11 +17,26 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#include "language/logging/LoggingManager.h"
-#include "language/ThorScriptVM.h"
+#ifndef ZILLIANS_LANGUAGE_THORSCRIPTBUNDLER_H_
+#define ThorScriptDriver.h
 
-int main(int argc, char** argv)
+#include "core/Prerequisite.h"
+#include "language/tree/ASTNode.h"
+#include "language/stage/StageConductor.h"
+
+namespace zillians { namespace language {
+
+class ThorScriptBundler : public stage::StageConductor
 {
-	zillians::language::ThorScriptVM vm;
-	return vm.main(argc, argv);
-}
+public:
+	ThorScriptBundler();
+	virtual ~ThorScriptBundler();
+
+public:
+	virtual void initialize();
+	virtual void finalize();
+};
+
+} }
+
+#endif /* ThorScriptDriver.h */
