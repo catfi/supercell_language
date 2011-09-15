@@ -126,9 +126,8 @@ struct Identifier : qi::grammar<Iterator, typename SA::identifier::attribute_typ
 		start %= qi::lexeme[ ((unicode::alpha | L'_') > *(unicode::alnum | L'_')) - keyword ];
 
 		identifier
-			=	(location [ typename SA::location::cache_loc() ]
-					>> start
-				) [ typename SA::identifier::init() ]
+			= location [ typename SA::location::cache_loc() ]
+				>> start [ typename SA::identifier::init() ]
 			;
 
 		INIT_RULE(identifier);
@@ -156,9 +155,8 @@ struct IntegerLiteral : qi::grammar<Iterator, typename SA::integer_literal::attr
 			;
 
 		integer_literal
-			=	(location [ typename SA::location::cache_loc() ]
-					>> start
-				) [ typename SA::integer_literal::init() ]
+			= location [ typename SA::location::cache_loc() ]
+				>> start [ typename SA::integer_literal::init() ]
 			;
 
 		INIT_RULE(integer_literal);
@@ -185,9 +183,8 @@ struct FloatLiteral : qi::grammar<Iterator, typename SA::float_literal::attribut
 			;
 
 		float_literal
-			=	(location [ typename SA::location::cache_loc() ]
-					>> start
-				) [ typename SA::float_literal::init() ]
+			= location [ typename SA::location::cache_loc() ]
+				>> start [ typename SA::float_literal::init() ]
 			;
 
 		INIT_RULE(float_literal);
@@ -230,9 +227,8 @@ struct StringLiteral : qi::grammar<Iterator, typename SA::string_literal::attrib
 			;
 
 		string_literal
-			=	(location [ typename SA::location::cache_loc() ]
-					>> start
-				) [ typename SA::string_literal::init() ]
+			= location [ typename SA::location::cache_loc() ]
+				>> start [ typename SA::string_literal::init() ]
 			;
 
 		INIT_RULE(string_literal);
@@ -512,7 +508,7 @@ struct ThorScript : qi::grammar<Iterator, typename SA::start::attribute_type, de
 			;
 
 		nested_identifier
-			= qi::eps                                 [ typename SA::location::cache_loc() ]
+			= qi::eps [ typename SA::location::cache_loc() ]
 				>> (IDENTIFIER > *(DOT > IDENTIFIER)) [ typename SA::nested_identifier::init() ]
 			;
 
@@ -762,12 +758,12 @@ struct ThorScript : qi::grammar<Iterator, typename SA::start::attribute_type, de
 			;
 
 		decl_statement
-			= qi::eps                                                           [ typename SA::location::cache_loc() ]
+			= qi::eps [ typename SA::location::cache_loc() ]
 				>> (-(STATIC > qi::attr(true)) >> (variable_decl | const_decl)) [ typename SA::decl_statement::init() ]
 			;
 
 		expression_statement
-			= qi::eps                         [ typename SA::location::cache_loc() ]
+			= qi::eps [ typename SA::location::cache_loc() ]
 				>> (-expression >> SEMICOLON) [ typename SA::expression_statement::init() ]
 			;
 
@@ -825,7 +821,7 @@ struct ThorScript : qi::grammar<Iterator, typename SA::start::attribute_type, de
 		///
 
 		declaration
-			= location
+			= location //[ typename SA::location::cache_loc() ]
 				>>	(-annotation_specifiers
 						>>	( variable_decl
 							| const_decl
@@ -843,12 +839,12 @@ struct ThorScript : qi::grammar<Iterator, typename SA::start::attribute_type, de
 			;
 
 		variable_decl_stem
-			= qi::eps                                         [ typename SA::location::cache_loc() ]
+			= qi::eps [ typename SA::location::cache_loc() ]
 				>> (VAR > IDENTIFIER > -colon_type_specifier) [ typename SA::variable_decl_stem::init() ]
 			;
 
 		const_decl
-			= qi::eps                                                                        [ typename SA::location::cache_loc() ]
+			= qi::eps [ typename SA::location::cache_loc() ]
 				>> (CONST > IDENTIFIER > -colon_type_specifier > init_specifier > SEMICOLON) [ typename SA::const_decl::init() ]
 			;
 
@@ -861,7 +857,7 @@ struct ThorScript : qi::grammar<Iterator, typename SA::start::attribute_type, de
 			;
 
 		typedef_decl
-			= qi::eps                                                  [ typename SA::location::cache_loc() ]
+			= qi::eps [ typename SA::location::cache_loc() ]
 				>> (TYPEDEF > type_specifier > IDENTIFIER > SEMICOLON) [ typename SA::typedef_decl::init() ]
 			;
 
@@ -876,7 +872,7 @@ struct ThorScript : qi::grammar<Iterator, typename SA::start::attribute_type, de
 			;
 
 		class_member_decl
-			= location
+			= location //[ typename SA::location::cache_loc() ]
 				>>	(-annotation_specifiers >> -visibility_specifier >> -(STATIC > qi::attr(true))
 						>>	( variable_decl
 							| const_decl
@@ -919,7 +915,7 @@ struct ThorScript : qi::grammar<Iterator, typename SA::start::attribute_type, de
 		///
 
 		program
-			= location                                         [ typename SA::program::init_and_cache_loc() ]
+			= location [ typename SA::program::init_and_cache_loc() ]
 				> -( (PACKAGE > nested_identifier > SEMICOLON) [ typename SA::program::append_package() ] )
 				> *( (IMPORT > nested_identifier > SEMICOLON)  [ typename SA::program::append_import() ] )
 				> *( declaration                               [ typename SA::program::append_declaration() ] )
