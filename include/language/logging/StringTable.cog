@@ -247,7 +247,7 @@ struct StringTable
 			zh_TW = 'NOTE: 暫無中文翻譯 ==> FROM_HERE'
 			))
 	LOG_STRING.create('IN_FUNCTION', LOG_LEVEL.LEVEL_WARNING, 0, dict(
-			en_US = 'In function $ID(string):',
+			en_US = 'In function $FUNC_ID(string):',
 			zh_TW = 'NOTE: 暫無中文翻譯 ==> IN_FUNCTION'
 			))
 	LOG_STRING.create('IN_CONTEXT', LOG_LEVEL.LEVEL_WARNING, 0, dict(
