@@ -41,6 +41,9 @@ public:
 	virtual void initializeOptions(po::options_description& option_desc, po::positional_options_description& positional_desc);
 	virtual bool parseOptions(po::variables_map& vm);
 	virtual bool execute(bool& continue_execution);
+
+private:
+	bool verify_stage_0_and_stop;
 };
 
 } } }

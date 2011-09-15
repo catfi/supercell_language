@@ -28,12 +28,12 @@ add_executable(ts-compile
     main.cpp
     language/ThorScriptCompiler.cpp
     )
-    
+
 target_link_libraries(ts-compile
     zillians-common-core
     zillians-common-utility
     zillians-framework-language
     )
-    
+
 get_target_property(ThorScriptCompiler ts-compile LOCATION)
 message(STATUS "Using ThorScript Compiler: \"${ThorScriptCompiler}\"")

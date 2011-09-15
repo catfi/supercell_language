@@ -38,7 +38,7 @@ void TreeDebugStage::initializeOptions(po::options_description& option_desc, po:
 {
     option_desc.add_options()
     ("dump-ast",          "dump AST pretty-print for debugging purpose")
-    ("dump-ast-location", "dump AST with source code locations")
+    ("dump-ast-location", "dump source code locations")
 	("dump-ast-and-stop", "dump AST pretty-print for debugging purpose and stop processing");
 }
 

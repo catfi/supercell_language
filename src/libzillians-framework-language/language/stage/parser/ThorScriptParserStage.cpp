@@ -76,16 +76,15 @@ bool ThorScriptParserStage::parseOptions(po::variables_map& vm)
 {
 	dump_parse          = (vm.count("dump-parse") > 0);
 	dump_parse_and_stop = (vm.count("dump-parse-and-stop") > 0);
-	dump_parse |= dump_parse_and_stop;
-	skip_parse = (vm.count("skip-parse") > 0);
-	use_relative_path = (vm.count("use-relative-path") > 0);
+	skip_parse          = (vm.count("skip-parse") > 0);
+	use_relative_path   = (vm.count("use-relative-path") > 0);
 
-	if(vm.count("input") > 0)
-	{
-		inputs = vm["input"].as<std::vector<std::string>>();
-		return true;
-	}
-	return false;
+	if(vm.count("input") == 0)
+		return false;
+
+	inputs = vm["input"].as<std::vector<std::string>>();
+	dump_parse |= dump_parse_and_stop;
+	return true;
 }
 
 bool ThorScriptParserStage::execute(bool& continue_execution)
