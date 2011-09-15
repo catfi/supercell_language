@@ -22,7 +22,7 @@
 zillians_create_test_subject(SUBJECT thorscript-compiler-static-test-all)
 
 get_target_property(ThorScriptCompiler ts-compile LOCATION)
-SET(compile_options "--enable-static-test --verify-stage-0-and-stop")
+SET(compile_options "--enable-static-test")
 
 zillians_add_complex_test(
     TARGET thorscript-compiler-static-test-AMBIGUOUS_REF
