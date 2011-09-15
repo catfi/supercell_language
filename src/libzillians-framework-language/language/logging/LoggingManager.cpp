@@ -108,19 +108,24 @@ void LoggingManager::log(const uint32 id, const std::wstring& file, const uint32
 	log4cxx::LevelPtr level;
 	switch (attribute_table.level)
 	{
+	case StringTable::LEVEL_INFO:
+	{
+		level = log4cxx::Level::getInfo();
+		break;
+	}
 	case StringTable::LEVEL_WARNING:
 	{
 		level = log4cxx::Level::getWarn();
 		break;
 	}
-	case StringTable::LEVEL_FATAL:
-	{
-		level = log4cxx::Level::getFatal();
-		break;
-	}
 	case StringTable::LEVEL_ERROR:
 	{
 		level = log4cxx::Level::getError();
+		break;
+	}
+	case StringTable::LEVEL_FATAL:
+	{
+		level = log4cxx::Level::getFatal();
 		break;
 	}
 	default:

@@ -94,7 +94,7 @@ MESSAGES:
 
     HINTS:
                 PREV_DECL_HERE = $ID previously declared here
-                CANDIDATES_ARE = note: candidates are: ID
+                CANDIDATES_ARE = note: candidates are: $ID
                 FROM_HERE      = from this location
                 IN_FUNCTION    = In [static] [member] function $ID:
                 IN_CONTEXT     = within this context

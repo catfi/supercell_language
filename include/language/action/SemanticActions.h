@@ -120,8 +120,26 @@ struct ThorScriptTreeAction
 	 */
 	struct start
 	{
-		DEFINE_ATTRIBUTES(ASTNode*)
-		DEFINE_LOCALS()
+		DEFINE_ATTRIBUTES(void)
+		DEFINE_LOCALS(LOCATION_TYPE)
+
+		BEGIN_ACTION(reset)
+		{
+#ifdef DEBUG
+			printf("start::reset param(0) type = %s\n", typeid(_param_t(0)).name());
+#endif
+			BIND_CACHED_LOCATION(getParserContext().program);
+			getParserContext().active_package = getParserContext().program->root;
+		}
+		END_ACTION
+
+		BEGIN_ACTION(init)
+		{
+#ifdef DEBUG
+			printf("start param(0) type = %s\n", typeid(_param_t(0)).name());
+#endif
+		}
+		END_ACTION
 	};
 };
 
