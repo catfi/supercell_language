@@ -915,10 +915,11 @@ struct ThorScript : qi::grammar<Iterator, typename SA::start::attribute_type, de
 		///
 
 		program
-			= location [ typename SA::program::init_and_cache_loc() ]
-				> -( (PACKAGE > nested_identifier > SEMICOLON) [ typename SA::program::append_package() ] )
-				> *( (IMPORT > nested_identifier > SEMICOLON)  [ typename SA::program::append_import() ] )
-				> *( declaration                               [ typename SA::program::append_declaration() ] )
+			= qi::eps [ typename SA::location::cache_loc() ]
+				>>	(-( (PACKAGE > nested_identifier > SEMICOLON)     [ typename SA::program::append_package() ] )
+						> *( (IMPORT > nested_identifier > SEMICOLON) [ typename SA::program::append_import() ] )
+						> *( declaration                              [ typename SA::program::append_declaration() ] )
+					)
 			;
 
 		///
@@ -926,7 +927,8 @@ struct ThorScript : qi::grammar<Iterator, typename SA::start::attribute_type, de
 		/////////////////////////////////////////////////////////////////////
 
 		start
-			= program > qi::eoi
+			= location [ typename SA::start::reset() ]
+				>> (program > qi::eoi) [ typename SA::start::init() ]
 			;
 
 		/////////////////////////////////////////////////////////////////////
