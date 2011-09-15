@@ -21,4 +21,19 @@
 
 zillians_create_test_subject(SUBJECT thorscript-compiler-static-test-all)
 
-#ADD_SUBDIRECTORY(0_basic)
+SET(TCC_OPTIONS "--enable-static-test")
+
+zillians_add_complex_test(
+    TARGET ThorScriptTreeTest_SemanticVerificationVisitorTest_AMBIGUOUS_REF
+    SHELL ${TCC} ${TCC_OPTIONS} ${CMAKE_CURRENT_SOURCE_DIR}/data/AMBIGUOUS_REF.t
+    DEPENDS ${TCC}
+    )
+
+zillians_add_complex_test(
+    TARGET ThorScriptTreeTest_SemanticVerificationVisitorTest_CALL_NONFUNC
+    SHELL ${TCC} ${TCC_OPTIONS} ${CMAKE_CURRENT_SOURCE_DIR}/data/CALL_NONFUNC.t
+    DEPENDS ${TCC}
+    )
+
+zillians_add_test_to_subject(SUBJECT thorscript-compiler-static-test-all TARGET ThorScriptTreeTest_SemanticVerificationVisitorTest_AMBIGUOUS_REF)
+zillians_add_test_to_subject(SUBJECT thorscript-compiler-static-test-all TARGET ThorScriptTreeTest_SemanticVerificationVisitorTest_CALL_NONFUNC)
