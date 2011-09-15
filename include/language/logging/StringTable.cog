@@ -77,6 +77,7 @@ struct StringTable
 
 	# Define log level
 	LOG_LEVEL = Repo()
+	LOG_LEVEL.create('LEVEL_INFO')
 	LOG_LEVEL.create('LEVEL_WARNING')
 	LOG_LEVEL.create('LEVEL_ERROR')
 	LOG_LEVEL.create('LEVEL_FATAL')
@@ -234,23 +235,23 @@ struct StringTable
 			zh_TW = 'NOTE: 暫無中文翻譯 ==> MISSING_RETURN'
 			))
 	############################################# SEMANTIC_VERIFICATION_STAGE (HELPERS)
-	LOG_STRING.create('PREV_DECL_HERE', LOG_LEVEL.LEVEL_WARNING, 0, dict(
+	LOG_STRING.create('PREV_DECL_HERE', LOG_LEVEL.LEVEL_INFO, 0, dict(
 			en_US = '$ID(string) previously declared here',
 			zh_TW = 'NOTE: 暫無中文翻譯 ==> PREV_DECL_HERE'
 			))
-	LOG_STRING.create('CANDIDATES_ARE', LOG_LEVEL.LEVEL_WARNING, 0, dict(
+	LOG_STRING.create('CANDIDATES_ARE', LOG_LEVEL.LEVEL_INFO, 0, dict(
 			en_US = 'note: candidates are: $ID(string)',
 			zh_TW = 'NOTE: 暫無中文翻譯 ==> CANDIDATES_ARE'
 			))
-	LOG_STRING.create('FROM_HERE', LOG_LEVEL.LEVEL_WARNING, 0, dict(
+	LOG_STRING.create('FROM_HERE', LOG_LEVEL.LEVEL_INFO, 0, dict(
 			en_US = 'from this location',
 			zh_TW = 'NOTE: 暫無中文翻譯 ==> FROM_HERE'
 			))
-	LOG_STRING.create('IN_FUNCTION', LOG_LEVEL.LEVEL_WARNING, 0, dict(
+	LOG_STRING.create('IN_FUNCTION', LOG_LEVEL.LEVEL_INFO, 0, dict(
 			en_US = 'In function $FUNC_ID(string):',
 			zh_TW = 'NOTE: 暫無中文翻譯 ==> IN_FUNCTION'
 			))
-	LOG_STRING.create('IN_CONTEXT', LOG_LEVEL.LEVEL_WARNING, 0, dict(
+	LOG_STRING.create('IN_CONTEXT', LOG_LEVEL.LEVEL_INFO, 0, dict(
 			en_US = 'within this context',
 			zh_TW = 'NOTE: 暫無中文翻譯 ==> IN_CONTEXT'
 			))
