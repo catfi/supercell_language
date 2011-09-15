@@ -39,6 +39,7 @@ struct UnaryExpr : public Expression
 			BINARY_NOT, LOGICAL_NOT,
 			ARITHMETIC_NEGATE,
 			NEW,
+			NOOP,
 			INVALID,
 		};
 
@@ -54,6 +55,7 @@ struct UnaryExpr : public Expression
 			case LOGICAL_NOT: return L"!";
 			case ARITHMETIC_NEGATE: return L"-";
 			case NEW: return L"new";
+			case NOOP: return L"no-op";
 			case INVALID: return L"invalid";
 			}
 		}
@@ -79,6 +81,7 @@ struct UnaryExpr : public Expression
 		case OpCode::LOGICAL_NOT:
 		case OpCode::ARITHMETIC_NEGATE:
 		case OpCode::NEW:
+		case OpCode::NOOP:
 		case OpCode::INVALID:
 			return true;
 		}

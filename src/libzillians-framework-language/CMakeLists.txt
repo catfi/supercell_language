@@ -32,6 +32,7 @@ add_library(zillians-framework-language
     language/stage/StageConductor.cpp
     language/stage/basic/TreeDebugStage.cpp
     language/stage/parser/ThorScriptParserStage.cpp
+    language/stage/transformer/LiteralCompactionStage.cpp
     language/stage/transformer/ResolutionStage.cpp
     language/stage/transformer/ManglingStage.cpp
     language/stage/transformer/TypeSynthesisStage.cpp
