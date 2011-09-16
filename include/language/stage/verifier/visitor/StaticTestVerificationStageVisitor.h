@@ -63,11 +63,12 @@ struct StaticTestVerificationStageVisitor : public zillians::language::tree::vis
 			// get error info context on node
 			// the parent of Annotation is Annotations,
 			// the error info context is hooked on the parent of Annotations.
-			LogInfoContext* errorInfo = LogInfoContext::get(node.parent/*Annotations*/->parent);
+			ASTNode* errorNode = node.parent->parent ;
+			LogInfoContext* errorInfo = LogInfoContext::get(errorNode);
 			if(errorInfo == NULL)
 			{
 				mAllMatch = false;
-				LoggerWrapper::instance()->getLogger()->WRONG_STATIC_TEST_ANNOTATION_FORMAT(_program_node = *programNode, _node = node, _DETAIL = "No LogInfContext on node");
+				LoggerWrapper::instance()->getLogger()->WRONG_STATIC_TEST_ANNOTATION_FORMAT(_program_node = *programNode, _node = *errorNode, _DETAIL = "No LogInfoContext on node");
 				return;
 			}
 			LogInfoContext constructedErrorInfo = constructErrorContextFromAnnotation(node);
@@ -75,7 +76,7 @@ struct StaticTestVerificationStageVisitor : public zillians::language::tree::vis
 			{
 				if(!errorInfo->parameters.count(i->first))
 				{
-					LoggerWrapper::instance()->getLogger()->WRONG_STATIC_TEST_ANNOTATION_FORMAT(_program_node = *programNode, _node = node, _DETAIL = "LogInfContext on node if different from the annotation on the node");
+					LoggerWrapper::instance()->getLogger()->WRONG_STATIC_TEST_ANNOTATION_FORMAT(_program_node = *programNode, _node = *errorNode, _DETAIL = "LogInfoContext on node is different from the annotation on the node");
 					mAllMatch = false;
 					return;
 				}
@@ -86,13 +87,6 @@ struct StaticTestVerificationStageVisitor : public zillians::language::tree::vis
 private:
 	LogInfoContext constructErrorContextFromAnnotation(zillians::language::tree::Annotation& node)
 	{
-		int source_index = 0;
-		//stage::ModuleSourceInfoContext* module_info = new stage::ModuleSourceInfoContext();
-		//source_index = module_info->addSource("test.cpp");
-		//source_index = module_info->addSource("hello.cpp");
-		//stage::ModuleSourceInfoContext::set(&programNode, module_info);
-		stage::SourceInfoContext::set(&node, new stage::SourceInfoContext(source_index, 32, 10) );
-
 		using namespace zillians::language::tree;
 		using zillians::language::tree::cast;
 
@@ -135,14 +129,13 @@ private:
 			LoggerWrapper::instance()->getLogger()->WRONG_STATIC_TEST_ANNOTATION_FORMAT(_program_node = *programNode, _node = node, _DETAIL = "key should be \"level\"");
 		}
 
-		BOOST_ASSERT(cast<PrimaryExpr>(logLevel.second) != NULL);
-		BOOST_ASSERT(cast<StringLiteral>(cast<PrimaryExpr>(logLevel.second)->value.literal) != NULL);
-		if (cast<PrimaryExpr>(logLevel.second) == NULL || cast<StringLiteral>(cast<PrimaryExpr>(logLevel.second)->value.literal) == NULL)
+		BOOST_ASSERT(cast<StringLiteral>(logLevel.second) != NULL);
+		if (cast<StringLiteral>(logLevel.second) == NULL)
 		{
 			LoggerWrapper::instance()->getLogger()->WRONG_STATIC_TEST_ANNOTATION_FORMAT(_program_node = *programNode, _node = node, _DETAIL = "value should be StringLiteral");
 		}
 
-		std::wstring levelString = cast<StringLiteral>(cast<PrimaryExpr>(logLevel.second)->value.literal)->value;
+		std::wstring levelString = cast<StringLiteral>(logLevel.second)->value;
 
 		// log id
 		std::pair<SimpleIdentifier*, ASTNode*> logId = cast<Annotation>(expectMessage.second)->attribute_list[1];
@@ -158,14 +151,13 @@ private:
 			LoggerWrapper::instance()->getLogger()->WRONG_STATIC_TEST_ANNOTATION_FORMAT(_program_node = *programNode, _node = node, _DETAIL = "key shoule be \"id\"");
 		}
 
-		BOOST_ASSERT(cast<PrimaryExpr>(logId.second) != NULL);
-		BOOST_ASSERT(cast<StringLiteral>(cast<PrimaryExpr>(logId.second)->value.literal) != NULL);
-		if (cast<PrimaryExpr>(logId.second) == NULL || cast<StringLiteral>(cast<PrimaryExpr>(logId.second)->value.literal) == NULL)
+		BOOST_ASSERT(cast<StringLiteral>(logId.second) != NULL);
+		if (cast<StringLiteral>(logId.second) == NULL)
 		{
-			LoggerWrapper::instance()->getLogger()->WRONG_STATIC_TEST_ANNOTATION_FORMAT(_program_node = *programNode, _node = node, _DETAIL = "value should be StringLiteral");
+			LoggerWrapper::instance()->getLogger()->WRONG_STATIC_TEST_ANNOTATION_FORMAT(_program_node = *programNode, _node = node, _DETAIL = "value should be stringliteral");
 		}
 
-		std::wstring idString = cast<StringLiteral>(cast<PrimaryExpr>(logId.second)->value.literal)->value;
+		std::wstring idString = cast<StringLiteral>(logId.second)->value;
 
 		// parameter pairs
 		std::pair<SimpleIdentifier*, ASTNode*> paramPairs = cast<Annotation>(expectMessage.second)->attribute_list[2];
@@ -198,17 +190,15 @@ private:
 				LoggerWrapper::instance()->getLogger()->WRONG_STATIC_TEST_ANNOTATION_FORMAT(_program_node = *programNode, _node = node, _DETAIL = "key should be SimpleIdentifier");
 			}
 
-			BOOST_ASSERT(cast<PrimaryExpr>(i->second) != NULL);
-			StringLiteral *paramValue = cast<StringLiteral>(cast<PrimaryExpr>(i->second)->value.literal);
+			StringLiteral *paramValue = cast<StringLiteral>(i->second);
 			BOOST_ASSERT(paramValue != NULL);
-			if (cast<PrimaryExpr>(i->second) == NULL || paramValue == NULL)
+			if (paramValue == NULL)
 			{
 				LoggerWrapper::instance()->getLogger()->WRONG_STATIC_TEST_ANNOTATION_FORMAT(_program_node = *programNode, _node = node, _DETAIL = "value should be StringLiteral");
 			}
 
 			std::wstring key = paramKey->name;
 			std::wstring value = paramValue->value;
-
 			std::pair<std::wstring, std::wstring> param(key, value);
 			paramsResult.insert(std::make_pair(key, value));
 		}
