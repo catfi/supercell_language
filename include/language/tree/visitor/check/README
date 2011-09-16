@@ -35,8 +35,9 @@ ERRORS:
                 i.  MISSING_CONST_INIT
                 ii. WRITE_CONST
             II. STATIC
-                i.  INVALID_NONSTATIC_CALL (J) (S1)
-                ii. INVALID_NONSTATIC_REF (J) (S1)
+                i.   MISSING_STATIC_INIT (J) (S1)
+                ii.  INVALID_NONSTATIC_CALL (J) (S1)
+                iii. INVALID_NONSTATIC_REF (J) (S1)
         b. VISIBILITY
             I.  INVALID_ACCESS_PRIVATE (J) (S1)
             II. INVALID_ACCESS_PROTECTED (J) (S1)
@@ -44,10 +45,9 @@ ERRORS:
         a. MISSING_BREAK_TARGET (J) (S0)
         b. MISSING_CONTINUE_TARGET (J) (S0)
     E5. DECLARATION
-        a. HEAP_VAR_INIT_NONCONST (J) (S1)
-        b. PARAMETER
-            I.  MISSING_PARAM_INIT (J) (S0)
-            II. UNEXPECTED_VARIADIC_PARAM (J) (S0)
+        a. MISSING_PARAM_INIT (J) (S0)
+        b. UNEXPECTED_VARIADIC_PARAM (J) (S0)
+        c. UNEXPECTED_VARIADIC_TEMPLATE_PARAM (J) (S0)
     E6. LIMIT
     	a. EXCEED_PARAM_LIMIT (J) (S0)
     	b. EXCEED_TEMPLATE_PARAM_LIMIT (J) (S0)
@@ -67,36 +67,37 @@ MESSAGES:
 
     ERRORS:
 
-    E1.a.I:   UNKNOWN_NAME                = $ID was not declared in this scope
-    E1.a.II:  UNDEFINED_REF               = undefined reference to $ID
-    E1.b.I:   DUPE_NAME                   = redeclaration/redefinition of $ID
-    E1.b.II:  AMBIGUOUS_REF               = <<< no c++ equivalence >>>
-    E2.a.I:   WRITE_RVALUE                = lvalue required as left operand of assignment
-              INVALID_CONV                = invalid conversion from $ID to $ID2
-              NO_MATCHING_MEMBER_FUNC     = no matching function for call to $ID
-    E2.a.II:  INVALID_CONV_BOOL           = could not convert $ID to 'bool'
-    E2.a.III: (...)                       = <<< no c++ equivalence >>>
-    E2.b.I:   MEMBER_OF_NONCLASS          = request for member $ID in $ID2, which is of non-class type $ID3
-    E2.b.II:  NO_SUCH_MEMBER              = $ID has no member named $ID2
-    E2.b.III: SUBSCRIPT_OF_NONARRAY       = invalid types $ID[$ID2] for array subscript
-    E2.c.I:   CALL_NONFUNC                = $ID cannot be used as a function
-    E2.c.II:  MISMATCH_CALL_ARGNUM        = too many/few arguments to function $ID
-    E2.c.III: MISMATCH_CALL_ARGTYPE       = cannot convert $ID to $ID2 for argument $INT to $ID3
-    E2.c.IV:  UNEXPECTED_RETURN_VALUE     = return-statement with a value, in function returning 'void'
-    E2.c.V:   MISSING_RETURN_VALUE        = return-statement with no value, in function returning $ID
-    E3.a.I:   MISSING_CONST_INIT          = uninitialized const $ID
-              WRITE_CONST                 = assignment of read-only variable $ID
-    E3.a.II:  INVALID_NONSTATIC_CALL      = cannot call member function $ID without object
-              INVALID_NONSTATIC_REF       = invalid use of member $ID in static member function
-    E3.b.I:   INVALID_ACCESS_PRIVATE      = $ID is private
-    E3.b.II:  INVALID_ACCESS_PROTECTED    = $ID is protected
-    E4.a:     MISSING_BREAK_TARGET        = break statement not within loop or switch
-    E4.b:     MISSING_CONTINUE_TARGET     = continue statement not within a loop
-    E5.a:     HEAP_VAR_INIT_NONCONST      = <<< no c++ equivalence >>>
-    E5.b.I:   MISSING_PARAM_INIT          = default argument missing for parameter $INT of $ID
-    E5.b.II:  UNEXPECTED_VARIADIC_PARAM   = <<< syntax-error in gcc >>>
-    E6.a:     EXCEED_PARAM_LIMIT          = <<< no c++ equivalence >>>
-    E6.b:     EXCEED_TEMPLATE_PARAM_LIMIT = <<< no c++ equivalence >>>
+    E1.a.I:   UNKNOWN_NAME                       = $ID was not declared in this scope
+    E1.a.II:  UNDEFINED_REF                      = undefined reference to $ID
+    E1.b.I:   DUPE_NAME                          = redeclaration/redefinition of $ID
+    E1.b.II:  AMBIGUOUS_REF                      = <<< no c++ equivalence >>>
+    E2.a.I:   WRITE_RVALUE                       = lvalue required as left operand of assignment
+              INVALID_CONV                       = invalid conversion from $ID to $ID2
+              NO_MATCHING_MEMBER_FUNC            = no matching function for call to $ID
+    E2.a.II:  INVALID_CONV_BOOL                  = could not convert $ID to 'bool'
+    E2.a.III: (...)                              = <<< no c++ equivalence >>>
+    E2.b.I:   MEMBER_OF_NONCLASS                 = request for member $ID in $ID2, which is of non-class type $ID3
+    E2.b.II:  NO_SUCH_MEMBER                     = $ID has no member named $ID2
+    E2.b.III: SUBSCRIPT_OF_NONARRAY              = invalid types $ID[$ID2] for array subscript
+    E2.c.I:   CALL_NONFUNC                       = $ID cannot be used as a function
+    E2.c.II:  MISMATCH_CALL_ARGNUM               = too many/few arguments to function $ID
+    E2.c.III: MISMATCH_CALL_ARGTYPE              = cannot convert $ID to $ID2 for argument $INT to $ID3
+    E2.c.IV:  UNEXPECTED_RETURN_VALUE            = return-statement with a value, in function returning 'void'
+    E2.c.V:   MISSING_RETURN_VALUE               = return-statement with no value, in function returning $ID
+    E3.a.I:   MISSING_CONST_INIT                 = uninitialized const $ID
+              WRITE_CONST                        = assignment of read-only variable $ID
+    E3.a.II:  MISSING_STATIC_INIT                = <<< no c++ equivalence >>>
+              INVALID_NONSTATIC_CALL             = cannot call member function $ID without object
+              INVALID_NONSTATIC_REF              = invalid use of member $ID in static member function
+    E3.b.I:   INVALID_ACCESS_PRIVATE             = $ID is private
+    E3.b.II:  INVALID_ACCESS_PROTECTED           = $ID is protected
+    E4.a:     MISSING_BREAK_TARGET               = break statement not within loop or switch
+    E4.b:     MISSING_CONTINUE_TARGET            = continue statement not within a loop
+    E5.a:     MISSING_PARAM_INIT                 = default argument missing for parameter $INT of $ID
+    E5.b:     UNEXPECTED_VARIADIC_PARAM          = <<< syntax-error in gcc >>>
+    E5.c:     UNEXPECTED_VARIADIC_TEMPLATE_PARAM = <<< syntax-error in gcc >>>
+    E6.a:     EXCEED_PARAM_LIMIT                 = <<< no c++ equivalence >>>
+    E6.b:     EXCEED_TEMPLATE_PARAM_LIMIT        = <<< no c++ equivalence >>>
 
     WARNINGS:
 
@@ -120,34 +121,34 @@ MESSAGES:
 /////////////////////////////////////////////////////////////////////
 
 // templated identifier
-    (E1.b.I) - No parameter name conflict is allowed
-    () - The "..." type is only allowed once at the end of template parameter list
-    (E1) - The "..." type is not allowed when the AST is processed and transformed. It should be expanded.
-    (E6) - There should be a limit on the many templated parameters allowed in a single templated identifier
+    - No parameter name conflict is allowed
+    - The "..." type is only allowed once at the end of template parameter list
+    - The "..." type is not allowed when the AST is processed and transformed. It should be expanded.
+    - There should be a limit on the many templated parameters allowed in a single templated identifier
 
 // annotations
-    () - If there's no custom annotation..
+    - If there's no custom annotation..
 
 /////////////////////////////////////////////////////////////////////
 /// EXPRESSION
 /////////////////////////////////////////////////////////////////////
 
 // unary expression
-    (E2.a.I) - Check whether the type can be applied with specific unary operation (for example, ~ or ! cannot be used with floating number)
+    - Check whether the type can be applied with specific unary operation (for example, ~ or ! cannot be used with floating number)
 
 // binary expression 
-    (E2.a.I) - Check the type compatibility between LHS and RHS
-    (E1) - All expression must be fully resolved
+    - Check the type compatibility between LHS and RHS
+    - All expression must be fully resolved
 
 // ternary expression
-    (E2.a.I) - Check the type compatibility between LHS and RHS
+    - Check the type compatibility between LHS and RHS
 
 // call expression
-    (E2.a.I) - Check whether the node is callable
-    (E3.a.II.i) - If the callee is a MemberExpr and the RHS is resolved to a non-static member function, we need to check if the LHS is a variable of that instance
+    - Check whether the node is callable
+    - If the callee is a MemberExpr and the RHS is resolved to a non-static member function, we need to check if the LHS is a variable of that instance
 
 // cast expression
-    (E2.a) - Check whether the node is convertible to the desired type
+    - Check whether the node is convertible to the desired type
 
 /////////////////////////////////////////////////////////////////////
 /// STATEMENT
@@ -158,68 +159,68 @@ MESSAGES:
     /////////////////////////////////////////////////////////////////////
 
     // if/elseif/else statement
-        (E2.a.II) - The both if and elseif Selection must have non-null condition
-        (E2.a.I) - The condition expression must be able to cast into a boolean variable (and insert cast operation when necessary)
+        - The both if and elseif Selection must have non-null condition
+        - The condition expression must be able to cast into a boolean variable (and insert cast operation when necessary)
 
     // switch statement
-        (W2.d) - If the condition is a variable resolved to EnumDecl type, all cases must be covered or there's default case, otherwise generate a warning for it
+        - If the condition is a variable resolved to EnumDecl type, all cases must be covered or there's default case, otherwise generate a warning for it
 
     /////////////////////////////////////////////////////////////////////
     /// ITERATION STATEMENT
     /////////////////////////////////////////////////////////////////////
 
     // while/dowhile statement
-        (W1.a) - If the condition can be evaluated as constant expression and its value is always true and there's no break in the while/do-while block, generate infinite loop warning
+        - If the condition can be evaluated as constant expression and its value is always true and there's no break in the while/do-while block, generate infinite loop warning
 
     // foreach statement
-        (E2.a.II) - The range expression must be an instance of Range<T> type
-        (E2.a.II) - The iterator must be a variable declaration or a primary expression resolved to a symbol
+        - The range expression must be an instance of Range<T> type
+        - The iterator must be a variable declaration or a primary expression resolved to a symbol
 
 /////////////////////////////////////////////////////////////////////
 /// DECLARATION
 /////////////////////////////////////////////////////////////////////
 
 // global variable declaration
-    () - The initializer must be constant expression (or can be deduced as constant expression)
+    - The initializer must be constant expression (or can be deduced as constant expression)
 
 // local variable declaration
-    (E3.a.I.i) - The constant variable cannot be modified once it's set in the initializer
+    - The constant variable cannot be modified once it's set in the initializer
 
 // function declaration
-    (W2.c) - If the function has non-void return type, check if all paths have return value (and are of the same type)
-    (E2.c.IV) - If the function has void return type, then there's no return value allowed in the tree
+    - If the function has non-void return type, check if all paths have return value (and are of the same type)
+    - If the function has void return type, then there's no return value allowed in the tree
 
 // class declaration
-    (E1.b.I) - The class name cannot conflict with other class (name resolving conflict)
-    (E2.a.III) - The identifiers for interface implementation must refer to an interface
-    (E1.b.I) - There can be more than one new function (constructor overload) as long as they have different parameter signature
-    (E6) - There should be a limit on how many member variables allowed in a single class
+    - The class name cannot conflict with other class (name resolving conflict)
+    - The identifiers for interface implementation must refer to an interface
+    - There can be more than one new function (constructor overload) as long as they have different parameter signature
+    - There should be a limit on how many member variables allowed in a single class
 
 // class member variable declaration
-    (E1.b.I) - The variable name must not conflict with the class name or member function name
-    (E1.b.I) - The variable names must not conflict with each other
+    - The variable name must not conflict with the class name or member function name
+    - The variable names must not conflict with each other
 
 // typedef declaration
-    (E2.a.III) - The "from" node must refer to a type, and the "to" node must be an simple identifier
+    - The "from" node must refer to a type, and the "to" node must be an simple identifier
 
 // enum declaration
-    (E1.b.I) - The identifiers must not conflict with each other
-    () - The initialization list must be constant (just like global variable) and of integral type
+    - The identifiers must not conflict with each other
+    - The initialization list must be constant (just like global variable) and of integral type
 
 // interface declaration
-    (E3.b) - All methods in interface should not have "private" member scope specifier
-    (PARSER) - All methods in interface should have no function body
-    (E1) - All types must be explicitly specified for member function in interface
+    - All methods in interface should not have "private" member scope specifier
+    - All methods in interface should have no function body
+    - All types must be explicitly specified for member function in interface
 
 // class/interface member function declaration
-    (E1) - The function parameters must be fully resolved
-    () - Except member function in interface, function must have body block (local anonymous function must be renamed beforehand)
-    (E1.b.I) - The function name cannot conflict with other function unless they have different parameter signature (name resolving conflict)
-    (E6) - There should be a limit on the many parameters allowed in a single function
+    - The function parameters must be fully resolved
+    - Except member function in interface, function must have body block (local anonymous function must be renamed beforehand)
+    - The function name cannot conflict with other function unless they have different parameter signature (name resolving conflict)
+    - There should be a limit on the many parameters allowed in a single function
 
 /////////////////////////////////////////////////////////////////////
 /// MODULE
 /////////////////////////////////////////////////////////////////////
 
 // package
-    (E1.b.I) - The package name should not conflict with its parent and sibling
+    - The package name should not conflict with its parent and sibling
