@@ -25,7 +25,7 @@
 #include "language/tree/visitor/general/PrettyPrintVisitor.h"
 #include "language/tree/visitor/general/NodeInfoVisitor.h"
 #include "utility/Foreach.h"
-#include "language/resolver/context/ResolverContext.h"
+#include "language/context/ResolverContext.h"
 
 namespace __gnu_cxx {
 

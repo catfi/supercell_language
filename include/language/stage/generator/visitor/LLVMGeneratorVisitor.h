@@ -25,7 +25,7 @@
 #include "language/tree/visitor/general/NodeInfoVisitor.h"
 #include "language/stage/generator/detail/LLVMForeach.h"
 #include "language/stage/generator/detail/LLVMHelper.h"
-#include "language/resolver/context/ResolverContext.h"
+#include "language/context/ResolverContext.h"
 #include "language/stage/transformer/context/ManglingStageContext.h"
 
 
