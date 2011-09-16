@@ -25,7 +25,7 @@
 #include "utility/UnicodeUtil.h"
 #include "language/tree/ASTNode.h"
 #include "language/logging/LoggerWrapper.h"
-#include "language/context/LogContext.h"
+#include "language/context/LogInfoContext.h"
 #include "language/stage/parser/context/SourceInfoContext.h"
 #include <boost/parameter.hpp>
 #include <vector>
@@ -131,37 +131,41 @@ struct StringTable
 			en_US = 'invalid conversion from $SRC_TYPE(string) to $DEST_TYPE(string)',
 			zh_TW = 'NOTE: 暫無中文翻譯 ==> INVALID_CONV'
 			))
-	LOG_STRING.create('NO_MATCHING_FUNC', LOG_LEVEL.LEVEL_ERROR, 0, dict(
+	LOG_STRING.create('NO_MATCHING_MEMBER_FUNC', LOG_LEVEL.LEVEL_ERROR, 0, dict(
 			en_US = 'no matching function for call to $FUNC_ID(string)',
-			zh_TW = 'NOTE: 暫無中文翻譯 ==> NO_MATCHING_FUNC'
+			zh_TW = 'NOTE: 暫無中文翻譯 ==> NO_MATCHING_MEMBER_FUNC'
 			))
 	LOG_STRING.create('INVALID_CONV_BOOL', LOG_LEVEL.LEVEL_ERROR, 0, dict(
 			en_US = 'could not convert $SRC_TYPE(string) to \'bool\'',
 			zh_TW = 'NOTE: 暫無中文翻譯 ==> INVALID_CONV_BOOL'
 			))
-	LOG_STRING.create('NOT_A_CLASS', LOG_LEVEL.LEVEL_ERROR, 0, dict(
+	LOG_STRING.create('MEMBER_OF_NONCLASS', LOG_LEVEL.LEVEL_ERROR, 0, dict(
 			en_US = 'request for member $MEMBER_ID(string) in $PRIMARY_ID(string), which is of non-class type $PRIMARY_TYPE(string)',
-			zh_TW = 'NOTE: 暫無中文翻譯 ==> NOT_A_CLASS'
+			zh_TW = 'NOTE: 暫無中文翻譯 ==> MEMBER_OF_NONCLASS'
 			))
-	LOG_STRING.create('NO_MATCHING_MEMBER', LOG_LEVEL.LEVEL_ERROR, 0, dict(
+	LOG_STRING.create('NO_SUCH_MEMBER', LOG_LEVEL.LEVEL_ERROR, 0, dict(
 			en_US = '$PRIMARY_TYPE(string) has no member named $MEMBER_ID(string)',
-			zh_TW = 'NOTE: 暫無中文翻譯 ==> NO_MATCHING_MEMBER'
+			zh_TW = 'NOTE: 暫無中文翻譯 ==> NO_SUCH_MEMBER'
 			))
-	LOG_STRING.create('INVALID_SUBSCRIPT', LOG_LEVEL.LEVEL_ERROR, 0, dict(
+	LOG_STRING.create('SUBSCRIPT_OF_NONARRAY', LOG_LEVEL.LEVEL_ERROR, 0, dict(
 			en_US = 'invalid types $PRIMARY_TYPE(string) and $SUBSCRIPT_TYPE(string) for array subscript',
-			zh_TW = 'NOTE: 暫無中文翻譯 ==> INVALID_SUBSCRIPT'
+			zh_TW = 'NOTE: 暫無中文翻譯 ==> SUBSCRIPT_OF_NONARRAY'
 			))
 	LOG_STRING.create('CALL_NONFUNC', LOG_LEVEL.LEVEL_ERROR, 0, dict(
 			en_US = '$FUNC_ID(string) cannot be used as a function',
 			zh_TW = 'NOTE: 暫無中文翻譯 ==> CALL_NONFUNC'
 			))
-	LOG_STRING.create('NO_MATCHING_FUNC_ARGNUM', LOG_LEVEL.LEVEL_ERROR, 0, dict(
+	LOG_STRING.create('MISMATCH_CALL_ARGNUM', LOG_LEVEL.LEVEL_ERROR, 0, dict(
 			en_US = 'too many/few arguments to function $FUNC_ID(string)',
-			zh_TW = 'NOTE: 暫無中文翻譯 ==> NO_MATCHING_FUNC_ARGNUM'
+			zh_TW = 'NOTE: 暫無中文翻譯 ==> MISMATCH_CALL_ARGNUM'
 			))
-	LOG_STRING.create('INVALID_RETURN_VALUE', LOG_LEVEL.LEVEL_ERROR, 0, dict(
+	LOG_STRING.create('MISMATCH_CALL_ARGTYPE', LOG_LEVEL.LEVEL_ERROR, 0, dict(
+			en_US = 'cannot convert $SRC_TYPE(string) to $DEST_TYPE(string) for argument $ARG_INDEX(uint32) to $FUNC_ID(string)',
+			zh_TW = 'NOTE: 暫無中文翻譯 ==> MISMATCH_CALL_ARGTYPE'
+			))
+	LOG_STRING.create('UNEXPECTED_RETURN_VALUE', LOG_LEVEL.LEVEL_ERROR, 0, dict(
 			en_US = 'return-statement with a value, in function returning \'void\'',
-			zh_TW = 'NOTE: 暫無中文翻譯 ==> INVALID_RETURN_VALUE'
+			zh_TW = 'NOTE: 暫無中文翻譯 ==> UNEXPECTED_RETURN_VALUE'
 			))
 	LOG_STRING.create('MISSING_RETURN_VALUE', LOG_LEVEL.LEVEL_ERROR, 0, dict(
 			en_US = 'return-statement with no value, in function returning $TYPE(string)',
@@ -175,17 +179,21 @@ struct StringTable
 			en_US = 'assignment of read-only variable $VAR_ID(string)',
 			zh_TW = 'NOTE: 暫無中文翻譯 ==> WRITE_CONST'
 			))
-	LOG_STRING.create('INVALID_NONSTATIC_CALL', LOG_LEVEL.LEVEL_ERROR, 0, dict(
+	LOG_STRING.create('INVALID_CALL_NONSTATIC', LOG_LEVEL.LEVEL_ERROR, 0, dict(
 			en_US = 'cannot call member function $FUNC_ID(string) without object',
-			zh_TW = 'NOTE: 暫無中文翻譯 ==> INVALID_NONSTATIC_CALL'
+			zh_TW = 'NOTE: 暫無中文翻譯 ==> INVALID_CALL_NONSTATIC'
 			))
-	LOG_STRING.create('INVALID_NONSTATIC_REF', LOG_LEVEL.LEVEL_ERROR, 0, dict(
+	LOG_STRING.create('INVALID_REF_NONSTATIC', LOG_LEVEL.LEVEL_ERROR, 0, dict(
 			en_US = 'invalid use of member $MEMBER_ID(string) in static member function',
-			zh_TW = 'NOTE: 暫無中文翻譯 ==> INVALID_NONSTATIC_REF'
+			zh_TW = 'NOTE: 暫無中文翻譯 ==> INVALID_REF_NONSTATIC'
 			))
-	LOG_STRING.create('VIS_VIOLATION', LOG_LEVEL.LEVEL_ERROR, 0, dict(
-			en_US = '$ID(string) is private/protected',
-			zh_TW = 'NOTE: 暫無中文翻譯 ==> VIS_VIOLATION'
+	LOG_STRING.create('INVALID_ACCESS_PRIVATE', LOG_LEVEL.LEVEL_ERROR, 0, dict(
+			en_US = '$ID(string) is private',
+			zh_TW = 'NOTE: 暫無中文翻譯 ==> INVALID_ACCESS_PRIVATE'
+			))
+	LOG_STRING.create('INVALID_ACCESS_PROTECTED', LOG_LEVEL.LEVEL_ERROR, 0, dict(
+			en_US = '$ID(string) is protected',
+			zh_TW = 'NOTE: 暫無中文翻譯 ==> INVALID_ACCESS_PROTECTED'
 			))
 	LOG_STRING.create('MISSING_BREAK_TARGET', LOG_LEVEL.LEVEL_ERROR, 0, dict(
 			en_US = 'break statement not within loop or switch',
@@ -203,18 +211,22 @@ struct StringTable
 			en_US = 'default argument missing for parameter $PARAM_INDEX(uint32) of $FUNC_ID(string)',
 			zh_TW = 'NOTE: 暫無中文翻譯 ==> MISSING_PARAM_INIT'
 			))
-	LOG_STRING.create('UNEXPECT_VARIADIC_PARAM', LOG_LEVEL.LEVEL_ERROR, 0, dict(
-			en_US = 'NOTE: lacking message for ==> UNEXPECT_VARIADIC_PARAM',
-			zh_TW = 'NOTE: 暫無中文翻譯 ==> UNEXPECT_VARIADIC_PARAM'
+	LOG_STRING.create('UNEXPECTED_VARIADIC_PARAM', LOG_LEVEL.LEVEL_ERROR, 0, dict(
+			en_US = 'NOTE: lacking message for ==> UNEXPECTED_VARIADIC_PARAM',
+			zh_TW = 'NOTE: 暫無中文翻譯 ==> UNEXPECTED_VARIADIC_PARAM'
 			))
 	LOG_STRING.create('EXCEED_PARAM_LIMIT', LOG_LEVEL.LEVEL_ERROR, 0, dict(
 			en_US = 'NOTE: lacking message for ==> EXCEED_PARAM_LIMIT',
 			zh_TW = 'NOTE: 暫無中文翻譯 ==> EXCEED_PARAM_LIMIT'
 			))
+	LOG_STRING.create('EXCEED_TEMPLATE_PARAM_LIMIT', LOG_LEVEL.LEVEL_ERROR, 0, dict(
+			en_US = 'NOTE: lacking message for ==> EXCEED_TEMPLATE_PARAM_LIMIT',
+			zh_TW = 'NOTE: 暫無中文翻譯 ==> EXCEED_TEMPLATE_PARAM_LIMIT'
+			))
 	############################################# SEMANTIC_VERIFICATION_STAGE (WARNINGS)
-	LOG_STRING.create('PASS_UNINIT_ARG', LOG_LEVEL.LEVEL_WARNING, 0, dict(
+	LOG_STRING.create('UNINIT_ARG', LOG_LEVEL.LEVEL_WARNING, 0, dict(
 			en_US = '$VAR_ID(string) is used uninitialized in this function',
-			zh_TW = 'NOTE: 暫無中文翻譯 ==> PASS_UNINIT_ARG'
+			zh_TW = 'NOTE: 暫無中文翻譯 ==> UNINIT_ARG'
 			))
 	LOG_STRING.create('UNUSED_VAR', LOG_LEVEL.LEVEL_WARNING, 0, dict(
 			en_US = 'unused variable $VAR_ID(string)',
@@ -409,7 +421,7 @@ public:
 			cog.outl('\t substitute(translated, L"%s", %s);' % (to_search, var))
 			cog.outl('\t insert_parameters(parameters, L"%s", %s);' % (var.lower(), var))
 
-		cog.outl('\t stage::LogInfoContext::set(&node, new stage::LogInfoContext(str_level, str_id, parameters));')
+		cog.outl('\t LogInfoContext::set(&node, new LogInfoContext(str_level, str_id, parameters));')
 
 		# Generate header like : "test.cpp:32: "
 		cog.outl('\t vector<string>& files = stage::ModuleSourceInfoContext::get(&program_node)->source_files;')

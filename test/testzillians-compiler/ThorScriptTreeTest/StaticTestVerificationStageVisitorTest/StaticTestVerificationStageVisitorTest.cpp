@@ -21,6 +21,7 @@
 #include "language/tree/ASTNode.h"
 #include "language/tree/ASTNodeFactory.h"
 #include "language/stage/verifier/visitor/StaticTestVerificationStageVisitor.h"
+#include "language/context/LogInfoContext.h"
 #include "../ASTNodeSamples.h"
 #include <iostream>
 #include <string>
@@ -54,7 +55,8 @@ Program* createPassSample()
 							NULL,
 							true,
 							false,
-							Declaration::VisibilitySpecifier::PUBLIC);
+							Declaration::VisibilitySpecifier::PUBLIC,
+							new Block());
 					class_decl->addFunction(some_member_function);
 					{
 						Block* block = some_member_function->block;
@@ -88,11 +90,11 @@ Program* createPassSample()
 							std::map<std::wstring, std::wstring> m;
 							m[L"id"] = L"mCount";
 							m[L"type"] = L"int";
-							auto errorContext = new zillians::language::stage::LogInfoContext(L"LEVEL_WARNING", L"EXAMPLE_UNDECLARED_VARIABLE", m);
+							auto errorContext = new zillians::language::LogInfoContext(L"LEVEL_WARNING", L"EXAMPLE_UNDECLARED_VARIABLE", m);
 
 							ExpressionStmt* stmt = new ExpressionStmt(new BinaryExpr(BinaryExpr::OpCode::ASSIGN, new PrimaryExpr(new SimpleIdentifier(L"EXAMPLE_UNDECLARED_VARIABLE")), new PrimaryExpr(new SimpleIdentifier(L"b"))));
 							stmt->setAnnotation(annos);
-							stmt->set<zillians::language::stage::LogInfoContext>(errorContext);
+							stmt->set<zillians::language::LogInfoContext>(errorContext);
 
 							block->appendObject(stmt);
 						}
@@ -122,7 +124,8 @@ Program* createFailSample()
 							NULL,
 							true,
 							false,
-							Declaration::VisibilitySpecifier::PUBLIC);
+							Declaration::VisibilitySpecifier::PUBLIC,
+							new Block);
 					class_decl->addFunction(some_member_function);
 					{
 						Block* block = some_member_function->block;
@@ -157,11 +160,11 @@ Program* createFailSample()
 							std::map<std::wstring, std::wstring> m;
 							m[L"id"] = L"mCount";
 							m[L"type"] = L"int";
-							auto errorContext = new zillians::language::stage::LogInfoContext(L"LEVEL_WARNING", L"EXAMPLE_UNDECLARED_VARIABLE", m);
+							auto errorContext = new zillians::language::LogInfoContext(L"LEVEL_WARNING", L"EXAMPLE_UNDECLARED_VARIABLE", m);
 
 							ExpressionStmt* stmt = new ExpressionStmt(new BinaryExpr(BinaryExpr::OpCode::ASSIGN, new PrimaryExpr(new SimpleIdentifier(L"EXAMPLE_UNDECLARED_VARIABLE")), new PrimaryExpr(new SimpleIdentifier(L"b"))));
 							stmt->setAnnotation(annos);
-							stmt->set<zillians::language::stage::LogInfoContext>(errorContext);
+							stmt->set<zillians::language::LogInfoContext>(errorContext);
 
 							// set source info context
 							int source_index = 0;

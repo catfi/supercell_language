@@ -25,7 +25,7 @@
 #include "language/tree/visitor/general/NameManglingVisitor.h"
 #include "language/stage/transformer/context/ManglingStageContext.h"
 #include "language/logging/StringTable.h"
-#include "language/context/LogContext.h"
+#include "language/context/LogInfoContext.h"
 
 using namespace zillians::language::tree;
 using zillians::language::tree::visitor::GenericDoubleVisitor;
@@ -54,7 +54,7 @@ struct LiteralCompactionStageVisitor : GenericDoubleVisitor
 
 	void compact(NumericLiteral& node)
 	{
-		using zillians::language::stage::LogInfoContext;
+//		using zillians::language::stage::LogInfoContext;
 
 		bool negate = false;
 		if(node.parent && isa<UnaryExpr>(node.parent) && cast<UnaryExpr>(node.parent)->opcode == UnaryExpr::OpCode::ARITHMETIC_NEGATE)
