@@ -45,6 +45,7 @@
 
 #define DISTINCT_IDENTIFIER(x)       distinct(unicode::alnum | L'_')[x]
 #define DISTINCT_NO_ASSIGN_FOLLOW(x) distinct(L'=')[x]
+#define MAKE_BOOL(x)                 ((x) > qi::attr(true))
 #define DECL_RULE_LEXEME(x)          qi::rule<Iterator, typename SA::x::attribute_type, typename SA::x::local_type> x
 #define DECL_RULE(x)                 qi::rule<Iterator, typename SA::x::attribute_type, detail::WhiteSpace<Iterator>, typename SA::x::local_type> x
 #define DECL_RULE_CUSTOM_SA(x, sa)   qi::rule<Iterator, typename SA::sa::attribute_type, detail::WhiteSpace<Iterator>, typename SA::sa::local_type> x
@@ -460,7 +461,7 @@ struct ThorScript : qi::grammar<Iterator, typename SA::start::attribute_type, de
 
 		template_param_identifier
 			= qi::eps [ typename SA::location::cache_loc() ]
-				>>	(IDENTIFIER > -(COMPARE_LT >> ((IDENTIFIER | (ELLIPSIS > qi::attr(true))) % COMMA) >> COMPARE_GT)
+				>>	(IDENTIFIER > -(COMPARE_LT >> ((IDENTIFIER | MAKE_BOOL(ELLIPSIS)) % COMMA) >> COMPARE_GT)
 					) [ typename SA::template_param_identifier::init() ]
 			;
 
@@ -575,8 +576,7 @@ struct ThorScript : qi::grammar<Iterator, typename SA::start::attribute_type, de
 		prefix_expression
 			= qi::eps [ typename SA::location::cache_loc() ]
 				>>	(postfix_expression
-					|	(
-							( INCREMENT        > qi::attr(tree::UnaryExpr::OpCode::PREFIX_INCREMENT)
+					|	(	( INCREMENT        > qi::attr(tree::UnaryExpr::OpCode::PREFIX_INCREMENT)
 							| DECREMENT        > qi::attr(tree::UnaryExpr::OpCode::PREFIX_DECREMENT)
 							| BINARY_NOT       > qi::attr(tree::UnaryExpr::OpCode::BINARY_NOT)
 							| LOGICAL_NOT      > qi::attr(tree::UnaryExpr::OpCode::LOGICAL_NOT)
@@ -759,7 +759,7 @@ struct ThorScript : qi::grammar<Iterator, typename SA::start::attribute_type, de
 
 		decl_statement
 			= qi::eps [ typename SA::location::cache_loc() ]
-				>> (-(STATIC > qi::attr(true)) >> (variable_decl | const_decl)) [ typename SA::decl_statement::init() ]
+				>> (-MAKE_BOOL(STATIC) >> (variable_decl | const_decl)) [ typename SA::decl_statement::init() ]
 			;
 
 		expression_statement
@@ -850,7 +850,7 @@ struct ThorScript : qi::grammar<Iterator, typename SA::start::attribute_type, de
 
 		function_decl
 			= qi::eps [ typename SA::location::cache_loc() ]
-				>>	(FUNCTION > (template_param_identifier | (NEW > qi::attr(true)))
+				>>	(FUNCTION > (template_param_identifier | MAKE_BOOL(NEW))
 						> LEFT_PAREN > -typed_parameter_list_with_init > RIGHT_PAREN > -colon_type_specifier
 						> -block
 					) [ typename SA::function_decl::init() ]
@@ -873,7 +873,7 @@ struct ThorScript : qi::grammar<Iterator, typename SA::start::attribute_type, de
 
 		class_member_decl
 			= location //[ typename SA::location::cache_loc() ]
-				>>	(-annotation_specifiers >> -visibility_specifier >> -(STATIC > qi::attr(true))
+				>>	(-annotation_specifiers >> -visibility_specifier >> -MAKE_BOOL(STATIC)
 						>>	( variable_decl
 							| const_decl
 							| function_decl
