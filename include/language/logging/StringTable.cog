@@ -228,34 +228,34 @@ struct StringTable
 			zh_TW = 'NOTE: 暫無中文翻譯 ==> EXCEED_TEMPLATE_PARAM_LIMIT'
 			))
 	############################################# SEMANTIC_VERIFICATION_STAGE (WARNINGS)
+	LOG_STRING.create('MISSING_RETURN', LOG_LEVEL.LEVEL_WARNING, 0, dict(
+			en_US = 'no return statement in function returning non-void',
+			zh_TW = 'NOTE: 暫無中文翻譯 ==> MISSING_RETURN'
+			))
 	LOG_STRING.create('UNINIT_ARG', LOG_LEVEL.LEVEL_WARNING, 0, dict(
 			en_US = '$VAR(string) is used uninitialized in this function',
 			zh_TW = 'NOTE: 暫無中文翻譯 ==> UNINIT_ARG'
-			))
-	LOG_STRING.create('UNUSED_VAR', LOG_LEVEL.LEVEL_WARNING, 0, dict(
-			en_US = 'unused variable $VAR(string)',
-			zh_TW = 'NOTE: 暫無中文翻譯 ==> UNUSED_VAR'
-			))
-	LOG_STRING.create('DEAD_CODE', LOG_LEVEL.LEVEL_WARNING, 0, dict(
-			en_US = 'NOTE: lacking message for ==> DEAD_CODE',
-			zh_TW = 'NOTE: 暫無中文翻譯 ==> DEAD_CODE'
 			))
 	LOG_STRING.create('CONTROL_REACHES_END', LOG_LEVEL.LEVEL_WARNING, 0, dict(
 			en_US = 'control reaches end of non-void function',
 			zh_TW = 'NOTE: 暫無中文翻譯 ==> CONTROL_REACHES_END'
 			))
 	LOG_STRING.create('MISSING_CASE', LOG_LEVEL.LEVEL_WARNING, 0, dict(
-			en_US = 'enumeration value $ENUM_ID(string) not handled in switch',
+			en_US = 'enumeration value $ID(string) not handled in switch',
 			zh_TW = 'NOTE: 暫無中文翻譯 ==> MISSING_CASE'
+			))
+	LOG_STRING.create('DEAD_CODE', LOG_LEVEL.LEVEL_WARNING, 0, dict(
+			en_US = 'NOTE: lacking message for ==> DEAD_CODE',
+			zh_TW = 'NOTE: 暫無中文翻譯 ==> DEAD_CODE'
 			))
 	LOG_STRING.create('INFINITE_RECURSION', LOG_LEVEL.LEVEL_WARNING, 0, dict(
 			en_US = 'NOTE: lacking message for ==> INFINITE_RECURSION',
 			zh_TW = 'NOTE: 暫無中文翻譯 ==> INFINITE_RECURSION'
 			))
-	LOG_STRING.create('MISSING_RETURN', LOG_LEVEL.LEVEL_WARNING, 0, dict(
-			en_US = 'no return statement in function returning non-void',
-			zh_TW = 'NOTE: 暫無中文翻譯 ==> MISSING_RETURN'
-			))
+    LOG_STRING.create('UNUSED_VAR', LOG_LEVEL.LEVEL_WARNING, 0, dict(
+            en_US = 'unused variable $VAR(string)',
+            zh_TW = 'NOTE: 暫無中文翻譯 ==> UNUSED_VAR'
+            ))
 	############################################# SEMANTIC_VERIFICATION_STAGE (HELPERS)
 	LOG_STRING.create('PREV_DECL_HERE', LOG_LEVEL.LEVEL_INFO, 0, dict(
 			en_US = '$ID(string) previously declared here',
@@ -265,13 +265,13 @@ struct StringTable
 			en_US = 'note: candidates are: $ID(string)',
 			zh_TW = 'NOTE: 暫無中文翻譯 ==> CANDIDATES_ARE'
 			))
-	LOG_STRING.create('FROM_HERE', LOG_LEVEL.LEVEL_INFO, 0, dict(
-			en_US = 'from this location',
-			zh_TW = 'NOTE: 暫無中文翻譯 ==> FROM_HERE'
-			))
 	LOG_STRING.create('IN_FUNCTION', LOG_LEVEL.LEVEL_INFO, 0, dict(
 			en_US = 'In function $FUNC(string):',
 			zh_TW = 'NOTE: 暫無中文翻譯 ==> IN_FUNCTION'
+			))
+	LOG_STRING.create('FROM_HERE', LOG_LEVEL.LEVEL_INFO, 0, dict(
+			en_US = 'from this location',
+			zh_TW = 'NOTE: 暫無中文翻譯 ==> FROM_HERE'
 			))
 	LOG_STRING.create('IN_CONTEXT', LOG_LEVEL.LEVEL_INFO, 0, dict(
 			en_US = 'within this context',

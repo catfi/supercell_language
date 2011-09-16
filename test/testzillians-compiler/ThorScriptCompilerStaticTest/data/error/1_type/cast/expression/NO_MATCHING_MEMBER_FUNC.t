@@ -1,9 +1,6 @@
 class QWE
 {
-public:
-    function g():void
-    {
-    }
+    public function g():void {}
 }
 
 function f():void

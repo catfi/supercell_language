@@ -54,14 +54,16 @@ ERRORS:
 
 WARNINGS:
 
-    W1. UNINIT_ARG (J) (FUTURE)
-    W2. CODE_PATH
-        a. UNUSED_VAR (J) (FUTURE)
-        b. DEAD_CODE (NOTE: ALWAYS BRANCH BEFORE THIS LINE) (J) (S0)
-        c. CONTROL_REACHES_END (J) (S0)
-        d. MISSING_CASE (INCL. MISSING DEFAULT) (J) (S1)
-    W3. INFINITE_RECURSION (J) (FUTURE)
-    W4. MISSING_RETURN (J) (S1)
+    W1. MISSING_RETURN (J) (S1)
+    W2. UNINIT_ARG (J) (FUTURE)
+    W3. CONTROL_PATH
+        b. CONTROL_REACHES_END (J) (S0)
+        c. MISSING_CASE (INCL. MISSING DEFAULT) (J) (S1)
+        d. DEAD_CODE (NOTE: ALWAYS BRANCH BEFORE THIS LINE) (J) (S0)
+        e. INFINITE_RECURSION (J) (FUTURE)
+    /*
+    W4. UNUSED_VAR (J) (FUTURE)
+    */
 
 MESSAGES:
 
@@ -101,20 +103,22 @@ MESSAGES:
 
     WARNINGS:
 
-    W1:         UNINIT_ARG          = $ID is used uninitialized in this function
-    W2.a:       UNUSED_VAR          = unused variable $ID
-    W2.b:       DEAD_CODE           = <<< no c++ equivalence >>>
-    W2.c:       CONTROL_REACHES_END = control reaches end of non-void function
-    W2.d:       MISSING_CASE        = enumeration value $ID not handled in switch
-    W3:         INFINITE_RECURSION  = <<< no c++ equivalence >>>
-    W4:         MISSING_RETURN      = no return statement in function returning non-void
+    W1:   MISSING_RETURN      = no return statement in function returning non-void
+    W2:   UNINIT_ARG          = $ID is used uninitialized in this function
+    W3.a: CONTROL_REACHES_END = control reaches end of non-void function
+    W3.b: MISSING_CASE        = enumeration value $ID not handled in switch
+    W3.c: DEAD_CODE           = <<< no c++ equivalence >>>
+    W3.d: INFINITE_RECURSION  = <<< no c++ equivalence >>>
+    /*
+    W4:   UNUSED_VAR          = unused variable $ID
+    */
 
     HINTS:
-                PREV_DECL_HERE = $ID previously declared here
-                CANDIDATES_ARE = note: candidates are: $ID
-                FROM_HERE      = from this location
-                IN_FUNCTION    = In [static] [member] function $ID:
-                IN_CONTEXT     = within this context
+          PREV_DECL_HERE = $ID previously declared here
+          CANDIDATES_ARE = note: candidates are: $ID
+          IN_FUNCTION    = In [static] [member] function $ID:
+          FROM_HERE      = from this location
+          IN_CONTEXT     = within this context
 
 /////////////////////////////////////////////////////////////////////
 /// BASIC

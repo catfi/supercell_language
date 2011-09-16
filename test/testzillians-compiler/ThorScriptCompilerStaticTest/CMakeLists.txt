@@ -24,6 +24,10 @@ zillians_create_test_subject(SUBJECT thorscript-compiler-static-test-all)
 get_target_property(ThorScriptCompiler ts-compile LOCATION)
 SET(compile_options "--enable-static-test")
 
+#################################################
+# error
+#################################################
+
 #####################################################################
 # 0_name
 #####################################################################
@@ -258,3 +262,55 @@ zillians_add_complex_test(
 
 zillians_add_test_to_subject(SUBJECT thorscript-compiler-static-test-all TARGET thorscript-compiler-static-test-EXCEED_PARAM_LIMIT)
 zillians_add_test_to_subject(SUBJECT thorscript-compiler-static-test-all TARGET thorscript-compiler-static-test-EXCEED_TEMPLATE_PARAM_LIMIT)
+
+#################################################
+# warn
+#################################################
+
+#####################################################################
+# control_path
+#####################################################################
+
+zillians_add_complex_test(
+    TARGET thorscript-compiler-static-test-CONTROL_REACHES_END
+    SHELL ${ThorScriptCompiler} ${compile_options} ${CMAKE_CURRENT_SOURCE_DIR}/data/warn/control_path/CONTROL_REACHES_END.t
+    DEPENDS ${ThorScriptCompiler}
+    )
+zillians_add_complex_test(
+    TARGET thorscript-compiler-static-test-DEAD_CODE
+    SHELL ${ThorScriptCompiler} ${compile_options} ${CMAKE_CURRENT_SOURCE_DIR}/data/warn/control_path/DEAD_CODE.t
+    DEPENDS ${ThorScriptCompiler}
+    )
+zillians_add_complex_test(
+    TARGET thorscript-compiler-static-test-INFINITE_RECURSION
+    SHELL ${ThorScriptCompiler} ${compile_options} ${CMAKE_CURRENT_SOURCE_DIR}/data/warn/control_path/INFINITE_RECURSION.t
+    DEPENDS ${ThorScriptCompiler}
+    )
+zillians_add_complex_test(
+    TARGET thorscript-compiler-static-test-MISSING_CASE
+    SHELL ${ThorScriptCompiler} ${compile_options} ${CMAKE_CURRENT_SOURCE_DIR}/data/warn/control_path/MISSING_CASE.t
+    DEPENDS ${ThorScriptCompiler}
+    )
+
+zillians_add_test_to_subject(SUBJECT thorscript-compiler-static-test-all TARGET thorscript-compiler-static-test-CONTROL_REACHES_END)
+zillians_add_test_to_subject(SUBJECT thorscript-compiler-static-test-all TARGET thorscript-compiler-static-test-DEAD_CODE)
+zillians_add_test_to_subject(SUBJECT thorscript-compiler-static-test-all TARGET thorscript-compiler-static-test-INFINITE_RECURSION)
+zillians_add_test_to_subject(SUBJECT thorscript-compiler-static-test-all TARGET thorscript-compiler-static-test-MISSING_CASE)
+
+#####################################################################
+# [.]
+#####################################################################
+
+zillians_add_complex_test(
+    TARGET thorscript-compiler-static-test-MISSING_RETURN
+    SHELL ${ThorScriptCompiler} ${compile_options} ${CMAKE_CURRENT_SOURCE_DIR}/data/warn/MISSING_RETURN.t
+    DEPENDS ${ThorScriptCompiler}
+    )
+zillians_add_complex_test(
+    TARGET thorscript-compiler-static-test-UNINIT_ARG
+    SHELL ${ThorScriptCompiler} ${compile_options} ${CMAKE_CURRENT_SOURCE_DIR}/data/warn/UNINIT_ARG.t
+    DEPENDS ${ThorScriptCompiler}
+    )
+
+zillians_add_test_to_subject(SUBJECT thorscript-compiler-static-test-all TARGET thorscript-compiler-static-test-MISSING_RETURN)
+zillians_add_test_to_subject(SUBJECT thorscript-compiler-static-test-all TARGET thorscript-compiler-static-test-UNINIT_ARG)

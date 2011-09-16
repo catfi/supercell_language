@@ -1,6 +1,4 @@
-function g():void
-{
-}
+function g():void {}
 
 function f():void
 {

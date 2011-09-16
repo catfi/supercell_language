@@ -1,8 +1,6 @@
 class QWE {}
 
-function g(a:QWE):void
-{
-}
+function g(a:QWE):void {}
 
 function f():void
 {
