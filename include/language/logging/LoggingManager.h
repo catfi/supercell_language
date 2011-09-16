@@ -42,11 +42,10 @@ class Logger;
 class LoggingManager : public Singleton<LoggingManager, SingletonInitialization::automatic>
 {
 	friend class Singleton;
-private:
-	LoggingManager();
-	virtual ~LoggingManager();
 
 public:
+	LoggingManager();
+	virtual ~LoggingManager();
 	uint32 getCurrentWarningDegree();
 	void setWarningDegree(uint32 level);
 	Logger* getLogger();
