@@ -25,7 +25,7 @@
 #include "utility/UnicodeUtil.h"
 #include "language/tree/ASTNode.h"
 #include "language/logging/LoggerWrapper.h"
-#include "language/context/LogContext.h"
+#include "language/context/LogInfoContext.h"
 #include "language/stage/parser/context/SourceInfoContext.h"
 #include <boost/parameter.hpp>
 #include <vector>
@@ -421,7 +421,7 @@ public:
 			cog.outl('\t substitute(translated, L"%s", %s);' % (to_search, var))
 			cog.outl('\t insert_parameters(parameters, L"%s", %s);' % (var.lower(), var))
 
-		cog.outl('\t stage::LogInfoContext::set(&node, new stage::LogInfoContext(str_level, str_id, parameters));')
+		cog.outl('\t LogInfoContext::set(&node, new LogInfoContext(str_level, str_id, parameters));')
 
 		# Generate header like : "test.cpp:32: "
 		cog.outl('\t vector<string>& files = stage::ModuleSourceInfoContext::get(&program_node)->source_files;')

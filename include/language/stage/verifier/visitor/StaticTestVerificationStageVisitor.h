@@ -30,7 +30,7 @@
 #include "language/tree/ASTNodeFactory.h"
 #include "language/tree/visitor/general/GenericDoubleVisitor.h"
 #include "language/stage/parser/context/SourceInfoContext.h"
-#include "language/context/LogContext.h"
+#include "language/context/LogInfoContext.h"
 
 using namespace zillians::language::tree;
 using zillians::language::tree::visitor::GenericDoubleVisitor;
@@ -58,7 +58,6 @@ struct StaticTestVerificationStageVisitor : public zillians::language::tree::vis
 
 	void check(zillians::language::tree::Annotation& node)
 	{
-		using zillians::language::stage::LogInfoContext;
 		if (node.name->name == L"static_test")
 		{
 			// get error info context on node
@@ -85,7 +84,7 @@ struct StaticTestVerificationStageVisitor : public zillians::language::tree::vis
 	}
 
 private:
-	zillians::language::stage::LogInfoContext constructErrorContextFromAnnotation(zillians::language::tree::Annotation& node)
+	LogInfoContext constructErrorContextFromAnnotation(zillians::language::tree::Annotation& node)
 	{
 		int source_index = 0;
 		//stage::ModuleSourceInfoContext* module_info = new stage::ModuleSourceInfoContext();
@@ -96,7 +95,7 @@ private:
 
 		using namespace zillians::language::tree;
 		using zillians::language::tree::cast;
-		//zillians::language::stage::LogInfoContext result;
+
 		BOOST_ASSERT(node.attribute_list.size() == 1);
 		if (node.attribute_list.size() != 1 )
 		{
@@ -209,18 +208,19 @@ private:
 
 			std::wstring key = paramKey->name;
 			std::wstring value = paramValue->value;
-			//zillians::language::stage::LogInfoContext::parameter_type_t param(key, value);
+
 			std::pair<std::wstring, std::wstring> param(key, value);
 			paramsResult.insert(std::make_pair(key, value));
 		}
 
-		return zillians::language::stage::LogInfoContext(levelString, idString, paramsResult);
+		return LogInfoContext(levelString, idString, paramsResult);
 	}
 
 public:
 	Program* programNode;
+
 private:
-	bool mAllMatch ;
+	bool mAllMatch;
 };
 
 } } } } // namespace zillians::language::tree::visitor

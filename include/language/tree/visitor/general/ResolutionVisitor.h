@@ -25,7 +25,7 @@
 #include "language/tree/visitor/general/GenericVisitor.h"
 #include "language/tree/visitor/general/NodeInfoVisitor.h"
 #include "language/tree/ASTNodeFactory.h"
-#include "language/resolver/context/ResolverContext.h"
+#include "language/context/ResolverContext.h"
 
 namespace zillians { namespace language { namespace tree { namespace visitor {
 
