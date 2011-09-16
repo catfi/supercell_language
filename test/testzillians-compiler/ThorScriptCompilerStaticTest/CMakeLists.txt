@@ -22,7 +22,7 @@
 zillians_create_test_subject(SUBJECT thorscript-compiler-static-test-all)
 
 get_target_property(ThorScriptCompiler ts-compile LOCATION)
-SET(compile_options "--enable-static-test")
+SET(compile_options "--enable-static-test" "--verify-stage-0-and-stop")
 
 #################################################
 # error
