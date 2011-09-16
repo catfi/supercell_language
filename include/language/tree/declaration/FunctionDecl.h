@@ -36,7 +36,7 @@ struct FunctionDecl : public Declaration
 	DEFINE_VISITABLE();
 	DEFINE_HIERARCHY(FunctionDecl, (FunctionDecl)(Declaration)(ASTNode));
 
-	explicit FunctionDecl(Identifier* name, TypeSpecifier* type, bool is_member, bool is_static, Declaration::VisibilitySpecifier::type visibility, Block* block = NULL) : name(name), type(type), is_member(is_member), is_static(is_static), visibility(visibility), block( (block == NULL) ? new Block() : block )
+	explicit FunctionDecl(Identifier* name, TypeSpecifier* type, bool is_member, bool is_static, Declaration::VisibilitySpecifier::type visibility, Block* block = NULL) : name(name), type(type), is_member(is_member), is_static(is_static), visibility(visibility), block(block)
 	{
 		if(name) name->parent = this;
 		if(type) type->parent = this;
