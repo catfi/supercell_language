@@ -852,7 +852,7 @@ struct ThorScript : qi::grammar<Iterator, typename SA::start::attribute_type, de
 			= qi::eps [ typename SA::location::cache_loc() ]
 				>>	(FUNCTION > (template_param_identifier | MAKE_BOOL(NEW))
 						> LEFT_PAREN > -typed_parameter_list_with_init > RIGHT_PAREN > -colon_type_specifier
-						> -block
+						> (block | SEMICOLON)
 					) [ typename SA::function_decl::init() ]
 			;
 
@@ -928,7 +928,7 @@ struct ThorScript : qi::grammar<Iterator, typename SA::start::attribute_type, de
 
 		start
 			= location [ typename SA::start::reset() ]
-				>> (program > qi::eoi) [ typename SA::start::init() ]
+				>> (program > qi::eoi)
 			;
 
 		/////////////////////////////////////////////////////////////////////

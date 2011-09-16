@@ -132,14 +132,6 @@ struct ThorScriptTreeAction
 			getParserContext().active_package = getParserContext().program->root;
 		}
 		END_ACTION
-
-		BEGIN_ACTION(init)
-		{
-#ifdef DEBUG
-			printf("start param(0) type = %s\n", typeid(_param_t(0)).name());
-#endif
-		}
-		END_ACTION
 	};
 };
 
