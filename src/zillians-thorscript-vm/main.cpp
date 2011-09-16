@@ -17,7 +17,7 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#include "language/logging/LoggingManager.h"
+#include "language/logging/LoggerWrapper.h"
 #include "language/ThorScriptVM.h"
 
 int main(int argc, char** argv)

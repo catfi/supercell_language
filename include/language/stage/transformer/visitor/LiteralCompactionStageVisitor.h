@@ -24,7 +24,6 @@
 #include "language/tree/visitor/general/GenericDoubleVisitor.h"
 #include "language/tree/visitor/general/NameManglingVisitor.h"
 #include "language/stage/transformer/context/ManglingStageContext.h"
-#include "language/logging/LoggingManager.h"
 #include "language/logging/StringTable.h"
 #include "language/context/LogContext.h"
 
@@ -116,7 +115,7 @@ struct LiteralCompactionStageVisitor : GenericDoubleVisitor
 				else
 				{
 					// potential overflowed literal, warning here
-					LoggingManager::instance()->getLogger()->NUMERIC_LITERAL_OVERFLOW(_program_node = *program, _node = node);
+					LoggerWrapper::instance()->getLogger()->NUMERIC_LITERAL_OVERFLOW(_program_node = *program, _node = node);
 				}
 			}
 		}

@@ -20,7 +20,7 @@
  * @date Jul 18, 2011 sdk - Initial version created.
  */
 
-#include "language/logging/LoggingManager.h"
+#include "language/logging/LoggerWrapper.h"
 #include "language/ThorScriptCompiler.h"
 
 int main(int argc, const char** argv)

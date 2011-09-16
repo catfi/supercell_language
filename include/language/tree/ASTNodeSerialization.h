@@ -54,6 +54,7 @@ BOOST_CLASS_EXPORT_GUID(zillians::language::tree::Statement             , "State
 BOOST_CLASS_EXPORT_GUID(zillians::language::tree::DeclarativeStmt       , "DeclarativeStm")
 BOOST_CLASS_EXPORT_GUID(zillians::language::tree::ExpressionStmt        , "ExpressionStmt")
 BOOST_CLASS_EXPORT_GUID(zillians::language::tree::IterativeStmt         , "IterativeStmt")
+BOOST_CLASS_EXPORT_GUID(zillians::language::tree::ForStmt               , "ForStmt")
 BOOST_CLASS_EXPORT_GUID(zillians::language::tree::ForeachStmt           , "ForeachStmt")
 BOOST_CLASS_EXPORT_GUID(zillians::language::tree::WhileStmt             , "WhileStmt")
 BOOST_CLASS_EXPORT_GUID(zillians::language::tree::SelectionStmt         , "SelectionStmt")

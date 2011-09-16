@@ -18,7 +18,7 @@
  */
 
 #include "core/Prerequisite.h"
-#include "language/logging/LoggingManager.h"
+#include "language/logging/LoggerWrapper.h"
 #include "language/logging/StringTable.h"
 #include "language/tree/basic/Block.h"
 #include "language/tree/module/Program.h"
@@ -36,7 +36,7 @@ int main()
 	setlocale(LC_ALL, "");
 	log4cxx::BasicConfigurator::configure();
 
-	LoggingManager log_manager;
+	LoggerWrapper log_manager;
 	Logger* logger = log_manager.getLogger();
 
 	// Create fake ASTNodes

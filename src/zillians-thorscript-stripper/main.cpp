@@ -20,8 +20,8 @@
  * @date Jul 18, 2011 sdk - Initial version created.
  */
 
-#include "language/logging/LoggingManager.h"
-#include "language/ThorScriptStub.h"
+#include "language/logging/LoggerWrapper.h"
+#include "language/ThorScriptStripper.h"
 
 int main(int argc, const char** argv)
 {
@@ -29,6 +29,6 @@ int main(int argc, const char** argv)
 	// TODO: To make compile logger support utf8 encoding.
 	setlocale(LC_ALL, "");
 
-	zillians::language::ThorScriptStub stub_generator;
-	return stub_generator.main(argc, argv);
+	zillians::language::ThorScriptStripper stripper;
+	return stripper.main(argc, argv);
 }

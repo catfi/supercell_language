@@ -28,7 +28,7 @@ include_directories( ${PROJECT_COMMON_SOURCE_DIR}/include/
 add_library(zillians-framework-language
     language/context/ConfigurationContext.cpp
     language/context/ParserContext.cpp
-    language/logging/LoggingManager.cpp
+    language/logging/LoggerWrapper.cpp
     language/stage/StageConductor.cpp
     language/stage/basic/TreeDebugStage.cpp
     language/stage/parser/ThorScriptParserStage.cpp
