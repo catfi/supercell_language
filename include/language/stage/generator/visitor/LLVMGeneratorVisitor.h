@@ -339,6 +339,39 @@ struct LLVMGeneratorVisitor : GenericDoubleVisitor
 		}
 	}
 
+	void generate(ForStmt& node)
+	{
+		if(hasValue(node)) return;
+		if(isBlockInsertionMasked() || isBlockTerminated(currentBlock()))	return;
+
+		llvm::BasicBlock* init_block = createBasicBlock("for.init", mFunctionContext.function);
+		llvm::BasicBlock* cond_block = createBasicBlock("for.cond", mFunctionContext.function);
+		llvm::BasicBlock* step_block = createBasicBlock("for.step", mFunctionContext.function);
+		llvm::BasicBlock* action_block = createBasicBlock("for.action", mFunctionContext.function);
+		llvm::BasicBlock* finalized_block = createBasicBlock("for.finalized", mFunctionContext.function);
+
+		// jump from current block to the condition evaluation block
+		enterBasicBlock(init_block);
+		if(node.init) visit(*node.init);
+
+		enterBasicBlock(cond_block);
+		visit(*node.cond);
+
+		// conditional branch to either action block or finalized block
+		llvm::Value* llvm_cond = node.cond->get<llvm::Value>();
+		mBuilder.CreateCondBr(llvm_cond, action_block, finalized_block);
+
+		enterBasicBlock(action_block);
+		if(node.block) visit(*node.block);
+
+		enterBasicBlock(step_block);
+		if(node.step) visit(*node.step);
+		mBuilder.CreateBr(cond_block);
+
+		// enter finalized block
+		enterBasicBlock(finalized_block);
+	}
+
 	void generate(ForeachStmt& node)
 	{
 		if(hasValue(node)) return;
@@ -380,6 +413,7 @@ struct LLVMGeneratorVisitor : GenericDoubleVisitor
 
 			enterBasicBlock(action_block);
 			if(node.block) visit(*node.block);
+			mBuilder.CreateBr(cond_block);
 
 			// enter finalized block
 			enterBasicBlock(finalized_block);
