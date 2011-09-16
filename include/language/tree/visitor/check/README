@@ -1,68 +1,76 @@
 SEMANTIC CHECK CHECKLIST
 
+LEGEND:
+
+    ?:  undecided-stage
+    P:  parse-stage
+    S0: verify-stage-0
+    T:  transform-stage
+    S1: verify-stage-1
+
 ERRORS:
 
     E1. NAME
         a. UNKNOWN
-            I.  UNKNOWN_NAME (V)
-            II. UNDEFINED_REF (V)
+            I.  UNKNOWN_NAME                    (?)
+            II. UNDEFINED_REF                   (?)
         b. AMBIGUOUS
-            I.  DUPE_NAME (J) (S0)
-            II. AMBIGUOUS_REF (V)
+            I.  DUPE_NAME                       (S0)
+            II. AMBIGUOUS_REF                   (?)
     E2. TYPE
         a. CAST
-            I.   EXPRESSION (INCL. ASSIGN FAIL) (SDK)
-                 i.   WRITE_RVALUE
-                 ii.  INVALID_CONV
-                 iii. NO_MATCHING_MEMBER_FUNC
+            I.   EXPRESSION
+                 i.   WRITE_RVALUE              (T)
+                 ii.  INVALID_CONV              (T)
+                 iii. NO_MATCHING_MEMBER_FUNC   (T)
             II.  STATEMENT
-                 - INVALID_CONV_BOOL (INCL. NON-BOOL USED AS CONDITION) (SDK)
+                 - INVALID_CONV_BOOL            (T)
             III. DECLARATION
-                 - (...) (SDK)
+                 - (...)                        (T)
         b. PRIMARY_EXPRESSION
-            I.   MEMBER_OF_NONCLASS (J) (S1)
-            II.  NO_SUCH_MEMBER (J) (S1)
-            III. SUBSCRIPT_OF_NONARRAY (J) (S1)
+            I.   MEMBER_OF_NONCLASS             (S1)
+            II.  NO_SUCH_MEMBER                 (S1)
+            III. SUBSCRIPT_OF_NONARRAY          (S1)
         c. FUNCTION
-            I.   CALL_NONFUNC (J) (S1)
-            II.  MISMATCH_CALL_ARGNUM (J) (S1)
-            III. MISMATCH_CALL_ARGTYPE
-            IV.  UNEXPECTED_RETURN_VALUE
-            V.   MISSING_RETURN_VALUE
+            I.   CALL_NONFUNC                   (S1)
+            II.  MISMATCH_CALL_ARGNUM           (S1)
+            III. MISMATCH_CALL_ARGTYPE          (?)
+            IV.  UNEXPECTED_RETURN_VALUE        (?)
+            V.   MISSING_RETURN_VALUE           (?)
     E3. MODIFIER
         a. STORAGE
             I.  CONST
-                i.  MISSING_CONST_INIT
-                ii. WRITE_CONST
+                i.  MISSING_CONST_INIT          (?)
+                ii. WRITE_CONST                 (?)
             II. STATIC
-                i.   MISSING_STATIC_INIT (J) (S1)
-                ii.  INVALID_NONSTATIC_CALL (J) (S1)
-                iii. INVALID_NONSTATIC_REF (J) (S1)
+                i.   MISSING_STATIC_INIT        (S1)
+                ii.  INVALID_NONSTATIC_CALL     (S1)
+                iii. INVALID_NONSTATIC_REF      (S1)
         b. VISIBILITY
-            I.  INVALID_ACCESS_PRIVATE (J) (S1)
-            II. INVALID_ACCESS_PROTECTED (J) (S1)
+            I.  INVALID_ACCESS_PRIVATE          (S1)
+            II. INVALID_ACCESS_PROTECTED        (S1)
     E4. STATEMENT
-        a. MISSING_BREAK_TARGET (J) (S0)
-        b. MISSING_CONTINUE_TARGET (J) (S0)
+        a. MISSING_BREAK_TARGET                 (S0)
+        b. MISSING_CONTINUE_TARGET              (S0)
     E5. DECLARATION
-        a. MISSING_PARAM_INIT (J) (S0)
-        b. UNEXPECTED_VARIADIC_PARAM (J) (S0)
-        c. UNEXPECTED_VARIADIC_TEMPLATE_PARAM (J) (S0)
+        a. MISSING_PARAM_INIT                   (S0)
+        b. UNEXPECTED_VARIADIC_PARAM            (S0)
+        c. UNEXPECTED_VARIADIC_TEMPLATE_PARAM   (S0)
     E6. LIMIT
-    	a. EXCEED_PARAM_LIMIT (J) (S0)
-    	b. EXCEED_TEMPLATE_PARAM_LIMIT (J) (S0)
+    	a. EXCEED_PARAM_LIMIT                   (S0)
+    	b. EXCEED_TEMPLATE_PARAM_LIMIT          (S0)
 
 WARNINGS:
 
-    W1. MISSING_RETURN (J) (S1)
-    W2. UNINIT_ARG (J) (FUTURE)
+    W1. MISSING_RETURN          (S1)
+    W2. UNINIT_ARG              (FUTURE)
     W3. CONTROL_PATH
-        b. CONTROL_REACHES_END (J) (S0)
-        c. MISSING_CASE (INCL. MISSING DEFAULT) (J) (S1)
-        d. DEAD_CODE (NOTE: ALWAYS BRANCH BEFORE THIS LINE) (J) (S0)
-        e. INFINITE_RECURSION (J) (FUTURE)
+        b. CONTROL_REACHES_END  (S0)
+        c. MISSING_CASE         (S1)
+        d. DEAD_CODE            (S0)
+        e. INFINITE_RECURSION   (FUTURE)
     /*
-    W4. UNUSED_VAR (J) (FUTURE)
+    W4. UNUSED_VAR              (FUTURE)
     */
 
 MESSAGES:
