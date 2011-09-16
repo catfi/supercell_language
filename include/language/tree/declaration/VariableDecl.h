@@ -70,13 +70,13 @@ struct VariableDecl : public Declaration
         }
 
         // compare data member
-        if(!isASTNodeMemberEqual   (&VariableDecl::name            , *this, *p, visited)) return false;
-        if(!isASTNodeMemberEqual   (&VariableDecl::type            , *this, *p, visited)) return false;
-        if(is_member  != p->is_member                                                   ) return false;
-        if(is_static  != p->is_static                                                   ) return false;
-        if(is_const   != p->is_const                                                    ) return false;
-        if(visibility != p->visibility                                                  ) return false;
-        if(!isASTNodeMemberEqual   (&VariableDecl::initializer     , *this, *p, visited)) return false;
+		COMPARE_ASTNODE_MEMBER(name);
+		COMPARE_ASTNODE_MEMBER(type);
+		COMPARE_MEMBER(is_member);
+		COMPARE_MEMBER(is_static);
+		COMPARE_MEMBER(is_const);
+		COMPARE_MEMBER(visibility);
+		COMPARE_ASTNODE_MEMBER(initializer);
 
         // add this to the visited table.
         visited.insert(this);

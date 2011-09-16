@@ -100,10 +100,10 @@ struct ForStmt : public IterativeStmt
         }
 
         // compare data member
-        if(!isASTNodeMemberEqual   (&ForStmt::init            , *this, *p, visited)) return false;
-        if(!isASTNodeMemberEqual   (&ForStmt::cond            , *this, *p, visited)) return false;
-        if(!isASTNodeMemberEqual   (&ForStmt::step           , *this, *p, visited)) return false;
-        if(!isASTNodeMemberEqual   (&ForStmt::block           , *this, *p, visited)) return false;
+		COMPARE_ASTNODE_MEMBER(init);
+		COMPARE_ASTNODE_MEMBER(cond);
+		COMPARE_ASTNODE_MEMBER(step);
+		COMPARE_ASTNODE_MEMBER(block);
 
         // add this to the visited table.
         visited.insert(this);
@@ -151,9 +151,9 @@ struct ForeachStmt : public IterativeStmt
         }
 
         // compare data member
-        if(!isASTNodeMemberEqual   (&ForeachStmt::iterator            , *this, *p, visited)) return false;
-        if(!isASTNodeMemberEqual   (&ForeachStmt::range               , *this, *p, visited)) return false;
-        if(!isASTNodeMemberEqual   (&ForeachStmt::block               , *this, *p, visited)) return false;
+		COMPARE_ASTNODE_MEMBER(iterator);
+		COMPARE_ASTNODE_MEMBER(range);
+		COMPARE_ASTNODE_MEMBER(block);
 
         // add this to the visited table.
         visited.insert(this);
@@ -215,9 +215,9 @@ struct WhileStmt : public IterativeStmt
         }
 
         // compare data member
-        if(style != p->style                                                             ) return false;
-        if(!isASTNodeMemberEqual   (&WhileStmt::cond                , *this, *p, visited)) return false;
-        if(!isASTNodeMemberEqual   (&WhileStmt::block               , *this, *p, visited)) return false;
+		COMPARE_MEMBER(style);
+		COMPARE_ASTNODE_MEMBER(cond);
+		COMPARE_ASTNODE_MEMBER(block);
 
         // add this to the visited table.
         visited.insert(this);

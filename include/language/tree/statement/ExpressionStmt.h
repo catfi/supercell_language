@@ -60,10 +60,7 @@ struct ExpressionStmt : public Statement
         }
 
         // compare data member
-        if(!isASTNodeMemberEqual(&ExpressionStmt::expr, *this, *p, visited))
-        {
-            return false;
-        }
+		COMPARE_ASTNODE_MEMBER(expr);
 
         // add this to the visited table.
         visited.insert(this);

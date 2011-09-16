@@ -160,10 +160,7 @@ struct IfElseStmt : public SelectionStmt
 				return false;
 			}
 		}
-		if(!isASTNodeMemberEqual(&IfElseStmt::else_block, *this, *p, visited))
-		{
-			return false;
-		}
+		COMPARE_ASTNODE_MEMBER(else_block);
 
 		// add this to the visited table.
 		visited.insert(this);
@@ -223,10 +220,7 @@ struct SwitchStmt : public SelectionStmt
 		}
 
 		// compare data member
-		if(!isASTNodeMemberEqual(&SwitchStmt::node, *this, *p, visited))
-		{
-			return false;
-		}
+		COMPARE_ASTNODE_MEMBER(node);
 		if(cases.size() != p->cases.size())
 		{
 			return false ;
@@ -238,10 +232,7 @@ struct SwitchStmt : public SelectionStmt
 				return false;
 			}
 		}
-		if(!isASTNodeMemberEqual(&SwitchStmt::default_block, *this, *p, visited))
-		{
-			return false;
-		}
+		COMPARE_ASTNODE_MEMBER(default_block);
 
 		// add this to the visited table.
 		visited.insert(this);

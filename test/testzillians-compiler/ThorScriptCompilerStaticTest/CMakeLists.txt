@@ -24,185 +24,234 @@ zillians_create_test_subject(SUBJECT thorscript-compiler-static-test-all)
 get_target_property(ThorScriptCompiler ts-compile LOCATION)
 SET(compile_options "--enable-static-test")
 
+#####################################################################
+# 0_name
+#####################################################################
+
+# ambiguous
 zillians_add_complex_test(
     TARGET thorscript-compiler-static-test-AMBIGUOUS_REF
-    SHELL ${ThorScriptCompiler} ${compile_options} ${CMAKE_CURRENT_SOURCE_DIR}/data/AMBIGUOUS_REF.t
+    SHELL ${ThorScriptCompiler} ${compile_options} ${CMAKE_CURRENT_SOURCE_DIR}/data/error/0_name/ambiguous/AMBIGUOUS_REF.t
     DEPENDS ${ThorScriptCompiler}
     )
-
-zillians_add_complex_test(
-    TARGET thorscript-compiler-static-test-CALL_NONFUNC
-    SHELL ${ThorScriptCompiler} ${compile_options} ${CMAKE_CURRENT_SOURCE_DIR}/data/CALL_NONFUNC.t
-    DEPENDS ${ThorScriptCompiler}
-    )
-
 zillians_add_complex_test(
     TARGET thorscript-compiler-static-test-DUPE_NAME
-    SHELL ${ThorScriptCompiler} ${compile_options} ${CMAKE_CURRENT_SOURCE_DIR}/data/DUPE_NAME.t
-    DEPENDS ${ThorScriptCompiler}
-    )
-
-zillians_add_complex_test(
-    TARGET thorscript-compiler-static-test-EXCEED_PARAM_LIMIT
-    SHELL ${ThorScriptCompiler} ${compile_options} ${CMAKE_CURRENT_SOURCE_DIR}/data/EXCEED_PARAM_LIMIT.t
-    DEPENDS ${ThorScriptCompiler}
-    )
-
-zillians_add_complex_test(
-    TARGET thorscript-compiler-static-test-HEAP_VAR_INIT_NONCONST
-    SHELL ${ThorScriptCompiler} ${compile_options} ${CMAKE_CURRENT_SOURCE_DIR}/data/HEAP_VAR_INIT_NONCONST.t
-    DEPENDS ${ThorScriptCompiler}
-    )
-
-zillians_add_complex_test(
-    TARGET thorscript-compiler-static-test-INVALID_CONV_BOOL
-    SHELL ${ThorScriptCompiler} ${compile_options} ${CMAKE_CURRENT_SOURCE_DIR}/data/INVALID_CONV_BOOL.t
-    DEPENDS ${ThorScriptCompiler}
-    )
-
-zillians_add_complex_test(
-    TARGET thorscript-compiler-static-test-INVALID_CONV
-    SHELL ${ThorScriptCompiler} ${compile_options} ${CMAKE_CURRENT_SOURCE_DIR}/data/INVALID_CONV.t
-    DEPENDS ${ThorScriptCompiler}
-    )
-
-zillians_add_complex_test(
-    TARGET thorscript-compiler-static-test-INVALID_NONSTATIC_CALL
-    SHELL ${ThorScriptCompiler} ${compile_options} ${CMAKE_CURRENT_SOURCE_DIR}/data/INVALID_NONSTATIC_CALL.t
-    DEPENDS ${ThorScriptCompiler}
-    )
-
-zillians_add_complex_test(
-    TARGET thorscript-compiler-static-test-INVALID_NONSTATIC_REF
-    SHELL ${ThorScriptCompiler} ${compile_options} ${CMAKE_CURRENT_SOURCE_DIR}/data/INVALID_NONSTATIC_REF.t
-    DEPENDS ${ThorScriptCompiler}
-    )
-
-zillians_add_complex_test(
-    TARGET thorscript-compiler-static-test-INVALID_RETURN_VALUE
-    SHELL ${ThorScriptCompiler} ${compile_options} ${CMAKE_CURRENT_SOURCE_DIR}/data/INVALID_RETURN_VALUE.t
-    DEPENDS ${ThorScriptCompiler}
-    )
-
-zillians_add_complex_test(
-    TARGET thorscript-compiler-static-test-INVALID_SUBSCRIPT
-    SHELL ${ThorScriptCompiler} ${compile_options} ${CMAKE_CURRENT_SOURCE_DIR}/data/INVALID_SUBSCRIPT.t
-    DEPENDS ${ThorScriptCompiler}
-    )
-
-zillians_add_complex_test(
-    TARGET thorscript-compiler-static-test-MISSING_BREAK_TARGET
-    SHELL ${ThorScriptCompiler} ${compile_options} ${CMAKE_CURRENT_SOURCE_DIR}/data/MISSING_BREAK_TARGET.t
-    DEPENDS ${ThorScriptCompiler}
-    )
-
-zillians_add_complex_test(
-    TARGET thorscript-compiler-static-test-MISSING_CONST_INIT
-    SHELL ${ThorScriptCompiler} ${compile_options} ${CMAKE_CURRENT_SOURCE_DIR}/data/MISSING_CONST_INIT.t
-    DEPENDS ${ThorScriptCompiler}
-    )
-
-zillians_add_complex_test(
-    TARGET thorscript-compiler-static-test-MISSING_CONTINUE_TARGET
-    SHELL ${ThorScriptCompiler} ${compile_options} ${CMAKE_CURRENT_SOURCE_DIR}/data/MISSING_CONTINUE_TARGET.t
-    DEPENDS ${ThorScriptCompiler}
-    )
-
-zillians_add_complex_test(
-    TARGET thorscript-compiler-static-test-MISSING_PARAM_INIT
-    SHELL ${ThorScriptCompiler} ${compile_options} ${CMAKE_CURRENT_SOURCE_DIR}/data/MISSING_PARAM_INIT.t
-    DEPENDS ${ThorScriptCompiler}
-    )
-
-zillians_add_complex_test(
-    TARGET thorscript-compiler-static-test-MISSING_RETURN_VALUE
-    SHELL ${ThorScriptCompiler} ${compile_options} ${CMAKE_CURRENT_SOURCE_DIR}/data/MISSING_RETURN_VALUE.t
-    DEPENDS ${ThorScriptCompiler}
-    )
-
-zillians_add_complex_test(
-    TARGET thorscript-compiler-static-test-NO_MATCHING_FUNC_ARGNUM
-    SHELL ${ThorScriptCompiler} ${compile_options} ${CMAKE_CURRENT_SOURCE_DIR}/data/NO_MATCHING_FUNC_ARGNUM.t
-    DEPENDS ${ThorScriptCompiler}
-    )
-
-zillians_add_complex_test(
-    TARGET thorscript-compiler-static-test-NO_MATCHING_FUNC
-    SHELL ${ThorScriptCompiler} ${compile_options} ${CMAKE_CURRENT_SOURCE_DIR}/data/NO_MATCHING_FUNC.t
-    DEPENDS ${ThorScriptCompiler}
-    )
-
-zillians_add_complex_test(
-    TARGET thorscript-compiler-static-test-NO_MATCHING_MEMBER
-    SHELL ${ThorScriptCompiler} ${compile_options} ${CMAKE_CURRENT_SOURCE_DIR}/data/NO_MATCHING_MEMBER.t
-    DEPENDS ${ThorScriptCompiler}
-    )
-
-zillians_add_complex_test(
-    TARGET thorscript-compiler-static-test-NOT_A_CLASS
-    SHELL ${ThorScriptCompiler} ${compile_options} ${CMAKE_CURRENT_SOURCE_DIR}/data/NOT_A_CLASS.t
-    DEPENDS ${ThorScriptCompiler}
-    )
-
-zillians_add_complex_test(
-    TARGET thorscript-compiler-static-test-UNDEFINED_REF
-    SHELL ${ThorScriptCompiler} ${compile_options} ${CMAKE_CURRENT_SOURCE_DIR}/data/UNDEFINED_REF.t
-    DEPENDS ${ThorScriptCompiler}
-    )
-
-zillians_add_complex_test(
-    TARGET thorscript-compiler-static-test-UNEXPECTED_VARIADIC_PARAM
-    SHELL ${ThorScriptCompiler} ${compile_options} ${CMAKE_CURRENT_SOURCE_DIR}/data/UNEXPECTED_VARIADIC_PARAM.t
-    DEPENDS ${ThorScriptCompiler}
-    )
-
-zillians_add_complex_test(
-    TARGET thorscript-compiler-static-test-UNKNOWN_NAME
-    SHELL ${ThorScriptCompiler} ${compile_options} ${CMAKE_CURRENT_SOURCE_DIR}/data/UNKNOWN_NAME.t
-    DEPENDS ${ThorScriptCompiler}
-    )
-
-zillians_add_complex_test(
-    TARGET thorscript-compiler-static-test-VIS_VIOLATION
-    SHELL ${ThorScriptCompiler} ${compile_options} ${CMAKE_CURRENT_SOURCE_DIR}/data/VIS_VIOLATION.t
-    DEPENDS ${ThorScriptCompiler}
-    )
-
-zillians_add_complex_test(
-    TARGET thorscript-compiler-static-test-WRITE_CONST
-    SHELL ${ThorScriptCompiler} ${compile_options} ${CMAKE_CURRENT_SOURCE_DIR}/data/WRITE_CONST.t
-    DEPENDS ${ThorScriptCompiler}
-    )
-
-zillians_add_complex_test(
-    TARGET thorscript-compiler-static-test-WRITE_RVALUE
-    SHELL ${ThorScriptCompiler} ${compile_options} ${CMAKE_CURRENT_SOURCE_DIR}/data/WRITE_RVALUE.t
+    SHELL ${ThorScriptCompiler} ${compile_options} ${CMAKE_CURRENT_SOURCE_DIR}/data/error/0_name/ambiguous/DUPE_NAME.t
     DEPENDS ${ThorScriptCompiler}
     )
 
 zillians_add_test_to_subject(SUBJECT thorscript-compiler-static-test-all TARGET thorscript-compiler-static-test-AMBIGUOUS_REF)
-zillians_add_test_to_subject(SUBJECT thorscript-compiler-static-test-all TARGET thorscript-compiler-static-test-CALL_NONFUNC)
 zillians_add_test_to_subject(SUBJECT thorscript-compiler-static-test-all TARGET thorscript-compiler-static-test-DUPE_NAME)
-zillians_add_test_to_subject(SUBJECT thorscript-compiler-static-test-all TARGET thorscript-compiler-static-test-EXCEED_PARAM_LIMIT)
-zillians_add_test_to_subject(SUBJECT thorscript-compiler-static-test-all TARGET thorscript-compiler-static-test-HEAP_VAR_INIT_NONCONST)
-zillians_add_test_to_subject(SUBJECT thorscript-compiler-static-test-all TARGET thorscript-compiler-static-test-INVALID_CONV_BOOL)
+
+# unknown
+zillians_add_complex_test(
+    TARGET thorscript-compiler-static-test-UNDEFINED_REF
+    SHELL ${ThorScriptCompiler} ${compile_options} ${CMAKE_CURRENT_SOURCE_DIR}/data/error/0_name/unknown/UNDEFINED_REF.t
+    DEPENDS ${ThorScriptCompiler}
+    )
+zillians_add_complex_test(
+    TARGET thorscript-compiler-static-test-UNKNOWN_NAME
+    SHELL ${ThorScriptCompiler} ${compile_options} ${CMAKE_CURRENT_SOURCE_DIR}/data/error/0_name/unknown/UNKNOWN_NAME.t
+    DEPENDS ${ThorScriptCompiler}
+    )
+
+zillians_add_test_to_subject(SUBJECT thorscript-compiler-static-test-all TARGET thorscript-compiler-static-test-UNDEFINED_REF)
+zillians_add_test_to_subject(SUBJECT thorscript-compiler-static-test-all TARGET thorscript-compiler-static-test-UNKNOWN_NAME)
+
+#####################################################################
+# 1_type
+#####################################################################
+
+# cast / expression
+zillians_add_complex_test(
+    TARGET thorscript-compiler-static-test-INVALID_CONV
+    SHELL ${ThorScriptCompiler} ${compile_options} ${CMAKE_CURRENT_SOURCE_DIR}/data/error/1_type/cast/expression/INVALID_CONV.t
+    DEPENDS ${ThorScriptCompiler}
+    )
+zillians_add_complex_test(
+    TARGET thorscript-compiler-static-test-NO_MATCHING_MEMBER_FUNC
+    SHELL ${ThorScriptCompiler} ${compile_options} ${CMAKE_CURRENT_SOURCE_DIR}/data/error/1_type/cast/expression/NO_MATCHING_MEMBER_FUNC.t
+    DEPENDS ${ThorScriptCompiler}
+    )
+zillians_add_complex_test(
+    TARGET thorscript-compiler-static-test-WRITE_RVALUE
+    SHELL ${ThorScriptCompiler} ${compile_options} ${CMAKE_CURRENT_SOURCE_DIR}/data/error/1_type/cast/expression/WRITE_RVALUE.t
+    DEPENDS ${ThorScriptCompiler}
+    )
+
 zillians_add_test_to_subject(SUBJECT thorscript-compiler-static-test-all TARGET thorscript-compiler-static-test-INVALID_CONV)
+zillians_add_test_to_subject(SUBJECT thorscript-compiler-static-test-all TARGET thorscript-compiler-static-test-NO_MATCHING_MEMBER_FUNC)
+zillians_add_test_to_subject(SUBJECT thorscript-compiler-static-test-all TARGET thorscript-compiler-static-test-WRITE_RVALUE)
+
+# cast / statement
+zillians_add_complex_test(
+    TARGET thorscript-compiler-static-test-INVALID_CONV_BOOL
+    SHELL ${ThorScriptCompiler} ${compile_options} ${CMAKE_CURRENT_SOURCE_DIR}/data/error/1_type/cast/statement/INVALID_CONV_BOOL.t
+    DEPENDS ${ThorScriptCompiler}
+    )
+
+zillians_add_test_to_subject(SUBJECT thorscript-compiler-static-test-all TARGET thorscript-compiler-static-test-INVALID_CONV_BOOL)
+
+# function
+zillians_add_complex_test(
+    TARGET thorscript-compiler-static-test-CALL_NONFUNC
+    SHELL ${ThorScriptCompiler} ${compile_options} ${CMAKE_CURRENT_SOURCE_DIR}/data/error/1_type/function/CALL_NONFUNC.t
+    DEPENDS ${ThorScriptCompiler}
+    )
+zillians_add_complex_test(
+    TARGET thorscript-compiler-static-test-MISMATCH_FUNC_ARGNUM
+    SHELL ${ThorScriptCompiler} ${compile_options} ${CMAKE_CURRENT_SOURCE_DIR}/data/error/1_type/function/MISMATCH_FUNC_ARGNUM.t
+    DEPENDS ${ThorScriptCompiler}
+    )
+zillians_add_complex_test(
+    TARGET thorscript-compiler-static-test-MISMATCH_FUNC_ARGTYPE
+    SHELL ${ThorScriptCompiler} ${compile_options} ${CMAKE_CURRENT_SOURCE_DIR}/data/error/1_type/function/MISMATCH_FUNC_ARGTYPE.t
+    DEPENDS ${ThorScriptCompiler}
+    )
+zillians_add_complex_test(
+    TARGET thorscript-compiler-static-test-MISSING_RETURN_VALUE
+    SHELL ${ThorScriptCompiler} ${compile_options} ${CMAKE_CURRENT_SOURCE_DIR}/data/error/1_type/function/MISSING_RETURN_VALUE.t
+    DEPENDS ${ThorScriptCompiler}
+    )
+zillians_add_complex_test(
+    TARGET thorscript-compiler-static-test-UNEXPECTED_RETURN_VALUE
+    SHELL ${ThorScriptCompiler} ${compile_options} ${CMAKE_CURRENT_SOURCE_DIR}/data/error/1_type/function/UNEXPECTED_RETURN_VALUE.t
+    DEPENDS ${ThorScriptCompiler}
+    )
+
+zillians_add_test_to_subject(SUBJECT thorscript-compiler-static-test-all TARGET thorscript-compiler-static-test-CALL_NONFUNC)
+zillians_add_test_to_subject(SUBJECT thorscript-compiler-static-test-all TARGET thorscript-compiler-static-test-MISMATCH_FUNC_ARGNUM)
+zillians_add_test_to_subject(SUBJECT thorscript-compiler-static-test-all TARGET thorscript-compiler-static-test-MISMATCH_FUNC_ARGTYPE)
+zillians_add_test_to_subject(SUBJECT thorscript-compiler-static-test-all TARGET thorscript-compiler-static-test-MISSING_RETURN_VALUE)
+zillians_add_test_to_subject(SUBJECT thorscript-compiler-static-test-all TARGET thorscript-compiler-static-test-UNEXPECTED_RETURN_VALUE)
+
+# primary_expression
+zillians_add_complex_test(
+    TARGET thorscript-compiler-static-test-MEMBER_OF_NONCLASS
+    SHELL ${ThorScriptCompiler} ${compile_options} ${CMAKE_CURRENT_SOURCE_DIR}/data/error/1_type/primary_expression/MEMBER_OF_NONCLASS.t
+    DEPENDS ${ThorScriptCompiler}
+    )
+zillians_add_complex_test(
+    TARGET thorscript-compiler-static-test-NO_SUCH_MEMBER
+    SHELL ${ThorScriptCompiler} ${compile_options} ${CMAKE_CURRENT_SOURCE_DIR}/data/error/1_type/primary_expression/NO_SUCH_MEMBER.t
+    DEPENDS ${ThorScriptCompiler}
+    )
+zillians_add_complex_test(
+    TARGET thorscript-compiler-static-test-SUBSCRIPT_OF_NONARRAY
+    SHELL ${ThorScriptCompiler} ${compile_options} ${CMAKE_CURRENT_SOURCE_DIR}/data/error/1_type/primary_expression/SUBSCRIPT_OF_NONARRAY.t
+    DEPENDS ${ThorScriptCompiler}
+    )
+
+zillians_add_test_to_subject(SUBJECT thorscript-compiler-static-test-all TARGET thorscript-compiler-static-test-MEMBER_OF_NONCLASS)
+zillians_add_test_to_subject(SUBJECT thorscript-compiler-static-test-all TARGET thorscript-compiler-static-test-NO_SUCH_MEMBER)
+zillians_add_test_to_subject(SUBJECT thorscript-compiler-static-test-all TARGET thorscript-compiler-static-test-SUBSCRIPT_OF_NONARRAY)
+
+#####################################################################
+# 2_modifier
+#####################################################################
+
+# storage / const
+zillians_add_complex_test(
+    TARGET thorscript-compiler-static-test-MISSING_CONST_INIT
+    SHELL ${ThorScriptCompiler} ${compile_options} ${CMAKE_CURRENT_SOURCE_DIR}/data/error/2_modifier/storage/const/MISSING_CONST_INIT.t
+    DEPENDS ${ThorScriptCompiler}
+    )
+zillians_add_complex_test(
+    TARGET thorscript-compiler-static-test-WRITE_CONST
+    SHELL ${ThorScriptCompiler} ${compile_options} ${CMAKE_CURRENT_SOURCE_DIR}/data/error/2_modifier/storage/const/WRITE_CONST.t
+    DEPENDS ${ThorScriptCompiler}
+    )
+
+# storage / static
+zillians_add_complex_test(
+    TARGET thorscript-compiler-static-test-INVALID_NONSTATIC_CALL
+    SHELL ${ThorScriptCompiler} ${compile_options} ${CMAKE_CURRENT_SOURCE_DIR}/data/error/2_modifier/storage/static/INVALID_NONSTATIC_CALL.t
+    DEPENDS ${ThorScriptCompiler}
+    )
+zillians_add_complex_test(
+    TARGET thorscript-compiler-static-test-INVALID_NONSTATIC_REF
+    SHELL ${ThorScriptCompiler} ${compile_options} ${CMAKE_CURRENT_SOURCE_DIR}/data/error/2_modifier/storage/static/INVALID_NONSTATIC_REF.t
+    DEPENDS ${ThorScriptCompiler}
+    )
+
+# visibility
+zillians_add_complex_test(
+    TARGET thorscript-compiler-static-test-INVALID_ACCESS_PRIVATE
+    SHELL ${ThorScriptCompiler} ${compile_options} ${CMAKE_CURRENT_SOURCE_DIR}/data/error/2_modifier/visibility/INVALID_ACCESS_PRIVATE.t
+    DEPENDS ${ThorScriptCompiler}
+    )
+zillians_add_complex_test(
+    TARGET thorscript-compiler-static-test-INVALID_ACCESS_PROTECTED
+    SHELL ${ThorScriptCompiler} ${compile_options} ${CMAKE_CURRENT_SOURCE_DIR}/data/error/2_modifier/visibility/INVALID_ACCESS_PROTECTED.t
+    DEPENDS ${ThorScriptCompiler}
+    )
+
+zillians_add_test_to_subject(SUBJECT thorscript-compiler-static-test-all TARGET thorscript-compiler-static-test-MISSING_CONST_INIT)
+zillians_add_test_to_subject(SUBJECT thorscript-compiler-static-test-all TARGET thorscript-compiler-static-test-WRITE_CONST)
 zillians_add_test_to_subject(SUBJECT thorscript-compiler-static-test-all TARGET thorscript-compiler-static-test-INVALID_NONSTATIC_CALL)
 zillians_add_test_to_subject(SUBJECT thorscript-compiler-static-test-all TARGET thorscript-compiler-static-test-INVALID_NONSTATIC_REF)
-zillians_add_test_to_subject(SUBJECT thorscript-compiler-static-test-all TARGET thorscript-compiler-static-test-INVALID_RETURN_VALUE)
-zillians_add_test_to_subject(SUBJECT thorscript-compiler-static-test-all TARGET thorscript-compiler-static-test-INVALID_SUBSCRIPT)
+zillians_add_test_to_subject(SUBJECT thorscript-compiler-static-test-all TARGET thorscript-compiler-static-test-INVALID_ACCESS_PRIVATE)
+zillians_add_test_to_subject(SUBJECT thorscript-compiler-static-test-all TARGET thorscript-compiler-static-test-INVALID_ACCESS_PROTECTED)
+
+#####################################################################
+# 3_statement
+#####################################################################
+
+zillians_add_complex_test(
+    TARGET thorscript-compiler-static-test-MISSING_BREAK_TARGET
+    SHELL ${ThorScriptCompiler} ${compile_options} ${CMAKE_CURRENT_SOURCE_DIR}/data/error/3_statement/MISSING_BREAK_TARGET.t
+    DEPENDS ${ThorScriptCompiler}
+    )
+zillians_add_complex_test(
+    TARGET thorscript-compiler-static-test-MISSING_CONTINUE_TARGET
+    SHELL ${ThorScriptCompiler} ${compile_options} ${CMAKE_CURRENT_SOURCE_DIR}/data/error/3_statement/MISSING_CONTINUE_TARGET.t
+    DEPENDS ${ThorScriptCompiler}
+    )
+
 zillians_add_test_to_subject(SUBJECT thorscript-compiler-static-test-all TARGET thorscript-compiler-static-test-MISSING_BREAK_TARGET)
-zillians_add_test_to_subject(SUBJECT thorscript-compiler-static-test-all TARGET thorscript-compiler-static-test-MISSING_CONST_INIT)
 zillians_add_test_to_subject(SUBJECT thorscript-compiler-static-test-all TARGET thorscript-compiler-static-test-MISSING_CONTINUE_TARGET)
+
+#####################################################################
+# 4_declaration
+#####################################################################
+
+# parameter
+zillians_add_complex_test(
+    TARGET thorscript-compiler-static-test-MISSING_PARAM_INIT
+    SHELL ${ThorScriptCompiler} ${compile_options} ${CMAKE_CURRENT_SOURCE_DIR}/data/error/4_declaration/parameter/MISSING_PARAM_INIT.t
+    DEPENDS ${ThorScriptCompiler}
+    )
+zillians_add_complex_test(
+    TARGET thorscript-compiler-static-test-UNEXPECTED_VARIADIC_PARAM
+    SHELL ${ThorScriptCompiler} ${compile_options} ${CMAKE_CURRENT_SOURCE_DIR}/data/error/4_declaration/parameter/UNEXPECTED_VARIADIC_PARAM.t
+    DEPENDS ${ThorScriptCompiler}
+    )
+
+# .
+zillians_add_complex_test(
+    TARGET thorscript-compiler-static-test-HEAP_VAR_INIT_NONCONST
+    SHELL ${ThorScriptCompiler} ${compile_options} ${CMAKE_CURRENT_SOURCE_DIR}/data/error/4_declaration/HEAP_VAR_INIT_NONCONST.t
+    DEPENDS ${ThorScriptCompiler}
+    )
+
 zillians_add_test_to_subject(SUBJECT thorscript-compiler-static-test-all TARGET thorscript-compiler-static-test-MISSING_PARAM_INIT)
-zillians_add_test_to_subject(SUBJECT thorscript-compiler-static-test-all TARGET thorscript-compiler-static-test-MISSING_RETURN_VALUE)
-zillians_add_test_to_subject(SUBJECT thorscript-compiler-static-test-all TARGET thorscript-compiler-static-test-NO_MATCHING_FUNC_ARGNUM)
-zillians_add_test_to_subject(SUBJECT thorscript-compiler-static-test-all TARGET thorscript-compiler-static-test-NO_MATCHING_FUNCS)
-zillians_add_test_to_subject(SUBJECT thorscript-compiler-static-test-all TARGET thorscript-compiler-static-test-NO_MATCHING_MEMBER)
-zillians_add_test_to_subject(SUBJECT thorscript-compiler-static-test-all TARGET thorscript-compiler-static-test-NOT_A_CLASS)
-zillians_add_test_to_subject(SUBJECT thorscript-compiler-static-test-all TARGET thorscript-compiler-static-test-UNDEFINED_REF)
-zillians_add_test_to_subject(SUBJECT thorscript-compiler-static-test-all TARGET thorscript-compiler-static-test-UNEXPECT_VARIADIC_PARAM)
-zillians_add_test_to_subject(SUBJECT thorscript-compiler-static-test-all TARGET thorscript-compiler-static-test-UNKNOWN_NAME)
-zillians_add_test_to_subject(SUBJECT thorscript-compiler-static-test-all TARGET thorscript-compiler-static-test-VIS_VIOLATION)
-zillians_add_test_to_subject(SUBJECT thorscript-compiler-static-test-all TARGET thorscript-compiler-static-test-WRITE_CONST)
-zillians_add_test_to_subject(SUBJECT thorscript-compiler-static-test-all TARGET thorscript-compiler-static-test-WRITE_RVALUE)
+zillians_add_test_to_subject(SUBJECT thorscript-compiler-static-test-all TARGET thorscript-compiler-static-test-UNEXPECTED_VARIADIC_PARAM)
+zillians_add_test_to_subject(SUBJECT thorscript-compiler-static-test-all TARGET thorscript-compiler-static-test-HEAP_VAR_INIT_NONCONST)
+
+#####################################################################
+# 5_limit
+#####################################################################
+
+zillians_add_complex_test(
+    TARGET thorscript-compiler-static-test-EXCEED_PARAM_LIMIT
+    SHELL ${ThorScriptCompiler} ${compile_options} ${CMAKE_CURRENT_SOURCE_DIR}/data/error/5_limit/EXCEED_PARAM_LIMIT.t
+    DEPENDS ${ThorScriptCompiler}
+    )
+zillians_add_complex_test(
+    TARGET thorscript-compiler-static-test-EXCEED_TEMPLATE_PARAM_LIMIT
+    SHELL ${ThorScriptCompiler} ${compile_options} ${CMAKE_CURRENT_SOURCE_DIR}/data/error/5_limit/EXCEED_TEMPLATE_PARAM_LIMIT.t
+    DEPENDS ${ThorScriptCompiler}
+    )
+
+zillians_add_test_to_subject(SUBJECT thorscript-compiler-static-test-all TARGET thorscript-compiler-static-test-EXCEED_PARAM_LIMIT)
+zillians_add_test_to_subject(SUBJECT thorscript-compiler-static-test-all TARGET thorscript-compiler-static-test-EXCEED_TEMPLATE_PARAM_LIMIT)

@@ -66,14 +66,8 @@ struct MemberExpr : public Expression
         }
 
         // compare data member
-        if(!isASTNodeMemberEqual(&MemberExpr::node, *this, *p, visited))
-        {
-            return false;
-        }
-        if(!isASTNodeMemberEqual(&MemberExpr::member, *this, *p, visited))
-        {
-            return false;
-        }
+		COMPARE_ASTNODE_MEMBER(node);
+		COMPARE_ASTNODE_MEMBER(member);
 
         // add this to the visited table.
         visited.insert(this);

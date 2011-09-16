@@ -67,14 +67,8 @@ struct CastExpr : public Expression
         }
 
         // compare data member
-        if(!isASTNodeMemberEqual(&CastExpr::node, *this, *p, visited))
-        {
-            return false;
-        }
-        if(!isASTNodeMemberEqual(&CastExpr::type, *this, *p, visited))
-        {
-            return false;
-        }
+		COMPARE_ASTNODE_MEMBER(node);
+		COMPARE_ASTNODE_MEMBER(type);
 
         // add this to the visited table.
         visited.insert(this);

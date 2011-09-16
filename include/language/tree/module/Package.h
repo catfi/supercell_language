@@ -88,9 +88,9 @@ struct Package : public ASTNode
         // base is ASTNode, no need to compare
 
         // compare data member
-        if(!isASTNodeMemberEqual   (&Package::id                  , *this, *p, visited)) return false;
-        if(!isVectorMemberEqual    (&Package::children            , *this, *p, visited)) return false;
-        if(!isVectorMemberEqual    (&Package::objects             , *this, *p, visited)) return false;
+		COMPARE_ASTNODE_MEMBER(id);
+		COMPARE_ASTNODE_MEMBER(children);
+		COMPARE_ASTNODE_MEMBER(objects);
 
         // add this to the visited table.
         visited.insert(this);

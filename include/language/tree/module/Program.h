@@ -68,14 +68,8 @@ struct Program : public ASTNode
         // base is ASTNode, no need to compare
 
         // compare data member
-        if(!isASTNodeMemberEqual(&Program::root, *this, *p, visited))
-        {
-            return false;
-        }
-        if(!isVectorMemberEqual(&Program::imports, *this, *p, visited))
-        {
-            return false;
-        }
+		COMPARE_ASTNODE_MEMBER(root);
+		COMPARE_ASTNODE_MEMBER(imports);
 
         // add this to the visited table.
         visited.insert(this);

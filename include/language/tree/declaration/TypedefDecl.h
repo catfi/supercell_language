@@ -60,14 +60,8 @@ struct TypedefDecl : public Declaration
         }
 
         // compare data member
-        if(!isASTNodeMemberEqual(&TypedefDecl::from, *this, *p, visited))
-        {
-            return false;
-        }
-        if(!isASTNodeMemberEqual(&TypedefDecl::to  , *this, *p, visited))
-        {
-            return false;
-        }
+		COMPARE_ASTNODE_MEMBER(from);
+		COMPARE_ASTNODE_MEMBER(to);
 
         // add this to the visited table.
         visited.insert(this);

@@ -107,10 +107,7 @@ struct ObjectLiteral : public Literal
         }
 
         // compare data member
-        if(type != p->type)
-        {
-        	return false;
-        }
+		COMPARE_MEMBER(type);
 
         // add this to the visited table.
         visited.insert(this);
@@ -159,23 +156,20 @@ struct NumericLiteral : public Literal
         }
 
         // compare data member
-        if(type != p->type)
-        {
-        	return false;
-        }
+		COMPARE_MEMBER(type);
         switch(type)
         {
-        case PrimitiveType::type::BOOL    : if(value.b   != p->value.b  ) return false; break;
-        case PrimitiveType::type::UINT8   : if(value.i8  != p->value.i8 ) return false; break;
-        case PrimitiveType::type::UINT16  : if(value.i16 != p->value.i16) return false; break;
-        case PrimitiveType::type::UINT32  : if(value.i32 != p->value.i32) return false; break;
-        case PrimitiveType::type::UINT64  : if(value.i64 != p->value.i64) return false; break;
-        case PrimitiveType::type::INT8    : if(value.u8  != p->value.u8 ) return false; break;
-        case PrimitiveType::type::INT16   : if(value.u16 != p->value.u16) return false; break;
-        case PrimitiveType::type::INT32   : if(value.u32 != p->value.u32) return false; break;
-        case PrimitiveType::type::INT64   : if(value.u64 != p->value.u64) return false; break;
-        case PrimitiveType::type::FLOAT32 : if(value.f32 != p->value.f32) return false; break;
-        case PrimitiveType::type::FLOAT64 : if(value.f64 != p->value.f64) return false; break;
+        case PrimitiveType::type::BOOL    : COMPARE_MEMBER(value.b  ); break;
+        case PrimitiveType::type::UINT8   : COMPARE_MEMBER(value.i8 ); break;
+        case PrimitiveType::type::UINT16  : COMPARE_MEMBER(value.i16); break;
+        case PrimitiveType::type::UINT32  : COMPARE_MEMBER(value.i32); break;
+        case PrimitiveType::type::UINT64  : COMPARE_MEMBER(value.i64); break;
+        case PrimitiveType::type::INT8    : COMPARE_MEMBER(value.u8 ); break;
+        case PrimitiveType::type::INT16   : COMPARE_MEMBER(value.u16); break;
+        case PrimitiveType::type::INT32   : COMPARE_MEMBER(value.u32); break;
+        case PrimitiveType::type::INT64   : COMPARE_MEMBER(value.u64); break;
+        case PrimitiveType::type::FLOAT32 : COMPARE_MEMBER(value.f32); break;
+        case PrimitiveType::type::FLOAT64 : COMPARE_MEMBER(value.f64); break;
         }
 
         // add this to the visited table.
@@ -240,10 +234,7 @@ struct StringLiteral : public Literal
         }
 
         // compare data member
-        if(value != p->value)
-        {
-            return false;
-        }
+		COMPARE_MEMBER(value);
 
         // add this to the visited table.
         visited.insert(this);

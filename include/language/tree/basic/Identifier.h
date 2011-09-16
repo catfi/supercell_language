@@ -121,7 +121,7 @@ struct SimpleIdentifier : public Identifier
         }
 
         // compare data member
-        if(name != p->name) return false;
+		COMPARE_MEMBER(name);
 
         // add this to the visited table.
         visited.insert(this);
@@ -194,10 +194,7 @@ struct NestedIdentifier : public Identifier
         }
 
         // compare data member
-        if(!isVectorMemberEqual   (&NestedIdentifier::identifier_list , *this, *p, visited))
-        {
-            return false;
-        }
+		COMPARE_ASTNODE_MEMBER(identifier_list);
 
         // add this to the visited table.
         visited.insert(this);
@@ -313,9 +310,9 @@ struct TemplatedIdentifier : public Identifier
         }
 
         // compare data member
-        if(type != p->type                                                                          ) return false;
-        if(!isASTNodeMemberEqual   (&TemplatedIdentifier::id                   , *this, *p, visited)) return false;
-        if(!isVectorMemberEqual    (&TemplatedIdentifier::templated_type_list  , *this, *p, visited)) return false;
+		COMPARE_MEMBER(type);
+		COMPARE_ASTNODE_MEMBER(id);
+		COMPARE_ASTNODE_MEMBER(templated_type_list);
 
         // add this to the visited table.
         visited.insert(this);

@@ -102,15 +102,12 @@ struct PrimaryExpr : public Expression
         }
 
         // compare data member
-        if(catagory != p->catagory)
-        {
-            return false;
-        }
+		COMPARE_MEMBER(catagory);
         switch (catagory)
         {
-        case Catagory::IDENTIFIER: if(!isASTNodeMemberEqual(&PrimaryExpr::ValueUnion::identifier, value, p->value, visited)) return false; break;
-        case Catagory::LITERAL   : if(!isASTNodeMemberEqual(&PrimaryExpr::ValueUnion::literal   , value, p->value, visited)) return false; break;
-        case Catagory::LAMBDA    : if(!isASTNodeMemberEqual(&PrimaryExpr::ValueUnion::lambda    , value, p->value, visited)) return false; break;
+        case Catagory::IDENTIFIER: COMPARE_ASTNODE_MEMBER(value.identifier); break;
+        case Catagory::LITERAL   : COMPARE_ASTNODE_MEMBER(value.literal   ); break;
+		case Catagory::LAMBDA    : COMPARE_ASTNODE_MEMBER(value.lambda    ); break;
         }
 
         // add this to the visited table.

@@ -61,10 +61,7 @@ struct Import : public ASTNode
         // The base is ASTNode, don't need to be compared.
 
         // compare data member
-        if(!isASTNodeMemberEqual(&Import::ns, *this, *p, visited))
-        {
-            return false;
-        }
+		COMPARE_ASTNODE_MEMBER(ns);
 
         // add this to the visited table.
         visited.insert(this);

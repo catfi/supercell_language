@@ -223,9 +223,9 @@ struct BinaryExpr : public Expression
         }
 
         // compare data member
-        if(opcode != p->opcode                                                        ) return false;
-        if(!isASTNodeMemberEqual   (&BinaryExpr::left            , *this, *p, visited)) return false;
-        if(!isASTNodeMemberEqual   (&BinaryExpr::right           , *this, *p, visited)) return false;
+		COMPARE_MEMBER(opcode);
+		COMPARE_ASTNODE_MEMBER(left);
+		COMPARE_ASTNODE_MEMBER(right);
 
         // add this to the visited table.
         visited.insert(this);

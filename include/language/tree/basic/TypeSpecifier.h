@@ -172,20 +172,17 @@ struct TypeSpecifier : public ASTNode
         // base is ASTNode, no need to compare
 
         // compare data member
-        if(type != p->type)
-        {
-            return false;
-        }
+		COMPARE_MEMBER(type);
         switch(p->type)
         {
-        case TypeSpecifier::ReferredType::CLASS_DECL     : if(!isASTNodeMemberEqual(&ReferredUnion::class_decl    , referred, p->referred, visited)) return false; break ;
-        case TypeSpecifier::ReferredType::INTERFACE_DECL : if(!isASTNodeMemberEqual(&ReferredUnion::interface_decl, referred, p->referred, visited)) return false; break ;
-        case TypeSpecifier::ReferredType::FUNCTION_DECL  : if(!isASTNodeMemberEqual(&ReferredUnion::function_decl , referred, p->referred, visited)) return false; break ;
-        case TypeSpecifier::ReferredType::ENUM_DECL      : if(!isASTNodeMemberEqual(&ReferredUnion::enum_decl     , referred, p->referred, visited)) return false; break ;
-        case TypeSpecifier::ReferredType::TYPEDEF_DECL   : if(!isASTNodeMemberEqual(&ReferredUnion::typedef_decl  , referred, p->referred, visited)) return false; break ;
-        case TypeSpecifier::ReferredType::FUNCTION_TYPE  : if(!isASTNodeMemberEqual(&ReferredUnion::function_type , referred, p->referred, visited)) return false; break ;
-        case TypeSpecifier::ReferredType::PRIMITIVE      : if(referred.primitive != p->referred.primitive                                          ) return false; break ;
-        case TypeSpecifier::ReferredType::UNSPECIFIED    : if(!isASTNodeMemberEqual(&ReferredUnion::unspecified   , referred, p->referred, visited)) return false; break ;
+        case TypeSpecifier::ReferredType::CLASS_DECL     : COMPARE_ASTNODE_MEMBER(referred.class_decl    )             ; break;
+        case TypeSpecifier::ReferredType::INTERFACE_DECL : COMPARE_ASTNODE_MEMBER(referred.interface_decl)             ; break;
+        case TypeSpecifier::ReferredType::FUNCTION_DECL  : COMPARE_ASTNODE_MEMBER(referred.function_decl )             ; break;
+        case TypeSpecifier::ReferredType::ENUM_DECL      : COMPARE_ASTNODE_MEMBER(referred.enum_decl     )             ; break;
+        case TypeSpecifier::ReferredType::TYPEDEF_DECL   : COMPARE_ASTNODE_MEMBER(referred.typedef_decl  )             ; break;
+        case TypeSpecifier::ReferredType::FUNCTION_TYPE  : COMPARE_ASTNODE_MEMBER(referred.function_type )             ; break;
+        case TypeSpecifier::ReferredType::PRIMITIVE      : if(referred.primitive != p->referred.primitive) return false; break;
+        case TypeSpecifier::ReferredType::UNSPECIFIED    : COMPARE_ASTNODE_MEMBER(referred.unspecified   )             ; break;
         }
 
         // add this to the visited table.

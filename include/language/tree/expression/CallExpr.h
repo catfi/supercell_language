@@ -69,14 +69,8 @@ struct CallExpr : public Expression
         }
 
         // compare data member
-        if(!isASTNodeMemberEqual(&CallExpr::node, *this, *p, visited))
-        {
-            return false;
-        }
-        if(!isVectorMemberEqual(&CallExpr::parameters, *this, *p, visited))
-        {
-            return false;
-        }
+		COMPARE_ASTNODE_MEMBER(node);
+		COMPARE_ASTNODE_MEMBER(parameters);
 
         // add this to the visited table.
         visited.insert(this);

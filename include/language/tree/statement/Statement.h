@@ -60,10 +60,7 @@ struct Statement : public ASTNode
         // base is ASTNode, no need to compare
 
         // compare data member
-        if(!isASTNodeMemberEqual(&Statement::annotations, *this, *p, visited))
-        {
-            return false;
-        }
+		COMPARE_ASTNODE_MEMBER(annotations);
 
         // add this to the visited table.
         visited.insert(this);

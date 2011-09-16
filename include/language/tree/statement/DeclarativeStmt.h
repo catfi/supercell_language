@@ -61,10 +61,7 @@ struct DeclarativeStmt : public Statement
         }
 
         // compare data member
-        if(!isASTNodeMemberEqual(&DeclarativeStmt::declaration, *this, *p, visited))
-        {
-            return false;
-        }
+		COMPARE_ASTNODE_MEMBER(declaration);
 
         // add this to the visited table.
         visited.insert(this);
