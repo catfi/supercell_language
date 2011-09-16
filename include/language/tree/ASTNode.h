@@ -300,10 +300,10 @@ template<typename T>
 inline bool compareDispatch(T& a, T& b, ASTNodeSet& visited)
 {
 	typedef boost::is_pointer<T> is_pointer_t;
-	typedef boost::mpl::contains<internal::ASTNodeTypeVector, typename boost::remove_const<T>::type> is_ast_t;
-	typedef internal::is_std_pair<typename boost::remove_const<T>::type> is_std_pair_t;
-	typedef internal::is_std_vector<typename boost::remove_const<T>::type> is_std_vector_t;
-	typedef internal::is_boost_tuple<typename boost::remove_const<T>::type> is_boost_tuple_t;
+	typedef boost::mpl::contains<ASTNodeTypeVector, typename boost::remove_const<T>::type> is_ast_t;
+	typedef is_std_pair<typename boost::remove_const<T>::type> is_std_pair_t;
+	typedef is_std_vector<typename boost::remove_const<T>::type> is_std_vector_t;
+	typedef is_boost_tuple<typename boost::remove_const<T>::type> is_boost_tuple_t;
 
 	typedef boost::mpl::not_<
 			boost::mpl::or_<
@@ -394,6 +394,27 @@ inline bool compareDispatchImpl(
 	return true;
 }
 
+template<typename T, int N>
+struct tuple_recursive_compare
+{
+	static bool compare(T& a, T& b, ASTNodeSet& visited)
+	{
+		if(!compareDispatch(a.template get<boost::tuples::length<T>::value - N>(), b.template get<boost::tuples::length<T>::value - N>(), visited))
+			return false;
+		else
+			return tuple_recursive_compare<T, N-1>::compare(a, b, visited);
+	}
+};
+
+template<typename T>
+struct tuple_recursive_compare<T, 0>
+{
+	static bool compare(T& a, T& b, ASTNodeSet& visited)
+	{
+		return true;
+	}
+};
+
 template<typename T>
 inline bool compareDispatchImpl(
 		T& a, T& b, ASTNodeSet& visited,
@@ -404,8 +425,7 @@ inline bool compareDispatchImpl(
 		boost::mpl::true_ /*is_tuple*/,
 		boost::mpl::false_ /*is_other*/)
 {
-	// TODO implement boost tuple traversal
-	return true;
+	return tuple_recursive_compare<T, boost::tuples::length<T>::value>::compare(a, b, visited);
 }
 
 template<typename T>
