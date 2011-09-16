@@ -67,6 +67,7 @@
 
 namespace zillians { namespace language { namespace tree {
 
+// forward declaration of ASTNode
 class ASTNode;
 
 } } }
@@ -83,6 +84,8 @@ namespace __gnu_cxx {
 }
 
 namespace zillians { namespace language { namespace tree {
+
+typedef __gnu_cxx::hash_set<const ASTNode*> ASTNodeSet;
 
 /**
  * Helper template function to implement static type checking system
@@ -177,7 +180,7 @@ enum class ASTNodeType : int
 		CastExpr,
 };
 
-// forward declarations
+// forward declarations of all ASTNode implementations
 struct ASTNode;
 struct Annotation;
 struct Annotations;
@@ -223,14 +226,10 @@ struct MemberExpr;
 struct CallExpr;
 struct CastExpr;
 
-struct ASTNode;
-typedef __gnu_cxx::hash_set<const ASTNode*> ASTNodeSet;
-
 struct ASTNode : public VisitableBase<ASTNode>, ContextHub<ContextOwnership::transfer>
 {
 	DEFINE_VISITABLE();
 	DEFINE_HIERARCHY_BASE();
-
 public:
 
 	/**
@@ -255,7 +254,8 @@ public:
 	ASTNode* parent;
 };
 
-namespace {
+// some internal helper function/templates
+namespace internal {
 
 template<typename T>
 struct is_std_vector : boost::mpl::false_
@@ -295,16 +295,15 @@ typedef boost::mpl::vector<ASTNode, Annotation, Annotations, Program, Package,
 typedef boost::mpl::vector<ASTNode, Identifier, Identifier, Declaration,
 		Statement, IterativeStmt, SelectionStmt, Expression> ASTNodeInternalTypeVector;
 
-}
 
 template<typename T>
 inline bool compareDispatch(T& a, T& b, ASTNodeSet& visited)
 {
 	typedef boost::is_pointer<T> is_pointer_t;
-	typedef boost::mpl::contains<ASTNodeTypeVector, typename boost::remove_const<T>::type> is_ast_t;
-	typedef is_std_pair<typename boost::remove_const<T>::type> is_std_pair_t;
-	typedef is_std_vector<typename boost::remove_const<T>::type> is_std_vector_t;
-	typedef is_boost_tuple<typename boost::remove_const<T>::type> is_boost_tuple_t;
+	typedef boost::mpl::contains<internal::ASTNodeTypeVector, typename boost::remove_const<T>::type> is_ast_t;
+	typedef internal::is_std_pair<typename boost::remove_const<T>::type> is_std_pair_t;
+	typedef internal::is_std_vector<typename boost::remove_const<T>::type> is_std_vector_t;
+	typedef internal::is_boost_tuple<typename boost::remove_const<T>::type> is_boost_tuple_t;
 
 	typedef boost::mpl::not_<
 			boost::mpl::or_<
@@ -422,9 +421,11 @@ inline bool compareDispatchImpl(
 	return (a == b);
 }
 
+} // internal
+
 #define BEGIN_COMPARE() \
 		typedef typename boost::remove_const<typename boost::remove_reference<decltype(*this)>::type>::type self_type; \
-		if(!boost::mpl::contains<ASTNodeInternalTypeVector, self_type>::value) \
+		if(!boost::mpl::contains<internal::ASTNodeInternalTypeVector, self_type>::value) \
 			if(visited.count(this)) \
 				return true; \
 			else \
@@ -442,7 +443,7 @@ inline bool compareDispatchImpl(
 			return false;
 
 #define COMPARE_MEMBER(member) \
-		if(!compareDispatch(member, p->member, visited)) return false;
+		if(!internal::compareDispatch(member, p->member, visited)) return false;
 
 #define END_COMPARE()	\
 		return true;
