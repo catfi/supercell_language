@@ -49,11 +49,10 @@ private:
 public:
 	uint32 getCurrentWarningDegree();
 	void setWarningDegree(uint32 level);
-
 	Logger* getLogger();
 
-public:
-	virtual void log(const uint32 id, const std::wstring& file, const uint32 line, std::wstring& message);
+private:
+	void log(const uint32 id, const std::wstring& file, const uint32 line, std::wstring& message);
 
 public:
 	static void initialize();
