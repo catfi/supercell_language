@@ -71,13 +71,13 @@ struct FunctionDecl : public Declaration
         }
 
         // compare data member
-        if(!isASTNodeMemberEqual   (&FunctionDecl::name            , *this, *p, visited)) return false;
-        //if(!isPairVectorMemberEqual(&FunctionDecl::parameters      , *this, *p, visited)) return false;
-        if(!isASTNodeMemberEqual   (&FunctionDecl::type            , *this, *p, visited)) return false;
-        if(is_member  != p->is_member                                                   ) return false;
-        if(is_static  != p->is_static                                                   ) return false;
-        if(visibility != p->visibility                                                  ) return false;
-        if(!isASTNodeMemberEqual   (&FunctionDecl::block           , *this, *p, visited)) return false;
+		COMPARE_ASTNODE_MEMBER(name);
+        if(!isTupleVectorMemberEqual(&FunctionDecl::parameters, *this, *p, visited)) return false;
+		COMPARE_ASTNODE_MEMBER(type);
+		COMPARE_MEMBER(is_member);
+		COMPARE_MEMBER(is_static);
+		COMPARE_MEMBER(visibility);
+		COMPARE_ASTNODE_MEMBER(block);
 
         // add this to the visited table.
         visited.insert(this);

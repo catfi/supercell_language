@@ -66,14 +66,8 @@ struct InterfaceDecl : public Declaration
         }
 
         // compare data member
-        if(!isASTNodeMemberEqual(&InterfaceDecl::name, *this, *p, visited))
-        {
-            return false;
-        }
-        if(!isVectorMemberEqual(&InterfaceDecl::member_functions, *this, *p, visited))
-        {
-            return false;
-        }
+		COMPARE_ASTNODE_MEMBER(name);
+		COMPARE_ASTNODE_MEMBER(member_functions);
 
         // add this to the visited table.
         visited.insert(this);

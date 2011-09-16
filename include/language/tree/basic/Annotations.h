@@ -64,14 +64,8 @@ struct Annotation : public ASTNode
         // The base is ASTNode, no need to be compared.
 
         // compare data member
-        if(!isASTNodeMemberEqual(&Annotation::name, *this, *p, visited))
-        {
-        	return false;
-        }
-        if(!isPairVectorMemberEqual(&Annotation::attribute_list, *this, *p, visited))
-        {
-        	return false;
-        }
+		COMPARE_ASTNODE_MEMBER(name);
+		COMPARE_ASTNODE_MEMBER(attribute_list);
 
         // add this to the visited table.
         visited.insert(this);
@@ -110,10 +104,7 @@ struct Annotations : public ASTNode
         // The base is ASTNode, no need to be compared.
 
         // compare data member
-        if(!isVectorMemberEqual(&Annotations::annotation_list, *this, *p, visited))
-        {
-        	return false;
-        }
+		COMPARE_ASTNODE_MEMBER(annotation_list);
 
         // add this to the visited table.
         visited.insert(this);

@@ -70,9 +70,9 @@ struct TernaryExpr : public Expression
         }
 
         // compare data member
-        if(!isASTNodeMemberEqual   (&TernaryExpr::cond            , *this, *p, visited)) return false;
-        if(!isASTNodeMemberEqual   (&TernaryExpr::true_node       , *this, *p, visited)) return false;
-        if(!isASTNodeMemberEqual   (&TernaryExpr::false_node      , *this, *p, visited)) return false;
+		COMPARE_ASTNODE_MEMBER(cond);
+		COMPARE_ASTNODE_MEMBER(true_node);
+		COMPARE_ASTNODE_MEMBER(false_node);
 
         // add this to the visited table.
         visited.insert(this);

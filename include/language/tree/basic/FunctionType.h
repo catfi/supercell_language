@@ -105,9 +105,9 @@ struct FunctionType: public ASTNode
         // base is ASTNode, no need to compare.
 
         // compare data member
-        if(!isVectorMemberEqual    (&FunctionType::templated_parameters, *this, *p, visited)) return false;
-        if(!isVectorMemberEqual    (&FunctionType::argument_types      , *this, *p, visited)) return false;
-        if(!isASTNodeMemberEqual   (&FunctionType::return_type         , *this, *p, visited)) return false;
+		COMPARE_ASTNODE_MEMBER(templated_parameters);
+		COMPARE_ASTNODE_MEMBER(argument_types);
+		COMPARE_ASTNODE_MEMBER(return_type);
 
         // add this to the visited table.
         visited.insert(this);

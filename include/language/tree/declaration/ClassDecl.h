@@ -97,11 +97,11 @@ struct ClassDecl : public Declaration
         }
 
         // compare data member
-        if(!isASTNodeMemberEqual(&ClassDecl::name            , *this, *p, visited)) return false;
-        if(!isASTNodeMemberEqual(&ClassDecl::base            , *this, *p, visited)) return false;
-        if(!isVectorMemberEqual (&ClassDecl::implements      , *this, *p, visited)) return false;
-        if(!isVectorMemberEqual (&ClassDecl::member_functions, *this, *p, visited)) return false;
-        if(!isVectorMemberEqual (&ClassDecl::member_variables, *this, *p, visited)) return false;
+		COMPARE_ASTNODE_MEMBER(name);
+		COMPARE_ASTNODE_MEMBER(base);
+		COMPARE_ASTNODE_MEMBER(implements);
+		COMPARE_ASTNODE_MEMBER(member_functions);
+		COMPARE_ASTNODE_MEMBER(member_variables);
 
         // add this to the visited table.
         visited.insert(this);

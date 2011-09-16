@@ -67,10 +67,7 @@ struct Expression : public ASTNode
         // The base is ASTNode, no need to compare
 
         // compare data member
-        if(!isASTNodeMemberEqual(&Expression::annotations, *this, *p, visited))
-        {
-            return false;
-        }
+		COMPARE_ASTNODE_MEMBER(annotations);
 
         // add this to the visited table.
         visited.insert(this);

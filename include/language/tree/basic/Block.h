@@ -68,18 +68,9 @@ struct Block : public ASTNode
         // The base is ASTNode, no need to be compared.
 
         // compare data member
-        if(is_pipelined_block != p->is_pipelined_block)
-        {
-        	return false;
-        }
-        if(is_async_block != p->is_async_block)
-        {
-        	return false;
-        }
-        if(!isVectorMemberEqual(&Block::objects , *this, *p, visited))
-        {
-        	return false;
-        }
+		COMPARE_MEMBER(is_pipelined_block);
+		COMPARE_MEMBER(is_async_block);
+		COMPARE_ASTNODE_MEMBER(objects);
 
         // add this to the visited table.
         visited.insert(this);

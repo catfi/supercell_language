@@ -68,14 +68,8 @@ struct EnumDecl : public Declaration
         }
 
         // compare data member
-        if(!isASTNodeMemberEqual(&EnumDecl::name, *this, *p, visited))
-        {
-            return false;
-        }
-        if(!isPairVectorMemberEqual(&EnumDecl::enumeration_list, *this, *p, visited))
-        {
-            return false;
-        }
+		COMPARE_ASTNODE_MEMBER(name);
+		COMPARE_ASTNODE_MEMBER(enumeration_list);
 
         // add this to the visited table.
         visited.insert(this);

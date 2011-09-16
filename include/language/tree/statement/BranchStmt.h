@@ -73,14 +73,8 @@ struct BranchStmt : public Statement
         }
 
         // compare data member
-        if(opcode != p->opcode)
-        {
-            return false;
-        }
-        if(!isASTNodeMemberEqual(&BranchStmt::result, *this, *p, visited))
-        {
-            return false;
-        }
+		COMPARE_MEMBER(opcode);
+		COMPARE_ASTNODE_MEMBER(result);
 
         // add this to the visited table.
         visited.insert(this);
