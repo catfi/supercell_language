@@ -42,6 +42,8 @@ log4cxx::LoggerPtr LoggerWrapper::VM(log4cxx::Logger::getLogger("vm"));
 
 LoggerWrapper::LoggerWrapper() : mWarningDegree(0)
 {
+	initialize();
+
 	mStringTable = new StringTable();
 	mLogger = new Logger();
 

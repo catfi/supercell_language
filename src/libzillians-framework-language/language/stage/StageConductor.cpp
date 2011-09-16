@@ -38,17 +38,6 @@ void StageConductor::appendStage(shared_ptr<Stage> stage)
 
 int StageConductor::main(int argc, const char** argv)
 {
-	// prepare simple logger appender
-	if(true)
-	{
-		LoggerWrapper::initialize();
-	}
-	else
-	{
-		log4cxx::BasicConfigurator::configure();
-	}
-
-
 	// initialize the global configuration context
 	ConfigurationContext* config = new ConfigurationContext();
 	setConfigurationContext(config);
