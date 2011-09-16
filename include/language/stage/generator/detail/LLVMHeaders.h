@@ -32,6 +32,7 @@
 #include <llvm/Instructions.h>
 #include <llvm/Analysis/Verifier.h>
 #include <llvm/Analysis/DebugInfo.h>
+#include <llvm/Analysis/DIBuilder.h>
 #include <llvm/Analysis/Verifier.h>
 #include <llvm/Assembly/PrintModulePass.h>
 #include <llvm/Support/IRBuilder.h>

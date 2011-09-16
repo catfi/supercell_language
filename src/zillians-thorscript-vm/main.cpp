@@ -16,10 +16,8 @@
  * AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-/**
- * @date Jul 18, 2011 sdk - Initial version created.
- */
 
+#include "language/logging/LoggerWrapper.h"
 #include "language/ThorScriptVM.h"
 
 int main(int argc, char** argv)

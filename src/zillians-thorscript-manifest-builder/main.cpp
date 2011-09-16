@@ -16,34 +16,19 @@
  * AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
+/**
+ * @date Jul 18, 2011 sdk - Initial version created.
+ */
 
-#include "core/Prerequisite.h"
-#include "language/tree/ASTNode.h"
-#include "language/tree/ASTNodeFactory.h"
-#include "language/tree/visitor/stage0/SemanticVerificationVisitor.h"
-#include "language/tree/visitor/stage1/SemanticVerificationVisitor.h"
-#include "language/tree/visitor/general/PrettyPrintVisitor.h"
-#include "../ASTNodeSamples.h"
-#include <iostream>
-#include <string>
-#include <limits>
+#include "language/logging/LoggerWrapper.h"
+#include "language/ThorScriptManifestBuilder.h"
 
-#define BOOST_TEST_MODULE ThorScriptTreeTest_SemanticVerificationVisitorTest
-#define BOOST_TEST_MAIN
-#include <boost/test/unit_test.hpp>
-
-using namespace zillians;
-using namespace zillians::language::tree;
-using namespace zillians::language::tree::visitor;
-
-BOOST_AUTO_TEST_SUITE( ThorScriptTreeTest_GenericVisitorTestSuite )
-
-BOOST_AUTO_TEST_CASE( ThorScriptTreeTest_GenericVisitorTestCase1 )
+int main(int argc, const char** argv)
 {
-}
+	// TODO: We temporarily use setlocale to force the application to use system default locale.
+	// TODO: To make compile logger support utf8 encoding.
+	setlocale(LC_ALL, "");
 
-BOOST_AUTO_TEST_CASE( ThorScriptTreeTest_GenericVisitorTestCase2 )
-{
+	zillians::language::ThorScriptManifestBuilder builder;
+	return builder.main(argc, argv);
 }
-
-BOOST_AUTO_TEST_SUITE_END()

@@ -115,7 +115,7 @@ struct ResolutionStageVisitor : GenericDoubleVisitor
 
 		resolver.enterScope(node);
 
-		LOG4CXX_DEBUG(LoggingManager::TransformerStage, L"trying to resolve function: " << node.name->toString());
+		LOG4CXX_DEBUG(LoggerWrapper::TransformerStage, L"trying to resolve function: " << node.name->toString());
 
 		if(type == Target::TYPE_RESOLUTION)
 		{
@@ -187,7 +187,7 @@ struct ResolutionStageVisitor : GenericDoubleVisitor
 //			{
 //				// error, the variable declared name should be resolvable because that would lead to ambiguous name conflict
 //				// TODO make the error message cleaner
-//				LOG4CXX_ERROR(LoggingManager::Resolver, L"ambiguous variable declared: " << node.name->toString());
+//				LOG4CXX_ERROR(LoggerWrapper::Resolver, L"ambiguous variable declared: " << node.name->toString());
 //			}
 			if(node.initializer)
 				visit(*node.initializer);

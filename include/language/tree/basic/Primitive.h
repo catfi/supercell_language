@@ -49,6 +49,11 @@ struct PrimitiveType
 		VARIADIC_ELLIPSIS,
 	};
 
+	static bool isIntegerType(type t)
+	{
+		return (t >= BOOL && t <= INT64);
+	}
+
 	static bool isSignedIntegerType(type t)
 	{
 		return (t >= INT8 && t <= INT64);

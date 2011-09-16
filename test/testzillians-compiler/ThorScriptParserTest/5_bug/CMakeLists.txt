@@ -21,16 +21,16 @@
 
 zillians_add_complex_test(
     TARGET thorscript-parser-test-bug
-    SHELL ${CMAKE_CURRENT_SOURCE_DIR}/../scripts/test.sh ${TCC} ${SPIRIT_LOG_FILTER} 0
+    SHELL ${CMAKE_CURRENT_SOURCE_DIR}/../scripts/test.sh ${ThorScriptCompiler} ${ThorScriptLogFilter} 0
             ${CMAKE_CURRENT_SOURCE_DIR}/bug_2011_09_13.t
-    DEPENDS ${TCC} ${SPIRIT_LOG_FILTER}
+    DEPENDS ${ThorScriptCompiler} ${ThorScriptLogFilter}
     )
 
 zillians_add_complex_test(
     TARGET thorscript-parser-test-ast-bug
-    SHELL ${CMAKE_CURRENT_SOURCE_DIR}/../scripts/test.sh ${TCC} ${SPIRIT_LOG_FILTER} 1
+    SHELL ${CMAKE_CURRENT_SOURCE_DIR}/../scripts/test.sh ${ThorScriptCompiler} ${ThorScriptLogFilter} 1
             ${CMAKE_CURRENT_SOURCE_DIR}/bug_2011_09_13.t
-    DEPENDS ${TCC} ${SPIRIT_LOG_FILTER}
+    DEPENDS ${ThorScriptCompiler} ${ThorScriptLogFilter}
     )
 
 zillians_add_test_to_subject(SUBJECT thorscript-parser-test-all TARGET thorscript-parser-test-bug)

@@ -18,7 +18,7 @@
  */
 
 #include "language/stage/StageConductor.h"
-#include "language/logging/LoggingManager.h"
+#include "language/logging/LoggerWrapper.h"
 #include "utility/Foreach.h"
 #include "language/tree/ASTNode.h"
 #include "language/context/ConfigurationContext.h"
@@ -41,7 +41,7 @@ int StageConductor::main(int argc, const char** argv)
 	// prepare simple logger appender
 	if(true)
 	{
-		LoggingManager::initialize();
+		LoggerWrapper::initialize();
 	}
 	else
 	{

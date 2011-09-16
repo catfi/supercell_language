@@ -83,7 +83,7 @@ struct DebugInfoContext
 
 struct DebugInfoTypeContext
 {
-	DebugInfoTypeContext(shared_ptr<llvm::DIType> type) : type(type)
+	DebugInfoTypeContext(llvm::DIType type) : type(type)
 	{}
 
 	static DebugInfoTypeContext* get(tree::ASTNode* node)
@@ -96,7 +96,7 @@ struct DebugInfoTypeContext
 		node->set<DebugInfoTypeContext>(ctx);
 	}
 
-	shared_ptr<llvm::DIType> type;
+	llvm::DIType type;
 };
 
 } } }

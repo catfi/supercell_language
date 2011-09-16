@@ -28,10 +28,11 @@ include_directories( ${PROJECT_COMMON_SOURCE_DIR}/include/
 add_library(zillians-framework-language
     language/context/ConfigurationContext.cpp
     language/context/ParserContext.cpp
-    language/logging/LoggingManager.cpp
+    language/logging/LoggerWrapper.cpp
     language/stage/StageConductor.cpp
     language/stage/basic/TreeDebugStage.cpp
     language/stage/parser/ThorScriptParserStage.cpp
+    language/stage/transformer/LiteralCompactionStage.cpp
     language/stage/transformer/ResolutionStage.cpp
     language/stage/transformer/ManglingStage.cpp
     language/stage/transformer/TypeSynthesisStage.cpp
@@ -81,6 +82,7 @@ if(LLVM_FOUND)
     target_link_libraries(zillians-framework-language-llvm
         zillians-common-core
         zillians-common-utility
+		${LLVM_LDFLAGS}
         ${LLVM_ALL_LIBS}
         )
 else()

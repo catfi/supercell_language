@@ -21,7 +21,7 @@
 
 zillians_add_complex_test(
     TARGET thorscript-parser-test-advanced
-    SHELL ${CMAKE_CURRENT_SOURCE_DIR}/../scripts/test.sh ${TCC} ${SPIRIT_LOG_FILTER} 0
+    SHELL ${CMAKE_CURRENT_SOURCE_DIR}/../scripts/test.sh ${ThorScriptCompiler} ${ThorScriptLogFilter} 0
             ${CMAKE_CURRENT_SOURCE_DIR}/0_modifier.t
             ${CMAKE_CURRENT_SOURCE_DIR}/1_constructor.t
             ${CMAKE_CURRENT_SOURCE_DIR}/2_annotation.t
@@ -32,12 +32,12 @@ zillians_add_complex_test(
             ${CMAKE_CURRENT_SOURCE_DIR}/7_container.t
             ${CMAKE_CURRENT_SOURCE_DIR}/8_va_arg.t
             ${CMAKE_CURRENT_SOURCE_DIR}/9_interface.t
-    DEPENDS ${TCC} ${SPIRIT_LOG_FILTER}
+    DEPENDS ${ThorScriptCompiler} ${ThorScriptLogFilter}
     )
 
 zillians_add_complex_test(
     TARGET thorscript-parser-test-ast-advanced
-    SHELL ${CMAKE_CURRENT_SOURCE_DIR}/../scripts/test.sh ${TCC} ${SPIRIT_LOG_FILTER} 1
+    SHELL ${CMAKE_CURRENT_SOURCE_DIR}/../scripts/test.sh ${ThorScriptCompiler} ${ThorScriptLogFilter} 1
             ${CMAKE_CURRENT_SOURCE_DIR}/0_modifier.t
             ${CMAKE_CURRENT_SOURCE_DIR}/1_constructor.t
             ${CMAKE_CURRENT_SOURCE_DIR}/2_annotation.t
@@ -48,7 +48,7 @@ zillians_add_complex_test(
             ${CMAKE_CURRENT_SOURCE_DIR}/7_container.t
             ${CMAKE_CURRENT_SOURCE_DIR}/8_va_arg.t
             ${CMAKE_CURRENT_SOURCE_DIR}/9_interface.t
-    DEPENDS ${TCC} ${SPIRIT_LOG_FILTER}
+    DEPENDS ${ThorScriptCompiler} ${ThorScriptLogFilter}
     )
 
 zillians_add_test_to_subject(SUBJECT thorscript-parser-test-all TARGET thorscript-parser-test-advanced)

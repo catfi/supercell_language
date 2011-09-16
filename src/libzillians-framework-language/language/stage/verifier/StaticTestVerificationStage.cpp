@@ -24,7 +24,7 @@
 
 namespace zillians { namespace language { namespace stage {
 
-StaticTestVerificationStage::StaticTestVerificationStage()
+StaticTestVerificationStage::StaticTestVerificationStage() : enabled(false)
 { }
 
 StaticTestVerificationStage::~StaticTestVerificationStage()
@@ -37,15 +37,22 @@ const char* StaticTestVerificationStage::name()
 
 void StaticTestVerificationStage::initializeOptions(po::options_description& option_desc, po::positional_options_description& positional_desc)
 {
+    option_desc.add_options()
+	("enable-static-test", "enable static test for compiler test suite");
 }
 
 bool StaticTestVerificationStage::parseOptions(po::variables_map& vm)
 {
+	enabled = (vm.count("enable-static-test") > 0);
+
 	return true;
 }
 
 bool StaticTestVerificationStage::execute(bool& continue_execution)
 {
+	if(!enabled)
+		return true;
+
 	if(!hasParserContext())
 		return false;
 

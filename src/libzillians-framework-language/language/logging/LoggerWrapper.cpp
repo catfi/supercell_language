@@ -18,7 +18,7 @@
  */
 
 #include "utility/UnicodeUtil.h"
-#include "language/logging/LoggingManager.h"
+#include "language/logging/LoggerWrapper.h"
 #include "language/logging/StringTable.h"
 
 #include <log4cxx/logstring.h>
@@ -28,33 +28,29 @@
 #include <log4cxx/logmanager.h>
 #include <log4cxx/logger.h>
 
-
-namespace zl = zillians::language;
-
 namespace zillians { namespace language  {
 
-log4cxx::LoggerPtr LoggingManager::Compiler(log4cxx::Logger::getLogger("compiler"));
-log4cxx::LoggerPtr LoggingManager::Resolver(log4cxx::Logger::getLogger("compiler.resolver"));
-log4cxx::LoggerPtr LoggingManager::CompilerLogger(log4cxx::Logger::getLogger("compiler.compilelogger"));
-log4cxx::LoggerPtr LoggingManager::ParserStage(log4cxx::Logger::getLogger("compiler.parser"));
-log4cxx::LoggerPtr LoggingManager::TransformerStage(log4cxx::Logger::getLogger("compiler.transformer"));
-log4cxx::LoggerPtr LoggingManager::GeneratorStage(log4cxx::Logger::getLogger("compiler.generator"));
-log4cxx::LoggerPtr LoggingManager::DebugInfoGeneratorStage(log4cxx::Logger::getLogger("compiler.debuginfogenerator"));
-log4cxx::LoggerPtr LoggingManager::VM(log4cxx::Logger::getLogger("vm"));
+log4cxx::LoggerPtr LoggerWrapper::Compiler(log4cxx::Logger::getLogger("compiler"));
+log4cxx::LoggerPtr LoggerWrapper::Resolver(log4cxx::Logger::getLogger("compiler.resolver"));
+log4cxx::LoggerPtr LoggerWrapper::CompilerLogger(log4cxx::Logger::getLogger("compiler.compilelogger"));
+log4cxx::LoggerPtr LoggerWrapper::ParserStage(log4cxx::Logger::getLogger("compiler.parser"));
+log4cxx::LoggerPtr LoggerWrapper::TransformerStage(log4cxx::Logger::getLogger("compiler.transformer"));
+log4cxx::LoggerPtr LoggerWrapper::GeneratorStage(log4cxx::Logger::getLogger("compiler.generator"));
+log4cxx::LoggerPtr LoggerWrapper::DebugInfoGeneratorStage(log4cxx::Logger::getLogger("compiler.debuginfogenerator"));
+log4cxx::LoggerPtr LoggerWrapper::VM(log4cxx::Logger::getLogger("vm"));
 
 
-LoggingManager::LoggingManager() :
-		mWarningDegree(0)
+LoggerWrapper::LoggerWrapper() : mWarningDegree(0)
 {
 	mStringTable = new StringTable();
 	mLogger = new Logger();
 
-	mLogger->setLogger(this);
+	mLogger->setWrapper(this);
 	mLogger->setLocale(get_default_locale());
 	mLogger->setStringTable(mStringTable);
 }
 
-LoggingManager::~LoggingManager()
+LoggerWrapper::~LoggerWrapper()
 {
 	mLogger->setStringTable(NULL);
 
@@ -62,7 +58,7 @@ LoggingManager::~LoggingManager()
 	SAFE_DELETE(mLogger);
 }
 
-void LoggingManager::initialize()
+void LoggerWrapper::initialize()
 {
 	log4cxx::LogManager::getLoggerRepository()->setConfigured(true);
 	log4cxx::LoggerPtr root = log4cxx::Logger::getRootLogger();
@@ -83,22 +79,22 @@ void LoggingManager::initialize()
 	root->setLevel(log4cxx::Level::getDebug());
 }
 
-uint32 LoggingManager::getCurrentWarningDegree()
+uint32 LoggerWrapper::getWarningDegree()
 {
 	return mWarningDegree;
 }
 
-void LoggingManager::setWarningDegree(uint32 degree)
+void LoggerWrapper::setWarningDegree(uint32 degree)
 {
 	mWarningDegree = degree;
 }
 
-Logger* LoggingManager::getLogger()
+Logger* LoggerWrapper::getLogger()
 {
 	return mLogger;
 }
 
-void LoggingManager::log(const uint32 id, const std::wstring& file, const uint32 line, std::wstring& message)
+void LoggerWrapper::log(const uint32 id, const std::wstring& file, const uint32 line, std::wstring& message)
 {
 	StringTable::log_id log_id = static_cast<StringTable::log_id>(id);
 	BOOST_ASSERT(mStringTable->attribute_table.find(log_id) != mStringTable->attribute_table.end() && "Given wrong Log ID");
@@ -108,14 +104,14 @@ void LoggingManager::log(const uint32 id, const std::wstring& file, const uint32
 	log4cxx::LevelPtr level;
 	switch (attribute_table.level)
 	{
+	case StringTable::LEVEL_INFO:
+	{
+		level = log4cxx::Level::getInfo();
+		break;
+	}
 	case StringTable::LEVEL_WARNING:
 	{
 		level = log4cxx::Level::getWarn();
-		break;
-	}
-	case StringTable::LEVEL_FATAL:
-	{
-		level = log4cxx::Level::getFatal();
 		break;
 	}
 	case StringTable::LEVEL_ERROR:
@@ -123,8 +119,13 @@ void LoggingManager::log(const uint32 id, const std::wstring& file, const uint32
 		level = log4cxx::Level::getError();
 		break;
 	}
+	case StringTable::LEVEL_FATAL:
+	{
+		level = log4cxx::Level::getFatal();
+		break;
+	}
 	default:
-		BOOST_ASSERT(false && "Not defined log type");
+		BOOST_ASSERT(false && "undefined log type");
 		break;
 	}
 

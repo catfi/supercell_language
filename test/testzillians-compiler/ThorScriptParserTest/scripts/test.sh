@@ -21,8 +21,7 @@ for ARG in "$@"; do
     if [ $MODE -eq 1 ]; then
         $EXEC $ARG --dump-ast-and-stop --dump-ast-location
         ERROR_CODE="$?"
-        if [ $ERROR_CODE -ne 0 ];
-        then
+        if [ $ERROR_CODE -ne 0 ]; then
             echo "ERROR: construct/dump ast fail!"
             exit 1
         fi
