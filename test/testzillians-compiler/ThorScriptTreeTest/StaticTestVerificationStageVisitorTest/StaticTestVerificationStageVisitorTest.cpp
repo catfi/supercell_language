@@ -36,7 +36,7 @@ using namespace zillians::language::tree::visitor;
 
 BOOST_AUTO_TEST_SUITE( ThorScriptTreeTest_StaticTestVerificationStageVisitorTestTestSuite )
 
-Program* createOKSample()
+Program* createPassSample()
 {
 	Program* program = new Program();
 	{
@@ -72,11 +72,11 @@ Program* createOKSample()
 						{
 							// set error check annotation data
 							Annotation* msgParams = new Annotation(NULL);
-							msgParams->appendKeyValue(new SimpleIdentifier(L"id"), new PrimaryExpr(new StringLiteral(L"mCount")));
-							msgParams->appendKeyValue(new SimpleIdentifier(L"type"), new PrimaryExpr(new StringLiteral(L"int")));
+							msgParams->appendKeyValue(new SimpleIdentifier(L"id"), new StringLiteral(L"mCount"));
+							msgParams->appendKeyValue(new SimpleIdentifier(L"type"), new StringLiteral(L"int"));
 							Annotation* levelIdParams = new Annotation(NULL);
-							levelIdParams->appendKeyValue(new SimpleIdentifier(L"level"), new PrimaryExpr(new StringLiteral(L"LEVEL_WARNING")));
-							levelIdParams->appendKeyValue(new SimpleIdentifier(L"id"), new PrimaryExpr(new StringLiteral(L"EXAMPLE_UNDECLARED_VARIABLE")));
+							levelIdParams->appendKeyValue(new SimpleIdentifier(L"level"), new StringLiteral(L"LEVEL_WARNING"));
+							levelIdParams->appendKeyValue(new SimpleIdentifier(L"id"), new StringLiteral(L"EXAMPLE_UNDECLARED_VARIABLE"));
 							levelIdParams->appendKeyValue(new SimpleIdentifier(L"parameters"), msgParams);
 
 							Annotation* anno = new Annotation(new SimpleIdentifier(L"static_test"));
@@ -140,12 +140,12 @@ Program* createFailSample()
 						{
 							// set error check annotation data
 							Annotation* msgParams = new Annotation(NULL);
-							msgParams->appendKeyValue(new SimpleIdentifier(L"id"), new PrimaryExpr(new StringLiteral(L"mCount")));
-							msgParams->appendKeyValue(new SimpleIdentifier(L"type"), new PrimaryExpr(new StringLiteral(L"int")));
-							msgParams->appendKeyValue(new SimpleIdentifier(L"extra_fail_key"), new PrimaryExpr(new StringLiteral(L"extra_fail_value")));
+							msgParams->appendKeyValue(new SimpleIdentifier(L"id"), new StringLiteral(L"mCount"));
+							msgParams->appendKeyValue(new SimpleIdentifier(L"type"), new StringLiteral(L"int"));
+							msgParams->appendKeyValue(new SimpleIdentifier(L"extra_fail_key"), new StringLiteral(L"extra_fail_value"));
 							Annotation* levelIdParams = new Annotation(NULL);
-							levelIdParams->appendKeyValue(new SimpleIdentifier(L"level"), new PrimaryExpr(new StringLiteral(L"LEVEL_WARNING")));
-							levelIdParams->appendKeyValue(new SimpleIdentifier(L"id"), new PrimaryExpr(new StringLiteral(L"EXAMPLE_UNDECLARED_VARIABLE")));
+							levelIdParams->appendKeyValue(new SimpleIdentifier(L"level"), new StringLiteral(L"LEVEL_WARNING"));
+							levelIdParams->appendKeyValue(new SimpleIdentifier(L"id"), new StringLiteral(L"EXAMPLE_UNDECLARED_VARIABLE"));
 							levelIdParams->appendKeyValue(new SimpleIdentifier(L"parameters"), msgParams);
 
 							Annotation* anno = new Annotation(new SimpleIdentifier(L"static_test"));
@@ -162,6 +162,14 @@ Program* createFailSample()
 							ExpressionStmt* stmt = new ExpressionStmt(new BinaryExpr(BinaryExpr::OpCode::ASSIGN, new PrimaryExpr(new SimpleIdentifier(L"EXAMPLE_UNDECLARED_VARIABLE")), new PrimaryExpr(new SimpleIdentifier(L"b"))));
 							stmt->setAnnotation(annos);
 							stmt->set<zillians::language::stage::LogInfoContext>(errorContext);
+
+							// set source info context
+							int source_index = 0;
+							zillians::language::stage::ModuleSourceInfoContext* module_info = new zillians::language::stage::ModuleSourceInfoContext();
+							source_index = module_info->addSource("test.cpp");
+							source_index = module_info->addSource("hello.cpp");
+							zillians::language::stage::ModuleSourceInfoContext::set(program, module_info);
+							zillians::language::stage::SourceInfoContext::set(stmt, new zillians::language::stage::SourceInfoContext(source_index, 32, 10) );
 
 							block->appendObject(stmt);
 						}
@@ -184,7 +192,7 @@ BOOST_AUTO_TEST_CASE( ThorScriptTreeTest_StaticTestVerificationStageVisitorTestC
 
 	zillians::language::stage::visitor::StaticTestVerificationStageVisitor checker;
 
-	Program* okProgram = createOKSample();
+	Program* okProgram = createPassSample();
 	checker.programNode = okProgram;
 	stage::ModuleSourceInfoContext::set(okProgram, module_info);
 	checker.check(*okProgram);

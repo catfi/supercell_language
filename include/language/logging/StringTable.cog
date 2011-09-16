@@ -98,8 +98,8 @@ struct StringTable
 	############################################# PARSER_STAGE
 	############################################# STATIC_TEST_VERIFICATION_STAGE
 	LOG_STRING.create('WRONG_STATIC_TEST_ANNOTATION_FORMAT', LOG_LEVEL.LEVEL_ERROR, 0, dict(
-			en_US = 'Wrong static test annotation format $DETAIL(string)',
-			zh_TW = '錯誤的 static test annotation 格式 $DETAIL(string)'
+			en_US = 'Wrong static test annotation format: $DETAIL(string)',
+			zh_TW = '錯誤的 static test annotation 格式: $DETAIL(string)'
 			))
 	############################################# TRANSFORMER_STAGE
 	LOG_STRING.create('NUMERIC_LITERAL_OVERFLOW', LOG_LEVEL.LEVEL_ERROR, 0, dict(
