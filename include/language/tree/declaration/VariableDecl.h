@@ -52,35 +52,15 @@ struct VariableDecl : public Declaration
 
     virtual bool isEqualImpl(const ASTNode& rhs, ASTNodeSet& visited) const
     {
-        if(visited.count(this))
-        {
-            return true ;
-        }
-
-        const VariableDecl* p = cast<const VariableDecl>(&rhs);
-        if(p == NULL)
-        {
-            return false;
-        }
-
-        // compare base class
-        if(!Declaration::isEqualImpl(*p, visited))
-        {
-            return false;
-        }
-
-        // compare data member
-		COMPARE_ASTNODE_MEMBER(name);
-		COMPARE_ASTNODE_MEMBER(type);
-		COMPARE_MEMBER(is_member);
-		COMPARE_MEMBER(is_static);
-		COMPARE_MEMBER(is_const);
-		COMPARE_MEMBER(visibility);
-		COMPARE_ASTNODE_MEMBER(initializer);
-
-        // add this to the visited table.
-        visited.insert(this);
-        return true;
+    	BEGIN_COMPARE_WITH_BASE(Declaration)
+		COMPARE_MEMBER(name)
+		COMPARE_MEMBER(type)
+		COMPARE_MEMBER(is_member)
+		COMPARE_MEMBER(is_static)
+		COMPARE_MEMBER(is_const)
+		COMPARE_MEMBER(visibility)
+		COMPARE_MEMBER(initializer)
+		END_COMPARE()
     }
 
 	Identifier* name;

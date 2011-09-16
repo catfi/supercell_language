@@ -38,24 +38,6 @@ struct Literal : public ASTNode
 
     virtual bool isEqualImpl(const ASTNode& rhs, ASTNodeSet& visited) const
     {
-        if(visited.count(this))
-        {
-        	return true ;
-        }
-
-        const Literal* p = cast<const Literal>(&rhs);
-        if(p == NULL)
-        {
-        	return false;
-        }
-        // compare base class
-        // base is ASTNode, no need to compare
-
-        // compare data member
-        // no data member
-
-        // add this to the visited table.
-        visited.insert(this);
         return true;
     }
 
@@ -89,29 +71,9 @@ struct ObjectLiteral : public Literal
 
     virtual bool isEqualImpl(const ASTNode& rhs, ASTNodeSet& visited) const
     {
-        if(visited.count(this))
-        {
-        	return true ;
-        }
-
-        const ObjectLiteral* p = cast<const ObjectLiteral>(&rhs);
-        if(p == NULL)
-        {
-        	return false;
-        }
-
-        // compare base class
-        if(!Literal::isEqualImpl(*p, visited))
-        {
-        	return false;
-        }
-
-        // compare data member
-		COMPARE_MEMBER(type);
-
-        // add this to the visited table.
-        visited.insert(this);
-        return true;
+    	BEGIN_COMPARE_WITH_BASE(Literal)
+		COMPARE_MEMBER(type)
+		END_COMPARE()
     }
 
 	LiteralType::type type;
@@ -138,25 +100,9 @@ struct NumericLiteral : public Literal
 
     virtual bool isEqualImpl(const ASTNode& rhs, ASTNodeSet& visited) const
     {
-        if(visited.count(this))
-        {
-        	return true ;
-        }
-
-        const NumericLiteral* p = cast<const NumericLiteral>(&rhs);
-        if(p == NULL)
-        {
-        	return false;
-        }
-
-        // compare base class
-        if(!Literal::isEqualImpl(*p, visited))
-        {
-        	return false;
-        }
-
+    	BEGIN_COMPARE_WITH_BASE(Literal)
         // compare data member
-		COMPARE_MEMBER(type);
+		COMPARE_MEMBER(type)
         switch(type)
         {
         case PrimitiveType::type::BOOL    : COMPARE_MEMBER(value.b  ); break;
@@ -171,10 +117,7 @@ struct NumericLiteral : public Literal
         case PrimitiveType::type::FLOAT32 : COMPARE_MEMBER(value.f32); break;
         case PrimitiveType::type::FLOAT64 : COMPARE_MEMBER(value.f64); break;
         }
-
-        // add this to the visited table.
-        visited.insert(this);
-        return true;
+    	END_COMPARE()
     }
 
 	PrimitiveType::type type;
@@ -216,29 +159,9 @@ struct StringLiteral : public Literal
 
     virtual bool isEqualImpl(const ASTNode& rhs, ASTNodeSet& visited) const
     {
-        if(visited.count(this))
-        {
-            return true ;
-        }
-
-        const StringLiteral* p = cast<const StringLiteral>(&rhs);
-        if(p == NULL)
-        {
-            return false;
-        }
-
-        // compare base class
-        if(!Literal::isEqualImpl(*p, visited))
-        {
-            return false;
-        }
-
-        // compare data member
-		COMPARE_MEMBER(value);
-
-        // add this to the visited table.
-        visited.insert(this);
-        return true;
+    	BEGIN_COMPARE_WITH_BASE(Literal)
+		COMPARE_MEMBER(value)
+    	END_COMPARE()
     }
 
 	std::wstring value;

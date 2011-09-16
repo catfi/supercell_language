@@ -36,44 +36,16 @@ struct Identifier : public ASTNode
 	DEFINE_VISITABLE();
 	DEFINE_HIERARCHY(Identifier, (Identifier)(ASTNode));
 
-	Identifier()// : resolved(NULL)
+	Identifier()
 	{ }
-
-//	void resolveTo(ASTNode* node)
-//	{
-//		if(resolved) resolved->parent = NULL;
-//		resolved = node;
-//		if(resolved) resolved->parent = this;
-//	}
 
 	virtual const std::wstring& toString() const = 0;
 	virtual bool isEmpty() const = 0;
 
     virtual bool isEqualImpl(const ASTNode& rhs, ASTNodeSet& visited) const
     {
-        if(visited.count(this))
-        {
-            return true ;
-        }
-
-        const Identifier* p = cast<const Identifier>(&rhs);
-        if(p == NULL)
-        {
-            return false;
-        }
-
-        // compare base class
-        // base is ASTNode, no need to compare
-
-        // compare data member
-        // no data member
-
-        // add this to the visited table.
-        visited.insert(this);
         return true;
     }
-
-//	ASTNode* resolved;
 };
 
 struct SimpleIdentifier : public Identifier
@@ -103,29 +75,9 @@ struct SimpleIdentifier : public Identifier
 
     virtual bool isEqualImpl(const ASTNode& rhs, ASTNodeSet& visited) const
     {
-        if(visited.count(this))
-        {
-            return true ;
-        }
-
-        const SimpleIdentifier* p = cast<const SimpleIdentifier>(&rhs);
-        if(p == NULL)
-        {
-            return false;
-        }
-
-        // compare base class
-        if(!Identifier::isEqualImpl(*p, visited))
-        {
-            return false;
-        }
-
-        // compare data member
-		COMPARE_MEMBER(name);
-
-        // add this to the visited table.
-        visited.insert(this);
-        return true;
+    	BEGIN_COMPARE_WITH_BASE(Identifier)
+		COMPARE_MEMBER(name)
+		END_COMPARE()
     }
 
 	const std::wstring name;
@@ -176,29 +128,9 @@ struct NestedIdentifier : public Identifier
 
     virtual bool isEqualImpl(const ASTNode& rhs, ASTNodeSet& visited) const
     {
-        if(visited.count(this))
-        {
-            return true ;
-        }
-
-        const NestedIdentifier* p = cast<const NestedIdentifier>(&rhs);
-        if(p == NULL)
-        {
-            return false;
-        }
-
-        // compare base class
-        if(!Identifier::isEqualImpl(*p, visited))
-        {
-            return false;
-        }
-
-        // compare data member
-		COMPARE_ASTNODE_MEMBER(identifier_list);
-
-        // add this to the visited table.
-        visited.insert(this);
-        return true;
+    	BEGIN_COMPARE_WITH_BASE(Identifier)
+		COMPARE_MEMBER(identifier_list)
+    	END_COMPARE()
     }
 
 	std::vector<Identifier*> identifier_list;
@@ -292,31 +224,11 @@ struct TemplatedIdentifier : public Identifier
 
     virtual bool isEqualImpl(const ASTNode& rhs, ASTNodeSet& visited) const
     {
-        if(visited.count(this))
-        {
-            return true ;
-        }
-
-        const TemplatedIdentifier* p = cast<const TemplatedIdentifier>(&rhs);
-        if(p == NULL)
-        {
-            return false;
-        }
-
-        // compare base class
-        if(!Identifier::isEqualImpl(*p, visited))
-        {
-            return false;
-        }
-
-        // compare data member
-		COMPARE_MEMBER(type);
-		COMPARE_ASTNODE_MEMBER(id);
-		COMPARE_ASTNODE_MEMBER(templated_type_list);
-
-        // add this to the visited table.
-        visited.insert(this);
-        return true;
+    	BEGIN_COMPARE_WITH_BASE(Identifier)
+		COMPARE_MEMBER(type)
+		COMPARE_MEMBER(id)
+		COMPARE_MEMBER(templated_type_list)
+		END_COMPARE()
     }
 
 	Usage::type type;

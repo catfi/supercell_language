@@ -205,31 +205,11 @@ struct BinaryExpr : public Expression
 
     virtual bool isEqualImpl(const ASTNode& rhs, ASTNodeSet& visited) const
     {
-        if(visited.count(this))
-        {
-            return true ;
-        }
-
-        const BinaryExpr* p = cast<const BinaryExpr>(&rhs);
-        if(p == NULL)
-        {
-            return false;
-        }
-
-        // compare base class
-        if(!Expression::isEqualImpl(*p, visited))
-        {
-            return false;
-        }
-
-        // compare data member
-		COMPARE_MEMBER(opcode);
-		COMPARE_ASTNODE_MEMBER(left);
-		COMPARE_ASTNODE_MEMBER(right);
-
-        // add this to the visited table.
-        visited.insert(this);
-        return true;
+    	BEGIN_COMPARE_WITH_BASE(Expression)
+		COMPARE_MEMBER(opcode)
+		COMPARE_MEMBER(left)
+		COMPARE_MEMBER(right)
+		END_COMPARE()
     }
 
 	OpCode::type opcode;

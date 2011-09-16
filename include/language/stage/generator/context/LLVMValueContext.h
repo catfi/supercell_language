@@ -1,6 +1,6 @@
 /**
  * Zillians MMO
- * Copyright (C) 2007-2010 Zillians.com, Inc.
+ * Copyright (C) 2007-2011 Zillians.com, Inc.
  * For more information see http://www.zillians.com
  *
  * Zillians MMO is the library and runtime for massive multiplayer online game
@@ -16,43 +16,22 @@
  * AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-/**
- * @date Aug 5, 2011 sdk - Initial version created.
- */
 
-#ifndef ZILLIANS_LANGUAGE_TREE_STATEMENT_H_
-#define ZILLIANS_LANGUAGE_TREE_STATEMENT_H_
+#ifndef ZILLIANS_LANGUAGE_STAGE_LLVMVALUECONTEXT_H_
+#define ZILLIANS_LANGUAGE_STAGE_LLVMVALUECONTEXT_H_
 
-#include "language/tree/ASTNode.h"
-#include "language/tree/basic/Annotations.h"
+#include "core/Prerequisite.h"
+#include "language/tree/ASTNodeFactory.h"
+#include "language/GlobalContext.h"
+#include "language/stage/generator/detail/LLVMHeaders.h"
 
-namespace zillians { namespace language { namespace tree {
+namespace zillians { namespace language { namespace stage {
 
-struct Statement : public ASTNode
+struct LLVMValueContext
 {
-	DEFINE_VISITABLE();
-	DEFINE_HIERARCHY(Statement, (Statement)(ASTNode));
 
-	Statement() : annotations(NULL)
-	{ }
-
-	void setAnnotation(Annotations* anns)
-	{
-		if(annotations) annotations->parent = NULL;
-		anns->parent = this;
-		annotations = anns;
-	}
-
-    virtual bool isEqualImpl(const ASTNode& rhs, ASTNodeSet& visited) const
-    {
-    	BEGIN_COMPARE()
-		COMPARE_MEMBER(annotations)
-		END_COMPARE()
-    }
-
-	Annotations* annotations;
 };
 
 } } }
 
-#endif /* ZILLIANS_LANGUAGE_TREE_STATEMENT_H_ */
+#endif /* ZILLIANS_LANGUAGE_STAGE_LLVMVALUECONTEXT_H_ */

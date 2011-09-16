@@ -42,29 +42,9 @@ struct ExpressionStmt : public Statement
 
     virtual bool isEqualImpl(const ASTNode& rhs, ASTNodeSet& visited) const
     {
-        if(visited.count(this))
-        {
-            return true ;
-        }
-
-        const ExpressionStmt* p = cast<const ExpressionStmt>(&rhs);
-        if(p == NULL)
-        {
-            return false;
-        }
-
-        // compare base class
-        if(!Statement::isEqualImpl(*p, visited))
-        {
-            return false;
-        }
-
-        // compare data member
-		COMPARE_ASTNODE_MEMBER(expr);
-
-        // add this to the visited table.
-        visited.insert(this);
-        return true;
+    	BEGIN_COMPARE_WITH_BASE(Statement)
+		COMPARE_MEMBER(expr)
+		END_COMPARE()
     }
 
 	Expression* expr;

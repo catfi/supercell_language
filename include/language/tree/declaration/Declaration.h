@@ -63,26 +63,9 @@ struct Declaration : public ASTNode
 
     virtual bool isEqualImpl(const ASTNode& rhs, ASTNodeSet& visited) const
     {
-        if(visited.count(this))
-        {
-            return true ;
-        }
-
-        const Declaration* p = cast<const Declaration>(&rhs);
-        if(p == NULL)
-        {
-            return false;
-        }
-
-        // compare base class
-        // The base is ASTNode, no need to be compared.
-
-        // compare data member
-		COMPARE_ASTNODE_MEMBER(annotations);
-
-        // add this to the visited table.
-        visited.insert(this);
-        return true;
+    	BEGIN_COMPARE()
+		COMPARE_MEMBER(annotations);
+    	END_COMPARE()
     }
 
 	Annotations* annotations;

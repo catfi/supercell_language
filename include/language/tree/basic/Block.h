@@ -53,28 +53,11 @@ struct Block : public ASTNode
 
     virtual bool isEqualImpl(const ASTNode& rhs, ASTNodeSet& visited) const
     {
-        if(visited.count(this))
-        {
-        	return true ;
-        }
-
-        const Block* p = cast<const Block>(&rhs);
-        if(p == NULL)
-        {
-        	return false;
-        }
-
-        // compare base class
-        // The base is ASTNode, no need to be compared.
-
-        // compare data member
-		COMPARE_MEMBER(is_pipelined_block);
-		COMPARE_MEMBER(is_async_block);
-		COMPARE_ASTNODE_MEMBER(objects);
-
-        // add this to the visited table.
-        visited.insert(this);
-        return true;
+    	BEGIN_COMPARE()
+		COMPARE_MEMBER(is_pipelined_block)
+		COMPARE_MEMBER(is_async_block)
+		COMPARE_MEMBER(objects)
+		END_COMPARE()
     }
 
 	bool is_pipelined_block;

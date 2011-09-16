@@ -27,16 +27,13 @@
 
 namespace zillians { namespace language { namespace tree {
 
-struct Selection
+struct Selection : ContextHub<ContextOwnership::transfer>
 {
 	Selection() : cond(NULL), block(NULL)
 	{ }
 
 	Selection(Expression* cond, ASTNode* block) : cond(cond), block(block)
-	{
-		BOOST_ASSERT(cond && "null condition for selection statement is not allowed");
-		BOOST_ASSERT(block && "null block for selection statement is not allowed");
-	}
+	{ }
 
 	Selection(const Selection& s) : cond(s.cond), block(s.block)
 	{ }
@@ -47,12 +44,11 @@ struct Selection
 		return *this;
 	}
 
-	bool isEqualImpl(const Selection& rhs, ASTNode::ASTNodeSet& visited) const
+	bool isEqualImpl(const Selection& rhs, ASTNodeSet& visited) const
 	{
-		// compare data member
-		if(!cond ->isEqualImpl(*rhs.cond , visited)) return false;
-		if(!block->isEqualImpl(*rhs.block, visited)) return false;
-
+		const Selection* p = &rhs;
+		COMPARE_MEMBER(cond)
+		COMPARE_MEMBER(block)
 		return true;
 	}
 
@@ -67,29 +63,8 @@ struct SelectionStmt : public Statement
 
 	virtual bool isEqualImpl(const ASTNode& rhs, ASTNodeSet& visited) const
 	{
-		if(visited.count(this))
-		{
-			return true ;
-		}
-
-		const SelectionStmt* p = cast<const SelectionStmt>(&rhs);
-		if(p == NULL)
-		{
-			return false;
-		}
-
-		// compare base class
-		if(!Statement::isEqualImpl(*p, visited))
-		{
-			return false;
-		}
-
-		// compare data member
-		// no data member
-
-		// add this to the visited table.
-		visited.insert(this);
-		return true;
+		BEGIN_COMPARE_WITH_BASE(Statement)
+		END_COMPARE()
 	}
 };
 
@@ -127,44 +102,11 @@ struct IfElseStmt : public SelectionStmt
 
 	virtual bool isEqualImpl(const ASTNode& rhs, ASTNodeSet& visited) const
 	{
-		if(visited.count(this))
-		{
-			return true ;
-		}
-
-		const IfElseStmt* p = cast<const IfElseStmt>(&rhs);
-		if(p == NULL)
-		{
-			return false;
-		}
-
-		// compare base class
-		if(!SelectionStmt::isEqualImpl(*p, visited))
-		{
-			return false;
-		}
-
-		// compare data member
-		if(!if_branch.isEqualImpl(p->if_branch, visited))
-		{
-			return false;
-		}
-		if(elseif_branches.size() != p->elseif_branches.size())
-		{
-			return false ;
-		}
-		for(size_t i = 0 ; i < elseif_branches.size() ; ++i)
-		{
-			if(!elseif_branches[i].isEqualImpl(p->elseif_branches[i], visited))
-			{
-				return false;
-			}
-		}
-		COMPARE_ASTNODE_MEMBER(else_block);
-
-		// add this to the visited table.
-		visited.insert(this);
-		return true;
+		BEGIN_COMPARE_WITH_BASE(SelectionStmt)
+		COMPARE_MEMBER(if_branch)
+		COMPARE_MEMBER(elseif_branches)
+		COMPARE_MEMBER(else_block)
+		END_COMPARE()
 	}
 
 	Selection if_branch;
@@ -202,41 +144,11 @@ struct SwitchStmt : public SelectionStmt
 
 	virtual bool isEqualImpl(const ASTNode& rhs, ASTNodeSet& visited) const
 	{
-		if(visited.count(this))
-		{
-			return true ;
-		}
-
-		const SwitchStmt* p = cast<const SwitchStmt>(&rhs);
-		if(p == NULL)
-		{
-			return false;
-		}
-
-		// compare base class
-		if(!SelectionStmt::isEqualImpl(*p, visited))
-		{
-			return false;
-		}
-
-		// compare data member
-		COMPARE_ASTNODE_MEMBER(node);
-		if(cases.size() != p->cases.size())
-		{
-			return false ;
-		}
-		for(size_t i = 0 ; i < cases.size() ; ++i)
-		{
-			if(!cases[i].isEqualImpl(p->cases[i], visited))
-			{
-				return false;
-			}
-		}
-		COMPARE_ASTNODE_MEMBER(default_block);
-
-		// add this to the visited table.
-		visited.insert(this);
-		return true;
+		BEGIN_COMPARE_WITH_BASE(SelectionStmt)
+		COMPARE_MEMBER(node)
+		COMPARE_MEMBER(cases)
+		COMPARE_MEMBER(default_block);
+		END_COMPARE()
 	}
 
 	Expression* node;

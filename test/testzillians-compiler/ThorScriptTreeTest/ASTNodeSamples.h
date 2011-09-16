@@ -71,7 +71,8 @@ ASTNode* createSample3()
 							NULL,
 							true,
 							false,
-							Declaration::VisibilitySpecifier::PUBLIC);
+							Declaration::VisibilitySpecifier::PUBLIC,
+							new Block());
 					class_decl->addFunction(some_member_function);
 					{
 						Block* block = some_member_function->block;
@@ -130,7 +131,8 @@ ASTNode* createSample4()
 							new SimpleIdentifier(L"some_member_function"),
 							NULL,
 							true, false,
-							Declaration::VisibilitySpecifier::PUBLIC);
+							Declaration::VisibilitySpecifier::PUBLIC,
+							new Block());
 					class_decl->addFunction(some_member_function);
 					{
 						Block* block = some_member_function->block;
@@ -189,7 +191,8 @@ ASTNode* createSample5()
 							new SimpleIdentifier(L"some_member_function"),
 							NULL,
 							true, false,
-							Declaration::VisibilitySpecifier::PUBLIC);
+							Declaration::VisibilitySpecifier::PUBLIC,
+							new Block());
 					class_decl->addFunction(some_member_function);
 					{
 						Block* block = some_member_function->block;

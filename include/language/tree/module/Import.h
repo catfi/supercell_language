@@ -46,26 +46,9 @@ struct Import : public ASTNode
 
     virtual bool isEqualImpl(const ASTNode& rhs, ASTNodeSet& visited) const
     {
-        if(visited.count(this))
-        {
-            return true ;
-        }
-
-        const Import* p = cast<const Import>(&rhs);
-        if(p == NULL)
-        {
-            return false;
-        }
-
-        // compare base class
-        // The base is ASTNode, don't need to be compared.
-
-        // compare data member
-		COMPARE_ASTNODE_MEMBER(ns);
-
-        // add this to the visited table.
-        visited.insert(this);
-        return true;
+    	BEGIN_COMPARE()
+		COMPARE_MEMBER(ns);
+    	END_COMPARE()
     }
 
 	Identifier* ns;

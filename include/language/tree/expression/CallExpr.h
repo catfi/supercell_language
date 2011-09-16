@@ -51,30 +51,10 @@ struct CallExpr : public Expression
 
     virtual bool isEqualImpl(const ASTNode& rhs, ASTNodeSet& visited) const
     {
-        if(visited.count(this))
-        {
-            return true ;
-        }
-
-        const CallExpr* p = cast<const CallExpr>(&rhs);
-        if(p == NULL)
-        {
-            return false;
-        }
-
-        // compare base class
-        if(!Expression::isEqualImpl(*p, visited))
-        {
-            return false;
-        }
-
-        // compare data member
-		COMPARE_ASTNODE_MEMBER(node);
-		COMPARE_ASTNODE_MEMBER(parameters);
-
-        // add this to the visited table.
-        visited.insert(this);
-        return true;
+    	BEGIN_COMPARE_WITH_BASE(Expression)
+		COMPARE_MEMBER(node)
+		COMPARE_MEMBER(parameters)
+		END_COMPARE()
     }
 
 	ASTNode* node;

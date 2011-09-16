@@ -35,6 +35,10 @@
 #include <boost/serialization/vector.hpp>
 #include <boost/serialization/utility.hpp>
 #include <boost/mpl/contains.hpp>
+#include <boost/mpl/vector.hpp>
+#include <boost/mpl/or.hpp>
+#include <boost/mpl/not.hpp>
+#include <boost/type_traits.hpp>
 
 #define DEFINE_HIERARCHY_BASE() \
 	static int stype() \
@@ -205,6 +209,7 @@ struct IterativeStmt;
 struct ForStmt;
 struct ForeachStmt;
 struct WhileStmt;
+struct Selection;
 struct SelectionStmt;
 struct IfElseStmt;
 struct SwitchStmt;
@@ -218,65 +223,20 @@ struct MemberExpr;
 struct CallExpr;
 struct CastExpr;
 
-// boost mpl vector
-typedef boost::mpl::vector<
-	ASTNode,
-	Annotation,
-	Annotations,
-	Program,
-	Package,
-	Import,
-	Block,
-	Identifier,
-	SimpleIdentifier,
-	NestedIdentifier,
-	TemplatedIdentifier,
-	Literal,
-	NumericLiteral,
-	StringLiteral,
-	ObjectLiteral,
-	TypeSpecifier,
-	FunctionType,
-	Declaration,
-	ClassDecl,
-	EnumDecl,
-	InterfaceDecl,
-	TypedefDecl,
-	FunctionDecl,
-	VariableDecl,
-	Statement,
-	DeclarativeStmt,
-	ExpressionStmt,
-	IterativeStmt,
-	ForStmt,
-	ForeachStmt,
-	WhileStmt,
-	SelectionStmt,
-	IfElseStmt,
-	SwitchStmt,
-	BranchStmt,
-	Expression,
-	PrimaryExpr,
-	UnaryExpr,
-	BinaryExpr,
-	TernaryExpr,
-	MemberExpr,
-	CallExpr,
-	CastExpr
-> ASTNodeMPLVector;
+struct ASTNode;
+typedef __gnu_cxx::hash_set<const ASTNode*> ASTNodeSet;
 
-struct ASTNode : public VisitableBase<ASTNode>, ContextHub<ContextOwnership::keep>
+struct ASTNode : public VisitableBase<ASTNode>, ContextHub<ContextOwnership::transfer>
 {
 	DEFINE_VISITABLE();
 	DEFINE_HIERARCHY_BASE();
 
 public:
-	typedef __gnu_cxx::hash_set<const ASTNode*> ASTNodeSet;
 
 	/**
-	 * @brief Compare is AST equal.
-	 * @param rhs Another AST to be compared with.
-	 * @return @p true if two AST are value-sementically equal, @p false if not.
+	 * @brief Compare if two AST tree are equal.
+	 * @param rhs another AST to be compared with.
+	 * @return @p true if two AST are equal in terms of their value, @p false if not.
 	 */
 	bool isEqual(const ASTNode& rhs) const {
 		ASTNodeSet visited;
@@ -284,120 +244,6 @@ public:
 	}
 
 	virtual bool isEqualImpl(const ASTNode& rhs, ASTNodeSet& visited) const = 0 ;
-
-	// TODO: Unify the two macro.
-	// Currently I have some problem of resolve the ASTNode* with other normal type(Selection, int, enums...)
-	// It might can be resolved with the boost::enable_if, but I have not done it yet.
-
-	#define COMPARE_ASTNODE_MEMBER(member) if (!(isMemberEqual(member, p->member, visited))) { return false; }
-	#define COMPARE_MEMBER(member) if (member != p->member) { return false; }
-
-	/**
-	 * @brief Compare is two ASTNode* is equal value-semantically.
-	 * @return @p true if two ASTNode* are value-sementically equal, @p false if not.
-	 *
-	 * If both pointers are @p NULL, return @p true.
-	 * If one is @p NULL, another is not, return @p false.
-	 * if both are not @p NULL, return the value-semantically compare result.
-	 */
-	static bool isASTNodePointerEqual(const ASTNode* lhs, const ASTNode* rhs, ASTNodeSet& visited)
-	{
-		if(lhs == NULL && rhs == NULL)
-		{
-			return true;
-		}
-		if(lhs == NULL)
-		{
-			return false;
-		}
-		if(rhs == NULL)
-		{
-			return false;
-		}
-		return lhs->isEqualImpl(*rhs, visited);
-	}
-
-	template<typename T>
-	static bool isMemberEqual(const T* const lhs, const T* const rhs, ASTNodeSet& visited)
-	{
-		return isASTNodePointerEqual(lhs, rhs, visited);
-	}
-
-	template<typename T>
-	static bool isMemberEqual(const std::vector<T>& lhs, const std::vector<T>& rhs, ASTNodeSet& visited)
-	{
-		if(lhs.size() != rhs.size())
-		{
-			return false;
-		}
-		for(size_t i = 0; i < lhs.size(); ++i)
-		{
-			if(!isASTNodePointerEqual(lhs[i], rhs[i], visited))
-			{
-				return false;
-			}
-		}
-		return true ;
-	}
-
-	template<typename First, typename Second>
-	static bool isMemberEqual(const std::vector<std::pair<First, Second>>& lhs, const std::vector<std::pair<First, Second>>& rhs, ASTNodeSet& visited)
-	{
-		if(lhs.size() != rhs.size())
-		{
-			return false;
-		}
-		for(size_t i = 0; i < lhs.size(); ++i)
-		{
-			if(!isASTNodePointerEqual(lhs[i].first, rhs[i].first, visited))
-			{
-				return false;
-			}
-			if(!isASTNodePointerEqual(lhs[i].second, rhs[i].second, visited))
-			{
-				return false;
-			}
-		}
-		return true ;
-	}
-
-	/**
-	 * @brief Compare is two std::vector<boost::tuple<ASTNode*, ASTNode*, ASTNode*>> data member equal.
-	 * @param dataMember The data member to be compared.
-	 * @param lhs Left hand side object to get the @p pairVec.
-	 * @param rhs Right hand side object to get the @p pairVec.
-	 * @param visited Recording the compared ASTNode, prevent infinite resursive compare.
-	 * @return @p true if two vectors are value-sementically equal, @p false if not.
-	 * @todo Enhance the function to compare variadic tuple. Currently it can only work with tuple length is 3.
-	 */
-	template<typename TupleVectorMember, typename T>
-	static bool isTupleVectorMemberEqual(TupleVectorMember pairVec, const T& lhs, const T& rhs, ASTNodeSet& visited)
-	{
-		auto& leftVec = lhs.*pairVec ;
-		auto& rightVec = rhs.*pairVec ;
-		if(leftVec.size() != rightVec.size())
-		{
-			return false;
-		}
-
-		for(size_t i = 0; i < leftVec.size(); ++i)
-		{
-			if(!isASTNodePointerEqual(leftVec[i].get<0>(), rightVec[i].get<0>(), visited))
-			{
-				return false;
-			}
-			if(!isASTNodePointerEqual(leftVec[i].get<1>(), rightVec[i].get<1>(), visited))
-			{
-				return false;
-			}
-			if(!isASTNodePointerEqual(leftVec[i].get<2>(), rightVec[i].get<2>(), visited))
-			{
-				return false;
-			}
-		}
-
-		return true ;
-	}
 
 protected:
 	ASTNode() : parent(NULL)
@@ -408,6 +254,198 @@ protected:
 public:
 	ASTNode* parent;
 };
+
+namespace {
+
+template<typename T>
+struct is_std_vector : boost::mpl::false_
+{ };
+
+template<typename _Tp, typename _Alloc>
+struct is_std_vector<std::vector<_Tp, _Alloc>> : boost::mpl::true_
+{ };
+
+template<typename T>
+struct is_boost_tuple : boost::mpl::false_
+{ };
+
+template <class T0, class T1, class T2, class T3, class T4,
+          class T5, class T6, class T7, class T8, class T9>
+struct is_boost_tuple<boost::tuple<T0,T1,T2,T3,T4,T5,T6,T7,T8,T9>> : boost::mpl::true_
+{ };
+
+template<typename T>
+struct is_std_pair : boost::mpl::false_
+{ };
+
+template<typename T0, typename T1>
+struct is_std_pair<std::pair<T0, T1>> : boost::mpl::true_
+{ };
+
+typedef boost::mpl::vector<ASTNode, Annotation, Annotations, Program, Package,
+		Import, Block, Identifier, SimpleIdentifier, NestedIdentifier,
+		TemplatedIdentifier, Literal, NumericLiteral, StringLiteral,
+		ObjectLiteral, TypeSpecifier, FunctionType, Declaration, ClassDecl,
+		EnumDecl, InterfaceDecl, TypedefDecl, FunctionDecl, VariableDecl,
+		Statement, DeclarativeStmt, ExpressionStmt, IterativeStmt, ForStmt,
+		ForeachStmt, WhileStmt, Selection, SelectionStmt, IfElseStmt,
+		SwitchStmt, BranchStmt, Expression, PrimaryExpr, UnaryExpr, BinaryExpr,
+		TernaryExpr, MemberExpr, CallExpr, CastExpr> ASTNodeTypeVector;
+
+typedef boost::mpl::vector<ASTNode, Identifier, Identifier, Declaration,
+		Statement, IterativeStmt, SelectionStmt, Expression> ASTNodeInternalTypeVector;
+
+}
+
+template<typename T>
+inline bool compareDispatch(T& a, T& b, ASTNodeSet& visited)
+{
+	typedef boost::is_pointer<T> is_pointer_t;
+	typedef boost::mpl::contains<ASTNodeTypeVector, typename boost::remove_const<T>::type> is_ast_t;
+	typedef is_std_pair<typename boost::remove_const<T>::type> is_std_pair_t;
+	typedef is_std_vector<typename boost::remove_const<T>::type> is_std_vector_t;
+	typedef is_boost_tuple<typename boost::remove_const<T>::type> is_boost_tuple_t;
+
+	typedef boost::mpl::not_<
+			boost::mpl::or_<
+				is_pointer_t,
+				is_ast_t,
+				is_std_pair_t,
+				is_std_vector_t,
+				is_boost_tuple_t>> is_other_t;
+
+	return compareDispatchImpl(a, b, visited, is_pointer_t(), is_ast_t(), is_std_pair_t(), is_std_vector_t(), is_boost_tuple_t(), is_other_t());
+};
+
+template<typename T>
+inline bool compareDispatchImpl(
+		T& a, T& b, ASTNodeSet& visited,
+		boost::mpl::true_ /*is_pointer*/,
+		boost::mpl::false_ /*is_ast*/,
+		boost::mpl::false_ /*is_pair*/,
+		boost::mpl::false_ /*is_vector*/,
+		boost::mpl::false_ /*is_tuple*/,
+		boost::mpl::false_ /*is_other*/)
+{
+	if(a == NULL && b == NULL)
+		return true;
+	else if((a == NULL && b != NULL) || (a != NULL && b == NULL))
+		return false;
+	else
+		return compareDispatch(*a, *b, visited);
+}
+
+template<typename T>
+inline bool compareDispatchImpl(
+		T& a, T& b, ASTNodeSet& visited,
+		boost::mpl::false_ /*is_pointer*/,
+		boost::mpl::true_ /*is_ast*/,
+		boost::mpl::false_ /*is_pair*/,
+		boost::mpl::false_ /*is_vector*/,
+		boost::mpl::false_ /*is_tuple*/,
+		boost::mpl::false_ /*is_other*/)
+{
+	return a.isEqualImpl(b, visited);
+}
+
+template<typename T>
+inline bool compareDispatchImpl(
+		T& a, T& b, ASTNodeSet& visited,
+		boost::mpl::false_ /*is_pointer*/,
+		boost::mpl::false_ /*is_ast*/,
+		boost::mpl::true_ /*is_pair*/,
+		boost::mpl::false_ /*is_vector*/,
+		boost::mpl::false_ /*is_tuple*/,
+		boost::mpl::false_ /*is_other*/)
+{
+	if(compareDispatch(a.first, b.first, visited))
+	{
+		return compareDispatch(a.second, b.second, visited);
+	}
+	else
+	{
+		return false;
+	}
+}
+
+template<typename T>
+inline bool compareDispatchImpl(
+		T& a, T& b, ASTNodeSet& visited,
+		boost::mpl::false_ /*is_pointer*/,
+		boost::mpl::false_ /*is_ast*/,
+		boost::mpl::false_ /*is_pair*/,
+		boost::mpl::true_ /*is_vector*/,
+		boost::mpl::false_ /*is_tuple*/,
+		boost::mpl::false_ /*is_other*/)
+{
+	if(a.size() != b.size())
+		return false;
+
+	auto iterator_a = a.begin(); auto iterator_end_a = a.end();
+	auto iterator_b = b.begin(); auto iterator_end_b = b.end();
+
+	while(iterator_a != iterator_end_a && iterator_b != iterator_end_b)
+	{
+		bool result = compareDispatch(*iterator_a, *iterator_b, visited);
+		if(!result) return false;
+
+		++iterator_a; ++iterator_b;
+	}
+
+	return true;
+}
+
+template<typename T>
+inline bool compareDispatchImpl(
+		T& a, T& b, ASTNodeSet& visited,
+		boost::mpl::false_ /*is_pointer*/,
+		boost::mpl::false_ /*is_ast*/,
+		boost::mpl::false_ /*is_pair*/,
+		boost::mpl::false_ /*is_vector*/,
+		boost::mpl::true_ /*is_tuple*/,
+		boost::mpl::false_ /*is_other*/)
+{
+	// TODO implement boost tuple traversal
+	return true;
+}
+
+template<typename T>
+inline bool compareDispatchImpl(
+		T& a, T& b, ASTNodeSet& visited,
+		boost::mpl::false_ /*is_pointer*/,
+		boost::mpl::false_ /*is_ast*/,
+		boost::mpl::false_ /*is_pair*/,
+		boost::mpl::false_ /*is_vector*/,
+		boost::mpl::false_ /*is_tuple*/,
+		boost::mpl::true_ /*is_other*/)
+{
+	return (a == b);
+}
+
+#define BEGIN_COMPARE() \
+		typedef typename boost::remove_const<typename boost::remove_reference<decltype(*this)>::type>::type self_type; \
+		if(!boost::mpl::contains<ASTNodeInternalTypeVector, self_type>::value) \
+			if(visited.count(this)) \
+				return true; \
+			else \
+				visited.insert(this); \
+		const self_type* p = cast<const self_type>(&rhs); \
+		if(p == NULL) \
+			return false;
+
+#define BEGIN_COMPARE_WITH_BASE(base_class_name) \
+		typedef typename boost::remove_const<typename boost::remove_reference<decltype(*this)>::type>::type self_type; \
+		const self_type* p = cast<const self_type>(&rhs); \
+		if(p == NULL) \
+			return false; \
+		if(!base_class_name::isEqualImpl(*p, visited)) \
+			return false;
+
+#define COMPARE_MEMBER(member) \
+		if(!compareDispatch(member, p->member, visited)) return false;
+
+#define END_COMPARE()	\
+		return true;
 
 typedef GarbageCollector<const ASTNode> ASTNodeGC;
 

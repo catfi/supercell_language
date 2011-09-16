@@ -90,28 +90,11 @@ struct FunctionType: public ASTNode
 
     virtual bool isEqualImpl(const ASTNode& rhs, ASTNodeSet& visited) const
     {
-        if(visited.count(this))
-        {
-        	return true ;
-        }
-
-        const FunctionType* p = cast<const FunctionType>(&rhs);
-        if(p == NULL)
-        {
-        	return false;
-        }
-
-        // compare base class
-        // base is ASTNode, no need to compare.
-
-        // compare data member
-		COMPARE_ASTNODE_MEMBER(templated_parameters);
-		COMPARE_ASTNODE_MEMBER(argument_types);
-		COMPARE_ASTNODE_MEMBER(return_type);
-
-        // add this to the visited table.
-        visited.insert(this);
-        return true;
+    	BEGIN_COMPARE()
+		COMPARE_MEMBER(templated_parameters)
+		COMPARE_MEMBER(argument_types)
+		COMPARE_MEMBER(return_type)
+		END_COMPARE()
     }
 
 	std::vector<Identifier*> templated_parameters;

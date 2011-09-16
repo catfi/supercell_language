@@ -48,30 +48,10 @@ struct InterfaceDecl : public Declaration
 
     virtual bool isEqualImpl(const ASTNode& rhs, ASTNodeSet& visited) const
     {
-        if(visited.count(this))
-        {
-            return true ;
-        }
-
-        const InterfaceDecl* p = cast<const InterfaceDecl>(&rhs);
-        if(p == NULL)
-        {
-            return false;
-        }
-
-        // compare base class
-        if(!Declaration::isEqualImpl(*p, visited))
-        {
-            return false;
-        }
-
-        // compare data member
-		COMPARE_ASTNODE_MEMBER(name);
-		COMPARE_ASTNODE_MEMBER(member_functions);
-
-        // add this to the visited table.
-        visited.insert(this);
-        return true;
+    	BEGIN_COMPARE_WITH_BASE(Declaration)
+		COMPARE_MEMBER(name)
+		COMPARE_MEMBER(member_functions)
+		END_COMPARE()
     }
 
 	Identifier* name;

@@ -53,35 +53,15 @@ struct FunctionDecl : public Declaration
 
     virtual bool isEqualImpl(const ASTNode& rhs, ASTNodeSet& visited) const
     {
-        if(visited.count(this))
-        {
-            return true ;
-        }
-
-        const FunctionDecl* p = cast<const FunctionDecl>(&rhs);
-        if(p == NULL)
-        {
-            return false;
-        }
-
-        // compare base class
-        if(!Declaration::isEqualImpl(*p, visited))
-        {
-            return false;
-        }
-
-        // compare data member
-		COMPARE_ASTNODE_MEMBER(name);
-        if(!isTupleVectorMemberEqual(&FunctionDecl::parameters, *this, *p, visited)) return false;
-		COMPARE_ASTNODE_MEMBER(type);
-		COMPARE_MEMBER(is_member);
-		COMPARE_MEMBER(is_static);
-		COMPARE_MEMBER(visibility);
-		COMPARE_ASTNODE_MEMBER(block);
-
-        // add this to the visited table.
-        visited.insert(this);
-        return true;
+    	BEGIN_COMPARE_WITH_BASE(Declaration)
+		COMPARE_MEMBER(name)
+        COMPARE_MEMBER(parameters)
+        COMPARE_MEMBER(type)
+		COMPARE_MEMBER(is_member)
+		COMPARE_MEMBER(is_static)
+		COMPARE_MEMBER(visibility)
+		COMPARE_MEMBER(block)
+		END_COMPARE()
     }
 
 	Identifier* name;

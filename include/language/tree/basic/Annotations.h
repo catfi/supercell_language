@@ -47,29 +47,10 @@ struct Annotation : public ASTNode
 
     virtual bool isEqualImpl(const ASTNode& rhs, ASTNodeSet& visited) const
     {
-        // if this node is compared already, return true directly, avoid infinite recursive comparing.
-        if(visited.count(this))
-        {
-            return true ;
-        }
-
-        // check type
-        const Annotation* p = cast<const Annotation>(&rhs);
-        if(p == NULL)
-        {
-            return false; 
-        }
-
-        // compare base class
-        // The base is ASTNode, no need to be compared.
-
-        // compare data member
-		COMPARE_ASTNODE_MEMBER(name);
-		COMPARE_ASTNODE_MEMBER(attribute_list);
-
-        // add this to the visited table.
-        visited.insert(this);
-        return true;
+    	BEGIN_COMPARE()
+		COMPARE_MEMBER(name)
+		COMPARE_MEMBER(attribute_list)
+		END_COMPARE()
     }
 
 	SimpleIdentifier* name;
@@ -89,26 +70,9 @@ struct Annotations : public ASTNode
 
     virtual bool isEqualImpl(const ASTNode& rhs, ASTNodeSet& visited) const
     {
-        if(visited.count(this))
-        {
-        	return true ;
-        }
-
-        const Annotations* p = cast<const Annotations>(&rhs);
-        if(p == NULL)
-        {
-        	return false;
-        }
-
-        // compare base class
-        // The base is ASTNode, no need to be compared.
-
-        // compare data member
-		COMPARE_ASTNODE_MEMBER(annotation_list);
-
-        // add this to the visited table.
-        visited.insert(this);
-        return true;
+    	BEGIN_COMPARE()
+		COMPARE_MEMBER(annotation_list)
+    	END_COMPARE()
     }
 
 	std::vector<Annotation*> annotation_list;

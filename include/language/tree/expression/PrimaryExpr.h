@@ -84,35 +84,15 @@ struct PrimaryExpr : public Expression
 
     virtual bool isEqualImpl(const ASTNode& rhs, ASTNodeSet& visited) const
     {
-        if(visited.count(this))
-        {
-            return true ;
-        }
-
-        const PrimaryExpr* p = cast<const PrimaryExpr>(&rhs);
-        if(p == NULL)
-        {
-            return false;
-        }
-
-        // compare base class
-        if(!Expression::isEqualImpl(*p, visited))
-        {
-            return false;
-        }
-
-        // compare data member
-		COMPARE_MEMBER(catagory);
+    	BEGIN_COMPARE_WITH_BASE(Expression)
+		COMPARE_MEMBER(catagory)
         switch (catagory)
         {
-        case Catagory::IDENTIFIER: COMPARE_ASTNODE_MEMBER(value.identifier); break;
-        case Catagory::LITERAL   : COMPARE_ASTNODE_MEMBER(value.literal   ); break;
-		case Catagory::LAMBDA    : COMPARE_ASTNODE_MEMBER(value.lambda    ); break;
+        case Catagory::IDENTIFIER: COMPARE_MEMBER(value.identifier); break;
+        case Catagory::LITERAL   : COMPARE_MEMBER(value.literal   ); break;
+		case Catagory::LAMBDA    : COMPARE_MEMBER(value.lambda    ); break;
         }
-
-        // add this to the visited table.
-        visited.insert(this);
-        return true;
+    	END_COMPARE()
     }
 
 	Catagory::type catagory;

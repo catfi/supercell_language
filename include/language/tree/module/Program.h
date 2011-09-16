@@ -53,27 +53,10 @@ struct Program : public ASTNode
 
     virtual bool isEqualImpl(const ASTNode& rhs, ASTNodeSet& visited) const
     {
-        if(visited.count(this))
-        {
-            return true ;
-        }
-
-        const Program* p = cast<const Program>(&rhs);
-        if(p == NULL)
-        {
-            return false;
-        }
-
-        // compare base class
-        // base is ASTNode, no need to compare
-
-        // compare data member
-		COMPARE_ASTNODE_MEMBER(root);
-		COMPARE_ASTNODE_MEMBER(imports);
-
-        // add this to the visited table.
-        visited.insert(this);
-        return true;
+    	BEGIN_COMPARE()
+		COMPARE_MEMBER(root)
+		COMPARE_MEMBER(imports)
+		END_COMPARE()
     }
 
 	Package* root;

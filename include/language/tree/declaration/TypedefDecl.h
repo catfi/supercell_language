@@ -42,30 +42,10 @@ struct TypedefDecl : public Declaration
 
     virtual bool isEqualImpl(const ASTNode& rhs, ASTNodeSet& visited) const
     {
-        if(visited.count(this))
-        {
-            return true ;
-        }
-
-        const TypedefDecl* p = cast<const TypedefDecl>(&rhs);
-        if(p == NULL)
-        {
-            return false;
-        }
-
-        // compare base class
-        if(!Declaration::isEqualImpl(*p, visited))
-        {
-            return false;
-        }
-
-        // compare data member
-		COMPARE_ASTNODE_MEMBER(from);
-		COMPARE_ASTNODE_MEMBER(to);
-
-        // add this to the visited table.
-        visited.insert(this);
-        return true;
+    	BEGIN_COMPARE_WITH_BASE(Declaration)
+		COMPARE_MEMBER(from)
+		COMPARE_MEMBER(to)
+		END_COMPARE()
     }
 
 	TypeSpecifier* from;

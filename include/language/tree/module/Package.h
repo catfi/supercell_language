@@ -73,28 +73,11 @@ struct Package : public ASTNode
 
     virtual bool isEqualImpl(const ASTNode& rhs, ASTNodeSet& visited) const
     {
-        if(visited.count(this))
-        {
-            return true ;
-        }
-
-        const Package* p = cast<const Package>(&rhs);
-        if(p == NULL)
-        {
-            return false;
-        }
-
-        // compare base class
-        // base is ASTNode, no need to compare
-
-        // compare data member
-		COMPARE_ASTNODE_MEMBER(id);
-		COMPARE_ASTNODE_MEMBER(children);
-		COMPARE_ASTNODE_MEMBER(objects);
-
-        // add this to the visited table.
-        visited.insert(this);
-        return true;
+    	BEGIN_COMPARE()
+		COMPARE_MEMBER(id)
+		COMPARE_MEMBER(children)
+		COMPARE_MEMBER(objects)
+		END_COMPARE()
     }
 
 	SimpleIdentifier* id;

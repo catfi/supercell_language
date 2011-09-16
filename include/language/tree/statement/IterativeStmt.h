@@ -36,29 +36,8 @@ struct IterativeStmt : public Statement
 
     virtual bool isEqualImpl(const ASTNode& rhs, ASTNodeSet& visited) const
     {
-        if(visited.count(this))
-        {
-            return true ;
-        }
-
-        const IterativeStmt* p = cast<const IterativeStmt>(&rhs);
-        if(p == NULL)
-        {
-            return false;
-        }
-
-        // compare base class
-        if(!Statement::isEqualImpl(*p, visited))
-        {
-            return false;
-        }
-
-        // compare data member
-        // no data member
-
-        // add this to the visited table.
-        visited.insert(this);
-        return true;
+    	BEGIN_COMPARE_WITH_BASE(Statement)
+    	END_COMPARE()
     }
 
 };
@@ -82,32 +61,12 @@ struct ForStmt : public IterativeStmt
 
     virtual bool isEqualImpl(const ASTNode& rhs, ASTNodeSet& visited) const
     {
-        if(visited.count(this))
-        {
-            return true ;
-        }
-
-        const ForStmt* p = cast<const ForStmt>(&rhs);
-        if(p == NULL)
-        {
-            return false;
-        }
-
-        // compare base class
-        if(!IterativeStmt::isEqualImpl(*p, visited))
-        {
-            return false;
-        }
-
-        // compare data member
-		COMPARE_ASTNODE_MEMBER(init);
-		COMPARE_ASTNODE_MEMBER(cond);
-		COMPARE_ASTNODE_MEMBER(step);
-		COMPARE_ASTNODE_MEMBER(block);
-
-        // add this to the visited table.
-        visited.insert(this);
-        return true;
+    	BEGIN_COMPARE_WITH_BASE(IterativeStmt)
+		COMPARE_MEMBER(init)
+		COMPARE_MEMBER(cond)
+		COMPARE_MEMBER(step)
+		COMPARE_MEMBER(block)
+		END_COMPARE()
     }
 
 	ASTNode* init;
@@ -133,31 +92,11 @@ struct ForeachStmt : public IterativeStmt
 
     virtual bool isEqualImpl(const ASTNode& rhs, ASTNodeSet& visited) const
     {
-        if(visited.count(this))
-        {
-            return true ;
-        }
-
-        const ForeachStmt* p = cast<const ForeachStmt>(&rhs);
-        if(p == NULL)
-        {
-            return false;
-        }
-
-        // compare base class
-        if(!IterativeStmt::isEqualImpl(*p, visited))
-        {
-            return false;
-        }
-
-        // compare data member
-		COMPARE_ASTNODE_MEMBER(iterator);
-		COMPARE_ASTNODE_MEMBER(range);
-		COMPARE_ASTNODE_MEMBER(block);
-
-        // add this to the visited table.
-        visited.insert(this);
-        return true;
+    	BEGIN_COMPARE_WITH_BASE(IterativeStmt)
+		COMPARE_MEMBER(iterator)
+		COMPARE_MEMBER(range)
+		COMPARE_MEMBER(block)
+		END_COMPARE()
     }
 
 	ASTNode* iterator; // TODO semantic-check: it must be L-value expression or declarative statement
@@ -197,31 +136,11 @@ struct WhileStmt : public IterativeStmt
 
     virtual bool isEqualImpl(const ASTNode& rhs, ASTNodeSet& visited) const
     {
-        if(visited.count(this))
-        {
-            return true ;
-        }
-
-        const WhileStmt* p = cast<const WhileStmt>(&rhs);
-        if(p == NULL)
-        {
-            return false;
-        }
-
-        // compare base class
-        if(!IterativeStmt::isEqualImpl(*p, visited))
-        {
-            return false;
-        }
-
-        // compare data member
-		COMPARE_MEMBER(style);
-		COMPARE_ASTNODE_MEMBER(cond);
-		COMPARE_ASTNODE_MEMBER(block);
-
-        // add this to the visited table.
-        visited.insert(this);
-        return true;
+    	BEGIN_COMPARE_WITH_BASE(IterativeStmt)
+		COMPARE_MEMBER(style)
+		COMPARE_MEMBER(cond)
+		COMPARE_MEMBER(block)
+		END_COMPARE()
     }
 
 	Style::type style;

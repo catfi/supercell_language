@@ -34,8 +34,8 @@ struct Expression : public ASTNode
 {
     friend class Selection;
 
-	DEFINE_VISITABLE();
-	DEFINE_HIERARCHY(Expression, (Expression)(ASTNode));
+	DEFINE_VISITABLE()
+	DEFINE_HIERARCHY(Expression, (Expression)(ASTNode))
 
 	Expression() : annotations(NULL)
 	{ }
@@ -52,26 +52,9 @@ struct Expression : public ASTNode
 
     virtual bool isEqualImpl(const ASTNode& rhs, ASTNodeSet& visited) const
     {
-        if(visited.count(this))
-        {
-            return true ;
-        }
-
-        const Expression* p = cast<const Expression>(&rhs);
-        if(p == NULL)
-        {
-            return false;
-        }
-
-        // compare base class
-        // The base is ASTNode, no need to compare
-
-        // compare data member
-		COMPARE_ASTNODE_MEMBER(annotations);
-
-        // add this to the visited table.
-        visited.insert(this);
-        return true;
+    	BEGIN_COMPARE()
+		COMPARE_MEMBER(annotations)
+		END_COMPARE()
     }
 
 	Annotations* annotations;
