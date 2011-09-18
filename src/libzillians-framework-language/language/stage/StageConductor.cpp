@@ -38,6 +38,9 @@ void StageConductor::appendStage(shared_ptr<Stage> stage)
 
 int StageConductor::main(int argc, const char** argv)
 {
+	// make sure logger is initialized;
+	LoggerWrapper::instance();
+
 	// initialize the global configuration context
 	ConfigurationContext* config = new ConfigurationContext();
 	setConfigurationContext(config);
