@@ -17,8 +17,8 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef ZILLIANS_LANGUAGE_STAGE_LLVMVALUECONTEXT_H_
-#define ZILLIANS_LANGUAGE_STAGE_LLVMVALUECONTEXT_H_
+#ifndef ZILLIANS_LANGUAGE_STAGE_SYNTHESIZEDVALUECONTEXT_H_
+#define ZILLIANS_LANGUAGE_STAGE_SYNTHESIZEDVALUECONTEXT_H_
 
 #include "core/Prerequisite.h"
 #include "language/tree/ASTNodeFactory.h"
@@ -27,11 +27,35 @@
 
 namespace zillians { namespace language { namespace stage {
 
-struct LLVMValueContext
+struct SynthesizedValueContext
 {
+	SynthesizedValueContext(llvm::Value* v) : v(v)
+	{ }
 
+	static SynthesizedValueContext* get(tree::ASTNode* node)
+	{
+		return node->get<SynthesizedValueContext>();
+	}
+
+	static void set(tree::ASTNode* node, SynthesizedValueContext* ctx)
+	{
+		node->set<SynthesizedValueContext>(ctx);
+	}
+
+	llvm::Value* v;
 };
+
+#define GET_SYNTHESIZED_LLVM_VALUE(x) \
+	((SynthesizedValueContext::get(x)) ? SynthesizedValueContext::get(x)->v : NULL)
+
+#define SET_SYNTHESIZED_LLVM_VALUE(x, val)  \
+	{ \
+		if(SynthesizedValueContext::get(x)) \
+			SynthesizedValueContext::get((x))->v = val; \
+		else \
+			SynthesizedValueContext::set(x, new SynthesizedValueContext(val)); \
+	}
 
 } } }
 
-#endif /* ZILLIANS_LANGUAGE_STAGE_LLVMVALUECONTEXT_H_ */
+#endif /* ZILLIANS_LANGUAGE_STAGE_SYNTHESIZEDVALUECONTEXT_H_ */

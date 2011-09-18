@@ -27,7 +27,8 @@
 #include "language/stage/generator/detail/LLVMHelper.h"
 #include "language/context/ResolverContext.h"
 #include "language/stage/transformer/context/ManglingStageContext.h"
-
+#include "language/stage/generator/context/SynthesizedValueContext.h"
+#include "language/stage/generator/context/SynthesizedFunctionContext.h"
 
 using namespace zillians::language::tree;
 using zillians::language::tree::visitor::GenericDoubleVisitor;
@@ -80,7 +81,7 @@ struct LLVMGeneratorVisitor : GenericDoubleVisitor
 			terminateRevisit();
 		}
 
-		node.set<llvm::Value>(result);
+		SET_SYNTHESIZED_LLVM_VALUE(&node, result);
 	}
 
 	void generate(ObjectLiteral& node)
@@ -114,6 +115,13 @@ struct LLVMGeneratorVisitor : GenericDoubleVisitor
 				return;
 			}
 
+			// create alloca for all parameters
+			if(!allocateParameters(node))
+			{
+				terminateRevisit();
+				return;
+			}
+
 			// visit all children
 			revisit(node);
 
@@ -142,8 +150,8 @@ struct LLVMGeneratorVisitor : GenericDoubleVisitor
 
 			if(node.initializer)
 			{
-				llvm::Value* llvm_alloca_inst = node.get<llvm::Value>();
-				llvm::Value* llvm_init = node.initializer->get<llvm::Value>();
+				llvm::Value* llvm_alloca_inst = GET_SYNTHESIZED_LLVM_VALUE(&node);
+				llvm::Value* llvm_init = GET_SYNTHESIZED_LLVM_VALUE(node.initializer);
 
 				if(llvm_init)
 				{
@@ -153,7 +161,7 @@ struct LLVMGeneratorVisitor : GenericDoubleVisitor
 					BOOST_ASSERT(llvm::cast<llvm::AllocaInst>(llvm_alloca_inst)->getAllocatedType() == llvm_init->getType());
 					BOOST_ASSERT(llvm::cast<llvm::PointerType>(llvm_alloca_inst->getType())->getElementType() == llvm_init->getType());
 					llvm::StoreInst* store_inst = mBuilder.CreateStore(llvm_init, llvm_alloca_inst);
-					node.set<llvm::StoreInst>(store_inst);
+					SET_SYNTHESIZED_LLVM_VALUE(&node, store_inst);
 				}
 			}
 		}
@@ -188,7 +196,7 @@ struct LLVMGeneratorVisitor : GenericDoubleVisitor
 		{
 			if(node.result)
 			{
-				llvm::Value* return_value = node.result->get<llvm::Value>();
+				llvm::Value* return_value = GET_SYNTHESIZED_LLVM_VALUE(node.result);
 				BOOST_ASSERT(return_value && "invalid LLVM value for return instruction");
 				mBuilder.CreateStore(return_value, mFunctionContext.return_value);
 				result = mBuilder.CreateBr(mFunctionContext.return_block);
@@ -208,7 +216,7 @@ struct LLVMGeneratorVisitor : GenericDoubleVisitor
 			terminateRevisit();
 		}
 
-		node.set<llvm::Value>(result);
+		SET_SYNTHESIZED_LLVM_VALUE(&node, result);
 	}
 
 	void generate(ExpressionStmt& node)
@@ -282,7 +290,8 @@ struct LLVMGeneratorVisitor : GenericDoubleVisitor
 		{
 			// for if branch
 			{
-				llvm::Value* llvm_if_cond = node.if_branch.cond->get<llvm::Value>();
+				llvm::Value* llvm_if_cond = GET_SYNTHESIZED_LLVM_VALUE(node.if_branch.cond);
+
 				if(!isBlockTerminated(llvm_blocks[0]))
 				{
 					mBuilder.SetInsertPoint(llvm_blocks[0]); // [0] is the 'condition evaluation block for if branch'
@@ -301,7 +310,8 @@ struct LLVMGeneratorVisitor : GenericDoubleVisitor
 			{
 				foreach(i, node.elseif_branches)
 				{
-					llvm::Value* llvm_elif_cond = i->cond->get<llvm::Value>();
+					llvm::Value* llvm_elif_cond = GET_SYNTHESIZED_LLVM_VALUE(i->cond);
+
 					if(!isBlockTerminated(llvm_blocks[index]))
 					{
 						mBuilder.SetInsertPoint(llvm_blocks[index]);
@@ -358,7 +368,7 @@ struct LLVMGeneratorVisitor : GenericDoubleVisitor
 		visit(*node.cond);
 
 		// conditional branch to either action block or finalized block
-		llvm::Value* llvm_cond = node.cond->get<llvm::Value>();
+		llvm::Value* llvm_cond = GET_SYNTHESIZED_LLVM_VALUE(node.cond);
 		mBuilder.CreateCondBr(llvm_cond, action_block, finalized_block);
 
 		enterBasicBlock(action_block);
@@ -408,7 +418,7 @@ struct LLVMGeneratorVisitor : GenericDoubleVisitor
 			visit(*node.cond);
 
 			// conditional branch to either action block or finalized block
-			llvm::Value* llvm_cond = node.cond->get<llvm::Value>();
+			llvm::Value* llvm_cond = GET_SYNTHESIZED_LLVM_VALUE(node.cond);
 			mBuilder.CreateCondBr(llvm_cond, action_block, finalized_block);
 
 			enterBasicBlock(action_block);
@@ -432,7 +442,7 @@ struct LLVMGeneratorVisitor : GenericDoubleVisitor
 			enterBasicBlock(cond_block);
 			visit(*node.cond);
 
-			llvm::Value* llvm_cond = node.cond->get<llvm::Value>();
+			llvm::Value* llvm_cond = GET_SYNTHESIZED_LLVM_VALUE(node.cond);
 			mBuilder.CreateCondBr(llvm_cond, action_block, finalized_block);
 
 			// enter finalized block
@@ -477,8 +487,6 @@ struct LLVMGeneratorVisitor : GenericDoubleVisitor
 		revisit(node);
 
 		llvm::Value* result = NULL;
-//		llvm::Value* operand = node.node->get<llvm::Value>();
-//		llvm::Value* operand_value = llvm::isa<llvm::AllocaInst>(operand) ? mBuilder.CreateLoad(operand) : operand;
 
 		ASTNode* operand_resolved;
 		llvm::Value* operand_value_for_read;
@@ -525,7 +533,7 @@ struct LLVMGeneratorVisitor : GenericDoubleVisitor
 			terminateRevisit();
 		}
 
-		node.set<llvm::Value>(result);
+		SET_SYNTHESIZED_LLVM_VALUE(&node, result);
 	}
 
 	void generate(BinaryExpr& node)
@@ -671,7 +679,7 @@ struct LLVMGeneratorVisitor : GenericDoubleVisitor
 			terminateRevisit();
 		}
 
-		node.set<llvm::Value>(result);
+		SET_SYNTHESIZED_LLVM_VALUE(&node, result);
 	}
 
 	void generate(TernaryExpr& node)
@@ -690,7 +698,7 @@ struct LLVMGeneratorVisitor : GenericDoubleVisitor
 			visit(*node.cond);
 
 			// conditional branch to either action block or finalized block
-			llvm::Value* llvm_cond = node.cond->get<llvm::Value>();
+			llvm::Value* llvm_cond = GET_SYNTHESIZED_LLVM_VALUE(node.cond);
 			mBuilder.CreateCondBr(llvm_cond, true_block, false_block);
 		}
 
@@ -713,8 +721,8 @@ struct LLVMGeneratorVisitor : GenericDoubleVisitor
 		// try enter finalized block and create branch from true block
 		enterBasicBlock(final_block);
 		{
-			llvm::Value* true_value = node.true_node->get<llvm::Value>();
-			llvm::Value* false_value = node.false_node->get<llvm::Value>();
+			llvm::Value* true_value = GET_SYNTHESIZED_LLVM_VALUE(node.true_node);
+			llvm::Value* false_value = GET_SYNTHESIZED_LLVM_VALUE(node.false_node);
 			if(node.isRValue())
 			{
 				if(true_value->getType()->isPointerTy())
@@ -728,7 +736,7 @@ struct LLVMGeneratorVisitor : GenericDoubleVisitor
 			phi->addIncoming(true_value, true_block);
 			phi->addIncoming(false_value, false_block);
 
-			node.set<llvm::Value>(phi);
+			SET_SYNTHESIZED_LLVM_VALUE(&node, phi);
 		}
 	}
 
@@ -757,11 +765,11 @@ struct LLVMGeneratorVisitor : GenericDoubleVisitor
 		ASTNode* resolved = ResolvedSymbol::get(node.node);
 		if(isa<FunctionDecl>(resolved))
 		{
-			llvm::Function* llvm_function = resolved->get<llvm::Function>();
+			llvm::Function* llvm_function = GET_SYNTHESIZED_LLVM_FUNCTION(resolved);
 			if(llvm_function)
 			{
 				llvm::Value* result = mBuilder.CreateCall(llvm_function, arguments.begin(), arguments.end());
-				node.set<llvm::Value>(result);
+				SET_SYNTHESIZED_LLVM_VALUE(&node, result);
 			}
 			else
 			{
@@ -829,7 +837,7 @@ private:
 
 	bool createAlloca(VariableDecl& ast_variable)
 	{
-		if(!!ast_variable.get<llvm::Value>())
+		if(GET_SYNTHESIZED_LLVM_VALUE(&ast_variable))
 			return true;
 
 		const llvm::Type* llvm_variable_type = NULL;
@@ -845,7 +853,7 @@ private:
 		else
 			llvm_alloca_inst = new llvm::AllocaInst(llvm_variable_type, 0, "", mFunctionContext.alloca_insert_point);
 
-		ast_variable.set<llvm::Value>(llvm_alloca_inst);
+		SET_SYNTHESIZED_LLVM_VALUE(&ast_variable, llvm_alloca_inst);
 
 		return true;
 	}
@@ -858,7 +866,7 @@ private:
 		BOOST_ASSERT(!mFunctionContext.return_block);
 		BOOST_ASSERT(!mFunctionContext.alloca_insert_point);
 
-		llvm::Function* llvm_function = ast_function.get<llvm::Function>();
+		llvm::Function* llvm_function = GET_SYNTHESIZED_LLVM_FUNCTION(&ast_function);
 		if(!llvm_function)
 		{
 			BOOST_ASSERT(false && "invalid LLVM function object");
@@ -901,6 +909,41 @@ private:
 		return true;
 	}
 
+	bool allocateParameters(FunctionDecl& ast_function)
+	{
+		llvm::Function* llvm_function = GET_SYNTHESIZED_LLVM_FUNCTION(&ast_function);
+		if(!llvm_function)
+		{
+			BOOST_ASSERT(false && "invalid LLVM function object");
+			terminateRevisit();
+			return false;
+		}
+
+		int index = 0;
+		for(llvm::Function::arg_iterator it_arg = llvm_function->arg_begin(); it_arg != llvm_function->arg_end(); ++it_arg, ++index)
+		{
+			SimpleIdentifier* parameter_identifier = ast_function.parameters[index].get<0>();
+
+			const llvm::Type* t;
+			llvm::Attributes modifier;
+			if(mHelper.getType(*ast_function.parameters[index].get<1>(), t, modifier) && t && !t->isVoidTy())
+			{
+				llvm::AllocaInst* parameter_alloc = createAlloca(t, NameManglingContext::get(parameter_identifier)->managled_name + "_parameter_alloca");
+				mBuilder.CreateStore(&(*it_arg), parameter_alloc);
+
+				// store the alloca in the parameter identifier
+				SET_SYNTHESIZED_LLVM_VALUE(parameter_identifier, parameter_alloc);
+			}
+			else
+			{
+				BOOST_ASSERT(false && "writing to read-only LLVM type");
+				return false;
+			}
+		}
+
+		return true;
+	}
+
 	bool finishFunction(FunctionDecl& ast_function)
 	{
 		enterBasicBlock(mFunctionContext.return_block);
@@ -933,7 +976,7 @@ private:
 private:
 	bool getValue(ASTNode& node, /*OUT*/ ASTNode*& resolved_symbol, /*OUT*/ llvm::Value*& llvm_value_for_read, /*OUT*/ llvm::Value*& llvm_value_for_write, bool require_write_access = false)
 	{
-		llvm_value_for_read = node.get<llvm::Value>();
+		llvm_value_for_read = GET_SYNTHESIZED_LLVM_VALUE(&node);
 		if(llvm_value_for_read)
 		{
 			if(llvm_value_for_read->getType()->isPointerTy())
@@ -958,7 +1001,7 @@ private:
 			if(!resolved_symbol)
 				return false;
 
-			llvm_value_for_read = resolved_symbol->get<llvm::Value>();
+			llvm_value_for_read = GET_SYNTHESIZED_LLVM_VALUE(resolved_symbol);
 
 			if(llvm_value_for_read)
 			{
@@ -976,41 +1019,59 @@ private:
 					}
 				}
 			}
-			else if(isFunctionParameter(*resolved_symbol))
-			{
-				FunctionDecl* ast_function = getContainingFunction(*resolved_symbol);
-				int index = getFunctionParameterIndex(*resolved_symbol);
-
-				llvm::Function* llvm_function = ast_function->get<llvm::Function>();
-
-				llvm::Function::arg_iterator llvm_function_parameter_iterator = llvm_function->arg_begin();
-				// because argument iterator is not a randome access iterator, we have to advance the iterator step-by-step
-				for(int r = 0; r < index; ++r, ++llvm_function_parameter_iterator);
-
-				llvm_value_for_read = &(*(llvm_function_parameter_iterator));
-
-				if(require_write_access)
-				{
-					const llvm::Type* t;
-					llvm::Attributes modifier;
-					if(mHelper.getType(*ast_function->parameters[index].get<1>(), t, modifier) && t && !t->isVoidTy())
-					{
-						llvm_value_for_write = createAlloca(t, NameManglingContext::get(resolved_symbol)->managled_name);
-						mBuilder.CreateStore(llvm_value_for_read, llvm_value_for_write);
-
-						// TODO this can be removed since it's the very first time we create alloca and store parameter value into it
-						llvm_value_for_read = mBuilder.CreateLoad(llvm_value_for_write);
-
-						// store the alloca in the parameter
-						resolved_symbol->set<llvm::Value>(llvm_value_for_write);
-					}
-					else
-					{
-						BOOST_ASSERT(false && "writing to read-only LLVM type");
-						return false;
-					}
-				}
-			}
+//			else if(isFunctionParameter(*resolved_symbol))
+//			{
+//				llvm_value_for_read = GET_SYNTHESIZED_LLVM_VALUE(resolved_symbol);
+//
+//				if(llvm_value_for_read->getType()->isPointerTy())
+//				{
+//					llvm_value_for_write = llvm_value_for_read;
+//					llvm_value_for_read = mBuilder.CreateLoad(llvm_value_for_read);
+//				}
+//				else
+//				{
+//					if(require_write_access)
+//					{
+//						BOOST_ASSERT(false && "writing to read-only LLVM value");
+//						return false;
+//					}
+//				}
+//				// TODO
+//				/*
+//				FunctionDecl* ast_function = getContainingFunction(*resolved_symbol);
+//				int index = getFunctionParameterIndex(*resolved_symbol);
+//
+//				llvm::Function* llvm_function = GET_SYNTHESIZED_LLVM_FUNCTION(ast_function);
+//
+//				llvm::Function::arg_iterator llvm_function_parameter_iterator = llvm_function->arg_begin();
+//				// because argument iterator is not a randome access iterator, we have to advance the iterator step-by-step
+//				for(int r = 0; r < index; ++r, ++llvm_function_parameter_iterator);
+//
+//				llvm_value_for_read = &(*(llvm_function_parameter_iterator));
+//
+//				if(require_write_access)
+//				{
+//					const llvm::Type* t;
+//					llvm::Attributes modifier;
+//					if(mHelper.getType(*ast_function->parameters[index].get<1>(), t, modifier) && t && !t->isVoidTy())
+//					{
+//						llvm_value_for_write = createAlloca(t, NameManglingContext::get(resolved_symbol)->managled_name);
+//						mBuilder.CreateStore(llvm_value_for_read, llvm_value_for_write);
+//
+//						// TODO this can be removed since it's the very first time we create alloca and store parameter value into it
+//						llvm_value_for_read = mBuilder.CreateLoad(llvm_value_for_write);
+//
+//						// store the alloca in the parameter
+//						SET_SYNTHESIZED_LLVM_VALUE(resolved_symbol, llvm_value_for_write);
+//					}
+//					else
+//					{
+//						BOOST_ASSERT(false && "writing to read-only LLVM type");
+//						return false;
+//					}
+//				}
+//				*/
+//			}
 			else
 			{
 				// nested value resolve
@@ -1095,7 +1156,7 @@ private:
 
 	bool hasValue(ASTNode& ast_node)
 	{
-		if(ast_node.get<llvm::Value>())
+		if(GET_SYNTHESIZED_LLVM_VALUE(&ast_node))
 			return true;
 		else
 			return false;
@@ -1111,7 +1172,7 @@ private:
 
 	bool isFunctionVisited(FunctionDecl& ast_function)
 	{
-		llvm::Function* llvm_function = ast_function.get<llvm::Function>();
+		llvm::Function* llvm_function = GET_SYNTHESIZED_LLVM_FUNCTION(&ast_function);
 		if(!llvm_function)
 			return false;
 
@@ -1151,13 +1212,13 @@ private:
 	{
 		if(!from || !to) return false;
 
-		llvm::Value* existing_value = to->get<llvm::Value>();
+		llvm::Value* existing_value = GET_SYNTHESIZED_LLVM_VALUE(to);
 		if(!existing_value)
 		{
-			llvm::Value* value = from->get<llvm::Value>();
+			llvm::Value* value = GET_SYNTHESIZED_LLVM_VALUE(from);
 			if(value)
 			{
-				to->set<llvm::Value>(value);
+				SET_SYNTHESIZED_LLVM_VALUE(to, value);
 			}
 			else
 			{

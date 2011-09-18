@@ -59,7 +59,8 @@ struct NameManglingVisitor : Visitor<ASTNode, void, VisitorImplementation::recur
 			stream << "_";
 
 		if(node.id->isEmpty())
-			stream << "root";
+			//stream << "root";
+			stream << "_";
 		else
 			stream << encode(node.id->toString());
 	}

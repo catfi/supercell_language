@@ -101,7 +101,6 @@ struct NumericLiteral : public Literal
     virtual bool isEqualImpl(const ASTNode& rhs, ASTNodeSet& visited) const
     {
     	BEGIN_COMPARE_WITH_BASE(Literal)
-        // compare data member
 		COMPARE_MEMBER(type)
         switch(type)
         {

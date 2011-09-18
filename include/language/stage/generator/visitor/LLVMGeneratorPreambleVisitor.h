@@ -24,6 +24,7 @@
 #include "language/tree/visitor/general/GenericDoubleVisitor.h"
 #include "language/stage/generator/detail/LLVMHelper.h"
 #include "language/stage/transformer/context/ManglingStageContext.h"
+#include "language/stage/generator/context/SynthesizedFunctionContext.h"
 
 using namespace zillians::language::tree;
 using zillians::language::tree::visitor::GenericDoubleVisitor;
@@ -47,7 +48,7 @@ struct LLVMGeneratorPreambleVisitor : GenericDoubleVisitor
 
 	void generate(FunctionDecl& node)
 	{
-		if(!node.get<llvm::Function>())
+		if(!GET_SYNTHESIZED_LLVM_FUNCTION(&node))
 		{
 			llvm::Function* llvm_function = NULL;
 
@@ -85,7 +86,7 @@ struct LLVMGeneratorPreambleVisitor : GenericDoubleVisitor
 			}
 
 			// associate the LLVM function object with AST FunctionDecl object
-			node.set<llvm::Function>(llvm_function);
+			SET_SYNTHESIZED_LLVM_FUNCTION(&node, llvm_function);
 		}
 	}
 
