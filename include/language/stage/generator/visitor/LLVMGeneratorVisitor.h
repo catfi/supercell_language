@@ -21,6 +21,7 @@
 #define ZILLIANS_LANGUAGE_STAGE_VISITOR_LLVMGENERATORVISITOR_H_
 
 #include "core/Prerequisite.h"
+#include "language/tree/ASTNodeHelper.h"
 #include "language/tree/visitor/general/GenericDoubleVisitor.h"
 #include "language/tree/visitor/general/NodeInfoVisitor.h"
 #include "language/stage/generator/detail/LLVMForeach.h"
@@ -144,7 +145,7 @@ struct LLVMGeneratorVisitor : GenericDoubleVisitor
 
 	void generate(VariableDecl& node)
 	{
-		if(isDeclaredInPackage(node))
+		if(ASTNodeHelper::isOwnedByPackage(node))
 			return;
 
 		revisit(node);
@@ -152,7 +153,7 @@ struct LLVMGeneratorVisitor : GenericDoubleVisitor
 		// here we only generate AllocaInst for AST variables within function
 		// those sit in global scope or class member scope will be stored in some other object and access through game object API
 		// (all global variables are stored in a single game object, which is assembled by compiler)
-		if(isDeclaredInFunction(node))
+		if(ASTNodeHelper::isOwnedByFunction(node))
 		{
 			if(hasValue(node)) return;
 			if(isBlockInsertionMasked() || isBlockTerminated(currentBlock()))	return;
@@ -1097,27 +1098,6 @@ private:
 	bool isFloatType(ASTNode& node)
 	{
 		// TODO check the resolve type
-		return false;
-	}
-
-	bool isDeclaredInPackage(ASTNode& node)
-	{
-		if(isa<Package>(node.parent))
-			return true;
-		else
-			return false;
-	}
-
-	bool isDeclaredInFunction(ASTNode& node)
-	{
-		ASTNode* current = &node;
-		while(current)
-		{
-			if(isa<FunctionDecl>(current))
-				return true;
-			current = current->parent;
-		}
-
 		return false;
 	}
 

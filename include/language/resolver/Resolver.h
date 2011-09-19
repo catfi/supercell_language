@@ -42,11 +42,16 @@ struct hash<T*>
 
 namespace zillians { namespace language {
 
-struct Resolver
+class Resolver
 {
+public:
 	Resolver()
 	{ }
 
+public:
+	/**
+	 * Add a scope for search
+	 */
 	void enterScope(tree::ASTNode& node)
 	{
 		tree::visitor::NodeInfoVisitor node_info_visitor;
@@ -56,6 +61,9 @@ struct Resolver
 		current_scopes.insert(&node);
 	}
 
+	/**
+	 * Remove a scope from search
+	 */
 	void leaveScope(tree::ASTNode& node)
 	{
 		tree::visitor::NodeInfoVisitor node_info_visitor;
@@ -73,6 +81,18 @@ struct Resolver
 		}
 	}
 
+public:
+	/**
+	 * Resolve the symbol node from a specific 'scope' node and store that symbol resolution on 'attach' node
+	 *
+	 * @param attach the node to attach symbol resolution result
+	 * @param scope the specific scope node that in which we perform the search
+	 * @param node the identifier of the symbol
+	 * @param no_action if no_action is specified, the resolution result will not be stored in the attach node
+	 * @return true on successful resolution, false otherwise
+	 *
+	 * @see ResolvedSymbol
+	 */
 	bool resolveSymbol(tree::ASTNode& attach, tree::ASTNode& scope, tree::Identifier& node, bool no_action = false)
 	{
 		using namespace zillians::language::tree;
@@ -104,6 +124,16 @@ struct Resolver
 		}
 	}
 
+	/**
+	 * Resolve the symbol node from all search nodes and store that symbol resolution on 'attach' node
+	 *
+	 * @param attach the node to attach symbol resolution result
+	 * @param node the identifier of the symbol
+	 * @param no_action if no_action is specified, the resolution result will not be stored in the attach node
+	 * @return true on successful resolution, false otherwise
+	 *
+	 * @see ResolvedSymbol
+	 */
 	bool resolveSymbol(tree::ASTNode& attach, tree::Identifier& node, bool no_action = false)
 	{
 		using namespace zillians::language::tree;
@@ -134,6 +164,17 @@ struct Resolver
 		}
 	}
 
+private:
+	/**
+	 * Called by resolveSymbol() to check and store collected symbol resolutions
+	 *
+	 * If there's only one symbol resolution, we just store it using ResolvedSymbol::set(), otherwise resolver would throw out error
+	 *
+	 * @param attach
+	 * @param node
+	 * @param no_action
+	 * @return true on successful resolution, false otherwise
+	 */
 	bool checkResolvedSymbol(tree::ASTNode& attach, tree::Identifier& node, bool no_action)
 	{
 		using namespace zillians::language::tree;
@@ -195,6 +236,7 @@ struct Resolver
 		}
 	}
 
+public:
 	bool resolveType(tree::ASTNode& scope, tree::TypeSpecifier& node, bool no_action = false)
 	{
 		using namespace zillians::language::tree;
@@ -246,6 +288,7 @@ struct Resolver
 		}
 	}
 
+private:
 	bool checkResolvedType(tree::TypeSpecifier& node, bool no_action)
 	{
 		using namespace zillians::language::tree;
@@ -320,6 +363,7 @@ struct Resolver
 		}
 	}
 
+public:
 	bool resolvePackage(tree::ASTNode& attach, tree::ASTNode& scope, tree::Identifier& node, bool no_action = false)
 	{
 		using namespace zillians::language::tree;
@@ -370,6 +414,7 @@ struct Resolver
 		}
 	}
 
+private:
 	bool checkResolvedPackage(tree::ASTNode& attach, tree::Identifier& node, bool no_action)
 	{
 		using namespace zillians::language::tree;
