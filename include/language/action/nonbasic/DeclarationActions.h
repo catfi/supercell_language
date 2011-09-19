@@ -297,10 +297,10 @@ struct enum_decl
 		BIND_CACHED_LOCATION(_result = new EnumDecl(_param(0)));
 		deduced_foreach_value(i, _param(1))
 		{
-			boost::optional<Annotations*> &optional_annotations = boost::fusion::at_c<0>(i);
+			//boost::optional<Annotations*> &optional_annotations = boost::fusion::at_c<0>(i);
 			SimpleIdentifier*              tag                  = boost::fusion::at_c<1>(i);
 			boost::optional<Expression*>  &optional_result      = boost::fusion::at_c<2>(i);
-			Annotations* annotations = optional_annotations.is_initialized() ? *optional_annotations : NULL;
+			//Annotations* annotations = optional_annotations.is_initialized() ? *optional_annotations : NULL;
 			Expression*  value       = optional_result.is_initialized() ? *optional_result : NULL;
 			cast<EnumDecl>(_result)->addEnumeration(tag, value);
 		}

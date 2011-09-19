@@ -152,7 +152,7 @@ struct IntegerLiteral : qi::grammar<Iterator, typename SA::integer_literal::attr
 
 		start
 			%=	distinct(qi::lit(L'.') | L'x' | no_case[L'e'])[qi::uint_]
-			|	qi::lit(L"0x") > qi::hex
+			|	( qi::lit(L"0x") > qi::hex )
 			;
 
 		integer_literal
@@ -179,7 +179,7 @@ struct FloatLiteral : qi::grammar<Iterator, typename SA::float_literal::attribut
 
 		start
 			%=	( builtin_float_parser
-				| (qi::uint_ | builtin_float_parser) > no_case[L'e'] > -qi::lit(L'-') > qi::uint_
+				| ( (qi::uint_ | builtin_float_parser) > no_case[L'e'] > -qi::lit(L'-') > qi::uint_ )
 				) > -no_case[L'f']
 			;
 
@@ -221,8 +221,8 @@ struct StringLiteral : qi::grammar<Iterator, typename SA::string_literal::attrib
 		start
 			%= qi::lit(L'\"')
 				>	*( ( ( unicode::char_ - L'\"' ) - L'\\' )
-					| unescaped_char_sym
-					| L"\\x" > qi::hex
+					| ( unescaped_char_sym )
+					| ( L"\\x" > qi::hex )
 					)
 				>	L'\"'
 			;
@@ -576,12 +576,12 @@ struct ThorScript : qi::grammar<Iterator, typename SA::start::attribute_type, de
 		prefix_expression
 			= qi::eps [ typename SA::location::cache_loc() ]
 				>>	(postfix_expression
-					|	(	( INCREMENT        > qi::attr(tree::UnaryExpr::OpCode::PREFIX_INCREMENT)
-							| DECREMENT        > qi::attr(tree::UnaryExpr::OpCode::PREFIX_DECREMENT)
-							| BINARY_NOT       > qi::attr(tree::UnaryExpr::OpCode::BINARY_NOT)
-							| LOGICAL_NOT      > qi::attr(tree::UnaryExpr::OpCode::LOGICAL_NOT)
-							| ARITHMETIC_MINUS > qi::attr(tree::UnaryExpr::OpCode::ARITHMETIC_NEGATE)
-							| NEW              > qi::attr(tree::UnaryExpr::OpCode::NEW)
+					|	(	( ( INCREMENT        > qi::attr(tree::UnaryExpr::OpCode::PREFIX_INCREMENT) )
+							| ( DECREMENT        > qi::attr(tree::UnaryExpr::OpCode::PREFIX_DECREMENT) )
+							| ( BINARY_NOT       > qi::attr(tree::UnaryExpr::OpCode::BINARY_NOT) )
+							| ( LOGICAL_NOT      > qi::attr(tree::UnaryExpr::OpCode::LOGICAL_NOT) )
+							| ( ARITHMETIC_MINUS > qi::attr(tree::UnaryExpr::OpCode::ARITHMETIC_NEGATE) )
+							| ( NEW              > qi::attr(tree::UnaryExpr::OpCode::NEW) )
 							) > prefix_expression
 						)
 					) [ typename SA::prefix_expression::init() ]
@@ -593,9 +593,9 @@ struct ThorScript : qi::grammar<Iterator, typename SA::start::attribute_type, de
 		multiplicative_expression
 			= qi::eps [ typename SA::location::cache_loc() ]
 			 	>>	(prefix_expression
-					%	( ARITHMETIC_MUL > qi::attr(tree::BinaryExpr::OpCode::ARITHMETIC_MUL)
-						| ARITHMETIC_DIV > qi::attr(tree::BinaryExpr::OpCode::ARITHMETIC_DIV)
-						| ARITHMETIC_MOD > qi::attr(tree::BinaryExpr::OpCode::ARITHMETIC_MOD)
+					%	( ( ARITHMETIC_MUL > qi::attr(tree::BinaryExpr::OpCode::ARITHMETIC_MUL) )
+						| ( ARITHMETIC_DIV > qi::attr(tree::BinaryExpr::OpCode::ARITHMETIC_DIV) )
+						| ( ARITHMETIC_MOD > qi::attr(tree::BinaryExpr::OpCode::ARITHMETIC_MOD) )
 						) [ typename SA::left_to_right_binary_op_vec::append_op() ]
 					) [ typename SA::left_to_right_binary_op_vec::init() ]
 			;
@@ -606,8 +606,8 @@ struct ThorScript : qi::grammar<Iterator, typename SA::start::attribute_type, de
 		additive_expression
 			= qi::eps [ typename SA::location::cache_loc() ]
 				>>	(multiplicative_expression
-					%	( ARITHMETIC_PLUS  > qi::attr(tree::BinaryExpr::OpCode::ARITHMETIC_ADD)
-						| ARITHMETIC_MINUS > qi::attr(tree::BinaryExpr::OpCode::ARITHMETIC_SUB)
+					%	( ( ARITHMETIC_PLUS  > qi::attr(tree::BinaryExpr::OpCode::ARITHMETIC_ADD) )
+						| ( ARITHMETIC_MINUS > qi::attr(tree::BinaryExpr::OpCode::ARITHMETIC_SUB) )
 						) [ typename SA::left_to_right_binary_op_vec::append_op() ]
 					) [ typename SA::left_to_right_binary_op_vec::init() ]
 			;
@@ -618,8 +618,8 @@ struct ThorScript : qi::grammar<Iterator, typename SA::start::attribute_type, de
 		shift_expression
 			= qi::eps [ typename SA::location::cache_loc() ]
 				>>	(additive_expression
-					%	( RSHIFT > qi::attr(tree::BinaryExpr::OpCode::BINARY_RSHIFT)
-						| LSHIFT > qi::attr(tree::BinaryExpr::OpCode::BINARY_LSHIFT)
+					%	( ( RSHIFT > qi::attr(tree::BinaryExpr::OpCode::BINARY_RSHIFT) )
+						| ( LSHIFT > qi::attr(tree::BinaryExpr::OpCode::BINARY_LSHIFT) )
 						) [ typename SA::left_to_right_binary_op_vec::append_op() ]
 					) [ typename SA::left_to_right_binary_op_vec::init() ]
 			;
@@ -630,11 +630,11 @@ struct ThorScript : qi::grammar<Iterator, typename SA::start::attribute_type, de
 		relational_expression
 			= qi::eps [ typename SA::location::cache_loc() ]
 				>>	(shift_expression
-					%	( COMPARE_GT > qi::attr(tree::BinaryExpr::OpCode::COMPARE_GT)
-						| COMPARE_LT > qi::attr(tree::BinaryExpr::OpCode::COMPARE_LT)
-						| COMPARE_GE > qi::attr(tree::BinaryExpr::OpCode::COMPARE_GE)
-						| COMPARE_LE > qi::attr(tree::BinaryExpr::OpCode::COMPARE_LE)
-						| INSTANCEOF > qi::attr(tree::BinaryExpr::OpCode::INSTANCEOF)
+					%	( ( COMPARE_GT > qi::attr(tree::BinaryExpr::OpCode::COMPARE_GT) )
+						| ( COMPARE_LT > qi::attr(tree::BinaryExpr::OpCode::COMPARE_LT) )
+						| ( COMPARE_GE > qi::attr(tree::BinaryExpr::OpCode::COMPARE_GE) )
+						| ( COMPARE_LE > qi::attr(tree::BinaryExpr::OpCode::COMPARE_LE) )
+						| ( INSTANCEOF > qi::attr(tree::BinaryExpr::OpCode::INSTANCEOF) )
 						) [ typename SA::left_to_right_binary_op_vec::append_op() ]
 					) [ typename SA::left_to_right_binary_op_vec::init() ]
 			;
@@ -645,8 +645,8 @@ struct ThorScript : qi::grammar<Iterator, typename SA::start::attribute_type, de
 		equality_expression
 			= qi::eps [ typename SA::location::cache_loc() ]
 				>>	(relational_expression
-					%	( COMPARE_EQ > qi::attr(tree::BinaryExpr::OpCode::COMPARE_EQ)
-						| COMPARE_NE > qi::attr(tree::BinaryExpr::OpCode::COMPARE_NE)
+					%	( ( COMPARE_EQ > qi::attr(tree::BinaryExpr::OpCode::COMPARE_EQ) )
+						| ( COMPARE_NE > qi::attr(tree::BinaryExpr::OpCode::COMPARE_NE) )
 						) [ typename SA::left_to_right_binary_op_vec::append_op() ]
 					) [ typename SA::left_to_right_binary_op_vec::init() ]
 			;
@@ -720,17 +720,17 @@ struct ThorScript : qi::grammar<Iterator, typename SA::start::attribute_type, de
 		expression
 			= location [ typename SA::location::cache_loc() ]
 				>>	(ternary_expression
-					%	( ASSIGN        > qi::attr(tree::BinaryExpr::OpCode::ASSIGN)
-						| RSHIFT_ASSIGN > qi::attr(tree::BinaryExpr::OpCode::RSHIFT_ASSIGN)
-						| LSHIFT_ASSIGN > qi::attr(tree::BinaryExpr::OpCode::LSHIFT_ASSIGN)
-						| PLUS_ASSIGN   > qi::attr(tree::BinaryExpr::OpCode::ADD_ASSIGN)
-						| MINUS_ASSIGN  > qi::attr(tree::BinaryExpr::OpCode::SUB_ASSIGN)
-						| MUL_ASSIGN    > qi::attr(tree::BinaryExpr::OpCode::MUL_ASSIGN)
-						| DIV_ASSIGN    > qi::attr(tree::BinaryExpr::OpCode::DIV_ASSIGN)
-						| MOD_ASSIGN    > qi::attr(tree::BinaryExpr::OpCode::MOD_ASSIGN)
-						| AND_ASSIGN    > qi::attr(tree::BinaryExpr::OpCode::AND_ASSIGN)
-						| OR_ASSIGN     > qi::attr(tree::BinaryExpr::OpCode::OR_ASSIGN)
-						| XOR_ASSIGN    > qi::attr(tree::BinaryExpr::OpCode::XOR_ASSIGN)
+					%	( ( ASSIGN        > qi::attr(tree::BinaryExpr::OpCode::ASSIGN) )
+						| ( RSHIFT_ASSIGN > qi::attr(tree::BinaryExpr::OpCode::RSHIFT_ASSIGN) )
+						| ( LSHIFT_ASSIGN > qi::attr(tree::BinaryExpr::OpCode::LSHIFT_ASSIGN) )
+						| ( PLUS_ASSIGN   > qi::attr(tree::BinaryExpr::OpCode::ADD_ASSIGN) )
+						| ( MINUS_ASSIGN  > qi::attr(tree::BinaryExpr::OpCode::SUB_ASSIGN) )
+						| ( MUL_ASSIGN    > qi::attr(tree::BinaryExpr::OpCode::MUL_ASSIGN) )
+						| ( DIV_ASSIGN    > qi::attr(tree::BinaryExpr::OpCode::DIV_ASSIGN) )
+						| ( MOD_ASSIGN    > qi::attr(tree::BinaryExpr::OpCode::MOD_ASSIGN) )
+						| ( AND_ASSIGN    > qi::attr(tree::BinaryExpr::OpCode::AND_ASSIGN) )
+						| ( OR_ASSIGN     > qi::attr(tree::BinaryExpr::OpCode::OR_ASSIGN) )
+						| ( XOR_ASSIGN    > qi::attr(tree::BinaryExpr::OpCode::XOR_ASSIGN) )
 						) [ typename SA::right_to_left_binary_op_vec::append_op() ]
 					) [ typename SA::right_to_left_binary_op_vec::init() ]
 			;
@@ -775,9 +775,9 @@ struct ThorScript : qi::grammar<Iterator, typename SA::start::attribute_type, de
 						) [ typename SA::selection_statement::init_if_statement() ]
 					|	(SWITCH > LEFT_PAREN > expression > RIGHT_PAREN
 							> LEFT_BRACE
-							>	*( CASE > expression > COLON > *statement
-								| DEFAULT > COLON > *statement
-								)
+							>	*( ( CASE > expression > COLON > *statement )
+								 | ( DEFAULT > COLON > *statement )
+								 )
 							> RIGHT_BRACE
 						) [ typename SA::selection_statement::init_switch_statement() ]
 					)

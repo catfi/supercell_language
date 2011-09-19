@@ -42,7 +42,7 @@ struct ResolutionVisitor : Visitor<ASTNode, void, VisitorImplementation::recursi
 		};
 	};
 
-	ResolutionVisitor(bool allow_template_partial_match = false) : filter_type(0), allow_template_partial_match(allow_template_partial_match), current_search_level(0)
+	ResolutionVisitor(bool allow_template_partial_match = false) : filter_type(0), current_search_level(0), allow_template_partial_match(allow_template_partial_match)
 	{
 		REGISTER_ALL_VISITABLE_ASTNODE(resolveInvoker)
 		reset();
@@ -601,7 +601,7 @@ private:
 		if(!full)
 			return true;
 
-		if(current_index == full->identifier_list.size() - 1)
+		if(current_index == (int)full->identifier_list.size() - 1)
 			return true;
 
 		return false;

@@ -44,7 +44,10 @@ struct PrimaryExpr : public Expression
 			case IDENTIFIER: return L"identifier";
 			case LITERAL: return L"literal";
 			case LAMBDA: return L"lambda";
+			default: break;
 			}
+			BOOST_ASSERT(false && "reaching unreachable code");
+			return NULL;
 		}
 	};
 
@@ -79,7 +82,10 @@ struct PrimaryExpr : public Expression
 		case Catagory::IDENTIFIER: return false;
 		case Catagory::LITERAL: return true;
 		case Catagory::LAMBDA: return true;
+		default: break;
 		}
+		BOOST_ASSERT(false && "reaching unreachable code");
+		return false;
 	}
 
     virtual bool isEqualImpl(const ASTNode& rhs, ASTNodeSet& visited) const

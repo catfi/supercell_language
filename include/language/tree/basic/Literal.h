@@ -115,6 +115,7 @@ struct NumericLiteral : public Literal
         case PrimitiveType::type::INT64   : COMPARE_MEMBER(value.u64); break;
         case PrimitiveType::type::FLOAT32 : COMPARE_MEMBER(value.f32); break;
         case PrimitiveType::type::FLOAT64 : COMPARE_MEMBER(value.f64); break;
+        default: break;
         }
     	END_COMPARE()
     }

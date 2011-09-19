@@ -457,7 +457,7 @@ private:
 		string lc_all = mLocale.name();
 		vector<string> locale_categories = StringUtil::tokenize(lc_all, ";", false);
 
-		for (int i = 0; i < locale_categories.size(); i++)
+		for (int i = 0; i < (int)locale_categories.size(); i++)
 		{
 			// We will have something like this: LC_MESSAGES, en_US.UTF-8
 			vector<string> category = StringUtil::tokenize(locale_categories[i], "=", false);

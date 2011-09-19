@@ -444,18 +444,20 @@ inline bool compareDispatchImpl(
 } // internal
 
 #define BEGIN_COMPARE() \
-		typedef typename boost::remove_const<typename boost::remove_reference<decltype(*this)>::type>::type self_type; \
+		typedef boost::remove_const<boost::remove_reference<decltype(*this)>::type>::type self_type; \
 		if(!boost::mpl::contains<internal::ASTNodeInternalTypeVector, self_type>::value) \
+		{ \
 			if(visited.count(this)) \
 				return true; \
 			else \
 				visited.insert(this); \
+		} \
 		const self_type* p = cast<const self_type>(&rhs); \
 		if(p == NULL) \
 			return false;
 
 #define BEGIN_COMPARE_WITH_BASE(base_class_name) \
-		typedef typename boost::remove_const<typename boost::remove_reference<decltype(*this)>::type>::type self_type; \
+		typedef boost::remove_const<boost::remove_reference<decltype(*this)>::type>::type self_type; \
 		const self_type* p = cast<const self_type>(&rhs); \
 		if(p == NULL) \
 			return false; \

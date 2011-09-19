@@ -53,7 +53,7 @@ struct DebugInfoProgramContext
 struct DebugInfoContext
 {
 	DebugInfoContext(llvm::DICompileUnit compile_unit, llvm::DIFile file, llvm::DIDescriptor context) :
-		compile_unit(compile_unit), file(file), context(context)
+		context(context), compile_unit(compile_unit), file(file)
 	{}
 
 	DebugInfoContext(DebugInfoContext& dbg_context)

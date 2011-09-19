@@ -80,8 +80,11 @@ struct LLVMGeneratorVisitor : GenericDoubleVisitor
 		llvm::Value* result = NULL;
 		switch(node.type)
 		{
+		case PrimitiveType::INT64:
+			result = llvm::ConstantInt::get(llvm::IntegerType::getInt64Ty(mContext), node.value.u64, false); break;
 		case PrimitiveType::UINT64:
 			result = llvm::ConstantInt::get(llvm::IntegerType::getInt64Ty(mContext), node.value.u64, false); break;
+		default: break;
 		}
 
 		if(!result)
@@ -357,7 +360,7 @@ struct LLVMGeneratorVisitor : GenericDoubleVisitor
 				index += 1;
 			}
 
-			BOOST_ASSERT(index == llvm_blocks.size());
+			BOOST_ASSERT(index == (int)llvm_blocks.size());
 		}
 	}
 
@@ -536,6 +539,12 @@ struct LLVMGeneratorVisitor : GenericDoubleVisitor
 		case UnaryExpr::OpCode::ARITHMETIC_NEGATE:
 			result = (isFloatType(node)) ? mBuilder.CreateFNeg(operand_value_for_read) : mBuilder.CreateNeg(operand_value_for_read); break;
 		case UnaryExpr::OpCode::NEW:
+			break;
+		case UnaryExpr::OpCode::NOOP:
+			result = operand_value_for_read;
+			break;
+		default:
+			result = NULL;
 			break;
 		}
 
@@ -1136,7 +1145,7 @@ private:
 			++index;
 		}
 
-		if(index >= f->parameters.size())
+		if(index >= (int)f->parameters.size())
 			return -1;
 
 		return index;

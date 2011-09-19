@@ -88,7 +88,10 @@ struct PrimitiveType
 		case ANONYMOUS_OBJECT: return L"object";
 		case ANONYMOUS_FUNCTION: return L"function";
 		case VARIADIC_ELLIPSIS: return L"...";
+		default: break;
 		}
+		BOOST_ASSERT(false && "reaching unreachable code");
+		return NULL;
 	}
 };
 

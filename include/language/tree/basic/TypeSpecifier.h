@@ -53,7 +53,10 @@ struct TypeSpecifier : public ASTNode
 			case FUNCTION_TYPE:		return L"function_type";
 			case PRIMITIVE:			return L"primitive";
 			case UNSPECIFIED: 		return L"unspecified";
+			default: break;
 			}
+			BOOST_ASSERT(false && "reaching unreachable code");
+			return NULL;
 		}
 	};
 
@@ -99,6 +102,7 @@ struct TypeSpecifier : public ASTNode
         case TypeSpecifier::ReferredType::FUNCTION_TYPE  : COMPARE_MEMBER(referred.function_type )             ; break;
         case TypeSpecifier::ReferredType::PRIMITIVE      : if(referred.primitive != p->referred.primitive) return false; break;
         case TypeSpecifier::ReferredType::UNSPECIFIED    : COMPARE_MEMBER(referred.unspecified   )             ; break;
+        default: break;
         }
         END_COMPARE()
     }

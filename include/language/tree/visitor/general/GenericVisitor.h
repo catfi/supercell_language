@@ -195,6 +195,7 @@ struct GenericVisitor : Visitor<const ASTNode, void, VisitorImplementation::recu
 		{
 		case TypeSpecifier::ReferredType::FUNCTION_TYPE: if(node.referred.function_type) visit(*node.referred.function_type); break;
 		case TypeSpecifier::ReferredType::UNSPECIFIED:   if(node.referred.unspecified)   visit(*node.referred.unspecified); break;
+		default: break;
 		}
 	}
 

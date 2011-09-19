@@ -44,7 +44,10 @@ struct BranchStmt : public Statement
 			case BREAK: return L"break";
 			case CONTINUE: return L"continue";
 			case RETURN: return L"return";
+			default: break;
 			}
+			BOOST_ASSERT(false && "reaching unreachable code");
+			return NULL;
 		}
 	};
 

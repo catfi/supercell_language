@@ -57,6 +57,12 @@ struct LLVMHelper
 			result = llvm::Type::getVoidTy(mContext);
 			resolved = true; break;
 		}
+		case PrimitiveType::BOOL:
+		{
+			modifier |= llvm::Attribute::ZExt;
+			result = llvm::IntegerType::getInt8Ty(mContext);
+			resolved = true; break;
+		}
 		case PrimitiveType::INT8:
 		{
 			modifier |= llvm::Attribute::SExt;
@@ -114,6 +120,12 @@ struct LLVMHelper
 		{
 			result = llvm::Type::getDoubleTy(mContext);
 			resolved = true; break;
+		}
+		default:
+		{
+			result = NULL;
+			resolved = false;
+			break;
 		}
 		}
 

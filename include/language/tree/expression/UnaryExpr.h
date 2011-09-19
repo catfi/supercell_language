@@ -57,7 +57,10 @@ struct UnaryExpr : public Expression
 			case NEW: return L"new";
 			case NOOP: return L"no-op";
 			case INVALID: return L"invalid";
+			default: break;
 			}
+			BOOST_ASSERT(false && "reaching unreachable code");
+			return NULL;
 		}
 	};
 
@@ -84,7 +87,10 @@ struct UnaryExpr : public Expression
 		case OpCode::NOOP:
 		case OpCode::INVALID:
 			return true;
+		default: break;
 		}
+		BOOST_ASSERT(false && "reaching unreachable code");
+		return false;
 	}
 
     virtual bool isEqualImpl(const ASTNode& rhs, ASTNodeSet& visited) const

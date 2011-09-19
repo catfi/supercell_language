@@ -82,7 +82,10 @@ struct BinaryExpr : public Expression
 			case RANGE_ELLIPSIS: return L"...";
 			case ARRAY_SUBSCRIPT: return L"[]";
 			case INVALID: return L"invalid";
+			default: break;
 			}
+			BOOST_ASSERT(false && "reaching unreachable code");
+			return NULL;
 		}
 	};
 
@@ -200,7 +203,10 @@ struct BinaryExpr : public Expression
 		case OpCode::RANGE_ELLIPSIS:
 		case OpCode::INVALID:
 			return true;
+		default: break;
 		}
+		BOOST_ASSERT(false && "reaching unreachable code");
+		return false;
 	}
 
     virtual bool isEqualImpl(const ASTNode& rhs, ASTNodeSet& visited) const

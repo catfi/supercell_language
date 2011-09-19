@@ -97,6 +97,7 @@ struct GenericDoubleVisitor : Visitor<ASTNode, void, VisitorImplementation::recu
 			{
 			case TypeSpecifier::ReferredType::FUNCTION_TYPE: if(node.referred.function_type) user_visitor->visit(*node.referred.function_type); break;
 			case TypeSpecifier::ReferredType::UNSPECIFIED: if(node.referred.unspecified) user_visitor->visit(*node.referred.unspecified); break;
+			default: break;
 			}
 		}
 

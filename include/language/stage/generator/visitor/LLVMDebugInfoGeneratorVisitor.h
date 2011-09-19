@@ -101,7 +101,7 @@ struct LLVMDebugInfoGeneratorVisitor: GenericDoubleVisitor
 		DebugInfoProgramContext *program_context = new DebugInfoProgramContext();
 
 		// Create compile units
-		for (int i = 0; i < module_info->source_files.size(); i++)
+		for (int i = 0; i < (int)module_info->source_files.size(); i++)
 		{
 			LOG4CXX_DEBUG(LoggerWrapper::DebugInfoGeneratorStage, "<Program> Ori path: " << module_info->source_files[i]);
 			boost::filesystem::path file_path(module_info->source_files[i]);
@@ -134,7 +134,7 @@ struct LLVMDebugInfoGeneratorVisitor: GenericDoubleVisitor
 	{
 		LOG4CXX_DEBUG(LoggerWrapper::DebugInfoGeneratorStage, __PRETTY_FUNCTION__);
 		SourceInfoContext* source_info = SourceInfoContext::get(&node);
-		DebugInfoProgramContext* program_context = DebugInfoProgramContext::get(getParserContext().program);
+		//DebugInfoProgramContext* program_context = DebugInfoProgramContext::get(getParserContext().program);
 
 		int32 source_index = source_info->source_index;
 
