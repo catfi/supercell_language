@@ -131,9 +131,7 @@ struct SemanticVerificationStageVisitor0 : GenericDoubleVisitor
 		{
 			ASTNode* parent_statement = node.left->parent;
 			while(!isa<Statement>(parent_statement))
-			{
 				parent_statement = parent_statement->parent;
-			}
 			LoggerWrapper::instance()->getLogger()->WRITE_RVALUE(
 					_program_node = *cast<tree::Program>(getParserContext().program), _node = *parent_statement);
 		}
@@ -152,8 +150,8 @@ struct SemanticVerificationStageVisitor0 : GenericDoubleVisitor
 	{
 		// MISSING_STATIC_INIT
 		if(node.is_static && !node.initializer)
-		{
-		}
+			LoggerWrapper::instance()->getLogger()->MISSING_STATIC_INIT(
+					_program_node = *cast<tree::Program>(getParserContext().program), _node = node);
 	}
 };
 
