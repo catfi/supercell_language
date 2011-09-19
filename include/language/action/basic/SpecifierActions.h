@@ -197,7 +197,7 @@ struct annotation_specifier_stem
 			switch(boost::fusion::at_c<1>(i).which())
 			{
 			case 0:
-				value = boost::get<StringLiteral*>(boost::fusion::at_c<1>(i));
+				value = boost::get<Expression*>(boost::fusion::at_c<1>(i));
 				break;
 			case 1:
 				value = boost::get<Annotation*>(boost::fusion::at_c<1>(i));

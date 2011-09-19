@@ -127,18 +127,15 @@ struct SemanticVerificationStageVisitor0 : GenericDoubleVisitor
 	void verify(BinaryExpr &node)
 	{
 		// WRITE_RVALUE
-		if(node.isAssignment())
+		if(node.isAssignment() && node.left->isRValue())
 		{
-			if(node.left->isRValue())
+			ASTNode* parent_statement = node.left->parent;
+			while(!isa<Statement>(parent_statement))
 			{
-				ASTNode* parent_statement = node.left->parent;
-				while(!isa<Statement>(parent_statement))
-				{
-					parent_statement = parent_statement->parent;
-				}
-				LoggerWrapper::instance()->getLogger()->WRITE_RVALUE(
-						_program_node = *cast<tree::Program>(getParserContext().program), _node = *parent_statement);
+				parent_statement = parent_statement->parent;
 			}
+			LoggerWrapper::instance()->getLogger()->WRITE_RVALUE(
+					_program_node = *cast<tree::Program>(getParserContext().program), _node = *parent_statement);
 		}
 	}
 
@@ -151,9 +148,12 @@ struct SemanticVerificationStageVisitor0 : GenericDoubleVisitor
 		}
 	}
 
-	void verify(Declaration &node)
+	void verify(VariableDecl &node)
 	{
-		revisit(node);
+		// MISSING_STATIC_INIT
+		if(node.is_static && !node.initializer)
+		{
+		}
 	}
 };
 
