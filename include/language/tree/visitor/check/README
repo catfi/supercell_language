@@ -15,7 +15,7 @@ ERRORS:
     E1. NAME
         a. UNKNOWN
             I.  UNKNOWN_NAME                                            T
-            II. UNDEFINED_REF                                       S0 - native function
+            II. UNDEFINED_REF                                       S0 -- (native function only)
         b. AMBIGUOUS
             I.  DUPE_NAME                                           S0
             II. AMBIGUOUS_REF                                           T
@@ -24,7 +24,7 @@ ERRORS:
             I.   EXPRESSION
                  i.   WRITE_RVALUE                                  S0
                  ii.  INVALID_CONV                                      T
-                 iii. NO_MATCHING_MEMBER_FUNC                           T*
+                 iii. NO_MATCHING_MEMBER_FUNC                           T -- (same as E2.c.III)
             II.  STATEMENT
                  - INVALID_CONV_BOOL                                    T
             III. DECLARATION
@@ -42,7 +42,7 @@ ERRORS:
     E3. MODIFIER
         a. STORAGE
             I.  CONST
-                i.  MISSING_CONST_INIT                              S0
+                i.  MISSING_CONST_INIT                      P
                 ii. WRITE_CONST                                                 S1
             II. STATIC
                 i.   MISSING_STATIC_INIT                            S0
