@@ -53,6 +53,15 @@ struct BranchStmt : public Statement
 		if(result) result->parent = this;
 	}
 
+	bool isLoopSpecific()
+	{
+		if( opcode == OpCode::BREAK ||
+			opcode == OpCode::CONTINUE )
+			return true;
+		else
+			return false;
+	}
+
     virtual bool isEqualImpl(const ASTNode& rhs, ASTNodeSet& visited) const
     {
     	BEGIN_COMPARE_WITH_BASE(Statement)

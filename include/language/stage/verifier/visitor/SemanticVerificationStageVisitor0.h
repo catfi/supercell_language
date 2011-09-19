@@ -24,6 +24,9 @@
 #include "language/tree/visitor/general/GenericDoubleVisitor.h"
 #include "language/tree/visitor/general/NameManglingVisitor.h"
 #include "language/stage/transformer/context/ManglingStageContext.h"
+#include "language/logging/StringTable.h"
+#include "language/logging/LoggerWrapper.h"
+#include "language/context/ParserContext.h"
 
 using namespace zillians::language::tree;
 using zillians::language::tree::visitor::GenericDoubleVisitor;
@@ -45,6 +48,7 @@ struct SemanticVerificationStageVisitor0 : GenericDoubleVisitor
 		revisit(node);
 	}
 
+#if 0
 	void verify(Package& node)
 	{
 		revisit(node);
@@ -118,15 +122,32 @@ struct SemanticVerificationStageVisitor0 : GenericDoubleVisitor
 	{
 		// CHECK: all member function in interface must not have private scope specifier
 	}
+#endif
 
-	void verify(FunctionDecl& node)
+	void verify(BinaryExpr &node)
 	{
-		// CHECK:
+		// WRITE_RVALUE
+		if(node.isAssignment())
+		{
+			if(node.left->isRValue())
+			{
+				LoggerWrapper::instance()->getLogger()->WRITE_RVALUE(
+						_program_node = *cast<tree::Program>(getParserContext().program), _node = node);
+			}
+		}
 	}
 
-	void verify(VariableDecl& node)
+	void verify(BranchStmt &node)
 	{
+		// MISSING_BREAK_TARGET
+		// MISSING_CONTINUE_TARGET
+		if(node.isLoopSpecific())
+		{
+		}
+	}
 
+	void verify(Declaration &node)
+	{
 	}
 };
 
