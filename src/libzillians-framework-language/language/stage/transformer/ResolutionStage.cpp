@@ -85,8 +85,8 @@ bool ResolutionStage::resolveTypes(bool report_error_summary)
 			visitor.reset();
 			visitor.visit(program);
 
-			total_resolved_count += visitor.get_resolved_count();
-			std::size_t unresolved_count = visitor.get_unresolved_count();
+			total_resolved_count += visitor.getResolvedCount();
+			std::size_t unresolved_count = visitor.getUnresolvedCount();
 
 			if(unresolved_count == 0 || unresolved_count == last_unresolved_count)
 			{
@@ -152,8 +152,8 @@ bool ResolutionStage::resolveSymbols(bool report_error_summary)
 			visitor.reset();
 			visitor.visit(program);
 
-			total_resolved_count += visitor.get_resolved_count();
-			std::size_t unresolved_count = visitor.get_unresolved_count();
+			total_resolved_count += visitor.getResolvedCount();
+			std::size_t unresolved_count = visitor.getUnresolvedCount();
 
 			if(unresolved_count == 0 || unresolved_count == last_unresolved_count)
 			{

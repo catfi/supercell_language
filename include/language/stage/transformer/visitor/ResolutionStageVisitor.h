@@ -121,13 +121,13 @@ struct ResolutionStageVisitor : GenericDoubleVisitor
 		{
 			// try to resolve return type
 			if(node.type)
-				try_to_resolve_type(node.type, node.type);
+				tryResolveType(node.type, node.type);
 
 			// try to resolve parameter type
 			foreach(i, node.parameters)
 			{
 				if(i->get<1>())
-					try_to_resolve_type(i->get<1>(), i->get<1>());
+					tryResolveType(i->get<1>(), i->get<1>());
 			}
 
 		}
@@ -166,7 +166,7 @@ struct ResolutionStageVisitor : GenericDoubleVisitor
 	{
 		if(type == Target::TYPE_RESOLUTION)
 		{
-			try_to_resolve_type(node.from, node.from);
+			tryResolveType(node.from, node.from);
 		}
 		else if(type == Target::SYMBOL_RESOLUTION)
 		{
@@ -179,11 +179,12 @@ struct ResolutionStageVisitor : GenericDoubleVisitor
 	{
 		if(type == Target::TYPE_RESOLUTION)
 		{
-			try_to_resolve_type(node.type, node.type);
+			tryResolveType(node.type, node.type);
+			propogateType(&node, node.type);
 		}
 		else if(type == Target::SYMBOL_RESOLUTION)
 		{
-//			if(try_to_resolve_symbol(node.name, true))
+//			if(tryResolveSymbol(node.name, true))
 //			{
 //				// error, the variable declared name should be resolvable because that would lead to ambiguous name conflict
 //				// TODO make the error message cleaner
@@ -256,13 +257,16 @@ struct ResolutionStageVisitor : GenericDoubleVisitor
 	{
 		if(type == Target::TYPE_RESOLUTION)
 		{
+			visit(*node.node);
+
+			propogateType(&node, node.node);
 			// we should never reach here
 			//BOOST_ASSERT(false && "reaching code that shouldn't be reached");
 		}
 		else if(type == Target::SYMBOL_RESOLUTION)
 		{
 			visit(*node.node);
-			try_to_resolve_symbol_or_package(&node, node.node, node.member);
+			tryResolveSymbolOrPackage(&node, node.node, node.member);
 		}
 	}
 
@@ -277,7 +281,7 @@ struct ResolutionStageVisitor : GenericDoubleVisitor
 		{
 			if(node.catagory == PrimaryExpr::Catagory::IDENTIFIER)
 			{
-				try_to_resolve_symbol_or_package(&node, node.value.identifier);
+				tryResolveSymbolOrPackage(&node, node.value.identifier);
 			}
 		}
 	}
@@ -288,24 +292,24 @@ struct ResolutionStageVisitor : GenericDoubleVisitor
 
 		if(type == Target::TYPE_RESOLUTION)
 		{
-			try_to_resolve_type(node.type, node.type);
+			tryResolveType(node.type, node.type);
 		}
 		else if(type == Target::SYMBOL_RESOLUTION)
 		{
 		}
 	}
 
-	std::size_t get_unresolved_count()
+	std::size_t getUnresolvedCount()
 	{
 		return unresolved_count;
 	}
 
-	std::size_t get_resolved_count()
+	std::size_t getResolvedCount()
 	{
 		return resolved_count;
 	}
 
-	std::size_t get_unspecified_count()
+	std::size_t getUnspecifiedCount()
 	{
 		return unspecified_type_count;
 	}
@@ -319,7 +323,26 @@ struct ResolutionStageVisitor : GenericDoubleVisitor
 	}
 
 private:
-	void try_to_resolve_type(tree::ASTNode* attach, tree::TypeSpecifier* node, bool no_action = false)
+	void propogateType(ASTNode* to, ASTNode* from)
+	{
+		ASTNode* resolved_type_to = ResolvedType::get(to);
+		ASTNode* resolved_type_from = ResolvedType::get(from);
+		if(resolved_type_to)
+		{
+			// the resolved type should be changed during resolution stage
+			BOOST_ASSERT(resolved_type_to == resolved_type_from && "type resolution changed during resolution stage");
+		}
+		else if(resolved_type_from)
+		{
+			ResolvedType::set(to, resolved_type_from);
+		}
+		else
+		{
+			// both resolved_type_to and resolved_type_from are NULL, so there's no need to update
+		}
+	}
+
+	void tryResolveType(ASTNode* attach, TypeSpecifier* node, bool no_action = false)
 	{
 		if(!node)
 			return;
@@ -342,7 +365,7 @@ private:
 		}
 	}
 
-	bool try_to_resolve_symbol(tree::ASTNode* attach, tree::ASTNode* scope, tree::Identifier* node, bool no_action = false)
+	bool tryResolveSymbol(ASTNode* attach, ASTNode* scope, Identifier* node, bool no_action = false)
 	{
 		if(!scope || !node)
 			return false;
@@ -360,7 +383,7 @@ private:
 		}
 	}
 
-	bool try_to_resolve_symbol(tree::ASTNode* attach, tree::Identifier* node, bool no_action = false)
+	bool tryResolveSymbol(ASTNode* attach, Identifier* node, bool no_action = false)
 	{
 		if(!node)
 			return false;
@@ -378,7 +401,7 @@ private:
 		}
 	}
 
-	bool try_to_resolve_package(tree::ASTNode* attach, tree::ASTNode* scope, tree::Identifier* node, bool no_action = false)
+	bool tryResolvePackage(ASTNode* attach, ASTNode* scope, Identifier* node, bool no_action = false)
 	{
 		if(!scope || !node)
 			return false;
@@ -396,7 +419,7 @@ private:
 		}
 	}
 
-	bool try_to_resolve_package(tree::ASTNode* attach, tree::Identifier* node, bool no_action = false)
+	bool tryResolvePackage(ASTNode* attach, Identifier* node, bool no_action = false)
 	{
 		if(!node)
 			return false;
@@ -414,7 +437,7 @@ private:
 		}
 	}
 
-	bool try_to_resolve_symbol_or_package(tree::ASTNode* attach, tree::ASTNode* scope, tree::Identifier* node, bool no_action = false)
+	bool tryResolveSymbolOrPackage(ASTNode* attach, ASTNode* scope, Identifier* node, bool no_action = false)
 	{
 		if(!scope || !node)
 			return false;
@@ -440,7 +463,7 @@ private:
 		}
 	}
 
-	bool try_to_resolve_symbol_or_package(tree::ASTNode* attach, tree::Identifier* node, bool no_action = false)
+	bool tryResolveSymbolOrPackage(ASTNode* attach, Identifier* node, bool no_action = false)
 	{
 		if(!node)
 			return false;
