@@ -24,6 +24,9 @@
 #include "language/tree/visitor/general/GenericDoubleVisitor.h"
 #include "language/tree/visitor/general/NameManglingVisitor.h"
 #include "language/stage/transformer/context/ManglingStageContext.h"
+#include "language/logging/StringTable.h"
+#include "language/logging/LoggerWrapper.h"
+#include "language/context/ParserContext.h"
 
 using namespace zillians::language::tree;
 using zillians::language::tree::visitor::GenericDoubleVisitor;
@@ -45,6 +48,7 @@ struct SemanticVerificationStageVisitor0 : GenericDoubleVisitor
 		revisit(node);
 	}
 
+#if 0
 	void verify(Package& node)
 	{
 		revisit(node);
@@ -118,15 +122,71 @@ struct SemanticVerificationStageVisitor0 : GenericDoubleVisitor
 	{
 		// CHECK: all member function in interface must not have private scope specifier
 	}
+#endif
 
-	void verify(FunctionDecl& node)
+	void verify(BinaryExpr &node)
 	{
-		// CHECK:
+		// WRITE_RVALUE
+		if(node.isAssignment() && node.left->isRValue())
+		{
+			ASTNode* parent_statement = node.left->parent;
+			while(!isa<Statement>(parent_statement))
+				parent_statement = parent_statement->parent;
+			LoggerWrapper::instance()->getLogger()->WRITE_RVALUE(
+					_program_node = *cast<tree::Program>(getParserContext().program), _node = *parent_statement);
+		}
 	}
 
-	void verify(VariableDecl& node)
+	void verify(BranchStmt &node)
 	{
+		// MISSING_BREAK_TARGET
+		// MISSING_CONTINUE_TARGET
+		if(node.isLoopSpecific())
+		{
+//			ASTNode* parent_statement = &node;
+//			while(!isa<IterativeStmt>(parent_statement))
+//				parent_statement = parent_statement->parent;
+		}
+	}
 
+	void verify(Declaration &node)
+	{
+		// UNDEFINED_REF -- function has no body ??
+		// DUPE_NAME
+	}
+
+	void verify(VariableDecl &node)
+	{
+		// MISSING_STATIC_INIT
+		if(node.is_static && !node.initializer)
+			LoggerWrapper::instance()->getLogger()->MISSING_STATIC_INIT(
+					_program_node = *cast<tree::Program>(getParserContext().program), _node = node);
+	}
+
+	void verify(FunctionDecl &node)
+	{
+		// UNDEFINED_REF -- function has no body ??
+		// DUPE_NAME
+		if(!node.block) // NOTE: must have @native annotation ??
+		{
+		}
+		// MISSING_PARAM_INIT
+		// UNEXPECTED_VARIADIC_PARAM
+		// EXCEED_PARAM_LIMIT
+		foreach(i, node.parameters)
+		{
+		}
+		revisit(node);
+	}
+
+	void verify(TemplatedIdentifier &node)
+	{
+		// DUPE_NAME
+		// UNEXPECTED_VARIADIC_TEMPLATE_PARAM
+		// EXCEED_TEMPLATE_PARAM_LIMIT
+		foreach(i, node.templated_type_list)
+		{
+		}
 	}
 };
 

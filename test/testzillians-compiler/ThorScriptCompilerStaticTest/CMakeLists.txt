@@ -33,9 +33,11 @@ zillians_add_test_to_subject(SUBJECT thorscript-compiler-static-test-all TARGET 
 zillians_add_test_to_subject(SUBJECT thorscript-compiler-static-test-all TARGET thorscript-compiler-static-test-future)
 
 get_target_property(ThorScriptCompiler ts-compile LOCATION)
-SET(compile_options    "--enable-static-test")
-SET(compile_options_s0 "--enable-static-test" "--verify-stage-0-and-stop")
-SET(compile_options_s1 "--enable-static-test" "--verify-stage-1-and-stop")
+SET(compile_options    "--enable-static-test" "--no-llvm")
+SET(compile_options_s0 "--enable-static-test" "--no-llvm")
+SET(compile_options_s1 "--enable-static-test" "--no-llvm")
+#SET(compile_options_s0 "--enable-static-test" "--verify-stage-0-and-stop" "--no-llvm")
+#SET(compile_options_s1 "--enable-static-test" "--verify-stage-1-and-stop" "--no-llvm")
 
 #################################################
 # error

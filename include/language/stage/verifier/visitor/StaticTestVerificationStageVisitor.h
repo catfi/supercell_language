@@ -109,10 +109,13 @@ private:
 			LoggerWrapper::instance()->getLogger()->WRONG_STATIC_TEST_ANNOTATION_FORMAT(_program_node = *programNode, _node = node, _DETAIL = "child of Annotations should be Annotation");
 		}
 
-		BOOST_ASSERT(cast<Annotation>(expectMessage.second)->attribute_list.size() == 3);
-		if (cast<Annotation>(expectMessage.second)->attribute_list.size() != 3)
+		Annotation* anno = cast<Annotation>(expectMessage.second);
+		BOOST_ASSERT(cast<Annotation>(expectMessage.second)->attribute_list.size() == 3 ||
+                     cast<Annotation>(expectMessage.second)->attribute_list.size() == 2);
+		if (cast<Annotation>(expectMessage.second)->attribute_list.size() < 2 ||
+		    cast<Annotation>(expectMessage.second)->attribute_list.size() > 3)
 		{
-			LoggerWrapper::instance()->getLogger()->WRONG_STATIC_TEST_ANNOTATION_FORMAT(_program_node = *programNode, _node = node, _DETAIL = "number of attribute list should be 3");
+			LoggerWrapper::instance()->getLogger()->WRONG_STATIC_TEST_ANNOTATION_FORMAT(_program_node = *programNode, _node = node, _DETAIL = "number of attribute list should be 3 or 2");
 		}
 
 		// log level
@@ -129,13 +132,14 @@ private:
 			LoggerWrapper::instance()->getLogger()->WRONG_STATIC_TEST_ANNOTATION_FORMAT(_program_node = *programNode, _node = node, _DETAIL = "key should be \"level\"");
 		}
 
-		BOOST_ASSERT(cast<StringLiteral>(logLevel.second) != NULL);
-		if (cast<StringLiteral>(logLevel.second) == NULL)
+		BOOST_ASSERT(cast<PrimaryExpr>(logLevel.second) != NULL);
+		BOOST_ASSERT(cast<StringLiteral>(cast<PrimaryExpr>(logLevel.second)->value.literal) != NULL);
+		if (cast<PrimaryExpr>(logLevel.second) == NULL || cast<StringLiteral>(cast<PrimaryExpr>(logLevel.second)->value.literal) == NULL)
 		{
 			LoggerWrapper::instance()->getLogger()->WRONG_STATIC_TEST_ANNOTATION_FORMAT(_program_node = *programNode, _node = node, _DETAIL = "value should be StringLiteral");
 		}
 
-		std::wstring levelString = cast<StringLiteral>(logLevel.second)->value;
+		std::wstring levelString = cast<StringLiteral>(cast<PrimaryExpr>(logLevel.second)->value.literal)->value;
 
 		// log id
 		std::pair<SimpleIdentifier*, ASTNode*> logId = cast<Annotation>(expectMessage.second)->attribute_list[1];
@@ -151,13 +155,19 @@ private:
 			LoggerWrapper::instance()->getLogger()->WRONG_STATIC_TEST_ANNOTATION_FORMAT(_program_node = *programNode, _node = node, _DETAIL = "key shoule be \"id\"");
 		}
 
-		BOOST_ASSERT(cast<StringLiteral>(logId.second) != NULL);
-		if (cast<StringLiteral>(logId.second) == NULL)
+		BOOST_ASSERT(cast<PrimaryExpr>(logId.second) != NULL);
+		BOOST_ASSERT(cast<StringLiteral>(cast<PrimaryExpr>(logId.second)->value.literal) != NULL);
+		if (cast<PrimaryExpr>(logId.second) == NULL || cast<StringLiteral>(cast<PrimaryExpr>(logId.second)->value.literal) == NULL)
 		{
-			LoggerWrapper::instance()->getLogger()->WRONG_STATIC_TEST_ANNOTATION_FORMAT(_program_node = *programNode, _node = node, _DETAIL = "value should be stringliteral");
+			LoggerWrapper::instance()->getLogger()->WRONG_STATIC_TEST_ANNOTATION_FORMAT(_program_node = *programNode, _node = node, _DETAIL = "value should be StringLiteral");
 		}
 
-		std::wstring idString = cast<StringLiteral>(logId.second)->value;
+		std::wstring idString = cast<StringLiteral>(cast<PrimaryExpr>(logId.second)->value.literal)->value;
+
+		if (anno->attribute_list.size() == 2)
+		{
+			return LogInfoContext(levelString, idString, std::map<std::wstring, wstring>());
+		}
 
 		// parameter pairs
 		std::pair<SimpleIdentifier*, ASTNode*> paramPairs = cast<Annotation>(expectMessage.second)->attribute_list[2];
@@ -190,9 +200,10 @@ private:
 				LoggerWrapper::instance()->getLogger()->WRONG_STATIC_TEST_ANNOTATION_FORMAT(_program_node = *programNode, _node = node, _DETAIL = "key should be SimpleIdentifier");
 			}
 
-			StringLiteral *paramValue = cast<StringLiteral>(i->second);
+			BOOST_ASSERT(cast<PrimaryExpr>(i->second) != NULL);
+			StringLiteral *paramValue = cast<StringLiteral>(cast<PrimaryExpr>(i->second)->value.literal);
 			BOOST_ASSERT(paramValue != NULL);
-			if (paramValue == NULL)
+			if (cast<PrimaryExpr>(i->second) == NULL || paramValue == NULL)
 			{
 				LoggerWrapper::instance()->getLogger()->WRONG_STATIC_TEST_ANNOTATION_FORMAT(_program_node = *programNode, _node = node, _DETAIL = "value should be StringLiteral");
 			}
