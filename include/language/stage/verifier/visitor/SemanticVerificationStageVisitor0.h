@@ -143,7 +143,16 @@ struct SemanticVerificationStageVisitor0 : GenericDoubleVisitor
 		// MISSING_CONTINUE_TARGET
 		if(node.isLoopSpecific())
 		{
+//			ASTNode* parent_statement = &node;
+//			while(!isa<IterativeStmt>(parent_statement))
+//				parent_statement = parent_statement->parent;
 		}
+	}
+
+	void verify(Declaration &node)
+	{
+		// UNDEFINED_REF -- function has no body ??
+		// DUPE_NAME
 	}
 
 	void verify(VariableDecl &node)
@@ -152,6 +161,32 @@ struct SemanticVerificationStageVisitor0 : GenericDoubleVisitor
 		if(node.is_static && !node.initializer)
 			LoggerWrapper::instance()->getLogger()->MISSING_STATIC_INIT(
 					_program_node = *cast<tree::Program>(getParserContext().program), _node = node);
+	}
+
+	void verify(FunctionDecl &node)
+	{
+		// UNDEFINED_REF -- function has no body ??
+		// DUPE_NAME
+		if(!node.block) // NOTE: must have @native annotation ??
+		{
+		}
+		// MISSING_PARAM_INIT
+		// UNEXPECTED_VARIADIC_PARAM
+		// EXCEED_PARAM_LIMIT
+		foreach(i, node.parameters)
+		{
+		}
+		revisit(node);
+	}
+
+	void verify(TemplatedIdentifier &node)
+	{
+		// DUPE_NAME
+		// UNEXPECTED_VARIADIC_TEMPLATE_PARAM
+		// EXCEED_TEMPLATE_PARAM_LIMIT
+		foreach(i, node.templated_type_list)
+		{
+		}
 	}
 };
 
