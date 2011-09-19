@@ -51,7 +51,6 @@ void ThorScriptCompiler::initialize()
 	shared_ptr<Stage> resolution(new ResolutionStage());
 	shared_ptr<Stage> semantic_verification_1(new SemanticVerificationStage1());
 	shared_ptr<Stage> staticTestVerification(new StaticTestVerificationStage());
-
 	shared_ptr<Stage> mangling(new ManglingStage());
 
 	shared_ptr<Stage> llvm_generator(new LLVMGeneratorStage());
