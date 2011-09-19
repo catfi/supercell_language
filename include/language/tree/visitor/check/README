@@ -14,38 +14,38 @@ ERRORS:
                                                 ==========================================
     E1. NAME
         a. UNKNOWN
-            I.  UNKNOWN_NAME                    (?)
-            II. UNDEFINED_REF                   (?)
+            I.  UNKNOWN_NAME                                            T
+            II. UNDEFINED_REF                                       S0 - native function
         b. AMBIGUOUS
             I.  DUPE_NAME                                           S0
-            II. AMBIGUOUS_REF                   (?)
+            II. AMBIGUOUS_REF                                           T
     E2. TYPE
         a. CAST
             I.   EXPRESSION
-                 i.   WRITE_RVALUE                                      T
+                 i.   WRITE_RVALUE                                  S0
                  ii.  INVALID_CONV                                      T
-                 iii. NO_MATCHING_MEMBER_FUNC                           T
+                 iii. NO_MATCHING_MEMBER_FUNC                           T*
             II.  STATEMENT
                  - INVALID_CONV_BOOL                                    T
             III. DECLARATION
                  - (...)                                                T
         b. PRIMARY_EXPRESSION
-            I.   MEMBER_OF_NONCLASS                                             S1
-            II.  NO_SUCH_MEMBER                                                 S1
-            III. SUBSCRIPT_OF_NONARRAY                                          S1
+            I.   MEMBER_OF_NONCLASS                                     T
+            II.  NO_SUCH_MEMBER                                         T
+            III. SUBSCRIPT_OF_NONARRAY                                  T
         c. FUNCTION
-            I.   CALL_NONFUNC                                                   S1
-            II.  MISMATCH_CALL_ARGNUM                                           S1
-            III. MISMATCH_CALL_ARGTYPE          (?)
-            IV.  UNEXPECTED_RETURN_VALUE        (?)
-            V.   MISSING_RETURN_VALUE           (?)
+            I.   CALL_NONFUNC                                           T
+            II.  MISMATCH_CALL_ARGNUM                                   T
+            III. MISMATCH_CALL_ARGTYPE                                  T
+            IV.  UNEXPECTED_RETURN_VALUE                                        S1
+            V.   MISSING_RETURN_VALUE                                           S1
     E3. MODIFIER
         a. STORAGE
             I.  CONST
-                i.  MISSING_CONST_INIT          (?)
-                ii. WRITE_CONST                 (?)
+                i.  MISSING_CONST_INIT                              S0
+                ii. WRITE_CONST                                                 S1
             II. STATIC
-                i.   MISSING_STATIC_INIT                                        S1
+                i.   MISSING_STATIC_INIT                            S0
                 ii.  INVALID_NONSTATIC_CALL                                     S1
                 iii. INVALID_NONSTATIC_REF                                      S1
         b. VISIBILITY
@@ -70,7 +70,7 @@ WARNINGS:
     W1. MISSING_RETURN                                                          S1
     W2. UNINIT_ARG                                                                  FUTURE
     W3. CONTROL_PATH
-        b. CONTROL_REACHES_END                                      S0
+        b. CONTROL_REACHES_END                                                      FUTURE
         c. MISSING_CASE                                                         S1
         d. DEAD_CODE                                                S0
         e. INFINITE_RECURSION                                                       FUTURE
