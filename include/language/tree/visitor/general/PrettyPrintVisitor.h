@@ -223,10 +223,6 @@ struct PrettyPrintVisitor : Visitor<const ASTNode, void>
 			increaseIdent();
 			switch(node.type)
 			{
-			case TypeSpecifier::ReferredType::CLASS_DECL: if(node.referred.class_decl) visit(*node.referred.class_decl); break;
-			case TypeSpecifier::ReferredType::FUNCTION_DECL: if(node.referred.function_decl) visit(*node.referred.function_decl); break;
-			case TypeSpecifier::ReferredType::ENUM_DECL: if(node.referred.enum_decl) visit(*node.referred.enum_decl); break;
-			case TypeSpecifier::ReferredType::TYPEDEF_DECL: if(node.referred.typedef_decl) visit(*node.referred.typedef_decl); break;
 			case TypeSpecifier::ReferredType::FUNCTION_TYPE: if(node.referred.function_type) visit(*node.referred.function_type); break;
 			case TypeSpecifier::ReferredType::UNSPECIFIED: if(node.referred.unspecified) visit(*node.referred.unspecified); break;
 			case TypeSpecifier::ReferredType::PRIMITIVE:
@@ -1197,11 +1193,6 @@ private:
 			TypeSpecifier* t = cast<TypeSpecifier>(type);
 			switch(t->type)
 			{
-			case TypeSpecifier::ReferredType::CLASS_DECL: return t->referred.class_decl->name->toString();
-			case TypeSpecifier::ReferredType::INTERFACE_DECL: return t->referred.interface_decl->name->toString();
-			case TypeSpecifier::ReferredType::FUNCTION_DECL: return t->referred.function_decl->name->toString();
-			case TypeSpecifier::ReferredType::ENUM_DECL: return t->referred.enum_decl->name->toString();
-			case TypeSpecifier::ReferredType::TYPEDEF_DECL: return t->referred.typedef_decl->to->toString();
 			case TypeSpecifier::ReferredType::PRIMITIVE: return PrimitiveType::toString(t->referred.primitive);
 			case TypeSpecifier::ReferredType::UNSPECIFIED: return t->referred.unspecified->toString();
 			case TypeSpecifier::ReferredType::FUNCTION_TYPE: return decodeFunctionType(t->referred.function_type);

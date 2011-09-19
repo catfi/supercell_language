@@ -84,21 +84,6 @@ struct NameManglingVisitor : Visitor<ASTNode, void, VisitorImplementation::recur
 
 		switch(node.type)
 		{
-		case TypeSpecifier::ReferredType::CLASS_DECL:
-			visit(*node.referred.class_decl);
-			break;
-		case TypeSpecifier::ReferredType::INTERFACE_DECL:
-			visit(*node.referred.interface_decl);
-			break;
-		case TypeSpecifier::ReferredType::FUNCTION_DECL:
-			visit(*node.referred.function_decl);
-			break;
-		case TypeSpecifier::ReferredType::ENUM_DECL:
-			visit(*node.referred.enum_decl);
-			break;
-		case TypeSpecifier::ReferredType::TYPEDEF_DECL:
-			visit(*node.referred.typedef_decl);
-			break;
 		case TypeSpecifier::ReferredType::FUNCTION_TYPE:
 			visit(*node.referred.function_type);
 			break;

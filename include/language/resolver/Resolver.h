@@ -237,7 +237,7 @@ private:
 	}
 
 public:
-	bool resolveType(tree::ASTNode& scope, tree::TypeSpecifier& node, bool no_action = false)
+	bool resolveType(tree::ASTNode& attach, tree::ASTNode& scope, tree::TypeSpecifier& node, bool no_action = false)
 	{
 		using namespace zillians::language::tree;
 
@@ -254,7 +254,7 @@ public:
 
 			resolution_visitor.visit(scope);
 
-			return checkResolvedType(node, no_action);
+			return checkResolvedType(attach, node, no_action);
 		}
 		else
 		{
@@ -262,7 +262,7 @@ public:
 		}
 	}
 
-	bool resolveType(tree::TypeSpecifier& node, bool no_action = false)
+	bool resolveType(tree::ASTNode& attach, tree::TypeSpecifier& node, bool no_action = false)
 	{
 		using namespace zillians::language::tree;
 
@@ -280,7 +280,7 @@ public:
 				resolution_visitor.visit(**scope);
 			}
 
-			return checkResolvedType(node, no_action);
+			return checkResolvedType(attach, node, no_action);
 		}
 		else
 		{
@@ -289,7 +289,7 @@ public:
 	}
 
 private:
-	bool checkResolvedType(tree::TypeSpecifier& node, bool no_action)
+	bool checkResolvedType(tree::ASTNode& attach, tree::TypeSpecifier& node, bool no_action)
 	{
 		using namespace zillians::language::tree;
 
@@ -306,27 +306,23 @@ private:
 			if(isa<ClassDecl>(ref))
 			{
 				LOG4CXX_DEBUG(LoggerWrapper::Resolver, L"resolve type \"" << node.referred.unspecified->toString() << L"\" to \"" << cast<ClassDecl>(ref)->name->toString() << L"\"");
-				if(!no_action) node.update(cast<ClassDecl>(ref));
+				if(!no_action) ResolvedType::set(&attach, ref);
 			}
 			else if(isa<InterfaceDecl>(ref))
 			{
-				if(!no_action) node.update(cast<InterfaceDecl>(ref));
+				if(!no_action) ResolvedType::set(&attach, ref);
 			}
 			else if(isa<FunctionDecl>(ref))
 			{
-				if(!no_action) node.update(cast<FunctionDecl>(ref));
+				if(!no_action) ResolvedType::set(&attach, ref);
 			}
 			else if(isa<EnumDecl>(ref))
 			{
-				if(!no_action) node.update(cast<EnumDecl>(ref));
+				if(!no_action) ResolvedType::set(&attach, ref);
 			}
 			else if(isa<TypedefDecl>(ref))
 			{
-				if(!no_action) node.update(cast<TypedefDecl>(ref));
-			}
-			else if(isa<FunctionType>(ref))
-			{
-				if(!no_action) node.update(cast<FunctionType>(ref));
+				if(!no_action) ResolvedType::set(&attach, ref);
 			}
 			else
 			{

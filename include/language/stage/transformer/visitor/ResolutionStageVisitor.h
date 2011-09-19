@@ -121,13 +121,13 @@ struct ResolutionStageVisitor : GenericDoubleVisitor
 		{
 			// try to resolve return type
 			if(node.type)
-				try_to_resolve_type(node.type);
+				try_to_resolve_type(node.type, node.type);
 
 			// try to resolve parameter type
 			foreach(i, node.parameters)
 			{
 				if(i->get<1>())
-					try_to_resolve_type(i->get<1>());
+					try_to_resolve_type(i->get<1>(), i->get<1>());
 			}
 
 		}
@@ -166,7 +166,7 @@ struct ResolutionStageVisitor : GenericDoubleVisitor
 	{
 		if(type == Target::TYPE_RESOLUTION)
 		{
-			try_to_resolve_type(node.from);
+			try_to_resolve_type(node.from, node.from);
 		}
 		else if(type == Target::SYMBOL_RESOLUTION)
 		{
@@ -179,7 +179,7 @@ struct ResolutionStageVisitor : GenericDoubleVisitor
 	{
 		if(type == Target::TYPE_RESOLUTION)
 		{
-			try_to_resolve_type(node.type);
+			try_to_resolve_type(node.type, node.type);
 		}
 		else if(type == Target::SYMBOL_RESOLUTION)
 		{
@@ -288,7 +288,7 @@ struct ResolutionStageVisitor : GenericDoubleVisitor
 
 		if(type == Target::TYPE_RESOLUTION)
 		{
-			try_to_resolve_type(node.type);
+			try_to_resolve_type(node.type, node.type);
 		}
 		else if(type == Target::SYMBOL_RESOLUTION)
 		{
@@ -319,14 +319,14 @@ struct ResolutionStageVisitor : GenericDoubleVisitor
 	}
 
 private:
-	void try_to_resolve_type(tree::TypeSpecifier* node, bool no_action = false)
+	void try_to_resolve_type(tree::ASTNode* attach, tree::TypeSpecifier* node, bool no_action = false)
 	{
 		if(!node)
 			return;
 
 		if(node->type == TypeSpecifier::ReferredType::UNSPECIFIED)
 		{
-			if(resolver.resolveType(*node, no_action))
+			if(resolver.resolveType(*attach, *node, no_action))
 			{
 				++resolved_count;
 			}

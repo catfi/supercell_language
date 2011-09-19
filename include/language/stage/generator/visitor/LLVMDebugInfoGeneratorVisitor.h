@@ -141,10 +141,6 @@ struct LLVMDebugInfoGeneratorVisitor: GenericDoubleVisitor
 		llvm::DIType type;
 		switch(node.type)
 		{
-		case TypeSpecifier::ReferredType::CLASS_DECL: break;
-		case TypeSpecifier::ReferredType::FUNCTION_DECL:  break;
-		case TypeSpecifier::ReferredType::ENUM_DECL: break;
-		case TypeSpecifier::ReferredType::TYPEDEF_DECL: break;
 		case TypeSpecifier::ReferredType::FUNCTION_TYPE: break;
 		case TypeSpecifier::ReferredType::UNSPECIFIED: break;
 		case TypeSpecifier::ReferredType::PRIMITIVE:

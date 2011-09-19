@@ -41,11 +41,6 @@ struct TypeSpecifier : public ASTNode
 	struct ReferredType
 	{
 		enum type {
-			CLASS_DECL,
-			INTERFACE_DECL,
-			FUNCTION_DECL,
-			ENUM_DECL,
-			TYPEDEF_DECL,
 			FUNCTION_TYPE,
 			PRIMITIVE,
 			UNSPECIFIED,
@@ -55,42 +50,12 @@ struct TypeSpecifier : public ASTNode
 		{
 			switch(t)
 			{
-			case CLASS_DECL:		return L"class_declaration";
-			case INTERFACE_DECL:	return L"interface_declaration";
-			case FUNCTION_DECL:		return L"function_declaration";
-			case ENUM_DECL:			return L"enum_declaration";
-			case TYPEDEF_DECL:		return L"typedef_declaration";
 			case FUNCTION_TYPE:		return L"function_type";
 			case PRIMITIVE:			return L"primitive";
 			case UNSPECIFIED: 		return L"unspecified";
 			}
 		}
 	};
-
-	explicit TypeSpecifier(ClassDecl* class_decl)
-	{
-		update(class_decl);
-	}
-
-	explicit TypeSpecifier(InterfaceDecl* interface_decl)
-	{
-		update(interface_decl);
-	}
-
-	explicit TypeSpecifier(FunctionDecl* function_decl)
-	{
-		update(function_decl);
-	}
-
-	explicit TypeSpecifier(EnumDecl* enum_decl)
-	{
-		update(enum_decl);
-	}
-
-	explicit TypeSpecifier(TypedefDecl* typedef_decl)
-	{
-		update(typedef_decl);
-	}
 
 	explicit TypeSpecifier(FunctionType* function_proto)
 	{
@@ -105,36 +70,6 @@ struct TypeSpecifier : public ASTNode
 	explicit TypeSpecifier(Identifier* unspecified)
 	{
 		update(unspecified);
-	}
-
-	void update(ClassDecl* class_decl)
-	{
-		type = ReferredType::CLASS_DECL;
-		referred.class_decl = class_decl;
-	}
-
-	void update(InterfaceDecl* interface_decl)
-	{
-		type = ReferredType::INTERFACE_DECL;
-		referred.interface_decl = interface_decl;
-	}
-
-	void update(FunctionDecl* function_decl)
-	{
-		type = ReferredType::FUNCTION_DECL;
-		referred.function_decl = function_decl;
-	}
-
-	void update(EnumDecl* enum_decl)
-	{
-		type = ReferredType::ENUM_DECL;
-		referred.enum_decl = enum_decl;
-	}
-
-	void update(TypedefDecl* typedef_decl)
-	{
-		type = ReferredType::TYPEDEF_DECL;
-		referred.typedef_decl = typedef_decl;
 	}
 
 	void update(FunctionType* function_type)
@@ -161,11 +96,6 @@ struct TypeSpecifier : public ASTNode
 		COMPARE_MEMBER(type)
         switch(p->type)
         {
-        case TypeSpecifier::ReferredType::CLASS_DECL     : COMPARE_MEMBER(referred.class_decl    )             ; break;
-        case TypeSpecifier::ReferredType::INTERFACE_DECL : COMPARE_MEMBER(referred.interface_decl)             ; break;
-        case TypeSpecifier::ReferredType::FUNCTION_DECL  : COMPARE_MEMBER(referred.function_decl )             ; break;
-        case TypeSpecifier::ReferredType::ENUM_DECL      : COMPARE_MEMBER(referred.enum_decl     )             ; break;
-        case TypeSpecifier::ReferredType::TYPEDEF_DECL   : COMPARE_MEMBER(referred.typedef_decl  )             ; break;
         case TypeSpecifier::ReferredType::FUNCTION_TYPE  : COMPARE_MEMBER(referred.function_type )             ; break;
         case TypeSpecifier::ReferredType::PRIMITIVE      : if(referred.primitive != p->referred.primitive) return false; break;
         case TypeSpecifier::ReferredType::UNSPECIFIED    : COMPARE_MEMBER(referred.unspecified   )             ; break;
@@ -177,11 +107,6 @@ struct TypeSpecifier : public ASTNode
 
 	union ReferredUnion
 	{
-		ClassDecl* class_decl;
-		InterfaceDecl* interface_decl;
-		FunctionDecl* function_decl;
-		EnumDecl* enum_decl;
-		TypedefDecl* typedef_decl;
 		FunctionType* function_type;
 		PrimitiveType::type primitive;
 		Identifier* unspecified;

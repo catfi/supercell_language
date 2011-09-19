@@ -93,14 +93,6 @@ struct ResolutionVisitor : Visitor<ASTNode, void, VisitorImplementation::recursi
 		// (so we use 'visit()' instead of 'tryVisit()')
 		switch(node.type)
 		{
-		case TypeSpecifier::ReferredType::CLASS_DECL:
-			visit(*node.referred.class_decl); break;
-		case TypeSpecifier::ReferredType::INTERFACE_DECL:
-			visit(*node.referred.interface_decl); break;
-		case TypeSpecifier::ReferredType::ENUM_DECL:
-			visit(*node.referred.enum_decl); break;
-		case TypeSpecifier::ReferredType::FUNCTION_DECL:
-			visit(*node.referred.function_decl); break;
 		case TypeSpecifier::ReferredType::FUNCTION_TYPE:
 		{
 			enlist(&node, false);
@@ -115,6 +107,9 @@ struct ResolutionVisitor : Visitor<ASTNode, void, VisitorImplementation::recursi
 		{
 			// it's possible for resolving to unresolved type specifier,
 			// and that's why we need iterative type resolution
+			ASTNode* resolved_type = ResolvedType::get(&node);
+			if(resolved_type)
+				visit(*resolved_type);
 			break;
 		}
 		}

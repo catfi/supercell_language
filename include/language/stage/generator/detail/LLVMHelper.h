@@ -22,6 +22,7 @@
 
 #include "core/Prerequisite.h"
 #include "language/stage/generator/detail/LLVMHeaders.h"
+#include "language/context/ResolverContext.h"
 
 using namespace zillians::language::tree;
 
@@ -125,36 +126,48 @@ struct LLVMHelper
 
 		switch(specifier.type)
 		{
-		case TypeSpecifier::ReferredType::CLASS_DECL: // TODO return pointer type
-		case TypeSpecifier::ReferredType::INTERFACE_DECL: // TODO return pointer type
-		{
-			// return generic pointer type, which is an unsigned int32
-			modifier |= llvm::Attribute::ZExt;
-			result = llvm::IntegerType::getInt32Ty(mContext);
-			resolved = true; break;
-		}
-		case TypeSpecifier::ReferredType::FUNCTION_DECL:
 		case TypeSpecifier::ReferredType::FUNCTION_TYPE:
 		{
 			// TODO return pointer to function type
 			result = NULL;
 			resolved = false; break;
 		}
-		case TypeSpecifier::ReferredType::ENUM_DECL:
-		{
-			modifier |= llvm::Attribute::ZExt;
-			result = llvm::IntegerType::getInt32Ty(mContext);
-			resolved = true; break;
-		}
 		case TypeSpecifier::ReferredType::PRIMITIVE:
 		{
 			return getType(specifier.referred.primitive, result, modifier);
 		}
-		case TypeSpecifier::ReferredType::TYPEDEF_DECL:
 		case TypeSpecifier::ReferredType::UNSPECIFIED:
+		{
 			// TODO these are cases that shouldn't happen
-			result = NULL;
-			resolved = false; break;
+			ASTNode* resolved_type = ResolvedType::get(&specifier);
+			if(resolved_type)
+			{
+				if(isa<ClassDecl>(resolved_type) || isa<InterfaceDecl>(resolved_type))
+				{
+					modifier |= llvm::Attribute::ZExt;
+					result = llvm::IntegerType::getInt32Ty(mContext);
+					resolved = true; break;
+				}
+				else if(isa<EnumDecl>(resolved_type))
+				{
+					modifier |= llvm::Attribute::ZExt;
+					result = llvm::IntegerType::getInt32Ty(mContext);
+					resolved = true; break;
+				}
+				else
+				{
+					BOOST_ASSERT(false && "resolved to unknown type");
+					result = NULL;
+					resolved = false;
+				}
+			}
+			else
+			{
+				result = NULL;
+				resolved = false;
+			}
+			break;
+		}
 		}
 		return resolved;
 	}

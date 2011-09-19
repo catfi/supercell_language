@@ -95,10 +95,6 @@ struct GenericDoubleVisitor : Visitor<ASTNode, void, VisitorImplementation::recu
 		{
 			switch(node.type)
 			{
-			case TypeSpecifier::ReferredType::CLASS_DECL: if(node.referred.class_decl) user_visitor->visit(*node.referred.class_decl); break;
-			case TypeSpecifier::ReferredType::FUNCTION_DECL: if(node.referred.function_decl) user_visitor->visit(*node.referred.function_decl); break;
-			case TypeSpecifier::ReferredType::ENUM_DECL: if(node.referred.enum_decl) user_visitor->visit(*node.referred.enum_decl); break;
-			case TypeSpecifier::ReferredType::TYPEDEF_DECL: if(node.referred.typedef_decl) user_visitor->visit(*node.referred.typedef_decl); break;
 			case TypeSpecifier::ReferredType::FUNCTION_TYPE: if(node.referred.function_type) user_visitor->visit(*node.referred.function_type); break;
 			case TypeSpecifier::ReferredType::UNSPECIFIED: if(node.referred.unspecified) user_visitor->visit(*node.referred.unspecified); break;
 			}

@@ -87,21 +87,6 @@ struct NodeInfoVisitor : Visitor<ASTNode, void, VisitorImplementation::recursive
 
 		switch(node.type)
 		{
-		case TypeSpecifier::ReferredType::CLASS_DECL:
-			visit(*node.referred.class_decl);
-			break;
-		case TypeSpecifier::ReferredType::INTERFACE_DECL:
-			visit(*node.referred.interface_decl);
-			break;
-		case TypeSpecifier::ReferredType::FUNCTION_DECL:
-			visit(*node.referred.function_decl);
-			break;
-		case TypeSpecifier::ReferredType::ENUM_DECL:
-			visit(*node.referred.enum_decl);
-			break;
-		case TypeSpecifier::ReferredType::TYPEDEF_DECL:
-			visit(*node.referred.typedef_decl);
-			break;
 		case TypeSpecifier::ReferredType::FUNCTION_TYPE:
 			visit(*node.referred.function_type);
 			break;
@@ -110,6 +95,7 @@ struct NodeInfoVisitor : Visitor<ASTNode, void, VisitorImplementation::recursive
 			break;
 		case TypeSpecifier::ReferredType::UNSPECIFIED:
 			stream << node.referred.unspecified->toString();
+			break;
 		}
 		//stream << L" [" << TypeSpecifier::ReferredType::toString(node.type) << L"]";
 	}

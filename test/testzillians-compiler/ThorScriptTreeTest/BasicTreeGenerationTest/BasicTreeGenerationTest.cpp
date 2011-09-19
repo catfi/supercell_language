@@ -104,12 +104,6 @@ BOOST_AUTO_TEST_CASE( ThorScriptTreeTest_TreeEqualityTest )
         ASTNode* p4_2 = createSample4() ;
         BOOST_CHECK(p4_1->isEqual(*p4_2));
     }
-
-    {
-        ASTNode* p5_1 = createSample5() ;
-        ASTNode* p5_2 = createSample5() ;
-        BOOST_CHECK(p5_1->isEqual(*p5_2));
-    }
 }
 
 BOOST_AUTO_TEST_SUITE_END()
