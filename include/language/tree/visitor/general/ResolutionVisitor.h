@@ -433,7 +433,7 @@ struct ResolutionVisitor : Visitor<ASTNode, void, VisitorImplementation::recursi
 			if(node.catagory == PrimaryExpr::Catagory::IDENTIFIER)
 			{
 				// there can be type within package
-				ASTNode* package = ResolvedPackage::get(node.value.identifier);
+				ASTNode* package = ResolvedPackage::get(&node);
 				if(package)
 					visit(*package);
 			}
@@ -445,11 +445,11 @@ struct ResolutionVisitor : Visitor<ASTNode, void, VisitorImplementation::recursi
 			if(node.catagory == PrimaryExpr::Catagory::IDENTIFIER)
 			{
 				// there can be symbol within package or another symbol
-				ASTNode* symbol = ResolvedSymbol::get(node.value.identifier);
+				ASTNode* symbol = ResolvedSymbol::get(&node);
 				if(symbol)
 					visit(*symbol);
 
-				ASTNode* package = ResolvedPackage::get(node.value.identifier);
+				ASTNode* package = ResolvedPackage::get(&node);
 				if(package)
 					visit(*package);
 			}
@@ -461,7 +461,7 @@ struct ResolutionVisitor : Visitor<ASTNode, void, VisitorImplementation::recursi
 			if(node.catagory == PrimaryExpr::Catagory::IDENTIFIER)
 			{
 				// there can be package within package
-				ASTNode* package = ResolvedPackage::get(node.value.identifier);
+				ASTNode* package = ResolvedPackage::get(&node);
 				if(package)
 					visit(*package);
 			}

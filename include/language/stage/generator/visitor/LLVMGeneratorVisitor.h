@@ -36,6 +36,14 @@ using zillians::language::tree::visitor::NodeInfoVisitor;
 
 namespace zillians { namespace language { namespace stage { namespace visitor {
 
+/**
+ * LLVMGeneratorVisitor walks the AST tree and generates LLVM instructions
+ *
+ * As LLVMGeneratorVisitor traverse the AST tree only once, required information must be prepared prior to the visitor,
+ * including any necessary transformation.
+ *
+ * @see LLVMGeneratorPreambleVisitor
+ */
 struct LLVMGeneratorVisitor : GenericDoubleVisitor
 {
 	CREATE_INVOKER(generateInvoker, generate)
@@ -106,36 +114,39 @@ struct LLVMGeneratorVisitor : GenericDoubleVisitor
 
 	void generate(FunctionDecl& node)
 	{
-		if(!isFunctionVisited(node))
+		if(isFunctionVisited(node))
+			return;
+
+		// create function signature (if necessary) and emit prologue of function
+		if(!startFunction(node))
 		{
-			// create function signature (if necessary) and emit prologue of function
-			if(!startFunction(node))
-			{
-				terminateRevisit();
-				return;
-			}
+			terminateRevisit();
+			return;
+		}
 
-			// create alloca for all parameters
-			if(!allocateParameters(node))
-			{
-				terminateRevisit();
-				return;
-			}
+		// create alloca for all parameters
+		if(!allocateParameters(node))
+		{
+			terminateRevisit();
+			return;
+		}
 
-			// visit all children
-			revisit(node);
+		// visit all children
+		revisit(node);
 
-			// emit epilogue of function
-			if(!finishFunction(node))
-			{
-				terminateRevisit();
-				return;
-			}
+		// emit epilogue of function
+		if(!finishFunction(node))
+		{
+			terminateRevisit();
+			return;
 		}
 	}
 
 	void generate(VariableDecl& node)
 	{
+		if(isDeclaredInPackage(node))
+			return;
+
 		revisit(node);
 
 		// here we only generate AllocaInst for AST variables within function
@@ -1087,6 +1098,14 @@ private:
 	{
 		// TODO check the resolve type
 		return false;
+	}
+
+	bool isDeclaredInPackage(ASTNode& node)
+	{
+		if(isa<Package>(node.parent))
+			return true;
+		else
+			return false;
 	}
 
 	bool isDeclaredInFunction(ASTNode& node)

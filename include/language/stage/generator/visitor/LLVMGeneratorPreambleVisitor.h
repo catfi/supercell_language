@@ -31,6 +31,14 @@ using zillians::language::tree::visitor::GenericDoubleVisitor;
 
 namespace zillians { namespace language { namespace stage { namespace visitor {
 
+/**
+ * LLVMGeneratorPreambleVisitor is used to generate llvm::Function object for all functions prior to actual code generation
+ *
+ * We have to generate llvm::Function object prior to actual code generation because the LLVMGeneratorVisitor visits the tree in a top-down approach,
+ * so it's common case that the callee is visited after the caller, which requires llvm::Function object to create llvm::CallInst
+ *
+ * @see LLVMGeneratorVisitor
+ */
 struct LLVMGeneratorPreambleVisitor : GenericDoubleVisitor
 {
 	CREATE_INVOKER(generateInvoker, generate)
