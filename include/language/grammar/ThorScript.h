@@ -503,7 +503,7 @@ struct ThorScript : qi::grammar<Iterator, typename SA::start::attribute_type, de
 		annotation_specifier_stem
 			= qi::eps [ typename SA::location::cache_loc() ]
 				>>	(LEFT_BRACE
-						> ((IDENTIFIER > ASSIGN > (primary_expression | annotation_specifier_stem)) % COMMA)
+						> ((IDENTIFIER > ASSIGN > (STRING_LITERAL | annotation_specifier_stem)) % COMMA)
 						> RIGHT_BRACE
 					) [ typename SA::annotation_specifier_stem::init() ]
 			;

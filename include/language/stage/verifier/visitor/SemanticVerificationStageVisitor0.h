@@ -131,8 +131,13 @@ struct SemanticVerificationStageVisitor0 : GenericDoubleVisitor
 		{
 			if(node.left->isRValue())
 			{
+				ASTNode* parent_statement = node.left->parent;
+				while(!isa<Statement>(parent_statement))
+				{
+					parent_statement = parent_statement->parent;
+				}
 				LoggerWrapper::instance()->getLogger()->WRITE_RVALUE(
-						_program_node = *cast<tree::Program>(getParserContext().program), _node = node);
+						_program_node = *cast<tree::Program>(getParserContext().program), _node = *parent_statement);
 			}
 		}
 	}
@@ -148,6 +153,7 @@ struct SemanticVerificationStageVisitor0 : GenericDoubleVisitor
 
 	void verify(Declaration &node)
 	{
+		revisit(node);
 	}
 };
 

@@ -109,10 +109,12 @@ private:
 			LoggerWrapper::instance()->getLogger()->WRONG_STATIC_TEST_ANNOTATION_FORMAT(_program_node = *programNode, _node = node, _DETAIL = "child of Annotations should be Annotation");
 		}
 
-		BOOST_ASSERT(cast<Annotation>(expectMessage.second)->attribute_list.size() == 3);
-		if (cast<Annotation>(expectMessage.second)->attribute_list.size() != 3)
+		BOOST_ASSERT(cast<Annotation>(expectMessage.second)->attribute_list.size() == 3 ||
+                     cast<Annotation>(expectMessage.second)->attribute_list.size() == 2);
+		if (cast<Annotation>(expectMessage.second)->attribute_list.size() != 3 ||
+		    cast<Annotation>(expectMessage.second)->attribute_list.size() != 2)
 		{
-			LoggerWrapper::instance()->getLogger()->WRONG_STATIC_TEST_ANNOTATION_FORMAT(_program_node = *programNode, _node = node, _DETAIL = "number of attribute list should be 3");
+			LoggerWrapper::instance()->getLogger()->WRONG_STATIC_TEST_ANNOTATION_FORMAT(_program_node = *programNode, _node = node, _DETAIL = "number of attribute list should be 3 or 2");
 		}
 
 		// log level
