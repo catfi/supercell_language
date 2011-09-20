@@ -355,16 +355,21 @@ BOOST_PARAMETER_NAME(node)
 
 // Generated parameters appear among all the messages
 /*[[[cog
+
+import re
+
 def extract_parameters(trans):
 	parameter_hub = {}	# Record appeared parameters
 	parameters = []
-	splitted = trans.split(' ')
-	for word in splitted:
-		if word[0] == '$':	# word is like $ID(string)
-			var, type = word[1:].split('(')
-			if not parameter_hub.has_key(var):
-				parameters.append((var, type.split(')')[0]))	# strip out $
-				parameter_hub[var] = 1	# the value is no matter
+
+	pattern = r'\$(.*?)\((.*?)\)'	# Find the pattern like $ID(string)
+	matches = re.findall(pattern, trans)
+
+	for (var, type) in matches:
+		if not parameter_hub.has_key(var):
+			parameters.append((var, type))
+			parameter_hub[var] = 1
+
 	return parameters
 
 # Examine each translation string (we choose en_US here) and parse the string with dollar sign as
