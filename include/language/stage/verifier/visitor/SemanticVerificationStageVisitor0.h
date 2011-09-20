@@ -144,14 +144,12 @@ struct SemanticVerificationStageVisitor0 : GenericDoubleVisitor
 		// MISSING_BREAK_TARGET
 		// MISSING_CONTINUE_TARGET
 		if(node.isBreakOrContinue() && !ASTNodeHelper::isOwnedByIterativeStmt(node))
-		{
-			if(node.opcode == BranchStmt::OpCode::BREAK)
-				LOG_MESSAGE(MISSING_BREAK_TARGET, node);
-			else if(node.opcode == BranchStmt::OpCode::CONTINUE)
-				LOG_MESSAGE(MISSING_CONTINUE_TARGET, node);
-			else
-				BOOST_ASSERT(false && "reaching unreachable code");
-		}
+			switch(node.opcode)
+			{
+			case BranchStmt::OpCode::BREAK:    LOG_MESSAGE(MISSING_BREAK_TARGET, node); break;
+			case BranchStmt::OpCode::CONTINUE: LOG_MESSAGE(MISSING_CONTINUE_TARGET, node); break;
+			default: BOOST_ASSERT(false && "reaching unreachable code"); break;
+			}
 	}
 
 	void verify(Declaration &node)
@@ -171,21 +169,20 @@ struct SemanticVerificationStageVisitor0 : GenericDoubleVisitor
 	void verify(FunctionDecl &node)
 	{
 		// UNDEFINED_REF -- function has no body ??
-		// DUPE_NAME
 		if(!node.block) // NOTE: must have @native annotation ??
 		{
 		}
 		// MISSING_PARAM_INIT
-		// UNEXPECTED_VARIADIC_PARAM
-		// EXCEED_PARAM_LIMIT
 		bool DUPE_NAME = false;
+		bool UNEXPECTED_VARIADIC_PARAM = false;
 		bool EXCEED_PARAM_LIMIT = false;
 		std::set<std::wstring> name_set;
 		std::wstring dupe_name_string;
 		size_t param_count = 0;
 		foreach(i, node.parameters)
 		{
-			std::wstring name = cast<VariableDecl>((*i))->name->toString();
+			// DUPE_NAME
+			std::wstring name = cast<VariableDecl>(*i)->name->toString();
 			if(name_set.find(name) != name_set.end())
 			{
 				DUPE_NAME = true;
@@ -193,14 +190,22 @@ struct SemanticVerificationStageVisitor0 : GenericDoubleVisitor
 			}
 			else
 				name_set.insert(name);
-//			if(name == L"..." && !is_end_of_foreach(i, node.templated_type_list))
-//				UNEXPECTED_VARIADIC_TEMPLATE_PARAM = true;
+
+			// UNEXPECTED_VARIADIC_PARAM
+			if(cast<VariableDecl>(*i)->type->type == TypeSpecifier::ReferredType::PRIMITIVE &&
+					cast<VariableDecl>(*i)->type->referred.primitive == PrimitiveType::VARIADIC_ELLIPSIS &&
+					!is_end_of_foreach(i, node.parameters))
+							UNEXPECTED_VARIADIC_PARAM = true;
+
+			// EXCEED_PARAM_LIMIT
 			param_count++;
 			if(param_count>getConfigurationContext().max_param_count)
 				EXCEED_PARAM_LIMIT = true;
 		}
 		if(DUPE_NAME)
 			LOG_MESSAGE(DUPE_NAME, node, _ID = dupe_name_string);
+		if(UNEXPECTED_VARIADIC_PARAM)
+			LOG_MESSAGE(UNEXPECTED_VARIADIC_PARAM, node);
 		if(EXCEED_PARAM_LIMIT)
 			LOG_MESSAGE(EXCEED_PARAM_LIMIT, node);
 		revisit(node);
@@ -208,38 +213,58 @@ struct SemanticVerificationStageVisitor0 : GenericDoubleVisitor
 
 	void verify(TemplatedIdentifier &node)
 	{
-		// DUPE_NAME
-		// UNEXPECTED_VARIADIC_TEMPLATE_PARAM
-		// EXCEED_TEMPLATE_PARAM_LIMIT
 		bool DUPE_NAME = false;
 		bool UNEXPECTED_VARIADIC_TEMPLATE_PARAM = false;
 		bool EXCEED_TEMPLATE_PARAM_LIMIT = false;
-		std::set<std::wstring> name_set;
 		std::wstring dupe_name_string;
-		size_t param_count = 0;
-		foreach(i, node.templated_type_list)
+		switch(node.type)
 		{
-			std::wstring name = cast<Identifier>((*i))->toString();
-			if(name_set.find(name) != name_set.end())
+		case TemplatedIdentifier::Usage::FORMAL_PARAMETER:
 			{
-				DUPE_NAME = true;
-				dupe_name_string = name;
+				std::set<std::wstring> name_set;
+				size_t param_count = 0;
+				foreach(i, node.templated_type_list)
+				{
+					// DUPE_NAME
+					std::wstring name = cast<Identifier>(*i)->toString();
+					if(name_set.find(name) != name_set.end())
+					{
+						DUPE_NAME = true;
+						dupe_name_string = name;
+					}
+					else
+						name_set.insert(name);
+
+					// UNEXPECTED_VARIADIC_TEMPLATE_PARAM
+					if(name == L"..." && !is_end_of_foreach(i, node.templated_type_list))
+						UNEXPECTED_VARIADIC_TEMPLATE_PARAM = true;
+
+					// EXCEED_TEMPLATE_PARAM_LIMIT
+					param_count++;
+					if(param_count>getConfigurationContext().max_template_arg_param_count)
+						EXCEED_TEMPLATE_PARAM_LIMIT = true;
+				}
 			}
-			else
-				name_set.insert(name);
-			if(name == L"..." && !is_end_of_foreach(i, node.templated_type_list))
-				UNEXPECTED_VARIADIC_TEMPLATE_PARAM = true;
-			param_count++;
-			if(param_count>getConfigurationContext().max_template_param_count)
-				EXCEED_TEMPLATE_PARAM_LIMIT = true;
+			break;
+		case TemplatedIdentifier::Usage::ACTUAL_ARGUMENT:
+			{
+				std::set<std::wstring> name_set;
+				size_t arg_count = 0;
+				foreach(i, node.templated_type_list)
+				{
+					// EXCEED_TEMPLATE_PARAM_LIMIT
+					arg_count++;
+					if(arg_count>getConfigurationContext().max_template_arg_param_count)
+						EXCEED_TEMPLATE_PARAM_LIMIT = true;
+				}
+			}
+			break;
 		}
 		if(DUPE_NAME || UNEXPECTED_VARIADIC_TEMPLATE_PARAM || EXCEED_TEMPLATE_PARAM_LIMIT)
 		{
 			ASTNode* owner = NULL;
-			if(ASTNodeHelper::isOwnedByFunction(node))
-				owner = ASTNodeHelper::getOwnerFunction(node);
-			else if(ASTNodeHelper::isOwnedByClass(node))
-				owner = ASTNodeHelper::getOwnerClass(node);
+			if(ASTNodeHelper::isOwnedByFunction(node))   owner = ASTNodeHelper::getOwnerFunction(node);
+			else if(ASTNodeHelper::isOwnedByClass(node)) owner = ASTNodeHelper::getOwnerClass(node);
 			else
 				BOOST_ASSERT(false && "reaching unreachable code");
 			if(DUPE_NAME)
