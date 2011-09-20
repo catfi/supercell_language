@@ -212,7 +212,7 @@ struct StringTable
 			zh_TW = 'NOTE: 暫無中文翻譯 ==> MISSING_CONTINUE_TARGET'
 			))
 	LOG_STRING.create('MISSING_PARAM_INIT', LOG_LEVEL.LEVEL_ERROR, 0, dict(
-			en_US = 'default argument missing for parameter $PARAM_INDEX(uint32) of $FUNC(string)',
+			en_US = 'default argument missing for parameter $PARAM_INDEX(uint32) of $FUNC(wstring)',
 			zh_TW = 'NOTE: 暫無中文翻譯 ==> MISSING_PARAM_INIT'
 			))
 	LOG_STRING.create('UNEXPECTED_VARIADIC_PARAM', LOG_LEVEL.LEVEL_ERROR, 0, dict(
