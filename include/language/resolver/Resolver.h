@@ -189,15 +189,15 @@ private:
 			node_info_visitor.reset();
 
 			bool valid = true;
-			if(isa<Identifier>(ref))
+			if(isa<Identifier>(ref)) // as function parameter
 			{
 				if(!no_action) ResolvedSymbol::set(&attach, ref);
 			}
-			else if(isa<VariableDecl>(ref))
+			else if(isa<VariableDecl>(ref)) // declared variable (as class member variable or local variable)
 			{
 				if(!no_action) ResolvedSymbol::set(&attach, ref);
 			}
-			else if(isa<FunctionDecl>(ref))
+			else if(isa<FunctionDecl>(ref)) // declared function (as class member function or global function)
 			{
 				if(!no_action) ResolvedSymbol::set(&attach, ref);
 			}

@@ -943,17 +943,17 @@ private:
 		int index = 0;
 		for(llvm::Function::arg_iterator it_arg = llvm_function->arg_begin(); it_arg != llvm_function->arg_end(); ++it_arg, ++index)
 		{
-			SimpleIdentifier* parameter_identifier = ast_function.parameters[index].get<0>();
+			Identifier* parameter_identifier = ast_function.parameters[index]->name;
 
 			const llvm::Type* t;
 			llvm::Attributes modifier;
-			if(mHelper.getType(*ast_function.parameters[index].get<1>(), t, modifier) && t && !t->isVoidTy())
+			if(mHelper.getType(*ast_function.parameters[index]->type, t, modifier) && t && !t->isVoidTy())
 			{
-				llvm::AllocaInst* parameter_alloc = createAlloca(t, NameManglingContext::get(parameter_identifier)->managled_name + "_parameter_alloca");
+				llvm::AllocaInst* parameter_alloc = createAlloca(t, NameManglingContext::get(ast_function.parameters[index])->managled_name + "_parameter_alloca");
 				mBuilder.CreateStore(&(*it_arg), parameter_alloc);
 
 				// store the alloca in the parameter identifier
-				SET_SYNTHESIZED_LLVM_VALUE(parameter_identifier, parameter_alloc);
+				SET_SYNTHESIZED_LLVM_VALUE(ast_function.parameters[index], parameter_alloc);
 			}
 			else
 			{
@@ -1040,59 +1040,6 @@ private:
 					}
 				}
 			}
-//			else if(isFunctionParameter(*resolved_symbol))
-//			{
-//				llvm_value_for_read = GET_SYNTHESIZED_LLVM_VALUE(resolved_symbol);
-//
-//				if(llvm_value_for_read->getType()->isPointerTy())
-//				{
-//					llvm_value_for_write = llvm_value_for_read;
-//					llvm_value_for_read = mBuilder.CreateLoad(llvm_value_for_read);
-//				}
-//				else
-//				{
-//					if(require_write_access)
-//					{
-//						BOOST_ASSERT(false && "writing to read-only LLVM value");
-//						return false;
-//					}
-//				}
-//				// TODO
-//				/*
-//				FunctionDecl* ast_function = getContainingFunction(*resolved_symbol);
-//				int index = getFunctionParameterIndex(*resolved_symbol);
-//
-//				llvm::Function* llvm_function = GET_SYNTHESIZED_LLVM_FUNCTION(ast_function);
-//
-//				llvm::Function::arg_iterator llvm_function_parameter_iterator = llvm_function->arg_begin();
-//				// because argument iterator is not a randome access iterator, we have to advance the iterator step-by-step
-//				for(int r = 0; r < index; ++r, ++llvm_function_parameter_iterator);
-//
-//				llvm_value_for_read = &(*(llvm_function_parameter_iterator));
-//
-//				if(require_write_access)
-//				{
-//					const llvm::Type* t;
-//					llvm::Attributes modifier;
-//					if(mHelper.getType(*ast_function->parameters[index].get<1>(), t, modifier) && t && !t->isVoidTy())
-//					{
-//						llvm_value_for_write = createAlloca(t, NameManglingContext::get(resolved_symbol)->managled_name);
-//						mBuilder.CreateStore(llvm_value_for_read, llvm_value_for_write);
-//
-//						// TODO this can be removed since it's the very first time we create alloca and store parameter value into it
-//						llvm_value_for_read = mBuilder.CreateLoad(llvm_value_for_write);
-//
-//						// store the alloca in the parameter
-//						SET_SYNTHESIZED_LLVM_VALUE(resolved_symbol, llvm_value_for_write);
-//					}
-//					else
-//					{
-//						BOOST_ASSERT(false && "writing to read-only LLVM type");
-//						return false;
-//					}
-//				}
-//				*/
-//			}
 			else
 			{
 				// nested value resolve
@@ -1141,7 +1088,7 @@ private:
 		int index = 0;
 		foreach(i, f->parameters)
 		{
-			if(i->get<0>() == p) break;
+			if((*i)->name == p) break;
 			++index;
 		}
 

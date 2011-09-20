@@ -195,7 +195,7 @@ struct LLVMHelper
 				llvm::Attributes attr = llvm::Attribute::None;
 				const llvm::Type* t = NULL;
 
-				if(!getType(*i->get<1>(), t, attr))
+				if(!getType(*((*i)->type), t, attr))
 					return false;
 
 				llvm_function_parameter_types.push_back(t);

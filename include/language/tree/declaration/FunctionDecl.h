@@ -25,6 +25,7 @@
 
 #include <boost/preprocessor.hpp>
 #include "language/tree/declaration/Declaration.h"
+#include "language/tree/declaration/VariableDecl.h"
 #include "language/tree/basic/Identifier.h"
 #include "language/tree/basic/TypeSpecifier.h"
 #include "language/tree/basic/Block.h"
@@ -43,12 +44,17 @@ struct FunctionDecl : public Declaration
 		if(block) block->parent = this;
 	}
 
+	void appendParameter(VariableDecl* parameter_decl)
+	{
+		parameter_decl->parent = this;
+		parameters.push_back(parameter_decl);
+	}
+
 	void appendParameter(SimpleIdentifier* name, TypeSpecifier* type = NULL, ASTNode* initializer = NULL)
 	{
-		name->parent = this;
-		if(type) type->parent = this;
-		if(initializer) initializer->parent = this;
-		parameters.push_back(boost::make_tuple(name, type, initializer));
+		VariableDecl* parameter_decl = new VariableDecl(name, type, false, false, false, Declaration::VisibilitySpecifier::DEFAULT, initializer);
+		parameter_decl->parent = this;
+		parameters.push_back(parameter_decl);
 	}
 
     virtual bool isEqualImpl(const ASTNode& rhs, ASTNodeSet& visited) const
@@ -65,7 +71,7 @@ struct FunctionDecl : public Declaration
     }
 
 	Identifier* name;
-	std::vector<boost::tuple<SimpleIdentifier*, TypeSpecifier*, ASTNode*>> parameters;
+	std::vector<VariableDecl*> parameters;
 	TypeSpecifier* type;
 	bool is_member;
 	bool is_static;
