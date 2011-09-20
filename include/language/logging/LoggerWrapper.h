@@ -22,6 +22,7 @@
 
 #include "core/Prerequisite.h"
 #include "core/Singleton.h"
+#include "language/context/ParserContext.h"
 
 namespace zillians { namespace language {
 
@@ -86,6 +87,9 @@ private:
 	uint32 mWarningDegree;
 };
 
-}}
+#define LOG_MESSAGE(id, node, ...) \
+		LoggerWrapper::instance()->getLogger()->id(_program_node = *getParserContext().program, _node = (node), ##__VA_ARGS__)
+
+} }
 
 #endif /* ZILLIANS_LANGUAGE_LOGGERWRAPPER_H_ */

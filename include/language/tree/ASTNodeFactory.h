@@ -26,8 +26,6 @@
 #include "core/Prerequisite.h"
 #include "utility/Foreach.h"
 
-#include "language/logging/LoggerWrapper.h"
-
 #include "language/tree/ASTNode.h"
 
 #include "language/tree/basic/Block.h"

@@ -56,7 +56,7 @@ struct BranchStmt : public Statement
 		if(result) result->parent = this;
 	}
 
-	bool isLoopSpecific()
+	bool isBreakOrContinue()
 	{
 		if( opcode == OpCode::BREAK ||
 			opcode == OpCode::CONTINUE )

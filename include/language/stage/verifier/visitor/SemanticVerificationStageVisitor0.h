@@ -27,6 +27,10 @@
 #include "language/logging/StringTable.h"
 #include "language/logging/LoggerWrapper.h"
 #include "language/context/ParserContext.h"
+#include "language/context/ConfigurationContext.h"
+#include "language/tree/ASTNodeHelper.h"
+#include <set>
+#include <string>
 
 using namespace zillians::language::tree;
 using zillians::language::tree::visitor::GenericDoubleVisitor;
@@ -127,13 +131,11 @@ struct SemanticVerificationStageVisitor0 : GenericDoubleVisitor
 	void verify(BinaryExpr &node)
 	{
 		// WRITE_RVALUE
-		if(node.isAssignment() && node.left->isRValue())
+		if(node.isAssignment() && node.left->isRValue() && ASTNodeHelper::isOwnedByStatement(node))
 		{
-			ASTNode* parent_statement = node.left->parent;
-			while(!isa<Statement>(parent_statement))
-				parent_statement = parent_statement->parent;
-			LoggerWrapper::instance()->getLogger()->WRITE_RVALUE(
-					_program_node = *cast<tree::Program>(getParserContext().program), _node = *parent_statement);
+			ASTNode* owner = ASTNodeHelper::getOwnerStatement(*node.left->parent);
+			BOOST_ASSERT(!!owner);
+			LOG_MESSAGE(WRITE_RVALUE, *owner);
 		}
 	}
 
@@ -141,51 +143,133 @@ struct SemanticVerificationStageVisitor0 : GenericDoubleVisitor
 	{
 		// MISSING_BREAK_TARGET
 		// MISSING_CONTINUE_TARGET
-		if(node.isLoopSpecific())
-		{
-//			ASTNode* parent_statement = &node;
-//			while(!isa<IterativeStmt>(parent_statement))
-//				parent_statement = parent_statement->parent;
-		}
+		if(node.isBreakOrContinue() && !ASTNodeHelper::isOwnedByIterativeStmt(node))
+			switch(node.opcode)
+			{
+			case BranchStmt::OpCode::BREAK:    LOG_MESSAGE(MISSING_BREAK_TARGET, node); break;
+			case BranchStmt::OpCode::CONTINUE: LOG_MESSAGE(MISSING_CONTINUE_TARGET, node); break;
+			default:                           BOOST_ASSERT(false && "reaching unreachable code"); break;
+			}
 	}
 
 	void verify(Declaration &node)
 	{
 		// UNDEFINED_REF -- function has no body ??
 		// DUPE_NAME
+		revisit(node);
 	}
 
 	void verify(VariableDecl &node)
 	{
 		// MISSING_STATIC_INIT
 		if(node.is_static && !node.initializer)
-			LoggerWrapper::instance()->getLogger()->MISSING_STATIC_INIT(
-					_program_node = *cast<tree::Program>(getParserContext().program), _node = node);
+			LOG_MESSAGE(MISSING_STATIC_INIT, node);
 	}
 
 	void verify(FunctionDecl &node)
 	{
 		// UNDEFINED_REF -- function has no body ??
-		// DUPE_NAME
 		if(!node.block) // NOTE: must have @native annotation ??
 		{
 		}
-		// MISSING_PARAM_INIT
-		// UNEXPECTED_VARIADIC_PARAM
-		// EXCEED_PARAM_LIMIT
+
+		bool DUPE_NAME                 = false;
+		bool MISSING_PARAM_INIT        = false;
+		bool UNEXPECTED_VARIADIC_PARAM = false;
+		bool EXCEED_PARAM_LIMIT        = false;
+		std::set<std::wstring> name_set;
+		std::wstring dupe_name_string;
+		bool visited_optional_param = false;
+		int missing_param_init_index = 0;
+		size_t param_count = 0;
 		foreach(i, node.parameters)
 		{
+			// DUPE_NAME
+			std::wstring name = cast<VariableDecl>(*i)->name->toString();
+			if(name_set.find(name) != name_set.end())
+			{
+				DUPE_NAME = true;
+				dupe_name_string = name;
+			}
+			else
+				name_set.insert(name);
+
+			// MISSING_PARAM_INIT
+			if(!!cast<VariableDecl>(*i)->initializer)
+				visited_optional_param = true;
+			else if(visited_optional_param)
+			{
+				MISSING_PARAM_INIT = true;
+				missing_param_init_index = static_cast<int>(param_count)+1;
+			}
+
+			// UNEXPECTED_VARIADIC_PARAM
+			if(cast<VariableDecl>(*i)->type->type == TypeSpecifier::ReferredType::PRIMITIVE &&
+					cast<VariableDecl>(*i)->type->referred.primitive == PrimitiveType::VARIADIC_ELLIPSIS &&
+					!is_end_of_foreach(i, node.parameters))
+							UNEXPECTED_VARIADIC_PARAM = true;
+
+			// EXCEED_PARAM_LIMIT
+			param_count++;
+			if(param_count>getConfigurationContext().max_param_count)
+				EXCEED_PARAM_LIMIT = true;
 		}
+		if(DUPE_NAME)                 LOG_MESSAGE(DUPE_NAME,                 node, _ID = dupe_name_string);
+		if(MISSING_PARAM_INIT)        LOG_MESSAGE(MISSING_PARAM_INIT,        node, _PARAM_INDEX = missing_param_init_index, _FUNC = node.name->toString());
+		if(UNEXPECTED_VARIADIC_PARAM) LOG_MESSAGE(UNEXPECTED_VARIADIC_PARAM, node);
+		if(EXCEED_PARAM_LIMIT)        LOG_MESSAGE(EXCEED_PARAM_LIMIT,        node);
 		revisit(node);
 	}
 
 	void verify(TemplatedIdentifier &node)
 	{
-		// DUPE_NAME
-		// UNEXPECTED_VARIADIC_TEMPLATE_PARAM
-		// EXCEED_TEMPLATE_PARAM_LIMIT
+		bool DUPE_NAME                          = false;
+		bool UNEXPECTED_VARIADIC_TEMPLATE_PARAM = false;
+		bool EXCEED_TEMPLATE_PARAM_LIMIT        = false;
+		std::set<std::wstring> name_set;
+		std::wstring dupe_name_string;
+		size_t arg_param_count = 0;
 		foreach(i, node.templated_type_list)
 		{
+			switch(node.type)
+			{
+			case TemplatedIdentifier::Usage::FORMAL_PARAMETER:
+				{
+					// DUPE_NAME
+					std::wstring name = cast<Identifier>(*i)->toString();
+					if(name_set.find(name) != name_set.end())
+					{
+						DUPE_NAME = true;
+						dupe_name_string = name;
+					}
+					else
+						name_set.insert(name);
+
+					// UNEXPECTED_VARIADIC_TEMPLATE_PARAM
+					if(name == L"..." && !is_end_of_foreach(i, node.templated_type_list))
+						UNEXPECTED_VARIADIC_TEMPLATE_PARAM = true;
+				}
+				break;
+			case TemplatedIdentifier::Usage::ACTUAL_ARGUMENT:
+				// NOTE: no need to check DUPE_NAME
+				// NOTE: no need to check UNEXPECTED_VARIADIC_TEMPLATE_PARAM
+				break;
+			}
+
+			// EXCEED_TEMPLATE_PARAM_LIMIT
+			arg_param_count++;
+			if(arg_param_count>getConfigurationContext().max_template_arg_param_count)
+				EXCEED_TEMPLATE_PARAM_LIMIT = true;
+		}
+		if(DUPE_NAME || UNEXPECTED_VARIADIC_TEMPLATE_PARAM || EXCEED_TEMPLATE_PARAM_LIMIT)
+		{
+			ASTNode* owner = NULL;
+			if(ASTNodeHelper::isOwnedByFunction(node))   owner = ASTNodeHelper::getOwnerFunction(node);
+			else if(ASTNodeHelper::isOwnedByClass(node)) owner = ASTNodeHelper::getOwnerClass(node);
+			else BOOST_ASSERT(false && "reaching unreachable code");
+			if(DUPE_NAME)                          LOG_MESSAGE(DUPE_NAME,                          *owner, _ID = dupe_name_string);
+			if(UNEXPECTED_VARIADIC_TEMPLATE_PARAM) LOG_MESSAGE(UNEXPECTED_VARIADIC_TEMPLATE_PARAM, *owner);
+			if(EXCEED_TEMPLATE_PARAM_LIMIT)        LOG_MESSAGE(EXCEED_TEMPLATE_PARAM_LIMIT,        *owner);
 		}
 	}
 };
