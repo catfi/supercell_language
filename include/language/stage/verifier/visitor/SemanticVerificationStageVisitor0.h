@@ -216,14 +216,14 @@ struct SemanticVerificationStageVisitor0 : GenericDoubleVisitor
 		bool DUPE_NAME = false;
 		bool UNEXPECTED_VARIADIC_TEMPLATE_PARAM = false;
 		bool EXCEED_TEMPLATE_PARAM_LIMIT = false;
+		std::set<std::wstring> name_set;
 		std::wstring dupe_name_string;
-		switch(node.type)
+		size_t arg_param_count = 0;
+		foreach(i, node.templated_type_list)
 		{
-		case TemplatedIdentifier::Usage::FORMAL_PARAMETER:
+			switch(node.type)
 			{
-				std::set<std::wstring> name_set;
-				size_t param_count = 0;
-				foreach(i, node.templated_type_list)
+			case TemplatedIdentifier::Usage::FORMAL_PARAMETER:
 				{
 					// DUPE_NAME
 					std::wstring name = cast<Identifier>(*i)->toString();
@@ -238,35 +238,25 @@ struct SemanticVerificationStageVisitor0 : GenericDoubleVisitor
 					// UNEXPECTED_VARIADIC_TEMPLATE_PARAM
 					if(name == L"..." && !is_end_of_foreach(i, node.templated_type_list))
 						UNEXPECTED_VARIADIC_TEMPLATE_PARAM = true;
+				}
+				break;
+			case TemplatedIdentifier::Usage::ACTUAL_ARGUMENT:
+				// NOTE: no need to check DUPE_NAME
+				// NOTE: no need to check UNEXPECTED_VARIADIC_TEMPLATE_PARAM
+				break;
+			}
 
-					// EXCEED_TEMPLATE_PARAM_LIMIT
-					param_count++;
-					if(param_count>getConfigurationContext().max_template_arg_param_count)
-						EXCEED_TEMPLATE_PARAM_LIMIT = true;
-				}
-			}
-			break;
-		case TemplatedIdentifier::Usage::ACTUAL_ARGUMENT:
-			{
-				std::set<std::wstring> name_set;
-				size_t arg_count = 0;
-				foreach(i, node.templated_type_list)
-				{
-					// EXCEED_TEMPLATE_PARAM_LIMIT
-					arg_count++;
-					if(arg_count>getConfigurationContext().max_template_arg_param_count)
-						EXCEED_TEMPLATE_PARAM_LIMIT = true;
-				}
-			}
-			break;
+			// EXCEED_TEMPLATE_PARAM_LIMIT
+			arg_param_count++;
+			if(arg_param_count>getConfigurationContext().max_template_arg_param_count)
+				EXCEED_TEMPLATE_PARAM_LIMIT = true;
 		}
 		if(DUPE_NAME || UNEXPECTED_VARIADIC_TEMPLATE_PARAM || EXCEED_TEMPLATE_PARAM_LIMIT)
 		{
 			ASTNode* owner = NULL;
 			if(ASTNodeHelper::isOwnedByFunction(node))   owner = ASTNodeHelper::getOwnerFunction(node);
 			else if(ASTNodeHelper::isOwnedByClass(node)) owner = ASTNodeHelper::getOwnerClass(node);
-			else
-				BOOST_ASSERT(false && "reaching unreachable code");
+			else BOOST_ASSERT(false && "reaching unreachable code");
 			if(DUPE_NAME)
 				LOG_MESSAGE(DUPE_NAME, *owner, _ID = dupe_name_string);
 			if(UNEXPECTED_VARIADIC_TEMPLATE_PARAM)
