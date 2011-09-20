@@ -223,7 +223,7 @@ struct class_member_decl
 		Declaration::VisibilitySpecifier::type visibility  = _param(1).is_initialized() ? *_param(1) : Declaration::VisibilitySpecifier::DEFAULT;
 		bool                                   is_static   = _param(2).is_initialized();
 		_result = _param(3);
-		cast<Declaration>(_result)->setAnnotation(annotations);
+		_result->setAnnotation(annotations);
 		if(isa<VariableDecl>(_result))
 		{
 			cast<VariableDecl>(_result)->visibility = visibility;
@@ -271,11 +271,14 @@ struct interface_member_function_decl
 		printf("interface_member_function_decl param(1) type = %s\n", typeid(_param_t(1)).name());
 		printf("interface_member_function_decl param(2) type = %s\n", typeid(_param_t(2)).name());
 		printf("interface_member_function_decl param(3) type = %s\n", typeid(_param_t(3)).name());
+		printf("interface_member_function_decl param(4) type = %s\n", typeid(_param_t(4)).name());
 #endif
-		Declaration::VisibilitySpecifier::type visibility = _param(0).is_initialized() ? *_param(0) : Declaration::VisibilitySpecifier::DEFAULT;
-		typed_parameter_list::value_t*         parameters = _param(2).is_initialized() ? (*_param(2)).get() : NULL;
-		bool                                   is_member  = false;
-		BIND_CACHED_LOCATION(_result = new FunctionDecl(_param(1), _param(3), is_member, false, visibility, NULL));
+		Annotations*                           annotations = _param(0).is_initialized() ? *_param(0) : NULL;
+		Declaration::VisibilitySpecifier::type visibility  = _param(1).is_initialized() ? *_param(1) : Declaration::VisibilitySpecifier::DEFAULT;
+		typed_parameter_list::value_t*         parameters  = _param(3).is_initialized() ? (*_param(3)).get() : NULL;
+		bool                                   is_member   = false;
+		BIND_CACHED_LOCATION(_result = new FunctionDecl(_param(2), _param(4), is_member, false, visibility, NULL));
+		_result->setAnnotation(annotations);
 		if(!!parameters)
 			deduced_foreach_value(i, *parameters)
 				cast<FunctionDecl>(_result)->appendParameter(i.first, i.second);
@@ -297,11 +300,9 @@ struct enum_decl
 		BIND_CACHED_LOCATION(_result = new EnumDecl(_param(0)));
 		deduced_foreach_value(i, _param(1))
 		{
-			//boost::optional<Annotations*> &optional_annotations = boost::fusion::at_c<0>(i);
-			SimpleIdentifier*              tag                  = boost::fusion::at_c<1>(i);
-			boost::optional<Expression*>  &optional_result      = boost::fusion::at_c<2>(i);
-			//Annotations* annotations = optional_annotations.is_initialized() ? *optional_annotations : NULL;
-			Expression*  value       = optional_result.is_initialized() ? *optional_result : NULL;
+			SimpleIdentifier*             tag             = boost::fusion::at_c<0>(i);
+			boost::optional<Expression*> &optional_result = boost::fusion::at_c<1>(i);
+			Expression*                   value           = optional_result.is_initialized() ? *optional_result : NULL;
 			cast<EnumDecl>(_result)->addEnumeration(tag, value);
 		}
 	}

@@ -25,3 +25,9 @@ function g():void
 function h():void
 {
 }
+
+@tag { key = 47, key2 = "ggg" }
+interface iface
+{
+    function f():void;
+}
