@@ -271,14 +271,14 @@ struct interface_member_function_decl
 		printf("interface_member_function_decl param(1) type = %s\n", typeid(_param_t(1)).name());
 		printf("interface_member_function_decl param(2) type = %s\n", typeid(_param_t(2)).name());
 		printf("interface_member_function_decl param(3) type = %s\n", typeid(_param_t(3)).name());
-//		printf("interface_member_function_decl param(4) type = %s\n", typeid(_param_t(4)).name());
+		printf("interface_member_function_decl param(4) type = %s\n", typeid(_param_t(4)).name());
 #endif
-//		Annotations*                           annotations = _param(0).is_initialized() ? *_param(0) : NULL;
-		Declaration::VisibilitySpecifier::type visibility  = _param(0).is_initialized() ? *_param(0) : Declaration::VisibilitySpecifier::DEFAULT;
-		typed_parameter_list::value_t*         parameters  = _param(2).is_initialized() ? (*_param(2)).get() : NULL;
+		Annotations*                           annotations = _param(0).is_initialized() ? *_param(0) : NULL;
+		Declaration::VisibilitySpecifier::type visibility  = _param(1).is_initialized() ? *_param(1) : Declaration::VisibilitySpecifier::DEFAULT;
+		typed_parameter_list::value_t*         parameters  = _param(3).is_initialized() ? (*_param(3)).get() : NULL;
 		bool                                   is_member   = false;
-		BIND_CACHED_LOCATION(_result = new FunctionDecl(_param(1), _param(3), is_member, false, visibility, NULL));
-//		_result->setAnnotation(annotations);
+		BIND_CACHED_LOCATION(_result = new FunctionDecl(_param(2), _param(4), is_member, false, visibility, NULL));
+		_result->setAnnotation(annotations);
 		if(!!parameters)
 			deduced_foreach_value(i, *parameters)
 				cast<FunctionDecl>(_result)->appendParameter(i.first, i.second);

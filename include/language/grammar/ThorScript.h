@@ -892,8 +892,8 @@ struct ThorScript : qi::grammar<Iterator, typename SA::start::attribute_type, de
 
 		interface_member_function_decl
 			= location [ typename SA::location::cache_loc() ]
-				>>	(/*-annotation_specifiers >>*/ -interface_visibility_specifier >> FUNCTION > IDENTIFIER
-						> LEFT_PAREN > -typed_parameter_list > RIGHT_PAREN > colon_type_specifier > SEMICOLON
+				>>	(-annotation_specifiers >> -interface_visibility_specifier >> FUNCTION >> IDENTIFIER
+						>> LEFT_PAREN >> -typed_parameter_list >> RIGHT_PAREN >> colon_type_specifier > SEMICOLON
 					) [ typename SA::interface_member_function_decl::init() ]
 			;
 
