@@ -1032,14 +1032,15 @@ struct PrettyPrintVisitor : Visitor<const ASTNode, void>
 		{
 			increaseIdent();
 			{
-				STREAM << L"<left_hand_side>" << std::endl;
+				STREAM << L"<callee>" << std::endl;
 				{
 					increaseIdent();
 					visit(*node.node);
 					decreaseIdent();
 				}
-				STREAM << L"</left_hand_side>" << std::endl;
+				STREAM << L"</callee>" << std::endl;
 			}
+			if(node.parameters.size() > 0)
 			{
 				STREAM << L"<parameters>" << std::endl;
 				{
