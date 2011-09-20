@@ -79,6 +79,10 @@ struct ASTNodeHelper
 		ASTNode* current = node.parent;
 		while(current)
 		{
+			if(isa<FunctionDecl>(current))
+				return NULL;
+			if(isa<VariableDecl>(current))
+				return NULL;
 			if(isa<Statement>(current))
 				return cast<Statement>(current);
 
