@@ -134,6 +134,7 @@ enum class ASTNodeType : int
 
 	Annotation,
 	Annotations,
+	Internal,
 	Program,
 	Package,
 	Import,
@@ -183,6 +184,7 @@ enum class ASTNodeType : int
 struct ASTNode;
 struct Annotation;
 struct Annotations;
+struct Internal;
 struct Program;
 struct Package;
 struct Import;
@@ -281,8 +283,8 @@ template<typename T0, typename T1>
 struct is_std_pair<std::pair<T0, T1>> : boost::mpl::true_
 { };
 
-typedef boost::mpl::vector<ASTNode, Annotation, Annotations, Program, Package,
-		Import, Block, Identifier, SimpleIdentifier, NestedIdentifier,
+typedef boost::mpl::vector<ASTNode, Annotation, Annotations, Internal, Program,
+		Package, Import, Block, Identifier, SimpleIdentifier, NestedIdentifier,
 		TemplatedIdentifier, Literal, NumericLiteral, StringLiteral,
 		ObjectLiteral, TypeSpecifier, FunctionType, Declaration, ClassDecl,
 		EnumDecl, InterfaceDecl, TypedefDecl, FunctionDecl, VariableDecl,

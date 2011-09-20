@@ -25,6 +25,7 @@
 
 #include "language/tree/ASTNode.h"
 #include "language/tree/basic/Identifier.h"
+#include "language/tree/module/Internal.h"
 #include "language/tree/module/Package.h"
 #include "language/tree/module/Import.h"
 
@@ -35,7 +36,7 @@ struct Program : public ASTNode
 	DEFINE_VISITABLE();
 	DEFINE_HIERARCHY(Program, (Program)(ASTNode));
 
-	Program() : root(new Package(new SimpleIdentifier(L"")))
+	Program() : root(new Package(new SimpleIdentifier(L""))), internal(new Internal())
 	{ }
 
 	Program(Package* root) : root(root)
@@ -54,14 +55,15 @@ struct Program : public ASTNode
     virtual bool isEqualImpl(const ASTNode& rhs, ASTNodeSet& visited) const
     {
     	BEGIN_COMPARE()
-		COMPARE_MEMBER(root)
 		COMPARE_MEMBER(imports)
+		COMPARE_MEMBER(root)
+		COMPARE_MEMBER(internal)
 		END_COMPARE()
     }
 
-	Package* root;
 	std::vector<Import*> imports;
-
+	Package* root;
+	Internal* internal;
 };
 
 } } }
