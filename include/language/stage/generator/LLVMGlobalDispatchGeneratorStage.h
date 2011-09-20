@@ -20,14 +20,18 @@
 #ifndef ZILLIANS_LANGUAGE_STAGE_GENERATOR_LLVMGLOBALDISPATCHGENERATORSTAGE_H_
 #define ZILLIANS_LANGUAGE_STAGE_GENERATOR_LLVMGLOBALDISPATCHGENERATORSTAGE_H_
 
+#include "llvm/LLVMContext.h"
+#include "llvm/Module.h"
+#include "llvm/Support/IRBuilder.h"
 #include "language/stage/Stage.h"
+#include "language/context/ParserContext.h"
 
 namespace zillians { namespace language { namespace stage {
 
 class LLVMGlobalDispatchGeneratorStage : public Stage
 {
 public:
-	LLVMGlobalDispatchGeneratorStage();
+	LLVMGlobalDispatchGeneratorStage(llvm::LLVMContext& llvmContext, llvm::Module& module, zillians::language::ParserContext* parserContext);
 	virtual ~LLVMGlobalDispatchGeneratorStage();
 
 public:
@@ -37,7 +41,16 @@ public:
 	virtual bool execute(bool& continue_execution);
 
 private:
-	bool enabled;
+    void generateGlobalDispatcher(std::vector<zillians::language::tree::FunctionDecl*>& serverFunctions);
+    void generateAllServerFunctions(llvm::SwitchInst* llvmSwitch, llvm::BasicBlock* finalBlock, std::vector<zillians::language::tree::FunctionDecl*>& serverFunctions);
+    void generateOneServerFunction(llvm::SwitchInst* llvmSwitch, llvm::BasicBlock* finalBlock, zillians::language::tree::FunctionDecl& func, const uint64 id);
+
+private:
+    bool mEnabled;
+    llvm::LLVMContext& mLLVMContext;
+    llvm::Module& mLLVMModule;
+    llvm::IRBuilder<> mBuilder;
+    zillians::language::ParserContext* mParserContext;
 };
 
 } } }

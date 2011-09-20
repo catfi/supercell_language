@@ -29,6 +29,7 @@ add_library(zillians-framework-language
     language/context/ConfigurationContext.cpp
     language/context/ParserContext.cpp
     language/logging/LoggerWrapper.cpp
+    language/stage/generator/LLVMGlobalDispatchGeneratorStage.cpp
     language/stage/StageConductor.cpp
     language/stage/basic/TreeDebugStage.cpp
     language/stage/parser/ThorScriptParserStage.cpp

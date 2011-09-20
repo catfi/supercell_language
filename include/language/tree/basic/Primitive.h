@@ -28,26 +28,26 @@ namespace zillians { namespace language { namespace tree {
 struct PrimitiveType
 {
 	enum type {
-		VOID,
+		VOID               = 0,
 
-		BOOL,
+		BOOL               = 1,
 
-		UINT8,
-		UINT16,
-		UINT32,
-		UINT64,
+		UINT8              = 2,
+		UINT16             = 3,
+		UINT32             = 4,
+		UINT64             = 5,
 
-		INT8,
-		INT16,
-		INT32,
-		INT64,
+		INT8               = 6,
+		INT16              = 7,
+		INT32              = 8,
+		INT64              = 9,
 
-		FLOAT32,
-		FLOAT64,
+		FLOAT32            = 10,
+		FLOAT64            = 11,
 
-		ANONYMOUS_OBJECT,
-		ANONYMOUS_FUNCTION,
-		VARIADIC_ELLIPSIS,
+		ANONYMOUS_OBJECT   = 12,
+		ANONYMOUS_FUNCTION = 13,
+		VARIADIC_ELLIPSIS  = 14,
 	};
 
 	static bool isIntegerType(type t)
@@ -86,7 +86,7 @@ struct PrimitiveType
 		// signed + signed = signed,
 		// float + any = float
 
-		type result;
+		type result = VOID;
 		if(isFloatType(t0) || isFloatType(t1))
 		{
 			// either t0 or t1 is floating point type, we should promote the type to the largest floating point representation
@@ -96,35 +96,38 @@ struct PrimitiveType
 		else
 		{
 			// all integer, we should find the largest integer representation that can contain both t0 and t1
-			if(isSignedIntegerType(t0) || isSignedIntegerType(t1))
+			bool promote_to_sign = (isSignedIntegerType(t0) || isSignedIntegerType(t1));
+
+			// if either t0 or t1 is signed integer, the result must be signed integer
+			int minimal_bit_size_t0;
 			{
-				// if either t0 or t1 is signed integer, the result must be signed integer
-				int minimal_bit_size_t0;
-				{
-					if(isSignedIntegerType(t0)) minimal_bit_size_t0 = (int)t0 - (int)INT8;
-					else                        minimal_bit_size_t0 = (int)t0 - (int)UINT8 + 1;
+				if(isSignedIntegerType(t0)) minimal_bit_size_t0 = (int)t0 - (int)INT8;
+				else                        minimal_bit_size_t0 = (int)t0 - (int)UINT8 + ((promote_to_sign) ? 1 : 0);
 
-					if(minimal_bit_size_t0 >= 4)
-					{
-						// overflowed, causing precision loss
-						precision_loss = true;
-						minimal_bit_size_t0 = 3;
-					}
-				}
-				int minimal_bit_size_t1;
+				if(minimal_bit_size_t0 >= 4)
 				{
-					if(isSignedIntegerType(t1)) minimal_bit_size_t1 = (int)t1 - (int)INT8;
-					else                        minimal_bit_size_t1 = (int)t1 - (int)UINT8 + 1;
-
-					if(minimal_bit_size_t1 >= 4)
-					{
-						// overflowed, causing precision loss
-						precision_loss = true;
-						minimal_bit_size_t1 = 3;
-					}
+					// overflowed, causing precision loss
+					precision_loss = true;
+					minimal_bit_size_t0 = 3;
 				}
-				result = (type)((int)INT8 + std::max(minimal_bit_size_t0, minimal_bit_size_t1));
 			}
+			int minimal_bit_size_t1;
+			{
+				if(isSignedIntegerType(t1)) minimal_bit_size_t1 = (int)t1 - (int)INT8;
+				else                        minimal_bit_size_t1 = (int)t1 - (int)UINT8 + ((promote_to_sign) ? 1 : 0);
+
+				if(minimal_bit_size_t1 >= 4)
+				{
+					// overflowed, causing precision loss
+					precision_loss = true;
+					minimal_bit_size_t1 = 3;
+				}
+			}
+
+			if(promote_to_sign)
+				result = (type)((int)INT8 + std::max(minimal_bit_size_t0, minimal_bit_size_t1));
+			else
+				result = (type)((int)UINT8 + std::max(minimal_bit_size_t0, minimal_bit_size_t1));
 		}
 
 		return result;

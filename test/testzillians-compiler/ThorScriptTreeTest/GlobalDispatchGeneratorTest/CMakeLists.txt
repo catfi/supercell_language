@@ -24,6 +24,7 @@ INCLUDE_DIRECTORIES(
     ${PROJECT_FRAMEWORK_SOURCE_DIR}/include/
     )
 
+add_definitions( ${LLVM_CPPFLAGS} )
 ADD_EXECUTABLE(ThorScriptTreeTest_GlobalDispatchGeneratorTest GlobalDispatchGeneratorTest.cpp)
 
 TARGET_LINK_LIBRARIES(ThorScriptTreeTest_GlobalDispatchGeneratorTest

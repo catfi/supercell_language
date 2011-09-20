@@ -46,6 +46,24 @@ struct ResolvedType
 	tree::ASTNode* ref;
 };
 
+struct AmbiguousResolvedType
+{
+	explicit AmbiguousResolvedType()
+	{ }
+
+	static AmbiguousResolvedType* get(tree::ASTNode* node)
+	{
+		return node->get<AmbiguousResolvedType>();
+	}
+
+	static void set(tree::ASTNode* node, AmbiguousResolvedType* ref)
+	{
+		return node->set<AmbiguousResolvedType>(ref);
+	}
+
+	std::vector<tree::ASTNode*> refs;
+};
+
 struct ResolvedSymbol
 {
 	explicit ResolvedSymbol(tree::ASTNode* ref) : ref(ref)
@@ -68,6 +86,24 @@ struct ResolvedSymbol
 	tree::ASTNode* ref;
 };
 
+struct AmbiguousResolvedSymbol
+{
+	explicit AmbiguousResolvedSymbol()
+	{ }
+
+	static AmbiguousResolvedSymbol* get(tree::ASTNode* node)
+	{
+		return node->get<AmbiguousResolvedSymbol>();
+	}
+
+	static void set(tree::ASTNode* node, AmbiguousResolvedSymbol* ref)
+	{
+		return node->set<AmbiguousResolvedSymbol>(ref);
+	}
+
+	std::vector<tree::ASTNode*> refs;
+};
+
 struct ResolvedPackage
 {
 	explicit ResolvedPackage(tree::ASTNode* ref) : ref(ref)
@@ -88,6 +124,24 @@ struct ResolvedPackage
 	}
 
 	tree::ASTNode* ref;
+};
+
+struct AmbiguousResolvedPackage
+{
+	explicit AmbiguousResolvedPackage()
+	{ }
+
+	static AmbiguousResolvedPackage* get(tree::ASTNode* node)
+	{
+		return node->get<AmbiguousResolvedPackage>();
+	}
+
+	static void set(tree::ASTNode* node, AmbiguousResolvedPackage* ref)
+	{
+		return node->set<AmbiguousResolvedPackage>(ref);
+	}
+
+	std::vector<tree::ASTNode*> refs;
 };
 
 } }
