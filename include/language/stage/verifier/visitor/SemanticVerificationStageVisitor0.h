@@ -200,7 +200,7 @@ struct SemanticVerificationStageVisitor0 : GenericDoubleVisitor
 				EXCEED_PARAM_LIMIT = true;
 		}
 		if(DUPE_NAME)
-			LOG_MESSAGE(DUPE_NAME, node, _ID = dupe_name_string);
+			LOG_MESSAGE(DUPE_NAME, node, _id = dupe_name_string);
 		if(EXCEED_PARAM_LIMIT)
 			LOG_MESSAGE(EXCEED_PARAM_LIMIT, node);
 		revisit(node);
@@ -243,7 +243,7 @@ struct SemanticVerificationStageVisitor0 : GenericDoubleVisitor
 			else
 				BOOST_ASSERT(false && "reaching unreachable code");
 			if(DUPE_NAME)
-				LOG_MESSAGE(DUPE_NAME, *owner, _ID = dupe_name_string);
+				LOG_MESSAGE(DUPE_NAME, *owner, _id = dupe_name_string);
 			if(UNEXPECTED_VARIADIC_TEMPLATE_PARAM)
 				LOG_MESSAGE(UNEXPECTED_VARIADIC_TEMPLATE_PARAM, *owner);
 			if(EXCEED_TEMPLATE_PARAM_LIMIT)
