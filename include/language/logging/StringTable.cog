@@ -423,7 +423,7 @@ public:
 		for (var, type) in param_list:
 			to_search = str('$') + str(var) + '(' + str(type) + ')'
 			cog.outl('\t substitute(translated, L"%s", %s);' % (to_search, var))
-			cog.outl('\t insert_parameters(parameters, L"%s", %s);' % (var.lower(), var))
+			cog.outl('\t insert_parameters(parameters, L"%s", %s);' % (var, var))
 
 		cog.outl('\t LogInfoContext::set(&node, new LogInfoContext(str_level, str_id, parameters));')
 
