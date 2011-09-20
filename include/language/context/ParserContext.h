@@ -24,6 +24,9 @@
 #include "language/tree/ASTNodeFactory.h"
 #include "language/GlobalContext.h"
 
+#define LOG_MESSAGE(id, node, ...) \
+		LoggerWrapper::instance()->getLogger()->id(_program_node = *getParserContext().program, _node = (node), ##__VA_ARGS__)
+
 namespace zillians { namespace language {
 
 struct ParserContext

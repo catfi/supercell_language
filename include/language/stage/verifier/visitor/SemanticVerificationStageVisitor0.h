@@ -27,6 +27,10 @@
 #include "language/logging/StringTable.h"
 #include "language/logging/LoggerWrapper.h"
 #include "language/context/ParserContext.h"
+#include "language/context/ConfigurationContext.h"
+#include "language/tree/ASTNodeHelper.h"
+#include <set>
+#include <string>
 
 using namespace zillians::language::tree;
 using zillians::language::tree::visitor::GenericDoubleVisitor;
@@ -127,13 +131,11 @@ struct SemanticVerificationStageVisitor0 : GenericDoubleVisitor
 	void verify(BinaryExpr &node)
 	{
 		// WRITE_RVALUE
-		if(node.isAssignment() && node.left->isRValue())
+		if(node.isAssignment() && node.left->isRValue() && ASTNodeHelper::isOwnedByStatement(node))
 		{
-			ASTNode* parent_statement = node.left->parent;
-			while(!isa<Statement>(parent_statement))
-				parent_statement = parent_statement->parent;
-			LoggerWrapper::instance()->getLogger()->WRITE_RVALUE(
-					_program_node = *cast<tree::Program>(getParserContext().program), _node = *parent_statement);
+			ASTNode* owner = ASTNodeHelper::getOwnerStatement(*node.left->parent);
+			BOOST_ASSERT(!!owner);
+			LOG_MESSAGE(WRITE_RVALUE, *owner);
 		}
 	}
 
@@ -141,11 +143,14 @@ struct SemanticVerificationStageVisitor0 : GenericDoubleVisitor
 	{
 		// MISSING_BREAK_TARGET
 		// MISSING_CONTINUE_TARGET
-		if(node.isLoopSpecific())
+		if(node.isBreakOrContinue() && !ASTNodeHelper::isOwnedByIterativeStmt(node))
 		{
-//			ASTNode* parent_statement = &node;
-//			while(!isa<IterativeStmt>(parent_statement))
-//				parent_statement = parent_statement->parent;
+			if(node.opcode == BranchStmt::OpCode::BREAK)
+				LOG_MESSAGE(MISSING_BREAK_TARGET, node);
+			else if(node.opcode == BranchStmt::OpCode::CONTINUE)
+				LOG_MESSAGE(MISSING_CONTINUE_TARGET, node);
+			else
+				BOOST_ASSERT(false && "reaching unreachable code");
 		}
 	}
 
@@ -153,14 +158,14 @@ struct SemanticVerificationStageVisitor0 : GenericDoubleVisitor
 	{
 		// UNDEFINED_REF -- function has no body ??
 		// DUPE_NAME
+		revisit(node);
 	}
 
 	void verify(VariableDecl &node)
 	{
 		// MISSING_STATIC_INIT
 		if(node.is_static && !node.initializer)
-			LoggerWrapper::instance()->getLogger()->MISSING_STATIC_INIT(
-					_program_node = *cast<tree::Program>(getParserContext().program), _node = node);
+			LOG_MESSAGE(MISSING_STATIC_INIT, node);
 	}
 
 	void verify(FunctionDecl &node)
@@ -173,9 +178,31 @@ struct SemanticVerificationStageVisitor0 : GenericDoubleVisitor
 		// MISSING_PARAM_INIT
 		// UNEXPECTED_VARIADIC_PARAM
 		// EXCEED_PARAM_LIMIT
+		bool DUPE_NAME = false;
+		bool EXCEED_PARAM_LIMIT = false;
+		std::set<std::wstring> name_set;
+		std::wstring dupe_name_string;
+		size_t param_count = 0;
 		foreach(i, node.parameters)
 		{
+			std::wstring name = cast<VariableDecl>((*i))->name->toString();
+			if(name_set.find(name) != name_set.end())
+			{
+				DUPE_NAME = true;
+				dupe_name_string = name;
+			}
+			else
+				name_set.insert(name);
+//			if(name == L"..." && !is_end_of_foreach(i, node.templated_type_list))
+//				UNEXPECTED_VARIADIC_TEMPLATE_PARAM = true;
+			param_count++;
+			if(param_count>getConfigurationContext().max_param_count)
+				EXCEED_PARAM_LIMIT = true;
 		}
+		if(DUPE_NAME)
+			LOG_MESSAGE(DUPE_NAME, node, _ID = dupe_name_string);
+		if(EXCEED_PARAM_LIMIT)
+			LOG_MESSAGE(EXCEED_PARAM_LIMIT, node);
 		revisit(node);
 	}
 
@@ -184,8 +211,43 @@ struct SemanticVerificationStageVisitor0 : GenericDoubleVisitor
 		// DUPE_NAME
 		// UNEXPECTED_VARIADIC_TEMPLATE_PARAM
 		// EXCEED_TEMPLATE_PARAM_LIMIT
+		bool DUPE_NAME = false;
+		bool UNEXPECTED_VARIADIC_TEMPLATE_PARAM = false;
+		bool EXCEED_TEMPLATE_PARAM_LIMIT = false;
+		std::set<std::wstring> name_set;
+		std::wstring dupe_name_string;
+		size_t param_count = 0;
 		foreach(i, node.templated_type_list)
 		{
+			std::wstring name = cast<Identifier>((*i))->toString();
+			if(name_set.find(name) != name_set.end())
+			{
+				DUPE_NAME = true;
+				dupe_name_string = name;
+			}
+			else
+				name_set.insert(name);
+			if(name == L"..." && !is_end_of_foreach(i, node.templated_type_list))
+				UNEXPECTED_VARIADIC_TEMPLATE_PARAM = true;
+			param_count++;
+			if(param_count>getConfigurationContext().max_template_param_count)
+				EXCEED_TEMPLATE_PARAM_LIMIT = true;
+		}
+		if(DUPE_NAME || UNEXPECTED_VARIADIC_TEMPLATE_PARAM || EXCEED_TEMPLATE_PARAM_LIMIT)
+		{
+			ASTNode* owner = NULL;
+			if(ASTNodeHelper::isOwnedByFunction(node))
+				owner = ASTNodeHelper::getOwnerFunction(node);
+			else if(ASTNodeHelper::isOwnedByClass(node))
+				owner = ASTNodeHelper::getOwnerClass(node);
+			else
+				BOOST_ASSERT(false && "reaching unreachable code");
+			if(DUPE_NAME)
+				LOG_MESSAGE(DUPE_NAME, *owner, _ID = dupe_name_string);
+			if(UNEXPECTED_VARIADIC_TEMPLATE_PARAM)
+				LOG_MESSAGE(UNEXPECTED_VARIADIC_TEMPLATE_PARAM, *owner);
+			if(EXCEED_TEMPLATE_PARAM_LIMIT)
+				LOG_MESSAGE(EXCEED_TEMPLATE_PARAM_LIMIT, *owner);
 		}
 	}
 };
