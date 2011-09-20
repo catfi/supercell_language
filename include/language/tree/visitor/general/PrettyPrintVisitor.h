@@ -116,7 +116,7 @@ struct PrettyPrintVisitor : Visitor<const ASTNode, void>
 	{
 		if(hasSourceInfo(node))
 		{
-			STREAM << L"<identifier data=\"" << node.toString() << L"\">" << std::endl;
+			STREAM << L"<identifier name=\"" << node.toString() << L"\">" << std::endl;
 			{
 				printSourceInfo(node);
 			}
@@ -124,7 +124,7 @@ struct PrettyPrintVisitor : Visitor<const ASTNode, void>
 		}
 		else
 		{
-			STREAM << L"<identifier data=\"" << node.toString() << L"\">" << std::endl;
+			STREAM << L"<identifier name=\"" << node.toString() << L"\">" << std::endl;
 		}
 	}
 
@@ -141,7 +141,7 @@ struct PrettyPrintVisitor : Visitor<const ASTNode, void>
 	{
 		if(hasSourceInfo(node))
 		{
-			STREAM << L"<string_literal data=\"" << node.value << "\">" << std::endl;
+			STREAM << L"<string_literal value=\"" << node.value << "\">" << std::endl;
 			{
 				printSourceInfo(node);
 			}
@@ -149,7 +149,7 @@ struct PrettyPrintVisitor : Visitor<const ASTNode, void>
 		}
 		else
 		{
-			STREAM << L"<string_literal data=\"" << node.value << "\"/>" << std::endl;
+			STREAM << L"<string_literal value=\"" << node.value << "\"/>" << std::endl;
 		}
 	}
 
