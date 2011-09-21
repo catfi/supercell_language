@@ -302,8 +302,8 @@ struct GenericVisitor : Visitor<const ASTNode, void, VisitorImplementation::recu
 
 	void apply(const TypedefDecl& node)
 	{
-		if(node.from) visit(*node.from);
-		if(node.to) visit(*node.to);
+		if(node.type) visit(*node.type);
+		if(node.name) visit(*node.name);
 
 		if(node.annotations) visit(*node.annotations);
 	}

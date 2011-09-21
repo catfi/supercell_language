@@ -34,11 +34,10 @@ struct VariableDecl : public Declaration
 	DEFINE_VISITABLE();
 	DEFINE_HIERARCHY(VariableDecl, (VariableDecl)(Declaration)(ASTNode));
 
-	explicit VariableDecl(Identifier* name, TypeSpecifier* type, bool is_member, bool is_static, bool is_const, Declaration::VisibilitySpecifier::type visibility, ASTNode* initializer = NULL) : name(name), type(type), is_member(is_member), is_static(is_static), is_const(is_const), visibility(visibility), initializer(initializer)
+	explicit VariableDecl(Identifier* name, TypeSpecifier* type, bool is_member, bool is_static, bool is_const, Declaration::VisibilitySpecifier::type visibility, ASTNode* initializer = NULL) : Declaration(name), type(type), is_member(is_member), is_static(is_static), is_const(is_const), visibility(visibility), initializer(initializer)
 	{
 		BOOST_ASSERT(name && "null variable name is not allowed");
 
-		name->parent = this;
 		if(type) type->parent = this;
 		if(initializer) initializer->parent = this;
 	}
@@ -53,7 +52,6 @@ struct VariableDecl : public Declaration
     virtual bool isEqualImpl(const ASTNode& rhs, ASTNodeSet& visited) const
     {
     	BEGIN_COMPARE_WITH_BASE(Declaration)
-		COMPARE_MEMBER(name)
 		COMPARE_MEMBER(type)
 		COMPARE_MEMBER(is_member)
 		COMPARE_MEMBER(is_static)
@@ -63,7 +61,6 @@ struct VariableDecl : public Declaration
 		END_COMPARE()
     }
 
-	Identifier* name;
 	TypeSpecifier* type;
 	bool is_member;
 	bool is_static;

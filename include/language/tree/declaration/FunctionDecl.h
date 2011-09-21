@@ -37,9 +37,8 @@ struct FunctionDecl : public Declaration
 	DEFINE_VISITABLE();
 	DEFINE_HIERARCHY(FunctionDecl, (FunctionDecl)(Declaration)(ASTNode));
 
-	explicit FunctionDecl(Identifier* name, TypeSpecifier* type, bool is_member, bool is_static, Declaration::VisibilitySpecifier::type visibility, Block* block = NULL) : name(name), type(type), is_member(is_member), is_static(is_static), visibility(visibility), block(block)
+	explicit FunctionDecl(Identifier* name, TypeSpecifier* type, bool is_member, bool is_static, Declaration::VisibilitySpecifier::type visibility, Block* block = NULL) : Declaration(name), type(type), is_member(is_member), is_static(is_static), visibility(visibility), block(block)
 	{
-		if(name) name->parent = this;
 		if(type) type->parent = this;
 		if(block) block->parent = this;
 	}
@@ -60,7 +59,6 @@ struct FunctionDecl : public Declaration
     virtual bool isEqualImpl(const ASTNode& rhs, ASTNodeSet& visited) const
     {
     	BEGIN_COMPARE_WITH_BASE(Declaration)
-		COMPARE_MEMBER(name)
         COMPARE_MEMBER(parameters)
         COMPARE_MEMBER(type)
 		COMPARE_MEMBER(is_member)
@@ -70,7 +68,6 @@ struct FunctionDecl : public Declaration
 		END_COMPARE()
     }
 
-	Identifier* name;
 	std::vector<VariableDecl*> parameters;
 	TypeSpecifier* type;
 	bool is_member;

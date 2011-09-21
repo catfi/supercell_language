@@ -467,7 +467,7 @@ struct PrettyPrintVisitor : Visitor<const ASTNode, void>
 	{
 		if(hasSourceInfo(node))
 		{
-			STREAM << L"<typedef_decl from=\"" << decodeType(node.from) << L"\" to=\"" << node.to->toString() << L"\">" << std::endl;
+			STREAM << L"<typedef_decl from=\"" << decodeType(node.type) << L"\" to=\"" << node.name->toString() << L"\">" << std::endl;
 			{
 				printSourceInfo(node);
 			}
@@ -475,7 +475,7 @@ struct PrettyPrintVisitor : Visitor<const ASTNode, void>
 		}
 		else
 		{
-			STREAM << L"<typedef_decl from=\"" << decodeType(node.from) << L"\" to=\"" << node.to->toString() << L"\"/>" << std::endl;
+			STREAM << L"<typedef_decl from=\"" << decodeType(node.type) << L"\" to=\"" << node.name->toString() << L"\"/>" << std::endl;
 		}
 	}
 

@@ -1,6 +1,6 @@
 /**
  * Zillians MMO
- * Copyright (C) 2007-2010 Zillians.com, Inc.
+ * Copyright (C) 2007-2011 Zillians.com, Inc.
  * For more information see http://www.zillians.com
  *
  * Zillians MMO is the library and runtime for massive multiplayer online game
@@ -16,39 +16,32 @@
  * AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-/**
- * @date Aug 5, 2011 sdk - Initial version created.
- */
 
-#ifndef ZILLIANS_LANGUAGE_TREE_TYPEDEFDECL_H_
-#define ZILLIANS_LANGUAGE_TREE_TYPEDEFDECL_H_
+#ifndef ZILLIANS_LANGUAGE_STAGE_SEMANTICVERIFICATIONCONTEXT_H_
+#define ZILLIANS_LANGUAGE_STAGE_SEMANTICVERIFICATIONCONTEXT_H_
 
-#include "language/tree/declaration/Declaration.h"
+#include "core/Prerequisite.h"
+#include "language/tree/ASTNodeFactory.h"
+#include "language/GlobalContext.h"
+#include <string>
 
-namespace zillians { namespace language { namespace tree {
+namespace zillians { namespace language { namespace stage {
 
-struct TypedefDecl : public Declaration
+struct SemanticVerificationScopeContext
 {
-	DEFINE_VISITABLE();
-	DEFINE_HIERARCHY(TypedefDecl, (TypedefDecl)(Declaration)(ASTNode));
-
-	explicit TypedefDecl(TypeSpecifier* f, SimpleIdentifier* t) : type(f), Declaration(t)
+	static SemanticVerificationScopeContext* get(tree::ASTNode* node)
 	{
-		BOOST_ASSERT(f && t && "null \"from node\" or \"to node\" for typedef is not allowed");
-
-		type->parent = this;
+		return node->get<SemanticVerificationScopeContext>();
 	}
 
-    virtual bool isEqualImpl(const ASTNode& rhs, ASTNodeSet& visited) const
-    {
-    	BEGIN_COMPARE_WITH_BASE(Declaration)
-		COMPARE_MEMBER(type)
-		END_COMPARE()
-    }
+	static void set(tree::ASTNode* node, SemanticVerificationScopeContext* ctx)
+	{
+		node->set<SemanticVerificationScopeContext>(ctx);
+	}
 
-	TypeSpecifier* type;
+	std::set<std::wstring> names;
 };
 
 } } }
 
-#endif /* ZILLIANS_LANGUAGE_TREE_TYPEDEFDECL_H_ */
+#endif /* ZILLIANS_LANGUAGE_STAGE_SEMANTICVERIFICATIONCONTEXT_H_ */

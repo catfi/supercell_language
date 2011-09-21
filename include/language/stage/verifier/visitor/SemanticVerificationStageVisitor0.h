@@ -29,6 +29,7 @@
 #include "language/context/ParserContext.h"
 #include "language/context/ConfigurationContext.h"
 #include "language/tree/ASTNodeHelper.h"
+#include "language/stage/verifier/context/SemanticVerificationContext.h"
 #include <set>
 #include <string>
 
@@ -155,6 +156,16 @@ struct SemanticVerificationStageVisitor0 : GenericDoubleVisitor
 	void verify(Declaration &node)
 	{
 		// DUPE_NAME_TYPE
+		std::wstring name = node.name->toString();
+		ASTNode* owner = ASTNodeHelper::getOwnerScope(node);
+		SemanticVerificationScopeContext* owner_context = SemanticVerificationScopeContext::get(owner);
+		if(!owner_context)
+			SemanticVerificationScopeContext::set(owner, owner_context = new SemanticVerificationScopeContext());
+		if(owner_context->names.find(name) == owner_context->names.end())
+			owner_context->names.insert(name);
+		else
+			LOG_MESSAGE(DUPE_NAME_TYPE, node, _id = name);
+
 		revisit(node);
 	}
 

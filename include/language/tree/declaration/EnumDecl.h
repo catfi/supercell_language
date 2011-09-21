@@ -34,7 +34,7 @@ struct EnumDecl : public Declaration
 	DEFINE_VISITABLE();
 	DEFINE_HIERARCHY(EnumDecl, (EnumDecl)(Declaration)(ASTNode));
 
-	explicit EnumDecl(Identifier* name) : name(name)
+	explicit EnumDecl(Identifier* name) : Declaration(name)
 	{
 		BOOST_ASSERT(name && "null enumeration name is not allowed");
 	}
@@ -51,12 +51,10 @@ struct EnumDecl : public Declaration
     virtual bool isEqualImpl(const ASTNode& rhs, ASTNodeSet& visited) const
     {
     	BEGIN_COMPARE_WITH_BASE(Declaration)
-		COMPARE_MEMBER(name)
 		COMPARE_MEMBER(enumeration_list)
 		END_COMPARE()
     }
 
-	Identifier* name;
 	std::vector<std::pair<SimpleIdentifier*, Expression*>> enumeration_list;
 };
 

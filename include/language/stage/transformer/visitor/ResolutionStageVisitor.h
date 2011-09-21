@@ -174,7 +174,7 @@ struct ResolutionStageVisitor : GenericDoubleVisitor
 	{
 		if(type == Target::TYPE_RESOLUTION)
 		{
-			tryResolveType(node.from, node.from);
+			tryResolveType(node.type, node.type);
 		}
 		else if(type == Target::SYMBOL_RESOLUTION)
 		{
@@ -570,7 +570,7 @@ private:
 			}
 			else if(isa<TypedefDecl>(from))
 			{
-				from = cast<TypedefDecl>(from)->from;
+				from = cast<TypedefDecl>(from)->type;
 			}
 			else if(isa<TypeSpecifier>(from))
 			{

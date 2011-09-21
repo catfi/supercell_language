@@ -33,11 +33,9 @@ struct InterfaceDecl : public Declaration
 	DEFINE_VISITABLE();
 	DEFINE_HIERARCHY(InterfaceDecl, (InterfaceDecl)(Declaration)(ASTNode));
 
-	explicit InterfaceDecl(Identifier* name) : name(name)
+	explicit InterfaceDecl(Identifier* name) : Declaration(name)
 	{
 		BOOST_ASSERT(name && "null interface name is not allowed");
-
-		name->parent = this;
 	}
 
 	void addFunction(FunctionDecl* func)
@@ -49,12 +47,10 @@ struct InterfaceDecl : public Declaration
     virtual bool isEqualImpl(const ASTNode& rhs, ASTNodeSet& visited) const
     {
     	BEGIN_COMPARE_WITH_BASE(Declaration)
-		COMPARE_MEMBER(name)
 		COMPARE_MEMBER(member_functions)
 		END_COMPARE()
     }
 
-	Identifier* name;
 	std::vector<FunctionDecl*> member_functions;
 };
 

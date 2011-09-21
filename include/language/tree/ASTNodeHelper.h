@@ -38,6 +38,7 @@ struct ASTNodeHelper
 				return NULL;
 			if(isa<IterativeStmt>(current))
 				return cast<IterativeStmt>(current);
+
 			current = current->parent;
 		}
 		return NULL;
@@ -193,6 +194,7 @@ struct ASTNodeHelper
 				return NULL;
 			if(isa<FunctionDecl>(current))
 				return cast<FunctionDecl>(current);
+
 			current = current->parent;
 		}
 
@@ -213,20 +215,39 @@ struct ASTNodeHelper
 			annotations = cast<Statement>(&node)->annotations;
 		else
 			return NULL;
-
 		if(!annotations)
 			return NULL;
-
 		foreach(i, annotations->annotation_list)
 			if((*i)->name->toString() == tag)
 				return *i;
-
 		return NULL;
 	}
 
 	static bool hasAnnotationTag(ASTNode& node, std::wstring tag)
 	{
 		return (getAnnotationFromTag(node, tag) != NULL);
+	}
+
+	static ASTNode* getOwnerScope(ASTNode& node)
+	{
+		if(!node.parent)
+			return NULL;
+
+		ASTNode* current = node.parent;
+		while(current)
+		{
+			if(isa<FunctionDecl>(current))
+				return cast<FunctionDecl>(current);
+			else if(isa<ClassDecl>(current))
+				return cast<ClassDecl>(current);
+			else if(isa<Package>(current))
+				return cast<Package>(current);
+			else if(isa<InterfaceDecl>(current))
+				return cast<InterfaceDecl>(current);
+
+			current = current->parent;
+		}
+		return NULL;
 	}
 
 private:

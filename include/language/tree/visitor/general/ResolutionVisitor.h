@@ -336,18 +336,18 @@ struct ResolutionVisitor : Visitor<ASTNode, void, VisitorImplementation::recursi
 		if(isSearchForType())
 		{
 			bool is_template_partial_match = false;
-			if(compare(current, node.to, is_template_partial_match))
+			if(compare(current, node.name, is_template_partial_match))
 			{
 				if(isLast())
 				{
 					// reach the end of nested identifier, and we end up with ClassDecl, which is a type
 					// save to candidcate list
-					enlist(node.from, is_template_partial_match);
+					enlist(node.type, is_template_partial_match);
 				}
 				else
 				{
 					next();
-					tryVisit(*node.from);
+					tryVisit(*node.type);
 					prev();
 				}
 			}

@@ -51,8 +51,10 @@ struct Declaration : public ASTNode
 		}
 	};
 
-	Declaration() : annotations(NULL)
-	{ }
+	Declaration(Identifier* name) : name(name), annotations(NULL)
+	{
+		if(name) name->parent = this;
+	}
 
 	void setAnnotation(Annotations* anns)
 	{
@@ -65,10 +67,12 @@ struct Declaration : public ASTNode
     {
     	BEGIN_COMPARE()
 		COMPARE_MEMBER(annotations);
+		COMPARE_MEMBER(name);
     	END_COMPARE()
     }
 
 	Annotations* annotations;
+	Identifier* name;
 };
 
 } } }

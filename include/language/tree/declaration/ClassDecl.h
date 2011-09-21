@@ -34,11 +34,9 @@ struct ClassDecl : public Declaration
 	DEFINE_VISITABLE();
 	DEFINE_HIERARCHY(ClassDecl, (ClassDecl)(Declaration)(ASTNode));
 
-	explicit ClassDecl(Identifier* name) : name(name), base(NULL)
+	explicit ClassDecl(Identifier* name) : Declaration(name), base(NULL)
 	{
 		BOOST_ASSERT(name && "null class name identifier is not allowed");
-
-		name->parent = this;
 	}
 
 	void addFunction(FunctionDecl* func)
@@ -80,7 +78,6 @@ struct ClassDecl : public Declaration
     virtual bool isEqualImpl(const ASTNode& rhs, ASTNodeSet& visited) const
     {
     	BEGIN_COMPARE_WITH_BASE(Declaration)
-		COMPARE_MEMBER(name)
 		COMPARE_MEMBER(base)
 		COMPARE_MEMBER(implements)
 		COMPARE_MEMBER(member_functions)
@@ -88,7 +85,6 @@ struct ClassDecl : public Declaration
 		END_COMPARE()
     }
 
-	Identifier* name;
 	TypeSpecifier* base;
 	std::vector<TypeSpecifier*> implements;
 	std::vector<FunctionDecl*> member_functions;
