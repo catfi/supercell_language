@@ -926,7 +926,7 @@ struct ThorScript : qi::grammar<Iterator, typename SA::start::attribute_type, de
 
 		start
 			= location [ typename SA::start::reset() ]
-				>> (program > qi::eoi)
+				>> (QWE program > qi::eoi)
 			;
 
 		/////////////////////////////////////////////////////////////////////
