@@ -114,7 +114,7 @@ struct LiteralCompactionStageVisitor : GenericDoubleVisitor
 				else
 				{
 					// potential overflowed literal, warning here
-					LoggerWrapper::instance()->getLogger()->NUMERIC_LITERAL_OVERFLOW(_program_node = *program, _node = node);
+					LOG_MESSAGE(NUMERIC_LITERAL_OVERFLOW, &node);
 				}
 			}
 		}

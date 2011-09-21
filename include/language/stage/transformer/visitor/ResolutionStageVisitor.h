@@ -21,9 +21,9 @@
 #define ZILLIANS_LANGUAGE_STAGE_VISITOR_RESOLUTIONSTAGEVISITOR_H_
 
 #include "core/Prerequisite.h"
+#include "language/tree/ASTNodeHelper.h"
 #include "language/tree/visitor/general/GenericDoubleVisitor.h"
 #include "language/tree/visitor/general/ResolutionVisitor.h"
-#include "language/tree/visitor/general/NodeInfoVisitor.h"
 #include "language/logging/LoggerWrapper.h"
 #include "language/logging/StringTable.h"
 #include "language/resolver/Resolver.h"
@@ -261,9 +261,9 @@ struct ResolutionStageVisitor : GenericDoubleVisitor
 			{
 				if(!isArithmeticCapableType(left_type) || !isArithmeticCapableType(right_type))
 				{
-					LOG_MESSAGE(INVALID_ARITHMETIC, node);
-					if(!isArithmeticCapableType(left_type)) LOG_MESSAGE(INVALID_ARITHMETIC_INFO, node, _id = nodeName(node.left));
-					if(!isArithmeticCapableType(right_type)) LOG_MESSAGE(INVALID_ARITHMETIC_INFO, node, _id = nodeName(node.left));
+					LOG_MESSAGE(INVALID_ARITHMETIC, &node);
+					if(!isArithmeticCapableType(left_type)) LOG_MESSAGE(INVALID_ARITHMETIC_INFO, &node, _id = ASTNodeHelper::nodeName(node.left));
+					if(!isArithmeticCapableType(right_type)) LOG_MESSAGE(INVALID_ARITHMETIC_INFO, &node, _id = ASTNodeHelper::nodeName(node.left));
 				}
 				else
 				{
@@ -320,13 +320,13 @@ struct ResolutionStageVisitor : GenericDoubleVisitor
 				else
 				{
 					// Error: Calling Non-Function
-					LOG_MESSAGE(CALL_NONFUNC, node, _id = nodeName(&node));
+					LOG_MESSAGE(CALL_NONFUNC, &node, _id = ASTNodeHelper::nodeName(&node));
 				}
 			}
 			else
 			{
 				// Error: Calling Non-Function
-				LOG_MESSAGE(CALL_NONFUNC, node, _id = nodeName(&node));
+				LOG_MESSAGE(CALL_NONFUNC, &node, _id = ASTNodeHelper::nodeName(&node));
 			}
 		}
 	}
@@ -627,17 +627,6 @@ private:
 	TypeSpecifier* getInternalPrimitiveType(PrimitiveType::type t)
 	{
 		return getParserContext().program->internal->getPrimitiveTy(t);
-	}
-
-private:
-	std::wstring& nodeName(ASTNode* node)
-	{
-		static std::wstring s;
-		static tree::visitor::NodeInfoVisitor v(1);
-		v.reset();
-		v.visit(*node);
-		s = v.stream.str();
-		return s;
 	}
 
 public:

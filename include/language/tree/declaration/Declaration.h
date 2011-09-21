@@ -66,13 +66,13 @@ struct Declaration : public ASTNode
     virtual bool isEqualImpl(const ASTNode& rhs, ASTNodeSet& visited) const
     {
     	BEGIN_COMPARE()
-		COMPARE_MEMBER(annotations);
-		COMPARE_MEMBER(name);
+		COMPARE_MEMBER(name)
+		COMPARE_MEMBER(annotations)
     	END_COMPARE()
     }
 
-	Annotations* annotations;
 	Identifier* name;
+	Annotations* annotations;
 };
 
 } } }

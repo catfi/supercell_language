@@ -96,6 +96,44 @@ Logger* LoggerWrapper::getLogger()
 	return mLogger;
 }
 
+void LoggerWrapper::log(const uint32 id, std::wstring& message)
+{
+	StringTable::log_id log_id = static_cast<StringTable::log_id>(id);
+	BOOST_ASSERT(mStringTable->attribute_table.find(log_id) != mStringTable->attribute_table.end() && "Given wrong Log ID");
+	StringTable::attribute_table_t& attribute_table = mStringTable->attribute_table[log_id];
+
+	// Decide the level
+	log4cxx::LevelPtr level;
+	switch (attribute_table.level)
+	{
+	case StringTable::LEVEL_INFO:
+	{
+		level = log4cxx::Level::getInfo();
+		break;
+	}
+	case StringTable::LEVEL_WARNING:
+	{
+		level = log4cxx::Level::getWarn();
+		break;
+	}
+	case StringTable::LEVEL_ERROR:
+	{
+		level = log4cxx::Level::getError();
+		break;
+	}
+	case StringTable::LEVEL_FATAL:
+	{
+		level = log4cxx::Level::getFatal();
+		break;
+	}
+	default:
+		BOOST_ASSERT(false && "undefined log type");
+		break;
+	}
+
+	LOG4CXX_LOG(CompilerLogger, level, message);
+}
+
 void LoggerWrapper::log(const uint32 id, const std::wstring& file, const uint32 line, std::wstring& message)
 {
 	StringTable::log_id log_id = static_cast<StringTable::log_id>(id);
@@ -134,5 +172,5 @@ void LoggerWrapper::log(const uint32 id, const std::wstring& file, const uint32 
 	LOG4CXX_LOG(CompilerLogger, level, file << ":" << line << ": " << message);
 }
 
-}}
+} }
 

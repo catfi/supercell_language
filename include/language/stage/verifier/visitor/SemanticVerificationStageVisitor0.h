@@ -136,7 +136,7 @@ struct SemanticVerificationStageVisitor0 : GenericDoubleVisitor
 		{
 			ASTNode* owner = ASTNodeHelper::getOwnerStatement(*node.left->parent);
 			BOOST_ASSERT(!!owner);
-			LOG_MESSAGE(WRITE_RVALUE, *owner);
+			LOG_MESSAGE(WRITE_RVALUE, owner);
 		}
 	}
 
@@ -147,15 +147,15 @@ struct SemanticVerificationStageVisitor0 : GenericDoubleVisitor
 		if(node.isBreakOrContinue() && !ASTNodeHelper::isOwnedByIterativeStmt(node))
 			switch(node.opcode)
 			{
-			case BranchStmt::OpCode::BREAK:    LOG_MESSAGE(MISSING_BREAK_TARGET, node); break;
-			case BranchStmt::OpCode::CONTINUE: LOG_MESSAGE(MISSING_CONTINUE_TARGET, node); break;
+			case BranchStmt::OpCode::BREAK:    LOG_MESSAGE(MISSING_BREAK_TARGET, &node); break;
+			case BranchStmt::OpCode::CONTINUE: LOG_MESSAGE(MISSING_CONTINUE_TARGET, &node); break;
 			default:                           BOOST_ASSERT(false && "reaching unreachable code"); break;
 			}
 	}
 
 	void verify(Declaration &node)
 	{
-		// DUPE_NAME_TYPE
+		// DUPE_NAME
 		std::wstring name = node.name->toString();
 		ASTNode* owner = ASTNodeHelper::getOwnerScope(node);
 		SemanticVerificationScopeContext* owner_context = SemanticVerificationScopeContext::get(owner);
@@ -164,7 +164,7 @@ struct SemanticVerificationStageVisitor0 : GenericDoubleVisitor
 		if(owner_context->names.find(name) == owner_context->names.end())
 			owner_context->names.insert(name);
 		else
-			LOG_MESSAGE(DUPE_NAME_TYPE, node, _id = name);
+			LOG_MESSAGE(DUPE_NAME, &node, _id = name);
 
 		revisit(node);
 	}
@@ -173,54 +173,54 @@ struct SemanticVerificationStageVisitor0 : GenericDoubleVisitor
 	{
 		// MISSING_STATIC_INIT
 		if(node.is_static && !node.initializer)
-			LOG_MESSAGE(MISSING_STATIC_INIT, node);
+			LOG_MESSAGE(MISSING_STATIC_INIT, &node);
 	}
 
 	void verify(FunctionDecl &node)
 	{
 		// UNDEFINED_REF
 		if(!node.block && !ASTNodeHelper::hasAnnotationTag(node, L"native"))
-			LOG_MESSAGE(UNDEFINED_REF, node, _id = node.name->toString());
+			LOG_MESSAGE(INCOMPLETE_FUNC, &node, _id = node.name->toString());
 
 		std::set<std::wstring> name_set;
 		bool visited_optional_param = false;
 		size_t n = 0;
 		foreach(i, node.parameters)
 		{
-			// DUPE_NAME_INSTANCE
+			// DUPE_NAME
 			std::wstring name = cast<VariableDecl>(*i)->name->toString();
 			if(name_set.find(name) == name_set.end())
 				name_set.insert(name);
 			else
-				LOG_MESSAGE(DUPE_NAME_INSTANCE, node, _id = name);
+				LOG_MESSAGE(DUPE_NAME, &node, _id = name);
 
 			// MISSING_PARAM_INIT
 			if(!!cast<VariableDecl>(*i)->initializer)
 				visited_optional_param = true;
 			else if(visited_optional_param)
-				LOG_MESSAGE(MISSING_PARAM_INIT, node, _param_index = static_cast<int>(n)+1, _func = node.name->toString());
+				LOG_MESSAGE(MISSING_PARAM_INIT, &node, _param_index = (int)n+1, _func = node.name->toString());
 
 			// UNEXPECTED_VARIADIC_PARAM
 			if(cast<VariableDecl>(*i)->type->type == TypeSpecifier::ReferredType::PRIMITIVE &&
 					cast<VariableDecl>(*i)->type->referred.primitive == PrimitiveType::VARIADIC_ELLIPSIS &&
 					!is_end_of_foreach(i, node.parameters))
-						LOG_MESSAGE(UNEXPECTED_VARIADIC_PARAM, node);
+						LOG_MESSAGE(UNEXPECTED_VARIADIC_PARAM, &node);
 
 			n++;
 		}
 
 		// EXCEED_PARAM_LIMIT
 		if(n>getConfigurationContext().max_param_count)
-			LOG_MESSAGE(EXCEED_PARAM_LIMIT, node);
+			LOG_MESSAGE(EXCEED_PARAM_LIMIT, &node);
 
 		revisit(node);
 	}
 
 	void verify(ClassDecl &node)
 	{
-		// UNDEFINED_REF
-		if(node.member_variables.empty() && node.member_functions.empty() && !ASTNodeHelper::hasAnnotationTag(node, L"native"))
-			LOG_MESSAGE(UNDEFINED_REF, node, _id = node.name->toString());
+//		// UNDEFINED_REF
+//		if(node.member_variables.empty() && node.member_functions.empty() && !ASTNodeHelper::hasAnnotationTag(node, L"native"))
+//			LOG_MESSAGE(UNDEFINED_REF, &node, _id = node.name->toString());
 
 		revisit(node);
 	}
@@ -240,20 +240,20 @@ struct SemanticVerificationStageVisitor0 : GenericDoubleVisitor
 			{
 			case TemplatedIdentifier::Usage::FORMAL_PARAMETER:
 				{
-					// DUPE_NAME_INSTANCE
+					// DUPE_NAME
 					std::wstring name = cast<Identifier>(*i)->toString();
 					if(name_set.find(name) == name_set.end())
 						name_set.insert(name);
 					else
-						LOG_MESSAGE(DUPE_NAME_INSTANCE, *owner, _id = name);
+						LOG_MESSAGE(DUPE_NAME, owner, _id = name);
 
 					// UNEXPECTED_VARIADIC_TEMPLATE_PARAM
 					if(name == L"..." && !is_end_of_foreach(i, node.templated_type_list))
-						LOG_MESSAGE(UNEXPECTED_VARIADIC_TEMPLATE_PARAM, *owner);
+						LOG_MESSAGE(UNEXPECTED_VARIADIC_TEMPLATE_PARAM, owner);
 				}
 				break;
 			case TemplatedIdentifier::Usage::ACTUAL_ARGUMENT:
-				// NOTE: no need to check DUPE_NAME_INSTANCE
+				// NOTE: no need to check DUPE_NAME
 				// NOTE: no need to check UNEXPECTED_VARIADIC_TEMPLATE_PARAM
 				break;
 			}
@@ -263,7 +263,7 @@ struct SemanticVerificationStageVisitor0 : GenericDoubleVisitor
 
 		// EXCEED_TEMPLATE_PARAM_LIMIT
 		if(n>getConfigurationContext().max_template_arg_param_count)
-			LOG_MESSAGE(EXCEED_TEMPLATE_PARAM_LIMIT, *owner);
+			LOG_MESSAGE(EXCEED_TEMPLATE_PARAM_LIMIT, owner);
 	}
 };
 

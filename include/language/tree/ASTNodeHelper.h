@@ -21,6 +21,7 @@
 #define ZILLIANS_LANGUAGE_TREE_ASTNODEHELPER_H_
 
 #include "language/tree/ASTNodeFactory.h"
+#include "language/tree/visitor/general/NodeInfoVisitor.h"
 
 namespace zillians { namespace language { namespace tree {
 
@@ -250,6 +251,16 @@ struct ASTNodeHelper
 		return NULL;
 	}
 
+public:
+	static std::wstring& nodeName(ASTNode* node)
+	{
+		static std::wstring s;
+		static tree::visitor::NodeInfoVisitor v(1);
+		v.reset();
+		v.visit(*node);
+		s = v.stream.str();
+		return s;
+	}
 private:
 	ASTNodeHelper() { }
 	~ASTNodeHelper() { }

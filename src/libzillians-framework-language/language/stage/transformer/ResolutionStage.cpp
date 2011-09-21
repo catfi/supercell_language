@@ -23,6 +23,7 @@
 #include "language/tree/visitor/general/NodeInfoVisitor.h"
 #include "language/resolver/Resolver.h"
 #include "language/context/ParserContext.h"
+#include "language/tree/ASTNodeHelper.h"
 
 namespace zillians { namespace language { namespace stage {
 
@@ -106,13 +107,12 @@ bool ResolutionStage::resolveTypes(bool report_error_summary)
 
 			if(report_error_summary)
 			{
-				LOG4CXX_ERROR(LoggerWrapper::TransformerStage, L"there're " << total_unresolved_count << L" unresolved types found");
+				LOG_MESSAGE(UNDEFINED_TYPE, (ASTNode*)NULL, _count = total_unresolved_count);
 
-				tree::visitor::NodeInfoVisitor node_info_visitor;
 				for(__gnu_cxx::hash_set<ASTNode*>::iterator it = visitor.unresolved_nodes.begin(); it != visitor.unresolved_nodes.end(); ++it)
 				{
-					node_info_visitor.visit(**it);
-					LOG4CXX_ERROR(LoggerWrapper::TransformerStage, L"failed to resolve type: \"" << node_info_visitor.stream.str() << L"\"");
+					LOG_MESSAGE(UNDEFINED_TYPE_INFO, *it, _id = ASTNodeHelper::nodeName(*it));
+					//zillians::language::LoggerWrapper::instance()->getLogger()->UNDEFINED_TYPE_INFO(zillians::language::_program_node = (getParserContext().program), zillians::language::_node = (*it), _id = ASTNodeHelper::nodeName(*it));
 				}
 			}
 
@@ -173,13 +173,11 @@ bool ResolutionStage::resolveSymbols(bool report_error_summary)
 
 			if(report_error_summary)
 			{
-				LOG4CXX_ERROR(LoggerWrapper::TransformerStage, L"there're " << total_unresolved_count << L" unresolved symbol found");
+				LOG_MESSAGE(UNDEFINED_SYMBOL, (ASTNode*)NULL, _count = total_unresolved_count);
 
-				tree::visitor::NodeInfoVisitor node_info_visitor;
 				for(__gnu_cxx::hash_set<ASTNode*>::iterator it = visitor.unresolved_nodes.begin(); it != visitor.unresolved_nodes.end(); ++it)
 				{
-					node_info_visitor.visit(**it);
-					LOG4CXX_ERROR(LoggerWrapper::TransformerStage, L"failed to resolve symbol: \"" << node_info_visitor.stream.str() << L"\"");
+					LOG_MESSAGE(UNDEFINED_SYMBOL_INFO, (ASTNode*)*it, _id = ASTNodeHelper::nodeName(*it));
 				}
 			}
 
