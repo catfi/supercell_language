@@ -182,26 +182,25 @@ struct class_decl
 		if(!!extends_from)
 			cast<ClassDecl>(_result)->setBase(extends_from);
 		if(_param(2).is_initialized())
-		{
 			deduced_foreach_value(i, *_param(2))
 			{
 				TypeSpecifier* type = new TypeSpecifier(i); BIND_CACHED_LOCATION(type);
 				cast<ClassDecl>(_result)->addInterface(type);
 			}
-		}
-		deduced_foreach_value(i, _param(3))
-		{
-			if(isa<VariableDecl>(i))
+		if(_param(3).is_initialized())
+			deduced_foreach_value(i, *_param(3))
 			{
-				cast<ClassDecl>(_result)->addVariable(cast<VariableDecl>(i));
-				cast<VariableDecl>(i)->is_member = true;
+				if(isa<VariableDecl>(i))
+				{
+					cast<ClassDecl>(_result)->addVariable(cast<VariableDecl>(i));
+					cast<VariableDecl>(i)->is_member = true;
+				}
+				else if(isa<FunctionDecl>(i))
+				{
+					cast<ClassDecl>(_result)->addFunction(cast<FunctionDecl>(i));
+					cast<FunctionDecl>(i)->is_member = true;
+				}
 			}
-			else if(isa<FunctionDecl>(i))
-			{
-				cast<ClassDecl>(_result)->addFunction(cast<FunctionDecl>(i));
-				cast<FunctionDecl>(i)->is_member = true;
-			}
-		}
 	}
 	END_ACTION
 };

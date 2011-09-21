@@ -865,9 +865,7 @@ struct ThorScript : qi::grammar<Iterator, typename SA::start::attribute_type, de
 			= qi::eps [ typename SA::location::cache_loc() ]
 				>>	(CLASS > template_param_identifier
 						> -(EXTENDS > nested_identifier) > -((IMPLEMENTS > nested_identifier) % COMMA)
-							> LEFT_BRACE
-							> *class_member_decl
-							> RIGHT_BRACE
+							> ((LEFT_BRACE > *class_member_decl > RIGHT_BRACE) | SEMICOLON)
 					) [ typename SA::class_decl::init() ]
 			;
 

@@ -154,7 +154,6 @@ struct SemanticVerificationStageVisitor0 : GenericDoubleVisitor
 
 	void verify(Declaration &node)
 	{
-		// UNDEFINED_REF -- function has no body ??
 		// DUPE_NAME_TYPE
 		revisit(node);
 	}
@@ -204,6 +203,13 @@ struct SemanticVerificationStageVisitor0 : GenericDoubleVisitor
 			LOG_MESSAGE(EXCEED_PARAM_LIMIT, node);
 
 		revisit(node);
+	}
+
+	void verify(ClassDecl &node)
+	{
+		// UNDEFINED_REF
+		if(node.member_variables.empty() && node.member_functions.empty() && !ASTNodeHelper::hasAnnotationTag(node, L"native"))
+			LOG_MESSAGE(UNDEFINED_REF, node, _id = node.name->toString());
 	}
 
 	void verify(TemplatedIdentifier &node)
