@@ -72,6 +72,14 @@ struct StaticTestVerificationStageVisitor : public zillians::language::tree::vis
 				return;
 			}
 			LogInfoContext constructedErrorInfo = constructErrorContextFromAnnotation(node);
+			if(errorInfo->log_id != constructedErrorInfo.log_id)
+			{
+				LoggerWrapper::instance()->getLogger()->WRONG_STATIC_TEST_ANNOTATION_FORMAT(_program_node = *programNode, _node = *errorNode, _DETAIL = L"LogInfoContext on node is different from the annotation on the node: log id is different.");
+			}
+			if(errorInfo->log_level != constructedErrorInfo.log_level)
+			{
+				LoggerWrapper::instance()->getLogger()->WRONG_STATIC_TEST_ANNOTATION_FORMAT(_program_node = *programNode, _node = *errorNode, _DETAIL = L"LogInfoContext on node is different from the annotation on the node: log level is different.");
+			}
 			foreach(i, constructedErrorInfo.parameters)
 			{
 				if(!errorInfo->parameters.count(i->first))

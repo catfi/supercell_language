@@ -66,7 +66,7 @@ zillians_add_complex_test(
 
 zillians_add_test_to_subject(SUBJECT thorscript-compiler-static-test-xform TARGET thorscript-compiler-static-test-AMBIGUOUS_REF)
 zillians_add_test_to_subject(SUBJECT thorscript-compiler-static-test-s0    TARGET thorscript-compiler-static-test-DUPE_NAME_INSTANCE)
-zillians_add_test_to_subject(SUBJECT thorscript-compiler-static-test-s0    TARGET thorscript-compiler-static-test-DUPE_NAME_TYPE)
+#zillians_add_test_to_subject(SUBJECT thorscript-compiler-static-test-s0    TARGET thorscript-compiler-static-test-DUPE_NAME_TYPE)
 
 # unknown
 zillians_add_complex_test(
