@@ -210,6 +210,8 @@ struct SemanticVerificationStageVisitor0 : GenericDoubleVisitor
 		// UNDEFINED_REF
 		if(node.member_variables.empty() && node.member_functions.empty() && !ASTNodeHelper::hasAnnotationTag(node, L"native"))
 			LOG_MESSAGE(UNDEFINED_REF, node, _id = node.name->toString());
+
+		revisit(node);
 	}
 
 	void verify(TemplatedIdentifier &node)
