@@ -97,6 +97,36 @@ struct StaticTestVerificationStageVisitor : public zillians::language::tree::vis
 	}
 
 private:
+    std::wstring getLiteralString(Literal* literal)
+    {
+        BOOST_ASSERT(isa<StringLiteral>(literal) || isa<NumericLiteral>(literal));
+        if(isa<StringLiteral>(literal))
+        {
+            return cast<StringLiteral>(literal)->value;
+        }
+        else
+        {
+            NumericLiteral* numericLiteral = cast<NumericLiteral>(literal);
+            std::wostringstream oss;
+            switch(numericLiteral->type)
+            {
+            case PrimitiveType::type::BOOL    : oss << numericLiteral->value.b  ; break;
+            case PrimitiveType::type::UINT8   : oss << numericLiteral->value.i8 ; break;
+            case PrimitiveType::type::UINT16  : oss << numericLiteral->value.i16; break;
+            case PrimitiveType::type::UINT32  : oss << numericLiteral->value.i32; break;
+            case PrimitiveType::type::UINT64  : oss << numericLiteral->value.i64; break;
+            case PrimitiveType::type::INT8    : oss << numericLiteral->value.u8 ; break;
+            case PrimitiveType::type::INT16   : oss << numericLiteral->value.u16; break;
+            case PrimitiveType::type::INT32   : oss << numericLiteral->value.u32; break;
+            case PrimitiveType::type::INT64   : oss << numericLiteral->value.u64; break;
+            case PrimitiveType::type::FLOAT32 : oss << numericLiteral->value.f32; break;
+            case PrimitiveType::type::FLOAT64 : oss << numericLiteral->value.f64; break;
+            default: break;
+            }
+            return oss.str();
+        }
+    }
+
 	LogInfoContext constructErrorContextFromAnnotation(zillians::language::tree::Annotation& node)
 	{
 		using namespace zillians::language::tree;
@@ -213,15 +243,15 @@ private:
 			}
 
 			BOOST_ASSERT(cast<PrimaryExpr>(i->second) != NULL);
-			StringLiteral *paramValue = cast<StringLiteral>(cast<PrimaryExpr>(i->second)->value.literal);
-			BOOST_ASSERT(paramValue != NULL);
-			if (cast<PrimaryExpr>(i->second) == NULL || paramValue == NULL)
+            Literal* literal = cast<PrimaryExpr>(i->second)->value.literal;
+            BOOST_ASSERT(cast<StringLiteral>(literal) != NULL || cast<NumericLiteral>(literal) != NULL);
+			if (cast<PrimaryExpr>(i->second) == NULL || literal == NULL)
 			{
-				LoggerWrapper::instance()->getLogger()->WRONG_STATIC_TEST_ANNOTATION_FORMAT(_program_node = *programNode, _node = node, _DETAIL = L"value should be StringLiteral");
+				LoggerWrapper::instance()->getLogger()->WRONG_STATIC_TEST_ANNOTATION_FORMAT(_program_node = *programNode, _node = node, _DETAIL = L"value should be a StringLiteral or a NumericLiteral");
 			}
 
 			std::wstring key = paramKey->name;
-			std::wstring value = paramValue->value;
+			std::wstring value = getLiteralString(literal);
 			std::pair<std::wstring, std::wstring> param(key, value);
 			paramsResult.insert(std::make_pair(key, value));
 		}
