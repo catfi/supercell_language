@@ -168,8 +168,8 @@ struct SemanticVerificationStageVisitor0 : GenericDoubleVisitor
 
 	void verify(FunctionDecl &node)
 	{
-		// UNDEFINED_REF -- function has no body ??
-		if(!node.block) // NOTE: must have @native annotation ??
+		// UNDEFINED_REF
+		if(!node.block && !ASTNodeHelper::hasAnnotationTag(node, L"native"))
 			LOG_MESSAGE(UNDEFINED_REF, node, _id = node.name->toString());
 
 		std::set<std::wstring> name_set;

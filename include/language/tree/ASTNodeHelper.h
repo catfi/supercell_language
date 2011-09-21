@@ -204,6 +204,31 @@ struct ASTNodeHelper
 		return (getOwnerFunction(node) != NULL);
 	}
 
+	static Annotation* getAnnotationFromTag(ASTNode& node, std::wstring tag)
+	{
+		Annotations* annotations = NULL;
+		if(isa<Declaration>(&node))
+			annotations = cast<Declaration>(&node)->annotations;
+		else if(isa<Statement>(&node))
+			annotations = cast<Statement>(&node)->annotations;
+		else
+			return NULL;
+
+		if(!annotations)
+			return NULL;
+
+		foreach(i, annotations->annotation_list)
+			if((*i)->name->toString() == tag)
+				return *i;
+
+		return NULL;
+	}
+
+	static bool hasAnnotationTag(ASTNode& node, std::wstring tag)
+	{
+		return (getAnnotationFromTag(node, tag) != NULL);
+	}
+
 private:
 	ASTNodeHelper() { }
 	~ASTNodeHelper() { }
