@@ -152,11 +152,13 @@ struct SemanticVerificationStageVisitor0 : GenericDoubleVisitor
 			}
 	}
 
-	void verify(Declaration &node)
+	void verify_DUPE_NAME(Declaration &node)
 	{
 		// DUPE_NAME
 		std::wstring name = node.name->toString();
 		ASTNode* owner = ASTNodeHelper::getOwnerScope(node);
+		if(!owner)
+			return;
 		SemanticVerificationScopeContext* owner_context = SemanticVerificationScopeContext::get(owner);
 		if(!owner_context)
 			SemanticVerificationScopeContext::set(owner, owner_context = new SemanticVerificationScopeContext());
@@ -164,12 +166,17 @@ struct SemanticVerificationStageVisitor0 : GenericDoubleVisitor
 			owner_context->names.insert(name);
 		else
 			LOG_MESSAGE(DUPE_NAME, &node, _id = name);
+	}
 
+	void verify(Declaration &node)
+	{
 		revisit(node);
 	}
 
 	void verify(VariableDecl &node)
 	{
+		verify_DUPE_NAME(*cast<Declaration>(&node));
+
 		// MISSING_STATIC_INIT
 		if(node.is_static && !node.initializer)
 			LOG_MESSAGE(MISSING_STATIC_INIT, &node);
@@ -177,7 +184,9 @@ struct SemanticVerificationStageVisitor0 : GenericDoubleVisitor
 
 	void verify(FunctionDecl &node)
 	{
-		// UNDEFINED_REF
+		verify_DUPE_NAME(*cast<Declaration>(&node));
+
+		// INCOMPLETE_FUNC
 		if(!node.block && !ASTNodeHelper::hasAnnotationTag(node, L"native"))
 			LOG_MESSAGE(INCOMPLETE_FUNC, &node, _id = node.name->toString());
 
@@ -217,9 +226,13 @@ struct SemanticVerificationStageVisitor0 : GenericDoubleVisitor
 
 	void verify(ClassDecl &node)
 	{
-//		// UNDEFINED_REF
-//		if(node.member_variables.empty() && node.member_functions.empty() && !ASTNodeHelper::hasAnnotationTag(node, L"native"))
-//			LOG_MESSAGE(UNDEFINED_REF, &node, _id = node.name->toString());
+		verify_DUPE_NAME(*cast<Declaration>(&node));
+
+#if 0
+		// INCOMPLETE_CLASS
+		if(node.member_variables.empty() && node.member_functions.empty() && !ASTNodeHelper::hasAnnotationTag(node, L"native"))
+			LOG_MESSAGE(INCOMPLETE_CLASS, &node, _id = node.name->toString());
+#endif
 
 		revisit(node);
 	}

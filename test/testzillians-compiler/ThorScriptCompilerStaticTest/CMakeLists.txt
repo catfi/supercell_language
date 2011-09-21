@@ -64,8 +64,8 @@ zillians_add_test_to_subject(SUBJECT thorscript-compiler-static-test-s0    TARGE
 
 # unknown
 zillians_add_complex_test(
-    TARGET thorscript-compiler-static-test-UNDEFINED_REF
-    SHELL ${ThorScriptCompiler} ${compile_options_s0} ${CMAKE_CURRENT_SOURCE_DIR}/data/error/0_name/unknown/UNDEFINED_REF.t
+    TARGET thorscript-compiler-static-test-INCOMPLETE_FUNC
+    SHELL ${ThorScriptCompiler} ${compile_options_s0} ${CMAKE_CURRENT_SOURCE_DIR}/data/error/0_name/unknown/INCOMPLETE_FUNC.t
     DEPENDS ${ThorScriptCompiler}
     )
 zillians_add_complex_test(
@@ -74,7 +74,7 @@ zillians_add_complex_test(
     DEPENDS ${ThorScriptCompiler}
     )
 
-zillians_add_test_to_subject(SUBJECT thorscript-compiler-static-test-s0    TARGET thorscript-compiler-static-test-UNDEFINED_REF)
+zillians_add_test_to_subject(SUBJECT thorscript-compiler-static-test-s0    TARGET thorscript-compiler-static-test-INCOMPLETE_FUNC)
 zillians_add_test_to_subject(SUBJECT thorscript-compiler-static-test-xform TARGET thorscript-compiler-static-test-UNKNOWN_NAME)
 
 #####################################################################
