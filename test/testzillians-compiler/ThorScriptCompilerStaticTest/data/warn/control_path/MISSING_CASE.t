@@ -4,7 +4,7 @@ function f(a:MY_ENUM):void
 {
     var x:uint32;
 
-    @static_test { expect_message={ level="LEVEL_WARNING", id="MISSING_CASE", parameter={ ID="r" } } }
+    @static_test { expect_message={ level="LEVEL_WARNING", id="MISSING_CASE", parameters={ id="r" } } }
     switch(a)
     {
     case p: x=13;

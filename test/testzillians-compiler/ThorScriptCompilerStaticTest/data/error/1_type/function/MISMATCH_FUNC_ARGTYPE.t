@@ -6,6 +6,6 @@ function f():void
 {
     var x:uint32 = 13;
 
-    @static_test { expect_message={ level="LEVEL_ERROR", id="MISMATCH_CALL_ARGTYPE", parameter={ ARG_TYPE="uint32", PARAM_TYPE="QWE", ARG_INDEX=0, FUNC="g" } } }
+    @static_test { expect_message={ level="LEVEL_ERROR", id="MISMATCH_CALL_ARGTYPE", parameters={ arg_type="uint32", param_type="QWE", arg_index=0, func="g" } } }
     g(x);
 }

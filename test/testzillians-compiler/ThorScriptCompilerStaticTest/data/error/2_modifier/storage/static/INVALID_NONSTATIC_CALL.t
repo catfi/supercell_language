@@ -4,7 +4,7 @@ class QWE
 
     static function f():void
     {
-        @static_test { expect_message={ level="LEVEL_ERROR", id="INVALID_NONSTATIC_CALL", parameter={ FUNC="g" } } }
+        @static_test { expect_message={ level="LEVEL_ERROR", id="INVALID_NONSTATIC_CALL", parameters={ func="g" } } }
         g();
     }
 }

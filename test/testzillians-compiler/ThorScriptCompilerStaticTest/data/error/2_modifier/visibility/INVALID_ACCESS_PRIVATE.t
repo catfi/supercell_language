@@ -7,6 +7,6 @@ function f():void
 {
     var qwe:QWE;
 
-    @static_test { expect_message={ level="LEVEL_ERROR", id="INVALID_ACCESS_PRIVATE", parameter={ ID="x" } } }
+    @static_test { expect_message={ level="LEVEL_ERROR", id="INVALID_ACCESS_PRIVATE", parameters={ id="x" } } }
     qwe.x=13;
 }
