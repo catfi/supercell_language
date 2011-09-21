@@ -29,6 +29,7 @@
 BOOST_CLASS_EXPORT_GUID(zillians::language::tree::ASTNode               , "ASTNode")
 BOOST_CLASS_EXPORT_GUID(zillians::language::tree::Annotation            , "Annotation")
 BOOST_CLASS_EXPORT_GUID(zillians::language::tree::Annotations           , "Annotations")
+BOOST_CLASS_EXPORT_GUID(zillians::language::tree::Internal              , "Internal")
 BOOST_CLASS_EXPORT_GUID(zillians::language::tree::Program               , "Program")
 BOOST_CLASS_EXPORT_GUID(zillians::language::tree::Package               , "Package")
 BOOST_CLASS_EXPORT_GUID(zillians::language::tree::Import                , "Import")
@@ -133,8 +134,31 @@ template<typename Archive>
 void serialize(Archive& ar, zillians::language::tree::Program& node, const unsigned int version)
 {
 	base_object<zillians::language::tree::ASTNode>(node);
-	ar & node.root;
 	ar & node.imports;
+	ar & node.root;
+	ar & node.internal;
+}
+
+// Internal
+template<typename Archive>
+void serialize(Archive& ar, zillians::language::tree::Internal& node, const unsigned int version)
+{
+	base_object<zillians::language::tree::ASTNode>(node);
+	ar & node.VoidTy;
+	ar & node.BooleanTy;
+	ar & node.UInt8Ty;
+	ar & node.UInt16Ty;
+	ar & node.UInt32Ty;
+	ar & node.UInt64Ty;
+	ar & node.Int8Ty;
+	ar & node.Int16Ty;
+	ar & node.Int32Ty;
+	ar & node.Int64Ty;
+	ar & node.Float32Ty;
+	ar & node.Float64Ty;
+	ar & node.ObjectTy;
+	ar & node.FunctionTy;
+	ar & node.others;
 }
 
 // Package

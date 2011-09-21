@@ -88,7 +88,7 @@ private:
 };
 
 #define LOG_MESSAGE(id, node, ...) \
-		LoggerWrapper::instance()->getLogger()->id(_program_node = *getParserContext().program, _node = (node), ##__VA_ARGS__)
+		zillians::language::LoggerWrapper::instance()->getLogger()->id(zillians::language::_program_node = *getParserContext().program, zillians::language::_node = (node), ##__VA_ARGS__)
 
 } }
 

@@ -189,17 +189,37 @@ private:
 			node_info_visitor.reset();
 
 			bool valid = true;
-			if(isa<Identifier>(ref)) // as function parameter
+			if(isa<VariableDecl>(ref)) // declared variable (as class member variable or local variable or function parameter)
 			{
-				if(!no_action) ResolvedSymbol::set(&attach, ref);
-			}
-			else if(isa<VariableDecl>(ref)) // declared variable (as class member variable or local variable)
-			{
-				if(!no_action) ResolvedSymbol::set(&attach, ref);
+				if(!no_action)
+				{
+					ResolvedSymbol::set(&attach, ref);
+					ResolvedType::set(&attach, cast<VariableDecl>(ref)->type);
+				}
 			}
 			else if(isa<FunctionDecl>(ref)) // declared function (as class member function or global function)
 			{
-				if(!no_action) ResolvedSymbol::set(&attach, ref);
+				if(!no_action)
+				{
+					ResolvedSymbol::set(&attach, ref);
+					ResolvedType::set(&attach, ref);
+				}
+			}
+			else if(isa<ClassDecl>(ref) || isa<InterfaceDecl>(ref)) // declared class/interface
+			{
+				if(!no_action)
+				{
+					ResolvedSymbol::set(&attach, ref);
+					ResolvedType::set(&attach, ref);
+				}
+			}
+			else if(isa<TypedefDecl>(ref))
+			{
+				if(!no_action)
+				{
+					BOOST_ASSERT(false && "reaching unreachable code");
+					// TODO will this happen?
+				}
 			}
 			else
 			{
@@ -465,6 +485,7 @@ private:
 		}
 	}
 
+private:
 	__gnu_cxx::hash_set<tree::ASTNode*> current_scopes;
 	tree::visitor::ResolutionVisitor resolution_visitor;
 };

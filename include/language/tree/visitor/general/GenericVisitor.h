@@ -45,6 +45,7 @@
 				TypeSpecifier, \
 				FunctionType, \
 				/* module */ \
+				Internal, \
 				Program, \
 				Package, \
 				Import, \
@@ -97,6 +98,7 @@
 				TypeSpecifier, \
 				FunctionType, \
 				/* module */ \
+				Internal, \
 				Program, \
 				Package, \
 				Import, \
@@ -207,10 +209,32 @@ struct GenericVisitor : Visitor<const ASTNode, void, VisitorImplementation::recu
 
 	//////////////////////////////////////////////////////////////////////
 	/// Module
+	void apply(Internal& node)
+	{
+		if(node.VoidTy)     visit(*node.VoidTy);
+		if(node.BooleanTy)  visit(*node.BooleanTy);
+		if(node.UInt8Ty)    visit(*node.UInt8Ty);
+		if(node.UInt16Ty)   visit(*node.UInt16Ty);
+		if(node.UInt32Ty)   visit(*node.UInt32Ty);
+		if(node.UInt64Ty)   visit(*node.UInt64Ty);
+		if(node.Int8Ty)     visit(*node.Int8Ty);
+		if(node.Int16Ty)    visit(*node.Int16Ty);
+		if(node.Int32Ty)    visit(*node.Int32Ty);
+		if(node.Int64Ty)    visit(*node.Int64Ty);
+		if(node.Float32Ty)  visit(*node.Float32Ty);
+		if(node.Float64Ty)  visit(*node.Float64Ty);
+		if(node.ObjectTy)   visit(*node.ObjectTy);
+		if(node.FunctionTy) visit(*node.FunctionTy);
+
+		foreach(i, node.others) visit(**i);
+	}
 
 	void apply(const Program& node)
 	{
+		foreach(i, node.imports) visit(**i);
+
 		if(node.root) visit(*node.root);
+		if(node.internal) visit(*node.internal);
 	}
 
 	void apply(const Package& node)

@@ -214,8 +214,8 @@ struct SemanticVerificationStageVisitor0 : GenericDoubleVisitor
 			if(param_count>getConfigurationContext().max_param_count)
 				EXCEED_PARAM_LIMIT = true;
 		}
-		if(DUPE_NAME)                 LOG_MESSAGE(DUPE_NAME,                 node, _ID = dupe_name_string);
-		if(MISSING_PARAM_INIT)        LOG_MESSAGE(MISSING_PARAM_INIT,        node, _PARAM_INDEX = missing_param_init_index, _FUNC = node.name->toString());
+		if(DUPE_NAME)                 LOG_MESSAGE(DUPE_NAME,                 node, _id = dupe_name_string);
+		if(MISSING_PARAM_INIT)        LOG_MESSAGE(MISSING_PARAM_INIT,        node, _param_index = missing_param_init_index, _func = node.name->toString());
 		if(UNEXPECTED_VARIADIC_PARAM) LOG_MESSAGE(UNEXPECTED_VARIADIC_PARAM, node);
 		if(EXCEED_PARAM_LIMIT)        LOG_MESSAGE(EXCEED_PARAM_LIMIT,        node);
 		revisit(node);
@@ -267,7 +267,7 @@ struct SemanticVerificationStageVisitor0 : GenericDoubleVisitor
 			if(ASTNodeHelper::isOwnedByFunction(node))   owner = ASTNodeHelper::getOwnerFunction(node);
 			else if(ASTNodeHelper::isOwnedByClass(node)) owner = ASTNodeHelper::getOwnerClass(node);
 			else BOOST_ASSERT(false && "reaching unreachable code");
-			if(DUPE_NAME)                          LOG_MESSAGE(DUPE_NAME,                          *owner, _ID = dupe_name_string);
+			if(DUPE_NAME)                          LOG_MESSAGE(DUPE_NAME,                          *owner, _id = dupe_name_string);
 			if(UNEXPECTED_VARIADIC_TEMPLATE_PARAM) LOG_MESSAGE(UNEXPECTED_VARIADIC_TEMPLATE_PARAM, *owner);
 			if(EXCEED_TEMPLATE_PARAM_LIMIT)        LOG_MESSAGE(EXCEED_TEMPLATE_PARAM_LIMIT,        *owner);
 		}

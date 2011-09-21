@@ -30,19 +30,19 @@ struct NodeInfoVisitor : Visitor<ASTNode, void, VisitorImplementation::recursive
 {
 	CREATE_INVOKER(infoInvoker, info)
 
-	NodeInfoVisitor()
+	NodeInfoVisitor(int32 max_depth = 20) : current_depth(0), max_depth(max_depth)
 	{
 		REGISTER_ALL_VISITABLE_ASTNODE(infoInvoker)
 	}
 
 	void info(ASTNode& node)
 	{
-		if(node.parent) visit(*node.parent);
+		if(node.parent) tryVisit(*node.parent);
 	}
 
 	void info(Identifier& node)
 	{
-		if(node.parent) visit(*node.parent);
+		if(node.parent) tryVisit(*node.parent);
 
 		if(stream.str().length() > 0)
 			stream << L".";
@@ -52,7 +52,7 @@ struct NodeInfoVisitor : Visitor<ASTNode, void, VisitorImplementation::recursive
 
 	void info(Package& node)
 	{
-		if(node.parent) visit(*node.parent);
+		if(node.parent) tryVisit(*node.parent);
 
 		if(stream.str().length() > 0)
 			stream << L".";
@@ -65,7 +65,7 @@ struct NodeInfoVisitor : Visitor<ASTNode, void, VisitorImplementation::recursive
 
 	void info(Block& node)
 	{
-		if(node.parent) visit(*node.parent);
+		if(node.parent) tryVisit(*node.parent);
 
 		if(stream.str().length() > 0)
 			stream << L".";
@@ -80,7 +80,7 @@ struct NodeInfoVisitor : Visitor<ASTNode, void, VisitorImplementation::recursive
 
 	void info(TypeSpecifier& node)
 	{
-		if(node.parent) visit(*node.parent);
+		if(node.parent) tryVisit(*node.parent);
 
 		if(stream.str().length() > 0)
 			stream << L".";
@@ -88,7 +88,7 @@ struct NodeInfoVisitor : Visitor<ASTNode, void, VisitorImplementation::recursive
 		switch(node.type)
 		{
 		case TypeSpecifier::ReferredType::FUNCTION_TYPE:
-			visit(*node.referred.function_type);
+			tryVisit(*node.referred.function_type);
 			break;
 		case TypeSpecifier::ReferredType::PRIMITIVE:
 			stream << PrimitiveType::toString(node.referred.primitive);
@@ -102,7 +102,7 @@ struct NodeInfoVisitor : Visitor<ASTNode, void, VisitorImplementation::recursive
 
 	void info(ClassDecl& node)
 	{
-		if(node.parent) visit(*node.parent);
+		if(node.parent) tryVisit(*node.parent);
 
 		if(stream.str().length() > 0)
 			stream << L".";
@@ -112,7 +112,7 @@ struct NodeInfoVisitor : Visitor<ASTNode, void, VisitorImplementation::recursive
 
 	void info(InterfaceDecl& node)
 	{
-		if(node.parent) visit(*node.parent);
+		if(node.parent) tryVisit(*node.parent);
 
 		if(stream.str().length() > 0)
 			stream << L".";
@@ -122,7 +122,7 @@ struct NodeInfoVisitor : Visitor<ASTNode, void, VisitorImplementation::recursive
 
 	void info(EnumDecl& node)
 	{
-		if(node.parent) visit(*node.parent);
+		if(node.parent) tryVisit(*node.parent);
 
 		if(stream.str().length() > 0)
 			stream << L".";
@@ -132,7 +132,7 @@ struct NodeInfoVisitor : Visitor<ASTNode, void, VisitorImplementation::recursive
 
 	void info(FunctionDecl& node)
 	{
-		if(node.parent) visit(*node.parent);
+		if(node.parent) tryVisit(*node.parent);
 
 		if(stream.str().length() > 0)
 			stream << L".";
@@ -142,7 +142,7 @@ struct NodeInfoVisitor : Visitor<ASTNode, void, VisitorImplementation::recursive
 
 	void info(Statement& node)
 	{
-		if(node.parent) visit(*node.parent);
+		if(node.parent) tryVisit(*node.parent);
 
 		if(stream.str().length() > 0)
 			stream << L".";
@@ -152,7 +152,7 @@ struct NodeInfoVisitor : Visitor<ASTNode, void, VisitorImplementation::recursive
 
 	void info(BranchStmt& node)
 	{
-		if(node.parent) visit(*node.parent);
+		if(node.parent) tryVisit(*node.parent);
 
 		if(stream.str().length() > 0)
 			stream << L".";
@@ -162,7 +162,7 @@ struct NodeInfoVisitor : Visitor<ASTNode, void, VisitorImplementation::recursive
 
 	void info(DeclarativeStmt& node)
 	{
-		if(node.parent) visit(*node.parent);
+		if(node.parent) tryVisit(*node.parent);
 
 		if(stream.str().length() > 0)
 			stream << L".";
@@ -172,7 +172,7 @@ struct NodeInfoVisitor : Visitor<ASTNode, void, VisitorImplementation::recursive
 
 	void info(ExpressionStmt& node)
 	{
-		if(node.parent) visit(*node.parent);
+		if(node.parent) tryVisit(*node.parent);
 
 		if(stream.str().length() > 0)
 			stream << L".";
@@ -182,7 +182,7 @@ struct NodeInfoVisitor : Visitor<ASTNode, void, VisitorImplementation::recursive
 
 	void info(ForStmt& node)
 	{
-		if(node.parent) visit(*node.parent);
+		if(node.parent) tryVisit(*node.parent);
 
 		if(stream.str().length() > 0)
 			stream << L".";
@@ -192,7 +192,7 @@ struct NodeInfoVisitor : Visitor<ASTNode, void, VisitorImplementation::recursive
 
 	void info(ForeachStmt& node)
 	{
-		if(node.parent) visit(*node.parent);
+		if(node.parent) tryVisit(*node.parent);
 
 		if(stream.str().length() > 0)
 			stream << L".";
@@ -202,7 +202,7 @@ struct NodeInfoVisitor : Visitor<ASTNode, void, VisitorImplementation::recursive
 
 	void info(WhileStmt& node)
 	{
-		if(node.parent) visit(*node.parent);
+		if(node.parent) tryVisit(*node.parent);
 
 		if(stream.str().length() > 0)
 			stream << L".";
@@ -212,7 +212,7 @@ struct NodeInfoVisitor : Visitor<ASTNode, void, VisitorImplementation::recursive
 
 	void info(IfElseStmt& node)
 	{
-		if(node.parent) visit(*node.parent);
+		if(node.parent) tryVisit(*node.parent);
 
 		if(stream.str().length() > 0)
 			stream << L".";
@@ -222,7 +222,7 @@ struct NodeInfoVisitor : Visitor<ASTNode, void, VisitorImplementation::recursive
 
 	void info(SwitchStmt& node)
 	{
-		if(node.parent) visit(*node.parent);
+		if(node.parent) tryVisit(*node.parent);
 
 		if(stream.str().length() > 0)
 			stream << L".";
@@ -232,7 +232,7 @@ struct NodeInfoVisitor : Visitor<ASTNode, void, VisitorImplementation::recursive
 
 	void info(Expression& node)
 	{
-		if(node.parent) visit(*node.parent);
+		if(node.parent) tryVisit(*node.parent);
 
 		if(stream.str().length() > 0)
 			stream << L".";
@@ -242,7 +242,7 @@ struct NodeInfoVisitor : Visitor<ASTNode, void, VisitorImplementation::recursive
 
 	void info(UnaryExpr& node)
 	{
-		if(node.parent) visit(*node.parent);
+		if(node.parent) tryVisit(*node.parent);
 
 		if(stream.str().length() > 0)
 			stream << L".";
@@ -252,7 +252,7 @@ struct NodeInfoVisitor : Visitor<ASTNode, void, VisitorImplementation::recursive
 
 	void info(BinaryExpr& node)
 	{
-		if(node.parent) visit(*node.parent);
+		if(node.parent) tryVisit(*node.parent);
 
 		if(stream.str().length() > 0)
 			stream << L".";
@@ -262,7 +262,7 @@ struct NodeInfoVisitor : Visitor<ASTNode, void, VisitorImplementation::recursive
 
 	void info(TernaryExpr& node)
 	{
-		if(node.parent) visit(*node.parent);
+		if(node.parent) tryVisit(*node.parent);
 
 		if(stream.str().length() > 0)
 			stream << L".";
@@ -272,7 +272,7 @@ struct NodeInfoVisitor : Visitor<ASTNode, void, VisitorImplementation::recursive
 
 	void info(CallExpr& node)
 	{
-		if(node.parent) visit(*node.parent);
+		if(node.parent) tryVisit(*node.parent);
 
 		if(stream.str().length() > 0)
 			stream << L".";
@@ -282,7 +282,7 @@ struct NodeInfoVisitor : Visitor<ASTNode, void, VisitorImplementation::recursive
 
 	void info(CastExpr& node)
 	{
-		if(node.parent) visit(*node.parent);
+		if(node.parent) tryVisit(*node.parent);
 
 		if(stream.str().length() > 0)
 			stream << L".";
@@ -292,7 +292,7 @@ struct NodeInfoVisitor : Visitor<ASTNode, void, VisitorImplementation::recursive
 
 	void info(PrimaryExpr& node)
 	{
-		if(node.parent) visit(*node.parent);
+		if(node.parent) tryVisit(*node.parent);
 
 		if(stream.str().length() > 0)
 			stream << L".";
@@ -302,7 +302,7 @@ struct NodeInfoVisitor : Visitor<ASTNode, void, VisitorImplementation::recursive
 
 	void info(MemberExpr& node)
 	{
-		if(node.parent) visit(*node.parent);
+		if(node.parent) tryVisit(*node.parent);
 
 		if(stream.str().length() > 0)
 			stream << L".";
@@ -315,6 +315,16 @@ struct NodeInfoVisitor : Visitor<ASTNode, void, VisitorImplementation::recursive
 		stream.str(L"");
 	}
 
+	void tryVisit(ASTNode& node)
+	{
+		++current_depth;
+		if(current_depth < max_depth)
+			visit(node);
+		--current_depth;
+	}
+
+	int32 current_depth;
+	int32 max_depth;
 	std::wstringstream stream;
 };
 

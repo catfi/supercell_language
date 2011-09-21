@@ -109,10 +109,32 @@ struct GenericDoubleVisitor : Visitor<ASTNode, void, VisitorImplementation::recu
 
 		//////////////////////////////////////////////////////////////////////
 		/// Module
+		void apply(Internal& node)
+		{
+			if(node.VoidTy)     user_visitor->visit(*node.VoidTy);
+			if(node.BooleanTy)  user_visitor->visit(*node.BooleanTy);
+			if(node.UInt8Ty)    user_visitor->visit(*node.UInt8Ty);
+			if(node.UInt16Ty)   user_visitor->visit(*node.UInt16Ty);
+			if(node.UInt32Ty)   user_visitor->visit(*node.UInt32Ty);
+			if(node.UInt64Ty)   user_visitor->visit(*node.UInt64Ty);
+			if(node.Int8Ty)     user_visitor->visit(*node.Int8Ty);
+			if(node.Int16Ty)    user_visitor->visit(*node.Int16Ty);
+			if(node.Int32Ty)    user_visitor->visit(*node.Int32Ty);
+			if(node.Int64Ty)    user_visitor->visit(*node.Int64Ty);
+			if(node.Float32Ty)  user_visitor->visit(*node.Float32Ty);
+			if(node.Float64Ty)  user_visitor->visit(*node.Float64Ty);
+			if(node.ObjectTy)   user_visitor->visit(*node.ObjectTy);
+			if(node.FunctionTy) user_visitor->visit(*node.FunctionTy);
+
+			foreach(i, node.others) user_visitor->visit(**i);
+		}
 
 		void apply(Program& node)
 		{
+			foreach(i, node.imports) user_visitor->visit(**i);
+
 			if(node.root) user_visitor->visit(*node.root);
+			if(node.internal) user_visitor->visit(*node.internal);
 		}
 
 		void apply(Package& node)

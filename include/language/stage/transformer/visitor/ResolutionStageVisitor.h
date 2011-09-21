@@ -23,6 +23,9 @@
 #include "core/Prerequisite.h"
 #include "language/tree/visitor/general/GenericDoubleVisitor.h"
 #include "language/tree/visitor/general/ResolutionVisitor.h"
+#include "language/tree/visitor/general/NodeInfoVisitor.h"
+#include "language/logging/LoggerWrapper.h"
+#include "language/logging/StringTable.h"
 #include "language/resolver/Resolver.h"
 
 using namespace zillians::language::tree;
@@ -53,6 +56,11 @@ struct ResolutionStageVisitor : GenericDoubleVisitor
 	void resolve(ASTNode& node)
 	{
 		revisit(node);
+	}
+
+	void resolve(Internal& node)
+	{
+		// since there won't be any unresolved type or symbol in the internal node, just skip it
 	}
 
 	void resolve(Package& node)
@@ -180,7 +188,6 @@ struct ResolutionStageVisitor : GenericDoubleVisitor
 		if(type == Target::TYPE_RESOLUTION)
 		{
 			tryResolveType(node.type, node.type);
-			propogateType(&node, node.type);
 		}
 		else if(type == Target::SYMBOL_RESOLUTION)
 		{
@@ -236,30 +243,98 @@ struct ResolutionStageVisitor : GenericDoubleVisitor
 	void resolve(UnaryExpr& node)
 	{
 		revisit(node);
+		// propagate the type from contained node
+		ResolvedType::set(&node, ResolvedType::get(node.node));
 	}
 
 	void resolve(BinaryExpr& node)
 	{
 		revisit(node);
+		// TODO insert necessary cast expression here? or we left it for other phase but only check for compatibility
+		if(node.isArithmetic() || node.isBinary())
+		{
+			// get synthesized type from LHS and RHS
+			ASTNode* left_type = ResolvedType::get(node.left);
+			ASTNode* right_type = ResolvedType::get(node.right);
+
+			if(left_type && right_type)
+			{
+				if(!isArithmeticCapableType(left_type) || !isArithmeticCapableType(right_type))
+				{
+					LOG_MESSAGE(INVALID_ARITHMETIC, node);
+					if(!isArithmeticCapableType(left_type)) LOG_MESSAGE(INVALID_ARITHMETIC_INFO, node, _id = nodeName(node.left));
+					if(!isArithmeticCapableType(right_type)) LOG_MESSAGE(INVALID_ARITHMETIC_INFO, node, _id = nodeName(node.left));
+				}
+				else
+				{
+					bool precision_loss = false;
+					PrimitiveType::type promoted_type = PrimitiveType::promote(cast<TypeSpecifier>(left_type)->referred.primitive, cast<TypeSpecifier>(right_type)->referred.primitive, precision_loss);
+					ResolvedType::set(&node, getInternalPrimitiveType(promoted_type));
+				}
+			}
+		}
+		else if(node.isAssignment())
+		{
+			// always use LHS type
+			// TODO perform type inference here
+			ResolvedSymbol::set(&node, ResolvedSymbol::get(node.left));
+			ResolvedType::set(&node, ResolvedType::get(node.left));
+		}
+		else if(node.isComparison() || node.isLogical())
+		{
+			// comparison should always yield boolean type
+			ResolvedType::set(&node, getInternalPrimitiveType(PrimitiveType::BOOL));
+		}
+		else
+		{
+
+		}
 	}
 
 	void resolve(TernaryExpr& node)
 	{
 		revisit(node);
+		// TODO get synthesized type from true node and false node (which should be compatible and casted to the same type)
 	}
 
 	void resolve(CallExpr& node)
 	{
 		revisit(node);
+
+		ASTNode* type = ResolvedType::get(node.node);
+		if(type)
+		{
+			if(isa<FunctionDecl>(type))
+			{
+				// if the callee type is function declaration, we should use its return type as call expression's type
+				ResolvedType::set(&node, cast<FunctionDecl>(type)->type);
+			}
+			else if(isa<TypeSpecifier>(type))
+			{
+				// if the callee is a variable and its type is a lambda type, we should use its lambda return type as call expression's type
+				TypeSpecifier* specifier = cast<TypeSpecifier>(type);
+				if(specifier->type == TypeSpecifier::ReferredType::FUNCTION_TYPE)
+				{
+					ResolvedType::set(&node, specifier->referred.function_type->return_type);
+				}
+				else
+				{
+					// Error: Calling Non-Function
+					LOG_MESSAGE(CALL_NONFUNC, node, _id = nodeName(&node));
+				}
+			}
+			else
+			{
+				// Error: Calling Non-Function
+				LOG_MESSAGE(CALL_NONFUNC, node, _id = nodeName(&node));
+			}
+		}
 	}
 
 	void resolve(MemberExpr& node)
 	{
 		if(type == Target::TYPE_RESOLUTION)
 		{
-			visit(*node.node);
-
-			propogateType(&node, node.node);
 			// we should never reach here
 			//BOOST_ASSERT(false && "reaching code that shouldn't be reached");
 		}
@@ -296,6 +371,8 @@ struct ResolutionStageVisitor : GenericDoubleVisitor
 		}
 		else if(type == Target::SYMBOL_RESOLUTION)
 		{
+			// the cast expression should always use the specified type
+			ResolvedType::set(&node, node.type);
 		}
 	}
 
@@ -323,25 +400,6 @@ struct ResolutionStageVisitor : GenericDoubleVisitor
 	}
 
 private:
-	void propogateType(ASTNode* to, ASTNode* from)
-	{
-		ASTNode* resolved_type_to = ResolvedType::get(to);
-		ASTNode* resolved_type_from = ResolvedType::get(from);
-		if(resolved_type_to)
-		{
-			// the resolved type should be changed during resolution stage
-			BOOST_ASSERT(resolved_type_to == resolved_type_from && "type resolution changed during resolution stage");
-		}
-		else if(resolved_type_from)
-		{
-			ResolvedType::set(to, resolved_type_from);
-		}
-		else
-		{
-			// both resolved_type_to and resolved_type_from are NULL, so there's no need to update
-		}
-	}
-
 	void tryResolveType(ASTNode* attach, TypeSpecifier* node, bool no_action = false)
 	{
 		if(!node)
@@ -487,6 +545,99 @@ private:
 				return false;
 			}
 		}
+	}
+
+private:
+	void propogateType(ASTNode* to, ASTNode* from)
+	{
+		// recursively dig down the tree and find the actual resolved type
+		ASTNode* resolved_type_from = NULL;
+		while(resolved_type_from == NULL)
+		{
+			if(!from)
+			{
+				resolved_type_from = NULL;
+				break;
+			}
+
+			if(isa<ClassDecl>(from) || isa<InterfaceDecl>(from) || isa<EnumDecl>(from) || isa<FunctionDecl>(from))
+			{
+				resolved_type_from = from;
+			}
+			else if(isa<VariableDecl>(from))
+			{
+				from = cast<VariableDecl>(from)->type;
+			}
+			else if(isa<TypedefDecl>(from))
+			{
+				from = cast<TypedefDecl>(from)->from;
+			}
+			else if(isa<TypeSpecifier>(from))
+			{
+				TypeSpecifier* specifier = cast<TypeSpecifier>(from);
+				switch(specifier->type)
+				{
+				case TypeSpecifier::ReferredType::FUNCTION_TYPE:
+				case TypeSpecifier::ReferredType::PRIMITIVE:
+					resolved_type_from = specifier; break;
+				case TypeSpecifier::ReferredType::UNSPECIFIED:
+					from = ResolvedType::get(from); break;
+				default:
+					break;
+				}
+			}
+			else
+			{
+				from = ResolvedType::get(from); break;
+			}
+		}
+
+		ASTNode* resolved_type_to = ResolvedType::get(to);
+		if(resolved_type_to)
+		{
+			// the resolved type should be changed during resolution stage
+			BOOST_ASSERT(resolved_type_to == resolved_type_from && "type resolution changed during resolution stage");
+		}
+		else if(resolved_type_from)
+		{
+			ResolvedType::set(to, resolved_type_from);
+		}
+		else
+		{
+			// both resolved_type_to and resolved_type_from are NULL, so there's no need to update
+		}
+	}
+
+private:
+	bool isArithmeticCapableType(ASTNode* node)
+	{
+		if(!isa<TypeSpecifier>(node))
+			return false;
+
+		TypeSpecifier* specifier = cast<TypeSpecifier>(node);
+		if(specifier->type != TypeSpecifier::ReferredType::PRIMITIVE)
+			return false;
+
+		if(PrimitiveType::isArithmeticCapable(specifier->referred.primitive))
+			return true;
+		else
+			return false;
+	}
+
+	TypeSpecifier* getInternalPrimitiveType(PrimitiveType::type t)
+	{
+		return getParserContext().program->internal->getPrimitiveTy(t);
+	}
+
+private:
+	std::wstring& nodeName(ASTNode* node)
+	{
+		static std::wstring s;
+		static tree::visitor::NodeInfoVisitor v(1);
+		v.reset();
+		v.visit(*node);
+		s = v.stream.str();
+		return s;
 	}
 
 public:

@@ -943,7 +943,7 @@ private:
 		int index = 0;
 		for(llvm::Function::arg_iterator it_arg = llvm_function->arg_begin(); it_arg != llvm_function->arg_end(); ++it_arg, ++index)
 		{
-			Identifier* parameter_identifier = ast_function.parameters[index]->name;
+			//Identifier* parameter_identifier = ast_function.parameters[index]->name;
 
 			const llvm::Type* t;
 			llvm::Attributes modifier;

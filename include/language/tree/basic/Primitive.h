@@ -28,25 +28,26 @@ namespace zillians { namespace language { namespace tree {
 struct PrimitiveType
 {
 	enum type {
-		VOID,
+		VOID               = 0,
 
-		BOOL,
-		UINT8,
-		UINT16,
-		UINT32,
-		UINT64,
+		BOOL               = 1,
 
-		INT8,
-		INT16,
-		INT32,
-		INT64,
+		UINT8              = 2,
+		UINT16             = 3,
+		UINT32             = 4,
+		UINT64             = 5,
 
-		FLOAT32,
-		FLOAT64,
+		INT8               = 6,
+		INT16              = 7,
+		INT32              = 8,
+		INT64              = 9,
 
-		ANONYMOUS_OBJECT,
-		ANONYMOUS_FUNCTION,
-		VARIADIC_ELLIPSIS,
+		FLOAT32            = 10,
+		FLOAT64            = 11,
+
+		ANONYMOUS_OBJECT   = 12,
+		ANONYMOUS_FUNCTION = 13,
+		VARIADIC_ELLIPSIS  = 14,
 	};
 
 	static bool isIntegerType(type t)
@@ -64,9 +65,72 @@ struct PrimitiveType
 		return (t >= BOOL && t <= UINT64);
 	}
 
+	static bool isArithmeticCapable(type t)
+	{
+		return (t >= UINT8 && t <= FLOAT64);
+	}
+
 	static bool isFloatType(type t)
 	{
 		return (t == FLOAT32 || t == FLOAT64);
+	}
+
+	static type promote(type t0, type t1, bool& precision_loss)
+	{
+		BOOST_ASSERT(isArithmeticCapable(t0));
+		BOOST_ASSERT(isArithmeticCapable(t1));
+
+		// GOAL:
+		// signed + unsigned = signed,
+		// unsigned + unsigned = unsigned,
+		// signed + signed = signed,
+		// float + any = float
+
+		type result = VOID;
+		if(isFloatType(t0) || isFloatType(t1))
+		{
+			// either t0 or t1 is floating point type, we should promote the type to the largest floating point representation
+			if(t0 == FLOAT32 || t1 == FLOAT32) result = FLOAT32;
+			if(t0 == FLOAT64 || t1 == FLOAT64) result = FLOAT64;
+		}
+		else
+		{
+			// all integer, we should find the largest integer representation that can contain both t0 and t1
+			bool promote_to_sign = (isSignedIntegerType(t0) || isSignedIntegerType(t1));
+
+			// if either t0 or t1 is signed integer, the result must be signed integer
+			int minimal_bit_size_t0;
+			{
+				if(isSignedIntegerType(t0)) minimal_bit_size_t0 = (int)t0 - (int)INT8;
+				else                        minimal_bit_size_t0 = (int)t0 - (int)UINT8 + ((promote_to_sign) ? 1 : 0);
+
+				if(minimal_bit_size_t0 >= 4)
+				{
+					// overflowed, causing precision loss
+					precision_loss = true;
+					minimal_bit_size_t0 = 3;
+				}
+			}
+			int minimal_bit_size_t1;
+			{
+				if(isSignedIntegerType(t1)) minimal_bit_size_t1 = (int)t1 - (int)INT8;
+				else                        minimal_bit_size_t1 = (int)t1 - (int)UINT8 + ((promote_to_sign) ? 1 : 0);
+
+				if(minimal_bit_size_t1 >= 4)
+				{
+					// overflowed, causing precision loss
+					precision_loss = true;
+					minimal_bit_size_t1 = 3;
+				}
+			}
+
+			if(promote_to_sign)
+				result = (type)((int)INT8 + std::max(minimal_bit_size_t0, minimal_bit_size_t1));
+			else
+				result = (type)((int)UINT8 + std::max(minimal_bit_size_t0, minimal_bit_size_t1));
+		}
+
+		return result;
 	}
 
 	static const wchar_t* toString(type t)

@@ -34,6 +34,7 @@
 #include "language/tree/basic/TypeSpecifier.h"
 #include "language/tree/basic/FunctionType.h"
 
+#include "language/tree/module/Internal.h"
 #include "language/tree/module/Program.h"
 #include "language/tree/module/Package.h"
 #include "language/tree/module/Import.h"
