@@ -152,7 +152,7 @@ struct StringTable
 			zh_TW = 'NOTE: 暫無中文翻譯 ==> DUPE_NAME'
 			))
 	LOG_STRING.create('INCOMPLETE_FUNC', LOG_LEVEL.LEVEL_ERROR, 0, dict(
-			en_US = '\\\"$id(wstring)\\\" has incomplete function declaration',
+			en_US = 'function \\\"$id(wstring)\\\" has incomplete declaration',
 			zh_TW = 'NOTE: 暫無中文翻譯 ==> DUPE_NAME'
 			))
 	LOG_STRING.create('WRITE_RVALUE', LOG_LEVEL.LEVEL_ERROR, 0, dict(

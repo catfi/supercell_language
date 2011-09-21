@@ -149,7 +149,6 @@ struct SemanticVerificationStageVisitor0 : GenericDoubleVisitor
 			{
 			case BranchStmt::OpCode::BREAK:    LOG_MESSAGE(MISSING_BREAK_TARGET, &node); break;
 			case BranchStmt::OpCode::CONTINUE: LOG_MESSAGE(MISSING_CONTINUE_TARGET, &node); break;
-			default:                           BOOST_ASSERT(false && "reaching unreachable code"); break;
 			}
 	}
 

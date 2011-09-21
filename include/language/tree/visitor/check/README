@@ -15,7 +15,7 @@ ERRORS:
     E1. NAME
         a. UNKNOWN
             I.  UNKNOWN_NAME                                            T
-            II. UNDEFINED_REF                                       S0 -- (native function only)
+            II. INCOMPLETE_FUNC                                     S0
         b. AMBIGUOUS
             I.   DUPE_NAME                                          S0
             III. AMBIGUOUS_REF                                          T
@@ -85,7 +85,7 @@ MESSAGES:
     ERRORS:
 
     E1.a.I:   UNKNOWN_NAME                       = $ID was not declared in this scope
-    E1.a.II:  UNDEFINED_REF                      = undefined reference to $ID
+    E1.a.II:  INCOMPLETE_FUNC                    = undefined reference to $ID
     E1.b.I:   DUPE_NAME                          = redefinition of $ID
     E1.b.III: AMBIGUOUS_REF                      = <<< no c++ equivalence >>>
     E2.a.I:   WRITE_RVALUE                       = lvalue required as left operand of assignment
