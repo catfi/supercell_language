@@ -17,8 +17,9 @@ ERRORS:
             I.  UNKNOWN_NAME                                            T
             II. UNDEFINED_REF                                       S0 -- (native function only)
         b. AMBIGUOUS
-            I.  DUPE_NAME                                           S0
-            II. AMBIGUOUS_REF                                           T
+            I.   DUPE_NAME_TYPE                                     S0
+            II.  DUPE_NAME_INSTANCE                                 S0
+            III. AMBIGUOUS_REF                                          T
     E2. TYPE
         a. CAST
             I.   EXPRESSION
@@ -35,10 +36,11 @@ ERRORS:
             III. SUBSCRIPT_OF_NONARRAY                                  T
         c. FUNCTION
             I.   CALL_NONFUNC                                           T
-            II.  MISMATCH_CALL_ARGNUM                                   T
-            III. MISMATCH_CALL_ARGTYPE                                  T
-            IV.  UNEXPECTED_RETURN_VALUE                                        S1
-            V.   MISSING_RETURN_VALUE                                           S1
+            II.  MISMATCH_CALL_ARGNUM_TOO_MANY                          T
+            III. MISMATCH_CALL_ARGNUM_TOO_FEW                           T
+            IV.  MISMATCH_CALL_ARGTYPE                                  T
+            V.   UNEXPECTED_RETURN_VALUE                                        S1
+            VI.  MISSING_RETURN_VALUE                                           S1
     E3. MODIFIER
         a. STORAGE
             I.  CONST
@@ -85,8 +87,9 @@ MESSAGES:
 
     E1.a.I:   UNKNOWN_NAME                       = $ID was not declared in this scope
     E1.a.II:  UNDEFINED_REF                      = undefined reference to $ID
-    E1.b.I:   DUPE_NAME                          = redeclaration/redefinition of $ID
-    E1.b.II:  AMBIGUOUS_REF                      = <<< no c++ equivalence >>>
+    E1.b.I:   DUPE_NAME_TYPE                     = redefinition of $ID
+    E1.b.II:  DUPE_NAME_INSTANCE                 = redeclaration of $ID
+    E1.b.III: AMBIGUOUS_REF                      = <<< no c++ equivalence >>>
     E2.a.I:   WRITE_RVALUE                       = lvalue required as left operand of assignment
               INVALID_CONV                       = invalid conversion from $ID to $ID2
               NO_MATCHING_MEMBER_FUNC            = no matching function for call to $ID
@@ -96,7 +99,8 @@ MESSAGES:
     E2.b.II:  NO_SUCH_MEMBER                     = $ID has no member named $ID2
     E2.b.III: SUBSCRIPT_OF_NONARRAY              = invalid types $ID[$ID2] for array subscript
     E2.c.I:   CALL_NONFUNC                       = $ID cannot be used as a function
-    E2.c.II:  MISMATCH_CALL_ARGNUM               = too many/few arguments to function $ID
+    E2.c.II:  MISMATCH_CALL_ARGNUM_TOO_MANY      = too many arguments to function $ID
+    E2.c.III: MISMATCH_CALL_ARGNUM_TOO_FEW       = too few arguments to function $ID
     E2.c.III: MISMATCH_CALL_ARGTYPE              = cannot convert $ID to $ID2 for argument $INT to $ID3
     E2.c.IV:  UNEXPECTED_RETURN_VALUE            = return-statement with a value, in function returning 'void'
     E2.c.V:   MISSING_RETURN_VALUE               = return-statement with no value, in function returning $ID

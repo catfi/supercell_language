@@ -155,7 +155,7 @@ struct SemanticVerificationStageVisitor0 : GenericDoubleVisitor
 	void verify(Declaration &node)
 	{
 		// UNDEFINED_REF -- function has no body ??
-		// DUPE_NAME
+		// DUPE_NAME_TYPE
 		revisit(node);
 	}
 
@@ -170,20 +170,19 @@ struct SemanticVerificationStageVisitor0 : GenericDoubleVisitor
 	{
 		// UNDEFINED_REF -- function has no body ??
 		if(!node.block) // NOTE: must have @native annotation ??
-		{
-		}
+			LOG_MESSAGE(UNDEFINED_REF, node, _id = node.name->toString());
 
 		std::set<std::wstring> name_set;
 		bool visited_optional_param = false;
 		size_t n = 0;
 		foreach(i, node.parameters)
 		{
-			// DUPE_NAME
+			// DUPE_NAME_INSTANCE
 			std::wstring name = cast<VariableDecl>(*i)->name->toString();
 			if(name_set.find(name) == name_set.end())
 				name_set.insert(name);
 			else
-				LOG_MESSAGE(DUPE_NAME, node, _id = name);
+				LOG_MESSAGE(DUPE_NAME_INSTANCE, node, _id = name);
 
 			// MISSING_PARAM_INIT
 			if(!!cast<VariableDecl>(*i)->initializer)
@@ -222,12 +221,12 @@ struct SemanticVerificationStageVisitor0 : GenericDoubleVisitor
 			{
 			case TemplatedIdentifier::Usage::FORMAL_PARAMETER:
 				{
-					// DUPE_NAME
+					// DUPE_NAME_INSTANCE
 					std::wstring name = cast<Identifier>(*i)->toString();
 					if(name_set.find(name) == name_set.end())
 						name_set.insert(name);
 					else
-						LOG_MESSAGE(DUPE_NAME, *owner, _id = name);
+						LOG_MESSAGE(DUPE_NAME_INSTANCE, *owner, _id = name);
 
 					// UNEXPECTED_VARIADIC_TEMPLATE_PARAM
 					if(name == L"..." && !is_end_of_foreach(i, node.templated_type_list))
@@ -235,7 +234,7 @@ struct SemanticVerificationStageVisitor0 : GenericDoubleVisitor
 				}
 				break;
 			case TemplatedIdentifier::Usage::ACTUAL_ARGUMENT:
-				// NOTE: no need to check DUPE_NAME
+				// NOTE: no need to check DUPE_NAME_INSTANCE
 				// NOTE: no need to check UNEXPECTED_VARIADIC_TEMPLATE_PARAM
 				break;
 			}

@@ -88,12 +88,12 @@ struct StringTable
 	LOG_STRING = LogRepo()
 	############################################# EXAMPLE
 	LOG_STRING.create('EXAMPLE_UNUSED_VARIABLE', LOG_LEVEL.LEVEL_WARNING, 0, dict(
-			en_US = 'Undefined variable $id(string) is used, $id(string) should not be used',
-			zh_TW = '$id(string) 未被使用，$id(string) 不應該被用'
+			en_US = 'Undefined variable $id(wstring) is used, $id(wstring) should not be used',
+			zh_TW = '$id(wstring) 未被使用，$id(wstring) 不應該被用'
 			))
 	LOG_STRING.create('EXAMPLE_UNDEFINED_VARIABLE', LOG_LEVEL.LEVEL_ERROR, 0, dict(
-			en_US = 'Undefined variable $id(string) in $file(string) in $line(uint32)',
-			zh_TW = '變數 $id(string) 在 $file(string) 中第 $line(uint32) 行未被定義'
+			en_US = 'Undefined variable $id(wstring) in $file(wstring) in $line(uint32)',
+			zh_TW = '變數 $id(wstring) 在 $file(wstring) 中第 $line(uint32) 行未被定義'
 			))
 	############################################# PARSER_STAGE
 	############################################# STATIC_TEST_VERIFICATION_STAGE
@@ -115,7 +115,7 @@ struct StringTable
 			zh_TW = '\\t第$index(uint32)個可能的解析: $info(wstring)'
 			))
 	LOG_STRING.create('CALL_NONFUNC', LOG_LEVEL.LEVEL_ERROR, 0, dict(
-			en_US = 'calling non-callable symbol $id(wstring)',
+			en_US = '$id(wstring) cannot be used as a function',
 			zh_TW = '$id(wstring)非函式，不能被呼叫'
 			))
 	LOG_STRING.create('INVALID_ARITHMETIC', LOG_LEVEL.LEVEL_ERROR, 0, dict(
@@ -128,52 +128,59 @@ struct StringTable
 			))
 	############################################# SEMANTIC_VERIFICATION_STAGE (ERRORS)
 	LOG_STRING.create('UNKNOWN_NAME', LOG_LEVEL.LEVEL_ERROR, 0, dict(
-			en_US = '$id(string) was not declared in this scope',
+			en_US = '$id(wstring) was not declared in this scope',
 			zh_TW = 'NOTE: 暫無中文翻譯 ==> LOG_UNKNOWN_NAME'
 			))
+	LOG_STRING.create('UNDEFINED_REF', LOG_LEVEL.LEVEL_ERROR, 0, dict(
+			en_US = 'undefined reference to $id(wstring)',
+			zh_TW = 'NOTE: 暫無中文翻譯 ==> UNDEFINED_REF'
+			))
 	LOG_STRING.create('UNDEFINED_SYMBOL', LOG_LEVEL.LEVEL_ERROR, 0, dict(
-			en_US = 'undefined reference/symbol: \\\"$id(string)\\\"',
-			zh_TW = '符號或參照未定義: \\\"$id(string)\\\"'
+			en_US = 'undefined reference/symbol: \\\"$id(wstring)\\\"',
+			zh_TW = '符號或參照未定義: \\\"$id(wstring)\\\"'
 			))
-	LOG_STRING.create('DUPE_NAME', LOG_LEVEL.LEVEL_ERROR, 0, dict(
-			en_US = 'redeclaration/redefinition of $id(wstring)',
-			zh_TW = 'NOTE: 暫無中文翻譯 ==> DUPE_NAME'
+	LOG_STRING.create('DUPE_NAME_TYPE', LOG_LEVEL.LEVEL_ERROR, 0, dict(
+			en_US = 'redefinition of $id(wstring)',
+			zh_TW = 'NOTE: 暫無中文翻譯 ==> DUPE_NAME_TYPE'
 			))
-
+	LOG_STRING.create('DUPE_NAME_INSTANCE', LOG_LEVEL.LEVEL_ERROR, 0, dict(
+			en_US = 'redeclaration of $id(wstring)',
+			zh_TW = 'NOTE: 暫無中文翻譯 ==> DUPE_NAME_INSTANCE'
+			))
 	LOG_STRING.create('WRITE_RVALUE', LOG_LEVEL.LEVEL_ERROR, 0, dict(
 			en_US = 'lvalue required as left operand of assignment',
 			zh_TW = 'NOTE: 暫無中文翻譯 ==> WRITE_RVALUE'
 			))
 	LOG_STRING.create('INVALID_CONV', LOG_LEVEL.LEVEL_ERROR, 0, dict(
-			en_US = 'invalid conversion from $rhs_type(string) to $lhs_type(string)',
+			en_US = 'invalid conversion from $rhs_type(wstring) to $lhs_type(wstring)',
 			zh_TW = 'NOTE: 暫無中文翻譯 ==> INVALID_CONV'
 			))
 	LOG_STRING.create('NO_MATCHING_MEMBER_FUNC', LOG_LEVEL.LEVEL_ERROR, 0, dict(
-			en_US = 'no matching function for call to $func(string)',
+			en_US = 'no matching function for call to $func(wstring)',
 			zh_TW = 'NOTE: 暫無中文翻譯 ==> NO_MATCHING_MEMBER_FUNC'
 			))
 	LOG_STRING.create('INVALID_CONV_BOOL', LOG_LEVEL.LEVEL_ERROR, 0, dict(
-			en_US = 'could not convert $type(string) to \'bool\'',
+			en_US = 'could not convert $type(wstring) to \'bool\'',
 			zh_TW = 'NOTE: 暫無中文翻譯 ==> INVALID_CONV_BOOL'
 			))
 	LOG_STRING.create('MEMBER_OF_NONCLASS', LOG_LEVEL.LEVEL_ERROR, 0, dict(
-			en_US = 'request for member $member_id(string) in $primary_id(string), which is of non-class type $primary_type(string)',
+			en_US = 'request for member $member_id(wstring) in $primary_id(wstring), which is of non-class type $primary_type(wstring)',
 			zh_TW = 'NOTE: 暫無中文翻譯 ==> MEMBER_OF_NONCLASS'
 			))
 	LOG_STRING.create('NO_SUCH_MEMBER', LOG_LEVEL.LEVEL_ERROR, 0, dict(
-			en_US = '$primary_type(string) has no member named $member_id(string)',
+			en_US = '$primary_type(wstring) has no member named $member_id(wstring)',
 			zh_TW = 'NOTE: 暫無中文翻譯 ==> NO_SUCH_MEMBER'
 			))
 	LOG_STRING.create('SUBSCRIPT_OF_NONARRAY', LOG_LEVEL.LEVEL_ERROR, 0, dict(
-			en_US = 'invalid types $primary_type(string) and $subscript_type(string) for array subscript',
+			en_US = 'invalid types $primary_type(wstring) and $subscript_type(wstring) for array subscript',
 			zh_TW = 'NOTE: 暫無中文翻譯 ==> SUBSCRIPT_OF_NONARRAY'
 			))
 	LOG_STRING.create('MISMATCH_CALL_ARGNUM', LOG_LEVEL.LEVEL_ERROR, 0, dict(
-			en_US = 'too many/few arguments to function $func(string)',
+			en_US = 'too many/few arguments to function $func(wstring)',
 			zh_TW = 'NOTE: 暫無中文翻譯 ==> MISMATCH_CALL_ARGNUM'
 			))
 	LOG_STRING.create('MISMATCH_CALL_ARGTYPE', LOG_LEVEL.LEVEL_ERROR, 0, dict(
-			en_US = 'cannot convert $arg_type(string) to $param_type(string) for argument $arg_index(uint32) to $func(string)',
+			en_US = 'cannot convert $arg_type(wstring) to $param_type(wstring) for argument $arg_index(uint32) to $func(wstring)',
 			zh_TW = 'NOTE: 暫無中文翻譯 ==> MISMATCH_CALL_ARGTYPE'
 			))
 	LOG_STRING.create('UNEXPECTED_RETURN_VALUE', LOG_LEVEL.LEVEL_ERROR, 0, dict(
@@ -181,35 +188,35 @@ struct StringTable
 			zh_TW = 'NOTE: 暫無中文翻譯 ==> UNEXPECTED_RETURN_VALUE'
 			))
 	LOG_STRING.create('MISSING_RETURN_VALUE', LOG_LEVEL.LEVEL_ERROR, 0, dict(
-			en_US = 'return-statement with no value, in function returning $type(string)',
+			en_US = 'return-statement with no value, in function returning $type(wstring)',
 			zh_TW = 'NOTE: 暫無中文翻譯 ==> MISSING_RETURN_VALUE'
 			))
 	LOG_STRING.create('MISSING_CONST_INIT', LOG_LEVEL.LEVEL_ERROR, 0, dict(
-			en_US = 'uninitialized const $var(string)',
+			en_US = 'uninitialized const $var(wstring)',
 			zh_TW = 'NOTE: 暫無中文翻譯 ==> MISSING_CONST_INIT'
 			))
 	LOG_STRING.create('WRITE_CONST', LOG_LEVEL.LEVEL_ERROR, 0, dict(
-			en_US = 'assignment of read-only variable $var(string)',
+			en_US = 'assignment of read-only variable $var(wstring)',
 			zh_TW = 'NOTE: 暫無中文翻譯 ==> WRITE_CONST'
 			))
 	LOG_STRING.create('MISSING_STATIC_INIT', LOG_LEVEL.LEVEL_ERROR, 0, dict(
-			en_US = 'NOTE: lacking message for ==> MISSING_STATIC_INIT',
+			en_US = 'NOTE: lacking message ==> MISSING_STATIC_INIT',
 			zh_TW = 'NOTE: 暫無中文翻譯 ==> MISSING_STATIC_INIT'
 			))
 	LOG_STRING.create('INVALID_NONSTATIC_CALL', LOG_LEVEL.LEVEL_ERROR, 0, dict(
-			en_US = 'cannot call member function $func(string) without object',
+			en_US = 'cannot call member function $func(wstring) without object',
 			zh_TW = 'NOTE: 暫無中文翻譯 ==> INVALID_NONSTATIC_CALL'
 			))
 	LOG_STRING.create('INVALID_NONSTATIC_REF', LOG_LEVEL.LEVEL_ERROR, 0, dict(
-			en_US = 'invalid use of member $var(string) in static member function',
+			en_US = 'invalid use of member $var(wstring) in static member function',
 			zh_TW = 'NOTE: 暫無中文翻譯 ==> INVALID_NONSTATIC_REF'
 			))
 	LOG_STRING.create('INVALID_ACCESS_PRIVATE', LOG_LEVEL.LEVEL_ERROR, 0, dict(
-			en_US = '$id(string) is private',
+			en_US = '$id(wstring) is private',
 			zh_TW = 'NOTE: 暫無中文翻譯 ==> INVALID_ACCESS_PRIVATE'
 			))
 	LOG_STRING.create('INVALID_ACCESS_PROTECTED', LOG_LEVEL.LEVEL_ERROR, 0, dict(
-			en_US = '$id(string) is protected',
+			en_US = '$id(wstring) is protected',
 			zh_TW = 'NOTE: 暫無中文翻譯 ==> INVALID_ACCESS_PROTECTED'
 			))
 	LOG_STRING.create('MISSING_BREAK_TARGET', LOG_LEVEL.LEVEL_ERROR, 0, dict(
@@ -225,19 +232,19 @@ struct StringTable
 			zh_TW = 'NOTE: 暫無中文翻譯 ==> MISSING_PARAM_INIT'
 			))
 	LOG_STRING.create('UNEXPECTED_VARIADIC_PARAM', LOG_LEVEL.LEVEL_ERROR, 0, dict(
-			en_US = 'NOTE: lacking message for ==> UNEXPECTED_VARIADIC_PARAM',
+			en_US = 'NOTE: lacking message ==> UNEXPECTED_VARIADIC_PARAM',
 			zh_TW = 'NOTE: 暫無中文翻譯 ==> UNEXPECTED_VARIADIC_PARAM'
 			))
 	LOG_STRING.create('UNEXPECTED_VARIADIC_TEMPLATE_PARAM', LOG_LEVEL.LEVEL_ERROR, 0, dict(
-			en_US = 'NOTE: lacking message for ==> UNEXPECTED_VARIADIC_TEMPLATE_PARAM',
+			en_US = 'NOTE: lacking message ==> UNEXPECTED_VARIADIC_TEMPLATE_PARAM',
 			zh_TW = 'NOTE: 暫無中文翻譯 ==> UNEXPECTED_VARIADIC_TEMPLATE_PARAM'
 			))
 	LOG_STRING.create('EXCEED_PARAM_LIMIT', LOG_LEVEL.LEVEL_ERROR, 0, dict(
-			en_US = 'NOTE: lacking message for ==> EXCEED_PARAM_LIMIT',
+			en_US = 'NOTE: lacking message ==> EXCEED_PARAM_LIMIT',
 			zh_TW = 'NOTE: 暫無中文翻譯 ==> EXCEED_PARAM_LIMIT'
 			))
 	LOG_STRING.create('EXCEED_TEMPLATE_PARAM_LIMIT', LOG_LEVEL.LEVEL_ERROR, 0, dict(
-			en_US = 'NOTE: lacking message for ==> EXCEED_TEMPLATE_PARAM_LIMIT',
+			en_US = 'NOTE: lacking message ==> EXCEED_TEMPLATE_PARAM_LIMIT',
 			zh_TW = 'NOTE: 暫無中文翻譯 ==> EXCEED_TEMPLATE_PARAM_LIMIT'
 			))
 	############################################# SEMANTIC_VERIFICATION_STAGE (WARNINGS)
@@ -246,7 +253,7 @@ struct StringTable
 			zh_TW = 'NOTE: 暫無中文翻譯 ==> MISSING_RETURN'
 			))
 	LOG_STRING.create('UNINIT_ARG', LOG_LEVEL.LEVEL_WARNING, 0, dict(
-			en_US = '$var(string) is used uninitialized in this function',
+			en_US = '$var(wstring) is used uninitialized in this function',
 			zh_TW = 'NOTE: 暫無中文翻譯 ==> UNINIT_ARG'
 			))
 	LOG_STRING.create('CONTROL_REACHES_END', LOG_LEVEL.LEVEL_WARNING, 0, dict(
@@ -254,32 +261,32 @@ struct StringTable
 			zh_TW = 'NOTE: 暫無中文翻譯 ==> CONTROL_REACHES_END'
 			))
 	LOG_STRING.create('MISSING_CASE', LOG_LEVEL.LEVEL_WARNING, 0, dict(
-			en_US = 'enumeration value $id(string) not handled in switch',
+			en_US = 'enumeration value $id(wstring) not handled in switch',
 			zh_TW = 'NOTE: 暫無中文翻譯 ==> MISSING_CASE'
 			))
 	LOG_STRING.create('DEAD_CODE', LOG_LEVEL.LEVEL_WARNING, 0, dict(
-			en_US = 'NOTE: lacking message for ==> DEAD_CODE',
+			en_US = 'NOTE: lacking message ==> DEAD_CODE',
 			zh_TW = 'NOTE: 暫無中文翻譯 ==> DEAD_CODE'
 			))
 	LOG_STRING.create('INFINITE_RECURSION', LOG_LEVEL.LEVEL_WARNING, 0, dict(
-			en_US = 'NOTE: lacking message for ==> INFINITE_RECURSION',
+			en_US = 'NOTE: lacking message ==> INFINITE_RECURSION',
 			zh_TW = 'NOTE: 暫無中文翻譯 ==> INFINITE_RECURSION'
 			))
 	LOG_STRING.create('UNUSED_VAR', LOG_LEVEL.LEVEL_WARNING, 0, dict(
-			en_US = 'unused variable $var(string)',
+			en_US = 'unused variable $var(wstring)',
 			zh_TW = 'NOTE: 暫無中文翻譯 ==> UNUSED_VAR'
 			))
 	############################################# SEMANTIC_VERIFICATION_STAGE (HELPERS)
 	LOG_STRING.create('PREV_DECL_HERE', LOG_LEVEL.LEVEL_INFO, 0, dict(
-			en_US = '$id(string) previously declared here',
+			en_US = '$id(wstring) previously declared here',
 			zh_TW = 'NOTE: 暫無中文翻譯 ==> PREV_DECL_HERE'
 			))
 	LOG_STRING.create('CANDIDATES_ARE', LOG_LEVEL.LEVEL_INFO, 0, dict(
-			en_US = 'note: candidates are: $id(string)',
+			en_US = 'note: candidates are: $id(wstring)',
 			zh_TW = 'NOTE: 暫無中文翻譯 ==> CANDIDATES_ARE'
 			))
 	LOG_STRING.create('IN_FUNCTION', LOG_LEVEL.LEVEL_INFO, 0, dict(
-			en_US = 'In function $func(string):',
+			en_US = 'In function $func(wstring):',
 			zh_TW = 'NOTE: 暫無中文翻譯 ==> IN_FUNCTION'
 			))
 	LOG_STRING.create('FROM_HERE', LOG_LEVEL.LEVEL_INFO, 0, dict(

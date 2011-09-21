@@ -54,13 +54,19 @@ zillians_add_complex_test(
     DEPENDS ${ThorScriptCompiler}
     )
 zillians_add_complex_test(
-    TARGET thorscript-compiler-static-test-DUPE_NAME
-    SHELL ${ThorScriptCompiler} ${compile_options_s0} ${CMAKE_CURRENT_SOURCE_DIR}/data/error/0_name/ambiguous/DUPE_NAME.t
+    TARGET thorscript-compiler-static-test-DUPE_NAME_INSTANCE
+    SHELL ${ThorScriptCompiler} ${compile_options_s0} ${CMAKE_CURRENT_SOURCE_DIR}/data/error/0_name/ambiguous/DUPE_NAME_INSTANCE.t
+    DEPENDS ${ThorScriptCompiler}
+    )
+zillians_add_complex_test(
+    TARGET thorscript-compiler-static-test-DUPE_NAME_TYPE
+    SHELL ${ThorScriptCompiler} ${compile_options_s0} ${CMAKE_CURRENT_SOURCE_DIR}/data/error/0_name/ambiguous/DUPE_NAME_TYPE.t
     DEPENDS ${ThorScriptCompiler}
     )
 
 zillians_add_test_to_subject(SUBJECT thorscript-compiler-static-test-xform TARGET thorscript-compiler-static-test-AMBIGUOUS_REF)
-zillians_add_test_to_subject(SUBJECT thorscript-compiler-static-test-s0    TARGET thorscript-compiler-static-test-DUPE_NAME)
+zillians_add_test_to_subject(SUBJECT thorscript-compiler-static-test-s0    TARGET thorscript-compiler-static-test-DUPE_NAME_INSTANCE)
+zillians_add_test_to_subject(SUBJECT thorscript-compiler-static-test-s0    TARGET thorscript-compiler-static-test-DUPE_NAME_TYPE)
 
 # unknown
 zillians_add_complex_test(
@@ -118,8 +124,13 @@ zillians_add_complex_test(
     DEPENDS ${ThorScriptCompiler}
     )
 zillians_add_complex_test(
-    TARGET thorscript-compiler-static-test-MISMATCH_FUNC_ARGNUM
-    SHELL ${ThorScriptCompiler} ${compile_options} ${CMAKE_CURRENT_SOURCE_DIR}/data/error/1_type/function/MISMATCH_FUNC_ARGNUM.t
+    TARGET thorscript-compiler-static-test-MISMATCH_FUNC_ARGNUM_TOO_FEW
+    SHELL ${ThorScriptCompiler} ${compile_options} ${CMAKE_CURRENT_SOURCE_DIR}/data/error/1_type/function/MISMATCH_FUNC_ARGNUM_TOO_FEW.t
+    DEPENDS ${ThorScriptCompiler}
+    )
+zillians_add_complex_test(
+    TARGET thorscript-compiler-static-test-MISMATCH_FUNC_ARGNUM_TOO_MANY
+    SHELL ${ThorScriptCompiler} ${compile_options} ${CMAKE_CURRENT_SOURCE_DIR}/data/error/1_type/function/MISMATCH_FUNC_ARGNUM_TOO_MANY.t
     DEPENDS ${ThorScriptCompiler}
     )
 zillians_add_complex_test(
@@ -139,7 +150,8 @@ zillians_add_complex_test(
     )
 
 zillians_add_test_to_subject(SUBJECT thorscript-compiler-static-test-xform TARGET thorscript-compiler-static-test-CALL_NONFUNC)
-zillians_add_test_to_subject(SUBJECT thorscript-compiler-static-test-xform TARGET thorscript-compiler-static-test-MISMATCH_FUNC_ARGNUM)
+zillians_add_test_to_subject(SUBJECT thorscript-compiler-static-test-xform TARGET thorscript-compiler-static-test-MISMATCH_FUNC_ARGNUM_TOO_FEW)
+zillians_add_test_to_subject(SUBJECT thorscript-compiler-static-test-xform TARGET thorscript-compiler-static-test-MISMATCH_FUNC_ARGNUM_TOO_MANY)
 zillians_add_test_to_subject(SUBJECT thorscript-compiler-static-test-xform TARGET thorscript-compiler-static-test-MISMATCH_FUNC_ARGTYPE)
 zillians_add_test_to_subject(SUBJECT thorscript-compiler-static-test-s1    TARGET thorscript-compiler-static-test-MISSING_RETURN_VALUE)
 zillians_add_test_to_subject(SUBJECT thorscript-compiler-static-test-s1    TARGET thorscript-compiler-static-test-UNEXPECTED_RETURN_VALUE)
