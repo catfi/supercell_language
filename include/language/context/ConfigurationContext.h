@@ -29,8 +29,7 @@ namespace zillians { namespace language {
 struct ConfigurationContext
 {
 	ConfigurationContext() : max_param_count(8), max_template_arg_param_count(8)
-	{
-	}
+	{ }
 
 	size_t max_param_count;
 	size_t max_template_arg_param_count;

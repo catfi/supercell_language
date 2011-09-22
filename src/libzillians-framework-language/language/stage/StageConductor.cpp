@@ -26,7 +26,9 @@
 namespace zillians { namespace language { namespace stage {
 
 StageConductor::StageConductor()
-{ }
+{
+	mOptionDesc.add_options()("help,h", "show help");
+}
 
 StageConductor::~StageConductor()
 { }
@@ -34,6 +36,7 @@ StageConductor::~StageConductor()
 void StageConductor::appendStage(shared_ptr<Stage> stage)
 {
 	mStages.push_back(stage);
+	stage->initializeOptions(mOptionDesc, mPositionalOptionDesc);
 }
 
 int StageConductor::main(int argc, const char** argv)
@@ -45,33 +48,20 @@ int StageConductor::main(int argc, const char** argv)
 	ConfigurationContext* config = new ConfigurationContext();
 	setConfigurationContext(config);
 
-	// call implementation's initialize() to append stages
-	initialize();
-
 	if(true)
 	{
-		po::options_description option_desc;
-		po::positional_options_description positional_option_desc;
 		po::variables_map vm;
-
-		// built-in help option
-	    option_desc.add_options()
-	    ("help,h", "show help");
-
-	    // ask each stage to append their option description
-		foreach(stage, mStages)
-			(*stage)->initializeOptions(option_desc, positional_option_desc);
 
 		// try to parse the command line
 	    try
 	    {
-	    	po::store(po::command_line_parser(argc, argv).options(option_desc).positional(positional_option_desc).run(), vm);
+	    	po::store(po::command_line_parser(argc, argv).options(mOptionDesc).positional(mPositionalOptionDesc).run(), vm);
 	    	po::notify(vm);
 	    }
 	    catch(...)
 	    {
 	    	std::cerr << "failed to parse command line" << std::endl;
-	    	std::cerr << option_desc << std::endl;
+	    	std::cerr << mOptionDesc << std::endl;
 	    	return -1;
 	    }
 
@@ -79,7 +69,7 @@ int StageConductor::main(int argc, const char** argv)
 	    if(vm.count("help") > 0 || argc < 2)
 	    {
 	    	std::cout << "command line options: " << std::endl << std::endl;
-	    	std::cout << option_desc << std::endl;
+	    	std::cout << mOptionDesc << std::endl;
 	    	return 0;
 	    }
 
@@ -91,7 +81,7 @@ int StageConductor::main(int argc, const char** argv)
 			if(!(*stage)->parseOptions(vm))
 			{
 				std::cerr << "failed to process command option for stage: " << (*stage)->name() << std::endl;
-				std::cerr << option_desc << std::endl;
+				std::cerr << mOptionDesc << std::endl;
 				return -1;
 			}
 		}
@@ -110,9 +100,6 @@ int StageConductor::main(int argc, const char** argv)
 			if(!c) break;
 		}
 	}
-
-	// call implementation's finalize() to remove stages or collect summary
-	finalize();
 
 	return 0;
 }

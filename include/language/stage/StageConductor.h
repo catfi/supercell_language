@@ -32,16 +32,14 @@ public:
 	virtual ~StageConductor();
 
 public:
-	virtual void initialize() = 0;
-	virtual void finalize() = 0;
-
-public:
 	void appendStage(shared_ptr<Stage> s);
 
 public:
 	virtual int main(int argc, const char** argv);
 
 protected:
+	po::options_description mOptionDesc;
+	po::positional_options_description mPositionalOptionDesc;
 	std::vector<shared_ptr<Stage>> mStages;
 };
 
