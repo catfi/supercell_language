@@ -165,7 +165,12 @@ struct SemanticVerificationStageVisitor0 : GenericDoubleVisitor
 		if(owner_context->names.find(name) == owner_context->names.end())
 			owner_context->names.insert(name);
 		else
-			LOG_MESSAGE(DUPE_NAME, &node, _id = name);
+		{
+			if(isa<FunctionDecl>(node.parent) || isa<Statement>(node.parent))
+				LOG_MESSAGE(DUPE_NAME, node.parent, _id = name);
+			else
+				LOG_MESSAGE(DUPE_NAME, &node, _id = name);
+		}
 	}
 
 	void verify(Declaration &node)
