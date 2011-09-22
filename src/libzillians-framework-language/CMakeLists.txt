@@ -73,6 +73,10 @@ if(LLVM_FOUND)
         )
 endif()
 
+ADD_PRECOMPILED_HEADER(zillians-framework-language
+    ${PROJECT_FRAMEWORK_SOURCE_DIR}/include/language/_PCH.h
+    )
+
 if(LLVM_FOUND)
     target_link_libraries(zillians-framework-language
         zillians-common-core

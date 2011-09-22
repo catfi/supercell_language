@@ -32,6 +32,7 @@ namespace qi = boost::spirit::qi;
 
 namespace zillians { namespace language { namespace stage {
 
+
 namespace {
 
 // since '\t' may be printed in spaces and I don't know a way to change std::wcout, we simply replace the tab with desired number of spaces

@@ -51,7 +51,6 @@ private:
 			typedef typename boost::mpl::at<Types, boost::mpl::int_<N> >::type T;
 			conductor->appendStage(shared_ptr<Stage>(new T()));
 		}
-
 	};
 
 	template<typename Types>
@@ -73,22 +72,70 @@ private:
 		}
 	};
 
+private:
+	template<int N, typename Types>
+	struct AllStageAppenderImpl : public AllStageAppenderImpl<N-1, Types>
+	{
+		static void append(std::map<std::string, std::function<void()>>& m, StageConductor* conductor)
+		{
+			AllStageAppenderImpl<N-1, Types>::append(m, conductor);
+			typedef typename boost::mpl::at<Types, boost::mpl::int_<N> >::type T;
+			std::string s(typeid(T).name());
+			if(m.find(s) == m.end())
+			{
+				std::function<void()> f = [=]{
+					conductor->appendStage(shared_ptr<Stage>(new T()));
+				};
+				m.insert(std::make_pair(s, f));
+			}
+		}
+	};
+
+	template<typename Types>
+	struct AllStageAppenderImpl<0, Types>
+	{
+		static void append(std::map<std::string, std::function<void()>>& m, StageConductor* conductor)
+		{
+			typedef typename boost::mpl::at<Types, boost::mpl::int_<0> >::type T;
+			std::string s(typeid(T).name());
+			if(m.find(s) == m.end())
+			{
+				std::function<void()> f = [=]{
+					conductor->appendStage(shared_ptr<Stage>(new T()));
+				};
+				m.insert(std::make_pair(s, f));
+			}
+		}
+	};
+
+	template<typename Types>
+	struct AllStageAppender : public AllStageAppenderImpl< boost::mpl::size<Types>::value - 1, Types>
+	{
+		static void append(std::map<std::string, std::function<void()>>& m, StageConductor* conductor)
+		{
+			AllStageAppenderImpl< boost::mpl::size<Types>::value - 1, Types>::append(m, conductor);
+		}
+	};
+
 public:
 	template<typename TypeVector>
 	void addDefaultMode()
 	{
-		mDefaultMode = [this]{
+		mDefaultMode = [=]{
 			BuilderAppender<TypeVector>::build(this);
 		};
+
+		AllStageAppender<TypeVector>::append(mAllStages, this);
 	}
 
 	template<typename TypeVector>
 	void addMode(const std::string& key, const std::string& description)
 	{
-		std::function<void()> f = [this]{
+		std::function<void()> f = [=]{
 			BuilderAppender<TypeVector>::build(this);
 		};
 		mModes[key] = std::make_pair(description, f);
+		AllStageAppender<TypeVector>::append(mAllStages, this);
 	}
 
 	virtual int main(int argc, const char** argv)
@@ -109,22 +156,14 @@ public:
 	    catch(...)
 	    {
 	    	std::cerr << "failed to parse command line" << std::endl;
-	    	// append default stages
-	    	if(mDefaultMode) mDefaultMode();
+
+	    	// append all stages
+	    	appendAllStages();
 	    	std::cerr << mOptionDesc << std::endl;
 	    	return -1;
 	    }
 
-	    if(vm.count("help") > 0 || argc < 2)
-	    {
-	    	std::cout << "command line options: " << std::endl << std::endl;
-	    	// append all stages
-	    	if(mDefaultMode) mDefaultMode();
-	    	std::cout << mOptionDesc << std::endl;
-	    	return 0;
-	    }
-
-	    bool matched = true;
+	    bool matched = false;
 	    foreach(i, mModes)
 	    {
 	    	if(vm.count(i->first) > 0)
@@ -143,10 +182,10 @@ public:
 	    	}
 	    }
 
+	    // if no mode is specified, use default mode
 	    if(!matched)
 	    {
-	    	if(mDefaultMode)
-	    		mDefaultMode();
+	    	appendAllStages();
 	    }
 
 		// call stage conductor main
@@ -154,8 +193,17 @@ public:
 	}
 
 private:
+	void appendAllStages()
+	{
+		foreach(i, mAllStages)
+		{
+			i->second();
+		}
+	}
+
+private:
 	std::function<void()> mDefaultMode;
-	std::tr1::unordered_map<std::type_info, std::function<void()>> mAllStages;
+	std::map<std::string, std::function<void()>> mAllStages;
 	std::map<std::string /*key*/, std::pair<std::string /*desc*/, std::function<void()> /*builder lambda*/ > > mModes;
 };
 

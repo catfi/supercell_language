@@ -49,7 +49,24 @@ ThorScriptCompiler::ThorScriptCompiler()
 			ManglingStage,
 			LLVMGeneratorStage,
 			LLVMDebugInfoGeneratorStage,
-			LLVMBitCodeGeneratorStage> >();
+			LLVMBitCodeGeneratorStage>>();
+
+	addMode<
+		boost::mpl::vector<
+			ThorScriptParserStage,
+			TreeDebugStage,
+			SemanticVerificationStage0,
+			StaticTestVerificationStage>>("semantic-verify-0", "for semantic verification stage 0");
+
+	addMode<
+		boost::mpl::vector<
+			ThorScriptParserStage,
+			TreeDebugStage,
+			SemanticVerificationStage0,
+			ResolutionStage,
+			SemanticVerificationStage1,
+			StaticTestVerificationStage>>("semantic-verify-1", "for semantic verification stage 1");
+
 }
 
 ThorScriptCompiler::~ThorScriptCompiler()
