@@ -165,7 +165,12 @@ struct SemanticVerificationStageVisitor0 : GenericDoubleVisitor
 		if(owner_context->names.find(name) == owner_context->names.end())
 			owner_context->names.insert(name);
 		else
-			LOG_MESSAGE(DUPE_NAME, &node, _id = name);
+		{
+			if(isa<FunctionDecl>(node.parent) || isa<Statement>(node.parent))
+				LOG_MESSAGE(DUPE_NAME, node.parent, _id = name);
+			else
+				LOG_MESSAGE(DUPE_NAME, &node, _id = name);
+		}
 	}
 
 	void verify(Declaration &node)
@@ -197,10 +202,10 @@ struct SemanticVerificationStageVisitor0 : GenericDoubleVisitor
 		{
 			// DUPE_NAME
 			std::wstring name = cast<VariableDecl>(*i)->name->toString();
-			if(name_set.find(name) == name_set.end())
-				name_set.insert(name);
-			else
-				LOG_MESSAGE(DUPE_NAME, &node, _id = name);
+//			if(name_set.find(name) == name_set.end())
+//				name_set.insert(name);
+//			else
+//				LOG_MESSAGE(DUPE_NAME, &node, _id = name);
 
 			// MISSING_PARAM_INIT
 			if(!!cast<VariableDecl>(*i)->initializer)
