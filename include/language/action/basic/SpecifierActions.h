@@ -24,7 +24,7 @@
 
 namespace zillians { namespace language { namespace action {
 
-struct colon_type_specifier
+struct type_specifier
 {
 	DEFINE_ATTRIBUTES(TypeSpecifier*)
 	DEFINE_LOCALS()
@@ -32,14 +32,14 @@ struct colon_type_specifier
 	BEGIN_ACTION(init)
 	{
 #ifdef DEBUG
-		printf("colon_type_specifier param(0) type = %s\n", typeid(_param_t(0)).name());
+		printf("type_specifier param(0) type = %s\n", typeid(_param_t(0)).name());
 #endif
 		_result = _param(0);
 	}
 	END_ACTION
 };
 
-struct type_specifier
+struct thor_type
 {
 	DEFINE_ATTRIBUTES(TypeSpecifier*)
 	DEFINE_LOCALS(LOCATION_TYPE)
@@ -47,8 +47,8 @@ struct type_specifier
 	BEGIN_ACTION(init_type)
 	{
 #ifdef DEBUG
-		printf("type_specifier::init_type param(0) type = %s\n", typeid(_param_t(0)).name());
-		printf("type_specifier::init_type param(1) type = %s\n", typeid(_param_t(1)).name());
+		printf("thor_type::init_type param(0) type = %s\n", typeid(_param_t(0)).name());
+		printf("thor_type::init_type param(1) type = %s\n", typeid(_param_t(1)).name());
 #endif
 		Identifier* ident = NULL;
 		if(_param(1).is_initialized())
@@ -72,11 +72,11 @@ struct type_specifier
 	BEGIN_ACTION(init_function_type)
 	{
 #ifdef DEBUG
-		printf("type_specifier::init_function_type param(0) type = %s\n", typeid(_param_t(0)).name());
-		printf("type_specifier::init_function_type param(1) type = %s\n", typeid(_param_t(1)).name());
+		printf("thor_type::init_function_type param(0) type = %s\n", typeid(_param_t(0)).name());
+		printf("thor_type::init_function_type param(1) type = %s\n", typeid(_param_t(1)).name());
 #endif
-		typedef std::vector<TypeSpecifier*> type_list_specifier_t;
-		type_list_specifier_t* parameters = _param(0).is_initialized() ? &*_param(0) : NULL;
+		typedef std::vector<TypeSpecifier*> type_list_t;
+		type_list_t* parameters = _param(0).is_initialized() ? &*_param(0) : NULL;
 		TypeSpecifier*         type       = _param(1).is_initialized() ? *_param(1) : NULL;
 		FunctionType* function_type = new FunctionType(); BIND_CACHED_LOCATION(function_type);
 		if(!!parameters)
@@ -90,7 +90,7 @@ struct type_specifier
 	BEGIN_ACTION(init_ellipsis)
 	{
 #ifdef DEBUG
-		printf("type_specifier::init_ellipsis param(0) type = %s\n", typeid(_param_t(0)).name());
+		printf("thor_type::init_ellipsis param(0) type = %s\n", typeid(_param_t(0)).name());
 #endif
 		BIND_CACHED_LOCATION(_result = new TypeSpecifier(PrimitiveType::VARIADIC_ELLIPSIS));
 	}
@@ -112,7 +112,7 @@ struct template_arg_specifier
 	END_ACTION
 };
 
-struct type_list_specifier
+struct type_list
 {
 	DEFINE_ATTRIBUTES(std::vector<TypeSpecifier*>)
 	DEFINE_LOCALS()
@@ -120,14 +120,14 @@ struct type_list_specifier
 	BEGIN_ACTION(init)
 	{
 #ifdef DEBUG
-		printf("type_list_specifier param(0) type = %s\n", typeid(_param_t(0)).name());
+		printf("type_list param(0) type = %s\n", typeid(_param_t(0)).name());
 #endif
 		_result = _param(0);
 	}
 	END_ACTION
 };
 
-struct visibility_specifier
+struct class_member_visibility
 {
 	DEFINE_ATTRIBUTES(Declaration::VisibilitySpecifier::type)
 	DEFINE_LOCALS()
@@ -139,7 +139,7 @@ struct visibility_specifier
 	END_ACTION
 };
 
-struct annotation_specifiers
+struct annotation_list
 {
 	DEFINE_ATTRIBUTES(Annotations*)
 	DEFINE_LOCALS(LOCATION_TYPE)
@@ -147,7 +147,7 @@ struct annotation_specifiers
 	BEGIN_ACTION(init)
 	{
 #ifdef DEBUG
-		printf("annotation_specifiers param(0) type = %s\n", typeid(_param_t(0)).name());
+		printf("annotation_list param(0) type = %s\n", typeid(_param_t(0)).name());
 #endif
 		BIND_CACHED_LOCATION(_result = new Annotations());
 		deduced_foreach_value(i, _param(0))
@@ -156,7 +156,7 @@ struct annotation_specifiers
 	END_ACTION
 };
 
-struct annotation_specifier
+struct annotation
 {
 	DEFINE_ATTRIBUTES(Annotation*)
 	DEFINE_LOCALS(LOCATION_TYPE)
@@ -164,22 +164,22 @@ struct annotation_specifier
 	BEGIN_ACTION(init)
 	{
 #ifdef DEBUG
-		printf("annotation_specifier::init param(0) type = %s\n", typeid(_param_t(0)).name());
-		printf("annotation_specifier::init param(1) type = %s\n", typeid(_param_t(1)).name());
+		printf("annotation::init param(0) type = %s\n", typeid(_param_t(0)).name());
+		printf("annotation::init param(1) type = %s\n", typeid(_param_t(1)).name());
 #endif
 		SimpleIdentifier* name = _param(0);
-		if(!_param(1).is_initialized())
-			BIND_CACHED_LOCATION(_result = new Annotation(name)) // NOTE: do not add semicolon
-		else
+		if(_param(1).is_initialized())
 		{
 			_result = *_param(1);
 			_result->name = name;
 		}
+		else
+			BIND_CACHED_LOCATION(_result = new Annotation(name));
 	}
 	END_ACTION
 };
 
-struct annotation_specifier_stem
+struct annotation_body
 {
 	DEFINE_ATTRIBUTES(Annotation*)
 	DEFINE_LOCALS(LOCATION_TYPE)
@@ -187,7 +187,7 @@ struct annotation_specifier_stem
 	BEGIN_ACTION(init)
 	{
 #ifdef DEBUG
-		printf("annotation_specifier_stem::init param(0) type = %s\n", typeid(_param_t(0)).name());
+		printf("annotation_body::init param(0) type = %s\n", typeid(_param_t(0)).name());
 #endif
 		BIND_CACHED_LOCATION(_result = new Annotation(NULL));
 		deduced_foreach_value(i, _param(0))

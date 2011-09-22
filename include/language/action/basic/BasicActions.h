@@ -87,7 +87,7 @@ struct typed_parameter_list
 	END_ACTION
 };
 
-struct typed_parameter_list_with_init
+struct typed_parameter_with_init_list
 {
 	typedef std::vector<boost::tuple<SimpleIdentifier*, TypeSpecifier*, Expression*>> value_t;
 	DEFINE_ATTRIBUTES(shared_ptr<value_t>)
@@ -96,9 +96,9 @@ struct typed_parameter_list_with_init
 	BEGIN_ACTION(init)
 	{
 #ifdef DEBUG
-		printf("typed_parameter_list_with_init param(0) type = %s\n", typeid(_param_t(0)).name());
-		printf("typed_parameter_list_with_init param(1) type = %s\n", typeid(_param_t(1)).name());
-		printf("typed_parameter_list_with_init param(2) type = %s\n", typeid(_param_t(2)).name());
+		printf("typed_parameter_with_init_list param(0) type = %s\n", typeid(_param_t(0)).name());
+		printf("typed_parameter_with_init_list param(1) type = %s\n", typeid(_param_t(1)).name());
+		printf("typed_parameter_with_init_list param(2) type = %s\n", typeid(_param_t(2)).name());
 #endif
 		_result.reset(new value_t);
 		deduced_foreach_value(i, _param(0))

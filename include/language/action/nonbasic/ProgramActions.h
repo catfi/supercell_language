@@ -63,10 +63,10 @@ struct program
 	}
 	END_ACTION
 
-	BEGIN_ACTION(append_declaration)
+	BEGIN_ACTION(append_global_decl)
 	{
 #ifdef DEBUG
-		printf("program::append_declaration param(0) type = %s\n", typeid(_param_t(0)).name());
+		printf("program::append_global_decl param(0) type = %s\n", typeid(_param_t(0)).name());
 #endif
 		if(!!getParserContext().active_package)
 			getParserContext().active_package->addObject(_param(0));

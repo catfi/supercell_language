@@ -13,7 +13,7 @@ function f():void {}
 /*
 @static_test { expect_message={ level="LEVEL_ERROR", id="DUPE_NAME", parameters={ id="a" } } }
 function g(a:uint32, a:uint32):void {}
+*/
 
 @static_test { expect_message={ level="LEVEL_ERROR", id="DUPE_NAME", parameters={ id="T" } } }
 function g2<T, T>():void {}
-*/

@@ -337,12 +337,10 @@ struct range_expression
 		printf("range_expression param(0) type = %s\n", typeid(_param_t(0)).name());
 		printf("range_expression param(1) type = %s\n", typeid(_param_t(1)).name());
 #endif
-		if(!_param(1).is_initialized())
-		{
+		if(_param(1).is_initialized())
+			BIND_CACHED_LOCATION(_result = new BinaryExpr(BinaryExpr::OpCode::RANGE_ELLIPSIS, _param(0), *_param(1))) // NOTE: omit SEMICOLON
+		else
 			_result = _param(0);
-			return;
-		}
-		BIND_CACHED_LOCATION(_result = new BinaryExpr(BinaryExpr::OpCode::RANGE_ELLIPSIS, _param(0), *_param(1)));
 	}
 	END_ACTION
 };
@@ -358,14 +356,14 @@ struct ternary_expression
 		printf("ternary_expression param(0) type = %s\n", typeid(_param_t(0)).name());
 		printf("ternary_expression param(1) type = %s\n", typeid(_param_t(1)).name());
 #endif
-		if(!_param(1).is_initialized())
+		if(_param(1).is_initialized())
 		{
-			_result = _param(0);
-			return;
+			Expression* true_node  = boost::fusion::at_c<0>(*_param(1));
+			Expression* false_node = boost::fusion::at_c<1>(*_param(1));
+			BIND_CACHED_LOCATION(_result = new TernaryExpr(_param(0), true_node, false_node));
 		}
-		Expression* true_node  = boost::fusion::at_c<0>(*_param(1));
-		Expression* false_node = boost::fusion::at_c<1>(*_param(1));
-		BIND_CACHED_LOCATION(_result = new TernaryExpr(_param(0), true_node, false_node));
+		else
+			_result = _param(0);
 	}
 	END_ACTION
 };
