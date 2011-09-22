@@ -197,10 +197,10 @@ struct SemanticVerificationStageVisitor0 : GenericDoubleVisitor
 		{
 			// DUPE_NAME
 			std::wstring name = cast<VariableDecl>(*i)->name->toString();
-			if(name_set.find(name) == name_set.end())
-				name_set.insert(name);
-			else
-				LOG_MESSAGE(DUPE_NAME, &node, _id = name);
+//			if(name_set.find(name) == name_set.end())
+//				name_set.insert(name);
+//			else
+//				LOG_MESSAGE(DUPE_NAME, &node, _id = name);
 
 			// MISSING_PARAM_INIT
 			if(!!cast<VariableDecl>(*i)->initializer)

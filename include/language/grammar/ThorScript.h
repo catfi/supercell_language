@@ -467,8 +467,7 @@ struct ThorScript : qi::grammar<Iterator, typename SA::start::attribute_type, de
 
 		template_arg_identifier
 			= qi::eps [ typename SA::location::cache_loc() ]
-				>>	(IDENTIFIER > -type_specialize_specifier
-					) [ typename SA::template_arg_identifier::init() ]
+				>> (IDENTIFIER > -type_specialize_specifier) [ typename SA::template_arg_identifier::init() ]
 			;
 
 		type_specialize_specifier
@@ -744,16 +743,17 @@ struct ThorScript : qi::grammar<Iterator, typename SA::start::attribute_type, de
 		///
 
 		statement
-			= location [ typename SA::location::cache_loc() ]
-			>>	(	(-annotation_list
-							>>	( decl_statement
-								| expression_statement
-								| selection_statement
-								| iteration_statement
-								| branch_statement
-								)
+			=	(	(-annotation_list >> location [ typename SA::location::cache_loc() ]
+						>>	( decl_statement
+							| expression_statement
+							| selection_statement
+							| iteration_statement
+							| branch_statement
+							)
 					) [ typename SA::statement::init() ]
-				| block [ typename SA::statement::init_block() ]
+				|	(location [ typename SA::location::cache_loc() ]
+						>> block
+					) [ typename SA::statement::init_block() ]
 				)
 			;
 
@@ -821,21 +821,20 @@ struct ThorScript : qi::grammar<Iterator, typename SA::start::attribute_type, de
 		///
 
 		global_decl
-			= location //[ typename SA::location::cache_loc() ]
-				>>	(-annotation_list
-						>>	( variable_decl
-							| const_decl
-							| function_decl
-							| typedef_decl
-							| class_decl
-							| interface_decl
-							| enum_decl
-							)
-					) [ typename SA::global_decl::init() ]
+			=	(-annotation_list >> location //[ typename SA::location::cache_loc() ]
+					>>	( variable_decl
+						| const_decl
+						| function_decl
+						| typedef_decl
+						| class_decl
+						| interface_decl
+						| enum_decl
+						)
+				) [ typename SA::global_decl::init() ]
 			;
 
 		variable_decl_stem
-			= qi::eps [ typename SA::location::cache_loc() ]
+			= location [ typename SA::location::cache_loc() ]
 				>> (IDENTIFIER > -type_specifier) [ typename SA::variable_decl_stem::init() ]
 			;
 
@@ -873,13 +872,13 @@ struct ThorScript : qi::grammar<Iterator, typename SA::start::attribute_type, de
 			;
 
 		class_member_decl
-			= location //[ typename SA::location::cache_loc() ]
-				>>	(-annotation_list >> -class_member_visibility >> -EMIT_BOOL(STATIC)
-						>>	( variable_decl
-							| const_decl
-							| function_decl
-							)
-					) [ typename SA::class_member_decl::init() ]
+			=	(-annotation_list >> location //[ typename SA::location::cache_loc() ]
+					>> -class_member_visibility >> -EMIT_BOOL(STATIC)
+					>>	( variable_decl
+						| const_decl
+						| function_decl
+						)
+				) [ typename SA::class_member_decl::init() ]
 			;
 
 		interface_decl
@@ -892,10 +891,10 @@ struct ThorScript : qi::grammar<Iterator, typename SA::start::attribute_type, de
 			;
 
 		interface_member_function_decl
-			= location [ typename SA::location::cache_loc() ]
-				>>	(-annotation_list >> -interface_member_visibility >> FUNCTION >> IDENTIFIER
-						>> LEFT_PAREN >> -param_decl_list >> RIGHT_PAREN >> type_specifier > SEMICOLON
-					) [ typename SA::interface_member_function_decl::init() ]
+			=	(-annotation_list >> location [ typename SA::location::cache_loc() ]
+			 		>> -interface_member_visibility >> FUNCTION >> IDENTIFIER
+					>> LEFT_PAREN >> -param_decl_list >> RIGHT_PAREN >> type_specifier > SEMICOLON
+				) [ typename SA::interface_member_function_decl::init() ]
 			;
 
 		enum_decl
