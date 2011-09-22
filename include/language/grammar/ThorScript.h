@@ -425,11 +425,11 @@ struct ThorScript : qi::grammar<Iterator, typename SA::start::attribute_type, de
 			;
 
 		param_decl_list
-			= (variable_decl_stem % COMMA) [ typename SA::param_decl_list::init() ]
+			= (variable_decl_stem % COMMA) [ typename SA::variable_decl_list::init() ]
 			;
 
 		param_decl_with_init_list
-			= (param_decl_with_init % COMMA) [ typename SA::param_decl_with_init_list::init() ]
+			= (param_decl_with_init % COMMA) [ typename SA::variable_decl_list::init() ]
 			;
 
 		init_specifier
@@ -442,20 +442,20 @@ struct ThorScript : qi::grammar<Iterator, typename SA::start::attribute_type, de
 
 		thor_type
 			= qi::eps [ typename SA::location::cache_loc() ]
-				>>	( qi::lit(L"void")                                                                     [ typename SA::thor_type::template init_primitive_type<tree::PrimitiveType::VOID>() ]
-					| qi::lit(L"int8")                                                                     [ typename SA::thor_type::template init_primitive_type<tree::PrimitiveType::INT8>() ]
-					| qi::lit(L"uint8")                                                                    [ typename SA::thor_type::template init_primitive_type<tree::PrimitiveType::UINT8>() ]
-					| qi::lit(L"int16")                                                                    [ typename SA::thor_type::template init_primitive_type<tree::PrimitiveType::INT16>() ]
-					| qi::lit(L"uint16")                                                                   [ typename SA::thor_type::template init_primitive_type<tree::PrimitiveType::UINT16>() ]
-					| qi::lit(L"int32")                                                                    [ typename SA::thor_type::template init_primitive_type<tree::PrimitiveType::INT32>() ]
-					| qi::lit(L"uint32")                                                                   [ typename SA::thor_type::template init_primitive_type<tree::PrimitiveType::UINT32>() ]
-					| qi::lit(L"int64")                                                                    [ typename SA::thor_type::template init_primitive_type<tree::PrimitiveType::INT64>() ]
-					| qi::lit(L"uint64")                                                                   [ typename SA::thor_type::template init_primitive_type<tree::PrimitiveType::UINT64>() ]
-					| qi::lit(L"float32")                                                                  [ typename SA::thor_type::template init_primitive_type<tree::PrimitiveType::FLOAT32>() ]
-					| qi::lit(L"float64")                                                                  [ typename SA::thor_type::template init_primitive_type<tree::PrimitiveType::FLOAT64>() ]
-					| (nested_identifier > -type_specialize_specifier)                                        [ typename SA::thor_type::init_type() ]
+				>>	( qi::lit(L"void")                                                     [ typename SA::thor_type::template init_primitive_type<tree::PrimitiveType::VOID>() ]
+					| qi::lit(L"int8")                                                     [ typename SA::thor_type::template init_primitive_type<tree::PrimitiveType::INT8>() ]
+					| qi::lit(L"uint8")                                                    [ typename SA::thor_type::template init_primitive_type<tree::PrimitiveType::UINT8>() ]
+					| qi::lit(L"int16")                                                    [ typename SA::thor_type::template init_primitive_type<tree::PrimitiveType::INT16>() ]
+					| qi::lit(L"uint16")                                                   [ typename SA::thor_type::template init_primitive_type<tree::PrimitiveType::UINT16>() ]
+					| qi::lit(L"int32")                                                    [ typename SA::thor_type::template init_primitive_type<tree::PrimitiveType::INT32>() ]
+					| qi::lit(L"uint32")                                                   [ typename SA::thor_type::template init_primitive_type<tree::PrimitiveType::UINT32>() ]
+					| qi::lit(L"int64")                                                    [ typename SA::thor_type::template init_primitive_type<tree::PrimitiveType::INT64>() ]
+					| qi::lit(L"uint64")                                                   [ typename SA::thor_type::template init_primitive_type<tree::PrimitiveType::UINT64>() ]
+					| qi::lit(L"float32")                                                  [ typename SA::thor_type::template init_primitive_type<tree::PrimitiveType::FLOAT32>() ]
+					| qi::lit(L"float64")                                                  [ typename SA::thor_type::template init_primitive_type<tree::PrimitiveType::FLOAT64>() ]
+					| (nested_identifier > -type_specialize_specifier)                     [ typename SA::thor_type::init_type() ]
 					| (FUNCTION > LEFT_PAREN > -type_list > RIGHT_PAREN > -type_specifier) [ typename SA::thor_type::init_function_type() ]
-					| ELLIPSIS                                                                             [ typename SA::thor_type::init_ellipsis() ]
+					| ELLIPSIS                                                             [ typename SA::thor_type::init_ellipsis() ]
 					)
 			;
 
@@ -1071,8 +1071,8 @@ struct ThorScript : qi::grammar<Iterator, typename SA::start::attribute_type, de
 	DECL_RULE_LEXEME(location);
 
 	// basic
-	DECL_RULE(           param_decl_list);
-	DECL_RULE(           param_decl_with_init_list);
+	DECL_RULE_CUSTOM_SA( param_decl_list, variable_decl_list);
+	DECL_RULE_CUSTOM_SA( param_decl_with_init_list, variable_decl_list);
 	DECL_RULE(           init_specifier);
 	DECL_RULE(           type_specifier);
 	DECL_RULE(           thor_type);

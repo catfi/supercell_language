@@ -58,10 +58,9 @@ struct ThorScriptTreeAction
 	typedef action::float_literal   float_literal;
 	typedef action::string_literal  string_literal;
 
-	// basic
+	// basicvariable_decl_list
 	typedef action::location                  location;
-	typedef action::param_decl_list           param_decl_list;
-	typedef action::param_decl_with_init_list param_decl_with_init_list;
+	typedef action::variable_decl_list        variable_decl_list;
 	typedef action::init_specifier            init_specifier;
 	typedef action::type_specifier            type_specifier;
 	typedef action::thor_type                 thor_type;

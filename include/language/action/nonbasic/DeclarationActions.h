@@ -45,7 +45,7 @@ struct global_decl
 
 struct variable_decl_stem
 {
-	DEFINE_ATTRIBUTES(Declaration*)
+	DEFINE_ATTRIBUTES(VariableDecl*)
 	DEFINE_LOCALS(LOCATION_TYPE)
 
 	BEGIN_ACTION(init)
@@ -68,7 +68,7 @@ struct variable_decl_stem
 
 struct param_decl_with_init
 {
-	DEFINE_ATTRIBUTES(Declaration*)
+	DEFINE_ATTRIBUTES(VariableDecl*)
 	DEFINE_LOCALS()
 
 	BEGIN_ACTION(init)
@@ -79,7 +79,7 @@ struct param_decl_with_init
 #endif
 		_result = _param(0);
 		if(_param(1).is_initialized())
-			cast<VariableDecl>(_result)->setInitializer(*_param(1));
+			_result->setInitializer(*_param(1));
 	}
 	END_ACTION
 };
@@ -140,7 +140,7 @@ struct function_decl
 			BIND_CACHED_LOCATION(name = new SimpleIdentifier(L"new"));
 			break;
 		}
-		std::vector<Declaration*>*               parameters = _param(1).is_initialized() ? &(*_param(1)) : NULL;
+		std::vector<VariableDecl*>*              parameters = _param(1).is_initialized() ? &(*_param(1)) : NULL;
 		TypeSpecifier*                           type       = _param(2).is_initialized() ? *_param(2) : NULL;
 		Block*                                   block      = _param(3).is_initialized() ? *_param(3) : NULL;
 		Declaration::VisibilitySpecifier::type   visibility = Declaration::VisibilitySpecifier::PUBLIC;
@@ -149,7 +149,7 @@ struct function_decl
 		BIND_CACHED_LOCATION(_result = new FunctionDecl(name, type, is_member, is_static, visibility, block));
 		if(!!parameters)
 			deduced_foreach_value(i, *parameters)
-				cast<FunctionDecl>(_result)->appendParameter(cast<VariableDecl>(i));
+				cast<FunctionDecl>(_result)->appendParameter(i);
 	}
 	END_ACTION
 };
@@ -284,14 +284,14 @@ struct interface_member_function_decl
 #endif
 		Annotations*                           annotation_list = _param(0).is_initialized() ? *_param(0) : NULL;
 		Declaration::VisibilitySpecifier::type visibility      = _param(1).is_initialized() ? *_param(1) : Declaration::VisibilitySpecifier::DEFAULT;
-		std::vector<Declaration*>*             parameters      = _param(3).is_initialized() ? &(*_param(3)) : NULL;
+		std::vector<VariableDecl*>*            parameters      = _param(3).is_initialized() ? &(*_param(3)) : NULL;
 		bool                                   is_member       = false;
 		bool                                   is_static       = false;
 		BIND_CACHED_LOCATION(_result = new FunctionDecl(_param(2), _param(4), is_member, is_static, visibility));
 		_result->setAnnotation(annotation_list);
 		if(!!parameters)
 			deduced_foreach_value(i, *parameters)
-				cast<FunctionDecl>(_result)->appendParameter(cast<VariableDecl>(i));
+				cast<FunctionDecl>(_result)->appendParameter(i);
 	}
 	END_ACTION
 };

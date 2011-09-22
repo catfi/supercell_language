@@ -64,30 +64,15 @@ struct block
 	END_ACTION
 };
 
-struct param_decl_list
+struct variable_decl_list
 {
-	DEFINE_ATTRIBUTES(std::vector<Declaration*>)
+	DEFINE_ATTRIBUTES(std::vector<VariableDecl*>)
 	DEFINE_LOCALS()
 
 	BEGIN_ACTION(init)
 	{
 #ifdef DEBUG
-		printf("param_decl_list param(0) type = %s\n", typeid(_param_t(0)).name());
-#endif
-		_result = _param(0);
-	}
-	END_ACTION
-};
-
-struct param_decl_with_init_list
-{
-	DEFINE_ATTRIBUTES(std::vector<Declaration*>)
-	DEFINE_LOCALS()
-
-	BEGIN_ACTION(init)
-	{
-#ifdef DEBUG
-		printf("param_decl_with_init_list param(0) type = %s\n", typeid(_param_t(0)).name());
+		printf("variable_decl_list param(0) type = %s\n", typeid(_param_t(0)).name());
 #endif
 		_result = _param(0);
 	}
