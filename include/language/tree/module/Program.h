@@ -37,13 +37,16 @@ struct Program : public ASTNode
 	DEFINE_HIERARCHY(Program, (Program)(ASTNode));
 
 	Program() : root(new Package(new SimpleIdentifier(L""))), internal(new Internal())
-	{ }
+	{
+		internal->parent = this;
+	}
 
-	Program(Package* root) : root(root)
+	Program(Package* root) : root(root), internal(new Internal())
 	{
 		BOOST_ASSERT(root && "null root for program node is not allowed");
 
 		root->parent = this;
+		internal->parent = this;
 	}
 
 	void addImport(Import* import)
