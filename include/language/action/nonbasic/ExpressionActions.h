@@ -147,15 +147,16 @@ struct primary_expression
 		printf("primary_expression::lambda_expression param(1) type = %s\n", typeid(_param_t(1)).name());
 		printf("primary_expression::lambda_expression param(2) type = %s\n", typeid(_param_t(2)).name());
 #endif
-		typed_parameter_list::value_t*         parameters = _param(0).is_initialized() ? (*_param(0)).get() : NULL;
+		std::vector<Declaration*>*             parameters = _param(0).is_initialized() ? &(*_param(0)) : NULL;
 		TypeSpecifier*                         type       = _param(1).is_initialized() ? *_param(1) : NULL;
 		Declaration::VisibilitySpecifier::type visibility = Declaration::VisibilitySpecifier::PUBLIC;
 		bool                                   is_member  = false;
+		bool                                   is_static  = false;
 		FunctionDecl* function_decl =
-				new FunctionDecl(NULL, type, is_member, false, visibility, _param(2)); BIND_CACHED_LOCATION(function_decl);
+				new FunctionDecl(NULL, type, is_member, is_static, visibility, _param(2)); BIND_CACHED_LOCATION(function_decl);
 		if(!!parameters)
 			deduced_foreach_value(i, *parameters)
-				function_decl->appendParameter(i.first, i.second);
+				function_decl->appendParameter(cast<VariableDecl>(i));
 		BIND_CACHED_LOCATION(_result = new PrimaryExpr(function_decl));
 	}
 	END_ACTION

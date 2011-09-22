@@ -43,24 +43,6 @@ struct global_decl
 	END_ACTION
 };
 
-struct variable_decl
-{
-	DEFINE_ATTRIBUTES(Declaration*)
-	DEFINE_LOCALS()
-
-	BEGIN_ACTION(init)
-	{
-#ifdef DEBUG
-		printf("variable_decl param(0) type = %s\n", typeid(_param_t(0)).name());
-		printf("variable_decl param(1) type = %s\n", typeid(_param_t(1)).name());
-#endif
-		_result = _param(0);
-		if(_param(1).is_initialized())
-			cast<VariableDecl>(_result)->setInitializer(*_param(1));
-	}
-	END_ACTION
-};
-
 struct variable_decl_stem
 {
 	DEFINE_ATTRIBUTES(Declaration*)
@@ -77,9 +59,42 @@ struct variable_decl_stem
 		ASTNode*                               initializer = NULL;
 		Declaration::VisibilitySpecifier::type visibility  = Declaration::VisibilitySpecifier::PUBLIC;
 		bool                                   is_member   = false;
-		BIND_CACHED_LOCATION(_result = new VariableDecl(
-				name, type, is_member, false, false, visibility, initializer
-				));
+		bool                                   is_static   = false;
+		bool                                   is_const    = false;
+		BIND_CACHED_LOCATION(_result = new VariableDecl(name, type, is_member, is_static, is_const, visibility, initializer));
+	}
+	END_ACTION
+};
+
+struct param_decl_with_init
+{
+	DEFINE_ATTRIBUTES(Declaration*)
+	DEFINE_LOCALS()
+
+	BEGIN_ACTION(init)
+	{
+#ifdef DEBUG
+		printf("param_decl_with_init param(0) type = %s\n", typeid(_param_t(0)).name());
+		printf("param_decl_with_init param(1) type = %s\n", typeid(_param_t(1)).name());
+#endif
+		_result = _param(0);
+		if(_param(1).is_initialized())
+			cast<VariableDecl>(_result)->setInitializer(*_param(1));
+	}
+	END_ACTION
+};
+
+struct variable_decl
+{
+	DEFINE_ATTRIBUTES(Declaration*)
+	DEFINE_LOCALS()
+
+	BEGIN_ACTION(init)
+	{
+#ifdef DEBUG
+		printf("variable_decl param(0) type = %s\n", typeid(_param_t(0)).name());
+#endif
+		_result = _param(0);
 	}
 	END_ACTION
 };
@@ -125,15 +140,16 @@ struct function_decl
 			BIND_CACHED_LOCATION(name = new SimpleIdentifier(L"new"));
 			break;
 		}
-		typed_parameter_with_init_list::value_t* parameters = _param(1).is_initialized() ? (*_param(1)).get() : NULL;
+		std::vector<Declaration*>*               parameters = _param(1).is_initialized() ? &(*_param(1)) : NULL;
 		TypeSpecifier*                           type       = _param(2).is_initialized() ? *_param(2) : NULL;
 		Block*                                   block      = _param(3).is_initialized() ? *_param(3) : NULL;
 		Declaration::VisibilitySpecifier::type   visibility = Declaration::VisibilitySpecifier::PUBLIC;
 		bool                                     is_member  = false;
-		BIND_CACHED_LOCATION(_result = new FunctionDecl(name, type, is_member, false, visibility, block));
+		bool                                     is_static  = false;
+		BIND_CACHED_LOCATION(_result = new FunctionDecl(name, type, is_member, is_static, visibility, block));
 		if(!!parameters)
 			deduced_foreach_value(i, *parameters)
-				cast<FunctionDecl>(_result)->appendParameter(boost::get<0>(i), boost::get<1>(i), boost::get<2>(i));
+				cast<FunctionDecl>(_result)->appendParameter(cast<VariableDecl>(i));
 	}
 	END_ACTION
 };
@@ -213,8 +229,8 @@ struct class_member_decl
 		printf("class_member_decl param(3) type = %s\n", typeid(_param_t(3)).name());
 #endif
 		Annotations*                           annotation_list = _param(0).is_initialized() ? *_param(0) : NULL;
-		Declaration::VisibilitySpecifier::type visibility  = _param(1).is_initialized() ? *_param(1) : Declaration::VisibilitySpecifier::DEFAULT;
-		bool                                   is_static   = _param(2).is_initialized();
+		Declaration::VisibilitySpecifier::type visibility      = _param(1).is_initialized() ? *_param(1) : Declaration::VisibilitySpecifier::DEFAULT;
+		bool                                   is_static       = _param(2).is_initialized();
 		_result = _param(3);
 		_result->setAnnotation(annotation_list);
 		if(isa<VariableDecl>(_result))
@@ -267,14 +283,15 @@ struct interface_member_function_decl
 		printf("interface_member_function_decl param(4) type = %s\n", typeid(_param_t(4)).name());
 #endif
 		Annotations*                           annotation_list = _param(0).is_initialized() ? *_param(0) : NULL;
-		Declaration::VisibilitySpecifier::type visibility  = _param(1).is_initialized() ? *_param(1) : Declaration::VisibilitySpecifier::DEFAULT;
-		typed_parameter_list::value_t*         parameters  = _param(3).is_initialized() ? (*_param(3)).get() : NULL;
-		bool                                   is_member   = false;
-		BIND_CACHED_LOCATION(_result = new FunctionDecl(_param(2), _param(4), is_member, false, visibility, NULL));
+		Declaration::VisibilitySpecifier::type visibility      = _param(1).is_initialized() ? *_param(1) : Declaration::VisibilitySpecifier::DEFAULT;
+		std::vector<Declaration*>*             parameters      = _param(3).is_initialized() ? &(*_param(3)) : NULL;
+		bool                                   is_member       = false;
+		bool                                   is_static       = false;
+		BIND_CACHED_LOCATION(_result = new FunctionDecl(_param(2), _param(4), is_member, is_static, visibility));
 		_result->setAnnotation(annotation_list);
 		if(!!parameters)
 			deduced_foreach_value(i, *parameters)
-				cast<FunctionDecl>(_result)->appendParameter(i.first, i.second);
+				cast<FunctionDecl>(_result)->appendParameter(cast<VariableDecl>(i));
 	}
 	END_ACTION
 };

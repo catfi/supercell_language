@@ -424,12 +424,12 @@ struct ThorScript : qi::grammar<Iterator, typename SA::start::attribute_type, de
 			= omit[ iter_pos[ typename SA::location::init() ] ]
 			;
 
-		typed_parameter_list
-			= ((IDENTIFIER > -type_specifier) % COMMA) [ typename SA::typed_parameter_list::init() ]
+		param_decl_list
+			= (variable_decl_stem % COMMA) [ typename SA::param_decl_list::init() ]
 			;
 
-		typed_parameter_with_init_list
-			= ((IDENTIFIER > -type_specifier > -init_specifier) % COMMA) [ typename SA::typed_parameter_with_init_list::init() ]
+		param_decl_with_init_list
+			= (param_decl_with_init % COMMA) [ typename SA::param_decl_with_init_list::init() ]
 			;
 
 		init_specifier
@@ -550,7 +550,7 @@ struct ThorScript : qi::grammar<Iterator, typename SA::start::attribute_type, de
 					| SELF                                    [ typename SA::primary_expression::template init_object_literal<tree::ObjectLiteral::LiteralType::SELF_OBJECT>() ]
 					| GLOBAL                                  [ typename SA::primary_expression::template init_object_literal<tree::ObjectLiteral::LiteralType::GLOBAL_OBJECT>() ]
 					| (LEFT_PAREN > expression > RIGHT_PAREN) [ typename SA::primary_expression::init_paren_expression() ]
-					|	(FUNCTION > LEFT_PAREN > -typed_parameter_list > RIGHT_PAREN > -type_specifier > block
+					|	(FUNCTION > LEFT_PAREN > -param_decl_list > RIGHT_PAREN > -type_specifier > block
 						) [ typename SA::primary_expression::init_lambda() ]
 					)
 			;
@@ -834,13 +834,17 @@ struct ThorScript : qi::grammar<Iterator, typename SA::start::attribute_type, de
 					) [ typename SA::global_decl::init() ]
 			;
 
-		variable_decl
-			= (VAR > variable_decl_stem > -init_specifier > SEMICOLON) [ typename SA::variable_decl::init() ]
-			;
-
 		variable_decl_stem
 			= qi::eps [ typename SA::location::cache_loc() ]
 				>> (IDENTIFIER > -type_specifier) [ typename SA::variable_decl_stem::init() ]
+			;
+
+		param_decl_with_init
+			= (variable_decl_stem > -init_specifier) [ typename SA::param_decl_with_init::init() ]
+			;
+
+		variable_decl
+			= (VAR > param_decl_with_init > SEMICOLON) [ typename SA::variable_decl::init() ]
 			;
 
 		const_decl
@@ -850,7 +854,7 @@ struct ThorScript : qi::grammar<Iterator, typename SA::start::attribute_type, de
 		function_decl
 			= qi::eps [ typename SA::location::cache_loc() ]
 				>>	(FUNCTION > (template_param_identifier | EMIT_BOOL(NEW))
-						> LEFT_PAREN > -typed_parameter_with_init_list > RIGHT_PAREN > -type_specifier
+						> LEFT_PAREN > -param_decl_with_init_list > RIGHT_PAREN > -type_specifier
 						> (block | SEMICOLON)
 					) [ typename SA::function_decl::init() ]
 			;
@@ -890,7 +894,7 @@ struct ThorScript : qi::grammar<Iterator, typename SA::start::attribute_type, de
 		interface_member_function_decl
 			= location [ typename SA::location::cache_loc() ]
 				>>	(-annotation_list >> -interface_member_visibility >> FUNCTION >> IDENTIFIER
-						>> LEFT_PAREN >> -typed_parameter_list >> RIGHT_PAREN >> type_specifier > SEMICOLON
+						>> LEFT_PAREN >> -param_decl_list >> RIGHT_PAREN >> type_specifier > SEMICOLON
 					) [ typename SA::interface_member_function_decl::init() ]
 			;
 
@@ -961,8 +965,8 @@ struct ThorScript : qi::grammar<Iterator, typename SA::start::attribute_type, de
 
 		// basic
 		INIT_RULE(location);
-		INIT_RULE(typed_parameter_list);
-		INIT_RULE(typed_parameter_with_init_list);
+		INIT_RULE(param_decl_list);
+		INIT_RULE(param_decl_with_init_list);
 		INIT_RULE(init_specifier);
 		INIT_RULE(type_specifier);
 		INIT_RULE(thor_type);
@@ -1006,8 +1010,9 @@ struct ThorScript : qi::grammar<Iterator, typename SA::start::attribute_type, de
 
 		// global_decl
 		INIT_RULE(global_decl);
-		INIT_RULE(variable_decl);
 		INIT_RULE(variable_decl_stem);
+		INIT_RULE(param_decl_with_init);
+		INIT_RULE(variable_decl);
 		INIT_RULE(const_decl);
 		INIT_RULE(function_decl);
 		INIT_RULE(typedef_decl);
@@ -1066,8 +1071,8 @@ struct ThorScript : qi::grammar<Iterator, typename SA::start::attribute_type, de
 	DECL_RULE_LEXEME(location);
 
 	// basic
-	DECL_RULE(           typed_parameter_list);
-	DECL_RULE(           typed_parameter_with_init_list);
+	DECL_RULE(           param_decl_list);
+	DECL_RULE(           param_decl_with_init_list);
 	DECL_RULE(           init_specifier);
 	DECL_RULE(           type_specifier);
 	DECL_RULE(           thor_type);
@@ -1111,8 +1116,9 @@ struct ThorScript : qi::grammar<Iterator, typename SA::start::attribute_type, de
 
 	// global_decl
 	DECL_RULE(global_decl);
-	DECL_RULE(variable_decl);
 	DECL_RULE(variable_decl_stem);
+	DECL_RULE(param_decl_with_init);
+	DECL_RULE(variable_decl);
 	DECL_RULE(const_decl);
 	DECL_RULE(function_decl);
 	DECL_RULE(typedef_decl);

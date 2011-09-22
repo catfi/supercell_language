@@ -60,18 +60,18 @@ struct ThorScriptTreeAction
 
 	// basic
 	typedef action::location                  location;
-	typedef action::typed_parameter_list      typed_parameter_list;
-	typedef action::typed_parameter_with_init_list typed_parameter_with_init_list;
+	typedef action::param_decl_list           param_decl_list;
+	typedef action::param_decl_with_init_list param_decl_with_init_list;
 	typedef action::init_specifier            init_specifier;
-	typedef action::type_specifier      type_specifier;
-	typedef action::thor_type            thor_type;
+	typedef action::type_specifier            type_specifier;
+	typedef action::thor_type                 thor_type;
 	typedef action::template_param_identifier template_param_identifier;
 	typedef action::template_arg_identifier   template_arg_identifier;
-	typedef action::type_list       type_list;
-	typedef action::class_member_visibility      class_member_visibility;
-	typedef action::annotation_list     annotation_list;
-	typedef action::annotation      annotation;
-	typedef action::annotation_body annotation_body;
+	typedef action::type_list                 type_list;
+	typedef action::class_member_visibility   class_member_visibility;
+	typedef action::annotation_list           annotation_list;
+	typedef action::annotation                annotation;
+	typedef action::annotation_body           annotation_body;
 	typedef action::nested_identifier         nested_identifier;
 
 	//////////////////////////////////////////////////////////////////////
@@ -91,17 +91,18 @@ struct ThorScriptTreeAction
 	typedef action::ternary_expression          ternary_expression;
 
 	// global_decl
-	typedef action::global_decl         global_decl;
-	typedef action::variable_decl       variable_decl;
-	typedef action::variable_decl_stem  variable_decl_stem;
-	typedef action::const_decl          const_decl;
-	typedef action::function_decl       function_decl;
-	typedef action::typedef_decl        typedef_decl;
-	typedef action::class_decl          class_decl;
-	typedef action::class_member_decl   class_member_decl;
-	typedef action::interface_decl      interface_decl;
+	typedef action::global_decl                    global_decl;
+	typedef action::variable_decl_stem             variable_decl_stem;
+	typedef action::param_decl_with_init           param_decl_with_init;
+	typedef action::variable_decl                  variable_decl;
+	typedef action::const_decl                     const_decl;
+	typedef action::function_decl                  function_decl;
+	typedef action::typedef_decl                   typedef_decl;
+	typedef action::class_decl                     class_decl;
+	typedef action::class_member_decl              class_member_decl;
+	typedef action::interface_decl                 interface_decl;
 	typedef action::interface_member_function_decl interface_member_function_decl;
-	typedef action::enum_decl           enum_decl;
+	typedef action::enum_decl                      enum_decl;
 
 	// module
 	typedef action::program program;

@@ -64,52 +64,32 @@ struct block
 	END_ACTION
 };
 
-struct typed_parameter_list
+struct param_decl_list
 {
-	typedef std::vector<std::pair<SimpleIdentifier*, TypeSpecifier*>> value_t;
-	DEFINE_ATTRIBUTES(shared_ptr<value_t>)
+	DEFINE_ATTRIBUTES(std::vector<Declaration*>)
 	DEFINE_LOCALS()
 
 	BEGIN_ACTION(init)
 	{
 #ifdef DEBUG
-		printf("typed_parameter_list param(0) type = %s\n", typeid(_param_t(0)).name());
+		printf("param_decl_list param(0) type = %s\n", typeid(_param_t(0)).name());
 #endif
-		_result.reset(new value_t);
-		deduced_foreach_value(i, _param(0))
-		{
-			SimpleIdentifier*                name          = boost::fusion::at_c<0>(i);
-			boost::optional<TypeSpecifier*> &optional_type = boost::fusion::at_c<1>(i);
-			TypeSpecifier* type = optional_type.is_initialized() ? *optional_type : NULL;
-			_result->push_back(value_t::value_type(name, type));
-		}
+		_result = _param(0);
 	}
 	END_ACTION
 };
 
-struct typed_parameter_with_init_list
+struct param_decl_with_init_list
 {
-	typedef std::vector<boost::tuple<SimpleIdentifier*, TypeSpecifier*, Expression*>> value_t;
-	DEFINE_ATTRIBUTES(shared_ptr<value_t>)
+	DEFINE_ATTRIBUTES(std::vector<Declaration*>)
 	DEFINE_LOCALS()
 
 	BEGIN_ACTION(init)
 	{
 #ifdef DEBUG
-		printf("typed_parameter_with_init_list param(0) type = %s\n", typeid(_param_t(0)).name());
-		printf("typed_parameter_with_init_list param(1) type = %s\n", typeid(_param_t(1)).name());
-		printf("typed_parameter_with_init_list param(2) type = %s\n", typeid(_param_t(2)).name());
+		printf("param_decl_with_init_list param(0) type = %s\n", typeid(_param_t(0)).name());
 #endif
-		_result.reset(new value_t);
-		deduced_foreach_value(i, _param(0))
-		{
-			SimpleIdentifier*                name          = boost::fusion::at_c<0>(i);
-			boost::optional<TypeSpecifier*> &optional_type = boost::fusion::at_c<1>(i);
-			boost::optional<Expression*>    &optional_expr = boost::fusion::at_c<2>(i);
-			TypeSpecifier* type = optional_type.is_initialized() ? *optional_type : NULL;
-			Expression*    expr = optional_expr.is_initialized() ? *optional_expr : NULL;
-			_result->push_back(value_t::value_type(name, type, expr));
-		}
+		_result = _param(0);
 	}
 	END_ACTION
 };
