@@ -24,19 +24,16 @@
 
 namespace zillians { namespace language { namespace action {
 
+struct init_specifier
+{
+	DEFINE_ATTRIBUTES(Expression*)
+	DEFINE_LOCALS()
+};
+
 struct type_specifier
 {
 	DEFINE_ATTRIBUTES(TypeSpecifier*)
 	DEFINE_LOCALS()
-
-	BEGIN_ACTION(init)
-	{
-#ifdef DEBUG
-		printf("type_specifier param(0) type = %s\n", typeid(_param_t(0)).name());
-#endif
-		_result = _param(0);
-	}
-	END_ACTION
 };
 
 struct thor_type
@@ -97,34 +94,10 @@ struct thor_type
 	END_ACTION
 };
 
-struct template_arg_specifier
-{
-	DEFINE_ATTRIBUTES(std::vector<TypeSpecifier*>)
-	DEFINE_LOCALS()
-
-	BEGIN_ACTION(init)
-	{
-#ifdef DEBUG
-		printf("template_specifier param(0) type = %s\n", typeid(_param_t(0)).name());
-#endif
-		_result = _param(0);
-	}
-	END_ACTION
-};
-
 struct type_list
 {
 	DEFINE_ATTRIBUTES(std::vector<TypeSpecifier*>)
 	DEFINE_LOCALS()
-
-	BEGIN_ACTION(init)
-	{
-#ifdef DEBUG
-		printf("type_list param(0) type = %s\n", typeid(_param_t(0)).name());
-#endif
-		_result = _param(0);
-	}
-	END_ACTION
 };
 
 struct class_member_visibility
@@ -196,12 +169,8 @@ struct annotation_body
 			ASTNode* value = NULL;
 			switch(boost::fusion::at_c<1>(i).which())
 			{
-			case 0:
-				value = boost::get<Expression*>(boost::fusion::at_c<1>(i));
-				break;
-			case 1:
-				value = boost::get<Annotation*>(boost::fusion::at_c<1>(i));
-				break;
+			case 0: value = boost::get<Expression*>(boost::fusion::at_c<1>(i)); break;
+			case 1: value = boost::get<Annotation*>(boost::fusion::at_c<1>(i)); break;
 			}
 			_result->appendKeyValue(key, value);
 		}

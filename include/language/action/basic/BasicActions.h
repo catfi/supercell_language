@@ -68,30 +68,6 @@ struct variable_decl_list
 {
 	DEFINE_ATTRIBUTES(std::vector<VariableDecl*>)
 	DEFINE_LOCALS()
-
-	BEGIN_ACTION(init)
-	{
-#ifdef DEBUG
-		printf("variable_decl_list param(0) type = %s\n", typeid(_param_t(0)).name());
-#endif
-		_result = _param(0);
-	}
-	END_ACTION
-};
-
-struct init_specifier
-{
-	DEFINE_ATTRIBUTES(Expression*)
-	DEFINE_LOCALS()
-
-	BEGIN_ACTION(init)
-	{
-#ifdef DEBUG
-		printf("init_specifier param(0) type = %s\n", typeid(_param_t(0)).name());
-#endif
-		_result = _param(0);
-	}
-	END_ACTION
 };
 
 } } }

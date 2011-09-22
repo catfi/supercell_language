@@ -425,19 +425,19 @@ struct ThorScript : qi::grammar<Iterator, typename SA::start::attribute_type, de
 			;
 
 		param_decl_list
-			= (variable_decl_stem % COMMA) [ typename SA::variable_decl_list::init() ]
+			%= (variable_decl_stem % COMMA)
 			;
 
 		param_decl_with_init_list
-			= (param_decl_with_init % COMMA) [ typename SA::variable_decl_list::init() ]
+			%= (param_decl_with_init % COMMA)
 			;
 
 		init_specifier
-			= ASSIGN > expression [ typename SA::init_specifier::init() ]
+			%= ASSIGN > expression
 			;
 
 		type_specifier
-			= COLON > thor_type [ typename SA::type_specifier::init() ]
+			%= COLON > thor_type
 			;
 
 		thor_type
@@ -472,11 +472,11 @@ struct ThorScript : qi::grammar<Iterator, typename SA::start::attribute_type, de
 			;
 
 		type_specialize_specifier
-			= (COMPARE_LT >> type_list >> COMPARE_GT) [ typename SA::type_list::init() ]
+			%= (COMPARE_LT >> type_list >> COMPARE_GT)
 			;
 
 		type_list
-			= (thor_type % COMMA) [ typename SA::type_list::init() ]
+			%= (thor_type % COMMA)
 			;
 
 		class_member_visibility
@@ -844,7 +844,7 @@ struct ThorScript : qi::grammar<Iterator, typename SA::start::attribute_type, de
 			;
 
 		variable_decl
-			= (VAR > param_decl_with_init > SEMICOLON) [ typename SA::variable_decl::init() ]
+			%= (VAR > param_decl_with_init > SEMICOLON)
 			;
 
 		const_decl

@@ -232,11 +232,13 @@ struct prefix_expression
 			_result = boost::get<Expression*>(_param(0));
 			break;
 		case 1:
-			typedef boost::fusion::vector2<UnaryExpr::OpCode::type, Expression*> fusion_vec_t;
-			fusion_vec_t &vec = boost::get<fusion_vec_t>(_param(0));
-			UnaryExpr::OpCode::type type = boost::fusion::at_c<0>(vec);
-			Expression*             expr = boost::fusion::at_c<1>(vec);
-			BIND_CACHED_LOCATION(_result = new UnaryExpr(type, expr));
+			{
+				typedef boost::fusion::vector2<UnaryExpr::OpCode::type, Expression*> fusion_vec_t;
+				fusion_vec_t &vec = boost::get<fusion_vec_t>(_param(0));
+				UnaryExpr::OpCode::type type = boost::fusion::at_c<0>(vec);
+				Expression*             expr = boost::fusion::at_c<1>(vec);
+				BIND_CACHED_LOCATION(_result = new UnaryExpr(type, expr));
+			}
 			break;
 		}
 	}

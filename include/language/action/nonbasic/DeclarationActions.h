@@ -88,15 +88,6 @@ struct variable_decl
 {
 	DEFINE_ATTRIBUTES(Declaration*)
 	DEFINE_LOCALS()
-
-	BEGIN_ACTION(init)
-	{
-#ifdef DEBUG
-		printf("variable_decl param(0) type = %s\n", typeid(_param_t(0)).name());
-#endif
-		_result = _param(0);
-	}
-	END_ACTION
 };
 
 struct const_decl
@@ -140,12 +131,12 @@ struct function_decl
 			BIND_CACHED_LOCATION(name = new SimpleIdentifier(L"new"));
 			break;
 		}
-		std::vector<VariableDecl*>*              parameters = _param(1).is_initialized() ? &(*_param(1)) : NULL;
-		TypeSpecifier*                           type       = _param(2).is_initialized() ? *_param(2) : NULL;
-		Block*                                   block      = _param(3).is_initialized() ? *_param(3) : NULL;
-		Declaration::VisibilitySpecifier::type   visibility = Declaration::VisibilitySpecifier::PUBLIC;
-		bool                                     is_member  = false;
-		bool                                     is_static  = false;
+		std::vector<VariableDecl*>*            parameters = _param(1).is_initialized() ? &(*_param(1)) : NULL;
+		TypeSpecifier*                         type       = _param(2).is_initialized() ? *_param(2) : NULL;
+		Block*                                 block      = _param(3).is_initialized() ? *_param(3) : NULL;
+		Declaration::VisibilitySpecifier::type visibility = Declaration::VisibilitySpecifier::PUBLIC;
+		bool                                   is_member  = false;
+		bool                                   is_static  = false;
 		BIND_CACHED_LOCATION(_result = new FunctionDecl(name, type, is_member, is_static, visibility, block));
 		if(!!parameters)
 			deduced_foreach_value(i, *parameters)
@@ -199,7 +190,6 @@ struct class_decl
 			}
 		if(_param(3).is_initialized())
 			deduced_foreach_value(i, *_param(3))
-			{
 				if(isa<VariableDecl>(i))
 				{
 					cast<ClassDecl>(_result)->addVariable(cast<VariableDecl>(i));
@@ -210,7 +200,6 @@ struct class_decl
 					cast<ClassDecl>(_result)->addFunction(cast<FunctionDecl>(i));
 					cast<FunctionDecl>(i)->is_member = true;
 				}
-			}
 	}
 	END_ACTION
 };
@@ -236,12 +225,12 @@ struct class_member_decl
 		if(isa<VariableDecl>(_result))
 		{
 			cast<VariableDecl>(_result)->visibility = visibility;
-			cast<VariableDecl>(_result)->is_static = is_static;
+			cast<VariableDecl>(_result)->is_static  = is_static;
 		}
 		else if(isa<FunctionDecl>(_result))
 		{
 			cast<FunctionDecl>(_result)->visibility = visibility;
-			cast<FunctionDecl>(_result)->is_static = is_static;
+			cast<FunctionDecl>(_result)->is_static  = is_static;
 		}
 	}
 	END_ACTION
