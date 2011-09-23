@@ -42,6 +42,24 @@ struct SemanticVerificationScopeContext
 	std::set<std::wstring> names;
 };
 
+struct SemanticVerificationBlockContext
+{
+	SemanticVerificationBlockContext() : has_visited_return(false)
+	{ }
+
+	static SemanticVerificationBlockContext* get(tree::ASTNode* node)
+	{
+		return node->get<SemanticVerificationBlockContext>();
+	}
+
+	static void set(tree::ASTNode* node, SemanticVerificationBlockContext* ctx)
+	{
+		node->set<SemanticVerificationBlockContext>(ctx);
+	}
+
+	bool has_visited_return;
+};
+
 } } }
 
 #endif /* ZILLIANS_LANGUAGE_STAGE_SEMANTICVERIFICATIONCONTEXT_H_ */
