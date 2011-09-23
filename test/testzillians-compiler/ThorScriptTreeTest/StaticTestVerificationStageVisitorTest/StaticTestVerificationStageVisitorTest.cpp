@@ -188,6 +188,8 @@ BOOST_AUTO_TEST_CASE( ThorScriptTreeTest_StaticTestVerificationStageVisitorTestC
 {
 	// prepare module info for debug purpose
 	using namespace zillians::language;
+    setParserContext(new ParserContext());
+
 	stage::ModuleSourceInfoContext* module_info = new stage::ModuleSourceInfoContext();
 	int source_index = 0;
 	source_index = module_info->addSource("test.cpp");
@@ -197,14 +199,16 @@ BOOST_AUTO_TEST_CASE( ThorScriptTreeTest_StaticTestVerificationStageVisitorTestC
 
 	Program* okProgram = createPassSample();
 	checker.programNode = okProgram;
+    getParserContext().program = okProgram;
 	stage::ModuleSourceInfoContext::set(okProgram, module_info);
 	checker.check(*okProgram);
 	BOOST_CHECK(checker.isAllMatch());
 
 	Program* failProgram = createFailSample();
 	checker.programNode = failProgram;
-	checker.check(*failProgram);
+    getParserContext().program = okProgram;
 	stage::ModuleSourceInfoContext::set(failProgram, module_info);
+	checker.check(*failProgram);
 	BOOST_CHECK(!checker.isAllMatch());
 }
 
