@@ -68,7 +68,7 @@ std::pair<shared_ptr<po::options_description>, shared_ptr<po::options_descriptio
 	shared_ptr<po::options_description> option_desc_private(new po::options_description("Parser Options"));
 
 	option_desc_public->add_options()
-		("input,i", po::value<std::vector<std::string>>(), "thorscript files");
+		("input,i", po::value<std::vector<std::string>>(), "input files");
 
 	foreach(i, option_desc_public->options()) option_desc_private->add(*i);
 

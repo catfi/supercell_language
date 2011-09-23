@@ -136,13 +136,17 @@ public:
 		po::options_description options_desc;
 		po::options_description options_desc_modes;
 
-		// construct the options description
+		// add default positional options description
+		po::positional_options_description positional_options_desc;
+		options_desc.add_options()
+				("help,h", "show help")
+				("input,i", po::value<std::vector<std::string>>(), "input files");
+		positional_options_desc.add("input", -1);
+
+		// add all modes into options description
 		foreach(i, mModes)
-		{
-			mOptionDescGlobal.add_options()(i->first.c_str(), i->second.first.c_str());
-		}
+			options_desc_modes.add_options()(i->first.c_str(), i->second.first.c_str());
 		options_desc.add(options_desc_modes);
-		options_desc.add(mOptionDescGlobal);
 
 		// parse the arguments
 		po::variables_map vm;
