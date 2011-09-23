@@ -39,8 +39,8 @@ const char* LLVMGeneratorStage::name()
 
 std::pair<shared_ptr<po::options_description>, shared_ptr<po::options_description>> LLVMGeneratorStage::getOptions()
 {
-	shared_ptr<po::options_description> option_desc_public(new po::options_description("LLVM IR Generator Option"));
-	shared_ptr<po::options_description> option_desc_private(new po::options_description("LLVM IR Generator Option"));
+	shared_ptr<po::options_description> option_desc_public(new po::options_description());
+	shared_ptr<po::options_description> option_desc_private(new po::options_description());
 
 	option_desc_public->add_options()
 		("no-llvm", "disable LLVM IR generation");

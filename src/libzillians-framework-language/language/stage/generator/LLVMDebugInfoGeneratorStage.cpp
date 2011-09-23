@@ -33,13 +33,13 @@ LLVMDebugInfoGeneratorStage::~LLVMDebugInfoGeneratorStage()
 
 const char* LLVMDebugInfoGeneratorStage::name()
 {
-	return "llvm_debug_info_generator_stage";
+	return "LLVM Debug Info Generation Stage";
 }
 
 std::pair<shared_ptr<po::options_description>, shared_ptr<po::options_description>> LLVMDebugInfoGeneratorStage::getOptions()
 {
-	shared_ptr<po::options_description> option_desc_public(new po::options_description("Debugging Option"));
-	shared_ptr<po::options_description> option_desc_private(new po::options_description("Debugging Option"));
+	shared_ptr<po::options_description> option_desc_public(new po::options_description());
+	shared_ptr<po::options_description> option_desc_private(new po::options_description());
 
 	option_desc_public->add_options()
 		("debug", "enable debugging");

@@ -30,13 +30,13 @@ TypeInferenceStage::~TypeInferenceStage()
 
 const char* TypeInferenceStage::name()
 {
-	return "type_inference_stage";
+	return "Type Inference Stage";
 }
 
 std::pair<shared_ptr<po::options_description>, shared_ptr<po::options_description>> TypeInferenceStage::getOptions()
 {
-	shared_ptr<po::options_description> option_desc_public(new po::options_description("Type Inference Options"));
-	shared_ptr<po::options_description> option_desc_private(new po::options_description("Type Inference Options"));
+	shared_ptr<po::options_description> option_desc_public(new po::options_description());
+	shared_ptr<po::options_description> option_desc_private(new po::options_description());
 
 	return std::make_pair(option_desc_public, option_desc_private);
 }

@@ -64,11 +64,8 @@ const char* ThorScriptParserStage::name()
 
 std::pair<shared_ptr<po::options_description>, shared_ptr<po::options_description>> ThorScriptParserStage::getOptions()
 {
-	shared_ptr<po::options_description> option_desc_public(new po::options_description("Parser Options"));
-	shared_ptr<po::options_description> option_desc_private(new po::options_description("Parser Options"));
-
-	option_desc_public->add_options()
-		("input,i", po::value<std::vector<std::string>>(), "input files");
+	shared_ptr<po::options_description> option_desc_public(new po::options_description());
+	shared_ptr<po::options_description> option_desc_private(new po::options_description());
 
 	foreach(i, option_desc_public->options()) option_desc_private->add(*i);
 

@@ -31,7 +31,10 @@ StageConductor::StageConductor() : mOptionDescGlobal()
 	LoggerWrapper::instance();
 
 	// initialize basic program options
-	mOptionDescGlobal.add_options()("help,h", "show help");
+	mOptionDescGlobal.add_options()
+		("help,h", "show this help")
+		("input,i", po::value<std::vector<std::string>>(), "input files");
+
 	mPositionalOptionDesc.add("input", -1);
 }
 
@@ -43,12 +46,15 @@ void StageConductor::appendStage(shared_ptr<Stage> stage)
 	mStages.push_back(stage);
 }
 
-void StageConductor::appendOptionsFromAllStages(po::options_description& options_desc)
+void StageConductor::appendOptionsFromAllStages(po::options_description& options_desc_public, po::options_description& options_desc_private)
 {
 	foreach(i, mStages)
 	{
 		std::pair<shared_ptr<po::options_description>, shared_ptr<po::options_description>> options = (*i)->getOptions();
-		options_desc.add(*options.first);
+		if(options.first->options().size() > 0)
+			options_desc_public.add(*options.first);
+		if(options.second->options().size() > 0)
+			options_desc_private.add(*options.second);
 	}
 }
 
@@ -66,14 +72,7 @@ int StageConductor::main(int argc, const char** argv)
 		// construct public and private options
 		options_desc_pub.add(mOptionDescGlobal);
 		options_desc_pri.add(mOptionDescGlobal);
-		foreach(i, mStages)
-		{
-			std::pair<shared_ptr<po::options_description>, shared_ptr<po::options_description>> options = (*i)->getOptions();
-			if(options.first->options().size() > 0)
-				options_desc_pub.add(*options.first);
-			if(options.second->options().size() > 0)
-				options_desc_pri.add(*options.second);
-		}
+		appendOptionsFromAllStages(options_desc_pub, options_desc_pri);
 
 		// try to parse the command line
 		po::variables_map vm;

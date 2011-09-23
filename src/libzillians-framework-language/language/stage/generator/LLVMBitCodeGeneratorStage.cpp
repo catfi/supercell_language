@@ -36,13 +36,13 @@ LLVMBitCodeGeneratorStage::~LLVMBitCodeGeneratorStage()
 
 const char* LLVMBitCodeGeneratorStage::name()
 {
-	return "llvm_bitcode_generation_stage";
+	return "LLVM BitCode Generation Stage";
 }
 
 std::pair<shared_ptr<po::options_description>, shared_ptr<po::options_description>> LLVMBitCodeGeneratorStage::getOptions()
 {
-	shared_ptr<po::options_description> option_desc_public(new po::options_description("LLVM BitCode Generator Option"));
-	shared_ptr<po::options_description> option_desc_private(new po::options_description("LLVM BitCode Generator Option"));
+	shared_ptr<po::options_description> option_desc_public(new po::options_description());
+	shared_ptr<po::options_description> option_desc_private(new po::options_description());
 
 	option_desc_public->add_options()
 		("emit-llvm", "emit llvm bitcode")

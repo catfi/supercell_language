@@ -30,13 +30,13 @@ TypeSynthesisStage::~TypeSynthesisStage()
 
 const char* TypeSynthesisStage::name()
 {
-	return "type_synthesis_stage";
+	return "Type Synthesis Stage";
 }
 
 std::pair<shared_ptr<po::options_description>, shared_ptr<po::options_description>> TypeSynthesisStage::getOptions()
 {
-	shared_ptr<po::options_description> option_desc_public(new po::options_description("Type Synthesis Options"));
-	shared_ptr<po::options_description> option_desc_private(new po::options_description("Type Synthesis Options"));
+	shared_ptr<po::options_description> option_desc_public(new po::options_description());
+	shared_ptr<po::options_description> option_desc_private(new po::options_description());
 
 	return std::make_pair(option_desc_public, option_desc_private);
 }

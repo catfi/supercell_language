@@ -43,8 +43,8 @@ const char* LLVMGlobalDispatchGeneratorStage::name()
 
 std::pair<shared_ptr<po::options_description>, shared_ptr<po::options_description>> LLVMGlobalDispatchGeneratorStage::getOptions()
 {
-	shared_ptr<po::options_description> option_desc_public(new po::options_description("LLVM Global Dispatcher Generator Option"));
-	shared_ptr<po::options_description> option_desc_private(new po::options_description("LLVM Global Dispatcher Generator Option"));
+	shared_ptr<po::options_description> option_desc_public(new po::options_description());
+	shared_ptr<po::options_description> option_desc_private(new po::options_description());
 
 	option_desc_public->add_options()
 		("no-dispatcher", "disable global dispatcher generation");

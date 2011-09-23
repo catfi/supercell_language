@@ -35,13 +35,13 @@ ResolutionStage::~ResolutionStage()
 
 const char* ResolutionStage::name()
 {
-	return "resolution_stage";
+	return "Resolution Stage";
 }
 
 std::pair<shared_ptr<po::options_description>, shared_ptr<po::options_description>> ResolutionStage::getOptions()
 {
-	shared_ptr<po::options_description> option_desc_public(new po::options_description("Resolution Options"));
-	shared_ptr<po::options_description> option_desc_private(new po::options_description("Resolution Options"));
+	shared_ptr<po::options_description> option_desc_public(new po::options_description());
+	shared_ptr<po::options_description> option_desc_private(new po::options_description());
 
 	option_desc_public->add_options()
 		("no-type-inference", "disable type inference system so every type declaration must be made explicitly");

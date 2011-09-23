@@ -37,8 +37,8 @@ const char* SemanticVerificationStage1::name()
 
 std::pair<shared_ptr<po::options_description>, shared_ptr<po::options_description>> SemanticVerificationStage1::getOptions()
 {
-	shared_ptr<po::options_description> option_desc_public(new po::options_description("Semantic Verification Options"));
-	shared_ptr<po::options_description> option_desc_private(new po::options_description("Semantic Verification Options"));
+	shared_ptr<po::options_description> option_desc_public(new po::options_description());
+	shared_ptr<po::options_description> option_desc_private(new po::options_description());
 
 	option_desc_public->add_options();
 

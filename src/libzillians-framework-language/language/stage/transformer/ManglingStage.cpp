@@ -31,13 +31,13 @@ ManglingStage::~ManglingStage()
 
 const char* ManglingStage::name()
 {
-	return "mangling_stage";
+	return "Mangling Stage";
 }
 
 std::pair<shared_ptr<po::options_description>, shared_ptr<po::options_description>> ManglingStage::getOptions()
 {
-	shared_ptr<po::options_description> option_desc_public(new po::options_description("Mangling Options"));
-	shared_ptr<po::options_description> option_desc_private(new po::options_description("Mangling Options"));
+	shared_ptr<po::options_description> option_desc_public(new po::options_description());
+	shared_ptr<po::options_description> option_desc_private(new po::options_description());
 
 	option_desc_public->add_options();
 

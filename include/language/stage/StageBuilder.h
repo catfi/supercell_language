@@ -133,20 +133,14 @@ public:
 
 	virtual int main(int argc, const char** argv)
 	{
+		po::options_description dummy;
 		po::options_description options_desc;
-		po::options_description options_desc_modes;
-
-		// add default positional options description
-		po::positional_options_description positional_options_desc;
-		options_desc.add_options()
-				("help,h", "show help")
-				("input,i", po::value<std::vector<std::string>>(), "input files");
-		positional_options_desc.add("input", -1);
 
 		// add all modes into options description
 		foreach(i, mModes)
-			options_desc_modes.add_options()(i->first.c_str(), i->second.first.c_str());
-		options_desc.add(options_desc_modes);
+			mOptionDescGlobal.add_options()(i->first.c_str(), i->second.first.c_str());
+		options_desc.add(mOptionDescGlobal);
+
 
 		// parse the arguments
 		po::variables_map vm;
@@ -161,7 +155,7 @@ public:
 
 	    	// append all stages
 	    	appendAllStages();
-	    	appendOptionsFromAllStages(options_desc);
+	    	appendOptionsFromAllStages(options_desc, dummy);
 
 	    	std::cerr << options_desc << std::endl;
 	    	return -1;
@@ -171,7 +165,7 @@ public:
 	    if(vm.count("help") > 0 || argc < 2)
 	    {
 	    	appendAllStages();
-	    	appendOptionsFromAllStages(options_desc);
+	    	appendOptionsFromAllStages(options_desc, dummy);
 
 	    	std::cout << "command line options: " << std::endl << std::endl;
 	    	std::cout << options_desc << std::endl;
@@ -192,7 +186,6 @@ public:
 
 	    		// invoke the builder to append stages
 	    		i->second.second();
-	    		LOG4CXX_DEBUG(LoggerWrapper::Compiler, "using " << i->second.first << " mode");
 
 	    		matched = true;
 	    	}
@@ -201,7 +194,6 @@ public:
 	    // if no mode is specified, use default mode
 	    if(!matched)
 	    {
-	    	LOG4CXX_DEBUG(LoggerWrapper::Compiler, "using default mode");
 	    	mDefaultMode();
 	    }
 

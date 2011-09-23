@@ -33,7 +33,7 @@ public:
 
 public:
 	void appendStage(shared_ptr<Stage> s);
-	void appendOptionsFromAllStages(po::options_description& options_desc);
+	void appendOptionsFromAllStages(po::options_description& options_desc_public, po::options_description& options_desc_private);
 
 public:
 	virtual int main(int argc, const char** argv);
