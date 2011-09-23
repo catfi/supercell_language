@@ -465,6 +465,22 @@ void serialize(Archive& ar, zillians::language::tree::Declaration& node, const u
 	ar & node.annotations;
 }
 
+template<class Archive>
+inline void save_construct_data(Archive& ar, const zillians::language::tree::Declaration* p, const unsigned int file_version)
+{
+	ar << p->name;
+}
+
+template<class Archive>
+inline void load_construct_data(Archive& ar, zillians::language::tree::Declaration* p, const unsigned int file_version)
+{
+	using namespace zillians::language::tree;
+
+	Identifier* name;
+	ar >> name;
+	::new(p) Declaration(name);
+}
+
 // ClassDecl
 template<typename Archive>
 void serialize(Archive& ar, zillians::language::tree::ClassDecl& node, const unsigned int version)
@@ -550,8 +566,8 @@ void serialize(Archive& ar, zillians::language::tree::TypedefDecl& node, const u
 template<class Archive>
 inline void save_construct_data(Archive& ar, const zillians::language::tree::TypedefDecl* p, const unsigned int file_version)
 {
-	ar << p->from;
-	ar << p->to;
+	ar << p->type;
+	ar << p->name;
 }
 
 template<class Archive>
@@ -559,11 +575,11 @@ inline void load_construct_data(Archive& ar, zillians::language::tree::TypedefDe
 {
 	using namespace zillians::language::tree;
 
-	TypeSpecifier* from;
-	SimpleIdentifier* to;
-	ar >> from;
-	ar >> to;
-	::new(p) TypedefDecl(from, to);
+	TypeSpecifier* type;
+	Identifier* name;
+	ar >> type;
+	ar >> name;
+	::new(p) TypedefDecl(type, name);
 }
 
 // FunctionDecl

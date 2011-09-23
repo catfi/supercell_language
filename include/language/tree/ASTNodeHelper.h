@@ -251,6 +251,24 @@ struct ASTNodeHelper
 		return NULL;
 	}
 
+	static ASTNode* getOwnerBlock(ASTNode& node)
+	{
+		if(!node.parent)
+			return NULL;
+
+		ASTNode* current = node.parent;
+		while(current)
+		{
+			if(isa<Package>(current))
+				return NULL;
+			if(isa<Block>(current))
+				return cast<Block>(current);
+
+			current = current->parent;
+		}
+		return NULL;
+	}
+
 public:
 	static std::wstring& nodeName(ASTNode* node)
 	{

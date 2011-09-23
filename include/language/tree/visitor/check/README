@@ -69,9 +69,9 @@ WARNINGS:
                                                 Undecided   Parse   S0  Xform   S1  Future
                                                 ==========================================
     W1. MISSING_RETURN                                                          S1
-    W2. UNINIT_ARG                                                                  FUTURE
+    W2. UNINIT_ARG                                                  S0
     W3. CONTROL_PATH
-        b. CONTROL_REACHES_END                                                      FUTURE
+        b. CONTROL_REACHES_END                                                  S1
         c. MISSING_CASE                                                         S1
         d. DEAD_CODE                                                S0
         e. INFINITE_RECURSION                                                       FUTURE

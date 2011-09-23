@@ -32,7 +32,7 @@ struct TypedefDecl : public Declaration
 	DEFINE_VISITABLE();
 	DEFINE_HIERARCHY(TypedefDecl, (TypedefDecl)(Declaration)(ASTNode));
 
-	explicit TypedefDecl(TypeSpecifier* f, SimpleIdentifier* t) : Declaration(t), type(f)
+	explicit TypedefDecl(TypeSpecifier* f, Identifier* t) : Declaration(t), type(f)
 	{
 		BOOST_ASSERT(f && t && "null \"from node\" or \"to node\" for typedef is not allowed");
 
