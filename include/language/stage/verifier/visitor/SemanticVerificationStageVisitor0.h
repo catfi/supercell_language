@@ -173,11 +173,6 @@ struct SemanticVerificationStageVisitor0 : GenericDoubleVisitor
 		}
 	}
 
-	void verify(Declaration &node)
-	{
-		revisit(node);
-	}
-
 	void verify(VariableDecl &node)
 	{
 		verify_DUPE_NAME(*cast<Declaration>(&node));
@@ -202,10 +197,13 @@ struct SemanticVerificationStageVisitor0 : GenericDoubleVisitor
 		{
 			// DUPE_NAME
 			std::wstring name = cast<VariableDecl>(*i)->name->toString();
-//			if(name_set.find(name) == name_set.end())
-//				name_set.insert(name);
-//			else
-//				LOG_MESSAGE(DUPE_NAME, &node, _id = name);
+
+#if 0 // NOTE: taken care of by "verify_DUPE_NAME" already
+			if(name_set.find(name) == name_set.end())
+				name_set.insert(name);
+			else
+				LOG_MESSAGE(DUPE_NAME, &node, _id = name);
+#endif
 
 			// MISSING_PARAM_INIT
 			if(!!cast<VariableDecl>(*i)->initializer)
