@@ -31,15 +31,24 @@ TreeDebugStage::~TreeDebugStage()
 
 const char* TreeDebugStage::name()
 {
-	return "ast_debug_stage";
+	return "AST Tree Debugging Stage";
 }
 
-void TreeDebugStage::initializeOptions(po::options_description& option_desc, po::positional_options_description& positional_desc)
+std::pair<shared_ptr<po::options_description>, shared_ptr<po::options_description>> TreeDebugStage::getOptions()
 {
-    option_desc.add_options()
-    ("dump-ast",          "dump AST pretty-print for debugging purpose")
-    ("dump-ast-location", "dump source code locations")
-	("dump-ast-and-stop", "dump AST pretty-print for debugging purpose and stop processing");
+	shared_ptr<po::options_description> option_desc_public(new po::options_description("AST Tree Debugging Option"));
+	shared_ptr<po::options_description> option_desc_private(new po::options_description("AST Tree Debugging Option"));
+
+	option_desc_public->add_options();
+
+	foreach(i, option_desc_public->options()) option_desc_private->add(*i);
+
+	option_desc_private->add_options()
+		("dump-ast",          "dump AST pretty-print for debugging purpose")
+		("dump-ast-location", "dump source code locations")
+		("dump-ast-and-stop", "dump AST pretty-print for debugging purpose and stop processing");
+
+    return std::make_pair(option_desc_public, option_desc_private);
 }
 
 bool TreeDebugStage::parseOptions(po::variables_map& vm)

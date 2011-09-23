@@ -33,12 +33,13 @@ public:
 
 public:
 	void appendStage(shared_ptr<Stage> s);
+	void appendOptionsFromAllStages(po::options_description& options_desc);
 
 public:
 	virtual int main(int argc, const char** argv);
 
 protected:
-	po::options_description mOptionDesc;
+	po::options_description mOptionDescGlobal;
 	po::positional_options_description mPositionalOptionDesc;
 	std::vector<shared_ptr<Stage>> mStages;
 };

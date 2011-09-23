@@ -25,9 +25,13 @@
 
 namespace zillians { namespace language { namespace stage {
 
-StageConductor::StageConductor()
+StageConductor::StageConductor() : mOptionDescGlobal("General Options")
 {
-	mOptionDesc.add_options()("help,h", "show help");
+	// make sure logger is initialized;
+	LoggerWrapper::instance();
+
+	mOptionDescGlobal.add_options()("help,h", "show help")("input", po::value<std::vector<std::string>>(), "input files");;
+	mPositionalOptionDesc.add("input", -1);
 }
 
 StageConductor::~StageConductor()
@@ -36,32 +40,51 @@ StageConductor::~StageConductor()
 void StageConductor::appendStage(shared_ptr<Stage> stage)
 {
 	mStages.push_back(stage);
-	stage->initializeOptions(mOptionDesc, mPositionalOptionDesc);
+}
+
+void StageConductor::appendOptionsFromAllStages(po::options_description& options_desc)
+{
+	foreach(i, mStages)
+	{
+		std::pair<shared_ptr<po::options_description>, shared_ptr<po::options_description>> options = (*i)->getOptions();
+		options_desc.add(*options.first);
+	}
 }
 
 int StageConductor::main(int argc, const char** argv)
 {
-	// make sure logger is initialized;
-	LoggerWrapper::instance();
-
 	// initialize the global configuration context
 	ConfigurationContext* config = new ConfigurationContext();
 	setConfigurationContext(config);
 
 	if(true)
 	{
-		po::variables_map vm;
+		po::options_description options_desc_pub("Usage");
+		po::options_description options_desc_pri("Usage");
+
+		// construct public and private options
+		options_desc_pub.add(mOptionDescGlobal);
+		options_desc_pri.add(mOptionDescGlobal);
+		foreach(i, mStages)
+		{
+			std::pair<shared_ptr<po::options_description>, shared_ptr<po::options_description>> options = (*i)->getOptions();
+			if(options.first->options().size() > 0)
+				options_desc_pub.add(*options.first);
+			if(options.second->options().size() > 0)
+				options_desc_pri.add(*options.second);
+		}
 
 		// try to parse the command line
+		po::variables_map vm;
 	    try
 	    {
-	    	po::store(po::command_line_parser(argc, argv).options(mOptionDesc).positional(mPositionalOptionDesc).run(), vm);
+	    	po::store(po::command_line_parser(argc, argv).options(options_desc_pri).positional(mPositionalOptionDesc).run(), vm);
 	    	po::notify(vm);
 	    }
-	    catch(...)
+	    catch(const boost::program_options::error& e)
 	    {
-	    	std::cerr << "failed to parse command line" << std::endl;
-	    	std::cerr << mOptionDesc << std::endl;
+	    	std::cerr << "failed to parse command line: " << e.what() << std::endl;
+	    	std::cerr << options_desc_pub << std::endl;
 	    	return -1;
 	    }
 
@@ -69,7 +92,7 @@ int StageConductor::main(int argc, const char** argv)
 	    if(vm.count("help") > 0 || argc < 2)
 	    {
 	    	std::cout << "command line options: " << std::endl << std::endl;
-	    	std::cout << mOptionDesc << std::endl;
+	    	std::cout << options_desc_pub << std::endl;
 	    	return 0;
 	    }
 
@@ -80,8 +103,8 @@ int StageConductor::main(int argc, const char** argv)
 		{
 			if(!(*stage)->parseOptions(vm))
 			{
-				std::cerr << "failed to process command option for stage: " << (*stage)->name() << std::endl;
-				std::cerr << mOptionDesc << std::endl;
+				std::cerr << "failed to process command option for \"" << (*stage)->name() << "\"" << std::endl;
+				std::cerr << options_desc_pub << std::endl;
 				return -1;
 			}
 		}

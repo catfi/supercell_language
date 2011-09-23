@@ -31,11 +31,15 @@ LiteralCompactionStage::~LiteralCompactionStage()
 
 const char* LiteralCompactionStage::name()
 {
-	return "literal_compaction_stage";
+	return "Literal Compaction Stage";
 }
 
-void LiteralCompactionStage::initializeOptions(po::options_description& option_desc, po::positional_options_description& positional_desc)
+std::pair<shared_ptr<po::options_description>, shared_ptr<po::options_description>> LiteralCompactionStage::getOptions()
 {
+	shared_ptr<po::options_description> option_desc_public(new po::options_description("Literal Compaction Options"));
+	shared_ptr<po::options_description> option_desc_private(new po::options_description("Literal Compaction Options"));
+
+	return std::make_pair(option_desc_public, option_desc_private);
 }
 
 bool LiteralCompactionStage::parseOptions(po::variables_map& vm)

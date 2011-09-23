@@ -33,8 +33,12 @@ const char* TypeSynthesisStage::name()
 	return "type_synthesis_stage";
 }
 
-void TypeSynthesisStage::initializeOptions(po::options_description& option_desc, po::positional_options_description& positional_desc)
+std::pair<shared_ptr<po::options_description>, shared_ptr<po::options_description>> TypeSynthesisStage::getOptions()
 {
+	shared_ptr<po::options_description> option_desc_public(new po::options_description("Type Synthesis Options"));
+	shared_ptr<po::options_description> option_desc_private(new po::options_description("Type Synthesis Options"));
+
+	return std::make_pair(option_desc_public, option_desc_private);
 }
 
 bool TypeSynthesisStage::parseOptions(po::variables_map& vm)

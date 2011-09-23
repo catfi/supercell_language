@@ -38,11 +38,20 @@ const char* ResolutionStage::name()
 	return "resolution_stage";
 }
 
-void ResolutionStage::initializeOptions(po::options_description& option_desc, po::positional_options_description& positional_desc)
+std::pair<shared_ptr<po::options_description>, shared_ptr<po::options_description>> ResolutionStage::getOptions()
 {
-    option_desc.add_options()
-	("skip-resolution", "skip type and symbol resolution stage")
-    ("no-type-inference", "disable type inference system so every type declaration must be made explicitly");
+	shared_ptr<po::options_description> option_desc_public(new po::options_description("Resolution Options"));
+	shared_ptr<po::options_description> option_desc_private(new po::options_description("Resolution Options"));
+
+	option_desc_public->add_options()
+		("no-type-inference", "disable type inference system so every type declaration must be made explicitly");
+
+	foreach(i, option_desc_public->options()) option_desc_private->add(*i);
+
+	option_desc_private->add_options()
+		("skip-resolution", "skip type and symbol resolution stage");
+
+	return std::make_pair(option_desc_public, option_desc_private);
 }
 
 bool ResolutionStage::parseOptions(po::variables_map& vm)

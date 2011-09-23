@@ -56,7 +56,7 @@ ThorScriptCompiler::ThorScriptCompiler()
 			ThorScriptParserStage,
 			TreeDebugStage,
 			SemanticVerificationStage0,
-			StaticTestVerificationStage>>("semantic-verify-0", "for semantic verification stage 0");
+			StaticTestVerificationStage>>("mode-semantic-verify-0", "for semantic verification stage 0");
 
 	addMode<
 		boost::mpl::vector<
@@ -65,7 +65,7 @@ ThorScriptCompiler::ThorScriptCompiler()
 			SemanticVerificationStage0,
 			ResolutionStage,
 			SemanticVerificationStage1,
-			StaticTestVerificationStage>>("semantic-verify-1", "for semantic verification stage 1");
+			StaticTestVerificationStage>>("mode-semantic-verify-1", "for semantic verification stage 1");
 
 }
 

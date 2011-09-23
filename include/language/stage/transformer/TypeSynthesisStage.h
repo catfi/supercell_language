@@ -33,7 +33,7 @@ public:
 
 public:
 	virtual const char* name();
-	virtual void initializeOptions(po::options_description& option_desc, po::positional_options_description& positional_desc);
+	virtual std::pair<shared_ptr<po::options_description>, shared_ptr<po::options_description>> getOptions();
 	virtual bool parseOptions(po::variables_map& vm);
 	virtual bool execute(bool& continue_execution);
 };

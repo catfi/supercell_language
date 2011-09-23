@@ -59,18 +59,26 @@ ThorScriptParserStage::~ThorScriptParserStage()
 
 const char* ThorScriptParserStage::name()
 {
-	return "thorscript_parser_stage";
+	return "Parser Stage";
 }
 
-void ThorScriptParserStage::initializeOptions(po::options_description& option_desc, po::positional_options_description& positional_desc)
+std::pair<shared_ptr<po::options_description>, shared_ptr<po::options_description>> ThorScriptParserStage::getOptions()
 {
-    option_desc.add_options()
-    ("dump-parse",                                     "dump parse for debugging purpose")
-	("dump-parse-and-stop",                            "dump parse for debugging purpose and stop processing")
-	("skip-parse",                                     "skip parsing stage and use provided parser context")
-	("use-relative-path",                              "use relative file path instead of absolute path (for debugging info generation)")
-    ("input,i", po::value<std::vector<std::string>>(), "thorscript files");
-    positional_desc.add("input", -1);
+	shared_ptr<po::options_description> option_desc_public(new po::options_description("Parser Options"));
+	shared_ptr<po::options_description> option_desc_private(new po::options_description("Parser Options"));
+
+	option_desc_public->add_options()
+		("input,i", po::value<std::vector<std::string>>(), "thorscript files");
+
+	foreach(i, option_desc_public->options()) option_desc_private->add(*i);
+
+	option_desc_private->add_options()
+		("dump-parse",                                     "dump parse for debugging purpose")
+		("dump-parse-and-stop",                            "dump parse for debugging purpose and stop processing")
+		("skip-parse",                                     "skip parsing stage and use provided parser context")
+		("use-relative-path",                              "use relative file path instead of absolute path (for debugging info generation)");
+
+	return std::make_pair(option_desc_public, option_desc_private);
 }
 
 bool ThorScriptParserStage::parseOptions(po::variables_map& vm)

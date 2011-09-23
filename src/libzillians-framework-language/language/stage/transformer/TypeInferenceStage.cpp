@@ -33,8 +33,12 @@ const char* TypeInferenceStage::name()
 	return "type_inference_stage";
 }
 
-void TypeInferenceStage::initializeOptions(po::options_description& option_desc, po::positional_options_description& positional_desc)
+std::pair<shared_ptr<po::options_description>, shared_ptr<po::options_description>> TypeInferenceStage::getOptions()
 {
+	shared_ptr<po::options_description> option_desc_public(new po::options_description("Type Inference Options"));
+	shared_ptr<po::options_description> option_desc_private(new po::options_description("Type Inference Options"));
+
+	return std::make_pair(option_desc_public, option_desc_private);
 }
 
 bool TypeInferenceStage::parseOptions(po::variables_map& vm)

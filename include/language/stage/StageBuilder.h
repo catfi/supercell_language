@@ -34,13 +34,6 @@ namespace zillians { namespace language { namespace stage {
 
 class StageBuilder : public StageConductor
 {
-public:
-	StageBuilder()
-	{ }
-
-	virtual ~StageBuilder()
-	{ }
-
 private:
 	template<int N, typename Types>
 	struct BuilderAppenderImpl : public BuilderAppenderImpl<N-1, Types>
@@ -140,27 +133,45 @@ public:
 
 	virtual int main(int argc, const char** argv)
 	{
-		po::variables_map vm;
+		po::options_description options_desc;
+		po::options_description options_desc_modes;
 
-		// parse the arguments and append enabled stage accordingly
+		// construct the options description
 		foreach(i, mModes)
 		{
-			mOptionDesc.add_options()(i->first.c_str(), i->second.first.c_str());
+			mOptionDescGlobal.add_options()(i->first.c_str(), i->second.first.c_str());
 		}
+		options_desc.add(options_desc_modes);
+		options_desc.add(mOptionDescGlobal);
 
+		// parse the arguments
+		po::variables_map vm;
 	    try
 	    {
-	    	po::store(po::command_line_parser(argc, argv).options(mOptionDesc).positional(mPositionalOptionDesc).allow_unregistered().run(), vm);
+	    	po::store(po::command_line_parser(argc, argv).options(options_desc).positional(mPositionalOptionDesc).allow_unregistered().run(), vm);
 	    	po::notify(vm);
 	    }
-	    catch(...)
+	    catch(const boost::program_options::error& e)
 	    {
-	    	std::cerr << "failed to parse command line" << std::endl;
+	    	std::cerr << "failed to parse command line: " << e.what() << std::endl;
 
 	    	// append all stages
 	    	appendAllStages();
-	    	std::cerr << mOptionDesc << std::endl;
+	    	appendOptionsFromAllStages(options_desc);
+
+	    	std::cerr << options_desc << std::endl;
 	    	return -1;
+	    }
+
+	    // if help option is specified, print the options and exit
+	    if(vm.count("help") > 0 || argc < 2)
+	    {
+	    	appendAllStages();
+	    	appendOptionsFromAllStages(options_desc);
+
+	    	std::cout << "command line options: " << std::endl << std::endl;
+	    	std::cout << options_desc << std::endl;
+	    	return 0;
 	    }
 
 	    bool matched = false;
@@ -171,12 +182,13 @@ public:
 	    		if(matched)
 	    		{
 	    			std::cerr << "duplicate compilation mode specified" << std::endl;
-	    			std::cerr << mOptionDesc << std::endl;
+	    			std::cerr << options_desc << std::endl;
 	    			return -1;
 	    		}
 
 	    		// invoke the builder to append stages
 	    		i->second.second();
+	    		LOG4CXX_DEBUG(LoggerWrapper::Compiler, "using " << i->second.first << " mode");
 
 	    		matched = true;
 	    	}
@@ -185,7 +197,8 @@ public:
 	    // if no mode is specified, use default mode
 	    if(!matched)
 	    {
-	    	appendAllStages();
+	    	LOG4CXX_DEBUG(LoggerWrapper::Compiler, "using default mode");
+	    	mDefaultMode();
 	    }
 
 		// call stage conductor main
@@ -205,6 +218,7 @@ private:
 	std::function<void()> mDefaultMode;
 	std::map<std::string, std::function<void()>> mAllStages;
 	std::map<std::string /*key*/, std::pair<std::string /*desc*/, std::function<void()> /*builder lambda*/ > > mModes;
+	po::options_description mOptionDescMode;
 };
 
 } } }

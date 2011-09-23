@@ -35,10 +35,19 @@ const char* SemanticVerificationStage1::name()
 	return "semantic_verification_stage_1";
 }
 
-void SemanticVerificationStage1::initializeOptions(po::options_description& option_desc, po::positional_options_description& positional_desc)
+std::pair<shared_ptr<po::options_description>, shared_ptr<po::options_description>> SemanticVerificationStage1::getOptions()
 {
-    option_desc.add_options()
-	("verify-stage-1-and-stop", "verify stage 1 and stop processing");
+	shared_ptr<po::options_description> option_desc_public(new po::options_description("Semantic Verification Options"));
+	shared_ptr<po::options_description> option_desc_private(new po::options_description("Semantic Verification Options"));
+
+	option_desc_public->add_options();
+
+	foreach(i, option_desc_public->options()) option_desc_private->add(*i);
+
+	option_desc_private->add_options()
+		("verify-stage-1-and-stop", "verify stage 1 and stop processing");
+
+	return std::make_pair(option_desc_public, option_desc_private);
 }
 
 bool SemanticVerificationStage1::parseOptions(po::variables_map& vm)

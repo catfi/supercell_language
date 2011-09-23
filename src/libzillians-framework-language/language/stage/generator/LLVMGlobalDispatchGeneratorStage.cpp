@@ -38,18 +38,27 @@ LLVMGlobalDispatchGeneratorStage::~LLVMGlobalDispatchGeneratorStage()
 
 const char* LLVMGlobalDispatchGeneratorStage::name()
 {
-	return "llvm_global_dispatch_generator_stage";
+	return "LLVM Global Dispatcher Generation Stage";
 }
 
-void LLVMGlobalDispatchGeneratorStage::initializeOptions(po::options_description& option_desc, po::positional_options_description& positional_desc)
+std::pair<shared_ptr<po::options_description>, shared_ptr<po::options_description>> LLVMGlobalDispatchGeneratorStage::getOptions()
 {
-    option_desc.add_options()
-    ("debug", "enable debugging");
+	shared_ptr<po::options_description> option_desc_public(new po::options_description("LLVM Global Dispatcher Generator Option"));
+	shared_ptr<po::options_description> option_desc_private(new po::options_description("LLVM Global Dispatcher Generator Option"));
+
+	option_desc_public->add_options()
+		("no-dispatcher", "disable global dispatcher generation");
+
+	foreach(i, option_desc_public->options()) option_desc_private->add(*i);
+
+	option_desc_private->add_options();
+
+	return std::make_pair(option_desc_public, option_desc_private);
 }
 
 bool LLVMGlobalDispatchGeneratorStage::parseOptions(po::variables_map& vm)
 {
-	mEnabled = (vm.count("debug") > 0);
+	mEnabled = !(vm.count("no-dispatcher") > 0);
 	return true;
 }
 
