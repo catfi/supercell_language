@@ -25,14 +25,32 @@ include_directories( ${PROJECT_COMMON_SOURCE_DIR}/include/
     ${PROJECT_FRAMEWORK_SOURCE_DIR}/include/
     )
 
+add_library(zillians-framework-language-spirit
+    language/stage/parser/ThorScriptParserStage.cpp
+    )
+
+ADD_PRECOMPILED_HEADER(zillians-framework-language-spirit
+    ${PROJECT_FRAMEWORK_SOURCE_DIR}/include/language/_PreCompiledHeaders.h
+    )
+
+get_target_property(__lib_location zillians-framework-language-spirit LOCATION)
+
+add_custom_command(TARGET zillians-framework-language-spirit POST_BUILD
+    COMMAND /usr/bin/strip --strip-debug ${__lib_location}
+    COMMENT "Stripping boost spirit debug symbols"
+    )
+
+target_link_libraries(zillians-framework-language-spirit
+    zillians-common-utility
+    zillians-common-core
+    )
+
 add_library(zillians-framework-language
     language/context/ConfigurationContext.cpp
     language/context/ParserContext.cpp
     language/logging/LoggerWrapper.cpp
-    language/stage/generator/LLVMGlobalDispatchGeneratorStage.cpp
     language/stage/StageConductor.cpp
     language/stage/basic/TreeDebugStage.cpp
-    language/stage/parser/ThorScriptParserStage.cpp
     language/stage/transformer/LiteralCompactionStage.cpp
     language/stage/transformer/ResolutionStage.cpp
     language/stage/transformer/ManglingStage.cpp
@@ -40,7 +58,7 @@ add_library(zillians-framework-language
     #language/stage/transformer/TypeInferenceStage.cpp
     language/stage/verifier/SemanticVerificationStage0.cpp
     language/stage/verifier/SemanticVerificationStage1.cpp
-	language/stage/verifier/StaticTestVerificationStage.cpp
+	language/stage/verifier/StaticTestVerificationStage.cpp    
 	)
 
 set(StringTablePath ${PROJECT_FRAMEWORK_SOURCE_DIR}/include/language/logging)
@@ -59,7 +77,7 @@ COG_GEN(
     COMMENT "cog.py -- Generating StringTable.h from StringTable.cog .."
     )
 
-add_custom_target(generate-string-table ALL echo DEPENDS ${out_files} COMMENT "generate-string-table depends on StringTable.h")
+add_custom_target(generate-string-table ALL echo DEPENDS ${out_files} COMMENT "Generate Compiler String Table")
 add_dependencies(zillians-framework-language generate-string-table)
 
 if(LLVM_FOUND)
@@ -70,30 +88,29 @@ if(LLVM_FOUND)
         language/stage/generator/LLVMGeneratorStage.cpp
         language/stage/generator/LLVMDebugInfoGeneratorStage.cpp
         language/stage/generator/LLVMBitCodeGeneratorStage.cpp
+        language/stage/generator/LLVMGlobalDispatchGeneratorStage.cpp
         )
 endif()
 
-ADD_PRECOMPILED_HEADER(zillians-framework-language
-    ${PROJECT_FRAMEWORK_SOURCE_DIR}/include/language/_PCH.h
-    )
-
 if(LLVM_FOUND)
     target_link_libraries(zillians-framework-language
-        zillians-common-core
-        zillians-common-utility
+        zillians-framework-language-spirit
         zillians-framework-language-llvm
+        zillians-common-utility
+        zillians-common-core
         )
     
     target_link_libraries(zillians-framework-language-llvm
-        zillians-common-core
-        zillians-common-utility
 		${LLVM_LDFLAGS}
         ${LLVM_ALL_LIBS}
+        zillians-common-utility
+        zillians-common-core
         )
 else()
     target_link_libraries(zillians-framework-language
-        zillians-common-core
+        zillians-framework-language-spirit
         zillians-common-utility
+        zillians-common-core
         )
 endif()
 
