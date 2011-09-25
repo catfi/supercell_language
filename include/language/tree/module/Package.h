@@ -80,6 +80,15 @@ struct Package : public ASTNode
 		END_COMPARE()
     }
 
+    virtual bool replaceUseWith(const ASTNode& from, const ASTNode& to)
+    {
+    	BEGIN_REPLACE()
+		REPLACE_USE_WITH(id)
+		REPLACE_USE_WITH(children)
+		REPLACE_USE_WITH(objects)
+    	END_REPLACE()
+    }
+
 	SimpleIdentifier* id;
 	std::vector<Package*> children;
 	std::vector<ASTNode*> objects;

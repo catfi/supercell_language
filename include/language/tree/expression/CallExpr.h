@@ -57,6 +57,14 @@ struct CallExpr : public Expression
 		END_COMPARE()
     }
 
+    virtual bool replaceUseWith(const ASTNode& from, const ASTNode& to)
+    {
+    	BEGIN_REPLACE_WITH_BASE(Expression)
+		REPLACE_USE_WITH(node)
+		REPLACE_USE_WITH(parameters)
+    	END_REPLACE()
+    }
+
 	ASTNode* node;
 	std::vector<Expression*> parameters;
 };

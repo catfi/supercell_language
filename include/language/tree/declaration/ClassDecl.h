@@ -85,6 +85,17 @@ struct ClassDecl : public Declaration
 		END_COMPARE()
     }
 
+    virtual bool replaceUseWith(const ASTNode& from, const ASTNode& to)
+    {
+    	BEGIN_REPLACE_WITH_BASE(Declaration)
+		REPLACE_USE_WITH(base)
+		REPLACE_USE_WITH(implements)
+		REPLACE_USE_WITH(member_functions)
+		REPLACE_USE_WITH(member_variables)
+    	END_REPLACE()
+    }
+
+
 	TypeSpecifier* base;
 	std::vector<TypeSpecifier*> implements;
 	std::vector<FunctionDecl*> member_functions;

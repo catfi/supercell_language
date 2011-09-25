@@ -93,6 +93,27 @@ struct Internal : public ASTNode
 		END_COMPARE()
     }
 
+    virtual bool replaceUseWith(const ASTNode& from, const ASTNode& to)
+    {
+    	BEGIN_REPLACE()
+		REPLACE_USE_WITH(VoidTy)
+		REPLACE_USE_WITH(BooleanTy)
+		REPLACE_USE_WITH(UInt8Ty)
+		REPLACE_USE_WITH(UInt16Ty)
+		REPLACE_USE_WITH(UInt32Ty)
+		REPLACE_USE_WITH(UInt64Ty)
+		REPLACE_USE_WITH(Int8Ty)
+		REPLACE_USE_WITH(Int16Ty)
+		REPLACE_USE_WITH(Int32Ty)
+		REPLACE_USE_WITH(Int64Ty)
+		REPLACE_USE_WITH(Float32Ty)
+		REPLACE_USE_WITH(Float64Ty)
+		REPLACE_USE_WITH(ObjectTy)
+		REPLACE_USE_WITH(FunctionTy)
+		REPLACE_USE_WITH(others)
+		END_REPLACE()
+    }
+
 	TypeSpecifier* VoidTy;
 	TypeSpecifier* BooleanTy;
 	TypeSpecifier* UInt8Ty;

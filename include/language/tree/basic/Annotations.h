@@ -53,6 +53,14 @@ struct Annotation : public ASTNode
 		END_COMPARE()
     }
 
+    virtual bool replaceUseWith(const ASTNode& from, const ASTNode& to)
+    {
+    	BEGIN_REPLACE()
+		REPLACE_USE_WITH(name)
+		REPLACE_USE_WITH(attribute_list)
+    	END_REPLACE()
+    }
+
 	SimpleIdentifier* name;
 	std::vector<std::pair<SimpleIdentifier*/*key*/, ASTNode*/*value*/>> attribute_list;
 };
@@ -73,6 +81,13 @@ struct Annotations : public ASTNode
     	BEGIN_COMPARE()
 		COMPARE_MEMBER(annotation_list)
     	END_COMPARE()
+    }
+
+    virtual bool replaceUseWith(const ASTNode& from, const ASTNode& to)
+    {
+    	BEGIN_REPLACE()
+		REPLACE_USE_WITH(annotation_list)
+    	END_REPLACE()
     }
 
 	std::vector<Annotation*> annotation_list;

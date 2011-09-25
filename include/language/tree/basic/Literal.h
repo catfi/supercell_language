@@ -41,6 +41,10 @@ struct Literal : public ASTNode
         return true;
     }
 
+    virtual bool replaceUseWith(const ASTNode& from, const ASTNode& to)
+    {
+    	return false;
+    }
 };
 
 struct ObjectLiteral : public Literal
@@ -74,6 +78,11 @@ struct ObjectLiteral : public Literal
     	BEGIN_COMPARE_WITH_BASE(Literal)
 		COMPARE_MEMBER(type)
 		END_COMPARE()
+    }
+
+    virtual bool replaceUseWith(const ASTNode& from, const ASTNode& to)
+    {
+    	return false;
     }
 
 	LiteralType::type type;
@@ -120,6 +129,11 @@ struct NumericLiteral : public Literal
     	END_COMPARE()
     }
 
+    virtual bool replaceUseWith(const ASTNode& from, const ASTNode& to)
+    {
+    	return false;
+    }
+
 	PrimitiveType::type type;
 
 	union ValueUnion
@@ -162,6 +176,11 @@ struct StringLiteral : public Literal
     	BEGIN_COMPARE_WITH_BASE(Literal)
 		COMPARE_MEMBER(value)
     	END_COMPARE()
+    }
+
+    virtual bool replaceUseWith(const ASTNode& from, const ASTNode& to)
+    {
+    	return false;
     }
 
 	std::wstring value;

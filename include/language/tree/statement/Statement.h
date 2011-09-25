@@ -50,6 +50,13 @@ struct Statement : public ASTNode
 		END_COMPARE()
     }
 
+    virtual bool replaceUseWith(const ASTNode& from, const ASTNode& to)
+    {
+    	BEGIN_REPLACE()
+		REPLACE_USE_WITH(annotations)
+    	END_REPLACE()
+    }
+
 	Annotations* annotations;
 };
 

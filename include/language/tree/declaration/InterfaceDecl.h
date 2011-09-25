@@ -51,6 +51,13 @@ struct InterfaceDecl : public Declaration
 		END_COMPARE()
     }
 
+    virtual bool replaceUseWith(const ASTNode& from, const ASTNode& to)
+    {
+    	BEGIN_REPLACE_WITH_BASE(Declaration)
+		REPLACE_USE_WITH(member_functions)
+    	END_REPLACE()
+    }
+
 	std::vector<FunctionDecl*> member_functions;
 };
 

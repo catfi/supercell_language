@@ -71,6 +71,14 @@ struct Declaration : public ASTNode
     	END_COMPARE()
     }
 
+    virtual bool replaceUseWith(const ASTNode& from, const ASTNode& to)
+    {
+    	BEGIN_REPLACE()
+		REPLACE_USE_WITH(name)
+		REPLACE_USE_WITH(annotations)
+    	END_REPLACE()
+    }
+
 	Identifier* name;
 	Annotations* annotations;
 };

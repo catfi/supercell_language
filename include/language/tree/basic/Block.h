@@ -60,6 +60,13 @@ struct Block : public ASTNode
 		END_COMPARE()
     }
 
+    virtual bool replaceUseWith(const ASTNode& from, const ASTNode& to)
+    {
+    	BEGIN_REPLACE()
+		REPLACE_USE_WITH(objects)
+    	END_REPLACE()
+    }
+
 	bool is_pipelined_block;
 	bool is_async_block;
 	std::vector<ASTNode*> objects;

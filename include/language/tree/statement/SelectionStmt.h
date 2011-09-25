@@ -52,6 +52,14 @@ struct Selection : ContextHub<ContextOwnership::transfer>
 		return true;
 	}
 
+    bool replaceUseWith(const ASTNode& from, const ASTNode& to)
+    {
+    	BEGIN_REPLACE()
+		REPLACE_USE_WITH(cond)
+		REPLACE_USE_WITH(block)
+    	END_REPLACE()
+    }
+
 	Expression* cond;
 	ASTNode* block;
 };
@@ -66,6 +74,12 @@ struct SelectionStmt : public Statement
 		BEGIN_COMPARE_WITH_BASE(Statement)
 		END_COMPARE()
 	}
+
+    bool replaceUseWith(const ASTNode& from, const ASTNode& to)
+    {
+    	BEGIN_REPLACE_WITH_BASE(Statement)
+    	END_REPLACE()
+    }
 };
 
 struct IfElseStmt : public SelectionStmt
@@ -109,6 +123,15 @@ struct IfElseStmt : public SelectionStmt
 		END_COMPARE()
 	}
 
+    virtual bool replaceUseWith(const ASTNode& from, const ASTNode& to)
+    {
+    	BEGIN_REPLACE_WITH_BASE(SelectionStmt)
+		REPLACE_USE_WITH(if_branch)
+		REPLACE_USE_WITH(elseif_branches)
+		REPLACE_USE_WITH(else_block)
+    	END_REPLACE()
+    }
+
 	Selection if_branch;
 	std::vector<Selection> elseif_branches;
 	ASTNode* else_block;
@@ -150,6 +173,15 @@ struct SwitchStmt : public SelectionStmt
 		COMPARE_MEMBER(default_block);
 		END_COMPARE()
 	}
+
+    virtual bool replaceUseWith(const ASTNode& from, const ASTNode& to)
+    {
+    	BEGIN_REPLACE_WITH_BASE(SelectionStmt)
+		REPLACE_USE_WITH(node)
+		REPLACE_USE_WITH(cases)
+		REPLACE_USE_WITH(default_block)
+    	END_REPLACE()
+    }
 
 	Expression* node;
 	std::vector<Selection> cases;

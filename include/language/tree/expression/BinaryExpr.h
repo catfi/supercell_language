@@ -218,6 +218,14 @@ struct BinaryExpr : public Expression
 		END_COMPARE()
     }
 
+    virtual bool replaceUseWith(const ASTNode& from, const ASTNode& to)
+    {
+    	BEGIN_REPLACE_WITH_BASE(Expression)
+		REPLACE_USE_WITH(left)
+		REPLACE_USE_WITH(right)
+    	END_REPLACE()
+    }
+
 	OpCode::type opcode;
 	Expression* left;
 	Expression* right;

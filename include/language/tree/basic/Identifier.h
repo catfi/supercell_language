@@ -46,6 +46,11 @@ struct Identifier : public ASTNode
     {
         return true;
     }
+
+    virtual bool replaceUseWith(const ASTNode& from, const ASTNode& to)
+    {
+    	return false;
+    }
 };
 
 struct SimpleIdentifier : public Identifier
@@ -78,6 +83,13 @@ struct SimpleIdentifier : public Identifier
     	BEGIN_COMPARE_WITH_BASE(Identifier)
 		COMPARE_MEMBER(name)
 		END_COMPARE()
+    }
+
+    virtual bool replaceUseWith(const ASTNode& from, const ASTNode& to)
+    {
+    	BEGIN_REPLACE_WITH_BASE(Identifier)
+    	REPLACE_USE_WITH(name)
+    	END_REPLACE()
     }
 
 	const std::wstring name;
@@ -131,6 +143,13 @@ struct NestedIdentifier : public Identifier
     	BEGIN_COMPARE_WITH_BASE(Identifier)
 		COMPARE_MEMBER(identifier_list)
     	END_COMPARE()
+    }
+
+    virtual bool replaceUseWith(const ASTNode& from, const ASTNode& to)
+    {
+    	BEGIN_REPLACE_WITH_BASE(Identifier)
+    	REPLACE_USE_WITH(identifier_list)
+    	END_REPLACE()
     }
 
 	std::vector<Identifier*> identifier_list;
@@ -229,6 +248,15 @@ struct TemplatedIdentifier : public Identifier
 		COMPARE_MEMBER(id)
 		COMPARE_MEMBER(templated_type_list)
 		END_COMPARE()
+    }
+
+    virtual bool replaceUseWith(const ASTNode& from, const ASTNode& to)
+    {
+    	BEGIN_REPLACE_WITH_BASE(Identifier)
+    	REPLACE_USE_WITH(type)
+    	REPLACE_USE_WITH(id)
+    	REPLACE_USE_WITH(templated_type_list)
+    	END_REPLACE()
     }
 
 	Usage::type type;

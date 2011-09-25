@@ -101,6 +101,13 @@ struct UnaryExpr : public Expression
 		END_COMPARE()
     }
 
+    virtual bool replaceUseWith(const ASTNode& from, const ASTNode& to)
+    {
+    	BEGIN_REPLACE_WITH_BASE(Expression)
+		REPLACE_USE_WITH(node)
+    	END_REPLACE()
+    }
+
 	OpCode::type opcode;
 	ASTNode* node;
 };

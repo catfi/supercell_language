@@ -97,7 +97,7 @@ struct TypeSpecifier : public ASTNode
     {
     	BEGIN_COMPARE()
 		COMPARE_MEMBER(type)
-        switch(p->type)
+        switch(type)
         {
         case TypeSpecifier::ReferredType::FUNCTION_TYPE  : COMPARE_MEMBER(referred.function_type )             ; break;
         case TypeSpecifier::ReferredType::PRIMITIVE      : if(referred.primitive != p->referred.primitive) return false; break;
@@ -106,6 +106,19 @@ struct TypeSpecifier : public ASTNode
         }
         END_COMPARE()
     }
+
+    virtual bool replaceUseWith(const ASTNode& from, const ASTNode& to)
+    {
+    	BEGIN_REPLACE()
+		switch(type)
+		{
+		case TypeSpecifier::ReferredType::FUNCTION_TYPE: REPLACE_USE_WITH(referred.function_type); break;
+		case TypeSpecifier::ReferredType::UNSPECIFIED: REPLACE_USE_WITH(referred.unspecified); break;
+		default: break;
+		}
+    	END_REPLACE()
+    }
+
 
 	ReferredType::type type;
 

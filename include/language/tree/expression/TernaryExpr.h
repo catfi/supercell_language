@@ -59,6 +59,15 @@ struct TernaryExpr : public Expression
 		END_COMPARE()
     }
 
+    virtual bool replaceUseWith(const ASTNode& from, const ASTNode& to)
+    {
+    	BEGIN_REPLACE_WITH_BASE(Expression)
+		REPLACE_USE_WITH(cond)
+		REPLACE_USE_WITH(true_node)
+		REPLACE_USE_WITH(false_node)
+    	END_REPLACE()
+    }
+
 	Expression* cond;
 	Expression* true_node;
 	Expression* false_node;

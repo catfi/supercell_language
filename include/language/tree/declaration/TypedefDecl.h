@@ -46,6 +46,13 @@ struct TypedefDecl : public Declaration
 		END_COMPARE()
     }
 
+    virtual bool replaceUseWith(const ASTNode& from, const ASTNode& to)
+    {
+    	BEGIN_REPLACE_WITH_BASE(Declaration)
+		REPLACE_USE_WITH(type)
+    	END_REPLACE()
+    }
+
 	TypeSpecifier* type;
 };
 

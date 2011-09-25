@@ -97,8 +97,22 @@ struct PrimaryExpr : public Expression
         case Catagory::IDENTIFIER: COMPARE_MEMBER(value.identifier); break;
         case Catagory::LITERAL   : COMPARE_MEMBER(value.literal   ); break;
 		case Catagory::LAMBDA    : COMPARE_MEMBER(value.lambda    ); break;
+		default: break;
         }
     	END_COMPARE()
+    }
+
+    virtual bool replaceUseWith(const ASTNode& from, const ASTNode& to)
+    {
+    	BEGIN_REPLACE_WITH_BASE(Expression)
+		switch (catagory)
+		{
+		case Catagory::IDENTIFIER: REPLACE_USE_WITH(value.identifier); break;
+		case Catagory::LITERAL: REPLACE_USE_WITH(value.literal); break;
+		case Catagory::LAMBDA: REPLACE_USE_WITH(value.lambda); break;
+		default: break;
+		}
+    	END_REPLACE()
     }
 
 	Catagory::type catagory;

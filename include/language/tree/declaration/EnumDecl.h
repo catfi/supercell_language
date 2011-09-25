@@ -55,6 +55,13 @@ struct EnumDecl : public Declaration
 		END_COMPARE()
     }
 
+    virtual bool replaceUseWith(const ASTNode& from, const ASTNode& to)
+    {
+    	BEGIN_REPLACE_WITH_BASE(Declaration)
+		REPLACE_USE_WITH(enumeration_list)
+    	END_REPLACE()
+    }
+
 	std::vector<std::pair<SimpleIdentifier*, Expression*>> enumeration_list;
 };
 
