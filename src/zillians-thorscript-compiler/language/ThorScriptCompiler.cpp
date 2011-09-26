@@ -57,6 +57,15 @@ ThorScriptCompiler::ThorScriptCompiler()
 
 	addMode<
 		boost::mpl::vector<
+			ThorScriptParserStage>>("mode-dump-parse", "for parse stage");
+
+	addMode<
+		boost::mpl::vector<
+			ThorScriptParserStage,
+			TreeDebugStage>>("mode-dump-ast", "for AST stage");
+
+	addMode<
+		boost::mpl::vector<
 			ThorScriptParserStage,
 			TreeDebugStage,
 			SemanticVerificationStage0,

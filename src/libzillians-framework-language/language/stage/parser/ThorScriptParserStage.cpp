@@ -70,16 +70,16 @@ std::pair<shared_ptr<po::options_description>, shared_ptr<po::options_descriptio
 	foreach(i, option_desc_public->options()) option_desc_private->add(*i);
 
 	option_desc_private->add_options()
-		("dump-parse",                                     "dump parse for debugging purpose")
-		("use-relative-path",                              "use relative file path instead of absolute path (for debugging info generation)");
+		("dump-parse",        "dump parse for debugging purpose")
+		("use-relative-path", "use relative file path instead of absolute path (for debugging info generation)");
 
 	return std::make_pair(option_desc_public, option_desc_private);
 }
 
 bool ThorScriptParserStage::parseOptions(po::variables_map& vm)
 {
-	dump_parse          = (vm.count("dump-parse") > 0);
-	use_relative_path   = (vm.count("use-relative-path") > 0);
+	dump_parse        = (vm.count("dump-parse") > 0);
+	use_relative_path = (vm.count("use-relative-path") > 0);
 
 	if(vm.count("input") == 0)
 		return false;
