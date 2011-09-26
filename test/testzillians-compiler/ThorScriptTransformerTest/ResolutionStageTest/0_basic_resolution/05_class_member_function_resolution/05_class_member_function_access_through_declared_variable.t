@@ -12,6 +12,5 @@ function test()
 {
 	var c:test_me;// = new test_me();
 	c.f0();
-	//c.c;
 	test_me.f0();
 }

@@ -23,6 +23,7 @@
 #include "language/ThorScriptCompiler.h"
 #include "language/stage/basic/TreeDebugStage.h"
 #include "language/stage/parser/ThorScriptParserStage.h"
+#include "language/stage/transformer/LiteralCompactionStage.h"
 #include "language/stage/transformer/ResolutionStage.h"
 #include "language/stage/transformer/ManglingStage.h"
 #include "language/stage/generator/LLVMGeneratorStage.h"
@@ -43,6 +44,7 @@ ThorScriptCompiler::ThorScriptCompiler()
 			ThorScriptParserStage,
 			TreeDebugStage,
 			SemanticVerificationStage0,
+			LiteralCompactionStage,
 			ResolutionStage,
 			SemanticVerificationStage1,
 			StaticTestVerificationStage,

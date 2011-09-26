@@ -58,6 +58,7 @@ bool LiteralCompactionStage::execute(bool& continue_execution)
 	{
 		visitor::LiteralCompactionStageVisitor compactor;
 		compactor.visit(*parser_context.program);
+		compactor.applyTransforms();
 		return true;
 	}
 	else

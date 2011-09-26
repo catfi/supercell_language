@@ -28,6 +28,7 @@
 #include "core/Visitor.h"
 #include "utility/Foreach.h"
 #include "language/tree/GarbageCollector.h"
+#include <boost/noncopyable.hpp>
 #include <boost/preprocessor.hpp>
 #include <boost/archive/text_oarchive.hpp>
 #include <boost/archive/text_iarchive.hpp>
@@ -228,7 +229,7 @@ struct MemberExpr;
 struct CallExpr;
 struct CastExpr;
 
-struct ASTNode : public VisitableBase<ASTNode>, ContextHub<ContextOwnership::transfer>
+struct ASTNode : public VisitableBase<ASTNode>, ContextHub<ContextOwnership::transfer>, boost::noncopyable
 {
 	DEFINE_VISITABLE();
 	DEFINE_HIERARCHY_BASE();

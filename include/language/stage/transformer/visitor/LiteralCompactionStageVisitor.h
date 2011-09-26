@@ -49,18 +49,27 @@ struct LiteralCompactionStageVisitor : GenericDoubleVisitor
 	void compact(Program& node)
 	{
 		program = &node;
+		revisit(node);
 	}
 
 	void compact(NumericLiteral& node)
 	{
-//		using zillians::language::stage::LogInfoContext;
-
 		bool negate = false;
-		if(node.parent && isa<UnaryExpr>(node.parent) && cast<UnaryExpr>(node.parent)->opcode == UnaryExpr::OpCode::ARITHMETIC_NEGATE)
+		UnaryExpr* negate_expr_for_negation = getOwnerUnaryExprForNegation(node);
+		if(negate_expr_for_negation)
 		{
+			BOOST_ASSERT(negate_expr_for_negation->parent && "dangling ASTNode");
+
 			negate = true;
-			// remove the regate operator by setting it to no-op
-			cast<UnaryExpr>(node.parent)->opcode = UnaryExpr::OpCode::NOOP;
+
+			// assign the negate expression to a reference so that it will can be captured by reference in the following lambda expression
+			ASTNode& pivot = *negate_expr_for_negation;
+
+			// remove the parent nagate operator as we merge the result into the literal value
+			transforms.push_back([&]{
+				pivot.parent->replaceUseWith(pivot, node);
+				LOG4CXX_DEBUG(LoggerWrapper::TransformerStage, "merge unary negate expression into literal");
+			});
 		}
 
 		if(PrimitiveType::isIntegerType(node.type))
@@ -155,7 +164,39 @@ struct LiteralCompactionStageVisitor : GenericDoubleVisitor
 		}
 	}
 
+	UnaryExpr* getOwnerUnaryExprForNegation(NumericLiteral& node)
+	{
+		if(!node.parent)
+			return NULL;
+
+		PrimaryExpr* primary_expr = cast<PrimaryExpr>(node.parent);
+		if(!primary_expr)
+			return NULL;
+
+		if(!primary_expr->parent)
+			return NULL;
+
+		UnaryExpr* unary_expr = cast<UnaryExpr>(primary_expr->parent);
+		if(!unary_expr)
+			return NULL;
+
+		if(unary_expr->opcode != UnaryExpr::OpCode::ARITHMETIC_NEGATE)
+			return NULL;
+
+		return unary_expr;
+	}
+
+	void applyTransforms()
+	{
+		foreach(i, transforms)
+		{
+			(*i)();
+		}
+		transforms.clear();
+	}
+
 	Program* program;
+	std::vector<std::function<void()>> transforms;
 };
 
 } } } }
