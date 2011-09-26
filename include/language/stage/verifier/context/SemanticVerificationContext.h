@@ -40,7 +40,7 @@ struct ASTNodeContext
 		node->set<T>(ctx);
 	}
 
-	static T* instance(tree::ASTNode* node)
+	static T* get_instance(tree::ASTNode* node)
 	{
 		T* x = get(node);
 		if(!x)

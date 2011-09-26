@@ -9,6 +9,7 @@ function f():void
         @static_test { expect_message={ level="LEVEL_WARNING", id="DEAD_CODE" } }
         var x:uint32=13;
 
+        @static_test { expect_message={ level="LEVEL_WARNING", id="DEAD_CODE" } }
         return;
     }
 
