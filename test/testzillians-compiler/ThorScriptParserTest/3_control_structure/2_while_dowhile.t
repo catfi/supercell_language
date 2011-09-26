@@ -1,6 +1,6 @@
 function f():void
 {
-    var i:uint32 = 0;
+    var i:int32 = 0;
     while(i < 13)
     {
         i = i + 1;
@@ -8,7 +8,7 @@ function f():void
         continue;
     }
 
-    var j:uint32 = 0;
+    var j:int32 = 0;
     do
     {
         j = j + 1;
