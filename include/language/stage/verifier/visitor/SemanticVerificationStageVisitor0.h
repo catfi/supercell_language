@@ -230,6 +230,17 @@ struct SemanticVerificationStageVisitor0 : GenericDoubleVisitor
 		// MISSING_STATIC_INIT
 		if(node.is_static && !node.initializer)
 			LOG_MESSAGE(MISSING_STATIC_INIT, &node);
+
+#if 0 // FIXME: should move to s1
+		// UNINIT_ARG
+		if(!node.initializer)
+		{
+			std::wstring name = node.name->toString();
+			SemanticVerificationFunctionDeclContext_UninitVarSet* owner_context =
+					SemanticVerificationFunctionDeclContext_UninitVarSet::get_instance(ASTNodeHelper::getOwnerScope(node));
+			owner_context->names.insert(name);
+		}
+#endif
 	}
 
 	void verify(FunctionDecl &node)
