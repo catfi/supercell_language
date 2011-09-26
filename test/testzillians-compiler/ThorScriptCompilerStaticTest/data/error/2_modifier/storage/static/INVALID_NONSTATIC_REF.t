@@ -1,6 +1,6 @@
 class QWE
 {
-    var x:uint32;
+    var x:int32;
 
     static function f():void
     {

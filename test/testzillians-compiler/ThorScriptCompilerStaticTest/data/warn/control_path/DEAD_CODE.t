@@ -7,16 +7,16 @@ function f():void
         }
 
         @static_test { expect_message={ level="LEVEL_WARNING", id="DEAD_CODE" } }
-        var x:uint32=13;
+        var x:int32=13;
 
         @static_test { expect_message={ level="LEVEL_WARNING", id="DEAD_CODE" } }
         return;
     }
 
-    var y:uint32=17;
+    var y:int32=17;
 
     return;
 
     @static_test { expect_message={ level="LEVEL_WARNING", id="DEAD_CODE" } }
-    var z:uint32=19;
+    var z:int32=19;
 }

@@ -1,6 +1,6 @@
 class QWE
 {
-    protected var x:uint32;
+    protected var x:int32;
 }
 
 class ASD extends QWE {}

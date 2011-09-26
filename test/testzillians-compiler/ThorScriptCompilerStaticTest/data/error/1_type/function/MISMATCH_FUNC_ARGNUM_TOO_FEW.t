@@ -1,4 +1,4 @@
-function g(a:uint32):void {}
+function g(a:int32):void {}
 
 function f():void
 {

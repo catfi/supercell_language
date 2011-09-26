@@ -1,4 +1,4 @@
-function g():uint32
+function g():int32
 {
     return 13;
 }
