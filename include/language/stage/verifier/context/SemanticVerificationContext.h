@@ -40,7 +40,7 @@ struct ASTNodeContext
 		node->set<T>(ctx);
 	}
 
-	static T* get_exist(tree::ASTNode* node)
+	static T* instance(tree::ASTNode* node)
 	{
 		T* x = get(node);
 		if(!x)
@@ -49,17 +49,13 @@ struct ASTNodeContext
 	}
 };
 
-struct SemanticVerificationScopeContext : public ASTNodeContext<SemanticVerificationScopeContext>
+struct SemanticVerificationScopeContext_NameList : public ASTNodeContext<SemanticVerificationScopeContext_NameList>
 {
 	std::set<std::wstring> names;
 };
 
-struct SemanticVerificationBlockContext : public ASTNodeContext<SemanticVerificationBlockContext>
+struct SemanticVerificationBlockContext_HasVisitedReturn : public ASTNodeContext<SemanticVerificationBlockContext_HasVisitedReturn>
 {
-	SemanticVerificationBlockContext() : has_visited_return(false)
-	{ }
-
-	bool has_visited_return;
 };
 
 } } }
