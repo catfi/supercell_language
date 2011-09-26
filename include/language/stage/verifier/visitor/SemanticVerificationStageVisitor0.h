@@ -155,9 +155,7 @@ struct SemanticVerificationStageVisitor0 : GenericDoubleVisitor
 		if(node.opcode == BranchStmt::OpCode::RETURN)
 		{
 			ASTNode* owner = ASTNodeHelper::getOwnerBlock(node);
-			SemanticVerificationBlockContext* owner_context = SemanticVerificationBlockContext::get(owner);
-			if(!owner_context)
-				SemanticVerificationBlockContext::set(owner, owner_context = new SemanticVerificationBlockContext());
+			SemanticVerificationBlockContext* owner_context = SemanticVerificationBlockContext::get_exist(owner);
 			owner_context->has_visited_return = true;
 		}
 	}
@@ -187,9 +185,7 @@ struct SemanticVerificationStageVisitor0 : GenericDoubleVisitor
 			SemanticVerificationBlockContext* context = SemanticVerificationBlockContext::get(&node);
 			if(!!context && context->has_visited_return)
 			{
-				SemanticVerificationBlockContext* owner_context = SemanticVerificationBlockContext::get(owner);
-				if(!owner_context)
-					SemanticVerificationBlockContext::set(owner, owner_context = new SemanticVerificationBlockContext());
+				SemanticVerificationBlockContext* owner_context = SemanticVerificationBlockContext::get_exist(owner);
 				owner_context->has_visited_return = true;
 			}
 		}
@@ -202,9 +198,7 @@ struct SemanticVerificationStageVisitor0 : GenericDoubleVisitor
 		ASTNode* owner = ASTNodeHelper::getOwnerScope(node);
 		if(!owner)
 			return;
-		SemanticVerificationScopeContext* owner_context = SemanticVerificationScopeContext::get(owner);
-		if(!owner_context)
-			SemanticVerificationScopeContext::set(owner, owner_context = new SemanticVerificationScopeContext());
+		SemanticVerificationScopeContext* owner_context = SemanticVerificationScopeContext::get_exist(owner);
 		if(owner_context->names.find(name) == owner_context->names.end())
 			owner_context->names.insert(name);
 		else

@@ -34,8 +34,8 @@ zillians_add_test_to_subject(SUBJECT thorscript-compiler-static-test-all TARGET 
 
 get_target_property(ThorScriptCompiler ts-compile LOCATION)
 #SET(compile_options    "--enable-static-test" "--no-llvm")
-SET(compile_options_s0 "--enable-static-test" "--mode-semantic-verify-0")
-SET(compile_options_s1 "--enable-static-test" "--mode-semantic-verify-1")
+SET(compile_options_s0 "--mode-semantic-verify-0")
+SET(compile_options_s1 "--mode-semantic-verify-1")
 #SET(compile_options_s0 "--enable-static-test" "--verify-stage-0-and-stop" "--no-llvm")
 #SET(compile_options_s1 "--enable-static-test" "--verify-stage-1-and-stop" "--no-llvm")
 
