@@ -49,14 +49,13 @@ struct ASTNodeContext
 	}
 };
 
-struct SemanticVerificationScopeContext_NameList : public ASTNodeContext<SemanticVerificationScopeContext_NameList>
+struct SemanticVerificationScopeContext_NameSet : public ASTNodeContext<SemanticVerificationScopeContext_NameSet>
 {
 	std::set<std::wstring> names;
 };
 
 struct SemanticVerificationBlockContext_HasVisitedReturn : public ASTNodeContext<SemanticVerificationBlockContext_HasVisitedReturn>
-{
-};
+{ };
 
 } } }
 

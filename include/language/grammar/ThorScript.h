@@ -611,9 +611,9 @@ struct ThorScript : qi::grammar<Iterator, typename SA::start::attribute_type, de
 		shift_expression
 			= qi::eps [ typename SA::location::cache_loc() ]
 				>>	(additive_expression
-					%	( ( RSHIFT > qi::attr(tree::BinaryExpr::OpCode::BINARY_RSHIFT) )
-//						| ( ARITHMETIC_RSHIFT > qi::attr(tree::BinaryExpr::OpCode::BINARY_RSHIFT_LOG) )
-						| ( LSHIFT > qi::attr(tree::BinaryExpr::OpCode::BINARY_LSHIFT) )
+					%	( ( RSHIFT            > qi::attr(tree::BinaryExpr::OpCode::BINARY_RSHIFT) )
+						| ( ARITHMETIC_RSHIFT > qi::attr(tree::BinaryExpr::OpCode::ARITHMETIC_RSHIFT) )
+						| ( LSHIFT            > qi::attr(tree::BinaryExpr::OpCode::BINARY_LSHIFT) )
 						) [ typename SA::left_to_right_binary_op_vec::append_op() ]
 					) [ typename SA::left_to_right_binary_op_vec::init() ]
 			;
@@ -714,18 +714,18 @@ struct ThorScript : qi::grammar<Iterator, typename SA::start::attribute_type, de
 		expression
 			= location [ typename SA::location::cache_loc() ]
 				>>	(ternary_expression
-					%	( ( ASSIGN        > qi::attr(tree::BinaryExpr::OpCode::ASSIGN) )
-						| ( RSHIFT_ASSIGN > qi::attr(tree::BinaryExpr::OpCode::RSHIFT_ASSIGN) )
-//						| ( ARITHMETIC_RSHIFT_ASSIGN > qi::attr(tree::BinaryExpr::OpCode::ARITHMETIC_RSHIFT_ASSIGN) )
-						| ( LSHIFT_ASSIGN > qi::attr(tree::BinaryExpr::OpCode::LSHIFT_ASSIGN) )
-						| ( PLUS_ASSIGN   > qi::attr(tree::BinaryExpr::OpCode::ADD_ASSIGN) )
-						| ( MINUS_ASSIGN  > qi::attr(tree::BinaryExpr::OpCode::SUB_ASSIGN) )
-						| ( MUL_ASSIGN    > qi::attr(tree::BinaryExpr::OpCode::MUL_ASSIGN) )
-						| ( DIV_ASSIGN    > qi::attr(tree::BinaryExpr::OpCode::DIV_ASSIGN) )
-						| ( MOD_ASSIGN    > qi::attr(tree::BinaryExpr::OpCode::MOD_ASSIGN) )
-						| ( AND_ASSIGN    > qi::attr(tree::BinaryExpr::OpCode::AND_ASSIGN) )
-						| ( OR_ASSIGN     > qi::attr(tree::BinaryExpr::OpCode::OR_ASSIGN) )
-						| ( XOR_ASSIGN    > qi::attr(tree::BinaryExpr::OpCode::XOR_ASSIGN) )
+					%	( ( ASSIGN                   > qi::attr(tree::BinaryExpr::OpCode::ASSIGN) )
+						| ( RSHIFT_ASSIGN            > qi::attr(tree::BinaryExpr::OpCode::RSHIFT_ASSIGN) )
+						| ( ARITHMETIC_RSHIFT_ASSIGN > qi::attr(tree::BinaryExpr::OpCode::ARITHMETIC_RSHIFT_ASSIGN) )
+						| ( LSHIFT_ASSIGN            > qi::attr(tree::BinaryExpr::OpCode::LSHIFT_ASSIGN) )
+						| ( PLUS_ASSIGN              > qi::attr(tree::BinaryExpr::OpCode::ADD_ASSIGN) )
+						| ( MINUS_ASSIGN             > qi::attr(tree::BinaryExpr::OpCode::SUB_ASSIGN) )
+						| ( MUL_ASSIGN               > qi::attr(tree::BinaryExpr::OpCode::MUL_ASSIGN) )
+						| ( DIV_ASSIGN               > qi::attr(tree::BinaryExpr::OpCode::DIV_ASSIGN) )
+						| ( MOD_ASSIGN               > qi::attr(tree::BinaryExpr::OpCode::MOD_ASSIGN) )
+						| ( AND_ASSIGN               > qi::attr(tree::BinaryExpr::OpCode::AND_ASSIGN) )
+						| ( OR_ASSIGN                > qi::attr(tree::BinaryExpr::OpCode::OR_ASSIGN) )
+						| ( XOR_ASSIGN               > qi::attr(tree::BinaryExpr::OpCode::XOR_ASSIGN) )
 						) [ typename SA::right_to_left_binary_op_vec::append_op() ]
 					) [ typename SA::right_to_left_binary_op_vec::init() ]
 			;
