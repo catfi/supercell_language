@@ -32,42 +32,28 @@ struct PrimitiveType
 
 		BOOL               = 1,
 
-		UINT8              = 2,
-		UINT16             = 3,
-		UINT32             = 4,
-		UINT64             = 5,
+		INT8               = 2,
+		INT16              = 3,
+		INT32              = 4,
+		INT64              = 5,
+		INT128             = 6,
 
-		INT8               = 6,
-		INT16              = 7,
-		INT32              = 8,
-		INT64              = 9,
+		FLOAT32            = 7,
+		FLOAT64            = 8,
 
-		FLOAT32            = 10,
-		FLOAT64            = 11,
-
-		ANONYMOUS_OBJECT   = 12,
-		ANONYMOUS_FUNCTION = 13,
-		VARIADIC_ELLIPSIS  = 14,
+		ANONYMOUS_OBJECT   = 9,
+		ANONYMOUS_FUNCTION = 10,
+		VARIADIC_ELLIPSIS  = 11,
 	};
 
 	static bool isIntegerType(type t)
 	{
-		return (t >= BOOL && t <= INT64);
-	}
-
-	static bool isSignedIntegerType(type t)
-	{
-		return (t >= INT8 && t <= INT64);
-	}
-
-	static bool isUnsignedIntegerType(type t)
-	{
-		return (t >= BOOL && t <= UINT64);
+		return (t >= BOOL && t <= INT128);
 	}
 
 	static bool isArithmeticCapable(type t)
 	{
-		return (t >= UINT8 && t <= FLOAT64);
+		return (t >= INT8 && t <= FLOAT64);
 	}
 
 	static bool isFloatType(type t)
@@ -95,14 +81,9 @@ struct PrimitiveType
 		}
 		else
 		{
-			// all integer, we should find the largest integer representation that can contain both t0 and t1
-			bool promote_to_sign = (isSignedIntegerType(t0) || isSignedIntegerType(t1));
-
-			// if either t0 or t1 is signed integer, the result must be signed integer
 			int minimal_bit_size_t0;
 			{
-				if(isSignedIntegerType(t0)) minimal_bit_size_t0 = (int)t0 - (int)INT8;
-				else                        minimal_bit_size_t0 = (int)t0 - (int)UINT8 + ((promote_to_sign) ? 1 : 0);
+				minimal_bit_size_t0 = (int)t0 - (int)INT8;
 
 				if(minimal_bit_size_t0 >= 4)
 				{
@@ -113,8 +94,7 @@ struct PrimitiveType
 			}
 			int minimal_bit_size_t1;
 			{
-				if(isSignedIntegerType(t1)) minimal_bit_size_t1 = (int)t1 - (int)INT8;
-				else                        minimal_bit_size_t1 = (int)t1 - (int)UINT8 + ((promote_to_sign) ? 1 : 0);
+				minimal_bit_size_t1 = (int)t1 - (int)INT8;
 
 				if(minimal_bit_size_t1 >= 4)
 				{
@@ -124,10 +104,7 @@ struct PrimitiveType
 				}
 			}
 
-			if(promote_to_sign)
-				result = (type)((int)INT8 + std::max(minimal_bit_size_t0, minimal_bit_size_t1));
-			else
-				result = (type)((int)UINT8 + std::max(minimal_bit_size_t0, minimal_bit_size_t1));
+			result = (type)((int)INT8 + std::max(minimal_bit_size_t0, minimal_bit_size_t1));
 		}
 
 		return result;
@@ -143,10 +120,7 @@ struct PrimitiveType
 		case INT16: return L"int16";
 		case INT32: return L"int32";
 		case INT64: return L"int64";
-		case UINT8:  return L"uint8";
-		case UINT16: return L"uint16";
-		case UINT32: return L"uint32";
-		case UINT64: return L"uint64";
+		case INT128: return L"int128";
 		case FLOAT32: return L"float32";
 		case FLOAT64: return L"float64";
 		case ANONYMOUS_OBJECT: return L"object";

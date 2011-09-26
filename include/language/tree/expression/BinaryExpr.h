@@ -35,8 +35,8 @@ struct BinaryExpr : public Expression
 	struct OpCode
 	{
 		enum type {
-			ASSIGN, RSHIFT_ASSIGN, LSHIFT_ASSIGN, ADD_ASSIGN, SUB_ASSIGN, MUL_ASSIGN, DIV_ASSIGN, MOD_ASSIGN, AND_ASSIGN, OR_ASSIGN, XOR_ASSIGN,
-			ARITHMETIC_ADD, ARITHMETIC_SUB, ARITHMETIC_MUL, ARITHMETIC_DIV, ARITHMETIC_MOD,
+			ASSIGN, RSHIFT_ASSIGN, LSHIFT_ASSIGN, ARITHMETIC_RSHIFT_ASSIGN, ADD_ASSIGN, SUB_ASSIGN, MUL_ASSIGN, DIV_ASSIGN, MOD_ASSIGN, AND_ASSIGN, OR_ASSIGN, XOR_ASSIGN,
+			ARITHMETIC_ADD, ARITHMETIC_SUB, ARITHMETIC_MUL, ARITHMETIC_DIV, ARITHMETIC_MOD, ARITHMETIC_RSHIFT,
 			BINARY_AND, BINARY_OR, BINARY_XOR, BINARY_LSHIFT, BINARY_RSHIFT,
 			LOGICAL_AND, LOGICAL_OR,
 			INSTANCEOF,
@@ -52,6 +52,7 @@ struct BinaryExpr : public Expression
 			case ASSIGN: return L"=";
 			case RSHIFT_ASSIGN: return L">>=";
 			case LSHIFT_ASSIGN: return L"<<=";
+			case ARITHMETIC_RSHIFT_ASSIGN: return L">>>=";
 			case ADD_ASSIGN: return L"+=";
 			case SUB_ASSIGN: return L"-=";
 			case MUL_ASSIGN: return L"*=";
@@ -65,6 +66,7 @@ struct BinaryExpr : public Expression
 			case ARITHMETIC_MUL: return L"*";
 			case ARITHMETIC_DIV: return L"/";
 			case ARITHMETIC_MOD: return L"%";
+			case ARITHMETIC_RSHIFT: return L">>>";
 			case BINARY_AND: return L"&";
 			case BINARY_OR: return L"|";
 			case BINARY_XOR: return L"^";
@@ -105,7 +107,8 @@ struct BinaryExpr : public Expression
 			opcode == OpCode::ARITHMETIC_SUB ||
 			opcode == OpCode::ARITHMETIC_MUL ||
 			opcode == OpCode::ARITHMETIC_DIV ||
-			opcode == OpCode::ARITHMETIC_MOD )
+			opcode == OpCode::ARITHMETIC_MOD ||
+			opcode == OpCode::ARITHMETIC_RSHIFT)
 			return true;
 		else
 			return false;
@@ -116,6 +119,7 @@ struct BinaryExpr : public Expression
 		if( opcode == OpCode::ASSIGN ||
 			opcode == OpCode::RSHIFT_ASSIGN ||
 			opcode == OpCode::LSHIFT_ASSIGN ||
+			opcode == OpCode::ARITHMETIC_RSHIFT_ASSIGN ||
 			opcode == OpCode::ADD_ASSIGN ||
 			opcode == OpCode::SUB_ASSIGN ||
 			opcode == OpCode::MUL_ASSIGN ||
@@ -171,6 +175,7 @@ struct BinaryExpr : public Expression
 		case OpCode::ASSIGN:
 		case OpCode::RSHIFT_ASSIGN:
 		case OpCode::LSHIFT_ASSIGN:
+		case OpCode::ARITHMETIC_RSHIFT_ASSIGN:
 		case OpCode::ADD_ASSIGN:
 		case OpCode::SUB_ASSIGN:
 		case OpCode::MUL_ASSIGN:
@@ -186,6 +191,7 @@ struct BinaryExpr : public Expression
 		case OpCode::ARITHMETIC_MUL:
 		case OpCode::ARITHMETIC_DIV:
 		case OpCode::ARITHMETIC_MOD:
+		case OpCode::ARITHMETIC_RSHIFT:
 		case OpCode::BINARY_AND:
 		case OpCode::BINARY_OR:
 		case OpCode::BINARY_XOR:

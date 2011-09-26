@@ -113,10 +113,6 @@ struct GenericDoubleVisitor : Visitor<ASTNode, void, VisitorImplementation::recu
 		{
 			if(node.VoidTy)     user_visitor->visit(*node.VoidTy);
 			if(node.BooleanTy)  user_visitor->visit(*node.BooleanTy);
-			if(node.UInt8Ty)    user_visitor->visit(*node.UInt8Ty);
-			if(node.UInt16Ty)   user_visitor->visit(*node.UInt16Ty);
-			if(node.UInt32Ty)   user_visitor->visit(*node.UInt32Ty);
-			if(node.UInt64Ty)   user_visitor->visit(*node.UInt64Ty);
 			if(node.Int8Ty)     user_visitor->visit(*node.Int8Ty);
 			if(node.Int16Ty)    user_visitor->visit(*node.Int16Ty);
 			if(node.Int32Ty)    user_visitor->visit(*node.Int32Ty);

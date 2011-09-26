@@ -130,7 +130,7 @@ struct PrettyPrintVisitor : Visitor<const ASTNode, void>
 
 	void print(const NumericLiteral& node)
 	{
-		STREAM << L"<numeric_literal type=\"" << PrimitiveType::toString(node.type) << L"\" value=\"" << node.value.u64 << "\">" << std::endl;
+		STREAM << L"<numeric_literal type=\"" << PrimitiveType::toString(node.type) << L"\" value=\"" << node.value.raw << "\">" << std::endl;
 		{
 			printSourceInfo(node);
 		}

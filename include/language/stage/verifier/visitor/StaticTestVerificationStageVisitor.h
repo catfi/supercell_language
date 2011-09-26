@@ -119,14 +119,10 @@ private:
             switch(numericLiteral->type)
             {
             case PrimitiveType::type::BOOL    : oss << numericLiteral->value.b  ; break;
-            case PrimitiveType::type::UINT8   : oss << numericLiteral->value.i8 ; break;
-            case PrimitiveType::type::UINT16  : oss << numericLiteral->value.i16; break;
-            case PrimitiveType::type::UINT32  : oss << numericLiteral->value.i32; break;
-            case PrimitiveType::type::UINT64  : oss << numericLiteral->value.i64; break;
-            case PrimitiveType::type::INT8    : oss << numericLiteral->value.u8 ; break;
-            case PrimitiveType::type::INT16   : oss << numericLiteral->value.u16; break;
-            case PrimitiveType::type::INT32   : oss << numericLiteral->value.u32; break;
-            case PrimitiveType::type::INT64   : oss << numericLiteral->value.u64; break;
+            case PrimitiveType::type::INT8    : oss << numericLiteral->value.i8 ; break;
+            case PrimitiveType::type::INT16   : oss << numericLiteral->value.i16; break;
+            case PrimitiveType::type::INT32   : oss << numericLiteral->value.i32; break;
+            case PrimitiveType::type::INT64   : oss << numericLiteral->value.i64; break;
             case PrimitiveType::type::FLOAT32 : oss << numericLiteral->value.f32; break;
             case PrimitiveType::type::FLOAT64 : oss << numericLiteral->value.f64; break;
             default: break;

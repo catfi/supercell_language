@@ -306,22 +306,28 @@ private:
 		switch (type)
 		{
 		case PrimitiveType::VOID: break;
-		case PrimitiveType::INT8: break;
-		case PrimitiveType::INT16: break;
-		case PrimitiveType::INT32: break;
-		case PrimitiveType::INT64: break;
-		case PrimitiveType::UINT8: break;
-		case PrimitiveType::UINT16: break;
-		case PrimitiveType::UINT32:
+		case PrimitiveType::INT8:
 		{
-			bits = 32; alignment = 32;
-			encoding = llvm::dwarf::DW_ATE_unsigned;
+			bits = 8; alignment = 8;
+			encoding = llvm::dwarf::DW_ATE_signed;
 			break;
 		}
-		case PrimitiveType::UINT64:
+		case PrimitiveType::INT16:
+		{
+			bits = 16; alignment = 16;
+			encoding = llvm::dwarf::DW_ATE_signed;
+			break;
+		}
+		case PrimitiveType::INT32:
+		{
+			bits = 32; alignment = 32;
+			encoding = llvm::dwarf::DW_ATE_signed;
+			break;
+		}
+		case PrimitiveType::INT64:
 		{
 			bits = 64; alignment = 64;
-			encoding = llvm::dwarf::DW_ATE_unsigned;
+			encoding = llvm::dwarf::DW_ATE_signed;
 			break;
 		}
 		case PrimitiveType::FLOAT32: break;

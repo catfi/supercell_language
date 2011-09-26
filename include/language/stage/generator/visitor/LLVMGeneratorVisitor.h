@@ -80,11 +80,22 @@ struct LLVMGeneratorVisitor : GenericDoubleVisitor
 		llvm::Value* result = NULL;
 		switch(node.type)
 		{
+		case PrimitiveType::BOOL:
+			result = llvm::ConstantInt::get(llvm::IntegerType::getInt1Ty(mContext), node.value.b, false); break;
+		case PrimitiveType::INT8:
+			result = llvm::ConstantInt::get(llvm::IntegerType::getInt8Ty(mContext), node.value.i8, false); break;
+		case PrimitiveType::INT16:
+			result = llvm::ConstantInt::get(llvm::IntegerType::getInt16Ty(mContext), node.value.i16, false); break;
+		case PrimitiveType::INT32:
+			result = llvm::ConstantInt::get(llvm::IntegerType::getInt32Ty(mContext), node.value.i32, false); break;
 		case PrimitiveType::INT64:
-			result = llvm::ConstantInt::get(llvm::IntegerType::getInt64Ty(mContext), node.value.u64, false); break;
-		case PrimitiveType::UINT64:
-			result = llvm::ConstantInt::get(llvm::IntegerType::getInt64Ty(mContext), node.value.u64, false); break;
-		default: break;
+			result = llvm::ConstantInt::get(llvm::IntegerType::getInt64Ty(mContext), node.value.i64, false); break;
+		case PrimitiveType::FLOAT32:
+			result = llvm::ConstantInt::get(llvm::IntegerType::getFloatTy(mContext), node.value.f32, false); break;
+		case PrimitiveType::FLOAT64:
+			result = llvm::ConstantInt::get(llvm::IntegerType::getDoubleTy(mContext), node.value.f64, false); break;
+		default:
+			break;
 		}
 
 		if(!result)

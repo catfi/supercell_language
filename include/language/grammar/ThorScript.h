@@ -164,7 +164,7 @@ struct IntegerLiteral : qi::grammar<Iterator, typename SA::integer_literal::attr
 	}
 
 	DECL_RULE_LEXEME(location);
-	qi::rule<Iterator, uint64()> start;
+	qi::rule<Iterator, int64()> start;
 	DECL_RULE_LEXEME(integer_literal);
 };
 
@@ -1044,7 +1044,7 @@ struct ThorScript : qi::grammar<Iterator, typename SA::start::attribute_type, de
 	qi::rule<Iterator, detail::WhiteSpace<Iterator> >
 		_TRUE, _FALSE, _NULL, SELF, GLOBAL,
 		CONST, STATIC,
-		INT8, UINT8, INT16, UINT16, INT32, UINT32, INT64, UINT64, FLOAT32, FLOAT64, VOID,
+		INT8, INT16, INT32, INT64, FLOAT32, FLOAT64, VOID,
 		TYPEDEF, CLASS, INTERFACE, ENUM,
 		PUBLIC, PROTECTED, PRIVATE,
 		VAR, FUNCTION,
