@@ -131,6 +131,8 @@ struct SemanticVerificationStageVisitor0 : GenericDoubleVisitor
 
 	// CHECKS IN SEMANTIC VERIFICATION STAGE 0
 
+	// ERRORS:
+	// ====================================
 	// INCOMPLETE_FUNC
 	// DUPE_NAME
 	// WRITE_RVALUE
@@ -143,12 +145,17 @@ struct SemanticVerificationStageVisitor0 : GenericDoubleVisitor
 	// EXCEED_PARAM_LIMIT
 	// EXCEED_TEMPLATE_PARAM_LIMIT
 
+	// WARNINGS:
+	// ====================================
+	// UNINIT_ARG
+	// DEAD_CODE
+
 	void verify_DUPE_NAME(Declaration &node)
 	{
 		// DUPE_NAME
 		std::wstring name = node.name->toString();
 		SemanticVerificationScopeContext_NameList* owner_context =
-				SemanticVerificationScopeContext_NameList::instance(ASTNodeHelper::getOwnerScope(node));
+				SemanticVerificationScopeContext_NameList::get_instance(ASTNodeHelper::getOwnerScope(node));
 		if(owner_context->names.find(name) == owner_context->names.end())
 			owner_context->names.insert(name);
 		else
@@ -159,6 +166,14 @@ struct SemanticVerificationStageVisitor0 : GenericDoubleVisitor
 			else
 				LOG_MESSAGE(DUPE_NAME, &node, _id = name);
 		}
+	}
+
+	void verify_DEAD_CODE(Statement &node)
+	{
+		// DEAD_CODE
+		ASTNode* owner = node.parent;
+		if(isa<Block>(owner) && !!SemanticVerificationBlockContext_HasVisitedReturn::get(owner))
+			LOG_MESSAGE(DEAD_CODE, &node);
 	}
 
 	void verify(BinaryExpr &node)
@@ -180,16 +195,15 @@ struct SemanticVerificationStageVisitor0 : GenericDoubleVisitor
 			}
 
 		// DEAD_CODE
+		verify_DEAD_CODE(node);
 		if(node.opcode == BranchStmt::OpCode::RETURN)
-			SemanticVerificationBlockContext_HasVisitedReturn::instance(ASTNodeHelper::getOwnerBlock(node));
+			SemanticVerificationBlockContext_HasVisitedReturn::get_instance(ASTNodeHelper::getOwnerBlock(node));
 	}
 
 	void verify(Statement &node)
 	{
 		// DEAD_CODE
-		ASTNode* owner = node.parent;
-		if(isa<Block>(owner) && !!SemanticVerificationBlockContext_HasVisitedReturn::get(owner))
-			LOG_MESSAGE(DEAD_CODE, &node);
+		verify_DEAD_CODE(node);
 
 		revisit(node);
 	}
@@ -201,7 +215,7 @@ struct SemanticVerificationStageVisitor0 : GenericDoubleVisitor
 		// DEAD_CODE
 		ASTNode* owner = node.parent;
 		if(!isa<SelectionStmt>(owner) && !!SemanticVerificationBlockContext_HasVisitedReturn::get(&node))
-			SemanticVerificationBlockContext_HasVisitedReturn::instance(owner);
+			SemanticVerificationBlockContext_HasVisitedReturn::get_instance(owner);
 	}
 
 	void verify(Declaration &node)
