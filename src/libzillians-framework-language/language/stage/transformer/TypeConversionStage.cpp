@@ -17,27 +17,38 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef ZILLIANS_LANGUAGE_STAGE_TRANSFORMER_TYPEINFERENCESTAGE_H_
-#define ZILLIANS_LANGUAGE_STAGE_TRANSFORMER_TYPEINFERENCESTAGE_H_
-
-#include "language/stage/Stage.h"
-#include "language/resolver/Resolver.h"
+#include "language/stage/transformer/TypeConversionStage.h"
+#include "language/context/ParserContext.h"
 
 namespace zillians { namespace language { namespace stage {
 
-class TypeInferenceStage : public Stage
-{
-public:
-	TypeInferenceStage();
-	virtual ~TypeInferenceStage();
+TypeConversionStage::TypeConversionStage()
+{ }
 
-public:
-	virtual const char* name();
-	virtual std::pair<shared_ptr<po::options_description>, shared_ptr<po::options_description>> getOptions();
-	virtual bool parseOptions(po::variables_map& vm);
-	virtual bool execute(bool& continue_execution);
-};
+TypeConversionStage::~TypeConversionStage()
+{ }
+
+const char* TypeConversionStage::name()
+{
+	return "Type Conversion Stage";
+}
+
+std::pair<shared_ptr<po::options_description>, shared_ptr<po::options_description>> TypeConversionStage::getOptions()
+{
+	shared_ptr<po::options_description> option_desc_public(new po::options_description());
+	shared_ptr<po::options_description> option_desc_private(new po::options_description());
+
+	return std::make_pair(option_desc_public, option_desc_private);
+}
+
+bool TypeConversionStage::parseOptions(po::variables_map& vm)
+{
+	return true;
+}
+
+bool TypeConversionStage::execute(bool& continue_execution)
+{
+	return true;
+}
 
 } } }
-
-#endif /* ZILLIANS_LANGUAGE_STAGE_TRANSFORMER_TYPEINFERENCESTAGE_H_ */

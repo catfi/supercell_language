@@ -17,19 +17,19 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef ZILLIANS_LANGUAGE_STAGE_TRANSFORMER_TYPESYNTHESISSTAGE_H_
-#define ZILLIANS_LANGUAGE_STAGE_TRANSFORMER_TYPESYNTHESISSTAGE_H_
+#ifndef ZILLIANS_LANGUAGE_STAGE_TRANSFORMER_TYPECONVERSIONSTAGE_H_
+#define ZILLIANS_LANGUAGE_STAGE_TRANSFORMER_TYPECONVERSIONSTAGE_H_
 
 #include "language/stage/Stage.h"
 #include "language/resolver/Resolver.h"
 
 namespace zillians { namespace language { namespace stage {
 
-class TypeSynthesisStage : public Stage
+class TypeConversionStage : public Stage
 {
 public:
-	TypeSynthesisStage();
-	virtual ~TypeSynthesisStage();
+	TypeConversionStage();
+	virtual ~TypeConversionStage();
 
 public:
 	virtual const char* name();
@@ -40,4 +40,4 @@ public:
 
 } } }
 
-#endif /* ZILLIANS_LANGUAGE_STAGE_TRANSFORMER_TYPESYNTHESISSTAGE_H_ */
+#endif /* ZILLIANS_LANGUAGE_STAGE_TRANSFORMER_TYPECONVERSIONSTAGE_H_ */

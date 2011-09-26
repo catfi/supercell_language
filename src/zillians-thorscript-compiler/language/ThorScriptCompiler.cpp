@@ -26,6 +26,7 @@
 #include "language/stage/transformer/LiteralCompactionStage.h"
 #include "language/stage/transformer/ResolutionStage.h"
 #include "language/stage/transformer/ManglingStage.h"
+#include "language/stage/transformer/TypeConversionStage.h"
 #include "language/stage/generator/LLVMGeneratorStage.h"
 #include "language/stage/generator/LLVMDebugInfoGeneratorStage.h"
 #include "language/stage/generator/LLVMBitCodeGeneratorStage.h"
@@ -46,6 +47,7 @@ ThorScriptCompiler::ThorScriptCompiler()
 			SemanticVerificationStage0,
 			LiteralCompactionStage,
 			ResolutionStage,
+			TypeConversionStage,
 			SemanticVerificationStage1,
 			StaticTestVerificationStage,
 			ManglingStage,

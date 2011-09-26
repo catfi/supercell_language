@@ -51,7 +51,7 @@ static void expand_tabs(const std::wstring& input, std::wstring& output, int num
 
 }
 
-ThorScriptParserStage::ThorScriptParserStage() : dump_parse(false), dump_parse_and_stop(false), skip_parse(false), use_relative_path(false)
+ThorScriptParserStage::ThorScriptParserStage() : dump_parse(false), use_relative_path(false)
 { }
 
 ThorScriptParserStage::~ThorScriptParserStage()
@@ -71,8 +71,6 @@ std::pair<shared_ptr<po::options_description>, shared_ptr<po::options_descriptio
 
 	option_desc_private->add_options()
 		("dump-parse",                                     "dump parse for debugging purpose")
-		("dump-parse-and-stop",                            "dump parse for debugging purpose and stop processing")
-		("skip-parse",                                     "skip parsing stage and use provided parser context")
 		("use-relative-path",                              "use relative file path instead of absolute path (for debugging info generation)");
 
 	return std::make_pair(option_desc_public, option_desc_private);
@@ -81,24 +79,17 @@ std::pair<shared_ptr<po::options_description>, shared_ptr<po::options_descriptio
 bool ThorScriptParserStage::parseOptions(po::variables_map& vm)
 {
 	dump_parse          = (vm.count("dump-parse") > 0);
-	dump_parse_and_stop = (vm.count("dump-parse-and-stop") > 0);
-	skip_parse          = (vm.count("skip-parse") > 0);
 	use_relative_path   = (vm.count("use-relative-path") > 0);
 
 	if(vm.count("input") == 0)
 		return false;
 
 	inputs = vm["input"].as<std::vector<std::string>>();
-	dump_parse |= dump_parse_and_stop;
 	return true;
 }
 
 bool ThorScriptParserStage::execute(bool& continue_execution)
 {
-	continue_execution = !dump_parse_and_stop;
-	if(skip_parse)
-		return true;
-
 	// prepare the global parser context
 	setParserContext(new ParserContext());
 
