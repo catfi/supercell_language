@@ -71,20 +71,34 @@ struct SemanticVerificationStageVisitor1 : GenericDoubleVisitor
 		revisit(node);
 	}
 
-	void verify(MemberExpr &node)
+	void verify_UNINIT_ARG(ASTNode &node)
 	{
 		// UNINIT_ARG
-		VariableDecl* var_decl = cast<VariableDecl>(ResolvedSymbol::get(node.node));
-		std::wstring name = var_decl->name->toString();
-		SemanticVerificationFunctionDeclContext_UninitVarSet* owner_context =
-				SemanticVerificationFunctionDeclContext_UninitVarSet::get_instance(ASTNodeHelper::getOwnerFunction(node));
-		if(owner_context->names.find(name) != owner_context->names.end())
-			LOG_MESSAGE(UNINIT_ARG, ASTNodeHelper::getNearestAnnotatableOwner(node), _var_id = name);
+		ASTNode* decl = ResolvedSymbol::get(&node);
+		if(isa<VariableDecl>(decl) && ASTNodeHelper::isOwnedByFunction(node))
+		{
+			VariableDecl* var_decl = cast<VariableDecl>(decl);
+			std::wstring name = var_decl->name->toString();
+			SemanticVerificationFunctionDeclContext_UninitVarSet* owner_context =
+					SemanticVerificationFunctionDeclContext_UninitVarSet::get_instance(ASTNodeHelper::getOwnerFunction(node));
+			if(owner_context->names.find(name) != owner_context->names.end())
+				LOG_MESSAGE(UNINIT_ARG, ASTNodeHelper::getNearestAnnotatableOwner(node), _var_id = name);
+		}
 	}
 
 	void verify(PrimaryExpr &node)
 	{
-		// TODO: impl me
+		// UNINIT_ARG
+		if(!ASTNodeHelper::isOwnedByAnnotation(node))
+			verify_UNINIT_ARG(node);
+	}
+
+	void verify(MemberExpr &node)
+	{
+		// UNINIT_ARG
+		verify_UNINIT_ARG(*node.node);
+
+		revisit(node);
 	}
 
 	void verify(BinaryExpr &node)
@@ -114,6 +128,8 @@ struct SemanticVerificationStageVisitor1 : GenericDoubleVisitor
 					SemanticVerificationFunctionDeclContext_UninitVarSet::get_instance(ASTNodeHelper::getOwnerFunction(node));
 			owner_context->names.insert(node.name->toString());
 		}
+
+		revisit(node);
 	}
 };
 

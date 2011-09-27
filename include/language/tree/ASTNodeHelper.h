@@ -50,6 +50,29 @@ struct ASTNodeHelper
 		return (getOwnerIterativeStmt(node) != NULL);
 	}
 
+	static SelectionStmt* getOwnerSelectionStmt(ASTNode& node)
+	{
+		if(!node.parent)
+			return NULL;
+
+		ASTNode* current = node.parent;
+		while(current)
+		{
+			if(isa<FunctionDecl>(current))
+				return NULL;
+			if(isa<SelectionStmt>(current))
+				return cast<SelectionStmt>(current);
+
+			current = current->parent;
+		}
+		return NULL;
+	}
+
+	static bool isOwnedBySelectionStmt(ASTNode& node)
+	{
+		return (getOwnerSelectionStmt(node) != NULL);
+	}
+
 	static Expression* getOwnerExpression(ASTNode& node)
 	{
 		if(!node.parent)
@@ -123,6 +146,33 @@ struct ASTNodeHelper
 	static bool isOwnedByPackage(ASTNode& node)
 	{
 		return (getOwnerPackage(node) != NULL);
+	}
+
+	static Annotation* getOwnerAnnotation(ASTNode& node)
+	{
+		if(!node.parent)
+			return NULL;
+
+		ASTNode* current = node.parent;
+		while(current)
+		{
+			if(isa<Statement>(current))
+				return NULL;
+			if(isa<Declaration>(current))
+				return NULL;
+			if(isa<Package>(current))
+				return NULL;
+			if(isa<Annotation>(current))
+				return cast<Annotation>(current);
+
+			current = current->parent;
+		}
+		return NULL;
+	}
+
+	static bool isOwnedByAnnotation(ASTNode& node)
+	{
+		return (getOwnerAnnotation(node) != NULL);
 	}
 
 	static ClassDecl* getOwnerClass(ASTNode& node)
