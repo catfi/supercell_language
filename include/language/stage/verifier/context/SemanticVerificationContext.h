@@ -57,13 +57,6 @@ struct SemanticVerificationScopeContext_NameSet : public ASTNodeContext<Semantic
 struct SemanticVerificationBlockContext_HasVisitedReturn : public ASTNodeContext<SemanticVerificationBlockContext_HasVisitedReturn>
 { };
 
-#if 0 // FIXME: should move to s1
-struct SemanticVerificationFunctionDeclContext_UninitVarSet : public ASTNodeContext<SemanticVerificationFunctionDeclContext_UninitVarSet>
-{
-	std::set<std::wstring> names;
-};
-#endif
-
 } } }
 
 #endif /* ZILLIANS_LANGUAGE_STAGE_SEMANTICVERIFICATIONCONTEXT_H_ */
