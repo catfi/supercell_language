@@ -207,6 +207,24 @@ struct ASTNodeHelper
 		return (getOwnerFunction(node) != NULL);
 	}
 
+	static ASTNode* getNearestAnnotatableOwner(ASTNode& node)
+	{
+		if(!node.parent)
+			return NULL;
+
+		ASTNode* current = node.parent;
+		while(current)
+		{
+			if(isa<Statement>(current))
+				return cast<Statement>(current);
+			else if(isa<Declaration>(current))
+				return cast<Declaration>(current);
+
+			current = current->parent;
+		}
+		return NULL;
+	}
+
 	static Annotation* getAnnotationFromTag(ASTNode& node, std::wstring tag)
 	{
 		Annotations* annotations = NULL;

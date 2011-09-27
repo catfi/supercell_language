@@ -57,6 +57,11 @@ struct SemanticVerificationScopeContext_NameSet : public ASTNodeContext<Semantic
 struct SemanticVerificationBlockContext_HasVisitedReturn : public ASTNodeContext<SemanticVerificationBlockContext_HasVisitedReturn>
 { };
 
+struct SemanticVerificationFunctionDeclContext_UninitVarSet : public ASTNodeContext<SemanticVerificationFunctionDeclContext_UninitVarSet>
+{
+	std::set<std::wstring> names;
+};
+
 } } }
 
 #endif /* ZILLIANS_LANGUAGE_STAGE_SEMANTICVERIFICATIONCONTEXT_H_ */

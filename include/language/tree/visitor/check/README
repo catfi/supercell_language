@@ -38,8 +38,8 @@ ERRORS:
             II.  MISMATCH_CALL_ARGNUM_TOO_MANY                          T
             III. MISMATCH_CALL_ARGNUM_TOO_FEW                           T
             IV.  MISMATCH_CALL_ARGTYPE                                  T
-            V.   UNEXPECTED_RETURN_VALUE                                        S1
-            VI.  MISSING_RETURN_VALUE                                           S1
+            V.   UNEXPECTED_RETURN_VALUE                                        S1 -- need to know func return type
+            VI.  MISSING_RETURN_VALUE                                           S1 -- need to know func return type
     E3. MODIFIER
         a. STORAGE
             I.  CONST
@@ -47,8 +47,8 @@ ERRORS:
                 ii. WRITE_CONST                                                 S1
             II. STATIC
                 i.   MISSING_STATIC_INIT                            S0
-                ii.  INVALID_NONSTATIC_CALL                                     S1
-                iii. INVALID_NONSTATIC_REF                                      S1
+                ii.  INVALID_NONSTATIC_CALL                                     S1 -- need to know if func is static
+                iii. INVALID_NONSTATIC_REF                                      S1 -- need to know if func is static
         b. VISIBILITY
             I.  INVALID_ACCESS_PRIVATE                                          S1
             II. INVALID_ACCESS_PROTECTED                                        S1
@@ -68,7 +68,7 @@ WARNINGS:
 
                                                 Undecided   Parse   S0  Xform   S1  Future
                                                 ==========================================
-    W1. MISSING_RETURN                                                          S1
+    W1. MISSING_RETURN                                                          S1 -- need to know func return type
     W2. UNINIT_ARG                                                              S1
     W3. CONTROL_PATH
         b. CONTROL_REACHES_END                                                  S1

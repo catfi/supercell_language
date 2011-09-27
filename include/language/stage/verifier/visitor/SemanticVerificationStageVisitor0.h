@@ -21,6 +21,7 @@
 #define ZILLIANS_LANGUAGE_STAGE_VISITOR_SEMANTICVERIFICATIONSTAGEVISITOR0_H_
 
 #include "core/Prerequisite.h"
+#include "language/tree/visitor/general/GenericVisitor.h"
 #include "language/tree/visitor/general/GenericDoubleVisitor.h"
 #include "language/tree/visitor/general/NameManglingVisitor.h"
 #include "language/stage/transformer/context/ManglingStageContext.h"
@@ -179,7 +180,7 @@ struct SemanticVerificationStageVisitor0 : GenericDoubleVisitor
 	{
 		// WRITE_RVALUE
 		if(node.isAssignment() && node.left->isRValue())
-			LOG_MESSAGE(WRITE_RVALUE, ASTNodeHelper::getOwnerStatement(*node.left->parent));
+			LOG_MESSAGE(WRITE_RVALUE, ASTNodeHelper::getNearestAnnotatableOwner(*node.left->parent));
 	}
 
 	void verify(BranchStmt &node)
