@@ -182,7 +182,7 @@ struct iteration_statement
 		ASTNode* iterator = NULL;
 		switch(_param(0).which())
 		{
-		case 0: iterator = boost::get<Declaration*>(_param(0)); break;
+		case 0: iterator = boost::get<VariableDecl*>(_param(0)); break;
 		case 1: iterator = boost::get<Expression*>(_param(0)); break;
 		}
 		ASTNode* block = _param(2).is_initialized() ? *_param(2) : NULL;
