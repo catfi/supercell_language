@@ -258,7 +258,7 @@ struct SemanticVerificationStageVisitor0 : GenericDoubleVisitor
 			if(!!cast<VariableDecl>(*i)->initializer)
 				visited_optional_param = true;
 			else if(visited_optional_param)
-				LOG_MESSAGE(MISSING_PARAM_INIT, &node, _param_index = (int)n+1, _func = node.name->toString());
+				LOG_MESSAGE(MISSING_PARAM_INIT, &node, _param_index = (int)n+1, _func_id = node.name->toString());
 
 			// UNEXPECTED_VARIADIC_PARAM
 			if(cast<VariableDecl>(*i)->type->type == TypeSpecifier::ReferredType::PRIMITIVE &&
