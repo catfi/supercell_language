@@ -602,7 +602,7 @@ public:
 		else
 		{
 			if(isa<TemplatedIdentifier>(a)) a = cast<TemplatedIdentifier>(a)->id;
-			if(isa<TemplatedIdentifier>(b)) b = cast<TemplatedIdentifier>(a)->id;
+			if(isa<TemplatedIdentifier>(b)) b = cast<TemplatedIdentifier>(b)->id;
 			if(a->toString() == b->toString())
 			{
 				is_template_partial_match = true;
