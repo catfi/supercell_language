@@ -25,7 +25,7 @@
 
 #include "core/Types.h"
 #include "language/tree/ASTNode.h"
-#include "language/tree/basic/Primitive.h"
+#include "language/tree/basic/PrimitiveType.h"
 
 namespace zillians { namespace language { namespace tree {
 
@@ -41,7 +41,7 @@ struct Literal : public ASTNode
         return true;
     }
 
-    virtual bool replaceUseWith(const ASTNode& from, const ASTNode& to)
+    virtual bool replaceUseWith(const ASTNode& from, const ASTNode& to, bool update_parent = true)
     {
     	return false;
     }
@@ -80,7 +80,7 @@ struct ObjectLiteral : public Literal
 		END_COMPARE()
     }
 
-    virtual bool replaceUseWith(const ASTNode& from, const ASTNode& to)
+    virtual bool replaceUseWith(const ASTNode& from, const ASTNode& to, bool update_parent = true)
     {
     	return false;
     }
@@ -120,7 +120,7 @@ struct NumericLiteral : public Literal
     	END_COMPARE()
     }
 
-    virtual bool replaceUseWith(const ASTNode& from, const ASTNode& to)
+    virtual bool replaceUseWith(const ASTNode& from, const ASTNode& to, bool update_parent = true)
     {
     	return false;
     }
@@ -166,7 +166,7 @@ struct StringLiteral : public Literal
     	END_COMPARE()
     }
 
-    virtual bool replaceUseWith(const ASTNode& from, const ASTNode& to)
+    virtual bool replaceUseWith(const ASTNode& from, const ASTNode& to, bool update_parent = true)
     {
     	return false;
     }

@@ -108,7 +108,18 @@ struct BinaryExpr : public Expression
 			opcode == OpCode::ARITHMETIC_MUL ||
 			opcode == OpCode::ARITHMETIC_DIV ||
 			opcode == OpCode::ARITHMETIC_MOD ||
-			opcode == OpCode::ARITHMETIC_RSHIFT)
+			opcode == OpCode::ARITHMETIC_RSHIFT ||
+			opcode == OpCode::RSHIFT_ASSIGN ||
+			opcode == OpCode::LSHIFT_ASSIGN ||
+			opcode == OpCode::ARITHMETIC_RSHIFT_ASSIGN ||
+			opcode == OpCode::ADD_ASSIGN ||
+			opcode == OpCode::SUB_ASSIGN ||
+			opcode == OpCode::MUL_ASSIGN ||
+			opcode == OpCode::DIV_ASSIGN ||
+			opcode == OpCode::MOD_ASSIGN ||
+			opcode == OpCode::AND_ASSIGN ||
+			opcode == OpCode::OR_ASSIGN  ||
+			opcode == OpCode::XOR_ASSIGN)
 			return true;
 		else
 			return false;
@@ -224,7 +235,7 @@ struct BinaryExpr : public Expression
 		END_COMPARE()
     }
 
-    virtual bool replaceUseWith(const ASTNode& from, const ASTNode& to)
+    virtual bool replaceUseWith(const ASTNode& from, const ASTNode& to, bool update_parent = true)
     {
     	BEGIN_REPLACE_WITH_BASE(Expression)
 		REPLACE_USE_WITH(left)

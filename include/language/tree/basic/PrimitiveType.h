@@ -53,7 +53,7 @@ struct PrimitiveType
 
 	static bool isArithmeticCapable(type t)
 	{
-		return (t >= INT8 && t <= FLOAT64);
+		return (t >= BOOL && t <= FLOAT64);
 	}
 
 	static bool isFloatType(type t)
@@ -108,6 +108,42 @@ struct PrimitiveType
 		}
 
 		return result;
+	}
+
+	static int bitSize(type t)
+	{
+		switch(t)
+		{
+		case VOID: return 0;
+		case BOOL: return 1;
+		case INT8: return 8;
+		case INT16: return 16;
+		case INT32: return 32;
+		case FLOAT32: return 32;
+		case INT64: return 64;
+		case FLOAT64: return 64;
+		case INT128: return 128;
+		case ANONYMOUS_OBJECT: return 32;
+		case ANONYMOUS_FUNCTION: return 32;
+		case VARIADIC_ELLIPSIS: return -1;
+		default: break;
+		}
+		return -1;
+	}
+
+	static bool isImplicitConvertible(type from, type to, bool& precision_loss)
+	{
+		if(isArithmeticCapable(from) && isArithmeticCapable(to))
+		{
+			precision_loss = (bitSize(from) > bitSize(to));
+			return true;
+		}
+		else if( (from == ANONYMOUS_OBJECT && to == ANONYMOUS_OBJECT) || (from == ANONYMOUS_FUNCTION && to  == ANONYMOUS_FUNCTION) )
+		{
+			precision_loss = false;
+			return true;
+		}
+		return false;
 	}
 
 	static const wchar_t* toString(type t)

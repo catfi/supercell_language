@@ -18,6 +18,8 @@
  */
 
 #include "language/stage/transformer/TypeConversionStage.h"
+#include "language/stage/transformer/visitor/TypeConversionStageVisitor.h"
+#include "language/tree/visitor/general/PrettyPrintVisitor.h"
 #include "language/context/ParserContext.h"
 
 namespace zillians { namespace language { namespace stage {
@@ -38,17 +40,44 @@ std::pair<shared_ptr<po::options_description>, shared_ptr<po::options_descriptio
 	shared_ptr<po::options_description> option_desc_public(new po::options_description());
 	shared_ptr<po::options_description> option_desc_private(new po::options_description());
 
+	option_desc_private->add_options()("debug-type-conversion-stage", "debug type conversion stage");
+
 	return std::make_pair(option_desc_public, option_desc_private);
 }
 
 bool TypeConversionStage::parseOptions(po::variables_map& vm)
 {
+	debug = (vm.count("debug-type-conversion-stage") > 0);
+
 	return true;
 }
 
 bool TypeConversionStage::execute(bool& continue_execution)
 {
-	return true;
+	if(!hasParserContext())
+		return false;
+
+	ParserContext& parser_context = getParserContext();
+
+	if(parser_context.program)
+	{
+		visitor::TypeConversionStageVisitor convert;
+		convert.visit(*parser_context.program);
+		convert.applyTransforms();
+
+		if(debug)
+		{
+			tree::visitor::PrettyPrintVisitor printer;
+			printer.visit(*parser_context.program);
+		}
+
+		return true;
+	}
+	else
+	{
+		return false;
+	}
+
 }
 
 } } }

@@ -21,12 +21,91 @@
 #define ZILLIANS_LANGUAGE_TREE_ASTNODEHELPER_H_
 
 #include "language/tree/ASTNodeFactory.h"
+#include "language/context/ResolverContext.h"
 #include "language/tree/visitor/general/NodeInfoVisitor.h"
 
 namespace zillians { namespace language { namespace tree {
 
 struct ASTNodeHelper
 {
+	static FunctionType* createFunctionTypeFromFunctionDecl(FunctionDecl* function_decl)
+	{
+		FunctionType* function_type = new FunctionType();
+
+		function_type->return_type = function_decl->type;
+
+		if(isa<TemplatedIdentifier>(function_decl->name))
+		{
+			TemplatedIdentifier* templated_name = cast<TemplatedIdentifier>(function_decl->name);
+			foreach(i, templated_name->templated_type_list)
+			{
+				Identifier* templated_parameter = cast<Identifier>(*i);
+				function_type->appendTemplateParameter(templated_parameter);
+			}
+		}
+
+		foreach(i, function_decl->parameters)
+		{
+			function_type->appendParameterType((*i)->type);
+		}
+
+		return function_type;
+	}
+
+	static bool compareFunctionType(FunctionType* a, FunctionType* b)
+	{
+		if(a->argument_types.size() != b->argument_types.size()) return false;
+		if(a->templated_parameters.size() != b->templated_parameters.size()) return false;
+
+		auto it_a = make_begin(a->argument_types), it_a_end = make_end(a->argument_types);
+		auto it_b = make_begin(b->argument_types), it_b_end = make_end(b->argument_types);
+
+		for(; it_a != it_a_end && it_b != it_b_end; ++it_a, ++it_b)
+		{
+			if(!compareTypeSpecifier(*it_a, *it_b))
+				return false;
+		}
+
+		if(!compareTypeSpecifier(a->return_type, b->return_type))
+			return false;
+
+		return true;
+	}
+
+	static bool compareTypeSpecifier(TypeSpecifier* a, TypeSpecifier* b)
+	{
+		if(a->type != b->type)
+			return false;
+
+		if(a->type == TypeSpecifier::ReferredType::FUNCTION_TYPE)
+		{
+			return compareFunctionType(a->referred.function_type, b->referred.function_type);
+		}
+		else if(a->type == TypeSpecifier::ReferredType::PRIMITIVE)
+		{
+			return (a->referred.primitive == b->referred.primitive);
+		}
+		else if(a->type == TypeSpecifier::ReferredType::UNSPECIFIED)
+		{
+			ASTNode* resolved_type_a = ResolvedType::get(a);
+			ASTNode* resolved_type_b = ResolvedType::get(b);
+
+			if(!resolved_type_a || !resolved_type_b)
+				return false;
+
+			if(isa<TypeSpecifier>(resolved_type_a) && isa<TypeSpecifier>(resolved_type_b))
+				return compareTypeSpecifier(cast<TypeSpecifier>(resolved_type_a), cast<TypeSpecifier>(resolved_type_b));
+			else if(isa<ClassDecl>(resolved_type_a) && isa<ClassDecl>(resolved_type_b))
+				return (resolved_type_a == resolved_type_b);
+			else if(isa<InterfaceDecl>(resolved_type_a) && isa<InterfaceDecl>(resolved_type_b))
+				return (resolved_type_a == resolved_type_b);
+			else if(isa<EnumDecl>(resolved_type_a) && isa<EnumDecl>(resolved_type_b))
+				return (resolved_type_a == resolved_type_b);
+		}
+
+		return false;
+	}
+
 	static IterativeStmt* getOwnerIterativeStmt(ASTNode& node)
 	{
 		if(!node.parent)
@@ -288,14 +367,12 @@ struct ASTNodeHelper
 	}
 
 public:
-	static std::wstring& nodeName(ASTNode* node)
+	static std::wstring nodeName(ASTNode* node)
 	{
-		static std::wstring s;
 		static tree::visitor::NodeInfoVisitor v(1);
 		v.reset();
 		v.visit(*node);
-		s = v.stream.str();
-		return s;
+		return v.stream.str();
 	}
 private:
 	ASTNodeHelper() { }

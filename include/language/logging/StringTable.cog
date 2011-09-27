@@ -142,6 +142,10 @@ struct StringTable
 			en_US = '$id(wstring) is non-primitive type',
 			zh_TW = '$id(wstring) 不是原生型別'
 			))
+	LOG_STRING.create('IMPLICIT_CAST_PRECISION_LOSS', LOG_LEVEL.LEVEL_WARNING, 0, dict(
+			en_US = 'precision loss due to implicit type casting',
+			zh_TW = '精確度因隱式轉型遺失'
+			))
 	############################################# SEMANTIC_VERIFICATION_STAGE (ERRORS)
 	LOG_STRING.create('UNKNOWN_NAME', LOG_LEVEL.LEVEL_ERROR, 0, dict(
 			en_US = '$id(wstring) was not declared in this scope',

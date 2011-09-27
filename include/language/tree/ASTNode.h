@@ -248,7 +248,7 @@ public:
 	virtual bool isEqualImpl(const ASTNode& rhs, ASTNodeSet& visited) const = 0 ;
 
 public:
-	virtual bool replaceUseWith(const ASTNode& from, const ASTNode& to) = 0;
+	virtual bool replaceUseWith(const ASTNode& from, const ASTNode& to, bool update_parent = true) = 0;
 
 protected:
 	ASTNode() : parent(NULL)
@@ -449,7 +449,7 @@ inline bool compareDispatchImpl(
 
 
 template<typename T>
-inline bool replaceUseWithDispatch(T& a, const ASTNode& from, const ASTNode& to)
+inline bool replaceUseWithDispatch(T& a, const ASTNode& from, const ASTNode& to, bool update_parent)
 {
 	typedef boost::is_pointer<T> is_pointer_t;
 	typedef boost::mpl::contains<ASTNodeTypeVector, typename boost::remove_const<T>::type> is_ast_t;
@@ -465,12 +465,12 @@ inline bool replaceUseWithDispatch(T& a, const ASTNode& from, const ASTNode& to)
 				is_std_vector_t,
 				is_boost_tuple_t>> is_other_t;
 
-	return replaceUseWithDispatchImpl(a, from, to, is_pointer_t(), is_ast_t(), is_std_pair_t(), is_std_vector_t(), is_boost_tuple_t(), is_other_t());
+	return replaceUseWithDispatchImpl(a, from, to, update_parent, is_pointer_t(), is_ast_t(), is_std_pair_t(), is_std_vector_t(), is_boost_tuple_t(), is_other_t());
 };
 
 template<typename T>
 inline bool replaceUseWithDispatchImpl(
-		T& a, const ASTNode& from, const ASTNode& to,
+		T& a, const ASTNode& from, const ASTNode& to, bool update_parent,
 		boost::mpl::true_ /*is_pointer*/,
 		boost::mpl::false_ /*is_ast*/,
 		boost::mpl::false_ /*is_pair*/,
@@ -481,15 +481,18 @@ inline bool replaceUseWithDispatchImpl(
 	if(a == &from) // pointer compare
 	{
 		a = (T)&to;
-		a->parent = (T)(&from)->parent;
-		((T)&from)->parent = NULL;
+		if(update_parent)
+		{
+			a->parent = (T)(&from)->parent;
+			((T)&from)->parent = NULL;
+		}
 	}
 	return true;
 }
 
 template<typename T>
 inline bool replaceUseWithDispatchImpl(
-		T& a, const ASTNode& from, const ASTNode& to,
+		T& a, const ASTNode& from, const ASTNode& to, bool update_parent,
 		boost::mpl::false_ /*is_pointer*/,
 		boost::mpl::true_ /*is_ast*/,
 		boost::mpl::false_ /*is_pair*/,
@@ -497,12 +500,12 @@ inline bool replaceUseWithDispatchImpl(
 		boost::mpl::false_ /*is_tuple*/,
 		boost::mpl::false_ /*is_other*/)
 {
-	return a.replaceUseWith(from, to);
+	return a.replaceUseWith(from, to, update_parent);
 }
 
 template<typename T>
 inline bool replaceUseWithDispatchImpl(
-		T& a, const ASTNode& from, const ASTNode& to,
+		T& a, const ASTNode& from, const ASTNode& to, bool update_parent,
 		boost::mpl::false_ /*is_pointer*/,
 		boost::mpl::false_ /*is_ast*/,
 		boost::mpl::true_ /*is_pair*/,
@@ -511,14 +514,14 @@ inline bool replaceUseWithDispatchImpl(
 		boost::mpl::false_ /*is_other*/)
 {
 	bool result = false;
-	result |= replaceUseWithDispatch(a.first, from, to);
-	result |= replaceUseWithDispatch(a.second, from, to);
+	result |= replaceUseWithDispatch(a.first, from, to, update_parent);
+	result |= replaceUseWithDispatch(a.second, from, to, update_parent);
 	return result;
 }
 
 template<typename T>
 inline bool replaceUseWithDispatchImpl(
-		T& a, const ASTNode& from, const ASTNode& to,
+		T& a, const ASTNode& from, const ASTNode& to, bool update_parent,
 		boost::mpl::false_ /*is_pointer*/,
 		boost::mpl::false_ /*is_ast*/,
 		boost::mpl::false_ /*is_pair*/,
@@ -531,7 +534,7 @@ inline bool replaceUseWithDispatchImpl(
 	auto iterator_a = a.begin(); auto iterator_end_a = a.end();
 	while(iterator_a != iterator_end_a )
 	{
-		result |= replaceUseWithDispatch(*iterator_a, from, to);
+		result |= replaceUseWithDispatch(*iterator_a, from, to, update_parent);
 		++iterator_a;
 	}
 
@@ -541,10 +544,10 @@ inline bool replaceUseWithDispatchImpl(
 template<typename T, int N>
 struct tuple_recursive_replace_use_with
 {
-	static bool replace(T& a, const ASTNode& from, const ASTNode& to)
+	static bool replace(T& a, const ASTNode& from, const ASTNode& to, bool update_parent)
 	{
 		bool result = false;
-		result |= replaceUseWithDispatch(a.template get<boost::tuples::length<T>::value - N>(), from, to);
+		result |= replaceUseWithDispatch(a.template get<boost::tuples::length<T>::value - N>(), from, to, update_parent);
 		result |= tuple_recursive_replace_use_with<T, N-1>::compare(a, from, to);
 		return result;
 	}
@@ -553,7 +556,7 @@ struct tuple_recursive_replace_use_with
 template<typename T>
 struct tuple_recursive_replace_use_with<T, 0>
 {
-	static bool replace(T& a, const ASTNode& from, const ASTNode& to)
+	static bool replace(T& a, const ASTNode& from, const ASTNode& to, bool update_parent)
 	{
 		return false;
 	}
@@ -561,7 +564,7 @@ struct tuple_recursive_replace_use_with<T, 0>
 
 template<typename T>
 inline bool replaceUseWithDispatchImpl(
-		T& a, const ASTNode& from, const ASTNode& to,
+		T& a, const ASTNode& from, const ASTNode& to, bool update_parent,
 		boost::mpl::false_ /*is_pointer*/,
 		boost::mpl::false_ /*is_ast*/,
 		boost::mpl::false_ /*is_pair*/,
@@ -569,12 +572,12 @@ inline bool replaceUseWithDispatchImpl(
 		boost::mpl::true_ /*is_tuple*/,
 		boost::mpl::false_ /*is_other*/)
 {
-	return tuple_recursive_replace_use_with<T, boost::tuples::length<T>::value>::compare(a, from, to);
+	return tuple_recursive_replace_use_with<T, boost::tuples::length<T>::value>::compare(a, from, to, update_parent);
 }
 
 template<typename T>
 inline bool replaceUseWithDispatchImpl(
-		T& a, const ASTNode& from, const ASTNode& to,
+		T& a, const ASTNode& from, const ASTNode& to, bool update_parent,
 		boost::mpl::false_ /*is_pointer*/,
 		boost::mpl::false_ /*is_ast*/,
 		boost::mpl::false_ /*is_pair*/,
@@ -619,10 +622,10 @@ inline bool replaceUseWithDispatchImpl(
 
 #define BEGIN_REPLACE_WITH_BASE(base_class_name) \
 		bool result = false; \
-		result |= base_class_name::replaceUseWith(from, to);
+		result |= base_class_name::replaceUseWith(from, to, update_parent);
 
 #define REPLACE_USE_WITH(member) \
-		result |= internal::replaceUseWithDispatch(member, from, to);
+		result |= internal::replaceUseWithDispatch(member, from, to, update_parent);
 
 #define END_REPLACE()	\
 		return result;

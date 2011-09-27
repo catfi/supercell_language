@@ -47,6 +47,13 @@ struct ExpressionStmt : public Statement
 		END_COMPARE()
     }
 
+    virtual bool replaceUseWith(const ASTNode& from, const ASTNode& to, bool update_parent = true)
+    {
+    	BEGIN_REPLACE_WITH_BASE(Statement)
+		REPLACE_USE_WITH(expr)
+    	END_REPLACE()
+    }
+
 	Expression* expr;
 };
 

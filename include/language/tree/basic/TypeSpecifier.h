@@ -21,7 +21,7 @@
 #define ZILLIANS_LANGUAGE_TREE_TYPESPECIFIER_H_
 
 #include "language/tree/ASTNode.h"
-#include "language/tree/basic/Primitive.h"
+#include "language/tree/basic/PrimitiveType.h"
 #include "language/tree/basic/Identifier.h"
 #include "language/tree/basic/FunctionType.h"
 
@@ -75,6 +75,16 @@ struct TypeSpecifier : public ASTNode
 		update(unspecified);
 	}
 
+	std::wstring toString() const
+	{
+		switch(type)
+		{
+		case TypeSpecifier::ReferredType::FUNCTION_TYPE: return referred.function_type->toString();
+		case TypeSpecifier::ReferredType::PRIMITIVE: return PrimitiveType::toString(referred.primitive);
+		case TypeSpecifier::ReferredType::UNSPECIFIED: return referred.unspecified->toString();
+		}
+	}
+
 	void update(FunctionType* function_type)
 	{
 		type = ReferredType::FUNCTION_TYPE;
@@ -107,7 +117,7 @@ struct TypeSpecifier : public ASTNode
         END_COMPARE()
     }
 
-    virtual bool replaceUseWith(const ASTNode& from, const ASTNode& to)
+    virtual bool replaceUseWith(const ASTNode& from, const ASTNode& to, bool update_parent = true)
     {
     	BEGIN_REPLACE()
 		switch(type)

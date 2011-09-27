@@ -61,7 +61,7 @@ struct VariableDecl : public Declaration
 		END_COMPARE()
     }
 
-    virtual bool replaceUseWith(const ASTNode& from, const ASTNode& to)
+    virtual bool replaceUseWith(const ASTNode& from, const ASTNode& to, bool update_parent = true)
     {
     	BEGIN_REPLACE_WITH_BASE(Declaration)
 		REPLACE_USE_WITH(type)

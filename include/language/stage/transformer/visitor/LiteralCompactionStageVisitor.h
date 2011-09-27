@@ -97,17 +97,7 @@ struct LiteralCompactionStageVisitor : GenericDoubleVisitor
 		}
 	}
 
-	void applyTransforms()
-	{
-		foreach(i, transforms)
-		{
-			(*i)();
-		}
-		transforms.clear();
-	}
-
 	Program* program;
-	std::vector<std::function<void()>> transforms;
 };
 
 } } } }

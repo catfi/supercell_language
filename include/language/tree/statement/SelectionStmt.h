@@ -52,7 +52,7 @@ struct Selection : ContextHub<ContextOwnership::transfer>
 		return true;
 	}
 
-    bool replaceUseWith(const ASTNode& from, const ASTNode& to)
+    bool replaceUseWith(const ASTNode& from, const ASTNode& to, bool update_parent = true)
     {
     	BEGIN_REPLACE()
 		REPLACE_USE_WITH(cond)
@@ -75,7 +75,7 @@ struct SelectionStmt : public Statement
 		END_COMPARE()
 	}
 
-    bool replaceUseWith(const ASTNode& from, const ASTNode& to)
+    bool replaceUseWith(const ASTNode& from, const ASTNode& to, bool update_parent = true)
     {
     	BEGIN_REPLACE_WITH_BASE(Statement)
     	END_REPLACE()
@@ -123,7 +123,7 @@ struct IfElseStmt : public SelectionStmt
 		END_COMPARE()
 	}
 
-    virtual bool replaceUseWith(const ASTNode& from, const ASTNode& to)
+    virtual bool replaceUseWith(const ASTNode& from, const ASTNode& to, bool update_parent = true)
     {
     	BEGIN_REPLACE_WITH_BASE(SelectionStmt)
 		REPLACE_USE_WITH(if_branch)
@@ -174,7 +174,7 @@ struct SwitchStmt : public SelectionStmt
 		END_COMPARE()
 	}
 
-    virtual bool replaceUseWith(const ASTNode& from, const ASTNode& to)
+    virtual bool replaceUseWith(const ASTNode& from, const ASTNode& to, bool update_parent = true)
     {
     	BEGIN_REPLACE_WITH_BASE(SelectionStmt)
 		REPLACE_USE_WITH(node)
