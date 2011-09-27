@@ -214,7 +214,7 @@ struct SemanticVerificationStageVisitor0 : GenericDoubleVisitor
 
 		// DEAD_CODE
 		ASTNode* owner = node.parent;
-		if(!isa<SelectionStmt>(owner) && !!SemanticVerificationBlockContext_HasVisitedReturn::get(&node))
+		if(!isa<SelectionStmt>(owner) && !isa<IterativeStmt>(owner) && !!SemanticVerificationBlockContext_HasVisitedReturn::get(&node))
 			SemanticVerificationBlockContext_HasVisitedReturn::get_instance(owner);
 	}
 
