@@ -30,6 +30,25 @@ using namespace zillians::language::tree;
 using zillians::language::tree::visitor::GenericDoubleVisitor;
 using zillians::language::tree::visitor::NameManglingVisitor;
 
+// CHECKS IN SEMANTIC VERIFICATION STAGE 1
+
+// ERRORS:
+// ====================================
+// UNEXPECTED_RETURN_VALUE
+// MISSING_RETURN_VALUE
+// WRITE_CONST
+// INVALID_NONSTATIC_CALL
+// INVALID_NONSTATIC_REF
+// INVALID_ACCESS_PRIVATE
+// INVALID_ACCESS_PROTECTED
+
+// WARNINGS:
+// ====================================
+// MISSING_RETURN
+// UNINIT_ARG
+// CONTROL_REACHES_END
+// MISSING_CASE
+
 namespace zillians { namespace language { namespace stage { namespace visitor {
 
 struct SemanticVerificationStageVisitor1 : GenericDoubleVisitor
@@ -45,12 +64,6 @@ struct SemanticVerificationStageVisitor1 : GenericDoubleVisitor
 	{
 		revisit(node);
 	}
-
-//	void verify(FunctionDecl& node)
-//	{
-//		// CHECK: all types should be inferred and resolved in function declaration
-//		revisit(node);
-//	}
 };
 
 } } } }

@@ -37,6 +37,26 @@ using namespace zillians::language::tree;
 using zillians::language::tree::visitor::GenericDoubleVisitor;
 using zillians::language::tree::visitor::NameManglingVisitor;
 
+// CHECKS IN SEMANTIC VERIFICATION STAGE 0
+
+// ERRORS:
+// ====================================
+// INCOMPLETE_FUNC
+// DUPE_NAME
+// WRITE_RVALUE
+// MISSING_STATIC_INIT
+// MISSING_BREAK_TARGET
+// MISSING_CONTINUE_TARGET
+// MISSING_PARAM_INIT
+// UNEXPECTED_VARIADIC_PARAM
+// UNEXPECTED_VARIADIC_TEMPLATE_PARAM
+// EXCEED_PARAM_LIMIT
+// EXCEED_TEMPLATE_PARAM_LIMIT
+
+// WARNINGS:
+// ====================================
+// DEAD_CODE
+
 namespace zillians { namespace language { namespace stage { namespace visitor {
 
 struct SemanticVerificationStageVisitor0 : GenericDoubleVisitor
@@ -128,26 +148,6 @@ struct SemanticVerificationStageVisitor0 : GenericDoubleVisitor
 		// CHECK: all member function in interface must not have private scope specifier
 	}
 #endif
-
-	// CHECKS IN SEMANTIC VERIFICATION STAGE 0
-
-	// ERRORS:
-	// ====================================
-	// INCOMPLETE_FUNC
-	// DUPE_NAME
-	// WRITE_RVALUE
-	// MISSING_STATIC_INIT
-	// MISSING_BREAK_TARGET
-	// MISSING_CONTINUE_TARGET
-	// MISSING_PARAM_INIT
-	// UNEXPECTED_VARIADIC_PARAM
-	// UNEXPECTED_VARIADIC_TEMPLATE_PARAM
-	// EXCEED_PARAM_LIMIT
-	// EXCEED_TEMPLATE_PARAM_LIMIT
-
-	// WARNINGS:
-	// ====================================
-	// DEAD_CODE
 
 	void verify_DUPE_NAME(Declaration &node)
 	{
