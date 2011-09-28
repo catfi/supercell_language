@@ -79,7 +79,7 @@ struct SemanticVerificationStageVisitor1 : GenericDoubleVisitor
 		{
 			VariableDecl* var_decl = cast<VariableDecl>(decl);
 			if(!SemanticVerificationVariableDeclContext_HasBeenInit::get(var_decl))
-				LOG_MESSAGE(UNINIT_ARG, ASTNodeHelper::getNearestAnnotatableOwner(node), _var_id = var_decl->name->toString());
+				LOG_MESSAGE(UNINIT_ARG, ASTNodeHelper::getOwnerAnnotationPoint(node), _var_id = var_decl->name->toString());
 		}
 	}
 
@@ -107,7 +107,7 @@ struct SemanticVerificationStageVisitor1 : GenericDoubleVisitor
 
 			// WRITE_CONST
 			if(var_decl->is_const)
-				LOG_MESSAGE(WRITE_CONST, ASTNodeHelper::getNearestAnnotatableOwner(node), _var_id = name);
+				LOG_MESSAGE(WRITE_CONST, ASTNodeHelper::getOwnerAnnotationPoint(node), _var_id = name);
 
 			// UNINIT_ARG
 			SemanticVerificationVariableDeclContext_HasBeenInit::set(var_decl, NULL);

@@ -180,7 +180,7 @@ struct SemanticVerificationStageVisitor0 : GenericDoubleVisitor
 	{
 		// WRITE_RVALUE
 		if(node.isAssignment() && node.left->isRValue())
-			LOG_MESSAGE(WRITE_RVALUE, ASTNodeHelper::getNearestAnnotatableOwner(*node.left->parent));
+			LOG_MESSAGE(WRITE_RVALUE, ASTNodeHelper::getOwnerAnnotationPoint(*node.left->parent));
 	}
 
 	void verify(BranchStmt &node)

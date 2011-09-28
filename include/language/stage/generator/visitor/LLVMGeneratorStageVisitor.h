@@ -159,7 +159,7 @@ struct LLVMGeneratorStageVisitor : GenericDoubleVisitor
 
 	void generate(VariableDecl& node)
 	{
-		if(ASTNodeHelper::isOwnedByPackage(node))
+		if(ASTNodeHelper::isDirectlyOwnedByPackage(node))
 			return;
 
 		revisit(node);
