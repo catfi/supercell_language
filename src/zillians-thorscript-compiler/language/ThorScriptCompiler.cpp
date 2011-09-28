@@ -21,7 +21,6 @@
  */
 
 #include "language/ThorScriptCompiler.h"
-#include "language/stage/basic/TreeDebugStage.h"
 #include "language/stage/parser/ThorScriptParserStage.h"
 #include "language/stage/transformer/LiteralCompactionStage.h"
 #include "language/stage/transformer/ResolutionStage.h"
@@ -43,7 +42,6 @@ ThorScriptCompiler::ThorScriptCompiler()
 	addDefaultMode<
 		boost::mpl::vector<
 			ThorScriptParserStage,
-			TreeDebugStage,
 			SemanticVerificationStage0,
 			LiteralCompactionStage,
 			ResolutionStage,
@@ -57,24 +55,13 @@ ThorScriptCompiler::ThorScriptCompiler()
 
 	addMode<
 		boost::mpl::vector<
-			ThorScriptParserStage>>("mode-dump-parse", "for parse stage");
-
-	addMode<
-		boost::mpl::vector<
 			ThorScriptParserStage,
-			TreeDebugStage>>("mode-dump-ast", "for AST stage");
-
-	addMode<
-		boost::mpl::vector<
-			ThorScriptParserStage,
-			TreeDebugStage,
 			SemanticVerificationStage0,
 			StaticTestVerificationStage>>("mode-semantic-verify-0", "for semantic verification stage 0");
 
 	addMode<
 		boost::mpl::vector<
 			ThorScriptParserStage,
-			TreeDebugStage,
 			SemanticVerificationStage0,
 			ResolutionStage,
 			SemanticVerificationStage1,

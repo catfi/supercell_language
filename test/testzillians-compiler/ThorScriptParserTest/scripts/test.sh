@@ -19,7 +19,7 @@ for ARG in "$@"; do
         exit 1
     fi
     if [ $MODE -eq 1 ]; then
-        $EXEC $ARG --mode-dump-ast --dump-ast --dump-ast-location
+        $EXEC $ARG --debug-ast-with-loc
         ERROR_CODE="$?"
         if [ $ERROR_CODE -ne 0 ]; then
             echo "ERROR: construct/dump ast fail!"
@@ -27,7 +27,7 @@ for ARG in "$@"; do
         fi
         continue
     fi
-    $EXEC $ARG --mode-dump-parse --dump-parse |& grep -v "[DEBUG]" > $TEMP_FILE_A
+    $EXEC $ARG --debug-parser |& grep -v "[DEBUG]" > $TEMP_FILE_A
     ERROR_CODE="${PIPESTATUS[0]}" # NOTE: need PIPESTATUS because piped grep always succeeds
     if [ $ERROR_CODE -ne 0 ]; then
         cat $TEMP_FILE_A # NOTE: for convenience of reference
