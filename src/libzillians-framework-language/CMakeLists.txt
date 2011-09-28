@@ -50,7 +50,6 @@ add_library(zillians-framework-language
     language/context/ParserContext.cpp
     language/logging/LoggerWrapper.cpp
     language/stage/StageConductor.cpp
-    language/stage/basic/TreeDebugStage.cpp
     language/stage/transformer/LiteralCompactionStage.cpp
     language/stage/transformer/ResolutionStage.cpp
     language/stage/transformer/ManglingStage.cpp

@@ -1,6 +1,6 @@
 # 
 # Zillians MMO
-# Copyright (C) 2007-2009 Zillians.com, Inc.
+# Copyright (C) 2007-2011 Zillians.com, Inc.
 # For more information see http:#www.zillians.com
 #
 # Zillians MMO is the library and runtime for massive multiplayer online game
@@ -19,9 +19,4 @@
 # Contact Information: info@zillians.com
 #
 
-zillians_create_test_subject(SUBJECT thorscript-transformer-test-all)
-zillians_add_subject_to_subject(PARENT framework-compiler-critical CHILD thorscript-transformer-test-all)
-
-ADD_SUBDIRECTORY(LiteralCompactionTest)
-ADD_SUBDIRECTORY(ResolutionStageTest)
-ADD_SUBDIRECTORY(TypeConversionStageTest)
+#ADD_SUBDIRECTORY()
