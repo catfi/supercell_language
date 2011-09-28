@@ -78,18 +78,15 @@ struct SemanticVerificationStageVisitor1 : GenericDoubleVisitor
 		if(isa<VariableDecl>(decl) && ASTNodeHelper::isOwnedByFunction(node))
 		{
 			VariableDecl* var_decl = cast<VariableDecl>(decl);
-			std::wstring name = var_decl->name->toString();
-			SemanticVerificationFunctionDeclContext_UninitVarSet* owner_context =
-					SemanticVerificationFunctionDeclContext_UninitVarSet::get_instance(ASTNodeHelper::getOwnerFunction(node));
-			if(owner_context->names.find(name) != owner_context->names.end())
-				LOG_MESSAGE(UNINIT_ARG, ASTNodeHelper::getNearestAnnotatableOwner(node), _var_id = name);
+			if(!SemanticVerificationVariableDeclContext_HasBeenInit::get(var_decl))
+				LOG_MESSAGE(UNINIT_ARG, ASTNodeHelper::getNearestAnnotatableOwner(node), _var_id = var_decl->name->toString());
 		}
 	}
 
 	void verify(PrimaryExpr &node)
 	{
 		// UNINIT_ARG
-		if(!ASTNodeHelper::isOwnedByAnnotation(node))
+		if(node.catagory == PrimaryExpr::Catagory::IDENTIFIER)
 			verify_UNINIT_ARG(node);
 	}
 
@@ -113,21 +110,15 @@ struct SemanticVerificationStageVisitor1 : GenericDoubleVisitor
 				LOG_MESSAGE(WRITE_CONST, ASTNodeHelper::getNearestAnnotatableOwner(node), _var_id = name);
 
 			// UNINIT_ARG
-			SemanticVerificationFunctionDeclContext_UninitVarSet* owner_context =
-					SemanticVerificationFunctionDeclContext_UninitVarSet::get_instance(ASTNodeHelper::getOwnerFunction(node));
-			owner_context->names.erase(name);
+			SemanticVerificationVariableDeclContext_HasBeenInit::set(var_decl, NULL);
 		}
 	}
 
 	void verify(VariableDecl &node)
 	{
 		// UNINIT_ARG
-		if(!node.initializer && !isa<FunctionDecl>(node.parent))
-		{
-			SemanticVerificationFunctionDeclContext_UninitVarSet* owner_context =
-					SemanticVerificationFunctionDeclContext_UninitVarSet::get_instance(ASTNodeHelper::getOwnerFunction(node));
-			owner_context->names.insert(node.name->toString());
-		}
+		if(!isa<FunctionDecl>(node.parent) && !!node.initializer)
+			SemanticVerificationVariableDeclContext_HasBeenInit::get_instance(&node);
 
 		revisit(node);
 	}

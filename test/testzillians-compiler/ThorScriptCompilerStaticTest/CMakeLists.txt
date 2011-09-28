@@ -292,7 +292,7 @@ zillians_add_test_to_subject(SUBJECT thorscript-compiler-static-test-s0 TARGET t
 
 zillians_add_complex_test(
     TARGET thorscript-compiler-static-test-CONTROL_REACHES_END
-    SHELL ${ThorScriptCompiler} ${compile_options} ${CMAKE_CURRENT_SOURCE_DIR}/data/warn/control_path/CONTROL_REACHES_END.t
+    SHELL ${ThorScriptCompiler} ${compile_options_s1} ${CMAKE_CURRENT_SOURCE_DIR}/data/warn/control_path/CONTROL_REACHES_END.t
     DEPENDS ${ThorScriptCompiler}
     )
 zillians_add_complex_test(
@@ -327,7 +327,7 @@ zillians_add_complex_test(
     )
 zillians_add_complex_test(
     TARGET thorscript-compiler-static-test-UNINIT_ARG
-    SHELL ${ThorScriptCompiler} ${compile_options} ${CMAKE_CURRENT_SOURCE_DIR}/data/warn/UNINIT_ARG.t
+    SHELL ${ThorScriptCompiler} ${compile_options_s1} ${CMAKE_CURRENT_SOURCE_DIR}/data/warn/UNINIT_ARG.t
     DEPENDS ${ThorScriptCompiler}
     )
 
