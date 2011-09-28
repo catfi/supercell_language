@@ -29,9 +29,9 @@ add_library(zillians-framework-language-spirit
     language/stage/parser/ThorScriptParserStage.cpp
     )
 
-ADD_PRECOMPILED_HEADER(zillians-framework-language-spirit
-    ${PROJECT_FRAMEWORK_SOURCE_DIR}/include/language/_PreCompiledHeaders.h
-    )
+#ADD_PRECOMPILED_HEADER(zillians-framework-language-spirit
+#    ${PROJECT_FRAMEWORK_SOURCE_DIR}/include/language/_PreCompiledHeaders.h
+#    )
 
 get_target_property(__lib_location zillians-framework-language-spirit LOCATION)
 
