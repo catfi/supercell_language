@@ -19,7 +19,7 @@
 
 #include "language/stage/generator/LLVMDebugInfoGeneratorStage.h"
 #include "language/stage/generator/detail/LLVMForeach.h"
-#include "language/stage/generator/visitor/LLVMDebugInfoGeneratorVisitor.h"
+#include "language/stage/generator/visitor/LLVMDebugInfoGeneratorStageVisitor.h"
 #include "language/context/ParserContext.h"
 #include "language/context/GeneratorContext.h"
 
@@ -62,7 +62,7 @@ bool LLVMDebugInfoGeneratorStage::execute(bool& continue_execution)
 	if (!enabled)
 		return true;
 
-	visitor::LLVMDebugInfoGeneratorVisitor visitor(*getGeneratorContext().context, *getGeneratorContext().modules[0]);
+	visitor::LLVMDebugInfoGeneratorStageVisitor visitor(*getGeneratorContext().context, *getGeneratorContext().modules[0]);
 
 	if(getParserContext().program)
 	{

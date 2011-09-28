@@ -21,7 +21,7 @@
 #include "language/tree/ASTNodeFactory.h"
 #include "language/stage/generator/context/SynthesizedFunctionContext.h"
 #include "language/stage/generator/LLVMGlobalDispatchGeneratorStage.h"
-#include "language/stage/generator/visitor/LLVMGlobalDispatchGeneratorVisitor.h"
+#include "language/stage/generator/visitor/LLVMGlobalDispatchGeneratorStageVisitor.h"
 #include "llvm/Module.h"
 #include "llvm/Function.h"
 #include "llvm/Support/IRBuilder.h"
@@ -67,7 +67,7 @@ bool LLVMGlobalDispatchGeneratorStage::execute(bool& continue_execution)
 	if (!mEnabled)
 		return true;
 
-	visitor::LLVMGlobalDispatchGeneratorVisitor visitor;
+	visitor::LLVMGlobalDispatchGeneratorStageVisitor visitor;
 
 	if(mParserContext->program)
 	{

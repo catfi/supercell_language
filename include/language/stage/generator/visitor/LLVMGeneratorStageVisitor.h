@@ -17,8 +17,8 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef ZILLIANS_LANGUAGE_STAGE_VISITOR_LLVMGENERATORVISITOR_H_
-#define ZILLIANS_LANGUAGE_STAGE_VISITOR_LLVMGENERATORVISITOR_H_
+#ifndef ZILLIANS_LANGUAGE_STAGE_VISITOR_LLVMGENERATORSTAGEVISITOR_H_
+#define ZILLIANS_LANGUAGE_STAGE_VISITOR_LLVMGENERATORSTAGEVISITOR_H_
 
 #include "core/Prerequisite.h"
 #include "language/tree/ASTNodeHelper.h"
@@ -45,11 +45,11 @@ namespace zillians { namespace language { namespace stage { namespace visitor {
  *
  * @see LLVMGeneratorPreambleVisitor
  */
-struct LLVMGeneratorVisitor : GenericDoubleVisitor
+struct LLVMGeneratorStageVisitor : GenericDoubleVisitor
 {
 	CREATE_INVOKER(generateInvoker, generate)
 
-	LLVMGeneratorVisitor(llvm::LLVMContext& context, llvm::Module& module) :
+	LLVMGeneratorStageVisitor(llvm::LLVMContext& context, llvm::Module& module) :
 		mContext(context), mModule(module), mBuilder(context), mHelper(context)
 	{
 		mFunctionContext.function = NULL;
@@ -823,7 +823,104 @@ struct LLVMGeneratorVisitor : GenericDoubleVisitor
 		if(isBlockInsertionMasked() || isBlockTerminated(currentBlock()))	return;
 
 		revisit(node);
-		// TODO only generate code when there's type mismatch
+
+		ASTNode* node_resolved = NULL;
+		llvm::Value* llvm_result = NULL;
+		llvm::Value* llvm_value_for_read = NULL;
+		llvm::Value* llvm_value_for_write = NULL;
+		if(!getValue(*node.node, node_resolved, llvm_value_for_read, llvm_value_for_write, false))
+		{
+			BOOST_ASSERT(false && "invalid LLVM parameter value for type conversion");
+			terminateRevisit();
+		}
+
+		if(node.type->type == TypeSpecifier::ReferredType::PRIMITIVE)
+		{
+			TypeSpecifier* node_specifier = cast<TypeSpecifier>(ResolvedType::get(node.node));
+			if(node_specifier && node_specifier->type == TypeSpecifier::ReferredType::PRIMITIVE)
+			{
+				bool need_ext = (PrimitiveType::bitSize(node.type->referred.primitive) > PrimitiveType::bitSize(node_specifier->referred.primitive));
+				bool need_truc = (PrimitiveType::bitSize(node.type->referred.primitive) < PrimitiveType::bitSize(node_specifier->referred.primitive));
+				bool bitsize_mismatched = (PrimitiveType::bitSize(node.type->referred.primitive) != PrimitiveType::bitSize(node_specifier->referred.primitive));
+
+				const llvm::Type* llvm_cast_type = NULL;
+
+				llvm::Attributes llvm_dummy_modifier = llvm::Attribute::None; // dummy
+				mHelper.getType(*node.type, llvm_cast_type, llvm_dummy_modifier);
+
+				if(PrimitiveType::isIntegerType(node.type->referred.primitive) && PrimitiveType::isIntegerType(node_specifier->referred.primitive))
+				{
+					// casting from integer to integer
+					if(need_truc)
+					{
+						llvm_result = mBuilder.CreateTrunc(llvm_value_for_read, llvm_cast_type);
+					}
+					else if(need_ext)
+					{
+						llvm_result = mBuilder.CreateSExt(llvm_value_for_read, llvm_cast_type);
+					}
+					else
+					{
+						// the source the destination are all integer with same size, no-op
+					}
+				}
+				else if(PrimitiveType::isIntegerType(node.type->referred.primitive) && PrimitiveType::isFloatType(node_specifier->referred.primitive))
+				{
+					// casting from float to integer
+					llvm_result = mBuilder.CreateFPToSI(llvm_value_for_read, llvm_cast_type);
+				}
+				else if(PrimitiveType::isFloatType(node.type->referred.primitive) && PrimitiveType::isIntegerType(node_specifier->referred.primitive))
+				{
+					// casting from integer to float
+					llvm_result = mBuilder.CreateSIToFP(llvm_value_for_read, llvm_cast_type);
+				}
+				else if(PrimitiveType::isFloatType(node.type->referred.primitive) && PrimitiveType::isFloatType(node_specifier->referred.primitive))
+				{
+					// casting from float to float
+					if(need_truc)
+					{
+						llvm_result = mBuilder.CreateFPTrunc(llvm_value_for_read, llvm_cast_type);
+					}
+					else if(need_ext)
+					{
+						llvm_result = mBuilder.CreateFPExt(llvm_value_for_read, llvm_cast_type);
+					}
+					else
+					{
+						// the source the destination are all float with same size, no-op
+					}
+				}
+				else
+				{
+					// the rest of types can be both object types or function types or void type, no casting required
+					if(	(node.type->referred.primitive == PrimitiveType::VOID && node_specifier->referred.primitive == PrimitiveType::VOID) ||
+						(node.type->referred.primitive == PrimitiveType::ANONYMOUS_OBJECT && node_specifier->referred.primitive == PrimitiveType::ANONYMOUS_OBJECT) ||
+						(node.type->referred.primitive == PrimitiveType::ANONYMOUS_FUNCTION && node_specifier->referred.primitive == PrimitiveType::ANONYMOUS_FUNCTION) )
+					{
+						llvm_result = llvm_value_for_read;
+					}
+					else
+					{
+						BOOST_ASSERT(false && "invalid primitive type conversion for LLVM generator stage");
+					}
+				}
+			}
+		}
+		else
+		{
+			// for function type or unspecified type, they should be all compatible anyway, so no conversion is necessary
+			// TODO confirm this
+			llvm_result = llvm_value_for_read;
+		}
+
+		if(llvm_result)
+		{
+			SET_SYNTHESIZED_LLVM_VALUE(&node, llvm_result);
+		}
+		else
+		{
+			BOOST_ASSERT(false && "invalid AST for LLVM generator stage");
+		}
 	}
 
 	void generate(MemberExpr& node)
@@ -1222,4 +1319,4 @@ private:
 } } } }
 
 
-#endif /* ZILLIANS_LANGUAGE_STAGE_VISITOR_LLVMGENERATORVISITOR_H_ */
+#endif /* ZILLIANS_LANGUAGE_STAGE_VISITOR_LLVMGENERATORSTAGEVISITOR_H_ */
