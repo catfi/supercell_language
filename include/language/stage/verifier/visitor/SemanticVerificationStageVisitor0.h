@@ -155,7 +155,7 @@ struct SemanticVerificationStageVisitor0 : GenericDoubleVisitor
 		// DUPE_NAME
 		std::wstring name = node.name->toString();
 		SemanticVerificationScopeContext_NameSet* owner_context =
-				SemanticVerificationScopeContext_NameSet::get_instance(ASTNodeHelper::getOwnerScope(node));
+				SemanticVerificationScopeContext_NameSet::get_instance(ASTNodeHelper::getOwnerNamedScope(node));
 		if(owner_context->names.find(name) == owner_context->names.end())
 			owner_context->names.insert(name);
 		else
@@ -180,7 +180,7 @@ struct SemanticVerificationStageVisitor0 : GenericDoubleVisitor
 	{
 		// WRITE_RVALUE
 		if(node.isAssignment() && node.left->isRValue())
-			LOG_MESSAGE(WRITE_RVALUE, ASTNodeHelper::getOwnerAnnotationPoint(*node.left->parent));
+			LOG_MESSAGE(WRITE_RVALUE, ASTNodeHelper::getOwnerAnnotationAttachPoint(*node.left->parent));
 	}
 
 	void verify(BranchStmt &node)

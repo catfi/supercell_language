@@ -107,24 +107,6 @@ public:
 		return false;
 	}
 
-	static bool isOwnedByIterativeStmt(ASTNode& node) { return !!getOwnerIterativeStmt(node); }
-	static IterativeStmt* getOwnerIterativeStmt(ASTNode& node)
-	{
-		for(ASTNode* p = node.parent; !!p && !isa<FunctionDecl>(p) && !isPackageScope(p); p = p->parent)
-			if(isa<IterativeStmt>(p))
-				return cast<IterativeStmt>(p);
-		return NULL;
-	}
-
-	static bool isOwnedBySelectionStmt(ASTNode& node) { return !!getOwnerSelectionStmt(node); }
-	static SelectionStmt* getOwnerSelectionStmt(ASTNode& node)
-	{
-		for(ASTNode* p = node.parent; !!p && !isa<FunctionDecl>(p) && !isPackageScope(p); p = p->parent)
-			if(isa<SelectionStmt>(p))
-				return cast<SelectionStmt>(p);
-		return NULL;
-	}
-
 	static bool isOwnedByExpression(ASTNode& node) { return !!getOwnerExpression(node); }
 	static Expression* getOwnerExpression(ASTNode& node)
 	{
@@ -143,38 +125,46 @@ public:
 		return NULL;
 	}
 
-	/// NOTE: used in LLVMGeneratorStageVisitor.h
-	static bool isDirectlyOwnedByPackage(ASTNode& node) { return !!getDirectOwnerPackage(node); }
-	static Package* getDirectOwnerPackage(ASTNode& node)
+	static bool isOwnedByIterativeStmt(ASTNode& node) { return !!getOwnerIterativeStmt(node); }
+	static IterativeStmt* getOwnerIterativeStmt(ASTNode& node)
 	{
-		for(ASTNode* p = node.parent; !!p; p = p->parent)
-		{
-			if(isa<FunctionDecl>(p))  return NULL;
-			if(isa<ClassDecl>(p))     return NULL;
-			if(isa<InterfaceDecl>(p)) return NULL;
-			if(isa<Package>(p))       return cast<Package>(p);
-		}
+		for(ASTNode* p = node.parent; !!p && !isa<FunctionDecl>(p) && !isPackageScope(p); p = p->parent)
+			if(isa<IterativeStmt>(p))
+				return cast<IterativeStmt>(p);
 		return NULL;
 	}
 
-	static ASTNode* getOwnerAnnotationPoint(ASTNode& node)
+	static bool isOwnedBySelectionStmt(ASTNode& node) { return !!getOwnerSelectionStmt(node); }
+	static SelectionStmt* getOwnerSelectionStmt(ASTNode& node)
 	{
-		for(ASTNode* p = node.parent; !!p && !isa<Package>(p); p = p->parent)
-			if(isa<Statement>(p) || isa<Declaration>(p))
+		for(ASTNode* p = node.parent; !!p && !isa<FunctionDecl>(p) && !isPackageScope(p); p = p->parent)
+			if(isa<SelectionStmt>(p))
+				return cast<SelectionStmt>(p);
+		return NULL;
+	}
+
+	static Block* getOwnerBlock(ASTNode& node)
+	{
+		for(ASTNode* p = node.parent; !!p && !isPackageScope(p); p = p->parent)
+			if(isa<Block>(p))
+				return cast<Block>(p);
+		return NULL;
+	}
+
+	static ASTNode* getOwnerNamedScope(ASTNode& node)
+	{
+		for(ASTNode* p = node.parent; !!p; p = p->parent)
+			if(isa<FunctionDecl>(p) || isa<ClassDecl>(p) || isa<InterfaceDecl>(p) || isa<Package>(p))
 				return p;
 		return NULL;
 	}
 
-	static bool isOwnedByAnnotation(ASTNode& node) { return !!getOwnerAnnotation(node); }
-	static Annotation* getOwnerAnnotation(ASTNode& node)
+	static bool isOwnedByFunction(ASTNode& node) { return (getOwnerFunction(node) != NULL); }
+	static FunctionDecl* getOwnerFunction(ASTNode& node)
 	{
-		for(ASTNode* p = node.parent;
-				!!p && !isa<Expression>(p) && !isa<Statement>(p) && !isa<Declaration>(p) && !isa<Package>(p);
-				p = p->parent) // NOTE: Annotation only uses PrimaryExpr
-		{
-			if(isa<Annotation>(p))
-				return cast<Annotation>(p);
-		}
+		for(ASTNode* p = node.parent; !!p && (!isPackageScope(p) || isa<FunctionDecl>(p)); p = p->parent)
+			if(isa<FunctionDecl>(p))
+				return cast<FunctionDecl>(p);
 		return NULL;
 	}
 
@@ -196,13 +186,25 @@ public:
 		return NULL;
 	}
 
-	/// NOTE: used in LLVMGeneratorStageVisitor.h
-	static bool isOwnedByFunction(ASTNode& node) { return (getOwnerFunction(node) != NULL); }
-	static FunctionDecl* getOwnerFunction(ASTNode& node)
+	static bool isDirectlyOwnedByPackage(ASTNode& node) { return !!getDirectOwnerPackage(node); }
+	static Package* getDirectOwnerPackage(ASTNode& node)
 	{
-		for(ASTNode* p = node.parent; !!p && (!isPackageScope(p) || isa<FunctionDecl>(p)); p = p->parent)
-			if(isa<FunctionDecl>(p))
-				return cast<FunctionDecl>(p);
+		for(ASTNode* p = node.parent; !!p; p = p->parent)
+		{
+			if(isa<FunctionDecl>(p))  return NULL;
+			if(isa<ClassDecl>(p))     return NULL;
+			if(isa<InterfaceDecl>(p)) return NULL;
+			if(isa<Package>(p))       return cast<Package>(p);
+		}
+		return NULL;
+	}
+
+	static bool isOwnedByAnnotation(ASTNode& node) { return !!getOwnerAnnotation(node); }
+	static Annotation* getOwnerAnnotation(ASTNode& node)
+	{
+		for(ASTNode* p = node.parent; !!p && !isPackageScope(p); p = p->parent)
+			if(isa<Annotation>(p))
+				return cast<Annotation>(p);
 		return NULL;
 	}
 
@@ -224,19 +226,11 @@ public:
 		return NULL;
 	}
 
-	static ASTNode* getOwnerScope(ASTNode& node)
-	{
-		for(ASTNode* p = node.parent; !!p; p = p->parent)
-			if(isa<FunctionDecl>(p) || isa<ClassDecl>(p) || isa<InterfaceDecl>(p) || isa<Package>(p))
-				return p;
-		return NULL;
-	}
-
-	static Block* getOwnerBlock(ASTNode& node)
+	static ASTNode* getOwnerAnnotationAttachPoint(ASTNode& node)
 	{
 		for(ASTNode* p = node.parent; !!p && !isPackageScope(p); p = p->parent)
-			if(isa<Block>(p))
-				return cast<Block>(p);
+			if(isa<Statement>(p) || isa<Declaration>(p))
+				return p;
 		return NULL;
 	}
 
