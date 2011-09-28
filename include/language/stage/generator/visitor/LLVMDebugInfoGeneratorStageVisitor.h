@@ -17,8 +17,8 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef ZILLIANS_LANGUAGE_STAGE_VISITOR_LLVMDEBUGINFOGENERATORVISITOR_H_
-#define ZILLIANS_LANGUAGE_STAGE_VISITOR_LLVMDEBUGINFOGENERATORVISITOR_H_
+#ifndef ZILLIANS_LANGUAGE_STAGE_VISITOR_LLVMDEBUGINFOGENERATORSTAGEVISITOR_H_
+#define ZILLIANS_LANGUAGE_STAGE_VISITOR_LLVMDEBUGINFOGENERATORSTAGEVISITOR_H_
 
 #include "core/Prerequisite.h"
 #include <boost/filesystem.hpp>
@@ -42,13 +42,13 @@ namespace visitor {
 #define COMPANY_INFORMATION "1.0 ThorScript Compiler (Zillians Corp.)"
 
 
-struct LLVMDebugInfoGeneratorVisitor: GenericDoubleVisitor
+struct LLVMDebugInfoGeneratorStageVisitor: GenericDoubleVisitor
 {
 	CREATE_INVOKER(generateInvoker, generate)
 
 	typedef std::map<PrimitiveType::type, llvm::DIType> type_cache_t;
 
-	LLVMDebugInfoGeneratorVisitor(llvm::LLVMContext& context, llvm::Module& current_module) :
+	LLVMDebugInfoGeneratorStageVisitor(llvm::LLVMContext& context, llvm::Module& current_module) :
 		context(context), current_module(current_module), factory(current_module)
 	{
 		REGISTER_ALL_VISITABLE_ASTNODE(generateInvoker)
@@ -358,4 +358,4 @@ private:
 
 }}}}
 
-#endif /* ZILLIANS_LANGUAGE_STAGE_VISITOR_LLVMDEBUGINFOGENERATORVISITOR_H_ */
+#endif /* ZILLIANS_LANGUAGE_STAGE_VISITOR_LLVMDEBUGINFOGENERATORSTAGEVISITOR_H_ */

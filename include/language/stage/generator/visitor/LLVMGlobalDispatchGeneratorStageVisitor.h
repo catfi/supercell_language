@@ -17,8 +17,8 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef ZILLIANS_LANGUAGE_STAGE_VISITOR_LLVMGLOBALDISPATCHGENERATORVISITOR_H_
-#define ZILLIANS_LANGUAGE_STAGE_VISITOR_LLVMGLOBALDISPATCHGENERATORVISITOR_H_
+#ifndef ZILLIANS_LANGUAGE_STAGE_VISITOR_LLVMGLOBALDISPATCHGENERATORSTAGEVISITOR_H_
+#define ZILLIANS_LANGUAGE_STAGE_VISITOR_LLVMGLOBALDISPATCHGENERATORSTAGEVISITOR_H_
 
 #include "core/Prerequisite.h"
 
@@ -40,11 +40,11 @@ using zillians::language::tree::visitor::GenericDoubleVisitor;
 
 namespace zillians { namespace language { namespace stage { namespace visitor {
 
-struct LLVMGlobalDispatchGeneratorVisitor : GenericDoubleVisitor
+struct LLVMGlobalDispatchGeneratorStageVisitor : GenericDoubleVisitor
 {
     CREATE_INVOKER(generateInvoker, collect)
 
-    LLVMGlobalDispatchGeneratorVisitor()
+    LLVMGlobalDispatchGeneratorStageVisitor()
     {
         REGISTER_ALL_VISITABLE_ASTNODE(generateInvoker)
     }
@@ -84,4 +84,4 @@ public:
 
 } } } }
 
-#endif /* ZILLIANS_LANGUAGE_STAGE_VISITOR_LLVMGLOBALDISPATCHGENERATORVISITOR_H_ */
+#endif /* ZILLIANS_LANGUAGE_STAGE_VISITOR_LLVMGLOBALDISPATCHGENERATORSTAGEVISITOR_H_ */

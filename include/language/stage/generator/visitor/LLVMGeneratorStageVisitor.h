@@ -17,8 +17,8 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef ZILLIANS_LANGUAGE_STAGE_VISITOR_LLVMGENERATORVISITOR_H_
-#define ZILLIANS_LANGUAGE_STAGE_VISITOR_LLVMGENERATORVISITOR_H_
+#ifndef ZILLIANS_LANGUAGE_STAGE_VISITOR_LLVMGENERATORSTAGEVISITOR_H_
+#define ZILLIANS_LANGUAGE_STAGE_VISITOR_LLVMGENERATORSTAGEVISITOR_H_
 
 #include "core/Prerequisite.h"
 #include "language/tree/ASTNodeHelper.h"
@@ -45,11 +45,11 @@ namespace zillians { namespace language { namespace stage { namespace visitor {
  *
  * @see LLVMGeneratorPreambleVisitor
  */
-struct LLVMGeneratorVisitor : GenericDoubleVisitor
+struct LLVMGeneratorStageVisitor : GenericDoubleVisitor
 {
 	CREATE_INVOKER(generateInvoker, generate)
 
-	LLVMGeneratorVisitor(llvm::LLVMContext& context, llvm::Module& module) :
+	LLVMGeneratorStageVisitor(llvm::LLVMContext& context, llvm::Module& module) :
 		mContext(context), mModule(module), mBuilder(context), mHelper(context)
 	{
 		mFunctionContext.function = NULL;
@@ -1319,4 +1319,4 @@ private:
 } } } }
 
 
-#endif /* ZILLIANS_LANGUAGE_STAGE_VISITOR_LLVMGENERATORVISITOR_H_ */
+#endif /* ZILLIANS_LANGUAGE_STAGE_VISITOR_LLVMGENERATORSTAGEVISITOR_H_ */
