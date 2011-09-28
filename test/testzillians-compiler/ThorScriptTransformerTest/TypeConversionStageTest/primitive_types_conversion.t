@@ -10,6 +10,7 @@ function test():void {
 	var f:float64;
 	
 	// these will all result in precision loss, so warnings will be thrown here
+	/*
 	a = b;
 	b = c;
 	c = d;
@@ -20,18 +21,40 @@ function test():void {
 	a = f;
 	b = f;
 	c = f;
-	
+	*/
 	// these are fine as we cast a smaller type to a larger type
+	/*
 	d = c;
 	c = b;
 	b = a;
+	*/
 	
 	// float to integer can be implicitly casted
+	/*
+	a = e;
+	a = f;
+	b = e;
+	b = f;
 	c = e;
+	c = f;
+	d = e;
 	d = f;
+	*/
 	
 	// and vice versa
+	/*
+	e = a;
+	e = b;
 	e = c;
+	e = d;
+	f = a;
+	f = b;
+	f = c;
 	f = d;
+	*/
+	
+	// double can be implicit casted as float (and vice versa)
+	e = f;
+	f = e;
 }
 
