@@ -47,8 +47,8 @@ ERRORS:
                 ii. WRITE_CONST                                                 S1*
             II. STATIC
                 i.   MISSING_STATIC_INIT                            S0
-                ii.  INVALID_NONSTATIC_CALL                                     S1 -- need to know if func is static
-                iii. INVALID_NONSTATIC_REF                                      S1 -- need to know if func is static
+                ii.  INVALID_NONSTATIC_CALL                                     S1* -- need to know if func is static
+                iii. INVALID_NONSTATIC_REF                                      S1* -- need to know if func is static
         b. VISIBILITY
             I.  INVALID_ACCESS_PRIVATE                                          S1
             II. INVALID_ACCESS_PROTECTED                                        S1
