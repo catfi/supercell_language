@@ -56,8 +56,10 @@ add_library(zillians-framework-language
     language/stage/transformer/TypeConversionStage.cpp
     language/stage/verifier/SemanticVerificationStage0.cpp
     language/stage/verifier/SemanticVerificationStage1.cpp
-	language/stage/verifier/StaticTestVerificationStage.cpp  
+	language/stage/verifier/StaticTestVerificationStage.cpp    
 	language/tree/basic/FunctionType.cpp  
+	language/stage/dep/ThorScriptDepStage.cpp
+    language/stage/dep/ThorScriptPackageDependencyGrammar.cpp
 	)
 
 set(StringTablePath ${PROJECT_FRAMEWORK_SOURCE_DIR}/include/language/logging)

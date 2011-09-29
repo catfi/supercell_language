@@ -62,6 +62,9 @@ bool ResolutionStage::parseOptions(po::variables_map& vm)
 
 bool ResolutionStage::execute(bool& continue_execution)
 {
+	if(disable_type_inference)
+		return true;
+
 	if(!resolveTypes(true)) return false;
 	if(!resolveSymbols(true)) return false;
 

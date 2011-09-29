@@ -51,7 +51,7 @@ using zillians::language::tree::visitor::NameManglingVisitor;
 // WARNINGS:
 // ====================================
 // MISSING_RETURN
-// UNINIT_ARG
+// UNINIT_REF
 // CONTROL_REACHES_END
 // MISSING_CASE
 
@@ -71,29 +71,50 @@ struct SemanticVerificationStageVisitor1 : GenericDoubleVisitor
 		revisit(node);
 	}
 
-	void verify_UNINIT_ARG(ASTNode &node)
-	{
-		// UNINIT_ARG
-		ASTNode* decl = ResolvedSymbol::get(&node);
-		if(isa<VariableDecl>(decl) && ASTNodeHelper::isOwnedByFunction(node))
-		{
-			VariableDecl* var_decl = cast<VariableDecl>(decl);
-			if(!SemanticVerificationVariableDeclContext_HasBeenInit::get(var_decl))
-				LOG_MESSAGE(UNINIT_ARG, ASTNodeHelper::getOwnerAnnotationAttachPoint(node), _var_id = var_decl->name->toString());
-		}
-	}
-
 	void verify(PrimaryExpr &node)
 	{
-		// UNINIT_ARG
-		if(node.catagory == PrimaryExpr::Catagory::IDENTIFIER)
-			verify_UNINIT_ARG(node);
+		if(ASTNodeHelper::isOwnedByFunction(node) && node.catagory == PrimaryExpr::Catagory::IDENTIFIER)
+		{
+			ASTNode* decl = ResolvedSymbol::get(&node);
+			if(isa<VariableDecl>(decl))
+			{
+				VariableDecl* var_decl = cast<VariableDecl>(decl);
+				std::wstring name = var_decl->name->toString();
+				ASTNode* attachment_point = ASTNodeHelper::getOwnerAnnotationAttachPoint(node);
+
+				// UNINIT_REF
+				if(ASTNodeHelper::isOwnedByRValue(node))
+					if(!SemanticVerificationVariableDeclContext_HasBeenInit::get(var_decl))
+						LOG_MESSAGE(UNINIT_REF, attachment_point, _var_id = name);
+
+				// INVALID_NONSTATIC_REF
+				if(!isa<FunctionDecl>(node.parent))
+					if(ASTNodeHelper::getOwnerFunction(node)->is_static && !var_decl->is_static)
+						LOG_MESSAGE(INVALID_NONSTATIC_REF, attachment_point, _var_id = name);
+			}
+		}
+
+		revisit(node);
 	}
 
-	void verify(MemberExpr &node)
+	void verify(CallExpr &node)
 	{
-		// UNINIT_ARG
-		verify_UNINIT_ARG(*node.node);
+		// INVALID_NONSTATIC_CALL
+		ASTNode* decl = ResolvedSymbol::get(node.node);
+		FunctionDecl* owner_func_decl = ASTNodeHelper::getOwnerFunction(node);
+		ASTNode* attachment_point = ASTNodeHelper::getOwnerAnnotationAttachPoint(node);
+		if(isa<FunctionDecl>(decl))
+		{
+			FunctionDecl* func_decl = cast<FunctionDecl>(decl);
+			if(owner_func_decl->is_static && !func_decl->is_static)
+				LOG_MESSAGE(INVALID_NONSTATIC_CALL, attachment_point, _func_id = func_decl->name->toString());
+		}
+//		if(isa<VariableDecl>(decl))
+//		{
+//			VariableDecl* var_decl = cast<VariableDecl>(decl);
+//			if(owner_func_decl->is_static && !var_decl->is_static)
+//				LOG_MESSAGE(INVALID_NONSTATIC_CALL, attachment_point, _func_id = var_decl->name->toString());
+//		}
 
 		revisit(node);
 	}
@@ -103,24 +124,59 @@ struct SemanticVerificationStageVisitor1 : GenericDoubleVisitor
 		if(node.isAssignment())
 		{
 			VariableDecl* var_decl = cast<VariableDecl>(ResolvedSymbol::get(node.left));
-			std::wstring name = var_decl->name->toString();
 
 			// WRITE_CONST
 			if(var_decl->is_const)
-				LOG_MESSAGE(WRITE_CONST, ASTNodeHelper::getOwnerAnnotationAttachPoint(node), _var_id = name);
+				LOG_MESSAGE(WRITE_CONST, ASTNodeHelper::getOwnerAnnotationAttachPoint(node), _var_id = var_decl->name->toString());
 
-			// UNINIT_ARG
+			// UNINIT_REF
 			SemanticVerificationVariableDeclContext_HasBeenInit::set(var_decl, NULL);
 		}
+
+		revisit(node);
+	}
+
+	void verify(BranchStmt &node)
+	{
+		if(node.opcode == BranchStmt::OpCode::RETURN)
+		{
+			FunctionDecl* func_decl = ASTNodeHelper::getOwnerFunction(node);
+
+			// MISSING_RETURN
+			SemanticVerificationFunctionDeclContext_HasVisitedReturn::get_instance(func_decl);
+
+			TypeSpecifier* return_param = func_decl->type;
+			TypeSpecifier* return_arg = cast<TypeSpecifier>(ResolvedType::get(node.result));
+			ASTNode* attachment_point = ASTNodeHelper::getOwnerAnnotationAttachPoint(node);
+
+			// UNEXPECTED_RETURN_VALUE
+			if(ASTNodeHelper::isVoidType(return_param) && !ASTNodeHelper::isVoidType(return_arg))
+				LOG_MESSAGE(UNEXPECTED_RETURN_VALUE, attachment_point);
+
+			// MISSING_RETURN_VALUE
+			if(!ASTNodeHelper::isVoidType(return_param) && ASTNodeHelper::isVoidType(return_arg))
+				LOG_MESSAGE(MISSING_RETURN_VALUE, attachment_point, _type = return_param->toString());
+		}
+
+		revisit(node);
 	}
 
 	void verify(VariableDecl &node)
 	{
-		// UNINIT_ARG
-		if(!isa<FunctionDecl>(node.parent) && !!node.initializer)
+		// UNINIT_REF
+		if(ASTNodeHelper::isOwnedByFunction(node) && ASTNodeHelper::isOwnedByBlock(node) && !!node.initializer)
 			SemanticVerificationVariableDeclContext_HasBeenInit::get_instance(&node);
 
 		revisit(node);
+	}
+
+	void verify(FunctionDecl &node)
+	{
+		revisit(node);
+
+		// MISSING_RETURN
+		if(!ASTNodeHelper::isVoidType(node.type) && !SemanticVerificationFunctionDeclContext_HasVisitedReturn::get(&node))
+			LOG_MESSAGE(MISSING_RETURN, &node);
 	}
 };
 

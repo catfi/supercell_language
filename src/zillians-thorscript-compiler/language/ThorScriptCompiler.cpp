@@ -56,6 +56,11 @@ ThorScriptCompiler::ThorScriptCompiler()
 	addMode<
 		boost::mpl::vector<
 			ThorScriptParserStage,
+			StaticTestVerificationStage>>("mode-parse-syntax-only", "for syntax check stage");
+
+	addMode<
+		boost::mpl::vector<
+			ThorScriptParserStage,
 			SemanticVerificationStage0,
 			StaticTestVerificationStage>>("mode-semantic-verify-0", "for semantic verification stage 0");
 

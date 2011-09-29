@@ -107,11 +107,26 @@ public:
 		return false;
 	}
 
+	static bool isVoidType(TypeSpecifier* type_specifier)
+	{
+		return type_specifier->type == TypeSpecifier::ReferredType::PRIMITIVE
+				&& type_specifier->referred.primitive == PrimitiveType::VOID;
+	}
+
 	static bool isOwnedByExpression(ASTNode& node) { return !!getOwnerExpression(node); }
 	static Expression* getOwnerExpression(ASTNode& node)
 	{
-		for(ASTNode* p = node.parent; !!p && !(isa<Statement>(p) || isa<FunctionDecl>(p)) && !isPackageScope(p); p = p->parent)
+		for(ASTNode* p = node.parent; !!p && !isPackageScope(p) && !(isa<Statement>(p) || isa<FunctionDecl>(p)); p = p->parent)
 			if(isa<Expression>(p))
+				return cast<Expression>(p);
+		return NULL;
+	}
+
+	static bool isOwnedByRValue(ASTNode& node) { return !!getOwnerRValue(node); }
+	static Expression* getOwnerRValue(ASTNode& node)
+	{
+		for(ASTNode* p = node.parent; !!p && isa<Expression>(p); p = p->parent)
+			if(cast<Expression>(p)->isRValue())
 				return cast<Expression>(p);
 		return NULL;
 	}
@@ -119,7 +134,7 @@ public:
 	static bool isOwnedByStatement(ASTNode& node) { return !!getOwnerStatement(node); }
 	static Statement* getOwnerStatement(ASTNode& node)
 	{
-		for(ASTNode* p = node.parent; !!p && !isa<Block>(p) && !isPackageScope(p); p = p->parent)
+		for(ASTNode* p = node.parent; !!p && !isPackageScope(p) && !isa<Block>(p); p = p->parent)
 			if(isa<Statement>(p))
 				return cast<Statement>(p);
 		return NULL;
@@ -128,7 +143,7 @@ public:
 	static bool isOwnedByIterativeStmt(ASTNode& node) { return !!getOwnerIterativeStmt(node); }
 	static IterativeStmt* getOwnerIterativeStmt(ASTNode& node)
 	{
-		for(ASTNode* p = node.parent; !!p && !isa<FunctionDecl>(p) && !isPackageScope(p); p = p->parent)
+		for(ASTNode* p = node.parent; !!p && !isPackageScope(p) && !isa<FunctionDecl>(p); p = p->parent)
 			if(isa<IterativeStmt>(p))
 				return cast<IterativeStmt>(p);
 		return NULL;
@@ -137,12 +152,13 @@ public:
 	static bool isOwnedBySelectionStmt(ASTNode& node) { return !!getOwnerSelectionStmt(node); }
 	static SelectionStmt* getOwnerSelectionStmt(ASTNode& node)
 	{
-		for(ASTNode* p = node.parent; !!p && !isa<FunctionDecl>(p) && !isPackageScope(p); p = p->parent)
+		for(ASTNode* p = node.parent; !!p && !isPackageScope(p) && !isa<FunctionDecl>(p); p = p->parent)
 			if(isa<SelectionStmt>(p))
 				return cast<SelectionStmt>(p);
 		return NULL;
 	}
 
+	static bool isOwnedByBlock(ASTNode& node) { return !!getOwnerBlock(node); }
 	static Block* getOwnerBlock(ASTNode& node)
 	{
 		for(ASTNode* p = node.parent; !!p && !isPackageScope(p); p = p->parent)

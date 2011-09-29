@@ -11,7 +11,7 @@ LEGEND:
 ERRORS:
 
                                                 Undecided   Parse   S0  Xform   S1  Future
-                                                ==========================================
+                                                /////////////////////////////////////////////////////////////////////
     E1. NAME
         a. UNKNOWN
             I.  UNKNOWN_NAME                                            T
@@ -38,17 +38,17 @@ ERRORS:
             II.  MISMATCH_CALL_ARGNUM_TOO_MANY                          T
             III. MISMATCH_CALL_ARGNUM_TOO_FEW                           T
             IV.  MISMATCH_CALL_ARGTYPE                                  T
-            V.   UNEXPECTED_RETURN_VALUE                                        S1 -- need to know func return type
-            VI.  MISSING_RETURN_VALUE                                           S1 -- need to know func return type
+            V.   UNEXPECTED_RETURN_VALUE                                        S1* -- need to know func return type
+            VI.  MISSING_RETURN_VALUE                                           S1* -- need to know func return type
     E3. MODIFIER
         a. STORAGE
             I.  CONST
                 i.  MISSING_CONST_INIT                      P
-                ii. WRITE_CONST                                                 S1
+                ii. WRITE_CONST                                                 S1*
             II. STATIC
                 i.   MISSING_STATIC_INIT                            S0
-                ii.  INVALID_NONSTATIC_CALL                                     S1 -- need to know if func is static
-                iii. INVALID_NONSTATIC_REF                                      S1 -- need to know if func is static
+                ii.  INVALID_NONSTATIC_CALL                                     S1* -- need to know if func is static
+                iii. INVALID_NONSTATIC_REF                                      S1* -- need to know if func is static
         b. VISIBILITY
             I.  INVALID_ACCESS_PRIVATE                                          S1
             II. INVALID_ACCESS_PROTECTED                                        S1
@@ -62,14 +62,14 @@ ERRORS:
     E6. LIMIT
         a. EXCEED_PARAM_LIMIT                                       S0
         b. EXCEED_TEMPLATE_PARAM_LIMIT                              S0
-                                                ==========================================
+                                                /////////////////////////////////////////////////////////////////////
 
 WARNINGS:
 
                                                 Undecided   Parse   S0  Xform   S1  Future
-                                                ==========================================
-    W1. MISSING_RETURN                                                          S1 -- need to know func return type
-    W2. UNINIT_ARG                                                              S1
+                                                /////////////////////////////////////////////////////////////////////
+    W1. MISSING_RETURN                                                          S1* -- need to know func return type
+    W2. UNINIT_REF                                                              S1?
     W3. CONTROL_PATH
         b. CONTROL_REACHES_END                                                  S1
         c. MISSING_CASE                                                         S1
@@ -78,7 +78,7 @@ WARNINGS:
     /*
     W4. UNUSED_VAR                                                                  FUTURE
     */
-                                                ==========================================
+                                                /////////////////////////////////////////////////////////////////////
 
 MESSAGES:
 
@@ -120,7 +120,7 @@ MESSAGES:
     WARNINGS:
 
     W1:   MISSING_RETURN      = no return statement in function returning non-void
-    W2:   UNINIT_ARG          = $ID is used uninitialized in this function
+    W2:   UNINIT_REF          = $ID is used uninitialized in this function
     W3.a: CONTROL_REACHES_END = control reaches end of non-void function
     W3.b: MISSING_CASE        = enumeration value $ID not handled in switch
     W3.c: DEAD_CODE           = <<< no c++ equivalence >>>
