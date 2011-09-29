@@ -859,7 +859,7 @@ private:
 		}
 
 		TypeSpecifier* specifier = cast<TypeSpecifier>(resolved_type);
-		if(specifier->type != TypeSpecifier::ReferredType::PRIMITIVE || !PrimitiveType::isIntegerType(specifier->referred.primitive))
+		if(specifier->type != TypeSpecifier::ReferredType::PRIMITIVE/* || !PrimitiveType::isIntegerType(specifier->referred.primitive)*/)
 		{
 			LOG_MESSAGE(INVALID_CONV, &node, _rhs_type = ASTNodeHelper::nodeName(specifier), _lhs_type = ASTNodeHelper::nodeName(getParserContext().program->internal->BooleanTy));
 			return;

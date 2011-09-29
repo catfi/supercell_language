@@ -91,9 +91,9 @@ struct LLVMGeneratorStageVisitor : GenericDoubleVisitor
 		case PrimitiveType::INT64:
 			result = llvm::ConstantInt::get(llvm::IntegerType::getInt64Ty(mContext), node.value.i64, false); break;
 		case PrimitiveType::FLOAT32:
-			result = llvm::ConstantInt::get(llvm::IntegerType::getFloatTy(mContext), node.value.f32, false); break;
+			result = llvm::ConstantFP::get(llvm::Type::getFloatTy(mContext), node.value.f32); break;
 		case PrimitiveType::FLOAT64:
-			result = llvm::ConstantInt::get(llvm::IntegerType::getDoubleTy(mContext), node.value.f64, false); break;
+			result = llvm::ConstantFP::get(llvm::Type::getDoubleTy(mContext), node.value.f64); break;
 		default:
 			break;
 		}
@@ -604,23 +604,23 @@ struct LLVMGeneratorStageVisitor : GenericDoubleVisitor
 			result = mBuilder.CreateStore(rhs_value_for_read, lhs_value_for_write);
 			break;
 		case BinaryExpr::OpCode::ADD_ASSIGN:
-			temporary = (isFloatType(node)) ? mBuilder.CreateFAdd(lhs_value_for_read, rhs_value_for_read) : mBuilder.CreateAdd(lhs_value_for_read, rhs_value_for_read);
+			temporary = (isFloatType(*node.left)) ? mBuilder.CreateFAdd(lhs_value_for_read, rhs_value_for_read) : mBuilder.CreateAdd(lhs_value_for_read, rhs_value_for_read);
 			result = mBuilder.CreateStore(temporary, lhs_value_for_write);
 			break;
 		case BinaryExpr::OpCode::SUB_ASSIGN:
-			temporary = (isFloatType(node)) ? mBuilder.CreateFSub(lhs_value_for_read, rhs_value_for_read) : mBuilder.CreateSub(lhs_value_for_read, rhs_value_for_read);
+			temporary = (isFloatType(*node.left)) ? mBuilder.CreateFSub(lhs_value_for_read, rhs_value_for_read) : mBuilder.CreateSub(lhs_value_for_read, rhs_value_for_read);
 			result = mBuilder.CreateStore(temporary, lhs_value_for_write);
 			break;
 		case BinaryExpr::OpCode::MUL_ASSIGN:
-			temporary = (isFloatType(node)) ? mBuilder.CreateFMul(lhs_value_for_read, rhs_value_for_read) : mBuilder.CreateMul(lhs_value_for_read, rhs_value_for_read);
+			temporary = (isFloatType(*node.left)) ? mBuilder.CreateFMul(lhs_value_for_read, rhs_value_for_read) : mBuilder.CreateMul(lhs_value_for_read, rhs_value_for_read);
 			result = mBuilder.CreateStore(temporary, lhs_value_for_write);
 			break;
 		case BinaryExpr::OpCode::DIV_ASSIGN:
-			temporary = (isFloatType(node)) ? mBuilder.CreateFDiv(lhs_value_for_read, rhs_value_for_read) : mBuilder.CreateUDiv(lhs_value_for_read, rhs_value_for_read);
+			temporary = (isFloatType(*node.left)) ? mBuilder.CreateFDiv(lhs_value_for_read, rhs_value_for_read) : mBuilder.CreateUDiv(lhs_value_for_read, rhs_value_for_read);
 			result = mBuilder.CreateStore(temporary, lhs_value_for_write);
 			break;
 		case BinaryExpr::OpCode::MOD_ASSIGN:
-			temporary = (isFloatType(node)) ? mBuilder.CreateFRem(lhs_value_for_read, rhs_value_for_read) : mBuilder.CreateURem(lhs_value_for_read, rhs_value_for_read);
+			temporary = (isFloatType(*node.left)) ? mBuilder.CreateFRem(lhs_value_for_read, rhs_value_for_read) : mBuilder.CreateURem(lhs_value_for_read, rhs_value_for_read);
 			result = mBuilder.CreateStore(temporary, lhs_value_for_write);
 			break;
 		case BinaryExpr::OpCode::AND_ASSIGN:
@@ -638,18 +638,15 @@ struct LLVMGeneratorStageVisitor : GenericDoubleVisitor
 
 			// Arithmetic Operations
 		case BinaryExpr::OpCode::ARITHMETIC_ADD:
-			result = (isFloatType(node)) ? mBuilder.CreateFAdd(lhs_value_for_read, rhs_value_for_read) : mBuilder.CreateAdd(lhs_value_for_read, rhs_value_for_read); break;
+			result = (isFloatType(*node.left)) ? mBuilder.CreateFAdd(lhs_value_for_read, rhs_value_for_read) : mBuilder.CreateAdd(lhs_value_for_read, rhs_value_for_read); break;
 		case BinaryExpr::OpCode::ARITHMETIC_SUB:
-			result = (isFloatType(node)) ? mBuilder.CreateFSub(lhs_value_for_read, rhs_value_for_read) : mBuilder.CreateSub(lhs_value_for_read, rhs_value_for_read); break;
+			result = (isFloatType(*node.left)) ? mBuilder.CreateFSub(lhs_value_for_read, rhs_value_for_read) : mBuilder.CreateSub(lhs_value_for_read, rhs_value_for_read); break;
 		case BinaryExpr::OpCode::ARITHMETIC_MUL:
-			result = (isFloatType(node)) ? mBuilder.CreateFMul(lhs_value_for_read, rhs_value_for_read) : mBuilder.CreateMul(lhs_value_for_read, rhs_value_for_read); break;
+			result = (isFloatType(*node.left)) ? mBuilder.CreateFMul(lhs_value_for_read, rhs_value_for_read) : mBuilder.CreateMul(lhs_value_for_read, rhs_value_for_read); break;
 		case BinaryExpr::OpCode::ARITHMETIC_DIV:
-			// TODO should be use CreateUDiv or CreateSDiv? depending on whether LHS or RHS is signed or unsigned
-			// TODO current zscript does not handle this correctly
-			// TODO see clang CGExprScalar.cpp:1737 hasUnsignedIntegerRepresentation()
-			result = (isFloatType(node)) ? mBuilder.CreateFDiv(lhs_value_for_read, rhs_value_for_read) : mBuilder.CreateUDiv(lhs_value_for_read, rhs_value_for_read); break;
+			result = (isFloatType(*node.left)) ? mBuilder.CreateFDiv(lhs_value_for_read, rhs_value_for_read) : mBuilder.CreateSDiv(lhs_value_for_read, rhs_value_for_read); break;
 		case BinaryExpr::OpCode::ARITHMETIC_MOD:
-			result = (isFloatType(node)) ? mBuilder.CreateFRem(lhs_value_for_read, rhs_value_for_read) : mBuilder.CreateURem(lhs_value_for_read, rhs_value_for_read); break;
+			result = (isFloatType(*node.left)) ? mBuilder.CreateFRem(lhs_value_for_read, rhs_value_for_read) : mBuilder.CreateSRem(lhs_value_for_read, rhs_value_for_read); break;
 
 			// Arithmetic Bitwise Operations
 		case BinaryExpr::OpCode::BINARY_AND:
@@ -679,17 +676,17 @@ struct LLVMGeneratorStageVisitor : GenericDoubleVisitor
 
 			// Logical Comparison
 		case BinaryExpr::OpCode::COMPARE_EQ:
-			result = (isFloatType(node)) ? mBuilder.CreateFCmp(llvm::CmpInst::Predicate::FCMP_UEQ, lhs_value_for_read, rhs_value_for_read) : mBuilder.CreateICmp(llvm::CmpInst::Predicate::ICMP_EQ, lhs_value_for_read, rhs_value_for_read); break;
+			result = (isFloatType(*node.left)) ? mBuilder.CreateFCmp(llvm::CmpInst::Predicate::FCMP_UEQ, lhs_value_for_read, rhs_value_for_read) : mBuilder.CreateICmp(llvm::CmpInst::Predicate::ICMP_EQ, lhs_value_for_read, rhs_value_for_read); break;
 		case BinaryExpr::OpCode::COMPARE_NE:
-			result = (isFloatType(node)) ? mBuilder.CreateFCmp(llvm::CmpInst::Predicate::FCMP_UNE, lhs_value_for_read, rhs_value_for_read) : mBuilder.CreateICmp(llvm::CmpInst::Predicate::ICMP_NE, lhs_value_for_read, rhs_value_for_read); break;
+			result = (isFloatType(*node.left)) ? mBuilder.CreateFCmp(llvm::CmpInst::Predicate::FCMP_UNE, lhs_value_for_read, rhs_value_for_read) : mBuilder.CreateICmp(llvm::CmpInst::Predicate::ICMP_NE, lhs_value_for_read, rhs_value_for_read); break;
 		case BinaryExpr::OpCode::COMPARE_GT:
-			result = (isFloatType(node)) ? mBuilder.CreateFCmp(llvm::CmpInst::Predicate::FCMP_UGT, lhs_value_for_read, rhs_value_for_read) : mBuilder.CreateICmp(llvm::CmpInst::Predicate::ICMP_UGT, lhs_value_for_read, rhs_value_for_read); break;
+			result = (isFloatType(*node.left)) ? mBuilder.CreateFCmp(llvm::CmpInst::Predicate::FCMP_UGT, lhs_value_for_read, rhs_value_for_read) : mBuilder.CreateICmp(llvm::CmpInst::Predicate::ICMP_UGT, lhs_value_for_read, rhs_value_for_read); break;
 		case BinaryExpr::OpCode::COMPARE_LT:
-			result = (isFloatType(node)) ? mBuilder.CreateFCmp(llvm::CmpInst::Predicate::FCMP_ULT, lhs_value_for_read, rhs_value_for_read) : mBuilder.CreateICmp(llvm::CmpInst::Predicate::ICMP_ULT, lhs_value_for_read, rhs_value_for_read); break;
+			result = (isFloatType(*node.left)) ? mBuilder.CreateFCmp(llvm::CmpInst::Predicate::FCMP_ULT, lhs_value_for_read, rhs_value_for_read) : mBuilder.CreateICmp(llvm::CmpInst::Predicate::ICMP_ULT, lhs_value_for_read, rhs_value_for_read); break;
 		case BinaryExpr::OpCode::COMPARE_GE:
-			result = (isFloatType(node)) ? mBuilder.CreateFCmp(llvm::CmpInst::Predicate::FCMP_UGE, lhs_value_for_read, rhs_value_for_read) : mBuilder.CreateICmp(llvm::CmpInst::Predicate::ICMP_UGE, lhs_value_for_read, rhs_value_for_read); break;
+			result = (isFloatType(*node.left)) ? mBuilder.CreateFCmp(llvm::CmpInst::Predicate::FCMP_UGE, lhs_value_for_read, rhs_value_for_read) : mBuilder.CreateICmp(llvm::CmpInst::Predicate::ICMP_UGE, lhs_value_for_read, rhs_value_for_read); break;
 		case BinaryExpr::OpCode::COMPARE_LE:
-			result = (isFloatType(node)) ? mBuilder.CreateFCmp(llvm::CmpInst::Predicate::FCMP_ULE, lhs_value_for_read, rhs_value_for_read) : mBuilder.CreateICmp(llvm::CmpInst::Predicate::ICMP_ULE, lhs_value_for_read, rhs_value_for_read); break;
+			result = (isFloatType(*node.left)) ? mBuilder.CreateFCmp(llvm::CmpInst::Predicate::FCMP_ULE, lhs_value_for_read, rhs_value_for_read) : mBuilder.CreateICmp(llvm::CmpInst::Predicate::ICMP_ULE, lhs_value_for_read, rhs_value_for_read); break;
 
 			// Range Operator
 		case BinaryExpr::OpCode::RANGE_ELLIPSIS:
@@ -1163,8 +1160,21 @@ private:
 private:
 	bool isFloatType(ASTNode& node)
 	{
-		// TODO check the resolve type
-		return false;
+		ASTNode* node_resolved = ResolvedType::get(&node);
+		if(!node_resolved)
+			return false;
+
+		TypeSpecifier* node_specifier = cast<TypeSpecifier>(node_resolved);
+		if(!node_resolved)
+			return false;
+
+		if(node_specifier->type != TypeSpecifier::ReferredType::PRIMITIVE)
+			return false;
+
+		if(!PrimitiveType::isFloatType(node_specifier->referred.primitive))
+			return false;
+
+		return true;
 	}
 
 	bool isFunctionParameter(ASTNode& node)
