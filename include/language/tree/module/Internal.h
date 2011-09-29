@@ -40,8 +40,9 @@ struct Internal : public ASTNode
 		Int64Ty    = new TypeSpecifier(PrimitiveType::INT64);
 		Float32Ty  = new TypeSpecifier(PrimitiveType::FLOAT32);
 		Float64Ty  = new TypeSpecifier(PrimitiveType::FLOAT64);
-		ObjectTy   = new TypeSpecifier(PrimitiveType::ANONYMOUS_OBJECT);
-		FunctionTy = new TypeSpecifier(PrimitiveType::ANONYMOUS_FUNCTION);
+		ObjectTy   = new TypeSpecifier(PrimitiveType::OBJECT);
+		FunctionTy = new TypeSpecifier(PrimitiveType::FUNCTION);
+		StringTy   = new TypeSpecifier(PrimitiveType::STRING);
 	}
 
 	TypeSpecifier* getPrimitiveTy(PrimitiveType::type t)
@@ -56,8 +57,9 @@ struct Internal : public ASTNode
 		case PrimitiveType::INT64: return Int64Ty;
 		case PrimitiveType::FLOAT32: return Float32Ty;
 		case PrimitiveType::FLOAT64: return Float64Ty;
-		case PrimitiveType::ANONYMOUS_OBJECT: return ObjectTy;
-		case PrimitiveType::ANONYMOUS_FUNCTION: return FunctionTy;
+		case PrimitiveType::OBJECT: return ObjectTy;
+		case PrimitiveType::FUNCTION: return FunctionTy;
+		case PrimitiveType::STRING: return StringTy;
 		default: break;
 		}
 		BOOST_ASSERT(false && "reaching unreachable code");
@@ -77,6 +79,7 @@ struct Internal : public ASTNode
 		COMPARE_MEMBER(Float64Ty)
 		COMPARE_MEMBER(ObjectTy)
 		COMPARE_MEMBER(FunctionTy)
+		COMPARE_MEMBER(StringTy)
 		COMPARE_MEMBER(others)
 		END_COMPARE()
     }
@@ -94,6 +97,7 @@ struct Internal : public ASTNode
 		REPLACE_USE_WITH(Float64Ty)
 		REPLACE_USE_WITH(ObjectTy)
 		REPLACE_USE_WITH(FunctionTy)
+		REPLACE_USE_WITH(StringTy)
 		REPLACE_USE_WITH(others)
 		END_REPLACE()
     }
@@ -108,6 +112,7 @@ struct Internal : public ASTNode
 	TypeSpecifier* Float64Ty;
 	TypeSpecifier* ObjectTy;
 	TypeSpecifier* FunctionTy;
+	TypeSpecifier* StringTy;
 
 	std::vector<ASTNode*> others;
 };
