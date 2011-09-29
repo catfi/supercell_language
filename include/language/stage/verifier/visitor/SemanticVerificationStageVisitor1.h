@@ -66,11 +66,6 @@ struct SemanticVerificationStageVisitor1 : GenericDoubleVisitor
 		REGISTER_ALL_VISITABLE_ASTNODE(verifyInvoker)
 	}
 
-	void verify(ASTNode& node)
-	{
-		revisit(node);
-	}
-
 	void verify_UNINIT_REF(ASTNode &node)
 	{
 		// UNINIT_REF
@@ -86,11 +81,18 @@ struct SemanticVerificationStageVisitor1 : GenericDoubleVisitor
 		}
 	}
 
+	void verify(ASTNode& node)
+	{
+		revisit(node);
+	}
+
 	void verify(PrimaryExpr &node)
 	{
 		// UNINIT_REF
 		if(node.catagory == PrimaryExpr::Catagory::IDENTIFIER)
 			verify_UNINIT_REF(node);
+
+		revisit(node);
 	}
 
 	void verify(MemberExpr &node)
@@ -144,6 +146,8 @@ struct SemanticVerificationStageVisitor1 : GenericDoubleVisitor
 					LOG_MESSAGE(MISSING_RETURN_VALUE, attachment_point, _type = return_param_type->toString());
 			}
 		}
+
+		revisit(node);
 	}
 
 	void verify(VariableDecl &node)
