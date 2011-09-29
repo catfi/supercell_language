@@ -39,17 +39,24 @@ struct LLVMHelper
 
 		switch(type)
 		{
-		case PrimitiveType::ANONYMOUS_OBJECT:
+		case PrimitiveType::OBJECT:
 		{
-			// return generic pointer type, which is an unsigned int32
-			modifier |= llvm::Attribute::ZExt;
+			// return generic object type, which is an signed int32
+			modifier |= llvm::Attribute::SExt;
 			result = llvm::IntegerType::getInt32Ty(mContext);
 			resolved = true; break;
 		}
-		case PrimitiveType::ANONYMOUS_FUNCTION:
+		case PrimitiveType::FUNCTION:
 		{
 			// TODO return pointer to function type
 			result = NULL;
+			resolved = true; break;
+		}
+		case PrimitiveType::STRING:
+		{
+			// TODO return pointer to function type
+			modifier |= llvm::Attribute::SExt;
+			result = llvm::IntegerType::getInt32Ty(mContext);
 			resolved = true; break;
 		}
 		case PrimitiveType::VOID:

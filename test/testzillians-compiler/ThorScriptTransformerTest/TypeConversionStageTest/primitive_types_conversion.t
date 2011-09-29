@@ -54,7 +54,18 @@ function test():void {
 	*/
 	
 	// double can be implicit casted as float (and vice versa)
+	/*
 	e = f;
 	f = e;
+	*/
+	
+	// implicit cast from integer to boolean
+	if(b > 0) { }
+	elif(c > 0) { }
+	/*
+	elif(c) { }
+	elif(d) { }
+	else { }
+	*/
 }
 

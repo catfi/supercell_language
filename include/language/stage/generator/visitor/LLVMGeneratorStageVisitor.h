@@ -159,7 +159,8 @@ struct LLVMGeneratorStageVisitor : GenericDoubleVisitor
 
 	void generate(VariableDecl& node)
 	{
-		if(ASTNodeHelper::isDirectlyOwnedByPackage(node))
+		//if(ASTNodeHelper::isDirectlyOwnedByPackage(node))
+		if(node.parent && isa<Package>(node.parent))
 			return;
 
 		revisit(node);
@@ -894,8 +895,9 @@ struct LLVMGeneratorStageVisitor : GenericDoubleVisitor
 				{
 					// the rest of types can be both object types or function types or void type, no casting required
 					if(	(node.type->referred.primitive == PrimitiveType::VOID && node_specifier->referred.primitive == PrimitiveType::VOID) ||
-						(node.type->referred.primitive == PrimitiveType::ANONYMOUS_OBJECT && node_specifier->referred.primitive == PrimitiveType::ANONYMOUS_OBJECT) ||
-						(node.type->referred.primitive == PrimitiveType::ANONYMOUS_FUNCTION && node_specifier->referred.primitive == PrimitiveType::ANONYMOUS_FUNCTION) )
+						(node.type->referred.primitive == PrimitiveType::OBJECT && node_specifier->referred.primitive == PrimitiveType::OBJECT) ||
+						(node.type->referred.primitive == PrimitiveType::FUNCTION && node_specifier->referred.primitive == PrimitiveType::FUNCTION) ||
+						(node.type->referred.primitive == PrimitiveType::STRING && node_specifier->referred.primitive == PrimitiveType::STRING) )
 					{
 						llvm_result = llvm_value_for_read;
 					}

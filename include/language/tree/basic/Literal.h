@@ -102,6 +102,23 @@ struct NumericLiteral : public Literal
 	explicit NumericLiteral(float v)  { type = PrimitiveType::FLOAT32; value.f32 = v; }
 	explicit NumericLiteral(double v) { type = PrimitiveType::FLOAT64; value.f64 = v; }
 
+	template<typename T>
+	explicit NumericLiteral(PrimitiveType::type t, T v)
+	{
+        switch(t)
+        {
+        case PrimitiveType::type::BOOL: value.b = (bool)v; break;
+        case PrimitiveType::type::INT8: value.i8 = (int8)v; break;
+        case PrimitiveType::type::INT16: value.i16 = (int16)v; break;
+        case PrimitiveType::type::INT32: value.i32 = (int32)v; break;
+        case PrimitiveType::type::INT64: value.i64 = (int64)v; break;
+        case PrimitiveType::type::FLOAT32: value.f32 = (float)v; break;
+        case PrimitiveType::type::FLOAT64: value.f64 = (double)v; break;
+        default: break;
+        }
+        type = t;
+	}
+
     virtual bool isEqualImpl(const ASTNode& rhs, ASTNodeSet& visited) const
     {
     	BEGIN_COMPARE_WITH_BASE(Literal)

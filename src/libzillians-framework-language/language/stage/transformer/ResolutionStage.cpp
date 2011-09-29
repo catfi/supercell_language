@@ -48,7 +48,8 @@ std::pair<shared_ptr<po::options_description>, shared_ptr<po::options_descriptio
 
 	foreach(i, option_desc_public->options()) option_desc_private->add(*i);
 
-	option_desc_private->add_options();
+	option_desc_private->add_options()
+		("debug-resolution-stage", "debug type conversion stage");
 
 	return std::make_pair(option_desc_public, option_desc_private);
 }
@@ -62,148 +63,167 @@ bool ResolutionStage::parseOptions(po::variables_map& vm)
 
 bool ResolutionStage::execute(bool& continue_execution)
 {
-	if(disable_type_inference)
-		return true;
+	if(!hasParserContext())
+		return false;
 
-	if(!resolveTypes(true)) return false;
-	if(!resolveSymbols(true)) return false;
+	bool complete_type_resolution = false;
+	bool complete_symbol_resolution = false;
 
-	return true;
-}
-
-bool ResolutionStage::resolveTypes(bool report_error_summary)
-{
-	if(hasParserContext())
+	while(true)
 	{
-		ParserContext& parser_context = getParserContext();
+		bool making_progress_on_type_resolution = false;
+		if(!complete_type_resolution)
+			complete_type_resolution = resolveTypes(false, making_progress_on_type_resolution);
 
-		if(!parser_context.program)
-			return false;
+		bool making_progress_on_symbol_resolution = false;
+		if(!complete_symbol_resolution)
+			complete_symbol_resolution = resolveSymbols(false, making_progress_on_symbol_resolution);
 
-		LOG4CXX_DEBUG(LoggerWrapper::TransformerStage, L"trying to resolve types");
-
-		tree::Program& program = *parser_context.program;
-
-		Resolver resolver;
-		visitor::ResolutionStageVisitor visitor(visitor::ResolutionStageVisitor::Target::TYPE_RESOLUTION, program, resolver);
-
-		std::size_t last_unresolved_count = std::numeric_limits<std::size_t>::max();
-		while(true)
+		if(complete_type_resolution && complete_symbol_resolution)
+			return true;
+		else
 		{
-			visitor.reset();
-			visitor.visit(program);
-
-			total_resolved_count += visitor.getResolvedCount();
-			std::size_t unresolved_count = visitor.getUnresolvedCount();
-
-			if(unresolved_count == 0 || unresolved_count == last_unresolved_count)
-			{
-				if(unresolved_count == 0) last_unresolved_count = 0;
+			if(!making_progress_on_type_resolution && !making_progress_on_symbol_resolution)
 				break;
-			}
-			else
-			{
-				BOOST_ASSERT(unresolved_count < last_unresolved_count && "make sure we are making progress");
-				last_unresolved_count = unresolved_count;
-			}
-		}
-
-		if(last_unresolved_count > 0)
-		{
-			total_unresolved_count += last_unresolved_count;
-
-			if(report_error_summary)
-			{
-				LOG_MESSAGE(UNDEFINED_TYPE, (ASTNode*)NULL, _count = total_unresolved_count);
-
-				for(__gnu_cxx::hash_set<ASTNode*>::iterator it = visitor.unresolved_nodes.begin(); it != visitor.unresolved_nodes.end(); ++it)
-				{
-					LOG_MESSAGE(UNDEFINED_TYPE_INFO, *it, _id = ASTNodeHelper::nodeName(*it));
-					//zillians::language::LoggerWrapper::instance()->getLogger()->UNDEFINED_TYPE_INFO(zillians::language::_program_node = (getParserContext().program), zillians::language::_node = (*it), _id = ASTNodeHelper::nodeName(*it));
-				}
-			}
-
-			return false;
 		}
 	}
-	else
-	{
-		LOG4CXX_ERROR(LoggerWrapper::TransformerStage, L"empty program node");
-	}
+
+	bool dummy = false;
+	if(!complete_type_resolution)
+		resolveTypes(true, dummy);
+	if(!complete_symbol_resolution)
+		resolveSymbols(true, dummy);
 
 	return true;
 }
 
-bool ResolutionStage::resolveSymbols(bool report_error_summary)
+bool ResolutionStage::resolveTypes(bool report_error_summary, bool& making_progress)
 {
-	if(hasParserContext())
+	ParserContext& parser_context = getParserContext();
+
+	if(!parser_context.program)
+		return false;
+
+	LOG4CXX_DEBUG(LoggerWrapper::TransformerStage, L"trying to resolve types");
+
+	tree::Program& program = *parser_context.program;
+
+	Resolver resolver;
+	visitor::ResolutionStageVisitor visitor(visitor::ResolutionStageVisitor::Target::TYPE_RESOLUTION, resolver);
+
+	std::size_t last_unresolved_count = std::numeric_limits<std::size_t>::max();
+	while(true)
 	{
-		ParserContext& parser_context = getParserContext();
+		visitor.reset();
+		visitor.visit(program);
 
-		if(!parser_context.program)
-			return false;
+		total_resolved_count += visitor.getResolvedCount();
+		std::size_t unresolved_count = visitor.getUnresolvedCount();
 
-		LOG4CXX_DEBUG(LoggerWrapper::TransformerStage, "trying to resolve symbols");
-
-		tree::Program& program = *parser_context.program;
-
-		Resolver resolver;
-		visitor::ResolutionStageVisitor visitor(visitor::ResolutionStageVisitor::Target::SYMBOL_RESOLUTION, program, resolver);
-
-		std::size_t last_unresolved_count = std::numeric_limits<std::size_t>::max();
-		while(true)
+		if(unresolved_count == 0 || unresolved_count == last_unresolved_count)
 		{
-			visitor.reset();
-			visitor.visit(program);
+			if(unresolved_count == 0) last_unresolved_count = 0;
 
-			total_resolved_count += visitor.getResolvedCount();
-			std::size_t unresolved_count = visitor.getUnresolvedCount();
-
-			if(unresolved_count == 0 || unresolved_count == last_unresolved_count)
-			{
-				if(unresolved_count == 0) last_unresolved_count = 0;
+			if(!visitor.hasTransforms())
 				break;
-			}
-			else
-			{
-				BOOST_ASSERT(unresolved_count < last_unresolved_count && "make sure we are making progress");
-				last_unresolved_count = unresolved_count;
-			}
 		}
-
-		if(last_unresolved_count > 0)
+		else
 		{
-			total_unresolved_count += last_unresolved_count;
-
-			if(report_error_summary)
-			{
-				LOG_MESSAGE(UNDEFINED_SYMBOL, (ASTNode*)NULL, _count = total_unresolved_count);
-
-				for(__gnu_cxx::hash_set<ASTNode*>::iterator it = visitor.unresolved_nodes.begin(); it != visitor.unresolved_nodes.end(); ++it)
-				{
-					LOG_MESSAGE(UNDEFINED_SYMBOL_INFO, (ASTNode*)*it, _id = ASTNodeHelper::nodeName(*it));
-				}
-			}
-
-			return false;
+			BOOST_ASSERT(unresolved_count < last_unresolved_count && "make sure we are making progress");
+			last_unresolved_count = unresolved_count;
 		}
+
+		visitor.applyTransforms();
 	}
-	else
+
+	if(last_unresolved_count > 0)
 	{
-		LOG4CXX_ERROR(LoggerWrapper::TransformerStage, L"empty program node");
+		total_unresolved_count += last_unresolved_count;
+
+		if(report_error_summary)
+		{
+			LOG_MESSAGE(UNDEFINED_TYPE, (ASTNode*)NULL, _count = total_unresolved_count);
+
+			for(__gnu_cxx::hash_set<ASTNode*>::iterator it = visitor.unresolved_nodes.begin(); it != visitor.unresolved_nodes.end(); ++it)
+			{
+				LOG_MESSAGE(UNDEFINED_TYPE_INFO, *it, _id = ASTNodeHelper::nodeName(*it));
+				//zillians::language::LoggerWrapper::instance()->getLogger()->UNDEFINED_TYPE_INFO(zillians::language::_program_node = (getParserContext().program), zillians::language::_node = (*it), _id = ASTNodeHelper::nodeName(*it));
+			}
+		}
+
+		return false;
 	}
 
 	return true;
 }
 
-std::size_t ResolutionStage::get_resolved_count()
+bool ResolutionStage::resolveSymbols(bool report_error_summary, bool& making_progress)
 {
-	return total_resolved_count;
-}
+	ParserContext& parser_context = getParserContext();
 
-std::size_t ResolutionStage::get_unresolved_count()
-{
-	return total_unresolved_count;
+	if(!parser_context.program)
+		return false;
+
+	LOG4CXX_DEBUG(LoggerWrapper::TransformerStage, "trying to resolve symbols");
+
+	tree::Program& program = *parser_context.program;
+
+	Resolver resolver;
+	visitor::ResolutionStageVisitor visitor(visitor::ResolutionStageVisitor::Target::SYMBOL_RESOLUTION, resolver);
+
+	std::size_t last_unresolved_count = std::numeric_limits<std::size_t>::max();
+	while(true)
+	{
+		visitor.reset();
+		visitor.visit(program);
+
+		total_resolved_count += visitor.getResolvedCount();
+		std::size_t unresolved_count = visitor.getUnresolvedCount();
+
+		if(unresolved_count == 0 || unresolved_count == last_unresolved_count)
+		{
+			if(unresolved_count == 0) last_unresolved_count = 0;
+
+			if(!visitor.hasTransforms())
+				break;
+		}
+		else
+		{
+			BOOST_ASSERT(unresolved_count < last_unresolved_count && "make sure we are making progress");
+			last_unresolved_count = unresolved_count;
+		}
+
+		visitor.applyTransforms();
+	}
+
+	if(last_unresolved_count > 0)
+	{
+		total_unresolved_count += last_unresolved_count;
+
+		if(report_error_summary)
+		{
+			LOG_MESSAGE(UNDEFINED_SYMBOL, (ASTNode*)NULL, _count = total_unresolved_count);
+
+			for(__gnu_cxx::hash_set<ASTNode*>::iterator it = visitor.unresolved_nodes.begin(); it != visitor.unresolved_nodes.end(); ++it)
+			{
+				LOG_MESSAGE(UNDEFINED_SYMBOL_INFO, (ASTNode*)*it, _id = ASTNodeHelper::nodeName(*it));
+			}
+		}
+
+		return false;
+	}
+
+	return true;
 }
+//
+//std::size_t ResolutionStage::get_resolved_count()
+//{
+//	return total_resolved_count;
+//}
+//
+//std::size_t ResolutionStage::get_unresolved_count()
+//{
+//	return total_unresolved_count;
+//}
 
 } } }

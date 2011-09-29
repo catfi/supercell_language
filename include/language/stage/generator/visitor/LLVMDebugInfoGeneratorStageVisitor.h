@@ -332,8 +332,9 @@ private:
 		}
 		case PrimitiveType::FLOAT32: break;
 		case PrimitiveType::FLOAT64: break;
-		case PrimitiveType::ANONYMOUS_OBJECT: break;
-		case PrimitiveType::ANONYMOUS_FUNCTION: break;
+		case PrimitiveType::OBJECT: break;
+		case PrimitiveType::FUNCTION: break;
+		case PrimitiveType::STRING: break;
 		case PrimitiveType::VARIADIC_ELLIPSIS: break;
 		default:
 			BOOST_ASSERT(false && "Unknown basic type");

@@ -45,7 +45,7 @@ ThorScriptCompiler::ThorScriptCompiler()
 			SemanticVerificationStage0,
 			LiteralCompactionStage,
 			ResolutionStage,
-			TypeConversionStage,
+//			TypeConversionStage,
 			SemanticVerificationStage1,
 			StaticTestVerificationStage,
 			ManglingStage,

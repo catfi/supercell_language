@@ -41,9 +41,10 @@ struct PrimitiveType
 		FLOAT32            = 7,
 		FLOAT64            = 8,
 
-		ANONYMOUS_OBJECT   = 9,
-		ANONYMOUS_FUNCTION = 10,
-		VARIADIC_ELLIPSIS  = 11,
+		OBJECT             = 9,
+		FUNCTION           = 10,
+		STRING             = 11,
+		VARIADIC_ELLIPSIS  = 12,
 	};
 
 	static bool isIntegerType(type t)
@@ -123,8 +124,9 @@ struct PrimitiveType
 		case INT64: return 64;
 		case FLOAT64: return 64;
 		case INT128: return 128;
-		case ANONYMOUS_OBJECT: return 32;
-		case ANONYMOUS_FUNCTION: return 32;
+		case OBJECT: return 32;
+		case FUNCTION: return 32;
+		case STRING: return 32;
 		case VARIADIC_ELLIPSIS: return -1;
 		default: break;
 		}
@@ -138,7 +140,7 @@ struct PrimitiveType
 			precision_loss = (bitSize(from) > bitSize(to));
 			return true;
 		}
-		else if( (from == ANONYMOUS_OBJECT && to == ANONYMOUS_OBJECT) || (from == ANONYMOUS_FUNCTION && to  == ANONYMOUS_FUNCTION) )
+		else if( (from == OBJECT && to == OBJECT) || (from == FUNCTION && to  == FUNCTION) || (from == STRING && to == STRING) )
 		{
 			precision_loss = false;
 			return true;
@@ -159,8 +161,9 @@ struct PrimitiveType
 		case INT128: return L"int128";
 		case FLOAT32: return L"float32";
 		case FLOAT64: return L"float64";
-		case ANONYMOUS_OBJECT: return L"object";
-		case ANONYMOUS_FUNCTION: return L"function";
+		case OBJECT: return L"object";
+		case FUNCTION: return L"function";
+		case STRING: return L"string";
 		case VARIADIC_ELLIPSIS: return L"...";
 		default: break;
 		}

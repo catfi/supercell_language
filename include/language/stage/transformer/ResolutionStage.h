@@ -38,12 +38,12 @@ public:
 	virtual bool execute(bool& continue_execution);
 
 private:
-	bool resolveTypes(bool report_error_summary);
-	bool resolveSymbols(bool report_error_summary);
-
-public:
-	std::size_t get_resolved_count();
-	std::size_t get_unresolved_count();
+	bool resolveTypes(bool report_error_summary, bool& making_progress);
+	bool resolveSymbols(bool report_error_summary, bool& making_progress);
+//
+//public:
+//	std::size_t get_resolved_count();
+//	std::size_t get_unresolved_count();
 
 private:
 	bool disable_type_inference;

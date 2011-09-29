@@ -130,7 +130,7 @@ struct PrettyPrintVisitor : Visitor<const ASTNode, void>
 
 	void print(const NumericLiteral& node)
 	{
-		std::strstream ss;
+		std::wstringstream ss;
 		switch(node.type)
 		{
 		case PrimitiveType::BOOL: ss << node.value.b; break;
@@ -138,7 +138,7 @@ struct PrettyPrintVisitor : Visitor<const ASTNode, void>
 		case PrimitiveType::INT16: ss << (int32)node.value.i16; break;
 		case PrimitiveType::INT32: ss << node.value.i32; break;
 		case PrimitiveType::INT64: ss << node.value.i64; break;
-		case PrimitiveType::FLOAT32: ss << node.value.f32 << L"f"; break;
+		case PrimitiveType::FLOAT32: ss << node.value.f32; break;
 		case PrimitiveType::FLOAT64: ss << node.value.f64; break;
 		default: break;
 		}
