@@ -22,11 +22,19 @@
 #include <algorithm>
 #include <vector>
 #include <set>
+#include <iterator>
 #include <boost/bimap.hpp>
 #include <boost/filesystem.hpp>
-#include <boost/graph/adjacency_list.hpp>
+//#include <boost/graph/adjacency_list.hpp>
+#include <boost/graph/adj_list_serialize.hpp>
+#include <boost/graph/graphviz.hpp>
+#include <boost/archive/text_oarchive.hpp>
+#include <boost/archive/text_iarchive.hpp>
+#include <boost/serialization/set.hpp>
 #include <boost/graph/strong_components.hpp>
+#include <boost/graph/topological_sort.hpp>
 #include "language/stage/dep/ThorScriptDepStage.h"
+#include "language/stage/dep/ThorScriptSourceTangleGraph.h"
 #include "language/grammar/ThorScriptPackageDependencyGrammar.h"
 #include "utility/UnicodeUtil.h"
 
@@ -57,6 +65,23 @@ std::pair<shared_ptr<po::options_description>, shared_ptr<po::options_descriptio
 	return std::make_pair(option_desc_public, option_desc_private);
 }
 
+std::set<std::string> recursiveAllFiles(const std::string& dirPath)
+{
+    std::set<std::string> result;
+    namespace fs = boost::filesystem;
+    fs::path p(dirPath);
+    for (auto i = fs::recursive_directory_iterator(p); i != fs::recursive_directory_iterator(); ++i)
+    {
+        if(fs::exists(i->path()) &&
+           fs::is_regular_file(i->path()) &&
+           i->path().string().substr(i->path().string().size()-2) == ".t")
+        {
+            result.insert(i->path().string());
+        }
+    }
+    return result;
+}
+
 bool ThorScriptDepStage::parseOptions(po::variables_map& vm)
 {
     if(vm.count("input"))
@@ -66,7 +91,9 @@ bool ThorScriptDepStage::parseOptions(po::variables_map& vm)
     }
     else
     {
-        return false;
+        std::set<std::string> inputFileSet = recursiveAllFiles(".");
+        inputFiles.assign(inputFileSet.begin(), inputFileSet.end());
+        return true;
     }
 }
 
@@ -116,13 +143,6 @@ bool getFileDependentPackages(const std::string& tPathName, std::set<std::wstrin
         }
     }
 
-    //if(!use_relative_path)
-    //{
-    //    boost::filesystem::path f(filename);
-    //    boost::filesystem::path f_complete = boost::filesystem::absolute(f);
-    //    filename = f_complete.string();
-    //}
-
     std::string source_code_raw;
     in.unsetf(std::ios::skipws); // disable white space skipping
     std::copy(std::istream_iterator<char>(in), std::istream_iterator<char>(), std::back_inserter(source_code_raw));
@@ -151,21 +171,6 @@ bool getFileDependentPackages(const std::string& tPathName, std::set<std::wstrin
     }
     packages.insert(resultVec.begin(), resultVec.end());
     return true;
-}
-
-std::set<std::string> recursiveAllFiles(std::string& dirPath)
-{
-    std::set<std::string> result;
-    namespace fs = boost::filesystem;
-    fs::path p(dirPath);
-    for (auto i = fs::recursive_directory_iterator(p); i != fs::recursive_directory_iterator(); ++i)
-    {
-        if(fs::exists(i->path()) && fs::is_regular_file(i->path()))
-        {
-            result.insert(i->path().string());
-        }
-    }
-    return result;
 }
 
 typedef std::map<std::string, std::set<std::string>> DepType ;
@@ -218,11 +223,34 @@ void addDeps(const std::string& pathString, DepType& deps)
     const std::set<std::string>& se = deps[pathString + ".t"] ;
     for(auto i = se.begin(); i != se.end(); ++i)
     {
-        std::cout << (pathString + ".t -> ") << *i << std::endl ;
+        //std::cout << (pathString + ".t -> ") << *i << std::endl ;
         std::string recursiveVisitingPathString = i->substr(0, i->size()-2);
         addDeps(recursiveVisitingPathString, deps);
     }
 }
+
+template<typename GraphType>
+class VertexWriter
+{
+public:
+    VertexWriter(const GraphType& g) : _g(g) {}
+    template<typename Vertex>
+    void operator()(std::ostream& out, const Vertex& v)
+    {
+        out << "[fontname=\"monospace\", shape=\"rectangle\", style=\"filled\", color=\"lightsteelblue1\", label=\"";
+        for(auto i = _g[v].begin(); i != _g[v].end(); ++i)
+        {
+            if(i != _g[v].begin())
+            {
+                out << "\\n";
+            }
+            out << *i;
+        }
+        out << "\"]";
+    }
+private:
+    const GraphType& _g;
+};
 
 bool analyzeTangle(const DepType& deps)
 {
@@ -263,13 +291,51 @@ bool analyzeTangle(const DepType& deps)
     std::vector<int> component(files.size());
     strong_components(g, &component[0]);
     // output result
-    //for(size_t i = 0; i < component.size(); ++i)
     id = 0;
+    int maxComponentId = 0;
     for(auto i = files.begin(); i != files.end(); ++i)
     {
-        std::cout << *i << "  " << component[id] << std::endl ;
+        //std::cout << *i << "  " << component[id] << std::endl ;
         ++id;
+        maxComponentId = std::max(component[id], maxComponentId);
     }
+
+    // init tangle graph
+    TangleGraphType tangleG(maxComponentId + 1);
+
+    // add tangle edges
+    property_map<TangleGraphType, vertex_index_t>::type index = get(vertex_index, g);
+    for (auto range = edges(g); range.first != range.second; ++range.first)
+    {
+        int sourceVertex = index[source(*range.first, g)];
+        int targetVertex = index[target(*range.first, g)];
+        int sourceTangle = component[sourceVertex];
+        int targetTangle = component[targetVertex];
+        if(sourceTangle == targetTangle)
+        {
+            continue;
+        }
+        add_edge(sourceTangle, targetTangle, tangleG);
+        const std::string& sourceFilename = vertexIdMap.right.at(sourceVertex);
+        const std::string& targetFilename = vertexIdMap.right.at(targetVertex);
+        tangleG[sourceTangle].insert(sourceFilename);
+        tangleG[targetTangle].insert(targetFilename);
+    }
+
+    std::ofstream fout("ts.dep");
+    boost::archive::text_oarchive oa(fout);
+    oa << tangleG ;
+    fout.close();
+
+    std::ifstream fin("ts.dep");
+    boost::archive::text_iarchive ia(fin);
+    TangleGraphType tangleRestored;
+    ia >> tangleRestored;
+    fin.close();
+
+    fout.open("ts.graphviz");
+    boost::write_graphviz(fout, tangleRestored, VertexWriter<TangleGraphType>(tangleRestored));
+    fout.close();
 
     return true;
 }
@@ -282,14 +348,14 @@ bool ThorScriptDepStage::execute(bool& continue_execution)
     foreach(i, inputFiles)
     {
         std::string s = *i ;
-        std::cout << "Parsing file: " << s << std::endl;
+        //std::cout << "Parsing file: " << s << std::endl;
         s.resize(s.size() - 2) ;
         addDeps(s, deps);
     }
 
     // analyze source file tangles (strong connected components)
-    std::cout << std::endl ;
-    std::cout << std::endl ;
+    //std::cout << std::endl ;
+    //std::cout << std::endl ;
     analyzeTangle(deps);
 
 
