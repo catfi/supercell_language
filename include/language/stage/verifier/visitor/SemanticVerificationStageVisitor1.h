@@ -73,7 +73,7 @@ struct SemanticVerificationStageVisitor1 : GenericDoubleVisitor
 
 	void verify(PrimaryExpr &node)
 	{
-		if(node.catagory == PrimaryExpr::Catagory::IDENTIFIER && ASTNodeHelper::isOwnedByFunction(node))
+		if(ASTNodeHelper::isOwnedByFunction(node) && node.catagory == PrimaryExpr::Catagory::IDENTIFIER)
 		{
 			ASTNode* decl = ResolvedSymbol::get(&node);
 			if(isa<VariableDecl>(decl))
@@ -109,12 +109,12 @@ struct SemanticVerificationStageVisitor1 : GenericDoubleVisitor
 			if(owner_func_decl->is_static && !func_decl->is_static)
 				LOG_MESSAGE(INVALID_NONSTATIC_CALL, attachment_point, _func_id = func_decl->name->toString());
 		}
-		if(isa<VariableDecl>(decl))
-		{
-			VariableDecl* var_decl = cast<VariableDecl>(decl);
-			if(owner_func_decl->is_static && !var_decl->is_static)
-				LOG_MESSAGE(INVALID_NONSTATIC_CALL, attachment_point, _func_id = var_decl->name->toString());
-		}
+//		if(isa<VariableDecl>(decl))
+//		{
+//			VariableDecl* var_decl = cast<VariableDecl>(decl);
+//			if(owner_func_decl->is_static && !var_decl->is_static)
+//				LOG_MESSAGE(INVALID_NONSTATIC_CALL, attachment_point, _func_id = var_decl->name->toString());
+//		}
 
 		revisit(node);
 	}
