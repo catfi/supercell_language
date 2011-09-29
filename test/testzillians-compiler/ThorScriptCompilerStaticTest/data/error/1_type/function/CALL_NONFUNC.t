@@ -1,7 +1,7 @@
 function f():void
 {
-    var x:uint32;
+    var x:int32;
 
-    @static_test { expect_message={ level="LEVEL_ERROR", id="CALL_NONFUNC", parameters={ func="x" } } }
+    @static_test { expect_message={ level="LEVEL_ERROR", id="CALL_NONFUNC", parameters={ func_id="x" } } }
     x();
 }

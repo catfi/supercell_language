@@ -85,19 +85,7 @@ struct NodeInfoVisitor : Visitor<ASTNode, void, VisitorImplementation::recursive
 		if(stream.str().length() > 0)
 			stream << L".";
 
-		switch(node.type)
-		{
-		case TypeSpecifier::ReferredType::FUNCTION_TYPE:
-			tryVisit(*node.referred.function_type);
-			break;
-		case TypeSpecifier::ReferredType::PRIMITIVE:
-			stream << PrimitiveType::toString(node.referred.primitive);
-			break;
-		case TypeSpecifier::ReferredType::UNSPECIFIED:
-			stream << node.referred.unspecified->toString();
-			break;
-		}
-		//stream << L" [" << TypeSpecifier::ReferredType::toString(node.type) << L"]";
+		stream << node.toString();
 	}
 
 	void info(ClassDecl& node)

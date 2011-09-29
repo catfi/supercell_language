@@ -44,7 +44,7 @@ struct CallExpr : public Expression
 		parameters.push_back(parameter);
 	}
 
-	virtual bool isRValue()
+	virtual bool isRValue() const
 	{
 		return true;
 	}
@@ -57,7 +57,7 @@ struct CallExpr : public Expression
 		END_COMPARE()
     }
 
-    virtual bool replaceUseWith(const ASTNode& from, const ASTNode& to)
+    virtual bool replaceUseWith(const ASTNode& from, const ASTNode& to, bool update_parent = true)
     {
     	BEGIN_REPLACE_WITH_BASE(Expression)
 		REPLACE_USE_WITH(node)

@@ -69,6 +69,16 @@ struct ForStmt : public IterativeStmt
 		END_COMPARE()
     }
 
+    virtual bool replaceUseWith(const ASTNode& from, const ASTNode& to, bool update_parent = true)
+    {
+    	BEGIN_REPLACE_WITH_BASE(IterativeStmt)
+		REPLACE_USE_WITH(init)
+		REPLACE_USE_WITH(cond)
+		REPLACE_USE_WITH(step)
+		REPLACE_USE_WITH(block)
+    	END_REPLACE()
+    }
+
 	ASTNode* init;
 	ASTNode* cond;
 	ASTNode* step;
@@ -97,6 +107,15 @@ struct ForeachStmt : public IterativeStmt
 		COMPARE_MEMBER(range)
 		COMPARE_MEMBER(block)
 		END_COMPARE()
+    }
+
+    virtual bool replaceUseWith(const ASTNode& from, const ASTNode& to, bool update_parent = true)
+    {
+    	BEGIN_REPLACE_WITH_BASE(IterativeStmt)
+		REPLACE_USE_WITH(iterator)
+		REPLACE_USE_WITH(range)
+		REPLACE_USE_WITH(block)
+    	END_REPLACE()
     }
 
 	ASTNode* iterator; // TODO semantic-check: it must be L-value expression or declarative statement
@@ -141,6 +160,14 @@ struct WhileStmt : public IterativeStmt
 		COMPARE_MEMBER(cond)
 		COMPARE_MEMBER(block)
 		END_COMPARE()
+    }
+
+    virtual bool replaceUseWith(const ASTNode& from, const ASTNode& to, bool update_parent = true)
+    {
+    	BEGIN_REPLACE_WITH_BASE(IterativeStmt)
+		REPLACE_USE_WITH(cond)
+		REPLACE_USE_WITH(block)
+    	END_REPLACE()
     }
 
 	Style::type style;

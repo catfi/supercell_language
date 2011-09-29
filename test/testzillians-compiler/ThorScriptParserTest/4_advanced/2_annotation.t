@@ -7,7 +7,7 @@ function f():void
 class my_class
 {
     @tag { key = 19, key2 = "ccc" }
-    var x:uint32;
+    var x:int32;
 
     @tag { key = 23, key2 = "ddd" }
     function f():void

@@ -44,7 +44,7 @@ struct TernaryExpr : public Expression
 		false_node->parent = this;
 	}
 
-	virtual bool isRValue()
+	virtual bool isRValue() const
 	{
 		// it's R-value if either "true block" or "false block" is R-value
 		return (true_node->isRValue() || false_node->isRValue());
@@ -59,7 +59,7 @@ struct TernaryExpr : public Expression
 		END_COMPARE()
     }
 
-    virtual bool replaceUseWith(const ASTNode& from, const ASTNode& to)
+    virtual bool replaceUseWith(const ASTNode& from, const ASTNode& to, bool update_parent = true)
     {
     	BEGIN_REPLACE_WITH_BASE(Expression)
 		REPLACE_USE_WITH(cond)

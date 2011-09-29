@@ -51,7 +51,7 @@ static void expand_tabs(const std::wstring& input, std::wstring& output, int num
 
 }
 
-ThorScriptParserStage::ThorScriptParserStage() : dump_parse(false), dump_parse_and_stop(false), skip_parse(false), use_relative_path(false)
+ThorScriptParserStage::ThorScriptParserStage() : debug_parser(false), debug_ast(false), debug_ast_with_loc(false), use_relative_path(false)
 { }
 
 ThorScriptParserStage::~ThorScriptParserStage()
@@ -70,35 +70,30 @@ std::pair<shared_ptr<po::options_description>, shared_ptr<po::options_descriptio
 	foreach(i, option_desc_public->options()) option_desc_private->add(*i);
 
 	option_desc_private->add_options()
-		("dump-parse",                                     "dump parse for debugging purpose")
-		("dump-parse-and-stop",                            "dump parse for debugging purpose and stop processing")
-		("skip-parse",                                     "skip parsing stage and use provided parser context")
-		("use-relative-path",                              "use relative file path instead of absolute path (for debugging info generation)");
+		("debug-parser", "dump parsing tree for debugging purpose")
+		("debug-parser-ast", "dump parsed abstract syntax tree for debugging purpose")
+		("debug-parser-ast-with-loc", "dump parsed abstract syntax tree with location for debugging purpose")
+		("use-relative-path", "use relative file path instead of absolute path (for debugging info generation)");
 
 	return std::make_pair(option_desc_public, option_desc_private);
 }
 
 bool ThorScriptParserStage::parseOptions(po::variables_map& vm)
 {
-	dump_parse          = (vm.count("dump-parse") > 0);
-	dump_parse_and_stop = (vm.count("dump-parse-and-stop") > 0);
-	skip_parse          = (vm.count("skip-parse") > 0);
-	use_relative_path   = (vm.count("use-relative-path") > 0);
+	debug_parser = (vm.count("debug-parser") > 0);
+	debug_ast = (vm.count("debug-parser-ast") > 0);
+	debug_ast_with_loc = (vm.count("debug-parser-ast-with-loc") > 0);
+	use_relative_path = (vm.count("use-relative-path") > 0);
 
 	if(vm.count("input") == 0)
 		return false;
 
 	inputs = vm["input"].as<std::vector<std::string>>();
-	dump_parse |= dump_parse_and_stop;
 	return true;
 }
 
 bool ThorScriptParserStage::execute(bool& continue_execution)
 {
-	continue_execution = !dump_parse_and_stop;
-	if(skip_parse)
-		return true;
-
 	// prepare the global parser context
 	setParserContext(new ParserContext());
 
@@ -153,8 +148,8 @@ bool ThorScriptParserStage::parse(std::string filename)
     // enable correct locale so that we can print UCS4 characters
     enable_default_locale(std::wcout);
 
-    getParserContext().dump_rule_debug = dump_parse;
-    getParserContext().enable_semantic_action = !dump_parse;
+    getParserContext().dump_rule_debug = debug_parser;
+    getParserContext().enable_semantic_action = !debug_parser;
     getParserContext().debug.source_index = ModuleSourceInfoContext::get(getParserContext().program)->addSource(filename);
     getParserContext().debug.line = 1;
     getParserContext().debug.column = 1;
@@ -190,6 +185,12 @@ bool ThorScriptParserStage::parse(std::string filename)
 				<< std::setw(pos.column) << L" " << L"^- here" << std::endl;
 
 		return false;
+	}
+
+	if(getParserContext().program && (debug_ast || debug_ast_with_loc))
+	{
+		tree::visitor::PrettyPrintVisitor printer(debug_ast_with_loc);
+		printer.visit(*getParserContext().program);
 	}
 
 	return true;

@@ -21,11 +21,11 @@
  */
 
 #include "language/ThorScriptCompiler.h"
-#include "language/stage/basic/TreeDebugStage.h"
 #include "language/stage/parser/ThorScriptParserStage.h"
 #include "language/stage/transformer/LiteralCompactionStage.h"
 #include "language/stage/transformer/ResolutionStage.h"
 #include "language/stage/transformer/ManglingStage.h"
+#include "language/stage/transformer/TypeConversionStage.h"
 #include "language/stage/generator/LLVMGeneratorStage.h"
 #include "language/stage/generator/LLVMDebugInfoGeneratorStage.h"
 #include "language/stage/generator/LLVMBitCodeGeneratorStage.h"
@@ -42,10 +42,10 @@ ThorScriptCompiler::ThorScriptCompiler()
 	addDefaultMode<
 		boost::mpl::vector<
 			ThorScriptParserStage,
-			TreeDebugStage,
 			SemanticVerificationStage0,
 			LiteralCompactionStage,
 			ResolutionStage,
+			TypeConversionStage,
 			SemanticVerificationStage1,
 			StaticTestVerificationStage,
 			ManglingStage,
@@ -56,14 +56,17 @@ ThorScriptCompiler::ThorScriptCompiler()
 	addMode<
 		boost::mpl::vector<
 			ThorScriptParserStage,
-			TreeDebugStage,
+			StaticTestVerificationStage>>("mode-parse-syntax-only", "for syntax check stage");
+
+	addMode<
+		boost::mpl::vector<
+			ThorScriptParserStage,
 			SemanticVerificationStage0,
 			StaticTestVerificationStage>>("mode-semantic-verify-0", "for semantic verification stage 0");
 
 	addMode<
 		boost::mpl::vector<
 			ThorScriptParserStage,
-			TreeDebugStage,
 			SemanticVerificationStage0,
 			ResolutionStage,
 			SemanticVerificationStage1,

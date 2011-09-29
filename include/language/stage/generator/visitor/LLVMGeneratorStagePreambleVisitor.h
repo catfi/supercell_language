@@ -17,8 +17,8 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef ZILLIANS_LANGUAGE_STAGE_VISITOR_LLVMGENERATORPREAMBLEVISITOR_H_
-#define ZILLIANS_LANGUAGE_STAGE_VISITOR_LLVMGENERATORPREAMBLEVISITOR_H_
+#ifndef ZILLIANS_LANGUAGE_STAGE_VISITOR_LLVMGENERATORPREAMBLESTAGEVISITOR_H_
+#define ZILLIANS_LANGUAGE_STAGE_VISITOR_LLVMGENERATORPREAMBLESTAGEVISITOR_H_
 
 #include "core/Prerequisite.h"
 #include "language/tree/visitor/general/GenericDoubleVisitor.h"
@@ -32,18 +32,18 @@ using zillians::language::tree::visitor::GenericDoubleVisitor;
 namespace zillians { namespace language { namespace stage { namespace visitor {
 
 /**
- * LLVMGeneratorPreambleVisitor is used to generate llvm::Function object for all functions prior to actual code generation
+ * LLVMGeneratorStagePreambleVisitor is used to generate llvm::Function object for all functions prior to actual code generation
  *
  * We have to generate llvm::Function object prior to actual code generation because the LLVMGeneratorVisitor visits the tree in a top-down approach,
  * so it's common case that the callee is visited after the caller, which requires llvm::Function object to create llvm::CallInst
  *
- * @see LLVMGeneratorVisitor
+ * @see LLVMGeneratorStageVisitor
  */
-struct LLVMGeneratorPreambleVisitor : GenericDoubleVisitor
+struct LLVMGeneratorStagePreambleVisitor : GenericDoubleVisitor
 {
 	CREATE_INVOKER(generateInvoker, generate)
 
-	LLVMGeneratorPreambleVisitor(llvm::LLVMContext& context, llvm::Module& module) :
+	LLVMGeneratorStagePreambleVisitor(llvm::LLVMContext& context, llvm::Module& module) :
 		mContext(context), mModule(module), mBuilder(context), mHelper(context)
 	{
 		REGISTER_ALL_VISITABLE_ASTNODE(generateInvoker)
@@ -107,4 +107,4 @@ private:
 
 } } } }
 
-#endif /* ZILLIANS_LANGUAGE_STAGE_VISITOR_LLVMGENERATORPREAMBLEVISITOR_H_ */
+#endif /* ZILLIANS_LANGUAGE_STAGE_VISITOR_LLVMGENERATORPREAMBLESTAGEVISITOR_H_ */

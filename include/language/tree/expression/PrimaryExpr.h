@@ -75,7 +75,7 @@ struct PrimaryExpr : public Expression
 		value.lambda = lambda;
 	}
 
-	virtual bool isRValue()
+	virtual bool isRValue() const
 	{
 		switch(catagory)
 		{
@@ -102,7 +102,7 @@ struct PrimaryExpr : public Expression
     	END_COMPARE()
     }
 
-    virtual bool replaceUseWith(const ASTNode& from, const ASTNode& to)
+    virtual bool replaceUseWith(const ASTNode& from, const ASTNode& to, bool update_parent = true)
     {
     	BEGIN_REPLACE_WITH_BASE(Expression)
 		switch (catagory)

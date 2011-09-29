@@ -84,26 +84,6 @@ BOOST_AUTO_TEST_CASE( ThorScriptTreeTest_BasicTreeGenerationTestCase3 )
 		BOOST_CHECK(promoted == PrimitiveType::INT8);
 		BOOST_CHECK(precision_loss == false);
 	}
-	{
-		bool precision_loss = false;
-		PrimitiveType::type promoted = PrimitiveType::promote(PrimitiveType::INT8, PrimitiveType::UINT8, precision_loss);
-		BOOST_CHECK(promoted == PrimitiveType::INT16);
-		BOOST_CHECK(precision_loss == false);
-	}
-	{
-		bool precision_loss = false;
-		PrimitiveType::type promoted = PrimitiveType::promote(PrimitiveType::UINT8, PrimitiveType::INT8, precision_loss);
-		BOOST_CHECK(promoted == PrimitiveType::INT16);
-		BOOST_CHECK(precision_loss == false);
-	}
-	{
-		bool precision_loss = false;
-		PrimitiveType::type promoted = PrimitiveType::promote(PrimitiveType::UINT8, PrimitiveType::UINT8, precision_loss);
-		BOOST_CHECK(promoted == PrimitiveType::UINT8);
-		BOOST_CHECK(precision_loss == false);
-	}
-
-
 
 	{
 		bool precision_loss = false;
@@ -111,26 +91,6 @@ BOOST_AUTO_TEST_CASE( ThorScriptTreeTest_BasicTreeGenerationTestCase3 )
 		BOOST_CHECK(promoted == PrimitiveType::INT16);
 		BOOST_CHECK(precision_loss == false);
 	}
-	{
-		bool precision_loss = false;
-		PrimitiveType::type promoted = PrimitiveType::promote(PrimitiveType::INT16, PrimitiveType::UINT16, precision_loss);
-		BOOST_CHECK(promoted == PrimitiveType::INT32);
-		BOOST_CHECK(precision_loss == false);
-	}
-	{
-		bool precision_loss = false;
-		PrimitiveType::type promoted = PrimitiveType::promote(PrimitiveType::UINT16, PrimitiveType::INT16, precision_loss);
-		BOOST_CHECK(promoted == PrimitiveType::INT32);
-		BOOST_CHECK(precision_loss == false);
-	}
-	{
-		bool precision_loss = false;
-		PrimitiveType::type promoted = PrimitiveType::promote(PrimitiveType::UINT16, PrimitiveType::UINT16, precision_loss);
-		BOOST_CHECK(promoted == PrimitiveType::UINT16);
-		BOOST_CHECK(precision_loss == false);
-	}
-
-
 
 	{
 		bool precision_loss = false;
@@ -138,26 +98,6 @@ BOOST_AUTO_TEST_CASE( ThorScriptTreeTest_BasicTreeGenerationTestCase3 )
 		BOOST_CHECK(promoted == PrimitiveType::INT32);
 		BOOST_CHECK(precision_loss == false);
 	}
-	{
-		bool precision_loss = false;
-		PrimitiveType::type promoted = PrimitiveType::promote(PrimitiveType::INT32, PrimitiveType::UINT32, precision_loss);
-		BOOST_CHECK(promoted == PrimitiveType::INT64);
-		BOOST_CHECK(precision_loss == false);
-	}
-	{
-		bool precision_loss = false;
-		PrimitiveType::type promoted = PrimitiveType::promote(PrimitiveType::UINT32, PrimitiveType::INT32, precision_loss);
-		BOOST_CHECK(promoted == PrimitiveType::INT64);
-		BOOST_CHECK(precision_loss == false);
-	}
-	{
-		bool precision_loss = false;
-		PrimitiveType::type promoted = PrimitiveType::promote(PrimitiveType::UINT32, PrimitiveType::UINT32, precision_loss);
-		BOOST_CHECK(promoted == PrimitiveType::UINT32);
-		BOOST_CHECK(precision_loss == false);
-	}
-
-
 
 	{
 		bool precision_loss = false;
@@ -165,26 +105,6 @@ BOOST_AUTO_TEST_CASE( ThorScriptTreeTest_BasicTreeGenerationTestCase3 )
 		BOOST_CHECK(promoted == PrimitiveType::INT64);
 		BOOST_CHECK(precision_loss == false);
 	}
-	{
-		bool precision_loss = false;
-		PrimitiveType::type promoted = PrimitiveType::promote(PrimitiveType::INT64, PrimitiveType::UINT64, precision_loss);
-		BOOST_CHECK(promoted == PrimitiveType::INT64);
-		BOOST_CHECK(precision_loss == true);
-	}
-	{
-		bool precision_loss = false;
-		PrimitiveType::type promoted = PrimitiveType::promote(PrimitiveType::UINT64, PrimitiveType::INT64, precision_loss);
-		BOOST_CHECK(promoted == PrimitiveType::INT64);
-		BOOST_CHECK(precision_loss == true);
-	}
-	{
-		bool precision_loss = false;
-		PrimitiveType::type promoted = PrimitiveType::promote(PrimitiveType::UINT64, PrimitiveType::UINT64, precision_loss);
-		BOOST_CHECK(promoted == PrimitiveType::UINT64);
-		BOOST_CHECK(precision_loss == false);
-	}
-
-
 
 	{
 		bool precision_loss = false;
@@ -202,73 +122,6 @@ BOOST_AUTO_TEST_CASE( ThorScriptTreeTest_BasicTreeGenerationTestCase3 )
 		bool precision_loss = false;
 		PrimitiveType::type promoted = PrimitiveType::promote(PrimitiveType::INT8, PrimitiveType::INT64, precision_loss);
 		BOOST_CHECK(promoted == PrimitiveType::INT64);
-		BOOST_CHECK(precision_loss == false);
-	}
-	{
-		bool precision_loss = false;
-		PrimitiveType::type promoted = PrimitiveType::promote(PrimitiveType::INT8, PrimitiveType::UINT16, precision_loss);
-		BOOST_CHECK(promoted == PrimitiveType::INT32);
-		BOOST_CHECK(precision_loss == false);
-	}
-	{
-		bool precision_loss = false;
-		PrimitiveType::type promoted = PrimitiveType::promote(PrimitiveType::INT8, PrimitiveType::UINT32, precision_loss);
-		BOOST_CHECK(promoted == PrimitiveType::INT64);
-		BOOST_CHECK(precision_loss == false);
-	}
-	{
-		bool precision_loss = false;
-		PrimitiveType::type promoted = PrimitiveType::promote(PrimitiveType::INT8, PrimitiveType::UINT64, precision_loss);
-		BOOST_CHECK(promoted == PrimitiveType::INT64);
-		BOOST_CHECK(precision_loss == true);
-	}
-
-
-
-	{
-		bool precision_loss = false;
-		PrimitiveType::type promoted = PrimitiveType::promote(PrimitiveType::UINT8, PrimitiveType::INT16, precision_loss);
-		BOOST_CHECK(promoted == PrimitiveType::INT16);
-		BOOST_CHECK(precision_loss == false);
-	}
-	{
-		bool precision_loss = false;
-		PrimitiveType::type promoted = PrimitiveType::promote(PrimitiveType::UINT8, PrimitiveType::INT32, precision_loss);
-		BOOST_CHECK(promoted == PrimitiveType::INT32);
-		BOOST_CHECK(precision_loss == false);
-	}
-	{
-		bool precision_loss = false;
-		PrimitiveType::type promoted = PrimitiveType::promote(PrimitiveType::UINT8, PrimitiveType::INT64, precision_loss);
-		BOOST_CHECK(promoted == PrimitiveType::INT64);
-		BOOST_CHECK(precision_loss == false);
-	}
-	{
-		bool precision_loss = false;
-		PrimitiveType::type promoted = PrimitiveType::promote(PrimitiveType::UINT8, PrimitiveType::UINT16, precision_loss);
-		BOOST_CHECK(promoted == PrimitiveType::UINT16);
-		BOOST_CHECK(precision_loss == false);
-	}
-	{
-		bool precision_loss = false;
-		PrimitiveType::type promoted = PrimitiveType::promote(PrimitiveType::UINT8, PrimitiveType::UINT32, precision_loss);
-		BOOST_CHECK(promoted == PrimitiveType::UINT32);
-		BOOST_CHECK(precision_loss == false);
-	}
-	{
-		bool precision_loss = false;
-		PrimitiveType::type promoted = PrimitiveType::promote(PrimitiveType::UINT8, PrimitiveType::UINT64, precision_loss);
-		BOOST_CHECK(promoted == PrimitiveType::UINT64);
-		BOOST_CHECK(precision_loss == false);
-	}
-
-
-
-
-	{
-		bool precision_loss = false;
-		PrimitiveType::type promoted = PrimitiveType::promote(PrimitiveType::UINT64, PrimitiveType::UINT64, precision_loss);
-		BOOST_CHECK(promoted == PrimitiveType::UINT64);
 		BOOST_CHECK(precision_loss == false);
 	}
 }

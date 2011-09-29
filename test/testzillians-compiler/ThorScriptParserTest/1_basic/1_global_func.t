@@ -1,12 +1,12 @@
 function f():void
 {
-    var x:uint32;
+    var x:int32;
     x=1;
     f();
     return;
 }
 
-function g<x,y>(a:uint32, b:float64=1):uint32
+function g<x,y>(a:int32, b:float64=1):int32
 {
     g(13, 3.14159);
     return 17;

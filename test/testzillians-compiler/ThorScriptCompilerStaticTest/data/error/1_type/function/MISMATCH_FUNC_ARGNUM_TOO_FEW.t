@@ -1,7 +1,7 @@
-function g(a:uint32):void {}
+function g(a:int32):void {}
 
 function f():void
 {
-    @static_test { expect_message={ level="LEVEL_ERROR", id="MISMATCH_CALL_ARGNUM_TOO_FEW", parameters={ func="g" } } }
+    @static_test { expect_message={ level="LEVEL_ERROR", id="MISMATCH_CALL_ARGNUM_TOO_FEW", parameters={ func_id="g" } } }
     g();
 }

@@ -34,10 +34,6 @@ struct Internal : public ASTNode
 	{
 		VoidTy     = new TypeSpecifier(PrimitiveType::VOID);
 		BooleanTy  = new TypeSpecifier(PrimitiveType::BOOL);
-		UInt8Ty    = new TypeSpecifier(PrimitiveType::UINT8);
-		UInt16Ty   = new TypeSpecifier(PrimitiveType::UINT16);
-		UInt32Ty   = new TypeSpecifier(PrimitiveType::UINT32);
-		UInt64Ty   = new TypeSpecifier(PrimitiveType::UINT64);
 		Int8Ty     = new TypeSpecifier(PrimitiveType::INT8);
 		Int16Ty    = new TypeSpecifier(PrimitiveType::INT16);
 		Int32Ty    = new TypeSpecifier(PrimitiveType::INT32);
@@ -54,10 +50,6 @@ struct Internal : public ASTNode
 		{
 		case PrimitiveType::VOID: return VoidTy;
 		case PrimitiveType::BOOL: return BooleanTy;
-		case PrimitiveType::UINT8: return UInt8Ty;
-		case PrimitiveType::UINT16: return UInt16Ty;
-		case PrimitiveType::UINT32: return UInt32Ty;
-		case PrimitiveType::UINT64: return UInt64Ty;
 		case PrimitiveType::INT8: return Int8Ty;
 		case PrimitiveType::INT16: return Int16Ty;
 		case PrimitiveType::INT32: return Int32Ty;
@@ -77,10 +69,6 @@ struct Internal : public ASTNode
     	BEGIN_COMPARE()
 		COMPARE_MEMBER(VoidTy)
 		COMPARE_MEMBER(BooleanTy)
-		COMPARE_MEMBER(UInt8Ty)
-		COMPARE_MEMBER(UInt16Ty)
-		COMPARE_MEMBER(UInt32Ty)
-		COMPARE_MEMBER(UInt64Ty)
 		COMPARE_MEMBER(Int8Ty)
 		COMPARE_MEMBER(Int16Ty)
 		COMPARE_MEMBER(Int32Ty)
@@ -93,15 +81,11 @@ struct Internal : public ASTNode
 		END_COMPARE()
     }
 
-    virtual bool replaceUseWith(const ASTNode& from, const ASTNode& to)
+    virtual bool replaceUseWith(const ASTNode& from, const ASTNode& to, bool update_parent = true)
     {
     	BEGIN_REPLACE()
 		REPLACE_USE_WITH(VoidTy)
 		REPLACE_USE_WITH(BooleanTy)
-		REPLACE_USE_WITH(UInt8Ty)
-		REPLACE_USE_WITH(UInt16Ty)
-		REPLACE_USE_WITH(UInt32Ty)
-		REPLACE_USE_WITH(UInt64Ty)
 		REPLACE_USE_WITH(Int8Ty)
 		REPLACE_USE_WITH(Int16Ty)
 		REPLACE_USE_WITH(Int32Ty)
@@ -116,10 +100,6 @@ struct Internal : public ASTNode
 
 	TypeSpecifier* VoidTy;
 	TypeSpecifier* BooleanTy;
-	TypeSpecifier* UInt8Ty;
-	TypeSpecifier* UInt16Ty;
-	TypeSpecifier* UInt32Ty;
-	TypeSpecifier* UInt64Ty;
 	TypeSpecifier* Int8Ty;
 	TypeSpecifier* Int16Ty;
 	TypeSpecifier* Int32Ty;

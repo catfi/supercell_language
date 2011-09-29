@@ -42,7 +42,7 @@ struct CastExpr : public Expression
 		type->parent = this;
 	}
 
-	virtual bool isRValue()
+	virtual bool isRValue() const
 	{
 		return node->isRValue();
 	}
@@ -55,7 +55,7 @@ struct CastExpr : public Expression
 		END_COMPARE()
     }
 
-    virtual bool replaceUseWith(const ASTNode& from, const ASTNode& to)
+    virtual bool replaceUseWith(const ASTNode& from, const ASTNode& to, bool update_parent = true)
     {
     	BEGIN_REPLACE_WITH_BASE(Expression)
 		REPLACE_USE_WITH(node)

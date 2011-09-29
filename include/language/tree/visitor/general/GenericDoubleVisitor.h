@@ -73,13 +73,11 @@ struct GenericDoubleVisitor : Visitor<ASTNode, void, VisitorImplementation::recu
 
 		void apply(SimpleIdentifier& node)
 		{
-//			if(node.resolved) user_visitor->visit(*node.resolved);
 		}
 
 		void apply(NestedIdentifier& node)
 		{
 			foreach(i, node.identifier_list)	user_visitor->visit(**i);
-//			if(node.resolved) user_visitor->visit(*node.resolved);
 		}
 
 		void apply(TemplatedIdentifier& node)
@@ -87,8 +85,6 @@ struct GenericDoubleVisitor : Visitor<ASTNode, void, VisitorImplementation::recu
 			if(node.id) user_visitor->visit(*node.id);
 
 			foreach(i, node.templated_type_list)	user_visitor->visit(**i);
-
-//			if(node.resolved) user_visitor->visit(*node.resolved);
 		}
 
 		void apply(TypeSpecifier& node)
@@ -113,10 +109,6 @@ struct GenericDoubleVisitor : Visitor<ASTNode, void, VisitorImplementation::recu
 		{
 			if(node.VoidTy)     user_visitor->visit(*node.VoidTy);
 			if(node.BooleanTy)  user_visitor->visit(*node.BooleanTy);
-			if(node.UInt8Ty)    user_visitor->visit(*node.UInt8Ty);
-			if(node.UInt16Ty)   user_visitor->visit(*node.UInt16Ty);
-			if(node.UInt32Ty)   user_visitor->visit(*node.UInt32Ty);
-			if(node.UInt64Ty)   user_visitor->visit(*node.UInt64Ty);
 			if(node.Int8Ty)     user_visitor->visit(*node.Int8Ty);
 			if(node.Int16Ty)    user_visitor->visit(*node.Int16Ty);
 			if(node.Int32Ty)    user_visitor->visit(*node.Int32Ty);
@@ -125,6 +117,7 @@ struct GenericDoubleVisitor : Visitor<ASTNode, void, VisitorImplementation::recu
 			if(node.Float64Ty)  user_visitor->visit(*node.Float64Ty);
 			if(node.ObjectTy)   user_visitor->visit(*node.ObjectTy);
 			if(node.FunctionTy) user_visitor->visit(*node.FunctionTy);
+			if(node.StringTy)   user_visitor->visit(*node.StringTy);
 
 			foreach(i, node.others) user_visitor->visit(**i);
 		}
@@ -158,45 +151,45 @@ struct GenericDoubleVisitor : Visitor<ASTNode, void, VisitorImplementation::recu
 
 		void apply(ClassDecl& node)
 		{
+			if(node.annotations) user_visitor->visit(*node.annotations);
+
 			if(node.name) user_visitor->visit(*node.name);
 			if(node.base) user_visitor->visit(*node.base);
 			foreach(i, node.implements)			user_visitor->visit(**i);
 			foreach(i, node.member_functions)	user_visitor->visit(**i);
 			foreach(i, node.member_variables)	user_visitor->visit(**i);
-
-			if(node.annotations) user_visitor->visit(*node.annotations);
 		}
 
 		void apply(EnumDecl& node)
 		{
+			if(node.annotations) user_visitor->visit(*node.annotations);
+
 			if(node.name) user_visitor->visit(*node.name);
 			foreach(i, node.enumeration_list)
 			{
 				if(i->first) user_visitor->visit(*i->first);
 				if(i->second) user_visitor->visit(*i->second);
 			}
-
-			if(node.annotations) user_visitor->visit(*node.annotations);
 		}
 
 		void apply(FunctionDecl& node)
 		{
+			if(node.annotations) user_visitor->visit(*node.annotations);
+
 			if(node.name) user_visitor->visit(*node.name);
 			foreach(i, node.parameters)
 				user_visitor->visit(**i);
 			if(node.type) user_visitor->visit(*node.type);
 			if(node.block) user_visitor->visit(*node.block);
-
-			if(node.annotations) user_visitor->visit(*node.annotations);
 		}
 
 		void apply(InterfaceDecl& node)
 		{
+			if(node.annotations) user_visitor->visit(*node.annotations);
+
 			if(node.name) user_visitor->visit(*node.name);
 			foreach(i, node.member_functions)
 				user_visitor->visit(**i);
-
-			if(node.annotations) user_visitor->visit(*node.annotations);
 		}
 
 		void apply(TypedefDecl& node)
@@ -209,11 +202,11 @@ struct GenericDoubleVisitor : Visitor<ASTNode, void, VisitorImplementation::recu
 
 		void apply(VariableDecl& node)
 		{
+			if(node.annotations) user_visitor->visit(*node.annotations);
+
 			if(node.name) user_visitor->visit(*node.name);
 			if(node.type) user_visitor->visit(*node.type);
 			if(node.initializer) user_visitor->visit(*node.initializer);
-
-			if(node.annotations) user_visitor->visit(*node.annotations);
 		}
 
 		//////////////////////////////////////////////////////////////////////
@@ -225,47 +218,49 @@ struct GenericDoubleVisitor : Visitor<ASTNode, void, VisitorImplementation::recu
 
 		void apply(DeclarativeStmt& node)
 		{
-			if(node.declaration) user_visitor->visit(*node.declaration);
-
 			if(node.annotations) user_visitor->visit(*node.annotations);
+
+			if(node.declaration) user_visitor->visit(*node.declaration);
 		}
 
 		void apply(ExpressionStmt& node)
 		{
-			if(node.expr) user_visitor->visit(*node.expr);
-
 			if(node.annotations) user_visitor->visit(*node.annotations);
+
+			if(node.expr) user_visitor->visit(*node.expr);
 		}
 
 		void apply(ForStmt& node)
 		{
+			if(node.annotations) user_visitor->visit(*node.annotations);
+
 			if(node.init) user_visitor->visit(*node.init);
 			if(node.cond) user_visitor->visit(*node.cond);
-			if(node.step) user_visitor->visit(*node.step);
 			if(node.block) user_visitor->visit(*node.block);
-
-			if(node.annotations) user_visitor->visit(*node.annotations);
+			if(node.step) user_visitor->visit(*node.step);
 		}
 
 		void apply(ForeachStmt& node)
 		{
+			if(node.annotations) user_visitor->visit(*node.annotations);
+
 			if(node.iterator) user_visitor->visit(*node.iterator);
 			if(node.range) user_visitor->visit(*node.range);
 			if(node.block) user_visitor->visit(*node.block);
-
-			if(node.annotations) user_visitor->visit(*node.annotations);
 		}
 
 		void apply(WhileStmt& node)
 		{
+			if(node.annotations) user_visitor->visit(*node.annotations);
+
 			if(node.cond) user_visitor->visit(*node.cond);
 			if(node.block) user_visitor->visit(*node.block);
-
-			if(node.annotations) user_visitor->visit(*node.annotations);
 		}
 
 		void apply(IfElseStmt& node)
 		{
+			if(node.annotations) user_visitor->visit(*node.annotations);
+
 			if(node.if_branch.cond) user_visitor->visit(*node.if_branch.cond);
 			if(node.if_branch.block) user_visitor->visit(*node.if_branch.block);
 			foreach(i, node.elseif_branches)
@@ -274,27 +269,25 @@ struct GenericDoubleVisitor : Visitor<ASTNode, void, VisitorImplementation::recu
 				if(i->block) user_visitor->visit(*i->block);
 			}
 			if(node.else_block) user_visitor->visit(*node.else_block);
-
-			if(node.annotations) user_visitor->visit(*node.annotations);
 		}
 
 		void apply(SwitchStmt& node)
 		{
+			if(node.annotations) user_visitor->visit(*node.annotations);
+
 			if(node.node) user_visitor->visit(*node.node);
 			foreach(i, node.cases)
 			{
 				if(i->cond) user_visitor->visit(*i->cond);
 				if(i->block) user_visitor->visit(*i->block);
 			}
-
-			if(node.annotations) user_visitor->visit(*node.annotations);
 		}
 
 		void apply(BranchStmt& node)
 		{
-			if(node.result) user_visitor->visit(*node.result);
-
 			if(node.annotations) user_visitor->visit(*node.annotations);
+
+			if(node.result) user_visitor->visit(*node.result);
 		}
 
 		//////////////////////////////////////////////////////////////////////
@@ -321,8 +314,16 @@ struct GenericDoubleVisitor : Visitor<ASTNode, void, VisitorImplementation::recu
 
 		void apply(BinaryExpr& node)
 		{
-			if(node.left) user_visitor->visit(*node.left);
-			if(node.right) user_visitor->visit(*node.right);
+			if(node.isRighAssociative())
+			{
+				if(node.right) user_visitor->visit(*node.right);
+				if(node.left) user_visitor->visit(*node.left);
+			}
+			else
+			{
+				if(node.left) user_visitor->visit(*node.left);
+				if(node.right) user_visitor->visit(*node.right);
+			}
 		}
 
 		void apply(TernaryExpr& node)

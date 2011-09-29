@@ -27,38 +27,41 @@
 
 namespace zillians { namespace language { namespace stage {
 
-struct SemanticVerificationScopeContext
+template<class T>
+struct ASTNodeContext
 {
-	static SemanticVerificationScopeContext* get(tree::ASTNode* node)
+	static T* get(tree::ASTNode* node)
 	{
-		return node->get<SemanticVerificationScopeContext>();
+		return node->get<T>();
 	}
 
-	static void set(tree::ASTNode* node, SemanticVerificationScopeContext* ctx)
+	static void set(tree::ASTNode* node, T* ctx)
 	{
-		node->set<SemanticVerificationScopeContext>(ctx);
+		node->set<T>(ctx);
 	}
 
+	static T* get_instance(tree::ASTNode* node)
+	{
+		T* x = get(node);
+		if(!x)
+			set(node, x = new T());
+		return x;
+	}
+};
+
+struct SemanticVerificationScopeContext_NameSet : public ASTNodeContext<SemanticVerificationScopeContext_NameSet>
+{
 	std::set<std::wstring> names;
 };
 
-struct SemanticVerificationBlockContext
-{
-	SemanticVerificationBlockContext() : has_visited_return(false)
-	{ }
+struct SemanticVerificationBlockContext_HasVisitedReturn : public ASTNodeContext<SemanticVerificationBlockContext_HasVisitedReturn>
+{ };
 
-	static SemanticVerificationBlockContext* get(tree::ASTNode* node)
-	{
-		return node->get<SemanticVerificationBlockContext>();
-	}
+struct SemanticVerificationFunctionDeclContext_HasVisitedReturn : public ASTNodeContext<SemanticVerificationFunctionDeclContext_HasVisitedReturn>
+{ };
 
-	static void set(tree::ASTNode* node, SemanticVerificationBlockContext* ctx)
-	{
-		node->set<SemanticVerificationBlockContext>(ctx);
-	}
-
-	bool has_visited_return;
-};
+struct SemanticVerificationVariableDeclContext_HasBeenInit : public ASTNodeContext<SemanticVerificationVariableDeclContext_HasBeenInit>
+{ };
 
 } } }
 

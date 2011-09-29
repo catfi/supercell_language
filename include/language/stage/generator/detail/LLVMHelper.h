@@ -69,21 +69,9 @@ struct LLVMHelper
 			result = llvm::IntegerType::getInt8Ty(mContext);
 			resolved = true; break;
 		}
-		case PrimitiveType::UINT8:
-		{
-			modifier |= llvm::Attribute::ZExt;
-			result = llvm::IntegerType::getInt8Ty(mContext);
-			resolved = true; break;
-		}
 		case PrimitiveType::INT16:
 		{
 			modifier |= llvm::Attribute::SExt;
-			result = llvm::IntegerType::getInt16Ty(mContext);
-			resolved = true; break;
-		}
-		case PrimitiveType::UINT16:
-		{
-			modifier |= llvm::Attribute::ZExt;
 			result = llvm::IntegerType::getInt16Ty(mContext);
 			resolved = true; break;
 		}
@@ -93,21 +81,9 @@ struct LLVMHelper
 			result = llvm::IntegerType::getInt32Ty(mContext);
 			resolved = true; break;
 		}
-		case PrimitiveType::UINT32:
-		{
-			modifier |= llvm::Attribute::ZExt;
-			result = llvm::IntegerType::getInt32Ty(mContext);
-			resolved = true; break;
-		}
 		case PrimitiveType::INT64:
 		{
 			//modifier |= llvm::Attribute::SExt;
-			result = llvm::IntegerType::getInt64Ty(mContext);
-			resolved = true; break;
-		}
-		case PrimitiveType::UINT64:
-		{
-			//modifier |= llvm::Attribute::ZExt;
 			result = llvm::IntegerType::getInt64Ty(mContext);
 			resolved = true; break;
 		}

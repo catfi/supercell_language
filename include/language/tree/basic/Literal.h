@@ -25,7 +25,7 @@
 
 #include "core/Types.h"
 #include "language/tree/ASTNode.h"
-#include "language/tree/basic/Primitive.h"
+#include "language/tree/basic/PrimitiveType.h"
 
 namespace zillians { namespace language { namespace tree {
 
@@ -41,7 +41,7 @@ struct Literal : public ASTNode
         return true;
     }
 
-    virtual bool replaceUseWith(const ASTNode& from, const ASTNode& to)
+    virtual bool replaceUseWith(const ASTNode& from, const ASTNode& to, bool update_parent = true)
     {
     	return false;
     }
@@ -80,7 +80,7 @@ struct ObjectLiteral : public Literal
 		END_COMPARE()
     }
 
-    virtual bool replaceUseWith(const ASTNode& from, const ASTNode& to)
+    virtual bool replaceUseWith(const ASTNode& from, const ASTNode& to, bool update_parent = true)
     {
     	return false;
     }
@@ -99,11 +99,6 @@ struct NumericLiteral : public Literal
 	explicit NumericLiteral(int32 v) { type = PrimitiveType::INT32; value.i32 = v; }
 	explicit NumericLiteral(int64 v) { type = PrimitiveType::INT64; value.i64 = v; }
 
-	explicit NumericLiteral(uint8 v)  { type = PrimitiveType::UINT8;  value.u8 = v;  }
-	explicit NumericLiteral(uint16 v) { type = PrimitiveType::UINT16; value.u16 = v; }
-	explicit NumericLiteral(uint32 v) { type = PrimitiveType::UINT32; value.u32 = v; }
-	explicit NumericLiteral(uint64 v) { type = PrimitiveType::UINT64; value.u64 = v; }
-
 	explicit NumericLiteral(float v)  { type = PrimitiveType::FLOAT32; value.f32 = v; }
 	explicit NumericLiteral(double v) { type = PrimitiveType::FLOAT64; value.f64 = v; }
 
@@ -114,14 +109,10 @@ struct NumericLiteral : public Literal
         switch(type)
         {
         case PrimitiveType::type::BOOL    : COMPARE_MEMBER(value.b  ); break;
-        case PrimitiveType::type::UINT8   : COMPARE_MEMBER(value.i8 ); break;
-        case PrimitiveType::type::UINT16  : COMPARE_MEMBER(value.i16); break;
-        case PrimitiveType::type::UINT32  : COMPARE_MEMBER(value.i32); break;
-        case PrimitiveType::type::UINT64  : COMPARE_MEMBER(value.i64); break;
-        case PrimitiveType::type::INT8    : COMPARE_MEMBER(value.u8 ); break;
-        case PrimitiveType::type::INT16   : COMPARE_MEMBER(value.u16); break;
-        case PrimitiveType::type::INT32   : COMPARE_MEMBER(value.u32); break;
-        case PrimitiveType::type::INT64   : COMPARE_MEMBER(value.u64); break;
+        case PrimitiveType::type::INT8    : COMPARE_MEMBER(value.i8 ); break;
+        case PrimitiveType::type::INT16   : COMPARE_MEMBER(value.i16); break;
+        case PrimitiveType::type::INT32   : COMPARE_MEMBER(value.i32); break;
+        case PrimitiveType::type::INT64   : COMPARE_MEMBER(value.i64); break;
         case PrimitiveType::type::FLOAT32 : COMPARE_MEMBER(value.f32); break;
         case PrimitiveType::type::FLOAT64 : COMPARE_MEMBER(value.f64); break;
         default: break;
@@ -129,7 +120,7 @@ struct NumericLiteral : public Literal
     	END_COMPARE()
     }
 
-    virtual bool replaceUseWith(const ASTNode& from, const ASTNode& to)
+    virtual bool replaceUseWith(const ASTNode& from, const ASTNode& to, bool update_parent = true)
     {
     	return false;
     }
@@ -144,13 +135,10 @@ struct NumericLiteral : public Literal
 		int32 i32;
 		int64 i64;
 
-		uint8  u8;
-		uint16 u16;
-		uint32 u32;
-		uint64 u64;
-
 		float  f32;
 		double f64;
+
+		uint64 raw;
 	} value;
 };
 
@@ -178,7 +166,7 @@ struct StringLiteral : public Literal
     	END_COMPARE()
     }
 
-    virtual bool replaceUseWith(const ASTNode& from, const ASTNode& to)
+    virtual bool replaceUseWith(const ASTNode& from, const ASTNode& to, bool update_parent = true)
     {
     	return false;
     }

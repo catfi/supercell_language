@@ -73,9 +73,9 @@ struct thor_type
 		printf("thor_type::init_function_type param(1) type = %s\n", typeid(_param_t(1)).name());
 #endif
 		typedef std::vector<TypeSpecifier*> type_list_t;
-		type_list_t* parameters = _param(0).is_initialized() ? &*_param(0) : NULL;
-		TypeSpecifier*         type       = _param(1).is_initialized() ? *_param(1) : NULL;
-		FunctionType* function_type = new FunctionType(); BIND_CACHED_LOCATION(function_type);
+		type_list_t*   parameters    = _param(0).is_initialized() ? &*_param(0) : NULL;
+		TypeSpecifier* type          = _param(1).is_initialized() ? *_param(1) : NULL;
+		FunctionType*  function_type = new FunctionType(); BIND_CACHED_LOCATION(function_type);
 		if(!!parameters)
 			deduced_foreach_value(i, *parameters)
 				function_type->appendParameterType(i);

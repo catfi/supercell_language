@@ -17,47 +17,53 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef TRANSFORMERWRAPPER_H_
-#define TRANSFORMERWRAPPER_H_
+#include "language/tree/basic/FunctionType.h"
+#include "language/tree/basic/TypeSpecifier.h"
 
-#include "language/stage/StageConductor.h"
-#include "language/stage/basic/TreeDebugStage.h"
-#include "language/context/ParserContext.h"
+namespace zillians { namespace language { namespace tree {
 
-using namespace zillians::language;
-using namespace zillians::language::stage;
-using namespace zillians::language::tree;
-
-struct TransformerWrapper : public StageConductor
+void FunctionType::appendTemplateParameter(Identifier* parameter)
 {
-	TransformerWrapper()
+	parameter->parent = this;
+	templated_parameters.push_back(parameter);
+}
+
+void FunctionType::appendParameterType(TypeSpecifier* type)
+{
+	type->parent = this;
+	argument_types.push_back(type);
+}
+
+std::wstring FunctionType::toString() const
+{
+	static std::wstring t;
+	std::wstringstream ss;
+	ss << L"function";
+	foreach(i, templated_parameters)
 	{
-		setParserContext(new ParserContext());
+		if(is_begin_of_foreach(i, templated_parameters))
+			ss << L"<";
+
+		ss << (*i)->toString();
+
+		if(!is_end_of_foreach(i, templated_parameters))
+			ss << L", ";
+		else
+			ss << L">";
 	}
 
-	virtual ~TransformerWrapper()
-	{ }
-
-	virtual void initialize()
+	ss << L"(";
+	foreach(i, argument_types)
 	{
-		shared_ptr<TreeDebugStage> s1(new TreeDebugStage());
-		appendStage(s1);
+		ss << (*i)->toString();
+		if(!is_end_of_foreach(i, templated_parameters))
+			ss << L", ";
 	}
+	ss << L")";
 
-	virtual void finalize()
-	{ }
+	t = ss.str();
 
-	void setProgram(ASTNode* program)
-	{
-		getParserContext().program = cast<Program>(program);
-	}
+	return t;
+}
 
-	int run()
-	{
-		const char* argv[] = { "TransformerWrapper", "--dump-ast" };
-		return main(2, argv);
-	}
-};
-
-
-#endif /* TRANSFORMERWRAPPER_H_ */
+} } }

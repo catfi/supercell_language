@@ -26,7 +26,7 @@
 namespace zillians { namespace language { namespace tree {
 
 // forward declaration of TypeSpecifier to avoid mutual header inclusion
-struct TypeSpecifier;// : public ASTNode { };
+struct TypeSpecifier;
 
 struct FunctionType: public ASTNode
 {
@@ -36,22 +36,15 @@ struct FunctionType: public ASTNode
 	FunctionType() : return_type(NULL)
 	{ }
 
-	void appendTemplateParameter(Identifier* parameter)
-	{
-		//parameter->parent = this;
-		templated_parameters.push_back(parameter);
-	}
-
-	void appendParameterType(TypeSpecifier* type)
-	{
-		//type->parent = this;
-		argument_types.push_back(type);
-	}
+	void appendTemplateParameter(Identifier* parameter);
+	void appendParameterType(TypeSpecifier* type);
 
 	void setReturnType(TypeSpecifier* type)
 	{
 		return_type = type;
 	}
+
+	std::wstring toString() const;
 
     virtual bool isEqualImpl(const ASTNode& rhs, ASTNodeSet& visited) const
     {
@@ -62,7 +55,7 @@ struct FunctionType: public ASTNode
 		END_COMPARE()
     }
 
-    virtual bool replaceUseWith(const ASTNode& from, const ASTNode& to)
+    virtual bool replaceUseWith(const ASTNode& from, const ASTNode& to, bool update_parent = true)
     {
     	BEGIN_REPLACE()
 		REPLACE_USE_WITH(templated_parameters)

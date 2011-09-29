@@ -1,3 +1,3 @@
-var a:uint32;
-var b:uint32 = 13;
-const c:uint32 = 17;
+var a:int32;
+var b:int32 = 13;
+const c:int32 = 17;

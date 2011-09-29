@@ -17,8 +17,8 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef ZILLIANS_LANGUAGE_STAGE_VISITOR_LLVMDEBUGINFOGENERATORVISITOR_H_
-#define ZILLIANS_LANGUAGE_STAGE_VISITOR_LLVMDEBUGINFOGENERATORVISITOR_H_
+#ifndef ZILLIANS_LANGUAGE_STAGE_VISITOR_LLVMDEBUGINFOGENERATORSTAGEVISITOR_H_
+#define ZILLIANS_LANGUAGE_STAGE_VISITOR_LLVMDEBUGINFOGENERATORSTAGEVISITOR_H_
 
 #include "core/Prerequisite.h"
 #include <boost/filesystem.hpp>
@@ -42,13 +42,13 @@ namespace visitor {
 #define COMPANY_INFORMATION "1.0 ThorScript Compiler (Zillians Corp.)"
 
 
-struct LLVMDebugInfoGeneratorVisitor: GenericDoubleVisitor
+struct LLVMDebugInfoGeneratorStageVisitor: GenericDoubleVisitor
 {
 	CREATE_INVOKER(generateInvoker, generate)
 
 	typedef std::map<PrimitiveType::type, llvm::DIType> type_cache_t;
 
-	LLVMDebugInfoGeneratorVisitor(llvm::LLVMContext& context, llvm::Module& current_module) :
+	LLVMDebugInfoGeneratorStageVisitor(llvm::LLVMContext& context, llvm::Module& current_module) :
 		context(context), current_module(current_module), factory(current_module)
 	{
 		REGISTER_ALL_VISITABLE_ASTNODE(generateInvoker)
@@ -306,22 +306,28 @@ private:
 		switch (type)
 		{
 		case PrimitiveType::VOID: break;
-		case PrimitiveType::INT8: break;
-		case PrimitiveType::INT16: break;
-		case PrimitiveType::INT32: break;
-		case PrimitiveType::INT64: break;
-		case PrimitiveType::UINT8: break;
-		case PrimitiveType::UINT16: break;
-		case PrimitiveType::UINT32:
+		case PrimitiveType::INT8:
 		{
-			bits = 32; alignment = 32;
-			encoding = llvm::dwarf::DW_ATE_unsigned;
+			bits = 8; alignment = 8;
+			encoding = llvm::dwarf::DW_ATE_signed;
 			break;
 		}
-		case PrimitiveType::UINT64:
+		case PrimitiveType::INT16:
+		{
+			bits = 16; alignment = 16;
+			encoding = llvm::dwarf::DW_ATE_signed;
+			break;
+		}
+		case PrimitiveType::INT32:
+		{
+			bits = 32; alignment = 32;
+			encoding = llvm::dwarf::DW_ATE_signed;
+			break;
+		}
+		case PrimitiveType::INT64:
 		{
 			bits = 64; alignment = 64;
-			encoding = llvm::dwarf::DW_ATE_unsigned;
+			encoding = llvm::dwarf::DW_ATE_signed;
 			break;
 		}
 		case PrimitiveType::FLOAT32: break;
@@ -352,4 +358,4 @@ private:
 
 }}}}
 
-#endif /* ZILLIANS_LANGUAGE_STAGE_VISITOR_LLVMDEBUGINFOGENERATORVISITOR_H_ */
+#endif /* ZILLIANS_LANGUAGE_STAGE_VISITOR_LLVMDEBUGINFOGENERATORSTAGEVISITOR_H_ */

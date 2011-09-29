@@ -10,6 +10,6 @@ function f<T>():void
 
 function g():void
 {
-    var x:my_class<uint32>;
-    f<uint32>();
+    var x:my_class<int32>;
+    f<int32>();
 }

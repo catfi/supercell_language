@@ -17,38 +17,67 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#include "language/stage/transformer/TypeInferenceStage.h"
+#include "language/stage/transformer/TypeConversionStage.h"
+#include "language/stage/transformer/visitor/TypeConversionStageVisitor.h"
+#include "language/tree/visitor/general/PrettyPrintVisitor.h"
 #include "language/context/ParserContext.h"
 
 namespace zillians { namespace language { namespace stage {
 
-TypeInferenceStage::TypeInferenceStage()
+TypeConversionStage::TypeConversionStage()
 { }
 
-TypeInferenceStage::~TypeInferenceStage()
+TypeConversionStage::~TypeConversionStage()
 { }
 
-const char* TypeInferenceStage::name()
+const char* TypeConversionStage::name()
 {
-	return "Type Inference Stage";
+	return "Type Conversion Stage";
 }
 
-std::pair<shared_ptr<po::options_description>, shared_ptr<po::options_description>> TypeInferenceStage::getOptions()
+std::pair<shared_ptr<po::options_description>, shared_ptr<po::options_description>> TypeConversionStage::getOptions()
 {
 	shared_ptr<po::options_description> option_desc_public(new po::options_description());
 	shared_ptr<po::options_description> option_desc_private(new po::options_description());
 
+	option_desc_private->add_options()("debug-type-conversion-stage", "debug type conversion stage");
+
 	return std::make_pair(option_desc_public, option_desc_private);
 }
 
-bool TypeInferenceStage::parseOptions(po::variables_map& vm)
+bool TypeConversionStage::parseOptions(po::variables_map& vm)
 {
+	debug = (vm.count("debug-type-conversion-stage") > 0);
+
 	return true;
 }
 
-bool TypeInferenceStage::execute(bool& continue_execution)
+bool TypeConversionStage::execute(bool& continue_execution)
 {
-	return true;
+	if(!hasParserContext())
+		return false;
+
+	ParserContext& parser_context = getParserContext();
+
+	if(parser_context.program)
+	{
+		visitor::TypeConversionStageVisitor convert;
+		convert.visit(*parser_context.program);
+		convert.applyTransforms();
+
+		if(debug)
+		{
+			tree::visitor::PrettyPrintVisitor printer;
+			printer.visit(*parser_context.program);
+		}
+
+		return true;
+	}
+	else
+	{
+		return false;
+	}
+
 }
 
 } } }

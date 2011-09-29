@@ -41,9 +41,9 @@ private:
 	bool parse(std::string filename);
 
 private:
-	bool dump_parse;
-	bool dump_parse_and_stop;
-	bool skip_parse;
+	bool debug_parser;
+	bool debug_ast;
+	bool debug_ast_with_loc;
 	bool use_relative_path;
 	std::vector<std::string> inputs;
 };

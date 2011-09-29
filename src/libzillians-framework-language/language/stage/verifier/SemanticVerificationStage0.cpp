@@ -24,7 +24,7 @@
 
 namespace zillians { namespace language { namespace stage {
 
-SemanticVerificationStage0::SemanticVerificationStage0() : verify_stage_0_and_stop(false)
+SemanticVerificationStage0::SemanticVerificationStage0()
 { }
 
 SemanticVerificationStage0::~SemanticVerificationStage0()
@@ -32,7 +32,7 @@ SemanticVerificationStage0::~SemanticVerificationStage0()
 
 const char* SemanticVerificationStage0::name()
 {
-	return "semantic_verification_stage_0";
+	return "Semantic Verification Stage 0";
 }
 
 std::pair<shared_ptr<po::options_description>, shared_ptr<po::options_description>> SemanticVerificationStage0::getOptions()
@@ -44,21 +44,18 @@ std::pair<shared_ptr<po::options_description>, shared_ptr<po::options_descriptio
 
 	foreach(i, option_desc_public->options()) option_desc_private->add(*i);
 
-	option_desc_private->add_options()
-		("verify-stage-0-and-stop", "verify stage 0 and stop processing");
+	option_desc_private->add_options();
 
 	return std::make_pair(option_desc_public, option_desc_private);
 }
 
 bool SemanticVerificationStage0::parseOptions(po::variables_map& vm)
 {
-	verify_stage_0_and_stop = (vm.count("verify-stage-0-and-stop") > 0);
 	return true;
 }
 
 bool SemanticVerificationStage0::execute(bool& continue_execution)
 {
-	continue_execution = !verify_stage_0_and_stop;
 	if(!hasParserContext())
 		return false;
 

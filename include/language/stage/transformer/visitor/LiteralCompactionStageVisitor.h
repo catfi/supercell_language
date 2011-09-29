@@ -54,149 +54,50 @@ struct LiteralCompactionStageVisitor : GenericDoubleVisitor
 
 	void compact(NumericLiteral& node)
 	{
-		bool negate = false;
-		UnaryExpr* negate_expr_for_negation = getOwnerUnaryExprForNegation(node);
-		if(negate_expr_for_negation)
-		{
-			BOOST_ASSERT(negate_expr_for_negation->parent && "dangling ASTNode");
-
-			negate = true;
-
-			// assign the negate expression to a reference so that it will can be captured by reference in the following lambda expression
-			ASTNode& pivot = *negate_expr_for_negation;
-
-			// remove the parent nagate operator as we merge the result into the literal value
-			transforms.push_back([&]{
-				pivot.parent->replaceUseWith(pivot, node);
-				LOG4CXX_DEBUG(LoggerWrapper::TransformerStage, "merge unary negate expression into literal");
-			});
-		}
-
 		if(PrimitiveType::isIntegerType(node.type))
 		{
-			if(!negate)
+			if(node.value.i64 <= std::numeric_limits<int8>::max())
 			{
-				if(node.value.u64 <= std::numeric_limits<uint8>::max())
-				{
-					node.type = PrimitiveType::UINT8;
-				}
-				else if(node.value.u64 <= std::numeric_limits<uint16>::max())
-				{
-					node.type = PrimitiveType::UINT16;
-				}
-				else if(node.value.u64 <= std::numeric_limits<uint32>::max())
-				{
-					node.type = PrimitiveType::UINT32;
-				}
-				else if(node.value.u64 <= std::numeric_limits<uint64>::max())
-				{
-					// TODO this will always matched
-					node.type = PrimitiveType::UINT64;
-				}
-				else
-				{
-					BOOST_ASSERT(false && "reaching unreachable code");
-				}
+				node.type = PrimitiveType::INT8;
+			}
+			else if(node.value.i64 <= std::numeric_limits<int16>::max())
+			{
+				node.type = PrimitiveType::INT16;
+			}
+			else if(node.value.i64 <= std::numeric_limits<int32>::max())
+			{
+				node.type = PrimitiveType::INT32;
+			}
+			else if(node.value.i64 <= std::numeric_limits<int64>::max())
+			{
+				// TODO this will always matched
+				node.type = PrimitiveType::INT64;
 			}
 			else
 			{
-				if(node.value.u64 < (uint64)std::numeric_limits<int8>::max())
-				{
-					node.type = PrimitiveType::INT8;
-					node.value.i8 = -((int8)node.value.u64);
-				}
-				else if(node.value.u64 < (uint64)std::numeric_limits<int16>::max())
-				{
-					node.type = PrimitiveType::INT16;
-					node.value.i16 = -((int16)node.value.u64);
-				}
-				else if(node.value.u64 < (uint64)std::numeric_limits<int32>::max())
-				{
-					node.type = PrimitiveType::INT32;
-					node.value.i32 = -((int32)node.value.u64);
-				}
-				else if(node.value.u64 < (uint64)std::numeric_limits<int64>::max())
-				{
-					node.type = PrimitiveType::INT64;
-					node.value.i64 = -((int64)node.value.u64);
-				}
-				else
-				{
-					// potential overflowed literal, warning here
-					LOG_MESSAGE(NUMERIC_LITERAL_OVERFLOW, &node);
-				}
+				// potential overflowed literal, warning here
+				LOG_MESSAGE(NUMERIC_LITERAL_OVERFLOW, &node);
 			}
 		}
 		else if(PrimitiveType::isFloatType(node.type))
 		{
-			if(!negate)
+			if(node.value.f64 <= std::numeric_limits<float>::max())
 			{
-				if(node.value.f64 <= std::numeric_limits<float>::max())
-				{
-					node.type = PrimitiveType::FLOAT32;
-					node.value.f32 = (float)(node.value.f64);
-				}
-				else if(node.value.f64 <= std::numeric_limits<double>::max())
-				{
-					// TODO this will always matched
-				}
-				else
-				{
-					BOOST_ASSERT(false && "reaching unreachable code");
-				}
+				node.type = PrimitiveType::FLOAT32;
+				node.value.f32 = (float)(node.value.f64);
+			}
+			else if(node.value.f64 <= std::numeric_limits<double>::max())
+			{
+				node.type = PrimitiveType::FLOAT64;
 			}
 			else
 			{
-				if(std::numeric_limits<float>::min() < (-node.value.f64) && (-node.value.f64) <= std::numeric_limits<float>::max())
-				{
-					node.type = PrimitiveType::FLOAT32;
-					node.value.f32 = (float)(-node.value.f64);
-				}
-				else if(std::numeric_limits<double>::min() < (-node.value.f64) && (-node.value.f64) <= std::numeric_limits<double>::max())
-				{
-					// TODO this will always matched
-				}
-				else
-				{
-					BOOST_ASSERT(false && "reaching unreachable code");
-				}
+				BOOST_ASSERT(false && "reaching unreachable code");
 			}
 		}
 	}
 
-	UnaryExpr* getOwnerUnaryExprForNegation(NumericLiteral& node)
-	{
-		if(!node.parent)
-			return NULL;
-
-		PrimaryExpr* primary_expr = cast<PrimaryExpr>(node.parent);
-		if(!primary_expr)
-			return NULL;
-
-		if(!primary_expr->parent)
-			return NULL;
-
-		UnaryExpr* unary_expr = cast<UnaryExpr>(primary_expr->parent);
-		if(!unary_expr)
-			return NULL;
-
-		if(unary_expr->opcode != UnaryExpr::OpCode::ARITHMETIC_NEGATE)
-			return NULL;
-
-		return unary_expr;
-	}
-
-	void applyTransforms()
-	{
-		foreach(i, transforms)
-		{
-			(*i)();
-		}
-		transforms.clear();
-	}
-
 	Program* program;
-	std::vector<std::function<void()>> transforms;
 };
 
 } } } }

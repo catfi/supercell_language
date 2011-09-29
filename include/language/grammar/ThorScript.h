@@ -84,7 +84,7 @@ struct Identifier : qi::grammar<Iterator, typename SA::identifier::attribute_typ
 
 		keyword_sym =
 			L"void",
-			L"int8", L"uint8", L"int16", L"uint16", L"int32", L"uint32", L"int64", L"uint64",
+			L"int8", L"int16", L"int32", L"int64",
 			L"float32", L"float64",
 			L"true", L"false", L"null", L"self", L"global", L"...",
 			L"const", L"static",
@@ -140,7 +140,7 @@ struct IntegerLiteral : qi::grammar<Iterator, typename SA::integer_literal::attr
 	}
 
 	DECL_RULE_LEXEME(location);
-	qi::rule<Iterator, uint64()> start;
+	qi::rule<Iterator, int64()> start;
 	DECL_RULE_LEXEME(integer_literal);
 };
 
@@ -249,6 +249,7 @@ struct ThorScript : qi::grammar<Iterator, typename SA::start::attribute_type, de
 			{
 				ASSIGN        = DISTINCT_NO_ASSIGN_FOLLOW(L'=');
 				RSHIFT_ASSIGN = qi::lit(L">>=");
+				ARITHMETIC_RSHIFT_ASSIGN = qi::lit(L">>>=");
 				LSHIFT_ASSIGN = qi::lit(L"<<=");
 				PLUS_ASSIGN   = qi::lit(L"+=");
 				MINUS_ASSIGN  = qi::lit(L"-=");
@@ -285,7 +286,8 @@ struct ThorScript : qi::grammar<Iterator, typename SA::start::attribute_type, de
 
 			// shift operators
 			{
-				RSHIFT = DISTINCT_NO_ASSIGN_FOLLOW(qi::lit(L">>"));
+				RSHIFT = distinct(qi::lit(L'>') | L"=")[L">>"];
+				ARITHMETIC_RSHIFT = DISTINCT_NO_ASSIGN_FOLLOW(qi::lit(L">>>"));
 				LSHIFT = DISTINCT_NO_ASSIGN_FOLLOW(qi::lit(L"<<"));
 			}
 
@@ -336,13 +338,9 @@ struct ThorScript : qi::grammar<Iterator, typename SA::start::attribute_type, de
 			DECL_TOKEN(STATIC, L"static");
 
 			DECL_TOKEN(INT8, L"int8");
-			DECL_TOKEN(UINT8, L"uint8");
 			DECL_TOKEN(INT16, L"int16");
-			DECL_TOKEN(UINT16, L"uint16");
 			DECL_TOKEN(INT32, L"int32");
-			DECL_TOKEN(UINT32, L"uint32");
 			DECL_TOKEN(INT64, L"int64");
-			DECL_TOKEN(UINT64, L"uint64");
 			DECL_TOKEN(FLOAT32, L"float32");
 			DECL_TOKEN(FLOAT64, L"float64");
 			DECL_TOKEN(VOID, L"void");
@@ -420,13 +418,9 @@ struct ThorScript : qi::grammar<Iterator, typename SA::start::attribute_type, de
 			= qi::eps [ typename SA::location::cache_loc() ]
 				>>	( qi::lit(L"void")                                                     [ typename SA::thor_type::template init_primitive_type<tree::PrimitiveType::VOID>() ]
 					| qi::lit(L"int8")                                                     [ typename SA::thor_type::template init_primitive_type<tree::PrimitiveType::INT8>() ]
-					| qi::lit(L"uint8")                                                    [ typename SA::thor_type::template init_primitive_type<tree::PrimitiveType::UINT8>() ]
 					| qi::lit(L"int16")                                                    [ typename SA::thor_type::template init_primitive_type<tree::PrimitiveType::INT16>() ]
-					| qi::lit(L"uint16")                                                   [ typename SA::thor_type::template init_primitive_type<tree::PrimitiveType::UINT16>() ]
 					| qi::lit(L"int32")                                                    [ typename SA::thor_type::template init_primitive_type<tree::PrimitiveType::INT32>() ]
-					| qi::lit(L"uint32")                                                   [ typename SA::thor_type::template init_primitive_type<tree::PrimitiveType::UINT32>() ]
 					| qi::lit(L"int64")                                                    [ typename SA::thor_type::template init_primitive_type<tree::PrimitiveType::INT64>() ]
-					| qi::lit(L"uint64")                                                   [ typename SA::thor_type::template init_primitive_type<tree::PrimitiveType::UINT64>() ]
 					| qi::lit(L"float32")                                                  [ typename SA::thor_type::template init_primitive_type<tree::PrimitiveType::FLOAT32>() ]
 					| qi::lit(L"float64")                                                  [ typename SA::thor_type::template init_primitive_type<tree::PrimitiveType::FLOAT64>() ]
 					| (nested_identifier > -type_specialize_specifier)                     [ typename SA::thor_type::init_type() ]
@@ -593,8 +587,9 @@ struct ThorScript : qi::grammar<Iterator, typename SA::start::attribute_type, de
 		shift_expression
 			= qi::eps [ typename SA::location::cache_loc() ]
 				>>	(additive_expression
-					%	( ( RSHIFT > qi::attr(tree::BinaryExpr::OpCode::BINARY_RSHIFT) )
-						| ( LSHIFT > qi::attr(tree::BinaryExpr::OpCode::BINARY_LSHIFT) )
+					%	( ( RSHIFT            > qi::attr(tree::BinaryExpr::OpCode::BINARY_RSHIFT) )
+						| ( ARITHMETIC_RSHIFT > qi::attr(tree::BinaryExpr::OpCode::ARITHMETIC_RSHIFT) )
+						| ( LSHIFT            > qi::attr(tree::BinaryExpr::OpCode::BINARY_LSHIFT) )
 						) [ typename SA::left_to_right_binary_op_vec::append_op() ]
 					) [ typename SA::left_to_right_binary_op_vec::init() ]
 			;
@@ -695,17 +690,18 @@ struct ThorScript : qi::grammar<Iterator, typename SA::start::attribute_type, de
 		expression
 			= location [ typename SA::location::cache_loc() ]
 				>>	(ternary_expression
-					%	( ( ASSIGN        > qi::attr(tree::BinaryExpr::OpCode::ASSIGN) )
-						| ( RSHIFT_ASSIGN > qi::attr(tree::BinaryExpr::OpCode::RSHIFT_ASSIGN) )
-						| ( LSHIFT_ASSIGN > qi::attr(tree::BinaryExpr::OpCode::LSHIFT_ASSIGN) )
-						| ( PLUS_ASSIGN   > qi::attr(tree::BinaryExpr::OpCode::ADD_ASSIGN) )
-						| ( MINUS_ASSIGN  > qi::attr(tree::BinaryExpr::OpCode::SUB_ASSIGN) )
-						| ( MUL_ASSIGN    > qi::attr(tree::BinaryExpr::OpCode::MUL_ASSIGN) )
-						| ( DIV_ASSIGN    > qi::attr(tree::BinaryExpr::OpCode::DIV_ASSIGN) )
-						| ( MOD_ASSIGN    > qi::attr(tree::BinaryExpr::OpCode::MOD_ASSIGN) )
-						| ( AND_ASSIGN    > qi::attr(tree::BinaryExpr::OpCode::AND_ASSIGN) )
-						| ( OR_ASSIGN     > qi::attr(tree::BinaryExpr::OpCode::OR_ASSIGN) )
-						| ( XOR_ASSIGN    > qi::attr(tree::BinaryExpr::OpCode::XOR_ASSIGN) )
+					%	( ( ASSIGN                   > qi::attr(tree::BinaryExpr::OpCode::ASSIGN) )
+						| ( RSHIFT_ASSIGN            > qi::attr(tree::BinaryExpr::OpCode::RSHIFT_ASSIGN) )
+						| ( ARITHMETIC_RSHIFT_ASSIGN > qi::attr(tree::BinaryExpr::OpCode::ARITHMETIC_RSHIFT_ASSIGN) )
+						| ( LSHIFT_ASSIGN            > qi::attr(tree::BinaryExpr::OpCode::LSHIFT_ASSIGN) )
+						| ( PLUS_ASSIGN              > qi::attr(tree::BinaryExpr::OpCode::ADD_ASSIGN) )
+						| ( MINUS_ASSIGN             > qi::attr(tree::BinaryExpr::OpCode::SUB_ASSIGN) )
+						| ( MUL_ASSIGN               > qi::attr(tree::BinaryExpr::OpCode::MUL_ASSIGN) )
+						| ( DIV_ASSIGN               > qi::attr(tree::BinaryExpr::OpCode::DIV_ASSIGN) )
+						| ( MOD_ASSIGN               > qi::attr(tree::BinaryExpr::OpCode::MOD_ASSIGN) )
+						| ( AND_ASSIGN               > qi::attr(tree::BinaryExpr::OpCode::AND_ASSIGN) )
+						| ( OR_ASSIGN                > qi::attr(tree::BinaryExpr::OpCode::OR_ASSIGN) )
+						| ( XOR_ASSIGN               > qi::attr(tree::BinaryExpr::OpCode::XOR_ASSIGN) )
 						) [ typename SA::right_to_left_binary_op_vec::append_op() ]
 					) [ typename SA::right_to_left_binary_op_vec::init() ]
 			;
@@ -1011,11 +1007,11 @@ struct ThorScript : qi::grammar<Iterator, typename SA::start::attribute_type, de
 	// operators
 	qi::rule<Iterator, detail::WhiteSpace<Iterator> >
 		ELLIPSIS, DOT, COLON, SEMICOLON, COMMA, AT_SYMBOL, Q_MARK,
-		ASSIGN, RSHIFT_ASSIGN, LSHIFT_ASSIGN, PLUS_ASSIGN, MINUS_ASSIGN, MUL_ASSIGN, DIV_ASSIGN, MOD_ASSIGN, AND_ASSIGN, OR_ASSIGN, XOR_ASSIGN,
+		ASSIGN, RSHIFT_ASSIGN, ARITHMETIC_RSHIFT_ASSIGN, LSHIFT_ASSIGN, PLUS_ASSIGN, MINUS_ASSIGN, MUL_ASSIGN, DIV_ASSIGN, MOD_ASSIGN, AND_ASSIGN, OR_ASSIGN, XOR_ASSIGN,
 		INCREMENT, DECREMENT,
 		ARITHMETIC_PLUS, ARITHMETIC_MINUS, ARITHMETIC_MUL, ARITHMETIC_DIV, ARITHMETIC_MOD,
 		BINARY_AND, BINARY_OR, BINARY_XOR, BINARY_NOT,
-		RSHIFT, LSHIFT,
+		RSHIFT, ARITHMETIC_RSHIFT, LSHIFT,
 		LOGICAL_AND, LOGICAL_OR, LOGICAL_NOT,
 		COMPARE_EQ, COMPARE_NE, COMPARE_GT, COMPARE_LT, COMPARE_GE, COMPARE_LE,
 		LEFT_BRACE, RIGHT_BRACE, LEFT_BRACKET, RIGHT_BRACKET, LEFT_PAREN, RIGHT_PAREN;
@@ -1024,7 +1020,7 @@ struct ThorScript : qi::grammar<Iterator, typename SA::start::attribute_type, de
 	qi::rule<Iterator, detail::WhiteSpace<Iterator> >
 		_TRUE, _FALSE, _NULL, SELF, GLOBAL,
 		CONST, STATIC,
-		INT8, UINT8, INT16, UINT16, INT32, UINT32, INT64, UINT64, FLOAT32, FLOAT64, VOID,
+		INT8, INT16, INT32, INT64, FLOAT32, FLOAT64, VOID,
 		TYPEDEF, CLASS, INTERFACE, ENUM,
 		PUBLIC, PROTECTED, PRIVATE,
 		VAR, FUNCTION,

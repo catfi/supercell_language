@@ -47,8 +47,8 @@ struct Expression : public ASTNode
 		annotations = anns;
 	}
 
-	bool isLValue() { return !isRValue(); }
-	virtual bool isRValue() = 0;
+	bool isLValue() const { return !isRValue(); }
+	virtual bool isRValue() const = 0;
 
     virtual bool isEqualImpl(const ASTNode& rhs, ASTNodeSet& visited) const
     {
@@ -57,7 +57,7 @@ struct Expression : public ASTNode
 		END_COMPARE()
     }
 
-    virtual bool replaceUseWith(const ASTNode& from, const ASTNode& to)
+    virtual bool replaceUseWith(const ASTNode& from, const ASTNode& to, bool update_parent = true)
     {
     	BEGIN_REPLACE()
 		REPLACE_USE_WITH(annotations)

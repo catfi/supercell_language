@@ -47,7 +47,7 @@ struct Identifier : public ASTNode
         return true;
     }
 
-    virtual bool replaceUseWith(const ASTNode& from, const ASTNode& to)
+    virtual bool replaceUseWith(const ASTNode& from, const ASTNode& to, bool update_parent = true)
     {
     	return false;
     }
@@ -85,7 +85,7 @@ struct SimpleIdentifier : public Identifier
 		END_COMPARE()
     }
 
-    virtual bool replaceUseWith(const ASTNode& from, const ASTNode& to)
+    virtual bool replaceUseWith(const ASTNode& from, const ASTNode& to, bool update_parent = true)
     {
     	BEGIN_REPLACE_WITH_BASE(Identifier)
     	REPLACE_USE_WITH(name)
@@ -145,7 +145,7 @@ struct NestedIdentifier : public Identifier
     	END_COMPARE()
     }
 
-    virtual bool replaceUseWith(const ASTNode& from, const ASTNode& to)
+    virtual bool replaceUseWith(const ASTNode& from, const ASTNode& to, bool update_parent = true)
     {
     	BEGIN_REPLACE_WITH_BASE(Identifier)
     	REPLACE_USE_WITH(identifier_list)
@@ -250,7 +250,7 @@ struct TemplatedIdentifier : public Identifier
 		END_COMPARE()
     }
 
-    virtual bool replaceUseWith(const ASTNode& from, const ASTNode& to)
+    virtual bool replaceUseWith(const ASTNode& from, const ASTNode& to, bool update_parent = true)
     {
     	BEGIN_REPLACE_WITH_BASE(Identifier)
     	REPLACE_USE_WITH(type)

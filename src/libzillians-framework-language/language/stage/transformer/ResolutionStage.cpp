@@ -48,15 +48,13 @@ std::pair<shared_ptr<po::options_description>, shared_ptr<po::options_descriptio
 
 	foreach(i, option_desc_public->options()) option_desc_private->add(*i);
 
-	option_desc_private->add_options()
-		("skip-resolution", "skip type and symbol resolution stage");
+	option_desc_private->add_options();
 
 	return std::make_pair(option_desc_public, option_desc_private);
 }
 
 bool ResolutionStage::parseOptions(po::variables_map& vm)
 {
-	disable_resolution = (vm.count("skip-resolution") > 0);
 	disable_type_inference = (vm.count("no-type-inference") > 0);
 
 	return true;
@@ -64,6 +62,9 @@ bool ResolutionStage::parseOptions(po::variables_map& vm)
 
 bool ResolutionStage::execute(bool& continue_execution)
 {
+	if(disable_type_inference)
+		return true;
+
 	if(!resolveTypes(true)) return false;
 	if(!resolveSymbols(true)) return false;
 
@@ -72,9 +73,6 @@ bool ResolutionStage::execute(bool& continue_execution)
 
 bool ResolutionStage::resolveTypes(bool report_error_summary)
 {
-	if(disable_resolution)
-		return true;
-
 	if(hasParserContext())
 	{
 		ParserContext& parser_context = getParserContext();
@@ -138,9 +136,6 @@ bool ResolutionStage::resolveTypes(bool report_error_summary)
 
 bool ResolutionStage::resolveSymbols(bool report_error_summary)
 {
-	if(disable_resolution)
-		return true;
-
 	if(hasParserContext())
 	{
 		ParserContext& parser_context = getParserContext();
