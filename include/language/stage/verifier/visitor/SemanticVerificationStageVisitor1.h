@@ -115,6 +115,8 @@ struct SemanticVerificationStageVisitor1 : GenericDoubleVisitor
 			// UNINIT_REF
 			SemanticVerificationVariableDeclContext_HasBeenInit::set(var_decl, NULL);
 		}
+
+		revisit(node);
 	}
 
 	void verify(VariableDecl &node)
@@ -124,6 +126,29 @@ struct SemanticVerificationStageVisitor1 : GenericDoubleVisitor
 			SemanticVerificationVariableDeclContext_HasBeenInit::get_instance(&node);
 
 		revisit(node);
+	}
+
+	void verify(BranchStmt &node)
+	{
+		if(node.opcode == BranchStmt::OpCode::RETURN)
+		{
+			FunctionDecl* func_decl = ASTNodeHelper::getOwnerFunction(node);
+			TypeSpecifier* return_param_type = func_decl->type;
+			TypeSpecifier* return_arg_type = cast<TypeSpecifier>(ResolvedType::get(node.result));
+
+			if(ASTNodeHelper::compareTypeSpecifier(return_param_type, return_arg_type))
+			{
+				ASTNode* attach_point = ASTNodeHelper::getOwnerAnnotationAttachPoint(node);
+
+				// UNEXPECTED_RETURN_VALUE
+				if(ASTNodeHelper::isVoidType(return_param_type) && !ASTNodeHelper::isVoidType(return_arg_type))
+					LOG_MESSAGE(UNEXPECTED_RETURN_VALUE, attach_point);
+
+				// MISSING_RETURN_VALUE
+				if(!ASTNodeHelper::isVoidType(return_param_type) && ASTNodeHelper::isVoidType(return_arg_type))
+					LOG_MESSAGE(MISSING_RETURN_VALUE, attach_point, _type = return_param_type->toString());
+			}
+		}
 	}
 };
 
