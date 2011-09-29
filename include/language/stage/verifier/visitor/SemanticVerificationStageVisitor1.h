@@ -119,6 +119,33 @@ struct SemanticVerificationStageVisitor1 : GenericDoubleVisitor
 		revisit(node);
 	}
 
+	void verify(BranchStmt &node)
+	{
+		if(node.opcode == BranchStmt::OpCode::RETURN)
+		{
+			FunctionDecl* func_decl = ASTNodeHelper::getOwnerFunction(node);
+
+			// MISSING_RETURN
+			SemanticVerificationFunctionDeclContext_HasVisitedReturn::get_instance(func_decl);
+
+			TypeSpecifier* return_param_type = func_decl->type;
+			TypeSpecifier* return_arg_type = cast<TypeSpecifier>(ResolvedType::get(node.result));
+
+			if(ASTNodeHelper::compareTypeSpecifier(return_param_type, return_arg_type))
+			{
+				ASTNode* attachment_point = ASTNodeHelper::getOwnerAnnotationAttachPoint(node);
+
+				// UNEXPECTED_RETURN_VALUE
+				if(ASTNodeHelper::isVoidType(return_param_type) && !ASTNodeHelper::isVoidType(return_arg_type))
+					LOG_MESSAGE(UNEXPECTED_RETURN_VALUE, attachment_point);
+
+				// MISSING_RETURN_VALUE
+				if(!ASTNodeHelper::isVoidType(return_param_type) && ASTNodeHelper::isVoidType(return_arg_type))
+					LOG_MESSAGE(MISSING_RETURN_VALUE, attachment_point, _type = return_param_type->toString());
+			}
+		}
+	}
+
 	void verify(VariableDecl &node)
 	{
 		// UNINIT_REF
@@ -128,27 +155,13 @@ struct SemanticVerificationStageVisitor1 : GenericDoubleVisitor
 		revisit(node);
 	}
 
-	void verify(BranchStmt &node)
+	void verify(FunctionDecl &node)
 	{
-		if(node.opcode == BranchStmt::OpCode::RETURN)
-		{
-			FunctionDecl* func_decl = ASTNodeHelper::getOwnerFunction(node);
-			TypeSpecifier* return_param_type = func_decl->type;
-			TypeSpecifier* return_arg_type = cast<TypeSpecifier>(ResolvedType::get(node.result));
+		revisit(node);
 
-			if(ASTNodeHelper::compareTypeSpecifier(return_param_type, return_arg_type))
-			{
-				ASTNode* attach_point = ASTNodeHelper::getOwnerAnnotationAttachPoint(node);
-
-				// UNEXPECTED_RETURN_VALUE
-				if(ASTNodeHelper::isVoidType(return_param_type) && !ASTNodeHelper::isVoidType(return_arg_type))
-					LOG_MESSAGE(UNEXPECTED_RETURN_VALUE, attach_point);
-
-				// MISSING_RETURN_VALUE
-				if(!ASTNodeHelper::isVoidType(return_param_type) && ASTNodeHelper::isVoidType(return_arg_type))
-					LOG_MESSAGE(MISSING_RETURN_VALUE, attach_point, _type = return_param_type->toString());
-			}
-		}
+		// MISSING_RETURN
+		if(!ASTNodeHelper::isVoidType(node.type) && !SemanticVerificationFunctionDeclContext_HasVisitedReturn::get(&node))
+			LOG_MESSAGE(MISSING_RETURN, &node);
 	}
 };
 

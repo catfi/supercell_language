@@ -57,6 +57,9 @@ struct SemanticVerificationScopeContext_NameSet : public ASTNodeContext<Semantic
 struct SemanticVerificationBlockContext_HasVisitedReturn : public ASTNodeContext<SemanticVerificationBlockContext_HasVisitedReturn>
 { };
 
+struct SemanticVerificationFunctionDeclContext_HasVisitedReturn : public ASTNodeContext<SemanticVerificationFunctionDeclContext_HasVisitedReturn>
+{ };
+
 struct SemanticVerificationVariableDeclContext_HasBeenInit : public ASTNodeContext<SemanticVerificationVariableDeclContext_HasBeenInit>
 { };
 
