@@ -42,6 +42,7 @@
 #include "utility/UnicodeUtil.h"
 #include "language/tree/ASTNodeFactory.h"
 #include "language/context/ParserContext.h"
+#include "WhiteSpace.h"
 
 #define DISTINCT_IDENTIFIER(x)       distinct(unicode::alnum | L'_')[x]
 #define DISTINCT_NO_ASSIGN_FOLLOW(x) distinct(L'=')[x]
@@ -71,31 +72,6 @@ namespace zillians { namespace language { namespace grammar {
 /////////////////////////////////////////////////////////////////////
 
 namespace detail {
-
-template <typename Iterator>
-struct WhiteSpace : qi::grammar<Iterator>
-{
-	WhiteSpace() : WhiteSpace::base_type(start)
-	{
-		comment_c_style = qi::lexeme[L"/*" > *(unicode::char_ - L"*/") > L"*/"];
-		comment_c_style.name("comment_in_c_style");
-
-		comment_cpp_style = qi::lexeme[L"//" > *(unicode::char_ - qi::eol) > qi::eol];
-		comment_cpp_style.name("comment_in_cpp_style");
-
-		start
-			= unicode::space    // tab/space/cr/lf
-			| comment_c_style   // c-style comment "/* */"
-			| comment_cpp_style // cpp-style comment "//"
-			;
-
-		start.name("WHITESPACE");
-	}
-
-	qi::rule<Iterator> start;
-	qi::rule<Iterator> comment_c_style;
-	qi::rule<Iterator> comment_cpp_style;
-};
 
 template <typename Iterator, typename SA>
 struct Identifier : qi::grammar<Iterator, typename SA::identifier::attribute_type, typename SA::identifier::local_type>

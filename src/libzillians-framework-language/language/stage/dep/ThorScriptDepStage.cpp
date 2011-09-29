@@ -17,9 +17,18 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
+#define BOOST_MPL_CFG_NO_PREPROCESSED_HEADERS
+
 #include <algorithm>
+#include <vector>
+#include <set>
+#include <boost/bimap.hpp>
 #include <boost/filesystem.hpp>
+#include <boost/graph/adjacency_list.hpp>
+#include <boost/graph/strong_components.hpp>
 #include "language/stage/dep/ThorScriptDepStage.h"
+#include "language/grammar/ThorScriptPackageDependencyGrammar.h"
+#include "utility/UnicodeUtil.h"
 
 namespace zillians { namespace language { namespace stage {
 
@@ -52,7 +61,7 @@ bool ThorScriptDepStage::parseOptions(po::variables_map& vm)
 {
     if(vm.count("input"))
     {
-        inputFiles = vm["input"].as<std::vector<PathNameType>>();
+        inputFiles = vm["input"].as<std::vector<std::string>>();
         return true;
     }
     else
@@ -61,66 +70,116 @@ bool ThorScriptDepStage::parseOptions(po::variables_map& vm)
     }
 }
 
-typedef std::wstring PathNameType ;
-typedef std::map<std::wstring, std::set<PathNameType>> DepType ;
-void addDeps(const PathNameType& filename, DepType& deps);
-
-bool ThorScriptDepStage::execute(bool& continue_execution)
-{
-    DepType deps;
-
-    foreach(i, inputFiles)
-    {
-        std::wstring s = *i ;
-        std::wcout << "Parsing file: " << s << std::endl;
-        addDeps(*i, deps);
-    }
-    return true;
-}
-
-bool isDirectory(const PathNameType& pathString)
+bool isDirectory(const std::string& pathString)
 {
     namespace fs = boost::filesystem;
     fs::path p(pathString);
     return fs::exists(p) && fs::is_directory(p);
 }
 
-bool isRegularFile(const PathNameType& pathString)
+bool isRegularFile(const std::string& pathString)
 {
     namespace fs = boost::filesystem;
-    fs::path p(pathString + L".t");
+    fs::path p(pathString + ".t");
     return fs::exists(p) && fs::is_regular_file(p);
 }
 
-PathNameType packageNameToPathName(const std::wstring& packageName)
+std::string packageNameToPathName(const std::wstring& packageName)
 {
-    PathNameType result;
-    std::replace(result.begin(), result.end(), L'.', L'/');
+    std::string result = ws_to_s(packageName);
+    std::replace(result.begin(), result.end(), '.', '/');
     return result;
 }
 
 // TODO implement
-std::set<std::wstring> getFileDependentPackages(const std::wstring& tFileName)
+bool getFileDependentPackages(const std::string& tPathName, std::set<std::wstring>& packages)
 {
-    return std::set<std::wstring>();
+    std::string filename = tPathName + ".t" ;
+    std::ifstream in(filename, std::ios_base::in);
+
+    if(!in.good())
+    {
+        LOG4CXX_ERROR(LoggerWrapper::ParserStage, "failed to open file: " << filename);
+        return false;
+    }
+
+    // ignore the BOM marking the beginning of a UTF-8 file in Windows
+    if(in.peek() == '\xef')
+    {
+        char s[3];
+        in >> s[0] >> s[1] >> s[2];
+        s[3] = '\0';
+        if (s != std::string("\xef\xbb\xbf"))
+        {
+            std::cerr << "parser error: unexpected characters from input file: " << filename << std::endl;
+            return false;
+        }
+    }
+
+    //if(!use_relative_path)
+    //{
+    //    boost::filesystem::path f(filename);
+    //    boost::filesystem::path f_complete = boost::filesystem::absolute(f);
+    //    filename = f_complete.string();
+    //}
+
+    std::string source_code_raw;
+    in.unsetf(std::ios::skipws); // disable white space skipping
+    std::copy(std::istream_iterator<char>(in), std::istream_iterator<char>(), std::back_inserter(source_code_raw));
+
+    // convert is frem UTF8 into UCS4 as a string by using u8_to_u32_iterator
+    std::wstring source_code;
+    utf8_to_ucs4(source_code_raw, source_code);
+
+    // enable correct locale so that we can print UCS4 characters
+    enable_default_locale(std::wcout);
+
+    // try to parse
+    std::vector<std::wstring> resultVec;
+    typedef boost::spirit::classic::position_iterator2<std::wstring::iterator> pos_iterator_type;
+    try
+    {
+        pos_iterator_type begin(source_code.begin(), source_code.end(), s_to_ws(filename));
+        pos_iterator_type end;
+
+        zillians::language::grammar::getImportedPackages(begin, end, resultVec);
+    }
+    catch (std::exception& e)
+    {
+        std::wcerr << "ts-dep parsing error!" << std::endl ;
+        return false;
+    }
+    packages.insert(resultVec.begin(), resultVec.end());
+    return true;
 }
 
-// TODO
-std::set<PathNameType> recursiveAllFiles(std::wstring& dirPath)
+std::set<std::string> recursiveAllFiles(std::string& dirPath)
 {
-    return std::set<PathNameType>();
+    std::set<std::string> result;
+    namespace fs = boost::filesystem;
+    fs::path p(dirPath);
+    for (auto i = fs::recursive_directory_iterator(p); i != fs::recursive_directory_iterator(); ++i)
+    {
+        if(fs::exists(i->path()) && fs::is_regular_file(i->path()))
+        {
+            result.insert(i->path().string());
+        }
+    }
+    return result;
 }
 
-void addDeps(const PathNameType& pathString, DepType& deps)
+typedef std::map<std::string, std::set<std::string>> DepType ;
+
+void addDeps(const std::string& pathString, DepType& deps)
 {
     namespace fs = boost::filesystem;
     // if file processed
-    if(deps.count(pathString))
+    if(deps.count(pathString + ".t"))
     {
         return;
     }
 
-    deps[pathString + L".t"] = std::set<PathNameType>();
+    deps[pathString + ".t"] = std::set<std::string>();
 
     // if is dir name
     fs::path p(pathString);
@@ -128,15 +187,16 @@ void addDeps(const PathNameType& pathString, DepType& deps)
     {
         for (auto i = fs::directory_iterator(p); i != fs::directory_iterator(); ++i)
         {
-            addDeps(i->path().wstring(), deps);
+            addDeps(i->path().string(), deps);
         }
     }
 
     // if is .t src file
     if(isRegularFile(pathString))
     {
-        std::set<std::wstring> fileDependentPackages = getFileDependentPackages(p.wstring());
-        std::vector<PathNameType> fileDependentPathNames(fileDependentPackages.size());
+        std::set<std::wstring> fileDependentPackages;
+        bool parseResult = getFileDependentPackages(p.string(), fileDependentPackages);
+        std::vector<std::string> fileDependentPathNames(fileDependentPackages.size());
         std::transform(fileDependentPackages.begin(), fileDependentPackages.end(), fileDependentPathNames.begin(), packageNameToPathName);
         // for each dep packages
         foreach(i, fileDependentPathNames)
@@ -144,16 +204,99 @@ void addDeps(const PathNameType& pathString, DepType& deps)
             // if is regular .t file, directly add to deps
             if(isRegularFile(*i))
             {
-                deps[pathString + L".t"].insert(*i);
+                deps[pathString + ".t"].insert(*i + ".t");
             }
             // if is package directory, recusively add all files under the dir.
             else if(isDirectory(*i))
             {
-                std::set<PathNameType> allFilesUnderDir = recursiveAllFiles(*i);
-                deps[pathString + L".t"].insert(allFilesUnderDir.begin(), allFilesUnderDir.end());
+                std::set<std::string> allFilesUnderDir = recursiveAllFiles(*i);
+                deps[pathString + ".t"].insert(allFilesUnderDir.begin(), allFilesUnderDir.end());
             }
         }
     }
+    
+    const std::set<std::string>& se = deps[pathString + ".t"] ;
+    for(auto i = se.begin(); i != se.end(); ++i)
+    {
+        std::cout << (pathString + ".t -> ") << *i << std::endl ;
+        std::string recursiveVisitingPathString = i->substr(0, i->size()-2);
+        addDeps(recursiveVisitingPathString, deps);
+    }
+}
+
+bool analyzeTangle(const DepType& deps)
+{
+    // construct graph
+    using namespace boost;
+    typedef adjacency_list<vecS, vecS> GraphType;
+    boost::bimap<std::string, size_t> vertexIdMap;
+    // collect all files
+    std::set<std::string> files;
+    foreach(i, deps)
+    {
+        files.insert(i->first);
+        for(auto j = i->second.begin(); j != i->second.end(); ++j)
+        {
+            files.insert(*j);
+        }
+    }
+    // construct file <-> id bimap
+    size_t id = 0;
+    for(auto i = files.begin(); i != files.end(); ++i)
+    {
+        vertexIdMap.insert(boost::bimap<std::string, size_t>::value_type(*i, id));
+        ++id;
+    }
+    // insert edge to graph
+    GraphType g;
+    foreach(i, deps)
+    {
+        for(auto j = i->second.begin(); j != i->second.end(); ++j)
+        {
+            std::string s = i->first;
+            int u = vertexIdMap.left.at(i->first);
+            int v = vertexIdMap.left.at(*j);
+            add_edge(u, v, g);
+        }
+    }
+    // calculate strong connected components
+    std::vector<int> component(files.size());
+    strong_components(g, &component[0]);
+    // output result
+    //for(size_t i = 0; i < component.size(); ++i)
+    id = 0;
+    for(auto i = files.begin(); i != files.end(); ++i)
+    {
+        std::cout << *i << "  " << component[id] << std::endl ;
+        ++id;
+    }
+
+    return true;
+}
+
+bool ThorScriptDepStage::execute(bool& continue_execution)
+{
+    DepType deps;
+
+    // get file dependency
+    foreach(i, inputFiles)
+    {
+        std::string s = *i ;
+        std::cout << "Parsing file: " << s << std::endl;
+        s.resize(s.size() - 2) ;
+        addDeps(s, deps);
+    }
+
+    // analyze source file tangles (strong connected components)
+    std::cout << std::endl ;
+    std::cout << std::endl ;
+    analyzeTangle(deps);
+
+
+    // analyze parallel groups
+    // TODO:
+
+    return true;
 }
 
 } } }

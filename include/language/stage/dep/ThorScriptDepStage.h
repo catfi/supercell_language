@@ -42,8 +42,7 @@ public:
 	virtual bool execute(bool& continue_execution);
 
 public:
-    typedef std::wstring PathNameType ;
-    std::vector<PathNameType> inputFiles;
+    std::vector<std::string> inputFiles;
 };
 
 } } }
