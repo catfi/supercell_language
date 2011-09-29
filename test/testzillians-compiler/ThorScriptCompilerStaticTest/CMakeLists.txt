@@ -326,10 +326,10 @@ zillians_add_complex_test(
     DEPENDS ${ThorScriptCompiler}
     )
 zillians_add_complex_test(
-    TARGET thorscript-compiler-static-test-UNINIT_ARG
-    SHELL ${ThorScriptCompiler} ${compile_options_s1} ${CMAKE_CURRENT_SOURCE_DIR}/data/warn/UNINIT_ARG.t
+    TARGET thorscript-compiler-static-test-UNINIT_REF
+    SHELL ${ThorScriptCompiler} ${compile_options_s1} ${CMAKE_CURRENT_SOURCE_DIR}/data/warn/UNINIT_REF.t
     DEPENDS ${ThorScriptCompiler}
     )
 
 zillians_add_test_to_subject(SUBJECT thorscript-compiler-static-test-s1 TARGET thorscript-compiler-static-test-MISSING_RETURN)
-zillians_add_test_to_subject(SUBJECT thorscript-compiler-static-test-s1 TARGET thorscript-compiler-static-test-UNINIT_ARG)
+zillians_add_test_to_subject(SUBJECT thorscript-compiler-static-test-s1 TARGET thorscript-compiler-static-test-UNINIT_REF)

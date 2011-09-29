@@ -51,7 +51,7 @@ using zillians::language::tree::visitor::NameManglingVisitor;
 // WARNINGS:
 // ====================================
 // MISSING_RETURN
-// UNINIT_ARG
+// UNINIT_REF
 // CONTROL_REACHES_END
 // MISSING_CASE
 
@@ -71,29 +71,32 @@ struct SemanticVerificationStageVisitor1 : GenericDoubleVisitor
 		revisit(node);
 	}
 
-	void verify_UNINIT_ARG(ASTNode &node)
+	void verify_UNINIT_REF(ASTNode &node)
 	{
-		// UNINIT_ARG
-		ASTNode* decl = ResolvedSymbol::get(&node);
-		if(isa<VariableDecl>(decl) && ASTNodeHelper::isOwnedByFunction(node))
+		// UNINIT_REF
+		if(ASTNodeHelper::isOwnedByRValue(node))
 		{
-			VariableDecl* var_decl = cast<VariableDecl>(decl);
-			if(!SemanticVerificationVariableDeclContext_HasBeenInit::get(var_decl))
-				LOG_MESSAGE(UNINIT_ARG, ASTNodeHelper::getOwnerAnnotationAttachPoint(node), _var_id = var_decl->name->toString());
+			ASTNode* decl = ResolvedSymbol::get(&node);
+			if(isa<VariableDecl>(decl) && ASTNodeHelper::isOwnedByFunction(node))
+			{
+				VariableDecl* var_decl = cast<VariableDecl>(decl);
+				if(!SemanticVerificationVariableDeclContext_HasBeenInit::get(var_decl))
+					LOG_MESSAGE(UNINIT_REF, ASTNodeHelper::getOwnerAnnotationAttachPoint(node), _var_id = var_decl->name->toString());
+			}
 		}
 	}
 
 	void verify(PrimaryExpr &node)
 	{
-		// UNINIT_ARG
+		// UNINIT_REF
 		if(node.catagory == PrimaryExpr::Catagory::IDENTIFIER)
-			verify_UNINIT_ARG(node);
+			verify_UNINIT_REF(node);
 	}
 
 	void verify(MemberExpr &node)
 	{
-		// UNINIT_ARG
-		verify_UNINIT_ARG(*node.node);
+		// UNINIT_REF
+		verify_UNINIT_REF(*node.node);
 
 		revisit(node);
 	}
@@ -109,15 +112,15 @@ struct SemanticVerificationStageVisitor1 : GenericDoubleVisitor
 			if(var_decl->is_const)
 				LOG_MESSAGE(WRITE_CONST, ASTNodeHelper::getOwnerAnnotationAttachPoint(node), _var_id = name);
 
-			// UNINIT_ARG
+			// UNINIT_REF
 			SemanticVerificationVariableDeclContext_HasBeenInit::set(var_decl, NULL);
 		}
 	}
 
 	void verify(VariableDecl &node)
 	{
-		// UNINIT_ARG
-		if(!isa<FunctionDecl>(node.parent) && !!node.initializer)
+		// UNINIT_REF
+		if(ASTNodeHelper::isOwnedByFunction(node) && ASTNodeHelper::isOwnedByBlock(node) && !!node.initializer)
 			SemanticVerificationVariableDeclContext_HasBeenInit::get_instance(&node);
 
 		revisit(node);
