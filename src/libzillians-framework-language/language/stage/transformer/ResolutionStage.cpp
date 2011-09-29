@@ -21,13 +21,14 @@
 #include "language/stage/transformer/visitor/ResolutionStageVisitor.h"
 #include "language/tree/visitor/general/NodeTypeNameVisitor.h"
 #include "language/tree/visitor/general/NodeInfoVisitor.h"
+#include "language/tree/visitor/general/PrettyPrintVisitor.h"
 #include "language/resolver/Resolver.h"
 #include "language/context/ParserContext.h"
 #include "language/tree/ASTNodeHelper.h"
 
 namespace zillians { namespace language { namespace stage {
 
-ResolutionStage::ResolutionStage() : disable_type_inference(false), total_resolved_count(0), total_unresolved_count(0)
+ResolutionStage::ResolutionStage() : debug(false), disable_type_inference(false), total_resolved_count(0), total_unresolved_count(0)
 { }
 
 ResolutionStage::~ResolutionStage()
@@ -56,6 +57,7 @@ std::pair<shared_ptr<po::options_description>, shared_ptr<po::options_descriptio
 
 bool ResolutionStage::parseOptions(po::variables_map& vm)
 {
+	debug = (vm.count("debug-resolution-stage") > 0);
 	disable_type_inference = (vm.count("no-type-inference") > 0);
 
 	return true;
@@ -79,13 +81,8 @@ bool ResolutionStage::execute(bool& continue_execution)
 		if(!complete_symbol_resolution)
 			complete_symbol_resolution = resolveSymbols(false, making_progress_on_symbol_resolution);
 
-		if(complete_type_resolution && complete_symbol_resolution)
-			return true;
-		else
-		{
-			if(!making_progress_on_type_resolution && !making_progress_on_symbol_resolution)
-				break;
-		}
+		if(complete_type_resolution && complete_symbol_resolution && !making_progress_on_type_resolution && !making_progress_on_symbol_resolution)
+			break;
 	}
 
 	bool dummy = false;
@@ -94,7 +91,13 @@ bool ResolutionStage::execute(bool& continue_execution)
 	if(!complete_symbol_resolution)
 		resolveSymbols(true, dummy);
 
-	return true;
+	if(debug)
+	{
+		tree::visitor::PrettyPrintVisitor printer;
+		printer.visit(*getParserContext().program);
+	}
+
+	return complete_type_resolution && complete_symbol_resolution;
 }
 
 bool ResolutionStage::resolveTypes(bool report_error_summary, bool& making_progress)

@@ -421,7 +421,7 @@ struct ResolutionStageVisitor : GenericDoubleVisitor
 
 	void resolve(CastExpr& node)
 	{
-		revisit(node);
+		visit(*node.node);
 
 		if(type == Target::TYPE_RESOLUTION)
 		{
@@ -818,6 +818,9 @@ private:
 
 	void convertPrimitive(ASTNode& node, TypeSpecifier* specifier_left, TypeSpecifier* specifier_right)
 	{
+		if(!specifier_left || !specifier_right)
+			return;
+
 		// if the LHS primitive type is different from RHS primitive type, insert a type cast expression if appropriate
 		if(specifier_left->referred.primitive != specifier_right->referred.primitive)
 		{
@@ -846,6 +849,9 @@ private:
 	{
 		ASTNode* resolved_type = ResolvedType::get(&node);
 
+		if(!resolved_type)
+			return;
+
 		if(!isa<TypeSpecifier>(resolved_type))
 		{
 			LOG_MESSAGE(INVALID_CONV, &node, _rhs_type = ASTNodeHelper::nodeName(resolved_type), _lhs_type = ASTNodeHelper::nodeName(getParserContext().program->internal->BooleanTy));
@@ -861,7 +867,7 @@ private:
 
 		if(specifier->referred.primitive != PrimitiveType::BOOL)
 		{
-			transforms.push_back([&]{
+			transforms.push_back([&, specifier]{
 				ASTNode* parent = node.parent;
 				BinaryExpr* compare_expr = new BinaryExpr(BinaryExpr::OpCode::COMPARE_GT, cast<Expression>(&node), new PrimaryExpr(new NumericLiteral(specifier->referred.primitive, 0)));
 				// replace the node with update_parent = true because we will update it manually
