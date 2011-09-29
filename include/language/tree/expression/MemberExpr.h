@@ -41,7 +41,7 @@ struct MemberExpr : public Expression
 		member->parent = this;
 	}
 
-	virtual bool isRValue()
+	virtual bool isRValue() const
 	{
 		return false;
 	}

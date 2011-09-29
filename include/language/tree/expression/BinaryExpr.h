@@ -101,7 +101,7 @@ struct BinaryExpr : public Expression
 		right->parent = this;
 	}
 
-	bool isArithmetic()
+	bool isArithmetic() const
 	{
 		if( opcode == OpCode::ARITHMETIC_ADD ||
 			opcode == OpCode::ARITHMETIC_SUB ||
@@ -125,7 +125,7 @@ struct BinaryExpr : public Expression
 			return false;
 	}
 
-	bool isAssignment()
+	bool isAssignment() const
 	{
 		if( opcode == OpCode::ASSIGN ||
 			opcode == OpCode::RSHIFT_ASSIGN ||
@@ -144,7 +144,7 @@ struct BinaryExpr : public Expression
 			return false;
 	}
 
-	bool isBinary()
+	bool isBinary() const
 	{
 		if( opcode == OpCode::BINARY_AND ||
 			opcode == OpCode::BINARY_OR ||
@@ -156,7 +156,7 @@ struct BinaryExpr : public Expression
 			return false;
 	}
 
-	bool isLogical()
+	bool isLogical() const
 	{
 		if( opcode == OpCode::LOGICAL_AND ||
 			opcode == OpCode::LOGICAL_OR ||
@@ -166,7 +166,7 @@ struct BinaryExpr : public Expression
 			return false;
 	}
 
-	bool isComparison()
+	bool isComparison() const
 	{
 		if( opcode == OpCode::COMPARE_EQ ||
 			opcode == OpCode::COMPARE_NE ||
@@ -179,7 +179,17 @@ struct BinaryExpr : public Expression
 			return false;
 	}
 
-	virtual bool isRValue()
+	bool isRighAssociative() const
+	{
+		return isAssignment();
+	}
+
+	bool isLeftAssociative() const
+	{
+		return !isRighAssociative();
+	}
+
+	virtual bool isRValue() const
 	{
 		switch(opcode)
 		{

@@ -71,7 +71,7 @@ struct UnaryExpr : public Expression
 		node->parent = this;
 	}
 
-	virtual bool isRValue()
+	virtual bool isRValue() const
 	{
 		switch(opcode)
 		{

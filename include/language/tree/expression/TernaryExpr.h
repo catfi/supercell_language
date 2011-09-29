@@ -44,7 +44,7 @@ struct TernaryExpr : public Expression
 		false_node->parent = this;
 	}
 
-	virtual bool isRValue()
+	virtual bool isRValue() const
 	{
 		// it's R-value if either "true block" or "false block" is R-value
 		return (true_node->isRValue() || false_node->isRValue());

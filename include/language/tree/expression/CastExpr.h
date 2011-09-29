@@ -42,7 +42,7 @@ struct CastExpr : public Expression
 		type->parent = this;
 	}
 
-	virtual bool isRValue()
+	virtual bool isRValue() const
 	{
 		return node->isRValue();
 	}

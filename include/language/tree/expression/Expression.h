@@ -47,8 +47,8 @@ struct Expression : public ASTNode
 		annotations = anns;
 	}
 
-	bool isLValue() { return !isRValue(); }
-	virtual bool isRValue() = 0;
+	bool isLValue() const { return !isRValue(); }
+	virtual bool isRValue() const = 0;
 
     virtual bool isEqualImpl(const ASTNode& rhs, ASTNodeSet& visited) const
     {

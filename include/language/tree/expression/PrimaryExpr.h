@@ -75,7 +75,7 @@ struct PrimaryExpr : public Expression
 		value.lambda = lambda;
 	}
 
-	virtual bool isRValue()
+	virtual bool isRValue() const
 	{
 		switch(catagory)
 		{
