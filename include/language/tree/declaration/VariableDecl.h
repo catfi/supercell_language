@@ -26,6 +26,7 @@
 #include "language/tree/declaration/Declaration.h"
 #include "language/tree/basic/Identifier.h"
 #include "language/tree/basic/TypeSpecifier.h"
+#include "language/tree/expression/Expression.h"
 
 namespace zillians { namespace language { namespace tree {
 
