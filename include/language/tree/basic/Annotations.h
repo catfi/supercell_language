@@ -47,45 +47,18 @@ struct Annotation : public ASTNode
 
     virtual bool isEqualImpl(const ASTNode& rhs, ASTNodeSet& visited) const
     {
-        // if this node is compared already, return true directly, avoid infinite recursive comparing.
-        if(visited.count(this))
-        {
-            return true ;
-        }
-
-        // check type
-        const Annotation* p = cast<const Annotation>(&rhs);
-        if(p == NULL)
-        {
-            return false; 
-        }
-
-        // compare base class
-        // The base is ASTNode, no need to be compared.
-
-        // compare data member
-        if(!isASTNodeMemberEqual(&Annotation::name, *this, *p, visited))
-        {
-        	return false;
-        }
-        if(!isPairVectorMemberEqual(&Annotation::attribute_list, *this, *p, visited))
-        {
-        	return false;
-        }
-
-        // add this to the visited table.
-        visited.insert(this);
-        return true;
+    	BEGIN_COMPARE()
+		COMPARE_MEMBER(name)
+		COMPARE_MEMBER(attribute_list)
+		END_COMPARE()
     }
 
-    template<typename Archive>
-    void serialize(Archive& ar, const unsigned int version)
+    virtual bool replaceUseWith(const ASTNode& from, const ASTNode& to, bool update_parent = true)
     {
-        boost::serialization::base_object<ASTNode>(*this);
-        // NOTE: name is serialized in save_construct_data() function
-        // see http://www.boost.org/doc/libs/1_47_0/libs/serialization/doc/serialization.html#constructors
-        //ar & name;
-        ar & attribute_list;
+    	BEGIN_REPLACE()
+		REPLACE_USE_WITH(name)
+		REPLACE_USE_WITH(attribute_list)
+    	END_REPLACE()
     }
 
 	SimpleIdentifier* name;
@@ -105,36 +78,16 @@ struct Annotations : public ASTNode
 
     virtual bool isEqualImpl(const ASTNode& rhs, ASTNodeSet& visited) const
     {
-        if(visited.count(this))
-        {
-        	return true ;
-        }
-
-        const Annotations* p = cast<const Annotations>(&rhs);
-        if(p == NULL)
-        {
-        	return false;
-        }
-
-        // compare base class
-        // The base is ASTNode, no need to be compared.
-
-        // compare data member
-        if(!isVectorMemberEqual(&Annotations::annotation_list, *this, *p, visited))
-        {
-        	return false;
-        }
-
-        // add this to the visited table.
-        visited.insert(this);
-        return true;
+    	BEGIN_COMPARE()
+		COMPARE_MEMBER(annotation_list)
+    	END_COMPARE()
     }
 
-    template<typename Archive>
-    void serialize(Archive& ar, const unsigned int version)
+    virtual bool replaceUseWith(const ASTNode& from, const ASTNode& to, bool update_parent = true)
     {
-        boost::serialization::base_object<ASTNode>(*this);
-        ar & annotation_list;
+    	BEGIN_REPLACE()
+		REPLACE_USE_WITH(annotation_list)
+    	END_REPLACE()
     }
 
 	std::vector<Annotation*> annotation_list;
@@ -142,24 +95,5 @@ struct Annotations : public ASTNode
 
 } } }
 
-namespace boost { namespace serialization {
-
-template<class Archive>
-inline void save_construct_data(Archive& ar, const zillians::language::tree::Annotation* p, const unsigned int file_version)
-{
-	ar << p->name;
-}
-
-template<class Archive>
-inline void load_construct_data(Archive& ar, zillians::language::tree::Annotation* p, const unsigned int file_version)
-{
-    using namespace zillians::language::tree;
-
-	SimpleIdentifier* name;
-	ar >> name;
-	::new(p) Annotation(name);
-}
-
-} } // namespace boost::serialization
 
 #endif /* ZILLIANS_LANGUAGE_TREE_ANNOTATIONS_H_ */

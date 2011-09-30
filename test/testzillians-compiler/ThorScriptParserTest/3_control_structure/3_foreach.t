@@ -1,15 +1,15 @@
 function f():void
 {
-    var x:uint32 = 0;
+    var x:int32 = 0;
 
-    foreach(var i:uint32 in 0 ... 13)
+    foreach(var i:int32 in 0 ... 13)
     {
         x = x + i;
         break;
         continue;
     }
 
-    var j:uint32 = 0;
+    var j:int32 = 0;
     foreach(j in 0 ... 17)
     {
         x = x + j;

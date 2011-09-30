@@ -1,12 +1,12 @@
 function f():void
 {
-    var a:uint32;
-    var b:uint32 = 13;
-    const c:uint32 = 17;
+    var a:int32;
+    var b:int32 = 13;
+    const c:int32 = 17;
 
     {
-        var d:uint32;
-        var e:uint32 = 19;
-        const f:uint32 = 23;
+        var d:int32;
+        var e:int32 = 19;
+        const f:int32 = 23;
     }
 }

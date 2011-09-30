@@ -34,11 +34,9 @@ struct ClassDecl : public Declaration
 	DEFINE_VISITABLE();
 	DEFINE_HIERARCHY(ClassDecl, (ClassDecl)(Declaration)(ASTNode));
 
-	explicit ClassDecl(Identifier* name) : name(name), base(NULL)
+	explicit ClassDecl(Identifier* name) : Declaration(name), base(NULL)
 	{
 		BOOST_ASSERT(name && "null class name identifier is not allowed");
-
-		name->parent = this;
 	}
 
 	void addFunction(FunctionDecl* func)
@@ -79,49 +77,25 @@ struct ClassDecl : public Declaration
 
     virtual bool isEqualImpl(const ASTNode& rhs, ASTNodeSet& visited) const
     {
-        if(visited.count(this))
-        {
-            return true ;
-        }
-
-        const ClassDecl* p = cast<const ClassDecl>(&rhs);
-        if(p == NULL)
-        {
-            return false;
-        }
-
-        // compare base class
-        if(!Declaration::isEqualImpl(*p, visited))
-        {
-            return false;
-        }
-
-        // compare data member
-        if(!isASTNodeMemberEqual(&ClassDecl::name            , *this, *p, visited)) return false;
-        if(!isASTNodeMemberEqual(&ClassDecl::base            , *this, *p, visited)) return false;
-        if(!isVectorMemberEqual (&ClassDecl::implements      , *this, *p, visited)) return false;
-        if(!isVectorMemberEqual (&ClassDecl::member_functions, *this, *p, visited)) return false;
-        if(!isVectorMemberEqual (&ClassDecl::member_variables, *this, *p, visited)) return false;
-
-        // add this to the visited table.
-        visited.insert(this);
-        return true;
+    	BEGIN_COMPARE_WITH_BASE(Declaration)
+		COMPARE_MEMBER(base)
+		COMPARE_MEMBER(implements)
+		COMPARE_MEMBER(member_functions)
+		COMPARE_MEMBER(member_variables)
+		END_COMPARE()
     }
 
-    template<typename Archive>
-    void serialize(Archive& ar, const unsigned int version)
+    virtual bool replaceUseWith(const ASTNode& from, const ASTNode& to, bool update_parent = true)
     {
-        boost::serialization::base_object<Declaration>(*this) ;
-        // NOTE: name is serialized in save_construct_data() function
-        // see http://www.boost.org/doc/libs/1_47_0/libs/serialization/doc/serialization.html#constructors
-        //ar & name;
-        ar & base;
-        ar & implements;
-        ar & member_functions;
-        ar & member_variables;
+    	BEGIN_REPLACE_WITH_BASE(Declaration)
+		REPLACE_USE_WITH(base)
+		REPLACE_USE_WITH(implements)
+		REPLACE_USE_WITH(member_functions)
+		REPLACE_USE_WITH(member_variables)
+    	END_REPLACE()
     }
 
-	Identifier* name;
+
 	TypeSpecifier* base;
 	std::vector<TypeSpecifier*> implements;
 	std::vector<FunctionDecl*> member_functions;
@@ -129,25 +103,5 @@ struct ClassDecl : public Declaration
 };
 
 } } }
-
-namespace boost { namespace serialization {
-
-template<class Archive>
-inline void save_construct_data(Archive& ar, const zillians::language::tree::ClassDecl* p, const unsigned int file_version)
-{
-	ar << p->name;
-}
-
-template<class Archive>
-inline void load_construct_data(Archive& ar, zillians::language::tree::ClassDecl* p, const unsigned int file_version)
-{
-    using namespace zillians::language::tree;
-
-	Identifier* name;
-	ar >> name;
-	::new(p) ClassDecl(name);
-}
-
-} } // namespace boost::serialization
 
 #endif /* ZILLIANS_LANGUAGE_TREE_CLASSDECL_H_ */

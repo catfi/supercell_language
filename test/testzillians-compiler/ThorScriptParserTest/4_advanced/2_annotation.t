@@ -7,7 +7,7 @@ function f():void
 class my_class
 {
     @tag { key = 19, key2 = "ccc" }
-    var x:uint32;
+    var x:int32;
 
     @tag { key = 23, key2 = "ddd" }
     function f():void
@@ -24,4 +24,10 @@ function g():void
 @tag { key = 37, key2 = { key = 41, key2 = 43 } }
 function h():void
 {
+}
+
+@tag { key = 47, key2 = "ggg" }
+interface iface
+{
+    function f():void;
 }

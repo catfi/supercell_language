@@ -68,12 +68,4 @@ BOOST_AUTO_TEST_CASE( ThorScriptTreeTest_PrettyPrintVisitorTestCase4 )
 	printer.visit(*program);
 }
 
-BOOST_AUTO_TEST_CASE( ThorScriptTreeTest_PrettyPrintVisitorTestCase5 )
-{
-	PrettyPrintVisitor printer;
-
-	ASTNode* program = createSample5();
-	printer.visit(*program);
-}
-
 BOOST_AUTO_TEST_SUITE_END()

@@ -93,5 +93,13 @@ ADD_SUBDIRECTORY(zillians-stub-gen)
 ADD_SUBDIRECTORY(zillians-spirit-log-filter)
 
 ADD_SUBDIRECTORY(libzillians-framework-language)
+
+ADD_SUBDIRECTORY(zillians-thorscript-bundler)
 ADD_SUBDIRECTORY(zillians-thorscript-compiler)
+ADD_SUBDIRECTORY(zillians-thorscript-driver)
+ADD_SUBDIRECTORY(zillians-thorscript-linker)
+ADD_SUBDIRECTORY(zillians-thorscript-manifest-builder)
+ADD_SUBDIRECTORY(zillians-thorscript-stripper)
+ADD_SUBDIRECTORY(zillians-thorscript-stub-generator)
 ADD_SUBDIRECTORY(zillians-thorscript-vm)
+ADD_SUBDIRECTORY(zillians-thorscript-dep)

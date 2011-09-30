@@ -19,18 +19,21 @@
 # Contact Information: info@zillians.com
 #
 
-INCLUDE_DIRECTORIES(
+include_directories(
     ${PROJECT_COMMON_SOURCE_DIR}/include/
     ${PROJECT_FRAMEWORK_SOURCE_DIR}/include/
     )
 
-ADD_EXECUTABLE(thorscript-compiler
+add_executable(ts-compile
     main.cpp
     language/ThorScriptCompiler.cpp
     )
-    
-TARGET_LINK_LIBRARIES(thorscript-compiler
+
+target_link_libraries(ts-compile
     zillians-common-core
     zillians-common-utility
     zillians-framework-language
     )
+
+get_target_property(ThorScriptCompiler ts-compile LOCATION)
+message(STATUS "Using ThorScript Compiler: \"${ThorScriptCompiler}\"")

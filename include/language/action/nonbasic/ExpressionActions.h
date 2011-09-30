@@ -147,15 +147,16 @@ struct primary_expression
 		printf("primary_expression::lambda_expression param(1) type = %s\n", typeid(_param_t(1)).name());
 		printf("primary_expression::lambda_expression param(2) type = %s\n", typeid(_param_t(2)).name());
 #endif
-		typed_parameter_list::value_t*         parameters = _param(0).is_initialized() ? (*_param(0)).get() : NULL;
+		std::vector<VariableDecl*>*            parameters = _param(0).is_initialized() ? &(*_param(0)) : NULL;
 		TypeSpecifier*                         type       = _param(1).is_initialized() ? *_param(1) : NULL;
 		Declaration::VisibilitySpecifier::type visibility = Declaration::VisibilitySpecifier::PUBLIC;
 		bool                                   is_member  = false;
+		bool                                   is_static  = false;
 		FunctionDecl* function_decl =
-				new FunctionDecl(NULL, type, is_member, false, visibility, _param(2)); BIND_CACHED_LOCATION(function_decl);
+				new FunctionDecl(NULL, type, is_member, is_static, visibility, _param(2)); BIND_CACHED_LOCATION(function_decl);
 		if(!!parameters)
 			deduced_foreach_value(i, *parameters)
-				function_decl->appendParameter(i.first, i.second);
+				function_decl->appendParameter(i);
 		BIND_CACHED_LOCATION(_result = new PrimaryExpr(function_decl));
 	}
 	END_ACTION
@@ -231,11 +232,13 @@ struct prefix_expression
 			_result = boost::get<Expression*>(_param(0));
 			break;
 		case 1:
-			typedef boost::fusion::vector2<UnaryExpr::OpCode::type, Expression*> fusion_vec_t;
-			fusion_vec_t &vec = boost::get<fusion_vec_t>(_param(0));
-			UnaryExpr::OpCode::type type = boost::fusion::at_c<0>(vec);
-			Expression*             expr = boost::fusion::at_c<1>(vec);
-			BIND_CACHED_LOCATION(_result = new UnaryExpr(type, expr));
+			{
+				typedef boost::fusion::vector2<UnaryExpr::OpCode::type, Expression*> fusion_vec_t;
+				fusion_vec_t &vec = boost::get<fusion_vec_t>(_param(0));
+				UnaryExpr::OpCode::type type = boost::fusion::at_c<0>(vec);
+				Expression*             expr = boost::fusion::at_c<1>(vec);
+				BIND_CACHED_LOCATION(_result = new UnaryExpr(type, expr));
+			}
 			break;
 		}
 	}
@@ -337,12 +340,10 @@ struct range_expression
 		printf("range_expression param(0) type = %s\n", typeid(_param_t(0)).name());
 		printf("range_expression param(1) type = %s\n", typeid(_param_t(1)).name());
 #endif
-		if(!_param(1).is_initialized())
-		{
+		if(_param(1).is_initialized())
+			BIND_CACHED_LOCATION(_result = new BinaryExpr(BinaryExpr::OpCode::RANGE_ELLIPSIS, _param(0), *_param(1))) // NOTE: omit SEMICOLON
+		else
 			_result = _param(0);
-			return;
-		}
-		BIND_CACHED_LOCATION(_result = new BinaryExpr(BinaryExpr::OpCode::RANGE_ELLIPSIS, _param(0), *_param(1)));
 	}
 	END_ACTION
 };
@@ -358,14 +359,14 @@ struct ternary_expression
 		printf("ternary_expression param(0) type = %s\n", typeid(_param_t(0)).name());
 		printf("ternary_expression param(1) type = %s\n", typeid(_param_t(1)).name());
 #endif
-		if(!_param(1).is_initialized())
+		if(_param(1).is_initialized())
 		{
-			_result = _param(0);
-			return;
+			Expression* true_node  = boost::fusion::at_c<0>(*_param(1));
+			Expression* false_node = boost::fusion::at_c<1>(*_param(1));
+			BIND_CACHED_LOCATION(_result = new TernaryExpr(_param(0), true_node, false_node));
 		}
-		Expression* true_node  = boost::fusion::at_c<0>(*_param(1));
-		Expression* false_node = boost::fusion::at_c<1>(*_param(1));
-		BIND_CACHED_LOCATION(_result = new TernaryExpr(_param(0), true_node, false_node));
+		else
+			_result = _param(0);
 	}
 	END_ACTION
 };

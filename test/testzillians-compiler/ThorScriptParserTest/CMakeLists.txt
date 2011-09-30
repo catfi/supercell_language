@@ -24,8 +24,12 @@ zillians_create_test_subject(SUBJECT thorscript-parser-test-ast-all)
 zillians_add_subject_to_subject(PARENT framework-compiler-critical CHILD thorscript-parser-test-all)
 zillians_add_subject_to_subject(PARENT framework-compiler-critical CHILD thorscript-parser-test-ast-all)
 
+get_target_property(ThorScriptCompiler ts-compile LOCATION)
+get_target_property(ThorScriptLogFilter ts-log-filter LOCATION)
+
 ADD_SUBDIRECTORY(0_lexer)
 ADD_SUBDIRECTORY(1_basic)
 ADD_SUBDIRECTORY(2_terminal)
 ADD_SUBDIRECTORY(3_control_structure)
 ADD_SUBDIRECTORY(4_advanced)
+ADD_SUBDIRECTORY(5_bug)

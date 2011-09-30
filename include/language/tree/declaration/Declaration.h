@@ -51,8 +51,10 @@ struct Declaration : public ASTNode
 		}
 	};
 
-	Declaration() : annotations(NULL)
-	{ }
+	Declaration(Identifier* name) : name(name), annotations(NULL)
+	{
+		if(name) name->parent = this;
+	}
 
 	void setAnnotation(Annotations* anns)
 	{
@@ -63,38 +65,21 @@ struct Declaration : public ASTNode
 
     virtual bool isEqualImpl(const ASTNode& rhs, ASTNodeSet& visited) const
     {
-        if(visited.count(this))
-        {
-            return true ;
-        }
-
-        const Declaration* p = cast<const Declaration>(&rhs);
-        if(p == NULL)
-        {
-            return false;
-        }
-
-        // compare base class
-        // The base is ASTNode, no need to be compared.
-
-        // compare data member
-        if(!isASTNodeMemberEqual(&Declaration::annotations, *this, *p, visited))
-        {
-            return false;
-        }
-
-        // add this to the visited table.
-        visited.insert(this);
-        return true;
+    	BEGIN_COMPARE()
+		COMPARE_MEMBER(name)
+		COMPARE_MEMBER(annotations)
+    	END_COMPARE()
     }
 
-    template<typename Archive>
-    void serialize(Archive& ar, const unsigned int version)
+    virtual bool replaceUseWith(const ASTNode& from, const ASTNode& to, bool update_parent = true)
     {
-        boost::serialization::base_object<ASTNode>(*this);
-        ar & annotations;
+    	BEGIN_REPLACE()
+		REPLACE_USE_WITH(name)
+		REPLACE_USE_WITH(annotations)
+    	END_REPLACE()
     }
 
+	Identifier* name;
 	Annotations* annotations;
 };
 

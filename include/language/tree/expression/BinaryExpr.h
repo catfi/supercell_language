@@ -35,8 +35,8 @@ struct BinaryExpr : public Expression
 	struct OpCode
 	{
 		enum type {
-			ASSIGN, RSHIFT_ASSIGN, LSHIFT_ASSIGN, ADD_ASSIGN, SUB_ASSIGN, MUL_ASSIGN, DIV_ASSIGN, MOD_ASSIGN, AND_ASSIGN, OR_ASSIGN, XOR_ASSIGN,
-			ARITHMETIC_ADD, ARITHMETIC_SUB, ARITHMETIC_MUL, ARITHMETIC_DIV, ARITHMETIC_MOD,
+			ASSIGN, RSHIFT_ASSIGN, LSHIFT_ASSIGN, ARITHMETIC_RSHIFT_ASSIGN, ADD_ASSIGN, SUB_ASSIGN, MUL_ASSIGN, DIV_ASSIGN, MOD_ASSIGN, AND_ASSIGN, OR_ASSIGN, XOR_ASSIGN,
+			ARITHMETIC_ADD, ARITHMETIC_SUB, ARITHMETIC_MUL, ARITHMETIC_DIV, ARITHMETIC_MOD, ARITHMETIC_RSHIFT,
 			BINARY_AND, BINARY_OR, BINARY_XOR, BINARY_LSHIFT, BINARY_RSHIFT,
 			LOGICAL_AND, LOGICAL_OR,
 			INSTANCEOF,
@@ -52,6 +52,7 @@ struct BinaryExpr : public Expression
 			case ASSIGN: return L"=";
 			case RSHIFT_ASSIGN: return L">>=";
 			case LSHIFT_ASSIGN: return L"<<=";
+			case ARITHMETIC_RSHIFT_ASSIGN: return L">>>=";
 			case ADD_ASSIGN: return L"+=";
 			case SUB_ASSIGN: return L"-=";
 			case MUL_ASSIGN: return L"*=";
@@ -65,6 +66,7 @@ struct BinaryExpr : public Expression
 			case ARITHMETIC_MUL: return L"*";
 			case ARITHMETIC_DIV: return L"/";
 			case ARITHMETIC_MOD: return L"%";
+			case ARITHMETIC_RSHIFT: return L">>>";
 			case BINARY_AND: return L"&";
 			case BINARY_OR: return L"|";
 			case BINARY_XOR: return L"^";
@@ -82,7 +84,10 @@ struct BinaryExpr : public Expression
 			case RANGE_ELLIPSIS: return L"...";
 			case ARRAY_SUBSCRIPT: return L"[]";
 			case INVALID: return L"invalid";
+			default: break;
 			}
+			BOOST_ASSERT(false && "reaching unreachable code");
+			return NULL;
 		}
 	};
 
@@ -96,23 +101,36 @@ struct BinaryExpr : public Expression
 		right->parent = this;
 	}
 
-	bool isArithmetic()
+	bool isArithmetic() const
 	{
 		if( opcode == OpCode::ARITHMETIC_ADD ||
 			opcode == OpCode::ARITHMETIC_SUB ||
 			opcode == OpCode::ARITHMETIC_MUL ||
 			opcode == OpCode::ARITHMETIC_DIV ||
-			opcode == OpCode::ARITHMETIC_MOD )
+			opcode == OpCode::ARITHMETIC_MOD ||
+			opcode == OpCode::ARITHMETIC_RSHIFT ||
+			opcode == OpCode::RSHIFT_ASSIGN ||
+			opcode == OpCode::LSHIFT_ASSIGN ||
+			opcode == OpCode::ARITHMETIC_RSHIFT_ASSIGN ||
+			opcode == OpCode::ADD_ASSIGN ||
+			opcode == OpCode::SUB_ASSIGN ||
+			opcode == OpCode::MUL_ASSIGN ||
+			opcode == OpCode::DIV_ASSIGN ||
+			opcode == OpCode::MOD_ASSIGN ||
+			opcode == OpCode::AND_ASSIGN ||
+			opcode == OpCode::OR_ASSIGN  ||
+			opcode == OpCode::XOR_ASSIGN)
 			return true;
 		else
 			return false;
 	}
 
-	bool isAssignment()
+	bool isAssignment() const
 	{
 		if( opcode == OpCode::ASSIGN ||
 			opcode == OpCode::RSHIFT_ASSIGN ||
 			opcode == OpCode::LSHIFT_ASSIGN ||
+			opcode == OpCode::ARITHMETIC_RSHIFT_ASSIGN ||
 			opcode == OpCode::ADD_ASSIGN ||
 			opcode == OpCode::SUB_ASSIGN ||
 			opcode == OpCode::MUL_ASSIGN ||
@@ -126,7 +144,7 @@ struct BinaryExpr : public Expression
 			return false;
 	}
 
-	bool isBinary()
+	bool isBinary() const
 	{
 		if( opcode == OpCode::BINARY_AND ||
 			opcode == OpCode::BINARY_OR ||
@@ -138,7 +156,7 @@ struct BinaryExpr : public Expression
 			return false;
 	}
 
-	bool isLogical()
+	bool isLogical() const
 	{
 		if( opcode == OpCode::LOGICAL_AND ||
 			opcode == OpCode::LOGICAL_OR ||
@@ -148,7 +166,7 @@ struct BinaryExpr : public Expression
 			return false;
 	}
 
-	bool isComparison()
+	bool isComparison() const
 	{
 		if( opcode == OpCode::COMPARE_EQ ||
 			opcode == OpCode::COMPARE_NE ||
@@ -161,13 +179,24 @@ struct BinaryExpr : public Expression
 			return false;
 	}
 
-	virtual bool isRValue()
+	bool isRighAssociative() const
+	{
+		return isAssignment();
+	}
+
+	bool isLeftAssociative() const
+	{
+		return !isRighAssociative();
+	}
+
+	virtual bool isRValue() const
 	{
 		switch(opcode)
 		{
 		case OpCode::ASSIGN:
 		case OpCode::RSHIFT_ASSIGN:
 		case OpCode::LSHIFT_ASSIGN:
+		case OpCode::ARITHMETIC_RSHIFT_ASSIGN:
 		case OpCode::ADD_ASSIGN:
 		case OpCode::SUB_ASSIGN:
 		case OpCode::MUL_ASSIGN:
@@ -183,6 +212,7 @@ struct BinaryExpr : public Expression
 		case OpCode::ARITHMETIC_MUL:
 		case OpCode::ARITHMETIC_DIV:
 		case OpCode::ARITHMETIC_MOD:
+		case OpCode::ARITHMETIC_RSHIFT:
 		case OpCode::BINARY_AND:
 		case OpCode::BINARY_OR:
 		case OpCode::BINARY_XOR:
@@ -200,42 +230,27 @@ struct BinaryExpr : public Expression
 		case OpCode::RANGE_ELLIPSIS:
 		case OpCode::INVALID:
 			return true;
+		default: break;
 		}
+		BOOST_ASSERT(false && "reaching unreachable code");
+		return false;
 	}
 
     virtual bool isEqualImpl(const ASTNode& rhs, ASTNodeSet& visited) const
     {
-        if(visited.count(this))
-        {
-            return true ;
-        }
-
-        const BinaryExpr* p = cast<const BinaryExpr>(&rhs);
-        if(p == NULL)
-        {
-            return false;
-        }
-
-        // compare base class
-        if(!Expression::isEqualImpl(*p, visited))
-        {
-            return false;
-        }
-
-        // compare data member
-        if(opcode != p->opcode                                                        ) return false;
-        if(!isASTNodeMemberEqual   (&BinaryExpr::left            , *this, *p, visited)) return false;
-        if(!isASTNodeMemberEqual   (&BinaryExpr::right           , *this, *p, visited)) return false;
-
-        // add this to the visited table.
-        visited.insert(this);
-        return true;
+    	BEGIN_COMPARE_WITH_BASE(Expression)
+		COMPARE_MEMBER(opcode)
+		COMPARE_MEMBER(left)
+		COMPARE_MEMBER(right)
+		END_COMPARE()
     }
 
-    template<typename Archive>
-    void serialize(Archive& ar, const unsigned int version)
+    virtual bool replaceUseWith(const ASTNode& from, const ASTNode& to, bool update_parent = true)
     {
-        boost::serialization::base_object<Expression>(*this);
+    	BEGIN_REPLACE_WITH_BASE(Expression)
+		REPLACE_USE_WITH(left)
+		REPLACE_USE_WITH(right)
+    	END_REPLACE()
     }
 
 	OpCode::type opcode;
@@ -244,33 +259,5 @@ struct BinaryExpr : public Expression
 };
 
 } } }
-
-namespace boost { namespace serialization {
-
-template<class Archive>
-inline void save_construct_data(Archive& ar, const zillians::language::tree::BinaryExpr* p, const unsigned int file_version)
-{
-	ar << (int&)p->opcode;
-    ar << p->left;
-    ar << p->right;
-}
-
-template<class Archive>
-inline void load_construct_data(Archive& ar, zillians::language::tree::BinaryExpr* p, const unsigned int file_version)
-{
-    using namespace zillians::language::tree;
-
-    int opcode;
-    Expression* left;
-    Expression* right;
-
-    ar >> opcode;
-    ar >> left;
-    ar >> right;
-
-	::new(p) BinaryExpr(static_cast<BinaryExpr::OpCode::type>(opcode), left, right);
-}
-
-} } // namespace boost::serialization
 
 #endif /* ZILLIANS_LANGUAGE_TREE_BINARYEXPR_H_ */

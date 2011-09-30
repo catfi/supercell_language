@@ -1,6 +1,6 @@
 function f():void
 {
-    var x:uint32 = 17;
+    var x:int32 = 17;
     if(x == 13)
     {
         x = 0;

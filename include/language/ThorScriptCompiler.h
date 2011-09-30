@@ -22,19 +22,15 @@
 
 #include "core/Prerequisite.h"
 #include "language/tree/ASTNode.h"
-#include "language/stage/StageConductor.h"
+#include "language/stage/StageBuilder.h"
 
 namespace zillians { namespace language {
 
-class ThorScriptCompiler : public stage::StageConductor
+class ThorScriptCompiler : public stage::StageBuilder
 {
 public:
 	ThorScriptCompiler();
 	virtual ~ThorScriptCompiler();
-
-public:
-	virtual void initialize();
-	virtual void finalize();
 };
 
 } }

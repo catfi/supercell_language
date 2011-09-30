@@ -42,49 +42,25 @@ struct CastExpr : public Expression
 		type->parent = this;
 	}
 
-	virtual bool isRValue()
+	virtual bool isRValue() const
 	{
 		return node->isRValue();
 	}
 
     virtual bool isEqualImpl(const ASTNode& rhs, ASTNodeSet& visited) const
     {
-        if(visited.count(this))
-        {
-            return true ;
-        }
-
-        const CastExpr* p = cast<const CastExpr>(&rhs);
-        if(p == NULL)
-        {
-            return false;
-        }
-
-        // compare base class
-        if(!Expression::isEqualImpl(*p, visited))
-        {
-            return false;
-        }
-
-        // compare data member
-        if(!isASTNodeMemberEqual(&CastExpr::node, *this, *p, visited))
-        {
-            return false;
-        }
-        if(!isASTNodeMemberEqual(&CastExpr::type, *this, *p, visited))
-        {
-            return false;
-        }
-
-        // add this to the visited table.
-        visited.insert(this);
-        return true;
+    	BEGIN_COMPARE_WITH_BASE(Expression)
+		COMPARE_MEMBER(node)
+		COMPARE_MEMBER(type)
+		END_COMPARE()
     }
 
-    template<typename Archive>
-    void serialize(Archive& ar, const unsigned int version)
+    virtual bool replaceUseWith(const ASTNode& from, const ASTNode& to, bool update_parent = true)
     {
-        boost::serialization::base_object<Expression>(*this);
+    	BEGIN_REPLACE_WITH_BASE(Expression)
+		REPLACE_USE_WITH(node)
+		REPLACE_USE_WITH(type)
+    	END_REPLACE()
     }
 
 	Expression* node;
@@ -92,28 +68,5 @@ struct CastExpr : public Expression
 };
 
 } } }
-
-namespace boost { namespace serialization {
-
-template<class Archive>
-inline void save_construct_data(Archive& ar, const zillians::language::tree::CastExpr* p, const unsigned int file_version)
-{
-	ar << p->node;
-    ar << p->type;
-}
-
-template<class Archive>
-inline void load_construct_data(Archive& ar, zillians::language::tree::CastExpr* p, const unsigned int file_version)
-{
-    using namespace zillians::language::tree;
-
-	Expression* node;
-	TypeSpecifier* type;
-	ar >> node;
-    ar >> type;
-	::new(p) CastExpr(node, type);
-}
-
-} } // namespace boost::serialization
 
 #endif /* ZILLIANS_LANGUAGE_TREE_CASTEXPR_H_ */

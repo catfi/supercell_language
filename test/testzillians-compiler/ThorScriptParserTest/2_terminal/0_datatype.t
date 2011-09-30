@@ -6,10 +6,6 @@ var a:int8;
 var b:int16;
 var c:int32;
 var d:int64;
-var e:uint8;
-var f:uint16;
-var g:uint32;
-var h:uint64;
 var i:float32;
 var j:float64;
 var k:boolean;
@@ -18,11 +14,11 @@ var m:Object; // NOTE: capitalization
 var n:function():void;
 
 // int literal
-var g2:uint32 = 13;
-var g3:uint32 = 0xFF;
-var g4:uint32 = 0xff;
-var g5:uint32 = 100e2;
-var g6:uint32 = 100e-2;
+var g2:int32 = 13;
+var g3:int32 = 0xFF;
+var g4:int32 = 0xff;
+var g5:int32 = 100e2;
+var g6:int32 = 100e-2;
 
 // float literal
 var i2:float32 = 3.14159f; // NOTE: suffix "f"

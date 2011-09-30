@@ -27,16 +27,13 @@
 
 namespace zillians { namespace language { namespace tree {
 
-struct Selection
+struct Selection : ContextHub<ContextOwnership::transfer>
 {
-    Selection() : cond(NULL), block(NULL)
-    { }
+	Selection() : cond(NULL), block(NULL)
+	{ }
 
 	Selection(Expression* cond, ASTNode* block) : cond(cond), block(block)
-	{
-		BOOST_ASSERT(cond && "null condition for selection statement is not allowed");
-		BOOST_ASSERT(block && "null block for selection statement is not allowed");
-	}
+	{ }
 
 	Selection(const Selection& s) : cond(s.cond), block(s.block)
 	{ }
@@ -47,19 +44,20 @@ struct Selection
 		return *this;
 	}
 
-    bool isEqualImpl(const Selection& rhs, ASTNode::ASTNodeSet& visited) const
-    {
-        // compare data member
-        if(!cond ->isEqualImpl(*rhs.cond , visited)) return false;
-        if(!block->isEqualImpl(*rhs.block, visited)) return false;
+	bool isEqualImpl(const Selection& rhs, ASTNodeSet& visited) const
+	{
+		const Selection* p = &rhs;
+		COMPARE_MEMBER(cond)
+		COMPARE_MEMBER(block)
+		return true;
+	}
 
-        return true;
-    }
-    template<typename Archive>
-    void serialize(Archive& ar, const unsigned int version)
+    bool replaceUseWith(const ASTNode& from, const ASTNode& to, bool update_parent = true)
     {
-        ar & cond;
-        ar & block;
+    	BEGIN_REPLACE()
+		REPLACE_USE_WITH(cond)
+		REPLACE_USE_WITH(block)
+    	END_REPLACE()
     }
 
 	Expression* cond;
@@ -71,37 +69,16 @@ struct SelectionStmt : public Statement
 	DEFINE_VISITABLE();
 	DEFINE_HIERARCHY(SelectionStmt, (SelectionStmt)(Statement)(ASTNode));
 
-    virtual bool isEqualImpl(const ASTNode& rhs, ASTNodeSet& visited) const
+	virtual bool isEqualImpl(const ASTNode& rhs, ASTNodeSet& visited) const
+	{
+		BEGIN_COMPARE_WITH_BASE(Statement)
+		END_COMPARE()
+	}
+
+    bool replaceUseWith(const ASTNode& from, const ASTNode& to, bool update_parent = true)
     {
-        if(visited.count(this))
-        {
-            return true ;
-        }
-
-        const SelectionStmt* p = cast<const SelectionStmt>(&rhs);
-        if(p == NULL)
-        {
-            return false;
-        }
-
-        // compare base class
-        if(!Statement::isEqualImpl(*p, visited))
-        {
-            return false;
-        }
-
-        // compare data member
-        // no data member
-
-        // add this to the visited table.
-        visited.insert(this);
-        return true;
-    }
-
-    template<typename Archive>
-    void serialize(Archive& ar, const unsigned int version)
-    {
-        boost::serialization::base_object<Statement>(*this);
+    	BEGIN_REPLACE_WITH_BASE(Statement)
+    	END_REPLACE()
     }
 };
 
@@ -137,57 +114,22 @@ struct IfElseStmt : public SelectionStmt
 		else_block = block;
 	}
 
-    virtual bool isEqualImpl(const ASTNode& rhs, ASTNodeSet& visited) const
+	virtual bool isEqualImpl(const ASTNode& rhs, ASTNodeSet& visited) const
+	{
+		BEGIN_COMPARE_WITH_BASE(SelectionStmt)
+		COMPARE_MEMBER(if_branch)
+		COMPARE_MEMBER(elseif_branches)
+		COMPARE_MEMBER(else_block)
+		END_COMPARE()
+	}
+
+    virtual bool replaceUseWith(const ASTNode& from, const ASTNode& to, bool update_parent = true)
     {
-        if(visited.count(this))
-        {
-            return true ;
-        }
-
-        const IfElseStmt* p = cast<const IfElseStmt>(&rhs);
-        if(p == NULL)
-        {
-            return false;
-        }
-
-        // compare base class
-        if(!SelectionStmt::isEqualImpl(*p, visited))
-        {
-            return false;
-        }
-
-        // compare data member
-        if(!if_branch.isEqualImpl(p->if_branch, visited))
-        {
-            return false;
-        }
-        if(elseif_branches.size() != p->elseif_branches.size())
-        {
-            return false ;
-        }
-        for(size_t i = 0 ; i < elseif_branches.size() ; ++i)
-        {
-            if(!elseif_branches[i].isEqualImpl(p->elseif_branches[i], visited))
-            {
-                return false;
-            }
-        }
-        if(!isASTNodeMemberEqual(&IfElseStmt::else_block, *this, *p, visited))
-        {
-            return false;
-        }
-
-        // add this to the visited table.
-        visited.insert(this);
-        return true;
-    }
-
-    template<typename Archive>
-    void serialize(Archive& ar, const unsigned int version)
-    {
-        boost::serialization::base_object<SelectionStmt>(*this);
-        ar & elseif_branches;
-        ar & else_block;
+    	BEGIN_REPLACE_WITH_BASE(SelectionStmt)
+		REPLACE_USE_WITH(if_branch)
+		REPLACE_USE_WITH(elseif_branches)
+		REPLACE_USE_WITH(else_block)
+    	END_REPLACE()
     }
 
 	Selection if_branch;
@@ -223,57 +165,22 @@ struct SwitchStmt : public SelectionStmt
 		if(default_block) default_block->parent = this;
 	}
 
-    virtual bool isEqualImpl(const ASTNode& rhs, ASTNodeSet& visited) const
+	virtual bool isEqualImpl(const ASTNode& rhs, ASTNodeSet& visited) const
+	{
+		BEGIN_COMPARE_WITH_BASE(SelectionStmt)
+		COMPARE_MEMBER(node)
+		COMPARE_MEMBER(cases)
+		COMPARE_MEMBER(default_block);
+		END_COMPARE()
+	}
+
+    virtual bool replaceUseWith(const ASTNode& from, const ASTNode& to, bool update_parent = true)
     {
-        if(visited.count(this))
-        {
-            return true ;
-        }
-
-        const SwitchStmt* p = cast<const SwitchStmt>(&rhs);
-        if(p == NULL)
-        {
-            return false;
-        }
-
-        // compare base class
-        if(!SelectionStmt::isEqualImpl(*p, visited))
-        {
-            return false;
-        }
-
-        // compare data member
-        if(!isASTNodeMemberEqual(&SwitchStmt::node, *this, *p, visited))
-        {
-            return false;
-        }
-        if(cases.size() != p->cases.size())
-        {
-            return false ;
-        }
-        for(size_t i = 0 ; i < cases.size() ; ++i)
-        {
-            if(!cases[i].isEqualImpl(p->cases[i], visited))
-            {
-                return false;
-            }
-        }
-        if(!isASTNodeMemberEqual(&SwitchStmt::default_block, *this, *p, visited))
-        {
-            return false;
-        }
-
-        // add this to the visited table.
-        visited.insert(this);
-        return true;
-    }
-
-    template<typename Archive>
-    void serialize(Archive& ar, const unsigned int version)
-    {
-        boost::serialization::base_object<SelectionStmt>(*this);
-        ar & cases;
-        ar & default_block;
+    	BEGIN_REPLACE_WITH_BASE(SelectionStmt)
+		REPLACE_USE_WITH(node)
+		REPLACE_USE_WITH(cases)
+		REPLACE_USE_WITH(default_block)
+    	END_REPLACE()
     }
 
 	Expression* node;
@@ -282,46 +189,5 @@ struct SwitchStmt : public SelectionStmt
 };
 
 } } }
-
-namespace boost { namespace serialization {
-
-// if else
-template<class Archive>
-inline void save_construct_data(Archive& ar, const zillians::language::tree::IfElseStmt* p, const unsigned int file_version)
-{
-    ar << p->if_branch;
-}
-
-template<class Archive>
-inline void load_construct_data(Archive& ar, zillians::language::tree::IfElseStmt* p, const unsigned int file_version)
-{
-    using namespace zillians::language::tree;
-
-    Expression* selectionExpression;
-    ASTNode*    selectionASTNode;
-    ar >> selectionExpression;
-    ar >> selectionASTNode;
-    Selection if_branch(selectionExpression, selectionASTNode);
-	::new(p) IfElseStmt(if_branch);
-}
-
-// switch
-template<class Archive>
-inline void save_construct_data(Archive& ar, const zillians::language::tree::SwitchStmt* p, const unsigned int file_version)
-{
-    ar << p->node;
-}
-
-template<class Archive>
-inline void load_construct_data(Archive& ar, zillians::language::tree::SwitchStmt* p, const unsigned int file_version)
-{
-    using namespace zillians::language::tree;
-
-	Expression* node;
-    ar >> node;
-	::new(p) SwitchStmt(node);
-}
-
-} } // namespace boost::serialization
 
 #endif /* ZILLIANS_LANGUAGE_TREE_SELECTIONSTMT_H_ */

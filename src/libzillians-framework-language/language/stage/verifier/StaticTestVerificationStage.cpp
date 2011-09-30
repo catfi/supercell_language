@@ -32,11 +32,21 @@ StaticTestVerificationStage::~StaticTestVerificationStage()
 
 const char* StaticTestVerificationStage::name()
 {
-	return "static_test_verification_stage";
+	return "Static Test Verification Stage";
 }
 
-void StaticTestVerificationStage::initializeOptions(po::options_description& option_desc, po::positional_options_description& positional_desc)
+std::pair<shared_ptr<po::options_description>, shared_ptr<po::options_description>> StaticTestVerificationStage::getOptions()
 {
+	shared_ptr<po::options_description> option_desc_public(new po::options_description());
+	shared_ptr<po::options_description> option_desc_private(new po::options_description());
+
+	option_desc_public->add_options();
+
+	foreach(i, option_desc_public->options()) option_desc_private->add(*i);
+
+	option_desc_private->add_options();
+
+	return std::make_pair(option_desc_public, option_desc_private);
 }
 
 bool StaticTestVerificationStage::parseOptions(po::variables_map& vm)
@@ -54,6 +64,7 @@ bool StaticTestVerificationStage::execute(bool& continue_execution)
 	if(parser_context.program)
 	{
 		visitor::StaticTestVerificationStageVisitor verifier;
+		verifier.programNode = parser_context.program;
 		verifier.visit(*parser_context.program);
 		if(verifier.isAllMatch())
 		{

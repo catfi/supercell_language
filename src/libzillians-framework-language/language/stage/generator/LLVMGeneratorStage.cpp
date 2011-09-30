@@ -19,8 +19,8 @@
 
 #include "language/stage/generator/LLVMGeneratorStage.h"
 #include "language/stage/generator/detail/LLVMForeach.h"
-#include "language/stage/generator/visitor/LLVMGeneratorPreambleVisitor.h"
-#include "language/stage/generator/visitor/LLVMGeneratorVisitor.h"
+#include "language/stage/generator/visitor/LLVMGeneratorStagePreambleVisitor.h"
+#include "language/stage/generator/visitor/LLVMGeneratorStageVisitor.h"
 #include "language/context/ParserContext.h"
 #include "language/context/GeneratorContext.h"
 
@@ -34,14 +34,23 @@ LLVMGeneratorStage::~LLVMGeneratorStage()
 
 const char* LLVMGeneratorStage::name()
 {
-	return "llvm_generator_stage";
+	return "LLVM IR Generation Stage";
 }
 
-void LLVMGeneratorStage::initializeOptions(po::options_description& option_desc, po::positional_options_description& positional_desc)
+std::pair<shared_ptr<po::options_description>, shared_ptr<po::options_description>> LLVMGeneratorStage::getOptions()
 {
-    option_desc.add_options()
-    ("no-llvm", "disable LLVM code generation")
-    ("llvm-module-name", po::value<std::string>(),	"llvm module name");
+	shared_ptr<po::options_description> option_desc_public(new po::options_description());
+	shared_ptr<po::options_description> option_desc_private(new po::options_description());
+
+	option_desc_public->add_options()
+		("no-llvm", "disable LLVM IR generation");
+
+	foreach(i, option_desc_public->options()) option_desc_private->add(*i);
+
+	option_desc_private->add_options()
+		("llvm-module-name", po::value<std::string>(),	"llvm module name");
+
+	return std::make_pair(option_desc_public, option_desc_private);
 }
 
 bool LLVMGeneratorStage::parseOptions(po::variables_map& vm)
@@ -79,11 +88,11 @@ bool LLVMGeneratorStage::execute(bool& continue_execution)
 	if(getParserContext().program)
 	{
 		// emit preamble code (declare all LLVM functions)
-		visitor::LLVMGeneratorPreambleVisitor preamble_visitor(*context, *module);
+		visitor::LLVMGeneratorStagePreambleVisitor preamble_visitor(*context, *module);
 		preamble_visitor.visit(*getParserContext().program);
 
 		// emit actual code into each function
-		visitor::LLVMGeneratorVisitor visitor(*context, *module);
+		visitor::LLVMGeneratorStageVisitor visitor(*context, *module);
 		visitor.visit(*getParserContext().program);
 	}
 

@@ -21,7 +21,7 @@
 #define ZILLIANS_LANGUAGE_TREE_TYPESPECIFIER_H_
 
 #include "language/tree/ASTNode.h"
-#include "language/tree/basic/Primitive.h"
+#include "language/tree/basic/PrimitiveType.h"
 #include "language/tree/basic/Identifier.h"
 #include "language/tree/basic/FunctionType.h"
 
@@ -41,11 +41,6 @@ struct TypeSpecifier : public ASTNode
 	struct ReferredType
 	{
 		enum type {
-			CLASS_DECL,
-			INTERFACE_DECL,
-			FUNCTION_DECL,
-			ENUM_DECL,
-			TYPEDEF_DECL,
 			FUNCTION_TYPE,
 			PRIMITIVE,
 			UNSPECIFIED,
@@ -55,42 +50,15 @@ struct TypeSpecifier : public ASTNode
 		{
 			switch(t)
 			{
-			case CLASS_DECL:		return L"class_declaration";
-			case INTERFACE_DECL:	return L"interface_declaration";
-			case FUNCTION_DECL:		return L"function_declaration";
-			case ENUM_DECL:			return L"enum_declaration";
-			case TYPEDEF_DECL:		return L"typedef_declaration";
 			case FUNCTION_TYPE:		return L"function_type";
 			case PRIMITIVE:			return L"primitive";
 			case UNSPECIFIED: 		return L"unspecified";
+			default: break;
 			}
+			BOOST_ASSERT(false && "reaching unreachable code");
+			return NULL;
 		}
 	};
-
-	explicit TypeSpecifier(ClassDecl* class_decl)
-	{
-		update(class_decl);
-	}
-
-	explicit TypeSpecifier(InterfaceDecl* interface_decl)
-	{
-		update(interface_decl);
-	}
-
-	explicit TypeSpecifier(FunctionDecl* function_decl)
-	{
-		update(function_decl);
-	}
-
-	explicit TypeSpecifier(EnumDecl* enum_decl)
-	{
-		update(enum_decl);
-	}
-
-	explicit TypeSpecifier(TypedefDecl* typedef_decl)
-	{
-		update(typedef_decl);
-	}
 
 	explicit TypeSpecifier(FunctionType* function_proto)
 	{
@@ -107,34 +75,14 @@ struct TypeSpecifier : public ASTNode
 		update(unspecified);
 	}
 
-	void update(ClassDecl* class_decl)
+	std::wstring toString() const
 	{
-		type = ReferredType::CLASS_DECL;
-		referred.class_decl = class_decl;
-	}
-
-	void update(InterfaceDecl* interface_decl)
-	{
-		type = ReferredType::INTERFACE_DECL;
-		referred.interface_decl = interface_decl;
-	}
-
-	void update(FunctionDecl* function_decl)
-	{
-		type = ReferredType::FUNCTION_DECL;
-		referred.function_decl = function_decl;
-	}
-
-	void update(EnumDecl* enum_decl)
-	{
-		type = ReferredType::ENUM_DECL;
-		referred.enum_decl = enum_decl;
-	}
-
-	void update(TypedefDecl* typedef_decl)
-	{
-		type = ReferredType::TYPEDEF_DECL;
-		referred.typedef_decl = typedef_decl;
+		switch(type)
+		{
+		case TypeSpecifier::ReferredType::FUNCTION_TYPE: return referred.function_type->toString();
+		case TypeSpecifier::ReferredType::PRIMITIVE: return PrimitiveType::toString(referred.primitive);
+		case TypeSpecifier::ReferredType::UNSPECIFIED: return referred.unspecified->toString();
+		}
 	}
 
 	void update(FunctionType* function_type)
@@ -157,57 +105,35 @@ struct TypeSpecifier : public ASTNode
 
     virtual bool isEqualImpl(const ASTNode& rhs, ASTNodeSet& visited) const
     {
-        if(visited.count(this))
+    	BEGIN_COMPARE()
+		COMPARE_MEMBER(type)
+        switch(type)
         {
-            return true ;
+        case TypeSpecifier::ReferredType::FUNCTION_TYPE  : COMPARE_MEMBER(referred.function_type )             ; break;
+        case TypeSpecifier::ReferredType::PRIMITIVE      : if(referred.primitive != p->referred.primitive) return false; break;
+        case TypeSpecifier::ReferredType::UNSPECIFIED    : COMPARE_MEMBER(referred.unspecified   )             ; break;
+        default: break;
         }
-
-        const TypeSpecifier* p = cast<const TypeSpecifier>(&rhs);
-        if(p == NULL)
-        {
-            return false;
-        }
-
-        // compare base class
-        // base is ASTNode, no need to compare
-
-        // compare data member
-        if(type != p->type)
-        {
-            return false;
-        }
-        switch(p->type)
-        {
-        case TypeSpecifier::ReferredType::CLASS_DECL     : if(!isASTNodeMemberEqual(&ReferredUnion::class_decl    , referred, p->referred, visited)) return false; break ;
-        case TypeSpecifier::ReferredType::INTERFACE_DECL : if(!isASTNodeMemberEqual(&ReferredUnion::interface_decl, referred, p->referred, visited)) return false; break ;
-        case TypeSpecifier::ReferredType::FUNCTION_DECL  : if(!isASTNodeMemberEqual(&ReferredUnion::function_decl , referred, p->referred, visited)) return false; break ;
-        case TypeSpecifier::ReferredType::ENUM_DECL      : if(!isASTNodeMemberEqual(&ReferredUnion::enum_decl     , referred, p->referred, visited)) return false; break ;
-        case TypeSpecifier::ReferredType::TYPEDEF_DECL   : if(!isASTNodeMemberEqual(&ReferredUnion::typedef_decl  , referred, p->referred, visited)) return false; break ;
-        case TypeSpecifier::ReferredType::FUNCTION_TYPE  : if(!isASTNodeMemberEqual(&ReferredUnion::function_type , referred, p->referred, visited)) return false; break ;
-        case TypeSpecifier::ReferredType::PRIMITIVE      : if(referred.primitive != p->referred.primitive                                          ) return false; break ;
-        case TypeSpecifier::ReferredType::UNSPECIFIED    : if(!isASTNodeMemberEqual(&ReferredUnion::unspecified   , referred, p->referred, visited)) return false; break ;
-        }
-
-        // add this to the visited table.
-        visited.insert(this);
-        return true;
+        END_COMPARE()
     }
 
-    template<typename Archive>
-    void serialize(Archive& ar, const unsigned int version)
+    virtual bool replaceUseWith(const ASTNode& from, const ASTNode& to, bool update_parent = true)
     {
-        boost::serialization::base_object<ASTNode>(*this);
+    	BEGIN_REPLACE()
+		switch(type)
+		{
+		case TypeSpecifier::ReferredType::FUNCTION_TYPE: REPLACE_USE_WITH(referred.function_type); break;
+		case TypeSpecifier::ReferredType::UNSPECIFIED: REPLACE_USE_WITH(referred.unspecified); break;
+		default: break;
+		}
+    	END_REPLACE()
     }
+
 
 	ReferredType::type type;
 
 	union ReferredUnion
 	{
-		ClassDecl* class_decl;
-		InterfaceDecl* interface_decl;
-		FunctionDecl* function_decl;
-		EnumDecl* enum_decl;
-		TypedefDecl* typedef_decl;
 		FunctionType* function_type;
 		PrimitiveType::type primitive;
 		Identifier* unspecified;
@@ -215,58 +141,5 @@ struct TypeSpecifier : public ASTNode
 };
 
 } } }
-
-namespace boost { namespace serialization {
-
-template<class Archive>
-inline void save_construct_data(Archive& ar, const zillians::language::tree::TypeSpecifier* p, const unsigned int file_version)
-{
-    using namespace zillians::language::tree;
-
-    ar << p->type;
-    switch(p->type)
-    {
-    case TypeSpecifier::ReferredType::CLASS_DECL        : ar << p->referred.class_decl     ; break ;
-    case TypeSpecifier::ReferredType::INTERFACE_DECL    : ar << p->referred.interface_decl ; break ;
-    case TypeSpecifier::ReferredType::FUNCTION_DECL     : ar << p->referred.function_decl  ; break ;
-    case TypeSpecifier::ReferredType::ENUM_DECL         : ar << p->referred.enum_decl      ; break ;
-    case TypeSpecifier::ReferredType::TYPEDEF_DECL      : ar << p->referred.typedef_decl   ; break ;
-    case TypeSpecifier::ReferredType::FUNCTION_TYPE     : ar << p->referred.function_type  ; break ;
-    case TypeSpecifier::ReferredType::PRIMITIVE         : ar << p->referred.primitive      ; break ;
-    case TypeSpecifier::ReferredType::UNSPECIFIED       : ar << p->referred.unspecified    ; break ;
-    }
-}
-
-template<class Archive>
-inline void load_construct_data(Archive& ar, zillians::language::tree::TypeSpecifier* p, const unsigned int file_version)
-{
-    using namespace zillians::language::tree;
-
-    ClassDecl* class_decl;
-    InterfaceDecl* interface_decl;
-    FunctionDecl* function_decl;
-    EnumDecl* enum_decl;
-    TypedefDecl* typedef_decl;
-    FunctionType* function_type;
-    PrimitiveType::type primitive;
-    Identifier* unspecified;
-
-    int type;
-    ar >> type;
-
-    switch(static_cast<TypeSpecifier::ReferredType::type>(type))
-    {
-    case TypeSpecifier::ReferredType::CLASS_DECL        : ar >> class_decl     ; ::new(p) TypeSpecifier(class_decl    ); break ;
-    case TypeSpecifier::ReferredType::INTERFACE_DECL    : ar >> interface_decl ; ::new(p) TypeSpecifier(interface_decl); break ;
-    case TypeSpecifier::ReferredType::FUNCTION_DECL     : ar >> function_decl  ; ::new(p) TypeSpecifier(function_decl ); break ;
-    case TypeSpecifier::ReferredType::ENUM_DECL         : ar >> enum_decl      ; ::new(p) TypeSpecifier(enum_decl     ); break ;
-    case TypeSpecifier::ReferredType::TYPEDEF_DECL      : ar >> typedef_decl   ; ::new(p) TypeSpecifier(typedef_decl  ); break ;
-    case TypeSpecifier::ReferredType::FUNCTION_TYPE     : ar >> function_type  ; ::new(p) TypeSpecifier(function_type ); break ;
-    case TypeSpecifier::ReferredType::PRIMITIVE         : ar >> primitive      ; ::new(p) TypeSpecifier(primitive     ); break ;
-    case TypeSpecifier::ReferredType::UNSPECIFIED       : ar >> unspecified    ; ::new(p) TypeSpecifier(unspecified   ); break ;
-    }
-}
-
-} } // namespace boost::serialization
 
 #endif /* ZILLIANS_LANGUAGE_TREE_TYPESPECIFIER_H_ */

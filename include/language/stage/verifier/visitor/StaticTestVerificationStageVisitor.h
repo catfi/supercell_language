@@ -25,11 +25,12 @@
 
 #include <string>
 #include "core/Prerequisite.h"
+#include "language/logging/StringTable.h"
 #include "core/Visitor.h"
 #include "language/tree/ASTNodeFactory.h"
 #include "language/tree/visitor/general/GenericDoubleVisitor.h"
 #include "language/stage/parser/context/SourceInfoContext.h"
-#include "language/context/LogContext.h"
+#include "language/context/LogInfoContext.h"
 
 using namespace zillians::language::tree;
 using zillians::language::tree::visitor::GenericDoubleVisitor;
@@ -57,23 +58,45 @@ struct StaticTestVerificationStageVisitor : public zillians::language::tree::vis
 
 	void check(zillians::language::tree::Annotation& node)
 	{
-		using zillians::language::stage::LogInfoContext ;
 		if (node.name->name == L"static_test")
 		{
 			// get error info context on node
 			// the parent of Annotation is Annotations,
 			// the error info context is hooked on the parent of Annotations.
-			LogInfoContext* errorInfo = LogInfoContext::get(node.parent/*Annotations*/->parent);
+			ASTNode* errorNode = node.parent->parent ;
+			LogInfoContext* errorInfo = LogInfoContext::get(errorNode);
 			if(errorInfo == NULL)
 			{
 				mAllMatch = false;
+				LOG_MESSAGE(WRONG_STATIC_TEST_ANNOTATION_FORMAT, errorNode, _detail = L"No LogInfoContext on node");
 				return;
 			}
 			LogInfoContext constructedErrorInfo = constructErrorContextFromAnnotation(node);
+			if(errorInfo->log_id != constructedErrorInfo.log_id)
+			{
+				LOG_MESSAGE(WRONG_STATIC_TEST_ANNOTATION_FORMAT, errorNode, _detail = L"LogInfoContext on node is different from the annotation on the node: log id is different.");
+			}
+			if(errorInfo->log_level != constructedErrorInfo.log_level)
+			{
+				LOG_MESSAGE(WRONG_STATIC_TEST_ANNOTATION_FORMAT, errorNode, _detail = L"LogInfoContext on node is different from the annotation on the node: log level is different.");
+			}
 			foreach(i, constructedErrorInfo.parameters)
 			{
 				if(!errorInfo->parameters.count(i->first))
 				{
+                    std::wstring errorDetail(L": missing expected key: '");
+                    errorDetail += i->first ;
+                    errorDetail += L"', existed: {" ;
+                    foreach(j, errorInfo->parameters)
+                    {
+                        if(j != errorInfo->parameters.begin())
+                        {
+                            errorDetail += L", ";
+                        }
+                        errorDetail += j->first;
+                    }
+                    errorDetail += L"}" ;
+                    LOG_MESSAGE(WRONG_STATIC_TEST_ANNOTATION_FORMAT, errorNode, _detail = L"LogInfoContext on node is different from the annotation on the node" + errorDetail);
 					mAllMatch = false;
 					return;
 				}
@@ -82,60 +105,169 @@ struct StaticTestVerificationStageVisitor : public zillians::language::tree::vis
 	}
 
 private:
-	zillians::language::stage::LogInfoContext constructErrorContextFromAnnotation(zillians::language::tree::Annotation& node)
+    std::wstring getLiteralString(Literal* literal)
+    {
+        BOOST_ASSERT(isa<StringLiteral>(literal) || isa<NumericLiteral>(literal));
+        if(isa<StringLiteral>(literal))
+        {
+            return cast<StringLiteral>(literal)->value;
+        }
+        else
+        {
+            NumericLiteral* numericLiteral = cast<NumericLiteral>(literal);
+            std::wostringstream oss;
+            switch(numericLiteral->type)
+            {
+            case PrimitiveType::type::BOOL    : oss << numericLiteral->value.b  ; break;
+            case PrimitiveType::type::INT8    : oss << numericLiteral->value.i8 ; break;
+            case PrimitiveType::type::INT16   : oss << numericLiteral->value.i16; break;
+            case PrimitiveType::type::INT32   : oss << numericLiteral->value.i32; break;
+            case PrimitiveType::type::INT64   : oss << numericLiteral->value.i64; break;
+            case PrimitiveType::type::FLOAT32 : oss << numericLiteral->value.f32; break;
+            case PrimitiveType::type::FLOAT64 : oss << numericLiteral->value.f64; break;
+            default: break;
+            }
+            return oss.str();
+        }
+    }
+
+	LogInfoContext constructErrorContextFromAnnotation(zillians::language::tree::Annotation& node)
 	{
 		using namespace zillians::language::tree;
 		using zillians::language::tree::cast;
-		//zillians::language::stage::LogInfoContext result;
+
 		BOOST_ASSERT(node.attribute_list.size() == 1);
-		// expect-message
+		if (node.attribute_list.size() != 1 )
+		{
+			LOG_MESSAGE(WRONG_STATIC_TEST_ANNOTATION_FORMAT, &node, _detail = L"number of attribute list should be 1");
+		}
+
 		std::pair<SimpleIdentifier*, ASTNode*>& expectMessage = node.attribute_list[0];
-		//BOOST_ASSERT(expectMessage != NULL);
 		BOOST_ASSERT(cast<SimpleIdentifier>(expectMessage.first)->name == L"expect_message");
+		if (cast<SimpleIdentifier>(expectMessage.first) == NULL)
+		{
+			LOG_MESSAGE(WRONG_STATIC_TEST_ANNOTATION_FORMAT, &node, _detail = L"key should be \"expect_message\"");
+		}
+
 		BOOST_ASSERT(cast<Annotation>(expectMessage.second) != NULL);
-		BOOST_ASSERT(cast<Annotation>(expectMessage.second)->attribute_list.size() == 3);
+		if (cast<Annotation>(expectMessage.second) == NULL)
+		{
+			LOG_MESSAGE(WRONG_STATIC_TEST_ANNOTATION_FORMAT, &node, _detail = L"child of Annotations should be Annotation");
+		}
+
+		Annotation* anno = cast<Annotation>(expectMessage.second);
+		BOOST_ASSERT(cast<Annotation>(expectMessage.second)->attribute_list.size() == 3 ||
+                     cast<Annotation>(expectMessage.second)->attribute_list.size() == 2);
+		if (cast<Annotation>(expectMessage.second)->attribute_list.size() < 2 ||
+		    cast<Annotation>(expectMessage.second)->attribute_list.size() > 3)
+		{
+			LOG_MESSAGE(WRONG_STATIC_TEST_ANNOTATION_FORMAT, &node, _detail = L"number of attribute list should be 3 or 2");
+		}
 
 		// log level
 		std::pair<SimpleIdentifier*, ASTNode*> logLevel = cast<Annotation>(expectMessage.second)->attribute_list[0];
 		BOOST_ASSERT(cast<SimpleIdentifier>(logLevel.first) != NULL);
+		if (cast<SimpleIdentifier>(logLevel.first) == NULL)
+		{
+			LOG_MESSAGE(WRONG_STATIC_TEST_ANNOTATION_FORMAT, &node, _detail = L"key should be SimpleIdentifier");
+		}
+
 		BOOST_ASSERT(cast<SimpleIdentifier>(logLevel.first)->name == L"level");
-		BOOST_ASSERT(cast<StringLiteral>(logLevel.second) != NULL);
-		std::wstring levelString = cast<StringLiteral>(logLevel.second)->value;
+		if (cast<SimpleIdentifier>(logLevel.first)->name != L"level")
+		{
+			LOG_MESSAGE(WRONG_STATIC_TEST_ANNOTATION_FORMAT, &node, _detail = L"key should be \"level\"");
+		}
+
+		BOOST_ASSERT(cast<PrimaryExpr>(logLevel.second) != NULL);
+		BOOST_ASSERT(cast<StringLiteral>(cast<PrimaryExpr>(logLevel.second)->value.literal) != NULL);
+		if (cast<PrimaryExpr>(logLevel.second) == NULL || cast<StringLiteral>(cast<PrimaryExpr>(logLevel.second)->value.literal) == NULL)
+		{
+			LOG_MESSAGE(WRONG_STATIC_TEST_ANNOTATION_FORMAT, &node, _detail = L"value should be StringLiteral");
+		}
+
+		std::wstring levelString = cast<StringLiteral>(cast<PrimaryExpr>(logLevel.second)->value.literal)->value;
 
 		// log id
 		std::pair<SimpleIdentifier*, ASTNode*> logId = cast<Annotation>(expectMessage.second)->attribute_list[1];
 		BOOST_ASSERT(cast<SimpleIdentifier>(logId.first) != NULL);
+		if (cast<SimpleIdentifier>(logId.first) == NULL)
+		{
+			LOG_MESSAGE(WRONG_STATIC_TEST_ANNOTATION_FORMAT, &node, _detail = L"key should be SimpleIdentifier");
+		}
+
 		BOOST_ASSERT(cast<SimpleIdentifier>(logId.first)->name == L"id");
-		BOOST_ASSERT(cast<StringLiteral>(logId.second) != NULL);
-		std::wstring idString = cast<StringLiteral>(logId.second)->value;
+		if (cast<SimpleIdentifier>(logId.first)->name != L"id")
+		{
+			LOG_MESSAGE(WRONG_STATIC_TEST_ANNOTATION_FORMAT, &node, _detail = L"key shoule be \"id\"");
+		}
+
+		BOOST_ASSERT(cast<PrimaryExpr>(logId.second) != NULL);
+		BOOST_ASSERT(cast<StringLiteral>(cast<PrimaryExpr>(logId.second)->value.literal) != NULL);
+		if (cast<PrimaryExpr>(logId.second) == NULL || cast<StringLiteral>(cast<PrimaryExpr>(logId.second)->value.literal) == NULL)
+		{
+			LOG_MESSAGE(WRONG_STATIC_TEST_ANNOTATION_FORMAT, &node, _detail = L"value should be StringLiteral");
+		}
+
+		std::wstring idString = cast<StringLiteral>(cast<PrimaryExpr>(logId.second)->value.literal)->value;
+
+		if (anno->attribute_list.size() == 2)
+		{
+			return LogInfoContext(levelString, idString, std::map<std::wstring, wstring>());
+		}
 
 		// parameter pairs
 		std::pair<SimpleIdentifier*, ASTNode*> paramPairs = cast<Annotation>(expectMessage.second)->attribute_list[2];
 		BOOST_ASSERT(cast<SimpleIdentifier>(paramPairs.first) != NULL);
+		if (cast<SimpleIdentifier>(paramPairs.first) == NULL)
+		{
+			LOG_MESSAGE(WRONG_STATIC_TEST_ANNOTATION_FORMAT, &node, _detail = L"key should be SimpleIdentifier");
+		}
+
 		BOOST_ASSERT(cast<SimpleIdentifier>(paramPairs.first)->name == L"parameters");
+		if (cast<SimpleIdentifier>(paramPairs.first)->name != L"parameters")
+		{
+			LOG_MESSAGE(WRONG_STATIC_TEST_ANNOTATION_FORMAT, &node, _detail = L"key should be \"parameters\"");
+		}
+
 		BOOST_ASSERT(cast<Annotation>(paramPairs.second) != NULL);
+		if (cast<Annotation>(paramPairs.second) == NULL)
+		{
+			LOG_MESSAGE(WRONG_STATIC_TEST_ANNOTATION_FORMAT, &node, _detail = L"value should be Annotation");
+		}
+
 		Annotation* params = cast<Annotation>(paramPairs.second);
 		std::map<std::wstring, std::wstring> paramsResult;
 		foreach(i, params->attribute_list)
 		{
 			SimpleIdentifier *paramKey = cast<SimpleIdentifier>(i->first);
 			BOOST_ASSERT(paramKey != NULL);
-			StringLiteral *paramValue = cast<StringLiteral>(i->second);
-			BOOST_ASSERT(paramValue != NULL);
+			if (paramKey == NULL)
+			{
+				LOG_MESSAGE(WRONG_STATIC_TEST_ANNOTATION_FORMAT, &node, _detail = L"key should be SimpleIdentifier");
+			}
+
+			BOOST_ASSERT(cast<PrimaryExpr>(i->second) != NULL);
+            Literal* literal = cast<PrimaryExpr>(i->second)->value.literal;
+            BOOST_ASSERT(cast<StringLiteral>(literal) != NULL || cast<NumericLiteral>(literal) != NULL);
+			if (cast<PrimaryExpr>(i->second) == NULL || literal == NULL)
+			{
+				LOG_MESSAGE(WRONG_STATIC_TEST_ANNOTATION_FORMAT, &node, _detail = L"value should be a StringLiteral or a NumericLiteral");
+			}
+
 			std::wstring key = paramKey->name;
-			std::wstring value = paramValue->value;
-			//zillians::language::stage::LogInfoContext::parameter_type_t param(key, value);
+			std::wstring value = getLiteralString(literal);
 			std::pair<std::wstring, std::wstring> param(key, value);
 			paramsResult.insert(std::make_pair(key, value));
 		}
 
-		return zillians::language::stage::LogInfoContext(levelString, idString, paramsResult);
+		return LogInfoContext(levelString, idString, paramsResult);
 	}
 
+public:
+	Program* programNode;
+
 private:
-	bool mAllMatch ;
-
-
+	bool mAllMatch;
 };
 
 } } } } // namespace zillians::language::tree::visitor

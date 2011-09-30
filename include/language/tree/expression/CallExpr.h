@@ -44,50 +44,25 @@ struct CallExpr : public Expression
 		parameters.push_back(parameter);
 	}
 
-	virtual bool isRValue()
+	virtual bool isRValue() const
 	{
 		return true;
 	}
 
     virtual bool isEqualImpl(const ASTNode& rhs, ASTNodeSet& visited) const
     {
-        if(visited.count(this))
-        {
-            return true ;
-        }
-
-        const CallExpr* p = cast<const CallExpr>(&rhs);
-        if(p == NULL)
-        {
-            return false;
-        }
-
-        // compare base class
-        if(!Expression::isEqualImpl(*p, visited))
-        {
-            return false;
-        }
-
-        // compare data member
-        if(!isASTNodeMemberEqual(&CallExpr::node, *this, *p, visited))
-        {
-            return false;
-        }
-        if(!isVectorMemberEqual(&CallExpr::parameters, *this, *p, visited))
-        {
-            return false;
-        }
-
-        // add this to the visited table.
-        visited.insert(this);
-        return true;
+    	BEGIN_COMPARE_WITH_BASE(Expression)
+		COMPARE_MEMBER(node)
+		COMPARE_MEMBER(parameters)
+		END_COMPARE()
     }
 
-    template<typename Archive>
-    void serialize(Archive& ar, const unsigned int version)
+    virtual bool replaceUseWith(const ASTNode& from, const ASTNode& to, bool update_parent = true)
     {
-        boost::serialization::base_object<Expression>(*this);
-        ar & parameters;
+    	BEGIN_REPLACE_WITH_BASE(Expression)
+		REPLACE_USE_WITH(node)
+		REPLACE_USE_WITH(parameters)
+    	END_REPLACE()
     }
 
 	ASTNode* node;
@@ -95,25 +70,5 @@ struct CallExpr : public Expression
 };
 
 } } }
-
-namespace boost { namespace serialization {
-
-template<class Archive>
-inline void save_construct_data(Archive& ar, const zillians::language::tree::CallExpr* p, const unsigned int file_version)
-{
-	ar << p->node;
-}
-
-template<class Archive>
-inline void load_construct_data(Archive& ar, zillians::language::tree::CallExpr* p, const unsigned int file_version)
-{
-    using namespace zillians::language::tree;
-
-    ASTNode* node;
-	ar >> node;
-	::new(p) CallExpr(node);
-}
-
-} } // namespace boost::serialization
 
 #endif /* ZILLIANS_LANGUAGE_TREE_CALLEXPR_H_ */

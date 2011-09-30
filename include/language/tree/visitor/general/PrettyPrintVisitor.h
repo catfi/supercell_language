@@ -116,7 +116,7 @@ struct PrettyPrintVisitor : Visitor<const ASTNode, void>
 	{
 		if(hasSourceInfo(node))
 		{
-			STREAM << L"<identifier data=\"" << node.toString() << L"\">" << std::endl;
+			STREAM << L"<identifier name=\"" << node.toString() << L"\">" << std::endl;
 			{
 				printSourceInfo(node);
 			}
@@ -124,13 +124,26 @@ struct PrettyPrintVisitor : Visitor<const ASTNode, void>
 		}
 		else
 		{
-			STREAM << L"<identifier data=\"" << node.toString() << L"\">" << std::endl;
+			STREAM << L"<identifier name=\"" << node.toString() << L"\">" << std::endl;
 		}
 	}
 
 	void print(const NumericLiteral& node)
 	{
-		STREAM << L"<numeric_literal type=\"" << PrimitiveType::toString(node.type) << L"\" value=\"" << node.value.u64 << "\">" << std::endl;
+		std::wstringstream ss;
+		switch(node.type)
+		{
+		case PrimitiveType::BOOL: ss << node.value.b; break;
+		case PrimitiveType::INT8: ss << (int32)node.value.i8; break;
+		case PrimitiveType::INT16: ss << (int32)node.value.i16; break;
+		case PrimitiveType::INT32: ss << node.value.i32; break;
+		case PrimitiveType::INT64: ss << node.value.i64; break;
+		case PrimitiveType::FLOAT32: ss << node.value.f32; break;
+		case PrimitiveType::FLOAT64: ss << node.value.f64; break;
+		default: break;
+		}
+
+		STREAM << L"<numeric_literal type=\"" << PrimitiveType::toString(node.type) << L"\" value=\"" << ss.str() << "\">" << std::endl;
 		{
 			printSourceInfo(node);
 		}
@@ -141,7 +154,7 @@ struct PrettyPrintVisitor : Visitor<const ASTNode, void>
 	{
 		if(hasSourceInfo(node))
 		{
-			STREAM << L"<string_literal data=\"" << node.value << "\">" << std::endl;
+			STREAM << L"<string_literal value=\"" << node.value << "\">" << std::endl;
 			{
 				printSourceInfo(node);
 			}
@@ -149,7 +162,7 @@ struct PrettyPrintVisitor : Visitor<const ASTNode, void>
 		}
 		else
 		{
-			STREAM << L"<string_literal data=\"" << node.value << "\"/>" << std::endl;
+			STREAM << L"<string_literal value=\"" << node.value << "\"/>" << std::endl;
 		}
 	}
 
@@ -223,10 +236,6 @@ struct PrettyPrintVisitor : Visitor<const ASTNode, void>
 			increaseIdent();
 			switch(node.type)
 			{
-			case TypeSpecifier::ReferredType::CLASS_DECL: if(node.referred.class_decl) visit(*node.referred.class_decl); break;
-			case TypeSpecifier::ReferredType::FUNCTION_DECL: if(node.referred.function_decl) visit(*node.referred.function_decl); break;
-			case TypeSpecifier::ReferredType::ENUM_DECL: if(node.referred.enum_decl) visit(*node.referred.enum_decl); break;
-			case TypeSpecifier::ReferredType::TYPEDEF_DECL: if(node.referred.typedef_decl) visit(*node.referred.typedef_decl); break;
 			case TypeSpecifier::ReferredType::FUNCTION_TYPE: if(node.referred.function_type) visit(*node.referred.function_type); break;
 			case TypeSpecifier::ReferredType::UNSPECIFIED: if(node.referred.unspecified) visit(*node.referred.unspecified); break;
 			case TypeSpecifier::ReferredType::PRIMITIVE:
@@ -391,38 +400,16 @@ struct PrettyPrintVisitor : Visitor<const ASTNode, void>
 		{
 			increaseIdent();
 			{
-				foreach(i, node.parameters)
+				STREAM << L"<parameters>" << std::endl;
 				{
-					STREAM << L"<parameters name=\"" << i->get<0>()->toString() << "\">" << std::endl;
+					increaseIdent();
+					foreach(i, node.parameters)
 					{
-						increaseIdent();
-						{
-							if(i->get<1>())
-							{
-								STREAM << L"<type>" << std::endl;
-								{
-									increaseIdent();
-									visit(*i->get<1>());
-									decreaseIdent();
-								}
-								STREAM << L"</type>" << std::endl;
-							}
-
-							if(i->get<2>())
-							{
-								STREAM << L"<initializer>" << std::endl;
-								{
-									increaseIdent();
-									visit(*i->get<2>());
-									decreaseIdent();
-								}
-								STREAM << L"</type>" << std::endl;
-							}
-						}
-						decreaseIdent();
+						visit(**i);
 					}
-					STREAM << L"</parameters>" << std::endl;
+					decreaseIdent();
 				}
+				STREAM << L"</parameters>" << std::endl;
 			}
 			decreaseIdent();
 
@@ -493,7 +480,7 @@ struct PrettyPrintVisitor : Visitor<const ASTNode, void>
 	{
 		if(hasSourceInfo(node))
 		{
-			STREAM << L"<typedef_decl from=\"" << decodeType(node.from) << L"\" to=\"" << node.to->toString() << L"\">" << std::endl;
+			STREAM << L"<typedef_decl from=\"" << decodeType(node.type) << L"\" to=\"" << node.name->toString() << L"\">" << std::endl;
 			{
 				printSourceInfo(node);
 			}
@@ -501,7 +488,7 @@ struct PrettyPrintVisitor : Visitor<const ASTNode, void>
 		}
 		else
 		{
-			STREAM << L"<typedef_decl from=\"" << decodeType(node.from) << L"\" to=\"" << node.to->toString() << L"\"/>" << std::endl;
+			STREAM << L"<typedef_decl from=\"" << decodeType(node.type) << L"\" to=\"" << node.name->toString() << L"\"/>" << std::endl;
 		}
 	}
 
@@ -540,6 +527,78 @@ struct PrettyPrintVisitor : Visitor<const ASTNode, void>
 			decreaseIdent();
 		}
 		STREAM << L"</expression_stmt>" << std::endl;
+	}
+
+	void print(const ForStmt& node)
+	{
+		STREAM << L"<for_stmt>" << std::endl;
+		{
+			printSourceInfo(node);
+		}
+		{
+			printAnnotation(node.annotations);
+		}
+		{
+			increaseIdent();
+			if(node.init)
+			{
+				STREAM << L"<init>" << std::endl;
+				{
+					increaseIdent();
+					visit(*node.init);
+					decreaseIdent();
+				}
+				STREAM << L"</init>" << std::endl;
+			}
+			else
+			{
+				STREAM << L"<invalid_iterator/>" << std::endl;
+			}
+			if(node.cond)
+			{
+				STREAM << L"<cond>" << std::endl;
+				{
+					increaseIdent();
+					visit(*node.cond);
+					decreaseIdent();
+				}
+				STREAM << L"</cond>" << std::endl;
+			}
+			else
+			{
+				STREAM << L"<invalid_range/>" << std::endl;
+			}
+			if(node.step)
+			{
+				STREAM << L"<step>" << std::endl;
+				{
+					increaseIdent();
+					visit(*node.step);
+					decreaseIdent();
+				}
+				STREAM << L"</step>" << std::endl;
+			}
+			else
+			{
+				STREAM << L"<invalid_range/>" << std::endl;
+			}
+			if(node.block)
+			{
+				STREAM << L"<block>" << std::endl;
+				{
+					increaseIdent();
+					visit(*node.block);
+					decreaseIdent();
+				}
+				STREAM << L"</block>" << std::endl;
+			}
+			else
+			{
+				STREAM << L"<null_block/>" << std::endl;
+			}
+			decreaseIdent();
+		}
+		STREAM << L"</for_stmt>" << std::endl;
 	}
 
 	void print(const ForeachStmt& node)
@@ -986,14 +1045,15 @@ struct PrettyPrintVisitor : Visitor<const ASTNode, void>
 		{
 			increaseIdent();
 			{
-				STREAM << L"<left_hand_side>" << std::endl;
+				STREAM << L"<callee>" << std::endl;
 				{
 					increaseIdent();
 					visit(*node.node);
 					decreaseIdent();
 				}
-				STREAM << L"</left_hand_side>" << std::endl;
+				STREAM << L"</callee>" << std::endl;
 			}
+			if(node.parameters.size() > 0)
 			{
 				STREAM << L"<parameters>" << std::endl;
 				{
@@ -1125,11 +1185,6 @@ private:
 			TypeSpecifier* t = cast<TypeSpecifier>(type);
 			switch(t->type)
 			{
-			case TypeSpecifier::ReferredType::CLASS_DECL: return t->referred.class_decl->name->toString();
-			case TypeSpecifier::ReferredType::INTERFACE_DECL: return t->referred.interface_decl->name->toString();
-			case TypeSpecifier::ReferredType::FUNCTION_DECL: return t->referred.function_decl->name->toString();
-			case TypeSpecifier::ReferredType::ENUM_DECL: return t->referred.enum_decl->name->toString();
-			case TypeSpecifier::ReferredType::TYPEDEF_DECL: return t->referred.typedef_decl->to->toString();
 			case TypeSpecifier::ReferredType::PRIMITIVE: return PrimitiveType::toString(t->referred.primitive);
 			case TypeSpecifier::ReferredType::UNSPECIFIED: return t->referred.unspecified->toString();
 			case TypeSpecifier::ReferredType::FUNCTION_TYPE: return decodeFunctionType(t->referred.function_type);

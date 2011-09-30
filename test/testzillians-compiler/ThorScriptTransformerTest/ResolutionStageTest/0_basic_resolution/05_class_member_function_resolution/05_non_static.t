@@ -19,7 +19,7 @@ class test_me
 	
 	function f3(x:uint64, y:uint64):uint64
 	{
-		return this.f4(x,y); // verify this pointer can work 
+		return f4(x,y); // verify this pointer can work 
 	}
 	
 	function f4(x:uint64, y:uint64):uint64

@@ -25,7 +25,8 @@ function f4(x:uint64, y:uint64):uint64
 	return impl.f4(x, y);
 }
 
+/*
 function f5():uint64
 {
 	return impl.f5(x, y);
-}
+}*/

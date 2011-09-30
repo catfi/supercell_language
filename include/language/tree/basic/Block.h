@@ -53,46 +53,18 @@ struct Block : public ASTNode
 
     virtual bool isEqualImpl(const ASTNode& rhs, ASTNodeSet& visited) const
     {
-        if(visited.count(this))
-        {
-        	return true ;
-        }
-
-        const Block* p = cast<const Block>(&rhs);
-        if(p == NULL)
-        {
-        	return false;
-        }
-
-        // compare base class
-        // The base is ASTNode, no need to be compared.
-
-        // compare data member
-        if(is_pipelined_block != p->is_pipelined_block)
-        {
-        	return false;
-        }
-        if(is_async_block != p->is_async_block)
-        {
-        	return false;
-        }
-        if(!isVectorMemberEqual(&Block::objects , *this, *p, visited))
-        {
-        	return false;
-        }
-
-        // add this to the visited table.
-        visited.insert(this);
-        return true;
+    	BEGIN_COMPARE()
+		COMPARE_MEMBER(is_pipelined_block)
+		COMPARE_MEMBER(is_async_block)
+		COMPARE_MEMBER(objects)
+		END_COMPARE()
     }
 
-	template<typename Archive>
-    void serialize(Archive& ar, const unsigned int version)
-	{
-        boost::serialization::base_object<ASTNode>(*this);
-        ar & is_pipelined_block;
-        ar & is_async_block;
-        ar & objects;
+    virtual bool replaceUseWith(const ASTNode& from, const ASTNode& to, bool update_parent = true)
+    {
+    	BEGIN_REPLACE()
+		REPLACE_USE_WITH(objects)
+    	END_REPLACE()
     }
 
 	bool is_pipelined_block;

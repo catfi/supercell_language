@@ -22,4 +22,6 @@
 zillians_create_test_subject(SUBJECT thorscript-transformer-test-all)
 zillians_add_subject_to_subject(PARENT framework-compiler-critical CHILD thorscript-transformer-test-all)
 
-#ADD_SUBDIRECTORY(0_type_inference)
+ADD_SUBDIRECTORY(LiteralCompactionTest)
+ADD_SUBDIRECTORY(ResolutionStageTest)
+ADD_SUBDIRECTORY(TypeConversionStageTest)

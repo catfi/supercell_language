@@ -19,18 +19,21 @@
 # Contact Information: info@zillians.com
 #
 
-INCLUDE_DIRECTORIES(
+include_directories(
     ${PROJECT_COMMON_SOURCE_DIR}/include/
     ${PROJECT_FRAMEWORK_SOURCE_DIR}/include/
     )
 
-ADD_EXECUTABLE(thorscript-vm
+add_executable(ts-vm
     main.cpp
     language/ThorScriptVM.cpp
     )
     
-TARGET_LINK_LIBRARIES(thorscript-vm
+target_link_libraries(ts-vm
     zillians-common-core
     zillians-common-utility
     zillians-framework-language
     )
+
+get_target_property(ThorScriptVM ts-vm LOCATION)
+message(STATUS "Using ThorScript VM: \"${ThorScriptVM}\"")

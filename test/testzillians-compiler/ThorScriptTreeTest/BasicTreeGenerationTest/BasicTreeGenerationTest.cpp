@@ -77,6 +77,53 @@ BOOST_AUTO_TEST_CASE( ThorScriptTreeTest_BasicTreeGenerationTestCase2 )
 
 BOOST_AUTO_TEST_CASE( ThorScriptTreeTest_BasicTreeGenerationTestCase3 )
 {
+	// test arithmetic promotion
+	{
+		bool precision_loss = false;
+		PrimitiveType::type promoted = PrimitiveType::promote(PrimitiveType::INT8, PrimitiveType::INT8, precision_loss);
+		BOOST_CHECK(promoted == PrimitiveType::INT8);
+		BOOST_CHECK(precision_loss == false);
+	}
+
+	{
+		bool precision_loss = false;
+		PrimitiveType::type promoted = PrimitiveType::promote(PrimitiveType::INT16, PrimitiveType::INT16, precision_loss);
+		BOOST_CHECK(promoted == PrimitiveType::INT16);
+		BOOST_CHECK(precision_loss == false);
+	}
+
+	{
+		bool precision_loss = false;
+		PrimitiveType::type promoted = PrimitiveType::promote(PrimitiveType::INT32, PrimitiveType::INT32, precision_loss);
+		BOOST_CHECK(promoted == PrimitiveType::INT32);
+		BOOST_CHECK(precision_loss == false);
+	}
+
+	{
+		bool precision_loss = false;
+		PrimitiveType::type promoted = PrimitiveType::promote(PrimitiveType::INT64, PrimitiveType::INT64, precision_loss);
+		BOOST_CHECK(promoted == PrimitiveType::INT64);
+		BOOST_CHECK(precision_loss == false);
+	}
+
+	{
+		bool precision_loss = false;
+		PrimitiveType::type promoted = PrimitiveType::promote(PrimitiveType::INT8, PrimitiveType::INT16, precision_loss);
+		BOOST_CHECK(promoted == PrimitiveType::INT16);
+		BOOST_CHECK(precision_loss == false);
+	}
+	{
+		bool precision_loss = false;
+		PrimitiveType::type promoted = PrimitiveType::promote(PrimitiveType::INT8, PrimitiveType::INT32, precision_loss);
+		BOOST_CHECK(promoted == PrimitiveType::INT32);
+		BOOST_CHECK(precision_loss == false);
+	}
+	{
+		bool precision_loss = false;
+		PrimitiveType::type promoted = PrimitiveType::promote(PrimitiveType::INT8, PrimitiveType::INT64, precision_loss);
+		BOOST_CHECK(promoted == PrimitiveType::INT64);
+		BOOST_CHECK(precision_loss == false);
+	}
 }
 
 BOOST_AUTO_TEST_CASE( ThorScriptTreeTest_TreeEqualityTest )
@@ -103,12 +150,6 @@ BOOST_AUTO_TEST_CASE( ThorScriptTreeTest_TreeEqualityTest )
         ASTNode* p4_1 = createSample4() ;
         ASTNode* p4_2 = createSample4() ;
         BOOST_CHECK(p4_1->isEqual(*p4_2));
-    }
-
-    {
-        ASTNode* p5_1 = createSample5() ;
-        ASTNode* p5_2 = createSample5() ;
-        BOOST_CHECK(p5_1->isEqual(*p5_2));
     }
 }
 

@@ -20,6 +20,7 @@ function f3(x:uint64, y:uint64):uint64
 
 function f4(x:uint64, y:uint64):uint64
 {
+	a;
 	if(x == 0 || y == 0)
 		return 0;
 	else 

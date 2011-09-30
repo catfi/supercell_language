@@ -33,7 +33,7 @@ public:
 
 public:
 	virtual const char* name();
-	virtual void initializeOptions(po::options_description& option_desc, po::positional_options_description& positional_desc);
+	virtual std::pair<shared_ptr<po::options_description>, shared_ptr<po::options_description>> getOptions();
 	virtual bool parseOptions(po::variables_map& vm);
 	virtual bool execute(bool& continue_execution);
 
@@ -41,9 +41,9 @@ private:
 	bool parse(std::string filename);
 
 private:
-	bool dump_parse;
-	bool dump_parse_and_stop;
-	bool skip_parse;
+	bool debug_parser;
+	bool debug_ast;
+	bool debug_ast_with_loc;
 	bool use_relative_path;
 	std::vector<std::string> inputs;
 };

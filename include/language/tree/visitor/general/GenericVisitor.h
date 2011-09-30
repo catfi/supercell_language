@@ -45,6 +45,7 @@
 				TypeSpecifier, \
 				FunctionType, \
 				/* module */ \
+				Internal, \
 				Program, \
 				Package, \
 				Import, \
@@ -61,6 +62,7 @@
 					DeclarativeStmt, \
 					ExpressionStmt, \
 					IterativeStmt, \
+						ForStmt, \
 						ForeachStmt, \
 						WhileStmt, \
 					SelectionStmt, \
@@ -96,6 +98,7 @@
 				TypeSpecifier, \
 				FunctionType, \
 				/* module */ \
+				Internal, \
 				Program, \
 				Package, \
 				Import, \
@@ -112,6 +115,7 @@
 					DeclarativeStmt, \
 					ExpressionStmt, \
 					IterativeStmt, \
+						ForStmt, \
 						ForeachStmt, \
 						WhileStmt, \
 					SelectionStmt, \
@@ -191,12 +195,9 @@ struct GenericVisitor : Visitor<const ASTNode, void, VisitorImplementation::recu
 	{
 		switch(node.type)
 		{
-		case TypeSpecifier::ReferredType::CLASS_DECL:    if(node.referred.class_decl)    visit(*node.referred.class_decl); break;
-		case TypeSpecifier::ReferredType::FUNCTION_DECL: if(node.referred.function_decl) visit(*node.referred.function_decl); break;
-		case TypeSpecifier::ReferredType::ENUM_DECL:     if(node.referred.enum_decl)     visit(*node.referred.enum_decl); break;
-		case TypeSpecifier::ReferredType::TYPEDEF_DECL:  if(node.referred.typedef_decl)  visit(*node.referred.typedef_decl); break;
 		case TypeSpecifier::ReferredType::FUNCTION_TYPE: if(node.referred.function_type) visit(*node.referred.function_type); break;
 		case TypeSpecifier::ReferredType::UNSPECIFIED:   if(node.referred.unspecified)   visit(*node.referred.unspecified); break;
+		default: break;
 		}
 	}
 
@@ -208,10 +209,29 @@ struct GenericVisitor : Visitor<const ASTNode, void, VisitorImplementation::recu
 
 	//////////////////////////////////////////////////////////////////////
 	/// Module
+	void apply(Internal& node)
+	{
+		if(node.VoidTy)     visit(*node.VoidTy);
+		if(node.BooleanTy)  visit(*node.BooleanTy);
+		if(node.Int8Ty)     visit(*node.Int8Ty);
+		if(node.Int16Ty)    visit(*node.Int16Ty);
+		if(node.Int32Ty)    visit(*node.Int32Ty);
+		if(node.Int64Ty)    visit(*node.Int64Ty);
+		if(node.Float32Ty)  visit(*node.Float32Ty);
+		if(node.Float64Ty)  visit(*node.Float64Ty);
+		if(node.ObjectTy)   visit(*node.ObjectTy);
+		if(node.FunctionTy) visit(*node.FunctionTy);
+		if(node.StringTy)   visit(*node.StringTy);
+
+		foreach(i, node.others) visit(**i);
+	}
 
 	void apply(const Program& node)
 	{
+		foreach(i, node.imports) visit(**i);
+
 		if(node.root) visit(*node.root);
+		if(node.internal) visit(*node.internal);
 	}
 
 	void apply(const Package& node)
@@ -235,65 +255,63 @@ struct GenericVisitor : Visitor<const ASTNode, void, VisitorImplementation::recu
 
 	void apply(const ClassDecl& node)
 	{
+		if(node.annotations) visit(*node.annotations);
+
 		if(node.name) visit(*node.name);
 		if(node.base) visit(*node.base);
 		foreach(i, node.implements)       visit(**i);
 		foreach(i, node.member_functions) visit(**i);
 		foreach(i, node.member_variables) visit(**i);
-
-		if(node.annotations) visit(*node.annotations);
 	}
 
 	void apply(const EnumDecl& node)
 	{
+		if(node.annotations) visit(*node.annotations);
+
 		if(node.name) visit(*node.name);
 		foreach(i, node.enumeration_list)
 		{
 			if(i->first)  visit(*i->first);
 			if(i->second) visit(*i->second);
 		}
-
-		if(node.annotations) visit(*node.annotations);
 	}
 
 	void apply(const FunctionDecl& node)
 	{
+		if(node.annotations) visit(*node.annotations);
+
 		if(node.name) visit(*node.name);
 		foreach(i, node.parameters)
 		{
-			if(i->get<0>()) visit(*i->get<0>());
-			if(i->get<1>()) visit(*i->get<1>());
-			if(i->get<2>()) visit(*i->get<2>());
+			visit(**i);
 		}
 		if(node.type)  visit(*node.type);
 		if(node.block) visit(*node.block);
-
-		if(node.annotations) visit(*node.annotations);
 	}
 
 	void apply(const InterfaceDecl& node)
 	{
+		if(node.annotations) visit(*node.annotations);
+
 		if(node.name) visit(*node.name);
 		foreach(i, node.member_functions) visit(**i);
-
-		if(node.annotations) visit(*node.annotations);
 	}
 
 	void apply(const TypedefDecl& node)
 	{
-		if(node.from) visit(*node.from);
-		if(node.to) visit(*node.to);
-
 		if(node.annotations) visit(*node.annotations);
+
+		if(node.type) visit(*node.type);
+		if(node.name) visit(*node.name);
 	}
 
 	void apply(const VariableDecl& node)
 	{
+		if(node.annotations) visit(*node.annotations);
+
 		if(node.name)        visit(*node.name);
 		if(node.type)        visit(*node.type);
 		if(node.initializer) visit(*node.initializer);
-
-		if(node.annotations) visit(*node.annotations);
 	}
 
 	//////////////////////////////////////////////////////////////////////
@@ -305,37 +323,49 @@ struct GenericVisitor : Visitor<const ASTNode, void, VisitorImplementation::recu
 
 	void apply(const DeclarativeStmt& node)
 	{
-		if(node.declaration) visit(*node.declaration);
-
 		if(node.annotations) visit(*node.annotations);
+
+		if(node.declaration) visit(*node.declaration);
 	}
 
 	void apply(const ExpressionStmt& node)
 	{
-		if(node.expr) visit(*node.expr);
-
 		if(node.annotations) visit(*node.annotations);
+
+		if(node.expr) visit(*node.expr);
 	}
 
 	void apply(const ForeachStmt& node)
 	{
+		if(node.annotations) visit(*node.annotations);
+
 		if(node.iterator) visit(*node.iterator);
 		if(node.range)    visit(*node.range);
 		if(node.block)    visit(*node.block);
+	}
 
+	void apply(const ForStmt& node)
+	{
 		if(node.annotations) visit(*node.annotations);
+
+		if(node.init)  visit(*node.init);
+		if(node.cond)  visit(*node.cond);
+		if(node.block) visit(*node.block);
+		if(node.step)  visit(*node.step);
 	}
 
 	void apply(const WhileStmt& node)
 	{
+		if(node.annotations) visit(*node.annotations);
+
 		if(node.cond)  visit(*node.cond);
 		if(node.block) visit(*node.block);
-
-		if(node.annotations) visit(*node.annotations);
 	}
 
 	void apply(const IfElseStmt& node)
 	{
+		if(node.annotations) visit(*node.annotations);
+
 		if(node.if_branch.cond)  visit(*node.if_branch.cond);
 		if(node.if_branch.block) visit(*node.if_branch.block);
 		foreach(i, node.elseif_branches)
@@ -344,20 +374,18 @@ struct GenericVisitor : Visitor<const ASTNode, void, VisitorImplementation::recu
 			if(i->block) visit(*i->block);
 		}
 		if(node.else_block) visit(*node.else_block);
-
-		if(node.annotations) visit(*node.annotations);
 	}
 
 	void apply(const SwitchStmt& node)
 	{
+		if(node.annotations) visit(*node.annotations);
+
 		if(node.node) visit(*node.node);
 		foreach(i, node.cases)
 		{
 			if(i->cond)  visit(*i->cond);
 			if(i->block) visit(*i->block);
 		}
-
-		if(node.annotations) visit(*node.annotations);
 	}
 
 	void apply(const BranchStmt& node)
@@ -389,8 +417,16 @@ struct GenericVisitor : Visitor<const ASTNode, void, VisitorImplementation::recu
 
 	void apply(const BinaryExpr& node)
 	{
-		if(node.left)  visit(*node.left);
-		if(node.right) visit(*node.right);
+		if(node.isRighAssociative())
+		{
+			if(node.right) visit(*node.right);
+			if(node.left)  visit(*node.left);
+		}
+		else
+		{
+			if(node.left)  visit(*node.left);
+			if(node.right) visit(*node.right);
+		}
 	}
 
 	void apply(const TernaryExpr& node)

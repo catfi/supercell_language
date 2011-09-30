@@ -22,7 +22,7 @@
 
 #include "core/Prerequisite.h"
 #include "core/ContextHub.h"
-#include "language/logging/LoggingManager.h"
+#include "language/logging/LoggerWrapper.h"
 #include <boost/program_options/options_description.hpp>
 #include <boost/program_options/variables_map.hpp>
 #include <boost/program_options/parsers.hpp>
@@ -40,7 +40,7 @@ struct Stage
 	virtual ~Stage() { }
 
 	virtual const char* name() = 0;
-	virtual void initializeOptions(po::options_description& option_desc, po::positional_options_description& positional_desc) = 0;
+	virtual std::pair<shared_ptr<po::options_description>, shared_ptr<po::options_description>> getOptions() = 0;
 	virtual bool parseOptions(po::variables_map& map) = 0;
 	virtual bool execute(bool& continue_execution) = 0;
 };

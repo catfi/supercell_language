@@ -2,13 +2,13 @@ class my_class
 {
     function f():void
     {
-        var a:uint32;
-        var b:uint32 = 13;
+        var a:int32;
+        var b:int32 = 13;
         x();
         return;
     }
 
-    function g(a:uint32, b:float64=1):uint32
+    function g(a:int32, b:float64=1):int32
     {
         g(13, 3.14159);
         return 17;

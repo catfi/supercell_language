@@ -157,9 +157,8 @@ struct iteration_statement
 		printf("iteration_statement::init_while_loop param(0) type = %s\n", typeid(_param_t(0)).name());
 		printf("iteration_statement::init_while_loop param(1) type = %s\n", typeid(_param_t(1)).name());
 #endif
-		Expression* cond  = _param(0);
-		ASTNode*    block = _param(1).is_initialized() ? *_param(1) : NULL;
-		BIND_CACHED_LOCATION(_result = new WhileStmt(WhileStmt::Style::WHILE, cond, block));
+		ASTNode* block = _param(1).is_initialized() ? *_param(1) : NULL;
+		BIND_CACHED_LOCATION(_result = new WhileStmt(WhileStmt::Style::WHILE, _param(0), block));
 	}
 	END_ACTION
 
@@ -169,9 +168,7 @@ struct iteration_statement
 		printf("iteration_statement::init_do_while_loop param(0) type = %s\n", typeid(_param_t(0)).name());
 		printf("iteration_statement::init_do_while_loop param(1) type = %s\n", typeid(_param_t(1)).name());
 #endif
-		ASTNode*    block = _param(0);
-		Expression* cond  = _param(1);
-		BIND_CACHED_LOCATION(_result = new WhileStmt(WhileStmt::Style::DO_WHILE, cond, block));
+		BIND_CACHED_LOCATION(_result = new WhileStmt(WhileStmt::Style::DO_WHILE, _param(1), _param(0)));
 	}
 	END_ACTION
 
@@ -185,16 +182,30 @@ struct iteration_statement
 		ASTNode* iterator = NULL;
 		switch(_param(0).which())
 		{
-		case 0:
-			iterator = boost::get<Declaration*>(_param(0));
-			break;
-		case 1:
-			iterator = boost::get<Expression*>(_param(0));
-			break;
+		case 0: iterator = boost::get<VariableDecl*>(_param(0)); break;
+		case 1: iterator = boost::get<Expression*>(_param(0)); break;
 		}
-		Expression* range = _param(1);
-		ASTNode*    block = _param(2).is_initialized() ? *_param(2) : NULL;
-		BIND_CACHED_LOCATION(_result = new ForeachStmt(iterator, range, block));
+		ASTNode* block = _param(2).is_initialized() ? *_param(2) : NULL;
+		BIND_CACHED_LOCATION(_result = new ForeachStmt(iterator, _param(1), block));
+	}
+	END_ACTION
+
+	BEGIN_ACTION(init_for)
+	{
+#ifdef DEBUG
+		printf("iteration_statement::init_for param(0) type = %s\n", typeid(_param_t(0)).name());
+		printf("iteration_statement::init_for param(1) type = %s\n", typeid(_param_t(1)).name());
+		printf("iteration_statement::init_for param(2) type = %s\n", typeid(_param_t(2)).name());
+		printf("iteration_statement::init_for param(3) type = %s\n", typeid(_param_t(3)).name());
+#endif
+		ASTNode* init = NULL;
+		switch(_param(0).which())
+		{
+		case 0: init = boost::get<Declaration*>(_param(0)); break;
+		case 1: init = boost::get<Expression*>(_param(0)); break;
+		}
+		ASTNode* block = _param(3).is_initialized() ? *_param(3) : NULL;
+		BIND_CACHED_LOCATION(_result = new ForStmt(init, _param(1), _param(2), block));
 	}
 	END_ACTION
 };

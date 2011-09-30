@@ -23,17 +23,20 @@ INCLUDE_DIRECTORIES(
     ${TICPP_INCLUDE_DIR}
     )
 
-ADD_EXECUTABLE(spirit-log-filter
+ADD_EXECUTABLE(ts-log-filter
     main.cpp
     )
 
-TARGET_LINK_LIBRARIES(spirit-log-filter
+TARGET_LINK_LIBRARIES(ts-log-filter
     ${TICPP_LIBRARIES}
     zillians-common-core
     )
 
 #zillians_add_complex_test( 
-#    TARGET spirit-log-filter
-#    SHELL ${EXECUTABLE_OUTPUT_PATH}/spirit-log-filter
+#    TARGET ts-log-filter
+#    SHELL ${EXECUTABLE_OUTPUT_PATH}/ts-log-filter
 #            ${CMAKE_CURRENT_SOURCE_DIR}/data/spiritlog.xml
 #    )
+
+get_target_property(ThorScriptLogFilter ts-log-filter LOCATION)
+message(STATUS "Using ThorScript Log Filter: \"${ThorScriptLogFilter}\"")

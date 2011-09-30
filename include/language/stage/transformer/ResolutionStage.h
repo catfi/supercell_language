@@ -33,20 +33,20 @@ public:
 
 public:
 	virtual const char* name();
-	virtual void initializeOptions(po::options_description& option_desc, po::positional_options_description& positional_desc);
+	virtual std::pair<shared_ptr<po::options_description>, shared_ptr<po::options_description>> getOptions();
 	virtual bool parseOptions(po::variables_map& vm);
 	virtual bool execute(bool& continue_execution);
 
 private:
-	bool resolveTypes(bool report_error_summary);
-	bool resolveSymbols(bool report_error_summary);
-
-public:
-	std::size_t get_resolved_count();
-	std::size_t get_unresolved_count();
+	bool resolveTypes(bool report_error_summary, bool& making_progress);
+	bool resolveSymbols(bool report_error_summary, bool& making_progress);
+//
+//public:
+//	std::size_t get_resolved_count();
+//	std::size_t get_unresolved_count();
 
 private:
-	bool disable_resolution;
+	bool debug;
 	bool disable_type_inference;
 	std::size_t total_resolved_count;
 	std::size_t total_unresolved_count;

@@ -18,15 +18,25 @@
  */
 
 #include "language/stage/StageConductor.h"
-#include "language/logging/LoggingManager.h"
+#include "language/logging/LoggerWrapper.h"
 #include "utility/Foreach.h"
 #include "language/tree/ASTNode.h"
 #include "language/context/ConfigurationContext.h"
 
 namespace zillians { namespace language { namespace stage {
 
-StageConductor::StageConductor()
-{ }
+StageConductor::StageConductor() : mOptionDescGlobal()
+{
+	// make sure logger is initialized;
+	LoggerWrapper::instance();
+
+	// initialize basic program options
+	mOptionDescGlobal.add_options()
+		("help,h", "show this help")
+		("input,i", po::value<std::vector<std::string>>(), "input files");
+
+	mPositionalOptionDesc.add("input", -1);
+}
 
 StageConductor::~StageConductor()
 { }
@@ -36,50 +46,45 @@ void StageConductor::appendStage(shared_ptr<Stage> stage)
 	mStages.push_back(stage);
 }
 
+void StageConductor::appendOptionsFromAllStages(po::options_description& options_desc_public, po::options_description& options_desc_private)
+{
+	foreach(i, mStages)
+	{
+		std::pair<shared_ptr<po::options_description>, shared_ptr<po::options_description>> options = (*i)->getOptions();
+		if(options.first->options().size() > 0)
+			options_desc_public.add(*options.first);
+		if(options.second->options().size() > 0)
+			options_desc_private.add(*options.second);
+	}
+}
+
 int StageConductor::main(int argc, const char** argv)
 {
-	// prepare simple logger appender
-	if(true)
-	{
-		LoggingManager::initialize();
-	}
-	else
-	{
-		log4cxx::BasicConfigurator::configure();
-	}
-
-
 	// initialize the global configuration context
 	ConfigurationContext* config = new ConfigurationContext();
 	setConfigurationContext(config);
 
-	// call implementation's initialize() to append stages
-	initialize();
-
 	if(true)
 	{
-		po::options_description option_desc;
-		po::positional_options_description positional_option_desc;
-		po::variables_map vm;
+		po::options_description options_desc_pub("Usage");
+		po::options_description options_desc_pri("Usage");
 
-		// built-in help option
-	    option_desc.add_options()
-	    ("help,h", "show help");
-
-	    // ask each stage to append their option description
-		foreach(stage, mStages)
-			(*stage)->initializeOptions(option_desc, positional_option_desc);
+		// construct public and private options
+		options_desc_pub.add(mOptionDescGlobal);
+		options_desc_pri.add(mOptionDescGlobal);
+		appendOptionsFromAllStages(options_desc_pub, options_desc_pri);
 
 		// try to parse the command line
+		po::variables_map vm;
 	    try
 	    {
-	    	po::store(po::command_line_parser(argc, argv).options(option_desc).positional(positional_option_desc).run(), vm);
+	    	po::store(po::command_line_parser(argc, argv).options(options_desc_pri).positional(mPositionalOptionDesc).run(), vm);
 	    	po::notify(vm);
 	    }
-	    catch(...)
+	    catch(const boost::program_options::error& e)
 	    {
-	    	std::cerr << "failed to parse command line" << std::endl;
-	    	std::cerr << option_desc << std::endl;
+	    	std::cerr << "failed to parse command line: " << e.what() << std::endl;
+	    	std::cerr << options_desc_pub << std::endl;
 	    	return -1;
 	    }
 
@@ -87,7 +92,7 @@ int StageConductor::main(int argc, const char** argv)
 	    if(vm.count("help") > 0 || argc < 2)
 	    {
 	    	std::cout << "command line options: " << std::endl << std::endl;
-	    	std::cout << option_desc << std::endl;
+	    	std::cout << options_desc_pub << std::endl;
 	    	return 0;
 	    }
 
@@ -98,8 +103,8 @@ int StageConductor::main(int argc, const char** argv)
 		{
 			if(!(*stage)->parseOptions(vm))
 			{
-				std::cerr << "failed to process command option for stage: " << (*stage)->name() << std::endl;
-				std::cerr << option_desc << std::endl;
+				std::cerr << "failed to process command option for \"" << (*stage)->name() << "\"" << std::endl;
+				std::cerr << options_desc_pub << std::endl;
 				return -1;
 			}
 		}
@@ -118,9 +123,6 @@ int StageConductor::main(int argc, const char** argv)
 			if(!c) break;
 		}
 	}
-
-	// call implementation's finalize() to remove stages or collect summary
-	finalize();
 
 	return 0;
 }

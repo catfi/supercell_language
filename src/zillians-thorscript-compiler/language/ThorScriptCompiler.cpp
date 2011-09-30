@@ -21,10 +21,11 @@
  */
 
 #include "language/ThorScriptCompiler.h"
-#include "language/stage/basic/TreeDebugStage.h"
 #include "language/stage/parser/ThorScriptParserStage.h"
+#include "language/stage/transformer/LiteralCompactionStage.h"
 #include "language/stage/transformer/ResolutionStage.h"
 #include "language/stage/transformer/ManglingStage.h"
+#include "language/stage/transformer/TypeConversionStage.h"
 #include "language/stage/generator/LLVMGeneratorStage.h"
 #include "language/stage/generator/LLVMDebugInfoGeneratorStage.h"
 #include "language/stage/generator/LLVMBitCodeGeneratorStage.h"
@@ -37,44 +38,43 @@ using namespace zillians::language::stage;
 namespace zillians { namespace language {
 
 ThorScriptCompiler::ThorScriptCompiler()
-{ }
+{
+	addDefaultMode<
+		boost::mpl::vector<
+			ThorScriptParserStage,
+			SemanticVerificationStage0,
+			LiteralCompactionStage,
+			ResolutionStage,
+//			TypeConversionStage,
+			SemanticVerificationStage1,
+			StaticTestVerificationStage,
+			ManglingStage,
+			LLVMGeneratorStage,
+			LLVMDebugInfoGeneratorStage,
+			LLVMBitCodeGeneratorStage>>();
+
+	addMode<
+		boost::mpl::vector<
+			ThorScriptParserStage,
+			StaticTestVerificationStage>>("mode-parse-syntax-only", "for syntax check stage");
+
+	addMode<
+		boost::mpl::vector<
+			ThorScriptParserStage,
+			SemanticVerificationStage0,
+			StaticTestVerificationStage>>("mode-semantic-verify-0", "for semantic verification stage 0");
+
+	addMode<
+		boost::mpl::vector<
+			ThorScriptParserStage,
+			SemanticVerificationStage0,
+			ResolutionStage,
+			SemanticVerificationStage1,
+			StaticTestVerificationStage>>("mode-semantic-verify-1", "for semantic verification stage 1");
+
+}
 
 ThorScriptCompiler::~ThorScriptCompiler()
 { }
-
-void ThorScriptCompiler::initialize()
-{
-	shared_ptr<Stage> parser(new ThorScriptParserStage());
-	shared_ptr<Stage> debug_tree(new TreeDebugStage());
-	shared_ptr<Stage> semantic_verification_0(new SemanticVerificationStage0());
-
-	shared_ptr<Stage> resolution(new ResolutionStage());
-	shared_ptr<Stage> semantic_verification_1(new SemanticVerificationStage1());
-	shared_ptr<Stage> staticTestVerification(new StaticTestVerificationStage());
-
-	shared_ptr<Stage> mangling(new ManglingStage());
-
-	shared_ptr<Stage> llvm_generator(new LLVMGeneratorStage());
-	shared_ptr<Stage> llvm_debug_info_generator(new LLVMDebugInfoGeneratorStage());
-	shared_ptr<Stage> llvm_bitcode_generator(new LLVMBitCodeGeneratorStage());
-
-	appendStage(parser);
-	appendStage(debug_tree);
-	appendStage(semantic_verification_0);
-
-	appendStage(resolution);
-	appendStage(semantic_verification_1);
-	appendStage(staticTestVerification);
-	appendStage(mangling);
-
-	appendStage(llvm_generator);
-	appendStage(llvm_debug_info_generator);
-	appendStage(llvm_bitcode_generator);
-}
-
-void ThorScriptCompiler::finalize()
-{
-
-}
 
 } }

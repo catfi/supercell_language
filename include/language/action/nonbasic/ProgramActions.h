@@ -29,17 +29,6 @@ struct program
 	DEFINE_ATTRIBUTES(void)
 	DEFINE_LOCALS(LOCATION_TYPE)
 
-	BEGIN_ACTION(init_and_init_loc)
-	{
-#ifdef DEBUG
-		printf("program param(0) type = %s\n", typeid(_param_t(0)).name());
-#endif
-		CACHE_LOCATION;
-		BIND_CACHED_LOCATION(getParserContext().program);
-		getParserContext().active_package = getParserContext().program->root;
-	}
-	END_ACTION
-
 	BEGIN_ACTION(append_package)
 	{
 #ifdef DEBUG
@@ -74,10 +63,10 @@ struct program
 	}
 	END_ACTION
 
-	BEGIN_ACTION(append_declaration)
+	BEGIN_ACTION(append_global_decl)
 	{
 #ifdef DEBUG
-		printf("program::append_declaration param(0) type = %s\n", typeid(_param_t(0)).name());
+		printf("program::append_global_decl param(0) type = %s\n", typeid(_param_t(0)).name());
 #endif
 		if(!!getParserContext().active_package)
 			getParserContext().active_package->addObject(_param(0));

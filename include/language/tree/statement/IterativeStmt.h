@@ -36,36 +36,53 @@ struct IterativeStmt : public Statement
 
     virtual bool isEqualImpl(const ASTNode& rhs, ASTNodeSet& visited) const
     {
-        if(visited.count(this))
-        {
-            return true ;
-        }
-
-        const IterativeStmt* p = cast<const IterativeStmt>(&rhs);
-        if(p == NULL)
-        {
-            return false;
-        }
-
-        // compare base class
-        if(!Statement::isEqualImpl(*p, visited))
-        {
-            return false;
-        }
-
-        // compare data member
-        // no data member
-
-        // add this to the visited table.
-        visited.insert(this);
-        return true;
+    	BEGIN_COMPARE_WITH_BASE(Statement)
+    	END_COMPARE()
     }
 
-    template<typename Archive>
-    void serialize(Archive& ar, const unsigned int version)
+};
+
+struct ForStmt : public IterativeStmt
+{
+	DEFINE_VISITABLE();
+	DEFINE_HIERARCHY(ForStmt, (ForStmt)(IterativeStmt)(Statement)(ASTNode));
+
+	explicit ForStmt(ASTNode* init, ASTNode* cond, ASTNode* step, ASTNode* block = NULL) : init(init), cond(cond), step(step), block(block)
+	{
+		BOOST_ASSERT(init && "null init for for statement is not allowed");
+		BOOST_ASSERT(cond && "null cond for for  statement is not allowed");
+		BOOST_ASSERT(step && "null step for for  statement is not allowed");
+
+		init->parent = this;
+		cond->parent = this;
+		step->parent = this;
+		if(block) block->parent = this;
+	}
+
+    virtual bool isEqualImpl(const ASTNode& rhs, ASTNodeSet& visited) const
     {
-        boost::serialization::base_object<Statement>(*this);
+    	BEGIN_COMPARE_WITH_BASE(IterativeStmt)
+		COMPARE_MEMBER(init)
+		COMPARE_MEMBER(cond)
+		COMPARE_MEMBER(step)
+		COMPARE_MEMBER(block)
+		END_COMPARE()
     }
+
+    virtual bool replaceUseWith(const ASTNode& from, const ASTNode& to, bool update_parent = true)
+    {
+    	BEGIN_REPLACE_WITH_BASE(IterativeStmt)
+		REPLACE_USE_WITH(init)
+		REPLACE_USE_WITH(cond)
+		REPLACE_USE_WITH(step)
+		REPLACE_USE_WITH(block)
+    	END_REPLACE()
+    }
+
+	ASTNode* init;
+	ASTNode* cond;
+	ASTNode* step;
+	ASTNode* block;
 };
 
 struct ForeachStmt : public IterativeStmt
@@ -85,40 +102,20 @@ struct ForeachStmt : public IterativeStmt
 
     virtual bool isEqualImpl(const ASTNode& rhs, ASTNodeSet& visited) const
     {
-        if(visited.count(this))
-        {
-            return true ;
-        }
-
-        const ForeachStmt* p = cast<const ForeachStmt>(&rhs);
-        if(p == NULL)
-        {
-            return false;
-        }
-
-        // compare base class
-        if(!IterativeStmt::isEqualImpl(*p, visited))
-        {
-            return false;
-        }
-
-        // compare data member
-        if(!isASTNodeMemberEqual   (&ForeachStmt::iterator            , *this, *p, visited)) return false;
-        if(!isASTNodeMemberEqual   (&ForeachStmt::range               , *this, *p, visited)) return false;
-        if(!isASTNodeMemberEqual   (&ForeachStmt::block               , *this, *p, visited)) return false;
-
-        // add this to the visited table.
-        visited.insert(this);
-        return true;
+    	BEGIN_COMPARE_WITH_BASE(IterativeStmt)
+		COMPARE_MEMBER(iterator)
+		COMPARE_MEMBER(range)
+		COMPARE_MEMBER(block)
+		END_COMPARE()
     }
 
-    template<typename Archive>
-    void serialize(Archive& ar, const unsigned int version)
+    virtual bool replaceUseWith(const ASTNode& from, const ASTNode& to, bool update_parent = true)
     {
-        boost::serialization::base_object<IterativeStmt>(*this);
-        ar & iterator;
-        ar & range;
-        ar & block;
+    	BEGIN_REPLACE_WITH_BASE(IterativeStmt)
+		REPLACE_USE_WITH(iterator)
+		REPLACE_USE_WITH(range)
+		REPLACE_USE_WITH(block)
+    	END_REPLACE()
     }
 
 	ASTNode* iterator; // TODO semantic-check: it must be L-value expression or declarative statement
@@ -158,39 +155,19 @@ struct WhileStmt : public IterativeStmt
 
     virtual bool isEqualImpl(const ASTNode& rhs, ASTNodeSet& visited) const
     {
-        if(visited.count(this))
-        {
-            return true ;
-        }
-
-        const WhileStmt* p = cast<const WhileStmt>(&rhs);
-        if(p == NULL)
-        {
-            return false;
-        }
-
-        // compare base class
-        if(!IterativeStmt::isEqualImpl(*p, visited))
-        {
-            return false;
-        }
-
-        // compare data member
-        if(style != p->style                                                             ) return false;
-        if(!isASTNodeMemberEqual   (&WhileStmt::cond                , *this, *p, visited)) return false;
-        if(!isASTNodeMemberEqual   (&WhileStmt::block               , *this, *p, visited)) return false;
-
-        // add this to the visited table.
-        visited.insert(this);
-        return true;
+    	BEGIN_COMPARE_WITH_BASE(IterativeStmt)
+		COMPARE_MEMBER(style)
+		COMPARE_MEMBER(cond)
+		COMPARE_MEMBER(block)
+		END_COMPARE()
     }
 
-    template<typename Archive>
-    void serialize(Archive& ar, const unsigned int version)
+    virtual bool replaceUseWith(const ASTNode& from, const ASTNode& to, bool update_parent = true)
     {
-        boost::serialization::base_object<IterativeStmt>(*this);
-        ar & cond;
-        ar & block;
+    	BEGIN_REPLACE_WITH_BASE(IterativeStmt)
+		REPLACE_USE_WITH(cond)
+		REPLACE_USE_WITH(block)
+    	END_REPLACE()
     }
 
 	Style::type style;
@@ -199,59 +176,5 @@ struct WhileStmt : public IterativeStmt
 };
 
 } } }
-
-namespace boost { namespace serialization {
-
-// ForStmt
-template<class Archive>
-inline void save_construct_data(Archive& ar, const zillians::language::tree::ForeachStmt* p, const unsigned int file_version)
-{
-    ar << p->iterator;
-    ar << p->range;
-    ar << p->block;
-}
-
-template<class Archive>
-inline void load_construct_data(Archive& ar, zillians::language::tree::ForeachStmt* p, const unsigned int file_version)
-{
-    using namespace zillians::language::tree;
-
-	ASTNode* iterator; // TODO semantic-check: it must be L-value expression or declarative statement
-	Expression* range;
-	ASTNode* block;
-
-    ar >> iterator;
-    ar >> range;
-    ar >> block;
-
-	::new(p) ForeachStmt(iterator, range, block);
-}
-
-// WhileStmt
-template<class Archive>
-inline void save_construct_data(Archive& ar, const zillians::language::tree::WhileStmt* p, const unsigned int file_version)
-{
-    ar << (int&)p->style;
-    ar << p->cond;
-    ar << p->block;
-}
-
-template<class Archive>
-inline void load_construct_data(Archive& ar, zillians::language::tree::WhileStmt* p, const unsigned int file_version)
-{
-    using namespace zillians::language::tree;
-
-	int style;
-	Expression* cond;
-	ASTNode* block;
-
-    ar >> style;
-    ar >> cond;
-    ar >> block;
-
-	::new(p) WhileStmt(static_cast<WhileStmt::Style::type>(style), cond, block);
-}
-
-} } // namespace boost::serialization
 
 #endif /* ZILLIANS_LANGUAGE_TREE_ITERATIVESTMT_H_ */

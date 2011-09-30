@@ -17,8 +17,8 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef ZILLIANS_LANGUAGE_DEBUGINFOCONTEXT_H_
-#define ZILLIANS_LANGUAGE_DEBUGINFOCONTEXT_H_
+#ifndef ZILLIANS_LANGUAGE_STAGE_DEBUGINFOCONTEXT_H_
+#define ZILLIANS_LANGUAGE_STAGE_DEBUGINFOCONTEXT_H_
 
 #include "core/Prerequisite.h"
 #include "language/tree/ASTNodeFactory.h"
@@ -53,7 +53,7 @@ struct DebugInfoProgramContext
 struct DebugInfoContext
 {
 	DebugInfoContext(llvm::DICompileUnit compile_unit, llvm::DIFile file, llvm::DIDescriptor context) :
-		compile_unit(compile_unit), file(file), context(context)
+		context(context), compile_unit(compile_unit), file(file)
 	{}
 
 	DebugInfoContext(DebugInfoContext& dbg_context)
@@ -83,7 +83,7 @@ struct DebugInfoContext
 
 struct DebugInfoTypeContext
 {
-	DebugInfoTypeContext(shared_ptr<llvm::DIType> type) : type(type)
+	DebugInfoTypeContext(llvm::DIType type) : type(type)
 	{}
 
 	static DebugInfoTypeContext* get(tree::ASTNode* node)
@@ -96,9 +96,9 @@ struct DebugInfoTypeContext
 		node->set<DebugInfoTypeContext>(ctx);
 	}
 
-	shared_ptr<llvm::DIType> type;
+	llvm::DIType type;
 };
 
 } } }
 
-#endif /* ZILLIANS_LANGUAGE_DEBUGINFOCONTEXT_H_ */
+#endif /* ZILLIANS_LANGUAGE_STAGE_DEBUGINFOCONTEXT_H_ */

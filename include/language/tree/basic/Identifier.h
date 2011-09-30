@@ -36,50 +36,21 @@ struct Identifier : public ASTNode
 	DEFINE_VISITABLE();
 	DEFINE_HIERARCHY(Identifier, (Identifier)(ASTNode));
 
-	Identifier()// : resolved(NULL)
+	Identifier()
 	{ }
-
-//	void resolveTo(ASTNode* node)
-//	{
-//		if(resolved) resolved->parent = NULL;
-//		resolved = node;
-//		if(resolved) resolved->parent = this;
-//	}
 
 	virtual const std::wstring& toString() const = 0;
 	virtual bool isEmpty() const = 0;
 
     virtual bool isEqualImpl(const ASTNode& rhs, ASTNodeSet& visited) const
     {
-        if(visited.count(this))
-        {
-            return true ;
-        }
-
-        const Identifier* p = cast<const Identifier>(&rhs);
-        if(p == NULL)
-        {
-            return false;
-        }
-
-        // compare base class
-        // base is ASTNode, no need to compare
-
-        // compare data member
-        // no data member
-
-        // add this to the visited table.
-        visited.insert(this);
         return true;
     }
 
-    template<typename Archive>
-    void serialize(Archive& ar, const unsigned int version)
+    virtual bool replaceUseWith(const ASTNode& from, const ASTNode& to, bool update_parent = true)
     {
-        boost::serialization::base_object<ASTNode>(*this);
+    	return false;
     }
-
-//	ASTNode* resolved;
 };
 
 struct SimpleIdentifier : public Identifier
@@ -109,35 +80,16 @@ struct SimpleIdentifier : public Identifier
 
     virtual bool isEqualImpl(const ASTNode& rhs, ASTNodeSet& visited) const
     {
-        if(visited.count(this))
-        {
-            return true ;
-        }
-
-        const SimpleIdentifier* p = cast<const SimpleIdentifier>(&rhs);
-        if(p == NULL)
-        {
-            return false;
-        }
-
-        // compare base class
-        if(!Identifier::isEqualImpl(*p, visited))
-        {
-            return false;
-        }
-
-        // compare data member
-        if(name != p->name) return false;
-
-        // add this to the visited table.
-        visited.insert(this);
-        return true;
+    	BEGIN_COMPARE_WITH_BASE(Identifier)
+		COMPARE_MEMBER(name)
+		END_COMPARE()
     }
 
-    template<typename Archive>
-    void serialize(Archive& ar, const unsigned int version)
+    virtual bool replaceUseWith(const ASTNode& from, const ASTNode& to, bool update_parent = true)
     {
-        boost::serialization::base_object<Identifier>(*this);
+    	BEGIN_REPLACE_WITH_BASE(Identifier)
+    	REPLACE_USE_WITH(name)
+    	END_REPLACE()
     }
 
 	const std::wstring name;
@@ -188,39 +140,16 @@ struct NestedIdentifier : public Identifier
 
     virtual bool isEqualImpl(const ASTNode& rhs, ASTNodeSet& visited) const
     {
-        if(visited.count(this))
-        {
-            return true ;
-        }
-
-        const NestedIdentifier* p = cast<const NestedIdentifier>(&rhs);
-        if(p == NULL)
-        {
-            return false;
-        }
-
-        // compare base class
-        if(!Identifier::isEqualImpl(*p, visited))
-        {
-            return false;
-        }
-
-        // compare data member
-        if(!isVectorMemberEqual   (&NestedIdentifier::identifier_list , *this, *p, visited))
-        {
-            return false;
-        }
-
-        // add this to the visited table.
-        visited.insert(this);
-        return true;
+    	BEGIN_COMPARE_WITH_BASE(Identifier)
+		COMPARE_MEMBER(identifier_list)
+    	END_COMPARE()
     }
 
-    template<typename Archive>
-    void serialize(Archive& ar, const unsigned int version)
+    virtual bool replaceUseWith(const ASTNode& from, const ASTNode& to, bool update_parent = true)
     {
-        boost::serialization::base_object<Identifier>(*this);
-        ar & identifier_list;
+    	BEGIN_REPLACE_WITH_BASE(Identifier)
+    	REPLACE_USE_WITH(identifier_list)
+    	END_REPLACE()
     }
 
 	std::vector<Identifier*> identifier_list;
@@ -314,38 +243,20 @@ struct TemplatedIdentifier : public Identifier
 
     virtual bool isEqualImpl(const ASTNode& rhs, ASTNodeSet& visited) const
     {
-        if(visited.count(this))
-        {
-            return true ;
-        }
-
-        const TemplatedIdentifier* p = cast<const TemplatedIdentifier>(&rhs);
-        if(p == NULL)
-        {
-            return false;
-        }
-
-        // compare base class
-        if(!Identifier::isEqualImpl(*p, visited))
-        {
-            return false;
-        }
-
-        // compare data member
-        if(type != p->type                                                                          ) return false;
-        if(!isASTNodeMemberEqual   (&TemplatedIdentifier::id                   , *this, *p, visited)) return false;
-        if(!isVectorMemberEqual    (&TemplatedIdentifier::templated_type_list  , *this, *p, visited)) return false;
-
-        // add this to the visited table.
-        visited.insert(this);
-        return true;
+    	BEGIN_COMPARE_WITH_BASE(Identifier)
+		COMPARE_MEMBER(type)
+		COMPARE_MEMBER(id)
+		COMPARE_MEMBER(templated_type_list)
+		END_COMPARE()
     }
 
-    template<typename Archive>
-    void serialize(Archive& ar, const unsigned int version)
+    virtual bool replaceUseWith(const ASTNode& from, const ASTNode& to, bool update_parent = true)
     {
-        boost::serialization::base_object<Identifier>(*this);
-        ar & templated_type_list;
+    	BEGIN_REPLACE_WITH_BASE(Identifier)
+    	REPLACE_USE_WITH(type)
+    	REPLACE_USE_WITH(id)
+    	REPLACE_USE_WITH(templated_type_list)
+    	END_REPLACE()
     }
 
 	Usage::type type;
@@ -354,45 +265,5 @@ struct TemplatedIdentifier : public Identifier
 };
 
 } } }
-
-namespace boost { namespace serialization {
-
-template<class Archive>
-inline void save_construct_data(Archive& ar, const zillians::language::tree::SimpleIdentifier* p, const unsigned int file_version)
-{
-    ar << p->name;
-}
-
-template<class Archive>
-inline void load_construct_data(Archive& ar, zillians::language::tree::SimpleIdentifier* p, const unsigned int file_version)
-{
-    using namespace zillians::language::tree;
-
-	std::wstring name;
-    ar >> name;
-	::new(p) SimpleIdentifier(name);
-}
-
-template<class Archive>
-inline void save_construct_data(Archive& ar, const zillians::language::tree::TemplatedIdentifier* p, const unsigned int file_version)
-{
-    ar << (int&)p->type;
-    ar << p->id;
-}
-
-template<class Archive>
-inline void load_construct_data(Archive& ar, zillians::language::tree::TemplatedIdentifier* p, const unsigned int file_version)
-{
-    using namespace zillians::language::tree;
-
-	int type;
-	Identifier* id;
-    ar >> type;
-    ar >> id;
-
-	::new(p) TemplatedIdentifier(static_cast<TemplatedIdentifier::Usage::type>(type), id);
-}
-
-} } // namespace boost::serialization
 
 #endif /* ZILLIANS_LANGUAGE_TREE_IDENTIFIER_H_ */

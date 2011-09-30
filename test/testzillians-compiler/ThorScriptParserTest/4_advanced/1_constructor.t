@@ -4,7 +4,7 @@ class my_class
     {
     }
 
-    public function new(a:uint32, b:float64) // NOTE: no return type necessary
+    public function new(a:int32, b:float64) // NOTE: no return type necessary
     {
     }
 }

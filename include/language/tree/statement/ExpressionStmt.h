@@ -42,64 +42,21 @@ struct ExpressionStmt : public Statement
 
     virtual bool isEqualImpl(const ASTNode& rhs, ASTNodeSet& visited) const
     {
-        if(visited.count(this))
-        {
-            return true ;
-        }
-
-        const ExpressionStmt* p = cast<const ExpressionStmt>(&rhs);
-        if(p == NULL)
-        {
-            return false;
-        }
-
-        // compare base class
-        if(!Statement::isEqualImpl(*p, visited))
-        {
-            return false;
-        }
-
-        // compare data member
-        if(!isASTNodeMemberEqual(&ExpressionStmt::expr, *this, *p, visited))
-        {
-            return false;
-        }
-
-        // add this to the visited table.
-        visited.insert(this);
-        return true;
+    	BEGIN_COMPARE_WITH_BASE(Statement)
+		COMPARE_MEMBER(expr)
+		END_COMPARE()
     }
 
-    template<typename Archive>
-    void serialize(Archive& ar, const unsigned int version)
+    virtual bool replaceUseWith(const ASTNode& from, const ASTNode& to, bool update_parent = true)
     {
-        boost::serialization::base_object<Statement>(*this);
+    	BEGIN_REPLACE_WITH_BASE(Statement)
+		REPLACE_USE_WITH(expr)
+    	END_REPLACE()
     }
 
 	Expression* expr;
 };
 
-
 } } }
-
-namespace boost { namespace serialization {
-
-template<class Archive>
-inline void save_construct_data(Archive& ar, const zillians::language::tree::ExpressionStmt* p, const unsigned int file_version)
-{
-    ar << p->expr;
-}
-
-template<class Archive>
-inline void load_construct_data(Archive& ar, zillians::language::tree::ExpressionStmt* p, const unsigned int file_version)
-{
-    using namespace zillians::language::tree;
-
-	Expression* expr;
-    ar >> expr;
-	::new(p) ExpressionStmt(expr);
-}
-
-} } // namespace boost::serialization
 
 #endif /* ZILLIANS_LANGUAGE_TREE_EXPRESSIONSTMT_H_ */

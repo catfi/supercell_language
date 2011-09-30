@@ -44,7 +44,10 @@ struct BranchStmt : public Statement
 			case BREAK: return L"break";
 			case CONTINUE: return L"continue";
 			case RETURN: return L"return";
+			default: break;
 			}
+			BOOST_ASSERT(false && "reaching unreachable code");
+			return NULL;
 		}
 	};
 
@@ -53,44 +56,28 @@ struct BranchStmt : public Statement
 		if(result) result->parent = this;
 	}
 
+	bool isBreakOrContinue()
+	{
+		if( opcode == OpCode::BREAK ||
+			opcode == OpCode::CONTINUE )
+			return true;
+		else
+			return false;
+	}
+
     virtual bool isEqualImpl(const ASTNode& rhs, ASTNodeSet& visited) const
     {
-        if(visited.count(this))
-        {
-            return true ;
-        }
-
-        const BranchStmt* p = cast<const BranchStmt>(&rhs);
-        if(p == NULL)
-        {
-            return false;
-        }
-
-        // compare base class
-        if(!Statement::isEqualImpl(*p, visited))
-        {
-            return false;
-        }
-
-        // compare data member
-        if(opcode != p->opcode)
-        {
-            return false;
-        }
-        if(!isASTNodeMemberEqual(&BranchStmt::result, *this, *p, visited))
-        {
-            return false;
-        }
-
-        // add this to the visited table.
-        visited.insert(this);
-        return true;
+    	BEGIN_COMPARE_WITH_BASE(Statement)
+		COMPARE_MEMBER(opcode)
+		COMPARE_MEMBER(result)
+		END_COMPARE()
     }
 
-    template<typename Archive>
-    void serialize(Archive& ar, const unsigned int version)
+    virtual bool replaceUseWith(const ASTNode& from, const ASTNode& to, bool update_parent = true)
     {
-        boost::serialization::base_object<Statement>(*this);
+    	BEGIN_REPLACE_WITH_BASE(Statement)
+		REPLACE_USE_WITH(result)
+    	END_REPLACE()
     }
 
 	OpCode::type opcode;
@@ -98,28 +85,5 @@ struct BranchStmt : public Statement
 };
 
 } } }
-
-namespace boost { namespace serialization {
-
-template<class Archive>
-inline void save_construct_data(Archive& ar, const zillians::language::tree::BranchStmt* p, const unsigned int file_version)
-{
-    ar << p->opcode;
-    ar << p->result;
-}
-
-template<class Archive>
-inline void load_construct_data(Archive& ar, zillians::language::tree::BranchStmt* p, const unsigned int file_version)
-{
-    using namespace zillians::language::tree;
-
-	int opcode;
-	ASTNode* result;
-	ar >> opcode;
-    ar >> result;
-	::new(p) BranchStmt(static_cast<BranchStmt::OpCode::type>(opcode), result);
-}
-
-} } // namespace boost::serialization
 
 #endif /* ZILLIANS_LANGUAGE_TREE_BRANCHSTMT_H_ */

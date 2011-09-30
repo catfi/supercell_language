@@ -68,7 +68,6 @@ BOOST_AUTO_TEST_CASE( ThorScriptTreeTest_SerializationTestCase1 )
     CreateSaveRestoreComare(createSample2);
     CreateSaveRestoreComare(createSample3);
     CreateSaveRestoreComare(createSample4);
-    CreateSaveRestoreComare(createSample5);
 }
 
 BOOST_AUTO_TEST_SUITE_END()

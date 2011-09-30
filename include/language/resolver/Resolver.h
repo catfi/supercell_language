@@ -25,7 +25,7 @@
 #include "language/tree/visitor/general/PrettyPrintVisitor.h"
 #include "language/tree/visitor/general/NodeInfoVisitor.h"
 #include "utility/Foreach.h"
-#include "language/resolver/context/ResolverContext.h"
+#include "language/context/ResolverContext.h"
 
 namespace __gnu_cxx {
 
@@ -42,25 +42,33 @@ struct hash<T*>
 
 namespace zillians { namespace language {
 
-struct Resolver
+class Resolver
 {
+public:
 	Resolver()
 	{ }
 
+public:
+	/**
+	 * Add a scope for search
+	 */
 	void enterScope(tree::ASTNode& node)
 	{
 		tree::visitor::NodeInfoVisitor node_info_visitor;
 		node_info_visitor.visit(node);
-		LOG4CXX_DEBUG(LoggingManager::Resolver, L"entering scope: \"" << node_info_visitor.stream.str() << L"\"");
+		LOG4CXX_DEBUG(LoggerWrapper::Resolver, L"entering scope: \"" << node_info_visitor.stream.str() << L"\"");
 
 		current_scopes.insert(&node);
 	}
 
+	/**
+	 * Remove a scope from search
+	 */
 	void leaveScope(tree::ASTNode& node)
 	{
 		tree::visitor::NodeInfoVisitor node_info_visitor;
 		node_info_visitor.visit(node);
-		LOG4CXX_DEBUG(LoggingManager::Resolver, L"leaving scope: \"" << node_info_visitor.stream.str() << L"\"");
+		LOG4CXX_DEBUG(LoggerWrapper::Resolver, L"leaving scope: \"" << node_info_visitor.stream.str() << L"\"");
 
 		__gnu_cxx::hash_set<tree::ASTNode*>::iterator scope = current_scopes.find(&node);
 		if(scope != current_scopes.end())
@@ -69,17 +77,29 @@ struct Resolver
 		}
 		else
 		{
-			LOG4CXX_ERROR(LoggingManager::Resolver, L"leaving unknown scope: \"" << node_info_visitor.stream.str() << L"\"");
+			LOG4CXX_ERROR(LoggerWrapper::Resolver, L"leaving unknown scope: \"" << node_info_visitor.stream.str() << L"\"");
 		}
 	}
 
+public:
+	/**
+	 * Resolve the symbol node from a specific 'scope' node and store that symbol resolution on 'attach' node
+	 *
+	 * @param attach the node to attach symbol resolution result
+	 * @param scope the specific scope node that in which we perform the search
+	 * @param node the identifier of the symbol
+	 * @param no_action if no_action is specified, the resolution result will not be stored in the attach node
+	 * @return true on successful resolution, false otherwise
+	 *
+	 * @see ResolvedSymbol
+	 */
 	bool resolveSymbol(tree::ASTNode& attach, tree::ASTNode& scope, tree::Identifier& node, bool no_action = false)
 	{
 		using namespace zillians::language::tree;
 
 		tree::visitor::NodeInfoVisitor node_info_visitor;
 		node_info_visitor.visit(scope);
-		LOG4CXX_DEBUG(LoggingManager::Resolver, L"trying to resolve symbol: \"" << node.toString() << L"\" from scope \"" << node_info_visitor.stream.str() << "\"");
+		LOG4CXX_DEBUG(LoggerWrapper::Resolver, L"trying to resolve symbol: \"" << node.toString() << L"\" from scope \"" << node_info_visitor.stream.str() << "\"");
 		node_info_visitor.reset();
 
 		if(!ResolvedSymbol::get(&attach))
@@ -91,7 +111,7 @@ struct Resolver
 			{
 				tree::visitor::NodeInfoVisitor node_info_visitor;
 				node_info_visitor.visit(scope);
-				LOG4CXX_DEBUG(LoggingManager::Resolver, L"looking at scope: " << node_info_visitor.stream.str());
+				LOG4CXX_DEBUG(LoggerWrapper::Resolver, L"looking at scope: " << node_info_visitor.stream.str());
 			}
 
 			resolution_visitor.visit(scope);
@@ -104,11 +124,21 @@ struct Resolver
 		}
 	}
 
+	/**
+	 * Resolve the symbol node from all search nodes and store that symbol resolution on 'attach' node
+	 *
+	 * @param attach the node to attach symbol resolution result
+	 * @param node the identifier of the symbol
+	 * @param no_action if no_action is specified, the resolution result will not be stored in the attach node
+	 * @return true on successful resolution, false otherwise
+	 *
+	 * @see ResolvedSymbol
+	 */
 	bool resolveSymbol(tree::ASTNode& attach, tree::Identifier& node, bool no_action = false)
 	{
 		using namespace zillians::language::tree;
 
-		LOG4CXX_DEBUG(LoggingManager::Resolver, L"trying to resolve symbol: \"" << node.toString() << L"\"");
+		LOG4CXX_DEBUG(LoggerWrapper::Resolver, L"trying to resolve symbol: \"" << node.toString() << L"\"");
 
 		if(!ResolvedSymbol::get(&attach))
 		{
@@ -121,7 +151,7 @@ struct Resolver
 			{
 				tree::visitor::NodeInfoVisitor node_info_visitor;
 				node_info_visitor.visit(**scope);
-				LOG4CXX_DEBUG(LoggingManager::Resolver, L"looking at scope: \"" << node_info_visitor.stream.str() << L"\"");
+				LOG4CXX_DEBUG(LoggerWrapper::Resolver, L"looking at scope: \"" << node_info_visitor.stream.str() << L"\"");
 
 				resolution_visitor.visit(**scope);
 			}
@@ -134,6 +164,17 @@ struct Resolver
 		}
 	}
 
+private:
+	/**
+	 * Called by resolveSymbol() to check and store collected symbol resolutions
+	 *
+	 * If there's only one symbol resolution, we just store it using ResolvedSymbol::set(), otherwise resolver would throw out error
+	 *
+	 * @param attach
+	 * @param node
+	 * @param no_action
+	 * @return true on successful resolution, false otherwise
+	 */
 	bool checkResolvedSymbol(tree::ASTNode& attach, tree::Identifier& node, bool no_action)
 	{
 		using namespace zillians::language::tree;
@@ -144,25 +185,45 @@ struct Resolver
 
 			tree::visitor::NodeInfoVisitor node_info_visitor;
 			node_info_visitor.visit(*ref);
-			LOG4CXX_DEBUG(LoggingManager::Resolver, L"symbol \"" << node.toString() << L"\" is resolved to: \"" << node_info_visitor.stream.str() << L"\"");
+			LOG4CXX_DEBUG(LoggerWrapper::Resolver, L"symbol \"" << node.toString() << L"\" is resolved to: \"" << node_info_visitor.stream.str() << L"\"");
 			node_info_visitor.reset();
 
 			bool valid = true;
-			if(isa<Identifier>(ref))
+			if(isa<VariableDecl>(ref)) // declared variable (as class member variable or local variable or function parameter)
 			{
-				if(!no_action) ResolvedSymbol::set(&attach, ref);
+				if(!no_action)
+				{
+					ResolvedSymbol::set(&attach, ref);
+					ResolvedType::set(&attach, cast<VariableDecl>(ref)->type);
+				}
 			}
-			else if(isa<VariableDecl>(ref))
+			else if(isa<FunctionDecl>(ref)) // declared function (as class member function or global function)
 			{
-				if(!no_action) ResolvedSymbol::set(&attach, ref);
+				if(!no_action)
+				{
+					ResolvedSymbol::set(&attach, ref);
+					ResolvedType::set(&attach, ref);
+				}
 			}
-			else if(isa<FunctionDecl>(ref))
+			else if(isa<ClassDecl>(ref) || isa<InterfaceDecl>(ref)) // declared class/interface
 			{
-				if(!no_action) ResolvedSymbol::set(&attach, ref);
+				if(!no_action)
+				{
+					ResolvedSymbol::set(&attach, ref);
+					ResolvedType::set(&attach, ref);
+				}
+			}
+			else if(isa<TypedefDecl>(ref))
+			{
+				if(!no_action)
+				{
+					BOOST_ASSERT(false && "reaching unreachable code");
+					// TODO will this happen?
+				}
 			}
 			else
 			{
-				LOG4CXX_ERROR(LoggingManager::Resolver, L"resolve symbol \"" << node.toString() << L"\" to unkown symbol");
+				LOG4CXX_ERROR(LoggerWrapper::Resolver, L"resolve symbol \"" << node.toString() << L"\" to unkown symbol");
 				valid = false;
 			}
 
@@ -174,20 +235,20 @@ struct Resolver
 			if(resolution_visitor.candidates.size() > 1)
 			{
 				// mode than one candidate
-				LOG4CXX_ERROR(LoggingManager::Resolver, L"ambiguous symbol \"" << node.toString() << L"\"");
+				LOG4CXX_ERROR(LoggerWrapper::Resolver, L"ambiguous symbol \"" << node.toString() << L"\"");
 
 				tree::visitor::NodeInfoVisitor node_info_visitor;
 				foreach(i, resolution_visitor.candidates)
 				{
 					node_info_visitor.visit(**i);
-					LOG4CXX_DEBUG(LoggingManager::Resolver, L"symbol can be resolved to: \"" << node_info_visitor.stream.str());
+					LOG4CXX_DEBUG(LoggerWrapper::Resolver, L"symbol can be resolved to: \"" << node_info_visitor.stream.str());
 					node_info_visitor.reset();
 				}
 			}
 			else
 			{
 				// no candidate
-				LOG4CXX_ERROR(LoggingManager::Resolver, L"unresolved symbol \"" << node.toString() << L"\"");
+				LOG4CXX_ERROR(LoggerWrapper::Resolver, L"unresolved symbol \"" << node.toString() << L"\"");
 			}
 
 			resolution_visitor.reset();
@@ -195,13 +256,14 @@ struct Resolver
 		}
 	}
 
-	bool resolveType(tree::ASTNode& scope, tree::TypeSpecifier& node, bool no_action = false)
+public:
+	bool resolveType(tree::ASTNode& attach, tree::ASTNode& scope, tree::TypeSpecifier& node, bool no_action = false)
 	{
 		using namespace zillians::language::tree;
 
 		tree::visitor::NodeInfoVisitor node_info_visitor;
 		node_info_visitor.visit(scope);
-		LOG4CXX_DEBUG(LoggingManager::Resolver, L"trying to resolve type: \"" << node.referred.unspecified->toString() << L"\" from scope \"" << node_info_visitor.stream.str() << L"\"");
+		LOG4CXX_DEBUG(LoggerWrapper::Resolver, L"trying to resolve type: \"" << node.referred.unspecified->toString() << L"\" from scope \"" << node_info_visitor.stream.str() << L"\"");
 		node_info_visitor.reset();
 
 		if(node.type == TypeSpecifier::ReferredType::UNSPECIFIED)
@@ -212,7 +274,7 @@ struct Resolver
 
 			resolution_visitor.visit(scope);
 
-			return checkResolvedType(node, no_action);
+			return checkResolvedType(attach, node, no_action);
 		}
 		else
 		{
@@ -220,11 +282,11 @@ struct Resolver
 		}
 	}
 
-	bool resolveType(tree::TypeSpecifier& node, bool no_action = false)
+	bool resolveType(tree::ASTNode& attach, tree::TypeSpecifier& node, bool no_action = false)
 	{
 		using namespace zillians::language::tree;
 
-		LOG4CXX_DEBUG(LoggingManager::Resolver, L"trying to resolve type: \"" << node.referred.unspecified->toString() << L"\"");
+		LOG4CXX_DEBUG(LoggerWrapper::Resolver, L"trying to resolve type: \"" << node.referred.unspecified->toString() << L"\"");
 
 		if(node.type == TypeSpecifier::ReferredType::UNSPECIFIED)
 		{
@@ -238,7 +300,7 @@ struct Resolver
 				resolution_visitor.visit(**scope);
 			}
 
-			return checkResolvedType(node, no_action);
+			return checkResolvedType(attach, node, no_action);
 		}
 		else
 		{
@@ -246,7 +308,8 @@ struct Resolver
 		}
 	}
 
-	bool checkResolvedType(tree::TypeSpecifier& node, bool no_action)
+private:
+	bool checkResolvedType(tree::ASTNode& attach, tree::TypeSpecifier& node, bool no_action)
 	{
 		using namespace zillians::language::tree;
 
@@ -256,38 +319,34 @@ struct Resolver
 
 			tree::visitor::NodeInfoVisitor node_info_visitor;
 			node_info_visitor.visit(*ref);
-			LOG4CXX_DEBUG(LoggingManager::Resolver, L"type \"" << node.referred.unspecified->toString() << L"\" is resolved to: \"" << node_info_visitor.stream.str() << L"\"");
+			LOG4CXX_DEBUG(LoggerWrapper::Resolver, L"type \"" << node.referred.unspecified->toString() << L"\" is resolved to: \"" << node_info_visitor.stream.str() << L"\"");
 			node_info_visitor.reset();
 
 			bool valid = true;
 			if(isa<ClassDecl>(ref))
 			{
-				LOG4CXX_DEBUG(LoggingManager::Resolver, L"resolve type \"" << node.referred.unspecified->toString() << L"\" to \"" << cast<ClassDecl>(ref)->name->toString() << L"\"");
-				if(!no_action) node.update(cast<ClassDecl>(ref));
+				LOG4CXX_DEBUG(LoggerWrapper::Resolver, L"resolve type \"" << node.referred.unspecified->toString() << L"\" to \"" << cast<ClassDecl>(ref)->name->toString() << L"\"");
+				if(!no_action) ResolvedType::set(&attach, ref);
 			}
 			else if(isa<InterfaceDecl>(ref))
 			{
-				if(!no_action) node.update(cast<InterfaceDecl>(ref));
+				if(!no_action) ResolvedType::set(&attach, ref);
 			}
 			else if(isa<FunctionDecl>(ref))
 			{
-				if(!no_action) node.update(cast<FunctionDecl>(ref));
+				if(!no_action) ResolvedType::set(&attach, ref);
 			}
 			else if(isa<EnumDecl>(ref))
 			{
-				if(!no_action) node.update(cast<EnumDecl>(ref));
+				if(!no_action) ResolvedType::set(&attach, ref);
 			}
 			else if(isa<TypedefDecl>(ref))
 			{
-				if(!no_action) node.update(cast<TypedefDecl>(ref));
-			}
-			else if(isa<FunctionType>(ref))
-			{
-				if(!no_action) node.update(cast<FunctionType>(ref));
+				if(!no_action) ResolvedType::set(&attach, ref);
 			}
 			else
 			{
-				LOG4CXX_FATAL(LoggingManager::Resolver, L"resolve type \"" << node.referred.unspecified->toString() << L"\" to unknown type");
+				LOG4CXX_FATAL(LoggerWrapper::Resolver, L"resolve type \"" << node.referred.unspecified->toString() << L"\" to unknown type");
 				valid = false;
 			}
 
@@ -299,20 +358,20 @@ struct Resolver
 			if(resolution_visitor.candidates.size() > 1)
 			{
 				// mode than one candidate
-				LOG4CXX_ERROR(LoggingManager::Resolver, L"ambiguous type \"" << node.referred.unspecified->toString() << L"\"");
+				LOG4CXX_ERROR(LoggerWrapper::Resolver, L"ambiguous type \"" << node.referred.unspecified->toString() << L"\"");
 
 				tree::visitor::NodeInfoVisitor node_info_visitor;
 				foreach(i, resolution_visitor.candidates)
 				{
 					node_info_visitor.visit(**i);
-					LOG4CXX_DEBUG(LoggingManager::Resolver, L"type can be resolved to: \"" << node_info_visitor.stream.str() << L"\"");
+					LOG4CXX_DEBUG(LoggerWrapper::Resolver, L"type can be resolved to: \"" << node_info_visitor.stream.str() << L"\"");
 					node_info_visitor.reset();
 				}
 			}
 			else
 			{
 				// no candidate
-				LOG4CXX_ERROR(LoggingManager::Resolver, L"unresolved type \"" << node.referred.unspecified->toString() << L"\"");
+				LOG4CXX_ERROR(LoggerWrapper::Resolver, L"unresolved type \"" << node.referred.unspecified->toString() << L"\"");
 			}
 
 			resolution_visitor.reset();
@@ -320,13 +379,14 @@ struct Resolver
 		}
 	}
 
+public:
 	bool resolvePackage(tree::ASTNode& attach, tree::ASTNode& scope, tree::Identifier& node, bool no_action = false)
 	{
 		using namespace zillians::language::tree;
 
 		tree::visitor::NodeInfoVisitor node_info_visitor;
 		node_info_visitor.visit(scope);
-		LOG4CXX_DEBUG(LoggingManager::Resolver, L"trying to resolve package: \"" << node.toString() << L"\" from scope \"" << node_info_visitor.stream.str() << L"\"");
+		LOG4CXX_DEBUG(LoggerWrapper::Resolver, L"trying to resolve package: \"" << node.toString() << L"\" from scope \"" << node_info_visitor.stream.str() << L"\"");
 		node_info_visitor.reset();
 
 		if(!ResolvedPackage::get(&attach))
@@ -349,7 +409,7 @@ struct Resolver
 	{
 		using namespace zillians::language::tree;
 
-		LOG4CXX_DEBUG(LoggingManager::Resolver, L"trying to resolve package: \"" << node.toString() << L"\"");
+		LOG4CXX_DEBUG(LoggerWrapper::Resolver, L"trying to resolve package: \"" << node.toString() << L"\"");
 
 		if(!ResolvedPackage::get(&attach))
 		{
@@ -370,6 +430,7 @@ struct Resolver
 		}
 	}
 
+private:
 	bool checkResolvedPackage(tree::ASTNode& attach, tree::Identifier& node, bool no_action)
 	{
 		using namespace zillians::language::tree;
@@ -380,7 +441,7 @@ struct Resolver
 
 			tree::visitor::NodeInfoVisitor node_info_visitor;
 			node_info_visitor.visit(*ref);
-			LOG4CXX_DEBUG(LoggingManager::Resolver, L"package \"" << node.toString() << L"\" is resolved to: \"" << node_info_visitor.stream.str() << L"\"");
+			LOG4CXX_DEBUG(LoggerWrapper::Resolver, L"package \"" << node.toString() << L"\" is resolved to: \"" << node_info_visitor.stream.str() << L"\"");
 			node_info_visitor.reset();
 
 			bool valid = true;
@@ -390,7 +451,7 @@ struct Resolver
 			}
 			else
 			{
-				LOG4CXX_FATAL(LoggingManager::Resolver, L"resolve package \"" << node.toString() << L"\" to unknown type");
+				LOG4CXX_FATAL(LoggerWrapper::Resolver, L"resolve package \"" << node.toString() << L"\" to unknown type");
 				valid = false;
 			}
 
@@ -402,20 +463,20 @@ struct Resolver
 			if(resolution_visitor.candidates.size() > 1)
 			{
 				// mode than one candidate
-				LOG4CXX_ERROR(LoggingManager::Resolver, L"ambiguous package \"" << node.toString() << L"\"");
+				LOG4CXX_ERROR(LoggerWrapper::Resolver, L"ambiguous package \"" << node.toString() << L"\"");
 
 				tree::visitor::NodeInfoVisitor node_info_visitor;
 				foreach(i, resolution_visitor.candidates)
 				{
 					node_info_visitor.visit(**i);
-					LOG4CXX_DEBUG(LoggingManager::Resolver, L"package can be resolved to: \"" << node_info_visitor.stream.str() << L"\"");
+					LOG4CXX_DEBUG(LoggerWrapper::Resolver, L"package can be resolved to: \"" << node_info_visitor.stream.str() << L"\"");
 					node_info_visitor.reset();
 				}
 			}
 			else
 			{
 				// no candidate
-				LOG4CXX_ERROR(LoggingManager::Resolver, L"unresolved package \"" << node.toString() << L"\"");
+				LOG4CXX_ERROR(LoggerWrapper::Resolver, L"unresolved package \"" << node.toString() << L"\"");
 			}
 
 			resolution_visitor.reset();
@@ -424,6 +485,7 @@ struct Resolver
 		}
 	}
 
+private:
 	__gnu_cxx::hash_set<tree::ASTNode*> current_scopes;
 	tree::visitor::ResolutionVisitor resolution_visitor;
 };

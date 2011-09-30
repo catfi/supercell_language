@@ -1,9 +1,9 @@
 class my_class
 {
-    var m_data:uint32;
+    var m_data:int32;
 }
 
-function f(y:uint32):void
+function f(y:int32):void
 {
     var x:my_class;
     x.m_data = 13;

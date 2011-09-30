@@ -22,6 +22,7 @@
 
 #include "core/Prerequisite.h"
 #include "language/stage/generator/detail/LLVMHeaders.h"
+#include "language/context/ResolverContext.h"
 
 using namespace zillians::language::tree;
 
@@ -38,17 +39,24 @@ struct LLVMHelper
 
 		switch(type)
 		{
-		case PrimitiveType::ANONYMOUS_OBJECT:
+		case PrimitiveType::OBJECT:
 		{
-			// return generic pointer type, which is an unsigned int32
-			modifier |= llvm::Attribute::ZExt;
+			// return generic object type, which is an signed int32
+			modifier |= llvm::Attribute::SExt;
 			result = llvm::IntegerType::getInt32Ty(mContext);
 			resolved = true; break;
 		}
-		case PrimitiveType::ANONYMOUS_FUNCTION:
+		case PrimitiveType::FUNCTION:
 		{
 			// TODO return pointer to function type
 			result = NULL;
+			resolved = true; break;
+		}
+		case PrimitiveType::STRING:
+		{
+			// TODO return pointer to function type
+			modifier |= llvm::Attribute::SExt;
+			result = llvm::IntegerType::getInt32Ty(mContext);
 			resolved = true; break;
 		}
 		case PrimitiveType::VOID:
@@ -56,15 +64,15 @@ struct LLVMHelper
 			result = llvm::Type::getVoidTy(mContext);
 			resolved = true; break;
 		}
-		case PrimitiveType::INT8:
+		case PrimitiveType::BOOL:
 		{
-			modifier |= llvm::Attribute::SExt;
+			modifier |= llvm::Attribute::ZExt;
 			result = llvm::IntegerType::getInt8Ty(mContext);
 			resolved = true; break;
 		}
-		case PrimitiveType::UINT8:
+		case PrimitiveType::INT8:
 		{
-			modifier |= llvm::Attribute::ZExt;
+			modifier |= llvm::Attribute::SExt;
 			result = llvm::IntegerType::getInt8Ty(mContext);
 			resolved = true; break;
 		}
@@ -74,33 +82,15 @@ struct LLVMHelper
 			result = llvm::IntegerType::getInt16Ty(mContext);
 			resolved = true; break;
 		}
-		case PrimitiveType::UINT16:
-		{
-			modifier |= llvm::Attribute::ZExt;
-			result = llvm::IntegerType::getInt16Ty(mContext);
-			resolved = true; break;
-		}
 		case PrimitiveType::INT32:
 		{
 			modifier |= llvm::Attribute::SExt;
 			result = llvm::IntegerType::getInt32Ty(mContext);
 			resolved = true; break;
 		}
-		case PrimitiveType::UINT32:
-		{
-			modifier |= llvm::Attribute::ZExt;
-			result = llvm::IntegerType::getInt32Ty(mContext);
-			resolved = true; break;
-		}
 		case PrimitiveType::INT64:
 		{
 			//modifier |= llvm::Attribute::SExt;
-			result = llvm::IntegerType::getInt64Ty(mContext);
-			resolved = true; break;
-		}
-		case PrimitiveType::UINT64:
-		{
-			//modifier |= llvm::Attribute::ZExt;
 			result = llvm::IntegerType::getInt64Ty(mContext);
 			resolved = true; break;
 		}
@@ -114,6 +104,12 @@ struct LLVMHelper
 			result = llvm::Type::getDoubleTy(mContext);
 			resolved = true; break;
 		}
+		default:
+		{
+			result = NULL;
+			resolved = false;
+			break;
+		}
 		}
 
 		return resolved;
@@ -125,36 +121,48 @@ struct LLVMHelper
 
 		switch(specifier.type)
 		{
-		case TypeSpecifier::ReferredType::CLASS_DECL: // TODO return pointer type
-		case TypeSpecifier::ReferredType::INTERFACE_DECL: // TODO return pointer type
-		{
-			// return generic pointer type, which is an unsigned int32
-			modifier |= llvm::Attribute::ZExt;
-			result = llvm::IntegerType::getInt32Ty(mContext);
-			resolved = true; break;
-		}
-		case TypeSpecifier::ReferredType::FUNCTION_DECL:
 		case TypeSpecifier::ReferredType::FUNCTION_TYPE:
 		{
 			// TODO return pointer to function type
 			result = NULL;
 			resolved = false; break;
 		}
-		case TypeSpecifier::ReferredType::ENUM_DECL:
-		{
-			modifier |= llvm::Attribute::ZExt;
-			result = llvm::IntegerType::getInt32Ty(mContext);
-			resolved = true; break;
-		}
 		case TypeSpecifier::ReferredType::PRIMITIVE:
 		{
 			return getType(specifier.referred.primitive, result, modifier);
 		}
-		case TypeSpecifier::ReferredType::TYPEDEF_DECL:
 		case TypeSpecifier::ReferredType::UNSPECIFIED:
+		{
 			// TODO these are cases that shouldn't happen
-			result = NULL;
-			resolved = false; break;
+			ASTNode* resolved_type = ResolvedType::get(&specifier);
+			if(resolved_type)
+			{
+				if(isa<ClassDecl>(resolved_type) || isa<InterfaceDecl>(resolved_type))
+				{
+					modifier |= llvm::Attribute::ZExt;
+					result = llvm::IntegerType::getInt32Ty(mContext);
+					resolved = true; break;
+				}
+				else if(isa<EnumDecl>(resolved_type))
+				{
+					modifier |= llvm::Attribute::ZExt;
+					result = llvm::IntegerType::getInt32Ty(mContext);
+					resolved = true; break;
+				}
+				else
+				{
+					BOOST_ASSERT(false && "resolved to unknown type");
+					result = NULL;
+					resolved = false;
+				}
+			}
+			else
+			{
+				result = NULL;
+				resolved = false;
+			}
+			break;
+		}
 		}
 		return resolved;
 	}
@@ -170,7 +178,7 @@ struct LLVMHelper
 				llvm::Attributes attr = llvm::Attribute::None;
 				const llvm::Type* t = NULL;
 
-				if(!getType(*i->get<1>(), t, attr))
+				if(!getType(*((*i)->type), t, attr))
 					return false;
 
 				llvm_function_parameter_types.push_back(t);

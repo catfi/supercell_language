@@ -44,7 +44,7 @@ struct TernaryExpr : public Expression
 		false_node->parent = this;
 	}
 
-	virtual bool isRValue()
+	virtual bool isRValue() const
 	{
 		// it's R-value if either "true block" or "false block" is R-value
 		return (true_node->isRValue() || false_node->isRValue());
@@ -52,37 +52,20 @@ struct TernaryExpr : public Expression
 
     virtual bool isEqualImpl(const ASTNode& rhs, ASTNodeSet& visited) const
     {
-        if(visited.count(this))
-        {
-            return true ;
-        }
-
-        const TernaryExpr* p = cast<const TernaryExpr>(&rhs);
-        if(p == NULL)
-        {
-            return false;
-        }
-
-        // compare base class
-        if(!Expression::isEqualImpl(*p, visited))
-        {
-            return false;
-        }
-
-        // compare data member
-        if(!isASTNodeMemberEqual   (&TernaryExpr::cond            , *this, *p, visited)) return false;
-        if(!isASTNodeMemberEqual   (&TernaryExpr::true_node       , *this, *p, visited)) return false;
-        if(!isASTNodeMemberEqual   (&TernaryExpr::false_node      , *this, *p, visited)) return false;
-
-        // add this to the visited table.
-        visited.insert(this);
-        return true;
+    	BEGIN_COMPARE_WITH_BASE(Expression)
+		COMPARE_MEMBER(cond)
+		COMPARE_MEMBER(true_node)
+		COMPARE_MEMBER(false_node)
+		END_COMPARE()
     }
 
-    template<typename Archive>
-    void serialize(Archive& ar, const unsigned int version)
+    virtual bool replaceUseWith(const ASTNode& from, const ASTNode& to, bool update_parent = true)
     {
-        boost::serialization::base_object<Expression>(*this);
+    	BEGIN_REPLACE_WITH_BASE(Expression)
+		REPLACE_USE_WITH(cond)
+		REPLACE_USE_WITH(true_node)
+		REPLACE_USE_WITH(false_node)
+    	END_REPLACE()
     }
 
 	Expression* cond;
@@ -91,33 +74,5 @@ struct TernaryExpr : public Expression
 };
 
 } } }
-
-namespace boost { namespace serialization {
-
-template<class Archive>
-inline void save_construct_data(Archive& ar, const zillians::language::tree::TernaryExpr* p, const unsigned int file_version)
-{
-    ar << p->cond;
-    ar << p->true_node;
-    ar << p->false_node;
-}
-
-template<class Archive>
-inline void load_construct_data(Archive& ar, zillians::language::tree::TernaryExpr* p, const unsigned int file_version)
-{
-    using namespace zillians::language::tree;
-
-	Expression* cond;
-	Expression* true_node;
-	Expression* false_node;
-
-    ar >> cond;
-    ar >> true_node;
-    ar >> false_node;
-
-	::new(p) TernaryExpr(cond, true_node, false_node);
-}
-
-} } // namespace boost::serialization
 
 #endif /* ZILLIANS_LANGUAGE_TREE_TERNARYEXPR_H_ */

@@ -39,6 +39,7 @@ struct UnaryExpr : public Expression
 			BINARY_NOT, LOGICAL_NOT,
 			ARITHMETIC_NEGATE,
 			NEW,
+			NOOP,
 			INVALID,
 		};
 
@@ -54,8 +55,12 @@ struct UnaryExpr : public Expression
 			case LOGICAL_NOT: return L"!";
 			case ARITHMETIC_NEGATE: return L"-";
 			case NEW: return L"new";
+			case NOOP: return L"no-op";
 			case INVALID: return L"invalid";
+			default: break;
 			}
+			BOOST_ASSERT(false && "reaching unreachable code");
+			return NULL;
 		}
 	};
 
@@ -66,7 +71,7 @@ struct UnaryExpr : public Expression
 		node->parent = this;
 	}
 
-	virtual bool isRValue()
+	virtual bool isRValue() const
 	{
 		switch(opcode)
 		{
@@ -79,49 +84,28 @@ struct UnaryExpr : public Expression
 		case OpCode::LOGICAL_NOT:
 		case OpCode::ARITHMETIC_NEGATE:
 		case OpCode::NEW:
+		case OpCode::NOOP:
 		case OpCode::INVALID:
 			return true;
+		default: break;
 		}
+		BOOST_ASSERT(false && "reaching unreachable code");
+		return false;
 	}
 
     virtual bool isEqualImpl(const ASTNode& rhs, ASTNodeSet& visited) const
     {
-        if(visited.count(this))
-        {
-            return true ;
-        }
-
-        const UnaryExpr* p = cast<const UnaryExpr>(&rhs);
-        if(p == NULL)
-        {
-            return false;
-        }
-
-        // compare base class
-        if(!Expression::isEqualImpl(*p, visited))
-        {
-            return false;
-        }
-
-        // compare data member
-        if(opcode != p->opcode)
-        {
-            return false;
-        }
-        if(!isASTNodeMemberEqual(&UnaryExpr::node, *this, *p, visited))
-        {
-            return false;
-        }
-
-        // add this to the visited table.
-        visited.insert(this);
-        return true;
+    	BEGIN_COMPARE_WITH_BASE(Expression)
+		COMPARE_MEMBER(opcode)
+		COMPARE_MEMBER(node)
+		END_COMPARE()
     }
 
-    template<typename Archive>
-    void serialize(Archive& ar, const unsigned int version)
+    virtual bool replaceUseWith(const ASTNode& from, const ASTNode& to, bool update_parent = true)
     {
-        boost::serialization::base_object<Expression>(*this);
+    	BEGIN_REPLACE_WITH_BASE(Expression)
+		REPLACE_USE_WITH(node)
+    	END_REPLACE()
     }
 
 	OpCode::type opcode;
@@ -129,30 +113,5 @@ struct UnaryExpr : public Expression
 };
 
 } } }
-
-namespace boost { namespace serialization {
-
-template<class Archive>
-inline void save_construct_data(Archive& ar, const zillians::language::tree::UnaryExpr* p, const unsigned int file_version)
-{
-	ar << (int&)p->opcode;
-    ar << p->node;
-}
-
-template<class Archive>
-inline void load_construct_data(Archive& ar, zillians::language::tree::UnaryExpr* p, const unsigned int file_version)
-{
-    using namespace zillians::language::tree;
-
-    int opcode;
-	ASTNode* node;
-
-	ar >> opcode;
-    ar >> node;
-
-	::new(p) UnaryExpr(static_cast<UnaryExpr::OpCode::type>(opcode), node);
-}
-
-} } // namespace boost::serialization
 
 #endif /* ZILLIANS_LANGUAGE_TREE_UNARYEXPR_H_ */

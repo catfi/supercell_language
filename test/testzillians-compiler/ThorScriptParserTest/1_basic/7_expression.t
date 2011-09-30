@@ -1,6 +1,6 @@
 function f():void
 {
-    var x:uint32;
+    var x:int32;
 
     x = 13;
     x = -13;
@@ -38,6 +38,7 @@ function f():void
 
     x << 13 << 13;
     x >> 13 >> 13;
+    x >>> 13 >>> 13;
 
     x <<= 13;
     x >>= 13;

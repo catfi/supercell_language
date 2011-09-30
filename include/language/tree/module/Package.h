@@ -73,36 +73,20 @@ struct Package : public ASTNode
 
     virtual bool isEqualImpl(const ASTNode& rhs, ASTNodeSet& visited) const
     {
-        if(visited.count(this))
-        {
-            return true ;
-        }
-
-        const Package* p = cast<const Package>(&rhs);
-        if(p == NULL)
-        {
-            return false;
-        }
-
-        // compare base class
-        // base is ASTNode, no need to compare
-
-        // compare data member
-        if(!isASTNodeMemberEqual   (&Package::id                  , *this, *p, visited)) return false;
-        if(!isVectorMemberEqual    (&Package::children            , *this, *p, visited)) return false;
-        if(!isVectorMemberEqual    (&Package::objects             , *this, *p, visited)) return false;
-
-        // add this to the visited table.
-        visited.insert(this);
-        return true;
+    	BEGIN_COMPARE()
+		COMPARE_MEMBER(id)
+		COMPARE_MEMBER(children)
+		COMPARE_MEMBER(objects)
+		END_COMPARE()
     }
 
-    template<typename Archive>
-    void serialize(Archive& ar, const unsigned int version)
+    virtual bool replaceUseWith(const ASTNode& from, const ASTNode& to, bool update_parent = true)
     {
-        boost::serialization::base_object<ASTNode>(*this);
-        ar & children;
-        ar & objects;
+    	BEGIN_REPLACE()
+		REPLACE_USE_WITH(id)
+		REPLACE_USE_WITH(children)
+		REPLACE_USE_WITH(objects)
+    	END_REPLACE()
     }
 
 	SimpleIdentifier* id;
@@ -111,25 +95,5 @@ struct Package : public ASTNode
 };
 
 } } }
-
-namespace boost { namespace serialization {
-
-template<class Archive>
-inline void save_construct_data(Archive& ar, const zillians::language::tree::Package* p, const unsigned int file_version)
-{
-    ar << p->id;
-}
-
-template<class Archive>
-inline void load_construct_data(Archive& ar, zillians::language::tree::Package* p, const unsigned int file_version)
-{
-    using namespace zillians::language::tree;
-
-    SimpleIdentifier* id;
-    ar >> id;
-	::new(p) Package(id);
-}
-
-} } // namespace boost::serialization
 
 #endif /* ZILLIANS_LANGUAGE_TREE_PACKAGE_H_ */

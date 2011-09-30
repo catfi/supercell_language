@@ -25,7 +25,7 @@
 
 #include "core/Types.h"
 #include "language/tree/ASTNode.h"
-#include "language/tree/basic/Primitive.h"
+#include "language/tree/basic/PrimitiveType.h"
 
 namespace zillians { namespace language { namespace tree {
 
@@ -38,31 +38,12 @@ struct Literal : public ASTNode
 
     virtual bool isEqualImpl(const ASTNode& rhs, ASTNodeSet& visited) const
     {
-        if(visited.count(this))
-        {
-        	return true ;
-        }
-
-        const Literal* p = cast<const Literal>(&rhs);
-        if(p == NULL)
-        {
-        	return false;
-        }
-        // compare base class
-        // base is ASTNode, no need to compare
-
-        // compare data member
-        // no data member
-
-        // add this to the visited table.
-        visited.insert(this);
         return true;
     }
 
-    template<typename Archive>
-    void serialize(Archive& ar, const unsigned int version)
+    virtual bool replaceUseWith(const ASTNode& from, const ASTNode& to, bool update_parent = true)
     {
-        boost::serialization::base_object<ASTNode>(*this);
+    	return false;
     }
 };
 
@@ -94,38 +75,14 @@ struct ObjectLiteral : public Literal
 
     virtual bool isEqualImpl(const ASTNode& rhs, ASTNodeSet& visited) const
     {
-        if(visited.count(this))
-        {
-        	return true ;
-        }
-
-        const ObjectLiteral* p = cast<const ObjectLiteral>(&rhs);
-        if(p == NULL)
-        {
-        	return false;
-        }
-
-        // compare base class
-        if(!Literal::isEqualImpl(*p, visited))
-        {
-        	return false;
-        }
-
-        // compare data member
-        if(type != p->type)
-        {
-        	return false;
-        }
-
-        // add this to the visited table.
-        visited.insert(this);
-        return true;
+    	BEGIN_COMPARE_WITH_BASE(Literal)
+		COMPARE_MEMBER(type)
+		END_COMPARE()
     }
 
-    template<typename Archive>
-    void serialize(Archive& ar, const unsigned int version)
+    virtual bool replaceUseWith(const ASTNode& from, const ASTNode& to, bool update_parent = true)
     {
-        boost::serialization::base_object<Literal>(*this);
+    	return false;
     }
 
 	LiteralType::type type;
@@ -142,62 +99,47 @@ struct NumericLiteral : public Literal
 	explicit NumericLiteral(int32 v) { type = PrimitiveType::INT32; value.i32 = v; }
 	explicit NumericLiteral(int64 v) { type = PrimitiveType::INT64; value.i64 = v; }
 
-	explicit NumericLiteral(uint8 v)  { type = PrimitiveType::UINT8;  value.u8 = v;  }
-	explicit NumericLiteral(uint16 v) { type = PrimitiveType::UINT16; value.u16 = v; }
-	explicit NumericLiteral(uint32 v) { type = PrimitiveType::UINT32; value.u32 = v; }
-	explicit NumericLiteral(uint64 v) { type = PrimitiveType::UINT64; value.u64 = v; }
-
 	explicit NumericLiteral(float v)  { type = PrimitiveType::FLOAT32; value.f32 = v; }
 	explicit NumericLiteral(double v) { type = PrimitiveType::FLOAT64; value.f64 = v; }
 
+	template<typename T>
+	explicit NumericLiteral(PrimitiveType::type t, T v)
+	{
+        switch(t)
+        {
+        case PrimitiveType::type::BOOL: value.b = (bool)v; break;
+        case PrimitiveType::type::INT8: value.i8 = (int8)v; break;
+        case PrimitiveType::type::INT16: value.i16 = (int16)v; break;
+        case PrimitiveType::type::INT32: value.i32 = (int32)v; break;
+        case PrimitiveType::type::INT64: value.i64 = (int64)v; break;
+        case PrimitiveType::type::FLOAT32: value.f32 = (float)v; break;
+        case PrimitiveType::type::FLOAT64: value.f64 = (double)v; break;
+        default: break;
+        }
+        type = t;
+	}
+
     virtual bool isEqualImpl(const ASTNode& rhs, ASTNodeSet& visited) const
     {
-        if(visited.count(this))
-        {
-        	return true ;
-        }
-
-        const NumericLiteral* p = cast<const NumericLiteral>(&rhs);
-        if(p == NULL)
-        {
-        	return false;
-        }
-
-        // compare base class
-        if(!Literal::isEqualImpl(*p, visited))
-        {
-        	return false;
-        }
-
-        // compare data member
-        if(type != p->type)
-        {
-        	return false;
-        }
+    	BEGIN_COMPARE_WITH_BASE(Literal)
+		COMPARE_MEMBER(type)
         switch(type)
         {
-        case PrimitiveType::type::BOOL    : if(value.b   != p->value.b  ) return false; break;
-        case PrimitiveType::type::UINT8   : if(value.i8  != p->value.i8 ) return false; break;
-        case PrimitiveType::type::UINT16  : if(value.i16 != p->value.i16) return false; break;
-        case PrimitiveType::type::UINT32  : if(value.i32 != p->value.i32) return false; break;
-        case PrimitiveType::type::UINT64  : if(value.i64 != p->value.i64) return false; break;
-        case PrimitiveType::type::INT8    : if(value.u8  != p->value.u8 ) return false; break;
-        case PrimitiveType::type::INT16   : if(value.u16 != p->value.u16) return false; break;
-        case PrimitiveType::type::INT32   : if(value.u32 != p->value.u32) return false; break;
-        case PrimitiveType::type::INT64   : if(value.u64 != p->value.u64) return false; break;
-        case PrimitiveType::type::FLOAT32 : if(value.f32 != p->value.f32) return false; break;
-        case PrimitiveType::type::FLOAT64 : if(value.f64 != p->value.f64) return false; break;
+        case PrimitiveType::type::BOOL    : COMPARE_MEMBER(value.b  ); break;
+        case PrimitiveType::type::INT8    : COMPARE_MEMBER(value.i8 ); break;
+        case PrimitiveType::type::INT16   : COMPARE_MEMBER(value.i16); break;
+        case PrimitiveType::type::INT32   : COMPARE_MEMBER(value.i32); break;
+        case PrimitiveType::type::INT64   : COMPARE_MEMBER(value.i64); break;
+        case PrimitiveType::type::FLOAT32 : COMPARE_MEMBER(value.f32); break;
+        case PrimitiveType::type::FLOAT64 : COMPARE_MEMBER(value.f64); break;
+        default: break;
         }
-
-        // add this to the visited table.
-        visited.insert(this);
-        return true;
+    	END_COMPARE()
     }
 
-    template<typename Archive>
-    void serialize(Archive& ar, const unsigned int version)
+    virtual bool replaceUseWith(const ASTNode& from, const ASTNode& to, bool update_parent = true)
     {
-        boost::serialization::base_object<Literal>(*this);
+    	return false;
     }
 
 	PrimitiveType::type type;
@@ -210,13 +152,10 @@ struct NumericLiteral : public Literal
 		int32 i32;
 		int64 i64;
 
-		uint8  u8;
-		uint16 u16;
-		uint32 u32;
-		uint64 u64;
-
 		float  f32;
 		double f64;
+
+		uint64 raw;
 	} value;
 };
 
@@ -239,138 +178,19 @@ struct StringLiteral : public Literal
 
     virtual bool isEqualImpl(const ASTNode& rhs, ASTNodeSet& visited) const
     {
-        if(visited.count(this))
-        {
-            return true ;
-        }
-
-        const StringLiteral* p = cast<const StringLiteral>(&rhs);
-        if(p == NULL)
-        {
-            return false;
-        }
-
-        // compare base class
-        if(!Literal::isEqualImpl(*p, visited))
-        {
-            return false;
-        }
-
-        // compare data member
-        if(value != p->value)
-        {
-            return false;
-        }
-
-        // add this to the visited table.
-        visited.insert(this);
-        return true;
+    	BEGIN_COMPARE_WITH_BASE(Literal)
+		COMPARE_MEMBER(value)
+    	END_COMPARE()
     }
 
-    template<typename Archive>
-    void serialize(Archive& ar, const unsigned int version)
+    virtual bool replaceUseWith(const ASTNode& from, const ASTNode& to, bool update_parent = true)
     {
-        boost::serialization::base_object<Literal>(*this);
+    	return false;
     }
 
 	std::wstring value;
 };
 
 } } }
-
-namespace boost { namespace serialization {
-
-// ObjectLiteral
-template<class Archive>
-inline void save_construct_data(Archive& ar, const zillians::language::tree::ObjectLiteral* p, const unsigned int file_version)
-{
-    ar << (int&)p->type;
-}
-
-template<class Archive>
-inline void load_construct_data(Archive& ar, zillians::language::tree::ObjectLiteral* p, const unsigned int file_version)
-{
-    using namespace zillians::language::tree;
-    int type;
-    ar >> type;
-    new(p) ObjectLiteral(static_cast<ObjectLiteral::LiteralType::type>(type));
-}
-
-// NumericLiteral
-template<class Archive>
-inline void save_construct_data(Archive& ar, const zillians::language::tree::NumericLiteral* p, const unsigned int file_version)
-{
-    using namespace zillians::language::tree;
-
-    ar << (int&)p->type;
-    switch(p->type)
-    {
-    case PrimitiveType::type::BOOL     : ar << p->value.b  ; break;
-    case PrimitiveType::type::UINT8    : ar << p->value.u8 ; break;
-    case PrimitiveType::type::UINT16   : ar << p->value.u16; break;
-    case PrimitiveType::type::UINT32   : ar << p->value.u32; break;
-    case PrimitiveType::type::UINT64   : ar << p->value.u64; break;
-    case PrimitiveType::type::INT8     : ar << p->value.i8 ; break;
-    case PrimitiveType::type::INT16    : ar << p->value.i16; break;
-    case PrimitiveType::type::INT32    : ar << p->value.i32; break;
-    case PrimitiveType::type::INT64    : ar << p->value.i64; break;
-    case PrimitiveType::type::FLOAT32  : ar << p->value.f32; break;
-    case PrimitiveType::type::FLOAT64  : ar << p->value.f64; break;
-    }
-}
-
-template<class Archive>
-inline void load_construct_data(Archive& ar, zillians::language::tree::NumericLiteral* p, const unsigned int file_version)
-{
-    using namespace zillians::language::tree;
-
-    int type;
-    ar >> type;
-
-    bool              b   ;
-    zillians::int8    i8  ;
-    zillians::int16   i16 ;
-    zillians::int32   i32 ;
-    zillians::int64   i64 ;
-    zillians::uint8   u8  ;
-    zillians::uint16  u16 ;
-    zillians::uint32  u32 ;
-    zillians::uint64  u64 ;
-    float             f32 ;
-    double            f64 ;
-
-    switch(type)
-    {
-    case PrimitiveType::type::BOOL     : ar >> b  ; ::new(p) NumericLiteral(b  ); break;
-    case PrimitiveType::type::UINT8    : ar >> u8 ; ::new(p) NumericLiteral(u8 ); break;
-    case PrimitiveType::type::UINT16   : ar >> u16; ::new(p) NumericLiteral(u16); break;
-    case PrimitiveType::type::UINT32   : ar >> u32; ::new(p) NumericLiteral(u32); break;
-    case PrimitiveType::type::UINT64   : ar >> u64; ::new(p) NumericLiteral(u64); break;
-    case PrimitiveType::type::INT8     : ar >> i8 ; ::new(p) NumericLiteral(i8 ); break;
-    case PrimitiveType::type::INT16    : ar >> i16; ::new(p) NumericLiteral(i16); break;
-    case PrimitiveType::type::INT32    : ar >> i32; ::new(p) NumericLiteral(i32); break;
-    case PrimitiveType::type::INT64    : ar >> i64; ::new(p) NumericLiteral(i64); break;
-    case PrimitiveType::type::FLOAT32  : ar >> f32; ::new(p) NumericLiteral(f32); break;
-    case PrimitiveType::type::FLOAT64  : ar >> f64; ::new(p) NumericLiteral(f64); break;
-    }
-}
-
-// StringLiteral
-template<class Archive>
-inline void save_construct_data(Archive& ar, const zillians::language::tree::StringLiteral* p, const unsigned int file_version)
-{
-    ar << p->value;
-}
-
-template<class Archive>
-inline void load_construct_data(Archive& ar, zillians::language::tree::StringLiteral* p, const unsigned int file_version)
-{
-    using namespace zillians::language::tree;
-    std::wstring value;
-    ar >> value;
-    new(p) StringLiteral(value);
-}
-
-} } // namespace boost::serialization
 
 #endif /* ZILLIANS_LANGUAGE_TREE_LITERAL_H_ */

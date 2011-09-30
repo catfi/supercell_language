@@ -46,60 +46,21 @@ struct Import : public ASTNode
 
     virtual bool isEqualImpl(const ASTNode& rhs, ASTNodeSet& visited) const
     {
-        if(visited.count(this))
-        {
-            return true ;
-        }
-
-        const Import* p = cast<const Import>(&rhs);
-        if(p == NULL)
-        {
-            return false;
-        }
-
-        // compare base class
-        // The base is ASTNode, don't need to be compared.
-
-        // compare data member
-        if(!isASTNodeMemberEqual(&Import::ns, *this, *p, visited))
-        {
-            return false;
-        }
-
-        // add this to the visited table.
-        visited.insert(this);
-        return true;
+    	BEGIN_COMPARE()
+		COMPARE_MEMBER(ns);
+    	END_COMPARE()
     }
 
-    template<typename Archive>
-    void serialize(Archive& ar, const unsigned int version)
+    virtual bool replaceUseWith(const ASTNode& from, const ASTNode& to, bool update_parent = true)
     {
-        boost::serialization::base_object<ASTNode>(*this);
+    	BEGIN_REPLACE()
+		REPLACE_USE_WITH(ns)
+    	END_REPLACE()
     }
 
 	Identifier* ns;
 };
 
 } } }
-
-namespace boost { namespace serialization {
-
-template<class Archive>
-inline void save_construct_data(Archive& ar, const zillians::language::tree::Import* p, const unsigned int file_version)
-{
-    ar << p->ns;
-}
-
-template<class Archive>
-inline void load_construct_data(Archive& ar, zillians::language::tree::Import* p, const unsigned int file_version)
-{
-    using namespace zillians::language::tree;
-
-	Identifier* ns;
-    ar >> ns;
-	::new(p) Import(ns);
-}
-
-} } // namespace boost::serialization
 
 #endif /* ZILLIANS_LANGUAGE_TREE_IMPORT_H_ */

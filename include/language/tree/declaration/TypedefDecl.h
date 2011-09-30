@@ -32,81 +32,30 @@ struct TypedefDecl : public Declaration
 	DEFINE_VISITABLE();
 	DEFINE_HIERARCHY(TypedefDecl, (TypedefDecl)(Declaration)(ASTNode));
 
-	explicit TypedefDecl(TypeSpecifier* f, SimpleIdentifier* t) : from(f), to(t)
+	explicit TypedefDecl(TypeSpecifier* f, Identifier* t) : Declaration(t), type(f)
 	{
 		BOOST_ASSERT(f && t && "null \"from node\" or \"to node\" for typedef is not allowed");
 
-		from->parent = this;
-		to->parent = this;
+		type->parent = this;
 	}
 
     virtual bool isEqualImpl(const ASTNode& rhs, ASTNodeSet& visited) const
     {
-        if(visited.count(this))
-        {
-            return true ;
-        }
-
-        const TypedefDecl* p = cast<const TypedefDecl>(&rhs);
-        if(p == NULL)
-        {
-            return false;
-        }
-
-        // compare base class
-        if(!Declaration::isEqualImpl(*p, visited))
-        {
-            return false;
-        }
-
-        // compare data member
-        if(!isASTNodeMemberEqual(&TypedefDecl::from, *this, *p, visited))
-        {
-            return false;
-        }
-        if(!isASTNodeMemberEqual(&TypedefDecl::to  , *this, *p, visited))
-        {
-            return false;
-        }
-
-        // add this to the visited table.
-        visited.insert(this);
-        return true;
+    	BEGIN_COMPARE_WITH_BASE(Declaration)
+		COMPARE_MEMBER(type)
+		END_COMPARE()
     }
 
-    template<typename Archive>
-    void serialize(Archive& ar, const unsigned int version)
+    virtual bool replaceUseWith(const ASTNode& from, const ASTNode& to, bool update_parent = true)
     {
-        boost::serialization::base_object<Declaration>(*this);
+    	BEGIN_REPLACE_WITH_BASE(Declaration)
+		REPLACE_USE_WITH(type)
+    	END_REPLACE()
     }
 
-	TypeSpecifier* from;
-	SimpleIdentifier* to;
+	TypeSpecifier* type;
 };
 
 } } }
-
-namespace boost { namespace serialization {
-
-template<class Archive>
-inline void save_construct_data(Archive& ar, const zillians::language::tree::TypedefDecl* p, const unsigned int file_version)
-{
-	ar << p->from;
-	ar << p->to;
-}
-
-template<class Archive>
-inline void load_construct_data(Archive& ar, zillians::language::tree::TypedefDecl* p, const unsigned int file_version)
-{
-    using namespace zillians::language::tree;
-
-    TypeSpecifier* from;
-	SimpleIdentifier* to;
-	ar >> from;
-    ar >> to;
-	::new(p) TypedefDecl(from, to);
-}
-
-} } // namespace boost::serialization
 
 #endif /* ZILLIANS_LANGUAGE_TREE_TYPEDEFDECL_H_ */

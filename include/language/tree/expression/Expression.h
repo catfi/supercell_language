@@ -34,8 +34,8 @@ struct Expression : public ASTNode
 {
     friend class Selection;
 
-	DEFINE_VISITABLE();
-	DEFINE_HIERARCHY(Expression, (Expression)(ASTNode));
+	DEFINE_VISITABLE()
+	DEFINE_HIERARCHY(Expression, (Expression)(ASTNode))
 
 	Expression() : annotations(NULL)
 	{ }
@@ -47,43 +47,22 @@ struct Expression : public ASTNode
 		annotations = anns;
 	}
 
-	bool isLValue() { return !isRValue(); }
-	virtual bool isRValue() = 0;
+	bool isLValue() const { return !isRValue(); }
+	virtual bool isRValue() const = 0;
 
     virtual bool isEqualImpl(const ASTNode& rhs, ASTNodeSet& visited) const
     {
-        if(visited.count(this))
-        {
-            return true ;
-        }
-
-        const Expression* p = cast<const Expression>(&rhs);
-        if(p == NULL)
-        {
-            return false;
-        }
-
-        // compare base class
-        // The base is ASTNode, no need to compare
-
-        // compare data member
-        if(!isASTNodeMemberEqual(&Expression::annotations, *this, *p, visited))
-        {
-            return false;
-        }
-
-        // add this to the visited table.
-        visited.insert(this);
-        return true;
+    	BEGIN_COMPARE()
+		COMPARE_MEMBER(annotations)
+		END_COMPARE()
     }
 
-    template<typename Archive>
-    void serialize(Archive& ar, const unsigned int version)
+    virtual bool replaceUseWith(const ASTNode& from, const ASTNode& to, bool update_parent = true)
     {
-        boost::serialization::base_object<ASTNode>(*this);
-        ar & annotations;
+    	BEGIN_REPLACE()
+		REPLACE_USE_WITH(annotations)
+    	END_REPLACE()
     }
-
 	Annotations* annotations;
 };
 

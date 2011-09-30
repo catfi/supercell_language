@@ -44,7 +44,10 @@ struct PrimaryExpr : public Expression
 			case IDENTIFIER: return L"identifier";
 			case LITERAL: return L"literal";
 			case LAMBDA: return L"lambda";
+			default: break;
 			}
+			BOOST_ASSERT(false && "reaching unreachable code");
+			return NULL;
 		}
 	};
 
@@ -72,56 +75,44 @@ struct PrimaryExpr : public Expression
 		value.lambda = lambda;
 	}
 
-	virtual bool isRValue()
+	virtual bool isRValue() const
 	{
 		switch(catagory)
 		{
 		case Catagory::IDENTIFIER: return false;
 		case Catagory::LITERAL: return true;
 		case Catagory::LAMBDA: return true;
+		default: break;
 		}
+		BOOST_ASSERT(false && "reaching unreachable code");
+		return false;
 	}
 
     virtual bool isEqualImpl(const ASTNode& rhs, ASTNodeSet& visited) const
     {
-        if(visited.count(this))
-        {
-            return true ;
-        }
-
-        const PrimaryExpr* p = cast<const PrimaryExpr>(&rhs);
-        if(p == NULL)
-        {
-            return false;
-        }
-
-        // compare base class
-        if(!Expression::isEqualImpl(*p, visited))
-        {
-            return false;
-        }
-
-        // compare data member
-        if(catagory != p->catagory)
-        {
-            return false;
-        }
+    	BEGIN_COMPARE_WITH_BASE(Expression)
+		COMPARE_MEMBER(catagory)
         switch (catagory)
         {
-        case Catagory::IDENTIFIER: if(!isASTNodeMemberEqual(&PrimaryExpr::ValueUnion::identifier, value, p->value, visited)) return false; break;
-        case Catagory::LITERAL   : if(!isASTNodeMemberEqual(&PrimaryExpr::ValueUnion::literal   , value, p->value, visited)) return false; break;
-        case Catagory::LAMBDA    : if(!isASTNodeMemberEqual(&PrimaryExpr::ValueUnion::lambda    , value, p->value, visited)) return false; break;
+        case Catagory::IDENTIFIER: COMPARE_MEMBER(value.identifier); break;
+        case Catagory::LITERAL   : COMPARE_MEMBER(value.literal   ); break;
+		case Catagory::LAMBDA    : COMPARE_MEMBER(value.lambda    ); break;
+		default: break;
         }
-
-        // add this to the visited table.
-        visited.insert(this);
-        return true;
+    	END_COMPARE()
     }
 
-    template<typename Archive>
-    void serialize(Archive& ar, const unsigned int version)
+    virtual bool replaceUseWith(const ASTNode& from, const ASTNode& to, bool update_parent = true)
     {
-        boost::serialization::base_object<Expression>(*this);
+    	BEGIN_REPLACE_WITH_BASE(Expression)
+		switch (catagory)
+		{
+		case Catagory::IDENTIFIER: REPLACE_USE_WITH(value.identifier); break;
+		case Catagory::LITERAL: REPLACE_USE_WITH(value.literal); break;
+		case Catagory::LAMBDA: REPLACE_USE_WITH(value.lambda); break;
+		default: break;
+		}
+    	END_REPLACE()
     }
 
 	Catagory::type catagory;
@@ -135,50 +126,5 @@ struct PrimaryExpr : public Expression
 };
 
 } } }
-
-namespace boost { namespace serialization {
-
-template<class Archive>
-inline void save_construct_data(Archive& ar, const zillians::language::tree::PrimaryExpr* p, const unsigned int file_version)
-{
-    ar << (int&)p->catagory ;
-    switch(p->catagory)
-    {
-    case zillians::language::tree::PrimaryExpr::Catagory::IDENTIFIER : ar << p->value.identifier; break;
-    case zillians::language::tree::PrimaryExpr::Catagory::LITERAL    : ar << p->value.literal; break;
-    case zillians::language::tree::PrimaryExpr::Catagory::LAMBDA     : ar << p->value.lambda; break;
-    }
-}
-
-template<class Archive>
-inline void load_construct_data(Archive& ar, zillians::language::tree::PrimaryExpr* p, const unsigned int file_version)
-{
-    using namespace zillians::language::tree;
-
-    int type;
-    ar >> type;
-    
-    switch(static_cast<PrimaryExpr::Catagory::type>(type))
-    {
-    case PrimaryExpr::Catagory::IDENTIFIER :
-        Identifier* identifier;
-        ar >> identifier;
-        ::new(p) PrimaryExpr(identifier);
-        break;
-    case PrimaryExpr::Catagory::LITERAL    :
-        Literal* literal;
-        ar >> literal;
-        ::new(p) PrimaryExpr(literal);
-        break;
-    case PrimaryExpr::Catagory::LAMBDA     :
-        FunctionDecl* functionDecl;
-        ar >> functionDecl;
-        ::new(p) PrimaryExpr(functionDecl);
-        break;
-    }
-}
-
-} } // namespace boost::serialization
-
 
 #endif /* ZILLIANS_LANGUAGE_TREE_PRIMARYEXPR_H_ */
