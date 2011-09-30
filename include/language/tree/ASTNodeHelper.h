@@ -107,6 +107,11 @@ public:
 		return false;
 	}
 
+	static bool isAncestorOf(ClassDecl& ancestor, ClassDecl& descendant)
+	{
+		return false;
+	}
+
 	static bool isVoidType(TypeSpecifier* type_specifier)
 	{
 		return type_specifier->type == TypeSpecifier::ReferredType::PRIMITIVE
