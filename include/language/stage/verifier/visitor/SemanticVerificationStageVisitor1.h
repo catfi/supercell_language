@@ -99,21 +99,23 @@ struct SemanticVerificationStageVisitor1 : GenericDoubleVisitor
 	void verify(CallExpr &node)
 	{
 		// INVALID_NONSTATIC_CALL
+		bool decl_is_static = false;
+		std::wstring name;
 		ASTNode* decl = ResolvedSymbol::get(node.node);
-		FunctionDecl* owner_func_decl = ASTNodeHelper::getOwnerFunction(node);
-		ASTNode* attachment_point = ASTNodeHelper::getOwnerAnnotationAttachPoint(node);
 		if(isa<FunctionDecl>(decl))
 		{
 			FunctionDecl* func_decl = cast<FunctionDecl>(decl);
-			if(owner_func_decl->is_static && !func_decl->is_static)
-				LOG_MESSAGE(INVALID_NONSTATIC_CALL, attachment_point, _func_id = func_decl->name->toString());
+			decl_is_static = !func_decl->is_static;
+			name = func_decl->name->toString();
 		}
 		if(isa<VariableDecl>(decl))
 		{
 			VariableDecl* var_decl = cast<VariableDecl>(decl);
-			if(owner_func_decl->is_static && !var_decl->is_static)
-				LOG_MESSAGE(INVALID_NONSTATIC_CALL, attachment_point, _func_id = var_decl->name->toString());
+			decl_is_static = !var_decl->is_static;
+			name = var_decl->name->toString();
 		}
+		if(ASTNodeHelper::getOwnerFunction(node)->is_static && decl_is_static)
+			LOG_MESSAGE(INVALID_NONSTATIC_CALL, ASTNodeHelper::getOwnerAnnotationAttachPoint(node), _func_id = name);
 
 		revisit(node);
 	}
