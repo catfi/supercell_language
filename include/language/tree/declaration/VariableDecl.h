@@ -34,7 +34,7 @@ struct VariableDecl : public Declaration
 	DEFINE_VISITABLE();
 	DEFINE_HIERARCHY(VariableDecl, (VariableDecl)(Declaration)(ASTNode));
 
-	explicit VariableDecl(Identifier* name, TypeSpecifier* type, bool is_member, bool is_static, bool is_const, Declaration::VisibilitySpecifier::type visibility, ASTNode* initializer = NULL) : Declaration(name), type(type), is_member(is_member), is_static(is_static), is_const(is_const), visibility(visibility), initializer(initializer)
+	explicit VariableDecl(Identifier* name, TypeSpecifier* type, bool is_member, bool is_static, bool is_const, Declaration::VisibilitySpecifier::type visibility, Expression* initializer = NULL) : Declaration(name), type(type), is_member(is_member), is_static(is_static), is_const(is_const), visibility(visibility), initializer(initializer)
 	{
 		BOOST_ASSERT(name && "null variable name is not allowed");
 
@@ -42,7 +42,7 @@ struct VariableDecl : public Declaration
 		if(initializer) initializer->parent = this;
 	}
 
-	void setInitializer(ASTNode* init)
+	void setInitializer(Expression* init)
 	{
 		if(initializer) initializer->parent = NULL;
 		initializer = init;
@@ -74,7 +74,7 @@ struct VariableDecl : public Declaration
 	bool is_static;
 	bool is_const;
 	Declaration::VisibilitySpecifier::type visibility;
-	ASTNode* initializer;
+	Expression* initializer;
 };
 
 } } }
