@@ -232,6 +232,15 @@ struct ResolutionStageVisitor : GenericDoubleVisitor
 	void resolve(BranchStmt& node)
 	{
 		revisit(node);
+
+		if(!node.result)
+		{
+			ASTNode* resolved_type = ResolvedType::get(&node);
+			if(!resolved_type)
+			{
+				ResolvedType::set(&node, getInternalPrimitiveType(PrimitiveType::VOID));
+			}
+		}
 	}
 
 	void resolve(DeclarativeStmt& node)
@@ -621,65 +630,75 @@ private:
 
 
 private:
-	void propogateType(ASTNode* to, ASTNode* from)
+	static void propogateSourceInfo(ASTNode& to, ASTNode& from)
 	{
-		// recursively dig down the tree and find the actual resolved type
-		ASTNode* resolved_type_from = NULL;
-		while(resolved_type_from == NULL)
-		{
-			if(!from)
-			{
-				resolved_type_from = NULL;
-				break;
-			}
+		SourceInfoContext* to_src_info = to.get<SourceInfoContext>();
+		SourceInfoContext* from_src_info = from.get<SourceInfoContext>();
 
-			if(isa<ClassDecl>(from) || isa<InterfaceDecl>(from) || isa<EnumDecl>(from) || isa<FunctionDecl>(from))
-			{
-				resolved_type_from = from;
-			}
-			else if(isa<VariableDecl>(from))
-			{
-				from = cast<VariableDecl>(from)->type;
-			}
-			else if(isa<TypedefDecl>(from))
-			{
-				from = cast<TypedefDecl>(from)->type;
-			}
-			else if(isa<TypeSpecifier>(from))
-			{
-				TypeSpecifier* specifier = cast<TypeSpecifier>(from);
-				switch(specifier->type)
-				{
-				case TypeSpecifier::ReferredType::FUNCTION_TYPE:
-				case TypeSpecifier::ReferredType::PRIMITIVE:
-					resolved_type_from = specifier; break;
-				case TypeSpecifier::ReferredType::UNSPECIFIED:
-					from = ResolvedType::get(from); break;
-				default:
-					break;
-				}
-			}
-			else
-			{
-				from = ResolvedType::get(from); break;
-			}
-		}
+		BOOST_ASSERT(to_src_info == NULL && "invalid propagating source info propagation");
 
-		ASTNode* resolved_type_to = ResolvedType::get(to);
-		if(resolved_type_to)
-		{
-			// the resolved type should be changed during resolution stage
-			BOOST_ASSERT(resolved_type_to == resolved_type_from && "type resolution changed during resolution stage");
-		}
-		else if(resolved_type_from)
-		{
-			ResolvedType::set(to, resolved_type_from);
-		}
-		else
-		{
-			// both resolved_type_to and resolved_type_from are NULL, so there's no need to update
-		}
+		to.set<SourceInfoContext>(new SourceInfoContext(*from_src_info));
 	}
+
+//	void propogateType(ASTNode* to, ASTNode* from)
+//	{
+//		// recursively dig down the tree and find the actual resolved type
+//		ASTNode* resolved_type_from = NULL;
+//		while(resolved_type_from == NULL)
+//		{
+//			if(!from)
+//			{
+//				resolved_type_from = NULL;
+//				break;
+//			}
+//
+//			if(isa<ClassDecl>(from) || isa<InterfaceDecl>(from) || isa<EnumDecl>(from) || isa<FunctionDecl>(from))
+//			{
+//				resolved_type_from = from;
+//			}
+//			else if(isa<VariableDecl>(from))
+//			{
+//				from = cast<VariableDecl>(from)->type;
+//			}
+//			else if(isa<TypedefDecl>(from))
+//			{
+//				from = cast<TypedefDecl>(from)->type;
+//			}
+//			else if(isa<TypeSpecifier>(from))
+//			{
+//				TypeSpecifier* specifier = cast<TypeSpecifier>(from);
+//				switch(specifier->type)
+//				{
+//				case TypeSpecifier::ReferredType::FUNCTION_TYPE:
+//				case TypeSpecifier::ReferredType::PRIMITIVE:
+//					resolved_type_from = specifier; break;
+//				case TypeSpecifier::ReferredType::UNSPECIFIED:
+//					from = ResolvedType::get(from); break;
+//				default:
+//					break;
+//				}
+//			}
+//			else
+//			{
+//				from = ResolvedType::get(from); break;
+//			}
+//		}
+//
+//		ASTNode* resolved_type_to = ResolvedType::get(to);
+//		if(resolved_type_to)
+//		{
+//			// the resolved type should be changed during resolution stage
+//			BOOST_ASSERT(resolved_type_to == resolved_type_from && "type resolution changed during resolution stage");
+//		}
+//		else if(resolved_type_from)
+//		{
+//			ResolvedType::set(to, resolved_type_from);
+//		}
+//		else
+//		{
+//			// both resolved_type_to and resolved_type_from are NULL, so there's no need to update
+//		}
+//	}
 
 private:
 	bool isArithmeticCapableType(ASTNode* node)
@@ -825,6 +844,9 @@ private:
 		if(specifier_left->referred.primitive != specifier_right->referred.primitive)
 		{
 			// check if the LHS type can be casted into RHS type
+			// TODO ERROR! should use promote for arithmetic operation such as add/sub/div/mul
+			// TODO But for assignment, we should use LHS type
+			// TODO For += or -= or ... (assignment with arithmetic), we should convert the structure into a simpler form for processing beforehand (a += b := a = a + b)
 			bool precision_loss = false;
 			if(PrimitiveType::isImplicitConvertible(specifier_right->referred.primitive, specifier_left->referred.primitive, precision_loss))
 			{
@@ -835,11 +857,14 @@ private:
 
 				// insert cast expression to cast RHS to LHS
 				transforms.push_back([&, specifier_left]{
-					ASTNode* parent = node.parent;
+					ASTNode* parent = node.parent; // save the parent pointer for later use
+
 					CastExpr* cast_expr = new CastExpr(cast<Expression>(&node), specifier_left);
 					// replace the node with update_parent = true because we will update it manually
 					parent->replaceUseWith(node, *cast_expr, false);
 					cast_expr->parent = parent;
+
+					propogateSourceInfo(*cast_expr, node); // propagate the source info
 				});
 			}
 		}
@@ -868,11 +893,14 @@ private:
 		if(specifier->referred.primitive != PrimitiveType::BOOL)
 		{
 			transforms.push_back([&, specifier]{
-				ASTNode* parent = node.parent;
+				ASTNode* parent = node.parent; // save the parent pointer for later use
+
 				BinaryExpr* compare_expr = new BinaryExpr(BinaryExpr::OpCode::COMPARE_GT, cast<Expression>(&node), new PrimaryExpr(new NumericLiteral(specifier->referred.primitive, 0)));
 				// replace the node with update_parent = true because we will update it manually
 				parent->replaceUseWith(node, *compare_expr, false);
 				compare_expr->parent = parent;
+
+				propogateSourceInfo(*compare_expr, node); // propagate the source info
 			});
 		}
 	}
