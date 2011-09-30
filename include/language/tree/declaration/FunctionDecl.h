@@ -49,7 +49,7 @@ struct FunctionDecl : public Declaration
 		parameters.push_back(parameter_decl);
 	}
 
-	void appendParameter(SimpleIdentifier* name, TypeSpecifier* type = NULL, ASTNode* initializer = NULL)
+	void appendParameter(SimpleIdentifier* name, TypeSpecifier* type = NULL, Expression* initializer = NULL)
 	{
 		VariableDecl* parameter_decl = new VariableDecl(name, type, false, false, false, Declaration::VisibilitySpecifier::DEFAULT, initializer);
 		parameter_decl->parent = this;

@@ -56,7 +56,7 @@ struct variable_decl_stem
 #endif
 		Identifier*                            name        = _param(0);
 		TypeSpecifier*                         type        = _param(1).is_initialized() ? *_param(1) : NULL;
-		ASTNode*                               initializer = NULL;
+		Expression*                            initializer = NULL;
 		Declaration::VisibilitySpecifier::type visibility  = Declaration::VisibilitySpecifier::PUBLIC;
 		bool                                   is_member   = false;
 		bool                                   is_static   = false;

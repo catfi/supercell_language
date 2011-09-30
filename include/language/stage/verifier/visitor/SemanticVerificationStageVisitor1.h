@@ -83,9 +83,8 @@ struct SemanticVerificationStageVisitor1 : GenericDoubleVisitor
 				ASTNode* attachment_point = ASTNodeHelper::getOwnerAnnotationAttachPoint(node);
 
 				// UNINIT_REF
-				if(ASTNodeHelper::isOwnedByRValue(node))
-					if(!SemanticVerificationVariableDeclContext_HasBeenInit::get(var_decl))
-						LOG_MESSAGE(UNINIT_REF, attachment_point, _var_id = name);
+				if(!SemanticVerificationVariableDeclContext_HasBeenInit::get(var_decl))
+					LOG_MESSAGE(UNINIT_REF, attachment_point, _var_id = name);
 
 				// INVALID_NONSTATIC_REF
 				if(!isa<FunctionDecl>(node.parent))
@@ -123,14 +122,20 @@ struct SemanticVerificationStageVisitor1 : GenericDoubleVisitor
 	{
 		if(node.isAssignment())
 		{
-			VariableDecl* var_decl = cast<VariableDecl>(ResolvedSymbol::get(node.left));
+			VariableDecl* lhs_var_decl = cast<VariableDecl>(ResolvedSymbol::get(node.left));
 
 			// WRITE_CONST
-			if(var_decl->is_const)
-				LOG_MESSAGE(WRITE_CONST, ASTNodeHelper::getOwnerAnnotationAttachPoint(node), _var_id = var_decl->name->toString());
+			if(lhs_var_decl->is_const)
+				LOG_MESSAGE(WRITE_CONST, ASTNodeHelper::getOwnerAnnotationAttachPoint(node), _var_id = lhs_var_decl->name->toString());
 
 			// UNINIT_REF
-			SemanticVerificationVariableDeclContext_HasBeenInit::set(var_decl, NULL);
+			if(node.right->isRValue())
+				SemanticVerificationVariableDeclContext_HasBeenInit::get_instance(lhs_var_decl);
+			else if(node.right->isLValue()
+					&& !!SemanticVerificationVariableDeclContext_HasBeenInit::get(ResolvedSymbol::get(node.right)))
+			{
+				SemanticVerificationVariableDeclContext_HasBeenInit::get_instance(lhs_var_decl);
+			}
 		}
 
 		revisit(node);
@@ -165,7 +170,16 @@ struct SemanticVerificationStageVisitor1 : GenericDoubleVisitor
 	{
 		// UNINIT_REF
 		if(ASTNodeHelper::isOwnedByFunction(node) && ASTNodeHelper::isOwnedByBlock(node) && !!node.initializer)
-			SemanticVerificationVariableDeclContext_HasBeenInit::get_instance(&node);
+		{
+			if(node.initializer->isRValue())
+				SemanticVerificationVariableDeclContext_HasBeenInit::get_instance(&node);
+			else if(node.initializer->isLValue()
+					&& !!SemanticVerificationVariableDeclContext_HasBeenInit::get(
+							ResolvedSymbol::get(node.initializer))) // NOTE: FIX-ME -- cannot resolve Expression !!
+			{
+				SemanticVerificationVariableDeclContext_HasBeenInit::get_instance(&node);
+			}
+		}
 
 		revisit(node);
 	}
