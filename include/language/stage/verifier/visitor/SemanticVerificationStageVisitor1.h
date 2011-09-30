@@ -129,10 +129,8 @@ struct SemanticVerificationStageVisitor1 : GenericDoubleVisitor
 				LOG_MESSAGE(WRITE_CONST, ASTNodeHelper::getOwnerAnnotationAttachPoint(node), _var_id = lhs_var_decl->name->toString());
 
 			// UNINIT_REF
-			if(node.right->isRValue())
-				SemanticVerificationVariableDeclContext_HasBeenInit::get_instance(lhs_var_decl);
-			else if(node.right->isLValue()
-					&& !!SemanticVerificationVariableDeclContext_HasBeenInit::get(ResolvedSymbol::get(node.right)))
+			if(node.right->isRValue() || (node.right->isLValue()
+					&& !!SemanticVerificationVariableDeclContext_HasBeenInit::get(ResolvedSymbol::get(node.right))))
 			{
 				SemanticVerificationVariableDeclContext_HasBeenInit::get_instance(lhs_var_decl);
 			}
@@ -166,16 +164,15 @@ struct SemanticVerificationStageVisitor1 : GenericDoubleVisitor
 		revisit(node);
 	}
 
+	// NOTE: problematic.. hopefully we don't need this in the future..
 	void verify(VariableDecl &node)
 	{
 		// UNINIT_REF
-		if(ASTNodeHelper::isOwnedByFunction(node) && ASTNodeHelper::isOwnedByBlock(node) && !!node.initializer)
+		if(ASTNodeHelper::isOwnedByFunction(node) && !!node.initializer)
 		{
-			if(node.initializer->isRValue())
-				SemanticVerificationVariableDeclContext_HasBeenInit::get_instance(&node);
-			else if(node.initializer->isLValue()
+			if(node.initializer->isRValue() || (node.initializer->isLValue()
 					&& !!SemanticVerificationVariableDeclContext_HasBeenInit::get(
-							ResolvedSymbol::get(node.initializer))) // NOTE: FIX-ME -- cannot resolve Expression !!
+							ResolvedSymbol::get(node.initializer)))) // NOTE: FIX-ME -- cannot resolve Expression !!
 			{
 				SemanticVerificationVariableDeclContext_HasBeenInit::get_instance(&node);
 			}
@@ -186,6 +183,10 @@ struct SemanticVerificationStageVisitor1 : GenericDoubleVisitor
 
 	void verify(FunctionDecl &node)
 	{
+		// UNINIT_REF
+		foreach(i, node.parameters)
+			SemanticVerificationVariableDeclContext_HasBeenInit::get_instance(*i);
+
 		revisit(node);
 
 		// MISSING_RETURN
