@@ -76,6 +76,20 @@ struct FunctionDecl : public Declaration
     	END_REPLACE()
     }
 
+    virtual ASTNode* clone() const
+    {
+    	FunctionDecl* cloned = new FunctionDecl(
+    			(name) ? cast<Identifier>(name->clone()) : NULL,
+    			(type) ? cast<TypeSpecifier>(type->clone()) : NULL,
+    			is_member, is_static, visibility,
+    			(block) ? cast<Block>(block->clone()) : NULL);
+
+    	foreach(i, parameters)
+    		cloned->appendParameter(cast<VariableDecl>((*i)->clone()));
+
+    	return cloned;
+    }
+
 	std::vector<VariableDecl*> parameters;
 	TypeSpecifier* type;
 	bool is_member;

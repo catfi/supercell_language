@@ -66,4 +66,13 @@ std::wstring FunctionType::toString() const
 	return t;
 }
 
+ASTNode* FunctionType::clone() const
+{
+	FunctionType* cloned = new FunctionType();
+	foreach(i, templated_parameters) cloned->templated_parameters.push_back( (*i) ? cast<Identifier>((*i)->clone()) : NULL);
+	foreach(i, argument_types) cloned->argument_types.push_back( (*i) ? cast<TypeSpecifier>((*i)->clone()) : NULL);
+	cloned->return_type = (return_type) ? cast<TypeSpecifier>(return_type->clone()) : NULL;
+	return cloned;
+}
+
 } } }

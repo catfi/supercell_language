@@ -58,6 +58,11 @@ struct Import : public ASTNode
     	END_REPLACE()
     }
 
+    virtual ASTNode* clone() const
+    {
+    	return new Import((ns) ? cast<Identifier>(ns->clone()) : NULL);
+    }
+
 	Identifier* ns;
 };
 

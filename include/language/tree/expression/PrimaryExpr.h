@@ -115,6 +115,18 @@ struct PrimaryExpr : public Expression
     	END_REPLACE()
     }
 
+    virtual ASTNode* clone() const
+    {
+        switch (catagory)
+        {
+        case Catagory::IDENTIFIER: return new PrimaryExpr(cast<Identifier>(value.identifier->clone()));
+        case Catagory::LITERAL   : return new PrimaryExpr(cast<Literal>(value.literal->clone()));
+		case Catagory::LAMBDA    : return new PrimaryExpr(cast<FunctionDecl>(value.lambda->clone()));
+		default: break;
+        }
+        return NULL;
+    }
+
 	Catagory::type catagory;
 
 	union ValueUnion

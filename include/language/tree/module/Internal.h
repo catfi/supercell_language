@@ -102,6 +102,11 @@ struct Internal : public ASTNode
 		END_REPLACE()
     }
 
+    virtual ASTNode* clone() const
+    {
+    	return new Internal();
+    }
+
 	TypeSpecifier* VoidTy;
 	TypeSpecifier* BooleanTy;
 	TypeSpecifier* Int8Ty;

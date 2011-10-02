@@ -80,6 +80,11 @@ struct BranchStmt : public Statement
     	END_REPLACE()
     }
 
+    virtual ASTNode* clone() const
+    {
+    	return new BranchStmt(opcode, (result) ? result->clone() : NULL);
+    }
+
 	OpCode::type opcode;
 	ASTNode* result;
 };

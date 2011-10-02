@@ -55,6 +55,11 @@ struct DeclarativeStmt : public Statement
     	END_REPLACE()
     }
 
+    virtual ASTNode* clone() const
+    {
+    	return new DeclarativeStmt(cast<Declaration>(declaration->clone()));
+    }
+
 	Declaration* declaration;
 };
 

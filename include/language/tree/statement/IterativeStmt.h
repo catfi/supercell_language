@@ -39,7 +39,6 @@ struct IterativeStmt : public Statement
     	BEGIN_COMPARE_WITH_BASE(Statement)
     	END_COMPARE()
     }
-
 };
 
 struct ForStmt : public IterativeStmt
@@ -79,6 +78,15 @@ struct ForStmt : public IterativeStmt
     	END_REPLACE()
     }
 
+    virtual ASTNode* clone() const
+    {
+    	return new ForStmt(
+    			(init) ? init->clone() : NULL,
+    			(cond) ? cond->clone() : NULL,
+    			(step) ? step->clone() : NULL,
+    			(block) ? block->clone() : NULL);
+    }
+
 	ASTNode* init;
 	ASTNode* cond;
 	ASTNode* step;
@@ -116,6 +124,14 @@ struct ForeachStmt : public IterativeStmt
 		REPLACE_USE_WITH(range)
 		REPLACE_USE_WITH(block)
     	END_REPLACE()
+    }
+
+    virtual ASTNode* clone() const
+    {
+    	return new ForeachStmt(
+    			(iterator) ? iterator->clone() : NULL,
+    			(range) ? cast<Expression>(range->clone()) : NULL,
+    			(block) ? block->clone() : NULL);
     }
 
 	ASTNode* iterator; // TODO semantic-check: it must be L-value expression or declarative statement
@@ -168,6 +184,14 @@ struct WhileStmt : public IterativeStmt
 		REPLACE_USE_WITH(cond)
 		REPLACE_USE_WITH(block)
     	END_REPLACE()
+    }
+
+    virtual ASTNode* clone() const
+    {
+    	return new WhileStmt(
+    			style,
+    			(cond) ? cast<Expression>(cond->clone()) : NULL,
+    			(block) ? block->clone() : NULL);
     }
 
 	Style::type style;

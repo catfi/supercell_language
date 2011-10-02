@@ -63,6 +63,13 @@ struct CastExpr : public Expression
     	END_REPLACE()
     }
 
+    virtual ASTNode* clone() const
+    {
+    	return new CastExpr(
+    			(node) ? cast<Expression>(node->clone()) : NULL,
+    			(type) ? cast<TypeSpecifier>(type->clone()) : NULL);
+    }
+
 	Expression* node;
 	TypeSpecifier* type;
 };

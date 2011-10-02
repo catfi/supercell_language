@@ -60,12 +60,17 @@ function test():void {
 	*/
 	
 	// implicit cast from integer to boolean
-	if(e) { }
-	elif(f) { }
 	/*
+	if(a) { }
+	elif(b) { }
 	elif(c) { }
 	elif(d) { }
+	elif(e) { }
+	elif(f) { }
 	else { }
 	*/
+	
+	a = b + c + d;
+	
 }
 

@@ -62,6 +62,18 @@ struct EnumDecl : public Declaration
     	END_REPLACE()
     }
 
+    virtual ASTNode* clone() const
+    {
+    	EnumDecl* cloned = new EnumDecl((name) ? cast<Identifier>(name->clone()) : NULL);
+
+    	foreach(i, enumeration_list)
+    		cloned->addEnumeration(
+    				(i->first) ? cast<SimpleIdentifier>(i->first->clone()) : NULL,
+    				(i->second) ? cast<Expression>(i->second->clone()) : NULL);
+
+    	return cloned;
+    }
+
 	std::vector<std::pair<SimpleIdentifier*, Expression*>> enumeration_list;
 };
 

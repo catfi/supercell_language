@@ -41,13 +41,69 @@ struct Block : public ASTNode
 		objects.push_back(object);
 	}
 
+	bool insertObject(ASTNode* after, ASTNode* object, bool replace_after = false)
+	{
+		if(!after)
+		{
+			appendObject(object);
+			return true;
+		}
+		else
+		{
+			std::list<ASTNode*>::iterator it = std::find(objects.begin(), objects.end(), after);
+			if(it != objects.end())
+			{
+				++it;
+				object->parent = this;
+				objects.insert(it, object);
+
+				if(replace_after)
+					objects.erase(it);
+
+				return true;
+			}
+			else
+			{
+				return false;
+			}
+		}
+	}
+
 	template<typename T>
-	void appendObjects(std::vector<T*>& object_list)
+	void appendObjects(T& object_list)
 	{
 		deduced_foreach(i, object_list)
-		{
 			(*i)->parent = this;
-			objects.push_back(*i);
+		objects.insert(objects.end(), object_list.begin(), object_list.end());
+	}
+
+	template<typename T>
+	bool insertObjects(ASTNode* after, T& object_list, bool replace_after = false)
+	{
+		if(!after)
+		{
+			appendObjects(object_list);
+			return true;
+		}
+		else
+		{
+			std::list<ASTNode*>::iterator it = std::find(objects.begin(), objects.end(), after);
+			if(it != objects.end())
+			{
+				deduced_foreach(i, object_list)
+					(*i)->parent = this;
+				++it;
+				objects.insert(it, object_list.begin(), object_list.end());
+
+				if(replace_after)
+					objects.erase(it);
+
+				return true;
+			}
+			else
+			{
+				return false;
+			}
 		}
 	}
 
@@ -67,9 +123,17 @@ struct Block : public ASTNode
     	END_REPLACE()
     }
 
+    virtual ASTNode* clone() const
+    {
+    	Block* cloned = new Block(is_pipelined_block, is_async_block);
+    	foreach(i, objects)
+    		cloned->objects.push_back((*i) ? (*i)->clone() : NULL);
+    	return cloned;
+    }
+
 	bool is_pipelined_block;
 	bool is_async_block;
-	std::vector<ASTNode*> objects;
+	std::list<ASTNode*> objects;
 };
 
 } } }

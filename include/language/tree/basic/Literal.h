@@ -85,6 +85,11 @@ struct ObjectLiteral : public Literal
     	return false;
     }
 
+    virtual ASTNode* clone() const
+    {
+    	return new ObjectLiteral(type);
+    }
+
 	LiteralType::type type;
 };
 
@@ -142,6 +147,22 @@ struct NumericLiteral : public Literal
     	return false;
     }
 
+    virtual ASTNode* clone() const
+    {
+        switch(type)
+        {
+        case PrimitiveType::type::BOOL    : return new NumericLiteral(value.b);
+        case PrimitiveType::type::INT8    : return new NumericLiteral(value.i8);
+        case PrimitiveType::type::INT16   : return new NumericLiteral(value.i16);
+        case PrimitiveType::type::INT32   : return new NumericLiteral(value.i32);
+        case PrimitiveType::type::INT64   : return new NumericLiteral(value.i64);
+        case PrimitiveType::type::FLOAT32 : return new NumericLiteral(value.f32);
+        case PrimitiveType::type::FLOAT64 : return new NumericLiteral(value.f64);
+        default: break;
+        }
+        return NULL;
+    }
+
 	PrimitiveType::type type;
 
 	union ValueUnion
@@ -186,6 +207,11 @@ struct StringLiteral : public Literal
     virtual bool replaceUseWith(const ASTNode& from, const ASTNode& to, bool update_parent = true)
     {
     	return false;
+    }
+
+    virtual ASTNode* clone() const
+    {
+    	return new StringLiteral(value);
     }
 
 	std::wstring value;

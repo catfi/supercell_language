@@ -89,6 +89,24 @@ struct BinaryExpr : public Expression
 			BOOST_ASSERT(false && "reaching unreachable code");
 			return NULL;
 		}
+
+		static type decomposeAssignment(type t)
+		{
+			switch(t)
+			{
+			case ARITHMETIC_RSHIFT_ASSIGN: return ARITHMETIC_RSHIFT;
+			case ADD_ASSIGN: return ARITHMETIC_ADD;
+			case SUB_ASSIGN: return ARITHMETIC_SUB;
+			case MUL_ASSIGN: return ARITHMETIC_MUL;
+			case DIV_ASSIGN: return ARITHMETIC_DIV;
+			case MOD_ASSIGN: return ARITHMETIC_MOD;
+			case AND_ASSIGN: return BINARY_AND;
+			case OR_ASSIGN:  return BINARY_OR;
+			case XOR_ASSIGN: return BINARY_XOR;
+			default: break;
+			}
+			return INVALID;
+		}
 	};
 
 
@@ -251,6 +269,14 @@ struct BinaryExpr : public Expression
 		REPLACE_USE_WITH(left)
 		REPLACE_USE_WITH(right)
     	END_REPLACE()
+    }
+
+    virtual ASTNode* clone() const
+    {
+    	return new BinaryExpr(
+    			opcode,
+    			(left) ? cast<Expression>(left->clone()) : NULL,
+    			(right) ? cast<Expression>(right->clone()) : NULL);
     }
 
 	OpCode::type opcode;

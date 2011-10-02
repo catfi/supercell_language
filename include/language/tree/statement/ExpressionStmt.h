@@ -54,6 +54,11 @@ struct ExpressionStmt : public Statement
     	END_REPLACE()
     }
 
+    virtual ASTNode* clone() const
+    {
+    	return new ExpressionStmt(cast<Expression>(expr->clone()));
+    }
+
 	Expression* expr;
 };
 
