@@ -69,11 +69,19 @@ ThorScriptCompiler::ThorScriptCompiler()
 	addMode<
 		boost::mpl::vector<
 			ThorScriptParserStage,
+			LiteralCompactionStage,
+			RestructureStage,
+			StaticTestVerificationStage>>("mode-xform-stage-only", "for transform stage");
+
+	addMode<
+		boost::mpl::vector<
+			ThorScriptParserStage,
 			SemanticVerificationStage0,
+			LiteralCompactionStage,
+			RestructureStage,
 			ResolutionStage,
 			SemanticVerificationStage1,
 			StaticTestVerificationStage>>("mode-semantic-verify-1", "for semantic verification stage 1");
-
 }
 
 ThorScriptCompiler::~ThorScriptCompiler()

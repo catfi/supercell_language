@@ -21,7 +21,7 @@
 
 zillians_add_complex_test(
     TARGET thorscript-parser-test-control-structure
-    SHELL ${CMAKE_CURRENT_SOURCE_DIR}/../scripts/test.sh ${ThorScriptCompiler} ${ThorScriptLogFilter} 0
+    SHELL ${CMAKE_CURRENT_SOURCE_DIR}/../test.sh ${ThorScriptCompiler} ${ThorScriptLogFilter} 0
             ${CMAKE_CURRENT_SOURCE_DIR}/0_if_elif_else.t
             ${CMAKE_CURRENT_SOURCE_DIR}/1_switch_case_default.t
             ${CMAKE_CURRENT_SOURCE_DIR}/2_while_dowhile.t
@@ -32,7 +32,18 @@ zillians_add_complex_test(
 
 zillians_add_complex_test(
     TARGET thorscript-parser-test-ast-control-structure
-    SHELL ${CMAKE_CURRENT_SOURCE_DIR}/../scripts/test.sh ${ThorScriptCompiler} ${ThorScriptLogFilter} 1
+    SHELL ${CMAKE_CURRENT_SOURCE_DIR}/../test.sh ${ThorScriptCompiler} ${ThorScriptLogFilter} 1
+            ${CMAKE_CURRENT_SOURCE_DIR}/0_if_elif_else.t
+            ${CMAKE_CURRENT_SOURCE_DIR}/1_switch_case_default.t
+            ${CMAKE_CURRENT_SOURCE_DIR}/2_while_dowhile.t
+            ${CMAKE_CURRENT_SOURCE_DIR}/3_foreach.t
+            ${CMAKE_CURRENT_SOURCE_DIR}/4_for.t
+    DEPENDS ${ThorScriptCompiler} ${ThorScriptLogFilter}
+    )
+
+zillians_add_complex_test(
+    TARGET thorscript-parser-test-xform-control-structure
+    SHELL ${CMAKE_CURRENT_SOURCE_DIR}/../test.sh ${ThorScriptCompiler} ${ThorScriptLogFilter} 2
             ${CMAKE_CURRENT_SOURCE_DIR}/0_if_elif_else.t
             ${CMAKE_CURRENT_SOURCE_DIR}/1_switch_case_default.t
             ${CMAKE_CURRENT_SOURCE_DIR}/2_while_dowhile.t
