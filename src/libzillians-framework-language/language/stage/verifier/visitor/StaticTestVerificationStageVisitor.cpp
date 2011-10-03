@@ -279,7 +279,7 @@ bool StaticTestVerificationStageVisitor::compareLogInfoVec(ASTNode* errorNode, s
     if(annotatedLogInfoVec.size() != hookedLogInfoVec.size())
     {
         std::wostringstream oss;
-        oss << L": Number of LogInfo mismatch, node is " << annotatedLogInfoVec.size() << L", annotation is " << hookedLogInfoVec.size() ;
+        oss << L": Number of LogInfo mismatch, node is " << hookedLogInfoVec.size() << L", annotation is " << annotatedLogInfoVec.size() ;
         LOG_MESSAGE(WRONG_STATIC_TEST_ANNOTATION_FORMAT, errorNode, _detail = oss.str());
     }
 
