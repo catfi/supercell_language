@@ -95,7 +95,8 @@ bool ThorScriptParserStage::parseOptions(po::variables_map& vm)
 bool ThorScriptParserStage::execute(bool& continue_execution)
 {
 	// prepare the global parser context
-	setParserContext(new ParserContext());
+	if(!hasParserContext())
+		setParserContext(new ParserContext());
 
 	// prepare the module source info context for the root program node
    	ModuleSourceInfoContext::set(getParserContext().program, new ModuleSourceInfoContext());

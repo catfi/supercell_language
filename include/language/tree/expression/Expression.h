@@ -33,6 +33,7 @@ struct Selection;
 struct Expression : public ASTNode
 {
     friend class Selection;
+	friend class boost::serialization::access;
 
 	DEFINE_VISITABLE()
 	DEFINE_HIERARCHY(Expression, (Expression)(ASTNode))
@@ -63,6 +64,14 @@ struct Expression : public ASTNode
 		REPLACE_USE_WITH(annotations)
     	END_REPLACE()
     }
+
+    template<typename Archive>
+    void serialize(Archive& ar, const unsigned int version)
+    {
+    	ar & boost::serialization::base_object<ASTNode>(*this);
+    	ar & annotations;
+    }
+
 	Annotations* annotations;
 };
 

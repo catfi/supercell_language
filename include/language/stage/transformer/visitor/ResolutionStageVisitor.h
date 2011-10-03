@@ -34,8 +34,12 @@ using zillians::language::tree::visitor::ResolutionVisitor;
 
 namespace zillians { namespace language { namespace stage { namespace visitor {
 
-// TODO implement resolve cache
-
+/**
+ * ResolutionStageVisitor is the visitation helper for ResolutionStage
+ *
+ * @see ResolutionStage
+ * @todo implement resolution cache
+ */
 struct ResolutionStageVisitor : GenericDoubleVisitor
 {
 	CREATE_INVOKER(resolveInvoker, resolve)

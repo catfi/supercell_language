@@ -31,6 +31,11 @@ using zillians::language::tree::visitor::NameManglingVisitor;
 
 namespace zillians { namespace language { namespace stage { namespace visitor {
 
+/**
+ * ManglingStageVisitor is the visitation helper for ManglingStage
+ *
+ * @see ManglingStage
+ */
 struct ManglingStageVisitor : GenericDoubleVisitor
 {
 	CREATE_INVOKER(mangleInvoker, mangle)

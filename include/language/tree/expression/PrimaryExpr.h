@@ -28,6 +28,8 @@ namespace zillians { namespace language { namespace tree {
 
 struct PrimaryExpr : public Expression
 {
+	friend class boost::serialization::access;
+
 	DEFINE_VISITABLE()
 	DEFINE_HIERARCHY(PrimaryExpr, (PrimaryExpr)(Expression)(ASTNode));
 
@@ -127,6 +129,20 @@ struct PrimaryExpr : public Expression
         return NULL;
     }
 
+    template<typename Archive>
+    void serialize(Archive& ar, const unsigned int version)
+    {
+    	ar & boost::serialization::base_object<Expression>(*this);
+    	ar & (int&)catagory;
+        switch (catagory)
+        {
+        case Catagory::IDENTIFIER: ar & value.identifier; break;
+        case Catagory::LITERAL   : ar & value.literal; break;
+		case Catagory::LAMBDA    : ar & value.lambda; break;
+		default: break;
+        }
+    }
+
 	Catagory::type catagory;
 
 	union ValueUnion
@@ -135,6 +151,9 @@ struct PrimaryExpr : public Expression
 		Literal* literal;
 		FunctionDecl* lambda;
 	} value;
+
+protected:
+	PrimaryExpr() { }
 };
 
 } } }

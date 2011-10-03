@@ -27,6 +27,8 @@ namespace zillians { namespace language { namespace tree {
 
 struct Internal : public ASTNode
 {
+	friend class boost::serialization::access;
+
 	DEFINE_VISITABLE();
 	DEFINE_HIERARCHY(Internal, (Internal)(ASTNode));
 
@@ -105,6 +107,24 @@ struct Internal : public ASTNode
     virtual ASTNode* clone() const
     {
     	return new Internal();
+    }
+
+    template<typename Archive>
+    void serialize(Archive& ar, const unsigned int version)
+    {
+    	ar & boost::serialization::base_object<ASTNode>(*this);
+    	ar & VoidTy;
+    	ar & BooleanTy;
+    	ar & Int8Ty;
+    	ar & Int16Ty;
+    	ar & Int32Ty;
+    	ar & Int64Ty;
+    	ar & Float32Ty;
+    	ar & Float64Ty;
+    	ar & ObjectTy;
+    	ar & FunctionTy;
+    	ar & StringTy;
+    	ar & others;
     }
 
 	TypeSpecifier* VoidTy;

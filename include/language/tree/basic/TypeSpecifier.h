@@ -35,6 +35,8 @@ class TypedefDecl;
 
 struct TypeSpecifier : public ASTNode
 {
+	friend class boost::serialization::access;
+
 	DEFINE_VISITABLE();
 	DEFINE_HIERARCHY(TypeSpecifier, (TypeSpecifier)(ASTNode));
 
@@ -141,6 +143,20 @@ struct TypeSpecifier : public ASTNode
         return NULL;
     }
 
+    template<typename Archive>
+    void serialize(Archive& ar, const unsigned int version)
+    {
+    	ar & boost::serialization::base_object<ASTNode>(*this);
+    	ar & (int&)type;
+        switch(type)
+        {
+        case TypeSpecifier::ReferredType::FUNCTION_TYPE  : ar & referred.function_type; break;
+        case TypeSpecifier::ReferredType::PRIMITIVE      : ar & (int&)referred.primitive; break;
+        case TypeSpecifier::ReferredType::UNSPECIFIED    : ar & referred.unspecified; break;
+        default: break;
+        }
+    }
+
 	ReferredType::type type;
 
 	union ReferredUnion
@@ -149,6 +165,9 @@ struct TypeSpecifier : public ASTNode
 		PrimitiveType::type primitive;
 		Identifier* unspecified;
 	} referred;
+
+protected:
+	TypeSpecifier() { }
 };
 
 } } }

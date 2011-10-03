@@ -29,6 +29,8 @@ namespace zillians { namespace language { namespace tree {
 
 struct BranchStmt : public Statement
 {
+	friend class boost::serialization::access;
+
 	DEFINE_VISITABLE();
 	DEFINE_HIERARCHY(BranchStmt, (BranchStmt)(Statement)(ASTNode));
 
@@ -51,7 +53,7 @@ struct BranchStmt : public Statement
 		}
 	};
 
-	BranchStmt(OpCode::type opcode, ASTNode* result = NULL) : opcode(opcode), result(result)
+	explicit BranchStmt(OpCode::type opcode, ASTNode* result = NULL) : opcode(opcode), result(result)
 	{
 		if(result) result->parent = this;
 	}
@@ -85,8 +87,19 @@ struct BranchStmt : public Statement
     	return new BranchStmt(opcode, (result) ? result->clone() : NULL);
     }
 
+    template<typename Archive>
+    void serialize(Archive& ar, const unsigned int version)
+    {
+    	ar & boost::serialization::base_object<Statement>(*this);
+    	ar & (int&)opcode;
+    	ar & result;
+    }
+
 	OpCode::type opcode;
 	ASTNode* result;
+
+protected:
+	BranchStmt() { }
 };
 
 } } }

@@ -57,6 +57,13 @@ struct Statement : public ASTNode
     	END_REPLACE()
     }
 
+    template<typename Archive>
+    void serialize(Archive& ar, const unsigned int version)
+    {
+    	ar & boost::serialization::base_object<ASTNode>(*this);
+    	ar & annotations;
+    }
+
 	Annotations* annotations;
 };
 

@@ -17,67 +17,69 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#include "language/stage/transformer/TypeConversionStage.h"
-#include "language/stage/transformer/visitor/TypeConversionStageVisitor.h"
-#include "language/tree/visitor/general/PrettyPrintVisitor.h"
+#include "language/stage/parser/ASTDeserializationStage.h"
 #include "language/context/ParserContext.h"
+#include "language/tree/ASTNodeSerialization.h"
+#include <boost/archive/text_oarchive.hpp>
+#include <boost/archive/text_iarchive.hpp>
 
 namespace zillians { namespace language { namespace stage {
 
-TypeConversionStage::TypeConversionStage()
+ASTDeserializationStage::ASTDeserializationStage() : enabled(false)
 { }
 
-TypeConversionStage::~TypeConversionStage()
+ASTDeserializationStage::~ASTDeserializationStage()
 { }
 
-const char* TypeConversionStage::name()
+const char* ASTDeserializationStage::name()
 {
-	return "Type Conversion Stage";
+	return "AST Deserialization Stage";
 }
 
-std::pair<shared_ptr<po::options_description>, shared_ptr<po::options_description>> TypeConversionStage::getOptions()
+std::pair<shared_ptr<po::options_description>, shared_ptr<po::options_description>> ASTDeserializationStage::getOptions()
 {
 	shared_ptr<po::options_description> option_desc_public(new po::options_description());
 	shared_ptr<po::options_description> option_desc_private(new po::options_description());
 
-	option_desc_private->add_options()("debug-type-conversion-stage", "debug type conversion stage");
+	option_desc_public->add_options()
+		("load-ast", po::value<std::string>(), "load serialized AST file");
+
+	foreach(i, option_desc_public->options()) option_desc_private->add(*i);
+
+	option_desc_private->add_options();
 
 	return std::make_pair(option_desc_public, option_desc_private);
 }
 
-bool TypeConversionStage::parseOptions(po::variables_map& vm)
+bool ASTDeserializationStage::parseOptions(po::variables_map& vm)
 {
-	debug = (vm.count("debug-type-conversion-stage") > 0);
-
+	enabled = (vm.count("load-ast") > 0);
+	if(enabled)
+	{
+		ast_file = vm["load-ast"].as<std::string>();
+	}
 	return true;
 }
 
-bool TypeConversionStage::execute(bool& continue_execution)
+bool ASTDeserializationStage::execute(bool& continue_execution)
 {
-	if(!hasParserContext())
-		return false;
-
-	ParserContext& parser_context = getParserContext();
-
-	if(parser_context.program)
-	{
-		visitor::TypeConversionStageVisitor convert;
-		convert.visit(*parser_context.program);
-		convert.applyTransforms();
-
-		if(debug)
-		{
-			tree::visitor::PrettyPrintVisitor printer;
-			printer.visit(*parser_context.program);
-		}
-
+	if(!enabled)
 		return true;
-	}
-	else
-	{
-		return false;
-	}
 
+	// prepare the global parser context
+	if(!hasParserContext())
+		setParserContext(new ParserContext());
+
+    std::ifstream ifs(ast_file);
+    if(!ifs.good()) return false;
+
+    boost::archive::text_iarchive ia(ifs);
+    tree::ASTNode* from_serialize = NULL;
+    ia >> from_serialize;
+
+    getParserContext().program = tree::cast<tree::Program>(from_serialize);
+
+	return true;
 }
 
 } } }

@@ -32,6 +32,8 @@ namespace zillians { namespace language { namespace tree {
 
 struct VariableDecl : public Declaration
 {
+	friend class boost::serialization::access;
+
 	DEFINE_VISITABLE();
 	DEFINE_HIERARCHY(VariableDecl, (VariableDecl)(Declaration)(ASTNode));
 
@@ -79,12 +81,27 @@ struct VariableDecl : public Declaration
     			(initializer) ? cast<Expression>(initializer->clone()) : NULL);
     }
 
+    template<typename Archive>
+    void serialize(Archive& ar, const unsigned int version)
+    {
+    	ar & boost::serialization::base_object<Declaration>(*this);
+    	ar & type;
+    	ar & is_member;
+    	ar & is_static;
+    	ar & is_const;
+    	ar & (int&)visibility;
+    	ar & initializer;
+    }
+
 	TypeSpecifier* type;
 	bool is_member;
 	bool is_static;
 	bool is_const;
 	Declaration::VisibilitySpecifier::type visibility;
 	Expression* initializer;
+
+protected:
+	VariableDecl() { }
 };
 
 } } }

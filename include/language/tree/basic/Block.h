@@ -29,6 +29,8 @@ namespace zillians { namespace language { namespace tree {
 
 struct Block : public ASTNode
 {
+	friend class boost::serialization::access;
+
 	DEFINE_VISITABLE();
 	DEFINE_HIERARCHY(Block, (Block)(ASTNode));
 
@@ -50,7 +52,7 @@ struct Block : public ASTNode
 		}
 		else
 		{
-			std::list<ASTNode*>::iterator it = std::find(objects.begin(), objects.end(), after);
+			auto it = std::find(objects.begin(), objects.end(), after);
 			if(it != objects.end())
 			{
 				++it;
@@ -87,7 +89,7 @@ struct Block : public ASTNode
 		}
 		else
 		{
-			std::list<ASTNode*>::iterator it = std::find(objects.begin(), objects.end(), after);
+			auto it = std::find(objects.begin(), objects.end(), after);
 			if(it != objects.end())
 			{
 				deduced_foreach(i, object_list)
@@ -129,6 +131,15 @@ struct Block : public ASTNode
     	foreach(i, objects)
     		cloned->objects.push_back((*i) ? (*i)->clone() : NULL);
     	return cloned;
+    }
+
+    template<typename Archive>
+    void serialize(Archive& ar, const unsigned int version)
+    {
+    	ar & boost::serialization::base_object<ASTNode>(*this);
+    	ar & is_pipelined_block;
+    	ar & is_async_block;
+    	ar & objects;
     }
 
 	bool is_pipelined_block;

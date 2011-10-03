@@ -24,11 +24,11 @@
 
 namespace zillians { namespace language { namespace stage {
 
-class LLVMGeneratorStage : public Stage
+class ASTSerializationStage : public Stage
 {
 public:
-	LLVMGeneratorStage();
-	virtual ~LLVMGeneratorStage();
+	ASTSerializationStage();
+	virtual ~ASTSerializationStage();
 
 public:
 	virtual const char* name();
@@ -38,7 +38,7 @@ public:
 
 private:
 	bool enabled;
-	std::string llvm_module_name;
+	std::string ast_file;
 };
 
 } } }
