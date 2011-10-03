@@ -539,8 +539,8 @@ private:
 		if(!node)
 			return false;
 
-		if(!ResolvedType::get(attach))
-			return false;
+		if(ResolvedType::get(attach))
+			return true;
 
 		if(node->type == TypeSpecifier::ReferredType::UNSPECIFIED)
 		{
@@ -567,7 +567,7 @@ private:
 		if(!scope || !node)
 			return false;
 
-		if(!ResolvedSymbol::get(attach))
+		if(ResolvedSymbol::get(attach))
 			return true;
 
 		if(resolver.resolveSymbol(*attach, *scope, *node, no_action))
@@ -588,6 +588,9 @@ private:
 		if(!node)
 			return false;
 
+		if(ResolvedSymbol::get(attach))
+			return true;
+
 		if(resolver.resolveSymbol(*attach, *node, no_action))
 		{
 			++resolved_count;
@@ -605,6 +608,9 @@ private:
 	{
 		if(!scope || !node)
 			return false;
+
+		if(ResolvedPackage::get(attach))
+			return true;
 
 		if(resolver.resolvePackage(*attach, *scope, *node, no_action))
 		{
@@ -624,6 +630,9 @@ private:
 		if(!node)
 			return false;
 
+		if(ResolvedPackage::get(attach))
+			return true;
+
 		if(resolver.resolvePackage(*attach, *node, no_action))
 		{
 			++resolved_count;
@@ -641,6 +650,9 @@ private:
 	{
 		if(!scope || !node)
 			return false;
+
+		if(ResolvedSymbol::get(attach) && ResolvedPackage::get(attach))
+			return true;
 
 		if(resolver.resolveSymbol(*attach, *scope, *node, no_action))
 		{
@@ -667,6 +679,9 @@ private:
 	{
 		if(!node)
 			return false;
+
+		if(ResolvedSymbol::get(attach) && ResolvedPackage::get(attach))
+			return true;
 
 		if(resolver.resolveSymbol(*attach, *node, no_action))
 		{

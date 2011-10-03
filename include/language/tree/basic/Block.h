@@ -37,13 +37,46 @@ struct Block : public ASTNode
 	explicit Block(bool is_pipelined = false, bool is_async = false) : is_pipelined_block(is_pipelined), is_async_block(is_async)
 	{ }
 
+	void prependObject(ASTNode* object)
+	{
+		object->parent = this;
+		objects.push_front(object);
+	}
+
 	void appendObject(ASTNode* object)
 	{
 		object->parent = this;
 		objects.push_back(object);
 	}
 
-	bool insertObject(ASTNode* after, ASTNode* object, bool replace_after = false)
+	bool insertObjectBefore(ASTNode* before, ASTNode* object, bool replace_before = false)
+	{
+		if(!before)
+		{
+			prependObject(object);
+			return true;
+		}
+		else
+		{
+			auto it = std::find(objects.begin(), objects.end(), before);
+			if(it != objects.end())
+			{
+				object->parent = this;
+				objects.insert(it, object);
+
+				if(replace_before)
+					objects.erase(it);
+
+				return true;
+			}
+			else
+			{
+				return false;
+			}
+		}
+	}
+
+	bool insertObjectAfter(ASTNode* after, ASTNode* object, bool replace_after = false)
 	{
 		if(!after)
 		{
@@ -72,6 +105,14 @@ struct Block : public ASTNode
 	}
 
 	template<typename T>
+	void prependObjects(T& object_list)
+	{
+		deduced_foreach(i, object_list)
+			(*i)->parent = this;
+		objects.insert(objects.begin(), object_list.begin(), object_list.end());
+	}
+
+	template<typename T>
 	void appendObjects(T& object_list)
 	{
 		deduced_foreach(i, object_list)
@@ -80,7 +121,36 @@ struct Block : public ASTNode
 	}
 
 	template<typename T>
-	bool insertObjects(ASTNode* after, T& object_list, bool replace_after = false)
+	bool insertObjectsBefore(ASTNode* before, T& object_list, bool replace_before = false)
+	{
+		if(!before)
+		{
+			prependObjects(object_list);
+			return true;
+		}
+		else
+		{
+			auto it = std::find(objects.begin(), objects.end(), before);
+			if(it != objects.end())
+			{
+				deduced_foreach(i, object_list)
+					(*i)->parent = this;
+				objects.insert(it, object_list.begin(), object_list.end());
+
+				if(replace_before)
+					objects.erase(it);
+
+				return true;
+			}
+			else
+			{
+				return false;
+			}
+		}
+	}
+
+	template<typename T>
+	bool insertObjectsAfter(ASTNode* after, T& object_list, bool replace_after = false)
 	{
 		if(!after)
 		{

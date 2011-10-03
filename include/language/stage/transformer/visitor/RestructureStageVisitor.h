@@ -52,6 +52,183 @@ struct RestructureStageVisitor : GenericDoubleVisitor
 		revisit(node);
 	}
 
+	void restruct(ClassDecl& node)
+	{
+		revisit(node);
+
+		// check if there's no default constructor,
+		bool has_default_constructor = false;
+		foreach(i, node.member_functions)
+		{
+			if((*i)->name->toString() == L"new")
+			{
+				if( (*i)->parameters.size() == 0 || ( (*i)->parameters.size() == 1 && (*i)->parameters[0]->name->toString() == L"this" ) )
+				{
+					has_default_constructor = true;
+					break;
+				}
+			}
+		}
+
+		// if there's none, create a new one for it
+		if(!has_default_constructor)
+		{
+			transforms.push_back([&](){
+				SimpleIdentifier* name = new SimpleIdentifier(L"new");
+				TypeSpecifier* type = getParserContext().program->internal->getPrimitiveTy(PrimitiveType::VOID);
+				Block* block = new Block();
+
+				FunctionDecl* default_constructor = new FunctionDecl(
+						name,
+						type,
+						true, false,
+						Declaration::VisibilitySpecifier::DEFAULT,
+						block);
+
+				node.addFunction(default_constructor);
+
+				ASTNodeHelper::propogateSourceInfo(*name, node);
+				ASTNodeHelper::propogateSourceInfo(*block, node);
+				ASTNodeHelper::propogateSourceInfo(*default_constructor, node);
+			});
+		}
+	}
+
+	void restruct(FunctionDecl& node)
+	{
+		revisit(node);
+
+		// for all class member function
+		bool need_to_prepend_this_argument = false;
+		ClassDecl* owner_class = ASTNodeHelper::getOwnerClass(node);
+		if(owner_class && node.is_member && !node.is_static)
+		{
+			if(node.parameters.size() == 0)
+			{
+				// if member function has zero argument, which means we've never prepended "this" argument to it
+				need_to_prepend_this_argument = true;
+			}
+			else
+			{
+				// otherwise, check the very first argument's name and type
+				if(node.parameters[0]->name->toString() != L"this")
+				{
+					need_to_prepend_this_argument = true;
+				}
+			}
+		}
+
+		// prepend "this" argument to the function declaration if we haven't done so
+		if(need_to_prepend_this_argument)
+		{
+			transforms.push_back([&, owner_class](){
+				SimpleIdentifier* name = new SimpleIdentifier(L"this");
+				Identifier* type_name = cast<Identifier>(owner_class->name->clone());
+				TypeSpecifier* type_specifier = new TypeSpecifier(type_name);
+
+				VariableDecl* this_parameter = new VariableDecl(
+						name,
+						type_specifier,
+						true, false, false,
+						Declaration::VisibilitySpecifier::DEFAULT);
+
+				node.prependParameter(this_parameter);
+
+				ASTNodeHelper::propogateSourceInfo(*name, node);
+				ASTNodeHelper::propogateSourceInfo(*type_name, node);
+				ASTNodeHelper::propogateSourceInfo(*type_specifier, node);
+				ASTNodeHelper::propogateSourceInfo(*this_parameter, node);
+			});
+		}
+	}
+
+	void restruct(VariableDecl& node)
+	{
+		revisit(node);
+
+		// transform all initializer into a separate assignment binary expression
+		// for example (var a = ...):
+		//
+		//       block
+		//      /  |  \
+		//     ......  var_decl
+		//            /        \
+		//           a         (initializer)
+		//
+		// will be transformed into:
+		//
+		//       block------------------\
+		//      /  |  \                  \
+		//     ......  var_decl           =
+		//            /        \         / \
+		//           a         (null)	a   (initializer)
+		//
+		// note that we skip parameters in FunctionDecl, which shouldn't be transformed
+		//
+		if(node.initializer && ASTNodeHelper::isOwnedByFunction(node) && ASTNodeHelper::isOwnedByBlock(node))
+		{
+			transforms.push_back([&](){
+				DeclarativeStmt* anchor = cast<DeclarativeStmt>(node.parent);
+				Block* parent = (anchor && anchor->parent) ? cast<Block>(anchor->parent) : NULL;
+				SimpleIdentifier* name = cast<SimpleIdentifier>(node.name);
+				BOOST_ASSERT(parent != NULL && name != NULL && anchor != NULL && "variable declaration has incorrect hierarchy");
+				if(parent && name && anchor)
+				{
+					Identifier*     new_identifier      = cast<Identifier>(node.name->clone());
+					PrimaryExpr*    new_primary_expr    = new PrimaryExpr(new_identifier);
+					BinaryExpr*     new_assignment_expr = new BinaryExpr(BinaryExpr::OpCode::ASSIGN, new_primary_expr, node.initializer);
+					ExpressionStmt* new_expr_stmt       = new ExpressionStmt(new_assignment_expr);
+
+					SplitReferenceContext::set(new_identifier, anchor);
+					SplitReferenceContext::set(new_primary_expr, anchor);
+					SplitReferenceContext::set(new_assignment_expr, anchor);
+					SplitReferenceContext::set(new_expr_stmt, anchor);
+
+					parent->insertObjectAfter(anchor, new_expr_stmt, false);
+
+					ASTNodeHelper::propogateSourceInfo(*new_identifier, node); // propagate the source info
+					ASTNodeHelper::propogateSourceInfo(*new_primary_expr, node); // propagate the source info
+					ASTNodeHelper::propogateSourceInfo(*new_assignment_expr, node); // propagate the source info
+					ASTNodeHelper::propogateSourceInfo(*new_expr_stmt, node); // propagate the source info
+
+					node.initializer = NULL;
+				}
+			});
+		}
+
+		// transform all class member variable with initializer into a initialization statement in all constructors
+		if(node.initializer && ASTNodeHelper::isOwnedByClass(node))
+		{
+			ClassDecl* owner_class = ASTNodeHelper::getOwnerClass(node);
+			transforms.push_back([&, owner_class](){
+				foreach(i, owner_class->member_functions)
+				{
+					if((*i)->name->toString() == L"new")
+					{
+						Identifier*     new_identifier      = cast<Identifier>(node.name->clone());
+						PrimaryExpr*    new_primary_expr    = new PrimaryExpr(new_identifier);
+						BinaryExpr*     new_assignment_expr = new BinaryExpr(BinaryExpr::OpCode::ASSIGN, new_primary_expr, node.initializer);
+						ExpressionStmt* new_expr_stmt       = new ExpressionStmt(new_assignment_expr);
+
+						SplitReferenceContext::set(new_identifier, &node);
+						SplitReferenceContext::set(new_primary_expr, &node);
+						SplitReferenceContext::set(new_assignment_expr, &node);
+						SplitReferenceContext::set(new_expr_stmt, &node);
+
+						(*i)->block->prependObject(new_expr_stmt);
+
+						ASTNodeHelper::propogateSourceInfo(*new_identifier, node); // propagate the source info
+						ASTNodeHelper::propogateSourceInfo(*new_primary_expr, node); // propagate the source info
+						ASTNodeHelper::propogateSourceInfo(*new_assignment_expr, node); // propagate the source info
+						ASTNodeHelper::propogateSourceInfo(*new_expr_stmt, node); // propagate the source info
+
+						node.initializer = NULL;
+					}
+				}
+			});
+		}
+	}
+
 	void restruct(BinaryExpr& node)
 	{
 		revisit(node);
@@ -110,60 +287,6 @@ struct RestructureStageVisitor : GenericDoubleVisitor
 
 				ASTNodeHelper::propogateSourceInfo(*new_lhs, node); // propagate the source info
 				ASTNodeHelper::propogateSourceInfo(*new_rhs, node); // propagate the source info
-			});
-		}
-	}
-
-	void restruct(VariableDecl& node)
-	{
-		revisit(node);
-
-		// transform all initializer into a separate assignment binary expression
-		// for example (var a = ...):
-		//
-		//       block
-		//      /  |  \
-		//     ......  var_decl
-		//            /        \
-		//           a         (initializer)
-		//
-		// will be transformed into:
-		//
-		//       block------------------\
-		//      /  |  \                  \
-		//     ......  var_decl           =
-		//            /        \         / \
-		//           a         (null)	a   (initializer)
-		//
-		// note that we skip parameters in FunctionDecl, which shouldn't be transformed
-		if(node.initializer && ASTNodeHelper::isOwnedByFunction(node) && ASTNodeHelper::isOwnedByBlock(node))
-		{
-			transforms.push_back([&](){
-				DeclarativeStmt* anchor = cast<DeclarativeStmt>(node.parent);
-				Block* parent = (anchor && anchor->parent) ? cast<Block>(anchor->parent) : NULL;
-				SimpleIdentifier* name = cast<SimpleIdentifier>(node.name);
-				BOOST_ASSERT(parent != NULL && name != NULL && anchor != NULL && "variable declaration has incorrect hierarchy");
-				if(parent && name && anchor)
-				{
-					Identifier*     new_identifier      = cast<Identifier>(node.name->clone());
-					PrimaryExpr*    new_primary_expr    = new PrimaryExpr(new_identifier);
-					BinaryExpr*     new_assignment_expr = new BinaryExpr(BinaryExpr::OpCode::ASSIGN, new_primary_expr, node.initializer);
-					ExpressionStmt* new_expr_stmt       = new ExpressionStmt(new_assignment_expr);
-
-					SplitReferenceContext::set(new_identifier, anchor);
-					SplitReferenceContext::set(new_primary_expr, anchor);
-					SplitReferenceContext::set(new_assignment_expr, anchor);
-					SplitReferenceContext::set(new_expr_stmt, anchor);
-
-					parent->insertObject(anchor, new_expr_stmt, false);
-
-					ASTNodeHelper::propogateSourceInfo(*new_identifier, node); // propagate the source info
-					ASTNodeHelper::propogateSourceInfo(*new_primary_expr, node); // propagate the source info
-					ASTNodeHelper::propogateSourceInfo(*new_assignment_expr, node); // propagate the source info
-					ASTNodeHelper::propogateSourceInfo(*new_expr_stmt, node); // propagate the source info
-
-					node.initializer = NULL;
-				}
 			});
 		}
 	}

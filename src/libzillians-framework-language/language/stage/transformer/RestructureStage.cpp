@@ -61,9 +61,16 @@ bool RestructureStage::execute(bool& continue_execution)
 
 	if(parser_context.program)
 	{
-		visitor::RestructureStageVisitor restruct;
-		restruct.visit(*parser_context.program);
-		restruct.applyTransforms();
+		// restructure the entire tree in multiple passes
+		while(true)
+		{
+			visitor::RestructureStageVisitor restruct;
+			restruct.visit(*parser_context.program);
+			if(restruct.hasTransforms())
+				restruct.applyTransforms();
+			else
+				break;
+		}
 
 		if(debug)
 		{

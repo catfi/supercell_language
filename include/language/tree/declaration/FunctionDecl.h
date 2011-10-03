@@ -45,6 +45,12 @@ struct FunctionDecl : public Declaration
 		if(block) block->parent = this;
 	}
 
+	void prependParameter(VariableDecl* parameter_decl)
+	{
+		parameter_decl->parent = this;
+		parameters.insert(parameters.begin(), parameter_decl);
+	}
+
 	void appendParameter(VariableDecl* parameter_decl)
 	{
 		parameter_decl->parent = this;
