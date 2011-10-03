@@ -58,6 +58,16 @@ struct InterfaceDecl : public Declaration
     	END_REPLACE()
     }
 
+    virtual ASTNode* clone() const
+    {
+    	InterfaceDecl* cloned = new InterfaceDecl((name) ? cast<Identifier>(name->clone()) : NULL);
+
+    	foreach(i, member_functions)
+    		cloned->member_functions.push_back((*i) ? cast<FunctionDecl>((*i)->clone()) : NULL);
+
+    	return cloned;
+    }
+
 	std::vector<FunctionDecl*> member_functions;
 };
 

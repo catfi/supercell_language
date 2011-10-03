@@ -73,6 +73,16 @@ struct Program : public ASTNode
     	END_REPLACE()
     }
 
+    virtual ASTNode* clone() const
+    {
+    	Program* cloned = new Program(cast<Package>(root->clone()));
+
+    	foreach(i, imports)
+    		cloned->addImport(cast<Import>((*i)->clone()));
+
+    	return cloned;
+    }
+
 	std::vector<Import*> imports;
 	Package* root;
 	Internal* internal;

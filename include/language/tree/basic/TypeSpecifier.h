@@ -129,6 +129,17 @@ struct TypeSpecifier : public ASTNode
     	END_REPLACE()
     }
 
+    virtual ASTNode* clone() const
+    {
+        switch(type)
+        {
+        case TypeSpecifier::ReferredType::FUNCTION_TYPE  : return new TypeSpecifier(cast<FunctionType>(referred.function_type->clone()));
+        case TypeSpecifier::ReferredType::PRIMITIVE      : return new TypeSpecifier(referred.primitive);
+        case TypeSpecifier::ReferredType::UNSPECIFIED    : return new TypeSpecifier(cast<Identifier>(referred.unspecified->clone()));
+        default: break;
+        }
+        return NULL;
+    }
 
 	ReferredType::type type;
 

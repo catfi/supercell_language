@@ -54,6 +54,9 @@ struct SourceInfoContext
 	SourceInfoContext(int32 i, uint32 l, uint32 c) : source_index(i), line(l), column(c)
 	{ }
 
+	SourceInfoContext(const SourceInfoContext& ref) : source_index(ref.source_index), line(ref.line), column(ref.column)
+	{ }
+
 	static SourceInfoContext* get(tree::ASTNode* node)
 	{
 		return node->get<SourceInfoContext>();

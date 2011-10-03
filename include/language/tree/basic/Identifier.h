@@ -92,6 +92,11 @@ struct SimpleIdentifier : public Identifier
     	END_REPLACE()
     }
 
+    virtual ASTNode* clone() const
+    {
+    	return new SimpleIdentifier(name);
+    }
+
 	const std::wstring name;
 };
 
@@ -151,6 +156,13 @@ struct NestedIdentifier : public Identifier
     	REPLACE_USE_WITH(identifier_list)
     	END_REPLACE()
     }
+
+	virtual ASTNode* clone() const
+	{
+		NestedIdentifier* cloned = new NestedIdentifier();
+		foreach(i, identifier_list) cloned->appendIdentifier(cast<Identifier>((*i)->clone()));
+		return cloned;
+	}
 
 	std::vector<Identifier*> identifier_list;
 };
@@ -258,6 +270,13 @@ struct TemplatedIdentifier : public Identifier
     	REPLACE_USE_WITH(templated_type_list)
     	END_REPLACE()
     }
+
+	virtual ASTNode* clone() const
+	{
+		TemplatedIdentifier* cloned = new TemplatedIdentifier(type, (id) ? cast<Identifier>(id->clone()) : NULL);
+		foreach(i, templated_type_list) cloned->templated_type_list.push_back((*i) ? (*i)->clone() : NULL);
+		return cloned;
+	}
 
 	Usage::type type;
 	Identifier* id;

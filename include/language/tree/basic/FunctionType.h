@@ -64,6 +64,8 @@ struct FunctionType: public ASTNode
     	END_REPLACE()
     }
 
+    virtual ASTNode* clone() const;
+
 	std::vector<Identifier*> templated_parameters;
 	std::vector<TypeSpecifier*> argument_types;
 	TypeSpecifier* return_type;

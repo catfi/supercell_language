@@ -89,6 +89,19 @@ struct Package : public ASTNode
     	END_REPLACE()
     }
 
+    virtual ASTNode* clone() const
+    {
+    	Package* cloned = new Package((id) ? cast<SimpleIdentifier>(id->clone()) : NULL);
+
+    	foreach(i, children)
+    		cloned->addPackage(cast<Package>((*i)->clone()));
+
+    	foreach(i, objects)
+    		cloned->addObject((*i)->clone());
+
+    	return cloned;
+    }
+
 	SimpleIdentifier* id;
 	std::vector<Package*> children;
 	std::vector<ASTNode*> objects;

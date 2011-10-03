@@ -62,6 +62,11 @@ struct MemberExpr : public Expression
     	END_REPLACE()
     }
 
+    virtual ASTNode* clone() const
+    {
+    	return new MemberExpr((node) ? node->clone() : NULL, (member) ? cast<Identifier>(member) : NULL);
+    }
+
 	ASTNode* node;
 	Identifier* member;
 };

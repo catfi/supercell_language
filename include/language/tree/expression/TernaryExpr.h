@@ -68,6 +68,14 @@ struct TernaryExpr : public Expression
     	END_REPLACE()
     }
 
+    virtual ASTNode* clone() const
+    {
+    	return new TernaryExpr(
+    			(cond) ? cast<Expression>(cond->clone()) : NULL,
+    			(true_node) ? cast<Expression>(true_node->clone()) : NULL,
+    			(false_node) ? cast<Expression>(false_node->clone()) : NULL);
+    }
+
 	Expression* cond;
 	Expression* true_node;
 	Expression* false_node;

@@ -65,6 +65,16 @@ struct CallExpr : public Expression
     	END_REPLACE()
     }
 
+    virtual ASTNode* clone() const
+    {
+    	CallExpr* cloned = new CallExpr((node) ? node->clone() : NULL);
+
+    	foreach(i, parameters)
+    		cloned->appendParameter((*i) ? cast<Expression>((*i)->clone()) : NULL);
+
+    	return cloned;
+    }
+
 	ASTNode* node;
 	std::vector<Expression*> parameters;
 };

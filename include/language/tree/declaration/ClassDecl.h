@@ -95,6 +95,23 @@ struct ClassDecl : public Declaration
     	END_REPLACE()
     }
 
+    virtual ASTNode* clone() const
+    {
+    	ClassDecl* cloned = new ClassDecl((name) ? cast<Identifier>(name->clone()) : NULL);
+
+    	if(base) cloned->base = cast<TypeSpecifier>(base->clone());
+
+    	foreach(i, implements)
+    		cloned->implements.push_back((*i) ? cast<TypeSpecifier>((*i)->clone()) : NULL);
+
+    	foreach(i, member_functions)
+    		cloned->member_functions.push_back((*i) ? cast<FunctionDecl>((*i)->clone()) : NULL);
+
+    	foreach(i, member_variables)
+    		cloned->member_variables.push_back((*i) ? cast<VariableDecl>((*i)->clone()) : NULL);
+
+    	return cloned;
+    }
 
 	TypeSpecifier* base;
 	std::vector<TypeSpecifier*> implements;

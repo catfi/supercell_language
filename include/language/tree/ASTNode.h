@@ -250,6 +250,9 @@ public:
 public:
 	virtual bool replaceUseWith(const ASTNode& from, const ASTNode& to, bool update_parent = true) = 0;
 
+public:
+	virtual ASTNode* clone() const = 0;
+
 protected:
 	ASTNode() : parent(NULL)
 	{

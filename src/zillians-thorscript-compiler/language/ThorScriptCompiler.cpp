@@ -23,6 +23,7 @@
 #include "language/ThorScriptCompiler.h"
 #include "language/stage/parser/ThorScriptParserStage.h"
 #include "language/stage/transformer/LiteralCompactionStage.h"
+#include "language/stage/transformer/RestructureStage.h"
 #include "language/stage/transformer/ResolutionStage.h"
 #include "language/stage/transformer/ManglingStage.h"
 #include "language/stage/transformer/TypeConversionStage.h"
@@ -44,6 +45,7 @@ ThorScriptCompiler::ThorScriptCompiler()
 			ThorScriptParserStage,
 			SemanticVerificationStage0,
 			LiteralCompactionStage,
+			RestructureStage,
 			ResolutionStage,
 //			TypeConversionStage,
 			SemanticVerificationStage1,

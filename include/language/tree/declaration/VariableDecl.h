@@ -70,6 +70,15 @@ struct VariableDecl : public Declaration
     	END_REPLACE()
     }
 
+    virtual ASTNode* clone() const
+    {
+    	return new VariableDecl(
+    			(name) ? cast<Identifier>(name->clone()) : NULL,
+    			(type) ? cast<TypeSpecifier>(type->clone()) : NULL,
+    			is_member, is_static, is_const, visibility,
+    			(initializer) ? cast<Expression>(initializer->clone()) : NULL);
+    }
+
 	TypeSpecifier* type;
 	bool is_member;
 	bool is_static;

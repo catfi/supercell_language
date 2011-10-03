@@ -53,7 +53,7 @@ add_library(zillians-framework-language
     language/stage/transformer/LiteralCompactionStage.cpp
     language/stage/transformer/ResolutionStage.cpp
     language/stage/transformer/ManglingStage.cpp
-    language/stage/transformer/TypeConversionStage.cpp
+    language/stage/transformer/RestructureStage.cpp
     language/stage/verifier/SemanticVerificationStage0.cpp
     language/stage/verifier/SemanticVerificationStage1.cpp
 	language/stage/verifier/StaticTestVerificationStage.cpp    

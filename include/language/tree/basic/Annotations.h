@@ -61,6 +61,16 @@ struct Annotation : public ASTNode
     	END_REPLACE()
     }
 
+    virtual ASTNode* clone() const
+    {
+    	Annotation* cloned = new Annotation(name);
+    	foreach(i, attribute_list)
+    		cloned->appendKeyValue(
+    				(i->first) ? cast<SimpleIdentifier>(i->first->clone()) : NULL,
+    				(i->second) ? i->second->clone() : NULL);
+    	return cloned;
+    }
+
 	SimpleIdentifier* name;
 	std::vector<std::pair<SimpleIdentifier*/*key*/, ASTNode*/*value*/>> attribute_list;
 };
@@ -88,6 +98,14 @@ struct Annotations : public ASTNode
     	BEGIN_REPLACE()
 		REPLACE_USE_WITH(annotation_list)
     	END_REPLACE()
+    }
+
+    virtual ASTNode* clone() const
+    {
+    	Annotations* cloned = new Annotations();
+    	foreach(i, annotation_list)
+    		cloned->appendAnnotation((*i) ? cast<Annotation>((*i)->clone()) : NULL);
+    	return cloned;
     }
 
 	std::vector<Annotation*> annotation_list;

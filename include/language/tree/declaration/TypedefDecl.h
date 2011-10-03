@@ -53,6 +53,13 @@ struct TypedefDecl : public Declaration
     	END_REPLACE()
     }
 
+    virtual ASTNode* clone() const
+    {
+    	return new TypedefDecl(
+    			(type) ? cast<TypeSpecifier>(type->clone()) : NULL,
+    			(name) ? cast<Identifier>(name->clone()) : NULL);
+    }
+
 	TypeSpecifier* type;
 };
 

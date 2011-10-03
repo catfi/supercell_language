@@ -60,6 +60,12 @@ struct Selection : ContextHub<ContextOwnership::transfer>
     	END_REPLACE()
     }
 
+    Selection clone() const
+    {
+    	Selection s((cond) ? cast<Expression>(cond->clone()) : NULL, (block) ? block->clone() : NULL);
+    	return s;
+    }
+
 	Expression* cond;
 	ASTNode* block;
 };
@@ -132,6 +138,18 @@ struct IfElseStmt : public SelectionStmt
     	END_REPLACE()
     }
 
+    virtual ASTNode* clone() const
+    {
+    	IfElseStmt* cloned = new IfElseStmt(if_branch.clone());
+
+    	foreach(i, elseif_branches)
+    		cloned->addElseIfBranch(i->clone());
+
+    	cloned->setElseBranch((else_block) ? else_block->clone() : NULL);
+
+    	return cloned;
+    }
+
 	Selection if_branch;
 	std::vector<Selection> elseif_branches;
 	ASTNode* else_block;
@@ -181,6 +199,18 @@ struct SwitchStmt : public SelectionStmt
 		REPLACE_USE_WITH(cases)
 		REPLACE_USE_WITH(default_block)
     	END_REPLACE()
+    }
+
+    virtual ASTNode* clone() const
+    {
+    	SwitchStmt* cloned = new SwitchStmt((node) ? cast<Expression>(node->clone()) : NULL);
+
+    	foreach(i, cases)
+    		cloned->addCase(i->clone());
+
+    	cloned->setDefaultCase((default_block) ? default_block->clone() : NULL);
+
+    	return cloned;
     }
 
 	Expression* node;

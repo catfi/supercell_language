@@ -90,6 +90,25 @@ struct SemanticVerificationStageVisitor1 : GenericDoubleVisitor
 				if(!isa<FunctionDecl>(node.parent))
 					if(ASTNodeHelper::getOwnerFunction(node)->is_static && !var_decl->is_static)
 						LOG_MESSAGE(INVALID_NONSTATIC_REF, attachment_point, _var_id = name);
+
+				// INVALID_ACCESS_PRIVATE
+				// INVALID_ACCESS_PROTECTED
+				ClassDecl* use_point = ASTNodeHelper::getOwnerClass(node);
+				ClassDecl* declare_point = ASTNodeHelper::getOwnerClass(*var_decl);
+				if(use_point != declare_point)
+					switch(var_decl->visibility)
+					{
+					case Declaration::VisibilitySpecifier::PRIVATE:
+						LOG_MESSAGE(INVALID_ACCESS_PRIVATE, attachment_point, _id = name);
+						break;
+					case Declaration::VisibilitySpecifier::PROTECTED:
+						if(!ASTNodeHelper::isAncestorOf(*use_point, *declare_point)
+								&& !ASTNodeHelper::isAncestorOf(*declare_point, *use_point))
+						{
+							LOG_MESSAGE(INVALID_ACCESS_PROTECTED, attachment_point, _id = name);
+						}
+						break;
+					}
 			}
 		}
 

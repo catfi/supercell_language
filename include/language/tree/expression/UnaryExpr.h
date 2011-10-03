@@ -108,6 +108,11 @@ struct UnaryExpr : public Expression
     	END_REPLACE()
     }
 
+    virtual ASTNode* clone() const
+    {
+    	return new UnaryExpr(opcode, (node) ? node->clone() : NULL);
+    }
+
 	OpCode::type opcode;
 	ASTNode* node;
 };
