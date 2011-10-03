@@ -27,6 +27,15 @@ for ARG in "$@"; do
         fi
         continue
     fi
+    if [ $MODE -eq 2 ]; then
+        $EXEC $ARG --debug-restructure-stage
+        ERROR_CODE="$?"
+        if [ $ERROR_CODE -ne 0 ]; then
+            echo "ERROR: transform ast fail!"
+            exit 1
+        fi
+        continue
+    fi
     $EXEC $ARG --mode-parse-syntax-only --debug-parser |& grep -v "[DEBUG]" > $TEMP_FILE_A
     ERROR_CODE="${PIPESTATUS[0]}" # NOTE: need PIPESTATUS because piped grep always succeeds
     if [ $ERROR_CODE -ne 0 ]; then
