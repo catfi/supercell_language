@@ -28,7 +28,7 @@ for ARG in "$@"; do
         continue
     fi
     if [ $MODE -eq 2 ]; then
-        $EXEC $ARG --debug-restructure-stage
+        $EXEC $ARG --mode-restructure-stage-only --debug-restructure-stage
         ERROR_CODE="$?"
         if [ $ERROR_CODE -ne 0 ]; then
             echo "ERROR: transform ast fail!"

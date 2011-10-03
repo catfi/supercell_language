@@ -69,11 +69,24 @@ ThorScriptCompiler::ThorScriptCompiler()
 	addMode<
 		boost::mpl::vector<
 			ThorScriptParserStage,
+			LiteralCompactionStage,
+			StaticTestVerificationStage>>("mode-literal-compaction-stage-only", "for literal compaction stage");
+
+	addMode<
+		boost::mpl::vector<
+			ThorScriptParserStage,
+			RestructureStage,
+			StaticTestVerificationStage>>("mode-restructure-stage-only", "for restructure stage stage");
+
+	addMode<
+		boost::mpl::vector<
+			ThorScriptParserStage,
 			SemanticVerificationStage0,
+			LiteralCompactionStage,
+			RestructureStage,
 			ResolutionStage,
 			SemanticVerificationStage1,
 			StaticTestVerificationStage>>("mode-semantic-verify-1", "for semantic verification stage 1");
-
 }
 
 ThorScriptCompiler::~ThorScriptCompiler()
