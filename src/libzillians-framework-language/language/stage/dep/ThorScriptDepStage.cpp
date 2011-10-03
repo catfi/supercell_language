@@ -23,7 +23,7 @@
 #include <vector>
 #include <set>
 #include <iterator>
-#include <boost/bimap.hpp>
+//#include <boost/bimap.hpp>
 #include <boost/filesystem.hpp>
 #include <boost/graph/adjacency_list.hpp>
 #include <boost/graph/adj_list_serialize.hpp>
@@ -38,9 +38,41 @@
 #include "language/grammar/ThorScriptPackageDependencyGrammar.h"
 #include "utility/UnicodeUtil.h"
 
-namespace zillians { namespace language { namespace stage {
+//namespace zillians { namespace language { namespace stage {
 
-typedef boost::adjacency_list<boost::vecS, boost::vecS> FileGraphType;
+struct vertex_info
+{
+    std::string name;
+    vertex_info(const std::string& name_) : name(name_) { }
+    vertex_info() : name("uninitialized-name") { }
+};
+
+//} } }
+
+namespace boost { namespace graph {
+    template<typename Type>
+    struct vertex_name_extractor {
+        typedef Type type;
+        typedef const std::string& result_type;
+        result_type operator()(const Type& v) const {
+            return v.name;
+        }
+    } ;
+
+    template<>
+    struct internal_vertex_name<vertex_info> {
+        typedef vertex_name_extractor<vertex_info> type;
+    } ;
+
+    template<>
+    struct internal_vertex_constructor<vertex_info> {
+        typedef vertex_from_name<vertex_info> type;
+    } ;
+} }
+
+typedef boost::adjacency_list<boost::vecS, boost::vecS, boost::directedS, vertex_info> FileGraphType;
+
+namespace zillians { namespace language { namespace stage {
 
 ThorScriptDepStage::ThorScriptDepStage()
 { }
@@ -181,7 +213,7 @@ typedef std::map<std::string, std::set<std::string>> FileDependencyType ;
  * @param[in] pathString Package path to add.
  * @param[in,out] deps Data structure to store dependency.
  */
-void addFileDependency(const std::string& tsFileName, FileDependencyType& deps)
+void addFileDependency(const std::string& tsFileName, FileDependencyType& deps, FileGraphType& fileGraph)
 {
     // if file already processed
     if(deps.count(tsFileName))
@@ -212,21 +244,36 @@ void addFileDependency(const std::string& tsFileName, FileDependencyType& deps)
         // if is regular .t file, directly add to deps
         if(isRegularFile(*i + ".t"))
         {
-            deps[tsFileName].insert(*i + ".t");
+            //deps[tsFileName].insert(*i + ".t");
+            boost::graph::add_edge(tsFileName, *i + ".t", fileGraph);
         }
         // if is package directory, recusively add all files under the dir.
         else if(isDirectory(*i))
         {
             std::set<std::string> allFilesUnderDir = glogAllTsFiles(*i);
-            deps[tsFileName].insert(allFilesUnderDir.begin(), allFilesUnderDir.end());
+            //deps[tsFileName].insert(allFilesUnderDir.begin(), allFilesUnderDir.end());
+            for(auto f = allFilesUnderDir.begin(); f != allFilesUnderDir.end(); ++f)
+            {
+                boost::graph::add_edge(tsFileName, *f, fileGraph);
+            }
         }
     }
-    
+
     // for each dependent file, recursive apply addFileDependency().
-    const std::set<std::string>& se = deps[tsFileName] ;
-    for(auto i = se.begin(); i != se.end(); ++i)
+    //const std::set<std::string>& se = deps[tsFileName] ;
+    //for(auto i = se.begin(); i != se.end(); ++i)
+    //{
+    //    addFileDependency(*i, deps, fileGraph);
+    //}
+    typedef boost::property_map<FileGraphType, boost::vertex_index_t>::type IndexMap;
+    IndexMap index = boost::get(boost::vertex_index, fileGraph);
+    boost::graph_traits<FileGraphType>::out_edge_iterator ei, ei_end;
+    boost::graph_traits<FileGraphType>::vertex_descriptor sourceVertexD = boost::graph::add_vertex(tsFileName, fileGraph);
+    for(boost::tie(ei, ei_end) = boost::out_edges(sourceVertexD, fileGraph); ei != ei_end; ++ei)
     {
-        addFileDependency(*i, deps);
+        const std::string& targetFileName = fileGraph[index[boost::target(*ei, fileGraph)]].name;
+        addFileDependency(targetFileName, deps, fileGraph);
+
     }
 }
 
@@ -265,11 +312,9 @@ private:
     const GraphType& _g;
 };
 
-bool analyzeTangle(const FileDependencyType& deps)
+bool analyzeTangle(const FileDependencyType& deps, ::FileGraphType& g)
 {
     // construct graph
-    using namespace boost;
-    boost::bimap<std::string, size_t> vertexIdMap;
     // collect all files
     std::set<std::string> files;
     foreach(i, deps)
@@ -280,43 +325,28 @@ bool analyzeTangle(const FileDependencyType& deps)
             files.insert(*j);
         }
     }
-    // construct file <-> id bimap
-    size_t id = 0;
-    for(auto i = files.begin(); i != files.end(); ++i)
-    {
-        vertexIdMap.insert(boost::bimap<std::string, size_t>::value_type(*i, id));
-        ++id;
-    }
     // insert edge to graph
-    FileGraphType g(files.size());
     foreach(i, deps)
     {
         for(auto j = i->second.begin(); j != i->second.end(); ++j)
         {
             std::string s = i->first;
-            int u = vertexIdMap.left.at(i->first);
-            int v = vertexIdMap.left.at(*j);
-            add_edge(u, v, g);
+            //int u = vertexIdMap.left.at(i->first);
+            //int v = vertexIdMap.left.at(*j);
+            std::string u = i->first;
+            std::string v = *j;
+            boost::graph::add_edge(u, v, g);
         }
     }
     // calculate strong connected components
     std::vector<int> component(files.size());
     strong_components(g, &component[0]);
-    // output result
-    id = 0;
-    int maxComponentId = 0;
-    for(auto i = files.begin(); i != files.end(); ++i)
-    {
-        //std::cout << *i << "  " << component[id] << std::endl ;
-        maxComponentId = std::max(component[id], maxComponentId);
-        ++id;
-    }
 
     // init tangle graph
-    TangleGraphType tangleG(maxComponentId + 1);
+    TangleGraphType tangleG;
 
     // add tangle edges
-    property_map<TangleGraphType, vertex_index_t>::type index = get(vertex_index, g);
+    boost::property_map<TangleGraphType, boost::vertex_index_t>::type index = get(boost::vertex_index, g);
     for (auto range = edges(g); range.first != range.second; ++range.first)
     {
         int sourceVertex = index[source(*range.first, g)];
@@ -328,23 +358,26 @@ bool analyzeTangle(const FileDependencyType& deps)
             continue;
         }
         add_edge(sourceTangle, targetTangle, tangleG);
-        const std::string& sourceFilename = vertexIdMap.right.at(sourceVertex);
-        const std::string& targetFilename = vertexIdMap.right.at(targetVertex);
+        const std::string& sourceFilename = g[sourceVertex].name;
+        const std::string& targetFilename = g[targetVertex].name;
         tangleG[sourceTangle].insert(sourceFilename);
         tangleG[targetTangle].insert(targetFilename);
     }
 
+    // serialization
     std::ofstream fout("ts.dep");
     boost::archive::text_oarchive oa(fout);
     oa << tangleG ;
     fout.close();
 
+    // and restore
     std::ifstream fin("ts.dep");
     boost::archive::text_iarchive ia(fin);
     TangleGraphType tangleRestored;
     ia >> tangleRestored;
     fin.close();
 
+    // write graphviz
     fout.open("ts.graphviz");
     boost::write_graphviz(fout, tangleRestored, VertexWriter<TangleGraphType>(tangleRestored));
     fout.close();
@@ -361,11 +394,11 @@ bool ThorScriptDepStage::execute(bool& continue_execution)
     // get file dependency
     foreach(i, inputFiles)
     {
-        addFileDependency(*i, deps);
+        addFileDependency(*i, deps, fileGraph);
     }
 
     // analyze source file tangles (strong connected components)
-    analyzeTangle(deps);
+    analyzeTangle(deps, fileGraph);
 
     return true;
 }
