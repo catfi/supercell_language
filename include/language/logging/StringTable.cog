@@ -26,6 +26,7 @@
 #include "language/tree/ASTNode.h"
 #include "language/logging/LoggerWrapper.h"
 #include "language/context/LogInfoContext.h"
+#include "language/context/TransformerContext.h"
 #include "language/stage/parser/context/SourceInfoContext.h"
 #include <boost/parameter.hpp>
 #include <vector>
@@ -465,8 +466,10 @@ public:
 		# Generate header like : "test.cpp:32: " if node is not NULL
 		cog.outl('\t vector<string>& files = stage::ModuleSourceInfoContext::get(program_node)->source_files;')
 		cog.outl('\t if(node) { ')
-		cog.outl('\t\t LogInfoContext::push_back(node, LogInfo(str_level, str_id, parameters));')
-		cog.outl('\t\t stage::SourceInfoContext* source_info = stage::SourceInfoContext::get(node);')
+
+		cog.outl('\t\t zillians::language::tree::ASTNode* transform_source_node = get_transform_source_node(node);')
+		cog.outl('\t\t LogInfoContext::push_back(transform_source_node, LogInfo(str_level, str_id, parameters));')
+		cog.outl('\t\t stage::SourceInfoContext* source_info = stage::SourceInfoContext::get(transform_source_node);')
 		cog.outl('\t\t mWrapper->log(StringTable::%s, s_to_ws(files[source_info->source_index]), source_info->line, translated);' % id)
 		cog.outl('\t }');
 		cog.outl('\t else {');
@@ -478,6 +481,19 @@ public:
 	//[[[end]]]
 
 private:
+    zillians::language::tree::ASTNode* get_transform_source_node(zillians::language::tree::ASTNode* node)
+    {
+        zillians::language::SplitReferenceContext* context = node->get<zillians::language::SplitReferenceContext>();
+        if(context != NULL)
+        {
+            return get_transform_source_node(context->ref);
+        }
+        else
+        {
+            return node;
+        }
+    }
+
 	wstring get_translated(StringTable::log_id id)
 	{
 		string locale_name = get_lc_message();
