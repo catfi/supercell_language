@@ -80,15 +80,16 @@ struct SemanticVerificationStageVisitor1 : GenericDoubleVisitor
 			{
 				VariableDecl* var_decl = cast<VariableDecl>(decl);
 				std::wstring name = var_decl->name->toString();
+				ASTNode* attachment_point = ASTNodeHelper::getOwnerAnnotationAttachPoint(node);
 
 				// UNINIT_REF
 				if(!SemanticVerificationVariableDeclContext_HasBeenInit::get(var_decl))
-					LOG_MESSAGE(UNINIT_REF, &node, _var_id = name);
+					LOG_MESSAGE(UNINIT_REF, attachment_point, _var_id = name);
 
 				// INVALID_NONSTATIC_REF
 				if(!isa<FunctionDecl>(node.parent))
 					if(ASTNodeHelper::getOwnerFunction(node)->is_static && !var_decl->is_static)
-						LOG_MESSAGE(INVALID_NONSTATIC_REF, &node, _var_id = name);
+						LOG_MESSAGE(INVALID_NONSTATIC_REF, attachment_point, _var_id = name);
 
 				// INVALID_ACCESS_PRIVATE
 				// INVALID_ACCESS_PROTECTED
@@ -98,13 +99,13 @@ struct SemanticVerificationStageVisitor1 : GenericDoubleVisitor
 					switch(var_decl->visibility)
 					{
 					case Declaration::VisibilitySpecifier::PRIVATE:
-						LOG_MESSAGE(INVALID_ACCESS_PRIVATE, &node, _id = name);
+						LOG_MESSAGE(INVALID_ACCESS_PRIVATE, attachment_point, _id = name);
 						break;
 					case Declaration::VisibilitySpecifier::PROTECTED:
 						if(!ASTNodeHelper::isAncestorOf(*use_point, *declare_point)
 								&& !ASTNodeHelper::isAncestorOf(*declare_point, *use_point))
 						{
-							LOG_MESSAGE(INVALID_ACCESS_PROTECTED, &node, _id = name);
+							LOG_MESSAGE(INVALID_ACCESS_PROTECTED, attachment_point, _id = name);
 						}
 						break;
 					}
@@ -133,7 +134,7 @@ struct SemanticVerificationStageVisitor1 : GenericDoubleVisitor
 			name = var_decl->name->toString();
 		}
 		if(ASTNodeHelper::getOwnerFunction(node)->is_static && decl_is_static)
-			LOG_MESSAGE(INVALID_NONSTATIC_CALL, &node, _func_id = name);
+			LOG_MESSAGE(INVALID_NONSTATIC_CALL, ASTNodeHelper::getOwnerAnnotationAttachPoint(node), _func_id = name);
 
 		revisit(node);
 	}
@@ -146,7 +147,7 @@ struct SemanticVerificationStageVisitor1 : GenericDoubleVisitor
 
 			// WRITE_CONST
 			if(lhs_var_decl->is_const)
-				LOG_MESSAGE(WRITE_CONST, &node, _var_id = lhs_var_decl->name->toString());
+				LOG_MESSAGE(WRITE_CONST, ASTNodeHelper::getOwnerAnnotationAttachPoint(node), _var_id = lhs_var_decl->name->toString());
 
 			// UNINIT_REF
 			if(node.right->isRValue() || (node.right->isLValue()
@@ -170,14 +171,15 @@ struct SemanticVerificationStageVisitor1 : GenericDoubleVisitor
 
 			TypeSpecifier* return_param = func_decl->type;
 			TypeSpecifier* return_arg = cast<TypeSpecifier>(ResolvedType::get(node.result));
+			ASTNode* attachment_point = ASTNodeHelper::getOwnerAnnotationAttachPoint(node);
 
 			// UNEXPECTED_RETURN_VALUE
 			if(ASTNodeHelper::isVoidType(return_param) && !ASTNodeHelper::isVoidType(return_arg))
-				LOG_MESSAGE(UNEXPECTED_RETURN_VALUE, &node);
+				LOG_MESSAGE(UNEXPECTED_RETURN_VALUE, attachment_point);
 
 			// MISSING_RETURN_VALUE
 			if(!ASTNodeHelper::isVoidType(return_param) && ASTNodeHelper::isVoidType(return_arg))
-				LOG_MESSAGE(MISSING_RETURN_VALUE, &node, _type = return_param->toString());
+				LOG_MESSAGE(MISSING_RETURN_VALUE, attachment_point, _type = return_param->toString());
 		}
 
 		revisit(node);

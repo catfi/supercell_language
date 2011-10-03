@@ -223,7 +223,7 @@ struct SemanticVerificationStageVisitor0 : GenericDoubleVisitor
 	{
 		// WRITE_RVALUE
 		if(node.isAssignment() && node.left->isRValue())
-			LOG_MESSAGE(WRITE_RVALUE, node.left->parent);
+			LOG_MESSAGE(WRITE_RVALUE, ASTNodeHelper::getOwnerAnnotationAttachPoint(*node.left->parent));
 
 		revisit(node);
 	}
