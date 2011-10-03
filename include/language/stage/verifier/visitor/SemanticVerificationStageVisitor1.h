@@ -133,7 +133,7 @@ struct SemanticVerificationStageVisitor1 : GenericDoubleVisitor
 			name = var_decl->name->toString();
 		}
 		if(ASTNodeHelper::getOwnerFunction(node)->is_static && decl_is_static)
-			LOG_MESSAGE(INVALID_NONSTATIC_CALL, ASTNodeHelper::getOwnerAnnotationAttachPoint(node), _func_id = name);
+			LOG_MESSAGE(INVALID_NONSTATIC_CALL, &node, _func_id = name);
 
 		revisit(node);
 	}
@@ -146,7 +146,7 @@ struct SemanticVerificationStageVisitor1 : GenericDoubleVisitor
 
 			// WRITE_CONST
 			if(lhs_var_decl->is_const)
-				LOG_MESSAGE(WRITE_CONST, ASTNodeHelper::getOwnerAnnotationAttachPoint(node), _var_id = lhs_var_decl->name->toString());
+				LOG_MESSAGE(WRITE_CONST, &node, _var_id = lhs_var_decl->name->toString());
 
 			// UNINIT_REF
 			if(node.right->isRValue() || (node.right->isLValue()
