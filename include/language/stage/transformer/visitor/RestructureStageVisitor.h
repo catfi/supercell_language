@@ -95,11 +95,18 @@ struct RestructureStageVisitor : GenericDoubleVisitor
 		{
 			transforms.push_back([&](){
 				BinaryExpr::OpCode::type decomposed_op = BinaryExpr::OpCode::decomposeAssignment(node.opcode);
+
 				BOOST_ASSERT(decomposed_op != BinaryExpr::OpCode::INVALID && "invalid decomposed binary operator");
-				BinaryExpr* new_rhs = new BinaryExpr(decomposed_op, cast<Expression>(node.left->clone()), node.right);
+
+				Expression* new_lhs = cast<Expression>(node.left->clone());
+				BinaryExpr* new_rhs = new BinaryExpr(decomposed_op, new_lhs, node.right);
+
 				node.replaceUseWith(*node.right, *new_rhs, false);
 				new_rhs->parent = &node;
 				node.opcode = BinaryExpr::OpCode::ASSIGN;
+
+				ASTNodeHelper::propogateSourceInfo(*new_lhs, node); // propagate the source info
+				ASTNodeHelper::propogateSourceInfo(*new_rhs, node); // propagate the source info
 			});
 		}
 	}
@@ -134,15 +141,22 @@ struct RestructureStageVisitor : GenericDoubleVisitor
 				BOOST_ASSERT(parent != NULL && name != NULL && anchor != NULL && "variable declaration has incorrect hierarchy");
 				if(parent && name && anchor)
 				{
-					ExpressionStmt* append = new ExpressionStmt(
-							new BinaryExpr(
-									BinaryExpr::OpCode::ASSIGN,
-									new PrimaryExpr(cast<Identifier>(node.name->clone())),
-									node.initializer));
+					Identifier*     new_identifier      = cast<Identifier>(node.name->clone());
+					PrimaryExpr*    new_primary_expr    = new PrimaryExpr(new_identifier);
+					BinaryExpr*     new_assignment_expr = new BinaryExpr(BinaryExpr::OpCode::ASSIGN, new_primary_expr, node.initializer);
+					ExpressionStmt* new_expr_stmt       = new ExpressionStmt(new_assignment_expr);
 
-					SplitReferenceContext::set(append, anchor);
+					SplitReferenceContext::set(new_identifier, anchor);
+					SplitReferenceContext::set(new_primary_expr, anchor);
+					SplitReferenceContext::set(new_assignment_expr, anchor);
+					SplitReferenceContext::set(new_expr_stmt, anchor);
 
-					parent->insertObject(anchor, append, false);
+					parent->insertObject(anchor, new_expr_stmt, false);
+
+					ASTNodeHelper::propogateSourceInfo(*new_identifier, node); // propagate the source info
+					ASTNodeHelper::propogateSourceInfo(*new_primary_expr, node); // propagate the source info
+					ASTNodeHelper::propogateSourceInfo(*new_assignment_expr, node); // propagate the source info
+					ASTNodeHelper::propogateSourceInfo(*new_expr_stmt, node); // propagate the source info
 
 					node.initializer = NULL;
 				}

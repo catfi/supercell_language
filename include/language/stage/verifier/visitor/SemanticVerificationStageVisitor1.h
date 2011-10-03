@@ -170,7 +170,7 @@ struct SemanticVerificationStageVisitor1 : GenericDoubleVisitor
 			SemanticVerificationFunctionDeclContext_HasVisitedReturn::get_instance(func_decl);
 
 			TypeSpecifier* return_param = func_decl->type;
-			TypeSpecifier* return_arg = cast<TypeSpecifier>(ResolvedType::get(node.result));
+			TypeSpecifier* return_arg = cast<TypeSpecifier>(ResolvedType::get(&node));
 			ASTNode* owner = node.parent;
 
 			// UNEXPECTED_RETURN_VALUE

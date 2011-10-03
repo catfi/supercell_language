@@ -634,16 +634,6 @@ private:
 
 
 private:
-	static void propogateSourceInfo(ASTNode& to, ASTNode& from)
-	{
-		SourceInfoContext* to_src_info = to.get<SourceInfoContext>();
-		SourceInfoContext* from_src_info = from.get<SourceInfoContext>();
-
-		BOOST_ASSERT(to_src_info == NULL && "invalid propagating source info propagation");
-
-		to.set<SourceInfoContext>(new SourceInfoContext(*from_src_info));
-	}
-
 //	void propogateType(ASTNode* to, ASTNode* from)
 //	{
 //		// recursively dig down the tree and find the actual resolved type
@@ -868,7 +858,7 @@ private:
 					parent->replaceUseWith(node, *cast_expr, false);
 					cast_expr->parent = parent;
 
-					propogateSourceInfo(*cast_expr, node); // propagate the source info
+					ASTNodeHelper::propogateSourceInfo(*cast_expr, node); // propagate the source info
 				});
 			}
 		}
@@ -904,7 +894,7 @@ private:
 				parent->replaceUseWith(node, *compare_expr, false);
 				compare_expr->parent = parent;
 
-				propogateSourceInfo(*compare_expr, node); // propagate the source info
+				ASTNodeHelper::propogateSourceInfo(*compare_expr, node); // propagate the source info
 			});
 		}
 	}
