@@ -90,11 +90,11 @@ Program* createPassSample()
 							std::map<std::wstring, std::wstring> m;
 							m[L"id"] = L"mCount";
 							m[L"type"] = L"int";
-							auto errorContext = new zillians::language::LogInfoContext(L"LEVEL_WARNING", L"EXAMPLE_UNDECLARED_VARIABLE", m);
+							zillians::language::LogInfo errorContext(L"LEVEL_WARNING", L"EXAMPLE_UNDECLARED_VARIABLE", m);
 
 							ExpressionStmt* stmt = new ExpressionStmt(new BinaryExpr(BinaryExpr::OpCode::ASSIGN, new PrimaryExpr(new SimpleIdentifier(L"EXAMPLE_UNDECLARED_VARIABLE")), new PrimaryExpr(new SimpleIdentifier(L"b"))));
 							stmt->setAnnotation(annos);
-							stmt->set<zillians::language::LogInfoContext>(errorContext);
+                            zillians::language::LogInfoContext::push_back(stmt, errorContext);
 
 							block->appendObject(stmt);
 						}
@@ -160,11 +160,11 @@ Program* createFailSample()
 							std::map<std::wstring, std::wstring> m;
 							m[L"id"] = L"mCount";
 							m[L"type"] = L"int";
-							auto errorContext = new zillians::language::LogInfoContext(L"LEVEL_WARNING", L"EXAMPLE_UNDECLARED_VARIABLE", m);
+                            zillians::language::LogInfo errorContext(L"LEVEL_WARNING", L"EXAMPLE_UNDECLARED_VARIABLE", m);
 
 							ExpressionStmt* stmt = new ExpressionStmt(new BinaryExpr(BinaryExpr::OpCode::ASSIGN, new PrimaryExpr(new SimpleIdentifier(L"EXAMPLE_UNDECLARED_VARIABLE")), new PrimaryExpr(new SimpleIdentifier(L"b"))));
 							stmt->setAnnotation(annos);
-							stmt->set<zillians::language::LogInfoContext>(errorContext);
+                            zillians::language::LogInfoContext::push_back(stmt, errorContext);
 
 							// set source info context
 							int source_index = 0;

@@ -57,7 +57,8 @@ add_library(zillians-framework-language
     language/stage/transformer/RestructureStage.cpp
     language/stage/verifier/SemanticVerificationStage0.cpp
     language/stage/verifier/SemanticVerificationStage1.cpp
-	language/stage/verifier/StaticTestVerificationStage.cpp
+	language/stage/verifier/StaticTestVerificationStage.cpp    
+	language/stage/verifier/visitor/StaticTestVerificationStageVisitor.cpp
 	language/stage/generator/ASTSerializationStage.cpp    
 	language/tree/basic/FunctionType.cpp  
 	language/stage/dep/ThorScriptDepStage.cpp

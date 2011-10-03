@@ -125,11 +125,11 @@ struct RestructureStageVisitor : GenericDoubleVisitor
 		//            /        \         / \
 		//           a         (null)	a   (initializer)
 		//
-		if(node.initializer && ASTNodeHelper::isOwnedByFunction(node))
+		if(node.initializer && ASTNodeHelper::isOwnedByFunction(node) && ASTNodeHelper::isOwnedByBlock(node))
 		{
 			transforms.push_back([&](){
 				DeclarativeStmt* anchor = cast<DeclarativeStmt>(node.parent);
-				Block* parent = cast<Block>(anchor->parent);
+				Block* parent = (anchor && anchor->parent) ? cast<Block>(anchor->parent) : NULL;
 				SimpleIdentifier* name = cast<SimpleIdentifier>(node.name);
 				BOOST_ASSERT(parent != NULL && name != NULL && anchor != NULL && "variable declaration has incorrect hierarchy");
 				if(parent && name && anchor)
