@@ -25,7 +25,7 @@
 #include <iterator>
 #include <boost/bimap.hpp>
 #include <boost/filesystem.hpp>
-//#include <boost/graph/adjacency_list.hpp>
+#include <boost/graph/adjacency_list.hpp>
 #include <boost/graph/adj_list_serialize.hpp>
 #include <boost/graph/graphviz.hpp>
 #include <boost/archive/text_oarchive.hpp>
@@ -39,6 +39,8 @@
 #include "utility/UnicodeUtil.h"
 
 namespace zillians { namespace language { namespace stage {
+
+typedef boost::adjacency_list<boost::vecS, boost::vecS> FileGraphType;
 
 ThorScriptDepStage::ThorScriptDepStage()
 { }
@@ -65,7 +67,7 @@ std::pair<shared_ptr<po::options_description>, shared_ptr<po::options_descriptio
 	return std::make_pair(option_desc_public, option_desc_private);
 }
 
-std::set<std::string> recursiveAllFiles(const std::string& dirPath)
+std::set<std::string> glogAllTsFiles(const std::string& dirPath)
 {
     std::set<std::string> result;
     namespace fs = boost::filesystem;
@@ -91,7 +93,7 @@ bool ThorScriptDepStage::parseOptions(po::variables_map& vm)
     }
     else
     {
-        std::set<std::string> inputFileSet = recursiveAllFiles(".");
+        std::set<std::string> inputFileSet = glogAllTsFiles(".");
         inputFiles.assign(inputFileSet.begin(), inputFileSet.end());
         return true;
     }
@@ -107,7 +109,7 @@ bool isDirectory(const std::string& pathString)
 bool isRegularFile(const std::string& pathString)
 {
     namespace fs = boost::filesystem;
-    fs::path p(pathString + ".t");
+    fs::path p(pathString);
     return fs::exists(p) && fs::is_regular_file(p);
 }
 
@@ -118,10 +120,9 @@ std::string packageNameToPathName(const std::wstring& packageName)
     return result;
 }
 
-// TODO implement
-bool getFileDependentPackages(const std::string& tPathName, std::set<std::wstring>& packages)
+bool parseFileImportedPackages(const std::string& tsFileName, std::set<std::wstring>& packages)
 {
-    std::string filename = tPathName + ".t" ;
+    std::string filename = tsFileName ;
     std::ifstream in(filename, std::ios_base::in);
 
     if(!in.good())
@@ -173,66 +174,78 @@ bool getFileDependentPackages(const std::string& tPathName, std::set<std::wstrin
     return true;
 }
 
-typedef std::map<std::string, std::set<std::string>> DepType ;
+typedef std::map<std::string, std::set<std::string>> FileDependencyType ;
 
-void addDeps(const std::string& pathString, DepType& deps)
+/**
+ * @brief Add dependency of a ThorScript source file @p tsFileName to @p deps.
+ * @param[in] pathString Package path to add.
+ * @param[in,out] deps Data structure to store dependency.
+ */
+void addFileDependency(const std::string& tsFileName, FileDependencyType& deps)
 {
-    namespace fs = boost::filesystem;
-    // if file processed
-    if(deps.count(pathString + ".t"))
+    // if file already processed
+    if(deps.count(tsFileName))
     {
         return;
     }
 
-    deps[pathString + ".t"] = std::set<std::string>();
+    deps[tsFileName] = std::set<std::string>();
 
-    // if is dir name
-    fs::path p(pathString);
-    if(isDirectory(pathString))
+    namespace fs = boost::filesystem;
+    // parse ThorScript source file to get import packages
+    std::set<std::wstring> fileImportedPackages;
+    parseFileImportedPackages(tsFileName, fileImportedPackages);
+    // transform import packages to path name
+    // aka "a.b.c" -> "a/b/c"
+    std::vector<std::string> pathNameOfImportedPackages(fileImportedPackages.size());
+    std::transform(fileImportedPackages.begin(),
+                   fileImportedPackages.end(),
+                   pathNameOfImportedPackages.begin(),
+                   [] (const std::wstring& packageName) {
+                        std::string result = ws_to_s(packageName);
+                        std::replace(result.begin(), result.end(), '.', '/');
+                        return result;
+                   });
+    // for each dep packages, collect dependent .t files.
+    foreach(i, pathNameOfImportedPackages)
     {
-        for (auto i = fs::directory_iterator(p); i != fs::directory_iterator(); ++i)
+        // if is regular .t file, directly add to deps
+        if(isRegularFile(*i + ".t"))
         {
-            addDeps(i->path().string(), deps);
+            deps[tsFileName].insert(*i + ".t");
         }
-    }
-
-    // if is .t src file
-    if(isRegularFile(pathString))
-    {
-        std::set<std::wstring> fileDependentPackages;
-        bool parseResult = getFileDependentPackages(p.string(), fileDependentPackages);
-        std::vector<std::string> fileDependentPathNames(fileDependentPackages.size());
-        std::transform(fileDependentPackages.begin(), fileDependentPackages.end(), fileDependentPathNames.begin(), packageNameToPathName);
-        // for each dep packages
-        foreach(i, fileDependentPathNames)
+        // if is package directory, recusively add all files under the dir.
+        else if(isDirectory(*i))
         {
-            // if is regular .t file, directly add to deps
-            if(isRegularFile(*i))
-            {
-                deps[pathString + ".t"].insert(*i + ".t");
-            }
-            // if is package directory, recusively add all files under the dir.
-            else if(isDirectory(*i))
-            {
-                std::set<std::string> allFilesUnderDir = recursiveAllFiles(*i);
-                deps[pathString + ".t"].insert(allFilesUnderDir.begin(), allFilesUnderDir.end());
-            }
+            std::set<std::string> allFilesUnderDir = glogAllTsFiles(*i);
+            deps[tsFileName].insert(allFilesUnderDir.begin(), allFilesUnderDir.end());
         }
     }
     
-    const std::set<std::string>& se = deps[pathString + ".t"] ;
+    // for each dependent file, recursive apply addFileDependency().
+    const std::set<std::string>& se = deps[tsFileName] ;
     for(auto i = se.begin(); i != se.end(); ++i)
     {
-        //std::cout << (pathString + ".t -> ") << *i << std::endl ;
-        std::string recursiveVisitingPathString = i->substr(0, i->size()-2);
-        addDeps(recursiveVisitingPathString, deps);
+        addFileDependency(*i, deps);
     }
 }
 
+// Customize boost::graph write graphviz vertex.
+
+/**
+ * @brief Customize boost::graph write graphviz vertex.
+ *
+ * @see http://www.boost.org/doc/libs/release/libs/graph/doc/adjacency_list.html#serialization
+ */
 template<typename GraphType>
 class VertexWriter
 {
 public:
+
+     /**
+      * @brief Initialize the VertexWrite with the graph. hold the graph as a reference.
+      * @param g Graph to write out.
+      */
     VertexWriter(const GraphType& g) : _g(g) {}
     template<typename Vertex>
     void operator()(std::ostream& out, const Vertex& v)
@@ -252,11 +265,10 @@ private:
     const GraphType& _g;
 };
 
-bool analyzeTangle(const DepType& deps)
+bool analyzeTangle(const FileDependencyType& deps)
 {
     // construct graph
     using namespace boost;
-    typedef adjacency_list<vecS, vecS> GraphType;
     boost::bimap<std::string, size_t> vertexIdMap;
     // collect all files
     std::set<std::string> files;
@@ -276,7 +288,7 @@ bool analyzeTangle(const DepType& deps)
         ++id;
     }
     // insert edge to graph
-    GraphType g;
+    FileGraphType g(files.size());
     foreach(i, deps)
     {
         for(auto j = i->second.begin(); j != i->second.end(); ++j)
@@ -296,8 +308,8 @@ bool analyzeTangle(const DepType& deps)
     for(auto i = files.begin(); i != files.end(); ++i)
     {
         //std::cout << *i << "  " << component[id] << std::endl ;
-        ++id;
         maxComponentId = std::max(component[id], maxComponentId);
+        ++id;
     }
 
     // init tangle graph
@@ -342,25 +354,18 @@ bool analyzeTangle(const DepType& deps)
 
 bool ThorScriptDepStage::execute(bool& continue_execution)
 {
-    DepType deps;
+    // TODO: replace the FileDependencyType with a file graph type
+    FileDependencyType deps;
+    FileGraphType fileGraph;
 
     // get file dependency
     foreach(i, inputFiles)
     {
-        std::string s = *i ;
-        //std::cout << "Parsing file: " << s << std::endl;
-        s.resize(s.size() - 2) ;
-        addDeps(s, deps);
+        addFileDependency(*i, deps);
     }
 
     // analyze source file tangles (strong connected components)
-    //std::cout << std::endl ;
-    //std::cout << std::endl ;
     analyzeTangle(deps);
-
-
-    // analyze parallel groups
-    // TODO:
 
     return true;
 }
