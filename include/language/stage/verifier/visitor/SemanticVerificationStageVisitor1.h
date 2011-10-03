@@ -21,6 +21,7 @@
 #define ZILLIANS_LANGUAGE_STAGE_VISITOR_SEMANTICVERIFICATIONSTAGEVISITOR1_H_
 
 #include "core/Prerequisite.h"
+#include "language/context/TransformerContext.h"
 #include "language/tree/visitor/general/GenericVisitor.h"
 #include "language/tree/visitor/general/GenericDoubleVisitor.h"
 #include "language/tree/visitor/general/NameManglingVisitor.h"
@@ -145,9 +146,16 @@ struct SemanticVerificationStageVisitor1 : GenericDoubleVisitor
 		{
 			VariableDecl* lhs_var_decl = cast<VariableDecl>(ResolvedSymbol::get(node.left));
 
-			// WRITE_CONST
-			if(lhs_var_decl->is_const)
-				LOG_MESSAGE(WRITE_CONST, node.parent, _var_id = lhs_var_decl->name->toString());
+			// if the binary expression is assignment and it's split from variable declaration
+			// (by checking the split reference is DeclarativeStmt or not)
+			// if it is, then the binary expression is the initializer, so we should skip checking "write to const"
+			ASTNode* ref = SplitReferenceContext::get(&node);
+			if(!ref || !isa<DeclarativeStmt>(ref))
+			{
+				// WRITE_CONST
+				if(lhs_var_decl->is_const)
+					LOG_MESSAGE(WRITE_CONST, node.parent, _var_id = lhs_var_decl->name->toString());
+			}
 
 			// UNINIT_REF
 			if(node.right->isRValue() || (node.right->isLValue()

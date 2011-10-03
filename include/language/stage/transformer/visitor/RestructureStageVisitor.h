@@ -101,6 +101,9 @@ struct RestructureStageVisitor : GenericDoubleVisitor
 				Expression* new_lhs = cast<Expression>(node.left->clone());
 				BinaryExpr* new_rhs = new BinaryExpr(decomposed_op, new_lhs, node.right);
 
+				SplitReferenceContext::set(new_lhs, &node);
+				SplitReferenceContext::set(new_rhs, &node);
+
 				node.replaceUseWith(*node.right, *new_rhs, false);
 				new_rhs->parent = &node;
 				node.opcode = BinaryExpr::OpCode::ASSIGN;
@@ -132,6 +135,7 @@ struct RestructureStageVisitor : GenericDoubleVisitor
 		//            /        \         / \
 		//           a         (null)	a   (initializer)
 		//
+		// note that we skip parameters in FunctionDecl, which shouldn't be transformed
 		if(node.initializer && ASTNodeHelper::isOwnedByFunction(node) && ASTNodeHelper::isOwnedByBlock(node))
 		{
 			transforms.push_back([&](){

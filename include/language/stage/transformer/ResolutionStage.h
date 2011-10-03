@@ -47,8 +47,8 @@ private:
 private:
 	bool debug;
 	bool disable_type_inference;
-	std::size_t total_resolved_count;
-	std::size_t total_unresolved_count;
+	std::size_t total_unresolved_count_type;
+	std::size_t total_unresolved_count_symbol;
 };
 
 } } }
