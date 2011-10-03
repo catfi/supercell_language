@@ -5,5 +5,5 @@ function test():void {
 	var b:int8 = 20;
 	var c:int8 = 30;
 
-	a += b;	
+	a += b;// += c;	
 }

@@ -1105,7 +1105,7 @@ private:
 	bool getValue(ASTNode& node, /*OUT*/ ASTNode*& resolved_symbol, /*OUT*/ llvm::Value*& llvm_value_for_read, /*OUT*/ llvm::Value*& llvm_value_for_write, bool require_write_access = false)
 	{
 		llvm_value_for_read = GET_SYNTHESIZED_LLVM_VALUE(&node);
-		if(llvm_value_for_read)
+		if(llvm_value_for_read && !llvm::isa<llvm::StoreInst>(llvm_value_for_read))
 		{
 			if(llvm_value_for_read->getType()->isPointerTy())
 			{
