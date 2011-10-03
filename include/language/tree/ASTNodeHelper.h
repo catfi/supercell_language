@@ -21,7 +21,9 @@
 #define ZILLIANS_LANGUAGE_TREE_ASTNODEHELPER_H_
 
 #include "language/tree/ASTNodeFactory.h"
+#include "language/context/ParserContext.h"
 #include "language/context/ResolverContext.h"
+#include "language/stage/parser/context/SourceInfoContext.h"
 #include "language/tree/visitor/general/NodeInfoVisitor.h"
 
 namespace zillians { namespace language { namespace tree {
@@ -29,6 +31,16 @@ namespace zillians { namespace language { namespace tree {
 struct ASTNodeHelper
 {
 public:
+	static void propogateSourceInfo(ASTNode& to, ASTNode& from)
+	{
+		stage::SourceInfoContext* to_src_info = to.get<stage::SourceInfoContext>();
+		stage::SourceInfoContext* from_src_info = from.get<stage::SourceInfoContext>();
+
+		BOOST_ASSERT(to_src_info == NULL && "invalid propagating source info propagation");
+
+		to.set<stage::SourceInfoContext>(new stage::SourceInfoContext(*from_src_info));
+	}
+
 	static FunctionType* createFunctionTypeFromFunctionDecl(FunctionDecl* function_decl)
 	{
 		FunctionType* function_type = new FunctionType();
@@ -249,7 +261,7 @@ public:
 
 	static ASTNode* getOwnerAnnotationAttachPoint(ASTNode& node)
 	{
-		for(ASTNode* p = node.parent; !!p && !isPackageScope(p); p = p->parent)
+		for(ASTNode* p = &node; !!p && !isa<Package>(p); p = p->parent)
 			if(isa<Statement>(p) || isa<Declaration>(p))
 				return p;
 		return NULL;

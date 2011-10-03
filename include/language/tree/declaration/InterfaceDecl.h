@@ -30,6 +30,8 @@ namespace zillians { namespace language { namespace tree {
 
 struct InterfaceDecl : public Declaration
 {
+	friend class boost::serialization::access;
+
 	DEFINE_VISITABLE();
 	DEFINE_HIERARCHY(InterfaceDecl, (InterfaceDecl)(Declaration)(ASTNode));
 
@@ -68,7 +70,17 @@ struct InterfaceDecl : public Declaration
     	return cloned;
     }
 
+    template<typename Archive>
+    void serialize(Archive& ar, const unsigned int version)
+    {
+    	ar & boost::serialization::base_object<Declaration>(*this);
+    	ar & member_functions;
+    }
+
 	std::vector<FunctionDecl*> member_functions;
+
+protected:
+	InterfaceDecl() { }
 };
 
 } } }

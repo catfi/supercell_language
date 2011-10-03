@@ -29,6 +29,8 @@ namespace zillians { namespace language { namespace tree {
 
 struct TypedefDecl : public Declaration
 {
+	friend class boost::serialization::access;
+
 	DEFINE_VISITABLE();
 	DEFINE_HIERARCHY(TypedefDecl, (TypedefDecl)(Declaration)(ASTNode));
 
@@ -60,7 +62,17 @@ struct TypedefDecl : public Declaration
     			(name) ? cast<Identifier>(name->clone()) : NULL);
     }
 
+    template<typename Archive>
+    void serialize(Archive& ar, const unsigned int version)
+    {
+    	ar & boost::serialization::base_object<Declaration>(*this);
+    	ar & type;
+    }
+
 	TypeSpecifier* type;
+
+protected:
+	TypedefDecl() { }
 };
 
 } } }

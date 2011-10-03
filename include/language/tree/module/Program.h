@@ -33,6 +33,8 @@ namespace zillians { namespace language { namespace tree {
 
 struct Program : public ASTNode
 {
+	friend class boost::serialization::access;
+
 	DEFINE_VISITABLE();
 	DEFINE_HIERARCHY(Program, (Program)(ASTNode));
 
@@ -81,6 +83,15 @@ struct Program : public ASTNode
     		cloned->addImport(cast<Import>((*i)->clone()));
 
     	return cloned;
+    }
+
+    template<typename Archive>
+    void serialize(Archive& ar, const unsigned int version)
+    {
+    	ar & boost::serialization::base_object<ASTNode>(*this);
+    	ar & imports;
+    	ar & root;
+    	ar & internal;
     }
 
 	std::vector<Import*> imports;

@@ -30,6 +30,8 @@ namespace zillians { namespace language { namespace tree {
 
 struct CastExpr : public Expression
 {
+	friend class boost::serialization::access;
+
 	DEFINE_VISITABLE();
 	DEFINE_HIERARCHY(CastExpr, (CastExpr)(Expression)(ASTNode));
 
@@ -70,8 +72,19 @@ struct CastExpr : public Expression
     			(type) ? cast<TypeSpecifier>(type->clone()) : NULL);
     }
 
+    template<typename Archive>
+    void serialize(Archive& ar, const unsigned int version)
+    {
+    	ar & boost::serialization::base_object<Expression>(*this);
+    	ar & node;
+    	ar & type;
+    }
+
 	Expression* node;
 	TypeSpecifier* type;
+
+protected:
+	CastExpr() { }
 };
 
 } } }

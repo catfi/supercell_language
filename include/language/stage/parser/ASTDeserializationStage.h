@@ -17,19 +17,18 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef ZILLIANS_LANGUAGE_STAGE_TRANSFORMER_TYPECONVERSIONSTAGE_H_
-#define ZILLIANS_LANGUAGE_STAGE_TRANSFORMER_TYPECONVERSIONSTAGE_H_
+#ifndef ZILLIANS_LANGUAGE_STAGE_GENERATOR_ASTSERIALIZATIONSTAGE_H_
+#define ZILLIANS_LANGUAGE_STAGE_GENERATOR_ASTSERIALIZATIONSTAGE_H_
 
 #include "language/stage/Stage.h"
-#include "language/resolver/Resolver.h"
 
 namespace zillians { namespace language { namespace stage {
 
-class TypeConversionStage : public Stage
+class ASTDeserializationStage : public Stage
 {
 public:
-	TypeConversionStage();
-	virtual ~TypeConversionStage();
+	ASTDeserializationStage();
+	virtual ~ASTDeserializationStage();
 
 public:
 	virtual const char* name();
@@ -38,9 +37,10 @@ public:
 	virtual bool execute(bool& continue_execution);
 
 private:
-	bool debug;
+	bool enabled;
+	std::string ast_file;
 };
 
 } } }
 
-#endif /* ZILLIANS_LANGUAGE_STAGE_TRANSFORMER_TYPECONVERSIONSTAGE_H_ */
+#endif /* ZILLIANS_LANGUAGE_STAGE_GENERATOR_ASTSERIALIZATIONSTAGE_H_ */

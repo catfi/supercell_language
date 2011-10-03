@@ -34,6 +34,8 @@ namespace zillians { namespace language { namespace tree {
 
 struct FunctionDecl : public Declaration
 {
+	friend class boost::serialization::access;
+
 	DEFINE_VISITABLE();
 	DEFINE_HIERARCHY(FunctionDecl, (FunctionDecl)(Declaration)(ASTNode));
 
@@ -90,12 +92,27 @@ struct FunctionDecl : public Declaration
     	return cloned;
     }
 
+    template<typename Archive>
+    void serialize(Archive& ar, const unsigned int version)
+    {
+    	ar & boost::serialization::base_object<Declaration>(*this);
+    	ar & parameters;
+    	ar & type;
+    	ar & is_member;
+    	ar & is_static;
+    	ar & (int&)visibility;
+    	ar & block;
+    }
+
 	std::vector<VariableDecl*> parameters;
 	TypeSpecifier* type;
 	bool is_member;
 	bool is_static;
 	Declaration::VisibilitySpecifier::type visibility;
 	Block* block;
+
+protected:
+	FunctionDecl() { }
 };
 
 } } }

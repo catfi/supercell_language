@@ -31,6 +31,8 @@ namespace zillians { namespace language { namespace tree {
 
 struct EnumDecl : public Declaration
 {
+	friend class boost::serialization::access;
+
 	DEFINE_VISITABLE();
 	DEFINE_HIERARCHY(EnumDecl, (EnumDecl)(Declaration)(ASTNode));
 
@@ -74,7 +76,17 @@ struct EnumDecl : public Declaration
     	return cloned;
     }
 
+    template<typename Archive>
+    void serialize(Archive& ar, const unsigned int version)
+    {
+    	ar & boost::serialization::base_object<Declaration>(*this);
+    	ar & enumeration_list;
+    }
+
 	std::vector<std::pair<SimpleIdentifier*, Expression*>> enumeration_list;
+
+protected:
+	EnumDecl() { }
 };
 
 } } }

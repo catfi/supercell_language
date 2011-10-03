@@ -32,6 +32,11 @@ using zillians::language::tree::visitor::NameManglingVisitor;
 
 namespace zillians { namespace language { namespace stage { namespace visitor {
 
+/**
+ * LiteralCompactionStageVisitor is the visitation helper for LiteralCompactionStage
+ *
+ * @see LiteralCompactionStage
+ */
 struct LiteralCompactionStageVisitor : GenericDoubleVisitor
 {
 	CREATE_INVOKER(compactInvoker, compact)

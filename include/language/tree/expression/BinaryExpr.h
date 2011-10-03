@@ -29,13 +29,15 @@ namespace zillians { namespace language { namespace tree {
 
 struct BinaryExpr : public Expression
 {
+	friend class boost::serialization::access;
+
 	DEFINE_VISITABLE();
 	DEFINE_HIERARCHY(BinaryExpr, (BinaryExpr)(Expression)(ASTNode));
 
 	struct OpCode
 	{
 		enum type {
-			ASSIGN, RSHIFT_ASSIGN, LSHIFT_ASSIGN, ARITHMETIC_RSHIFT_ASSIGN, ADD_ASSIGN, SUB_ASSIGN, MUL_ASSIGN, DIV_ASSIGN, MOD_ASSIGN, AND_ASSIGN, OR_ASSIGN, XOR_ASSIGN,
+			ASSIGN, LSHIFT_ASSIGN, RSHIFT_ASSIGN, ARITHMETIC_RSHIFT_ASSIGN, ADD_ASSIGN, SUB_ASSIGN, MUL_ASSIGN, DIV_ASSIGN, MOD_ASSIGN, AND_ASSIGN, OR_ASSIGN, XOR_ASSIGN,
 			ARITHMETIC_ADD, ARITHMETIC_SUB, ARITHMETIC_MUL, ARITHMETIC_DIV, ARITHMETIC_MOD, ARITHMETIC_RSHIFT,
 			BINARY_AND, BINARY_OR, BINARY_XOR, BINARY_LSHIFT, BINARY_RSHIFT,
 			LOGICAL_AND, LOGICAL_OR,
@@ -50,8 +52,8 @@ struct BinaryExpr : public Expression
 			switch(op)
 			{
 			case ASSIGN: return L"=";
-			case RSHIFT_ASSIGN: return L">>=";
 			case LSHIFT_ASSIGN: return L"<<=";
+			case RSHIFT_ASSIGN: return L">>=";
 			case ARITHMETIC_RSHIFT_ASSIGN: return L">>>=";
 			case ADD_ASSIGN: return L"+=";
 			case SUB_ASSIGN: return L"-=";
@@ -103,6 +105,8 @@ struct BinaryExpr : public Expression
 			case AND_ASSIGN: return BINARY_AND;
 			case OR_ASSIGN:  return BINARY_OR;
 			case XOR_ASSIGN: return BINARY_XOR;
+			case RSHIFT_ASSIGN: return BINARY_RSHIFT;
+			case LSHIFT_ASSIGN: return BINARY_LSHIFT;
 			default: break;
 			}
 			return INVALID;
@@ -279,9 +283,21 @@ struct BinaryExpr : public Expression
     			(right) ? cast<Expression>(right->clone()) : NULL);
     }
 
+    template<typename Archive>
+    void serialize(Archive& ar, const unsigned int version)
+    {
+    	ar & boost::serialization::base_object<Expression>(*this);
+    	ar & (int&)opcode;
+    	ar & left;
+    	ar & right;
+    }
+
 	OpCode::type opcode;
 	Expression* left;
 	Expression* right;
+
+protected:
+	BinaryExpr() { }
 };
 
 } } }

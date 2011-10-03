@@ -518,7 +518,7 @@ struct LLVMGeneratorStageVisitor : GenericDoubleVisitor
 		ASTNode* operand_resolved;
 		llvm::Value* operand_value_for_read;
 		llvm::Value* operand_value_for_write;
-		if(!getValue(*node.node, operand_resolved, operand_value_for_read, operand_value_for_write, (node.opcode >= UnaryExpr::OpCode::POSTFIX_INCREMENT && node.opcode <= UnaryExpr::OpCode::PREFIX_DECREMENT)))
+		if(!getValue(*node.node, operand_resolved, operand_value_for_read, operand_value_for_write, true, (node.opcode >= UnaryExpr::OpCode::POSTFIX_INCREMENT && node.opcode <= UnaryExpr::OpCode::PREFIX_DECREMENT)))
 		{
 			BOOST_ASSERT(false && "failed to resolve LLVM value for operand");
 			terminateRevisit();
@@ -579,7 +579,8 @@ struct LLVMGeneratorStageVisitor : GenericDoubleVisitor
 		ASTNode* lhs_resolved;
 		llvm::Value* lhs_value_for_read;
 		llvm::Value* lhs_value_for_write;
-		if(!getValue(*node.left, lhs_resolved, lhs_value_for_read, lhs_value_for_write, (node.opcode >= BinaryExpr::OpCode::ADD_ASSIGN && node.opcode <= BinaryExpr::OpCode::XOR_ASSIGN)))
+		bool is_assignment = node.isAssignment();
+		if(!getValue(*node.left, lhs_resolved, lhs_value_for_read, lhs_value_for_write, !is_assignment, is_assignment))
 		{
 			BOOST_ASSERT(false && "failed to resolve LLVM value for LHS");
 			terminateRevisit();
@@ -588,7 +589,7 @@ struct LLVMGeneratorStageVisitor : GenericDoubleVisitor
 		ASTNode* rhs_resolved;
 		llvm::Value* rhs_value_for_read;
 		llvm::Value* rhs_value_for_write;
-		if(!getValue(*node.right, rhs_resolved, rhs_value_for_read, rhs_value_for_write, (node.opcode >= BinaryExpr::OpCode::ADD_ASSIGN && node.opcode <= BinaryExpr::OpCode::XOR_ASSIGN)))
+		if(!getValue(*node.right, rhs_resolved, rhs_value_for_read, rhs_value_for_write, true, false))
 		{
 			BOOST_ASSERT(false && "failed to resolve LLVM value for RHS");
 			terminateRevisit();
@@ -603,38 +604,38 @@ struct LLVMGeneratorStageVisitor : GenericDoubleVisitor
 		case BinaryExpr::OpCode::ASSIGN:
 			result = mBuilder.CreateStore(rhs_value_for_read, lhs_value_for_write);
 			break;
-		case BinaryExpr::OpCode::ADD_ASSIGN:
-			temporary = (isFloatType(*node.left)) ? mBuilder.CreateFAdd(lhs_value_for_read, rhs_value_for_read) : mBuilder.CreateAdd(lhs_value_for_read, rhs_value_for_read);
-			result = mBuilder.CreateStore(temporary, lhs_value_for_write);
-			break;
-		case BinaryExpr::OpCode::SUB_ASSIGN:
-			temporary = (isFloatType(*node.left)) ? mBuilder.CreateFSub(lhs_value_for_read, rhs_value_for_read) : mBuilder.CreateSub(lhs_value_for_read, rhs_value_for_read);
-			result = mBuilder.CreateStore(temporary, lhs_value_for_write);
-			break;
-		case BinaryExpr::OpCode::MUL_ASSIGN:
-			temporary = (isFloatType(*node.left)) ? mBuilder.CreateFMul(lhs_value_for_read, rhs_value_for_read) : mBuilder.CreateMul(lhs_value_for_read, rhs_value_for_read);
-			result = mBuilder.CreateStore(temporary, lhs_value_for_write);
-			break;
-		case BinaryExpr::OpCode::DIV_ASSIGN:
-			temporary = (isFloatType(*node.left)) ? mBuilder.CreateFDiv(lhs_value_for_read, rhs_value_for_read) : mBuilder.CreateUDiv(lhs_value_for_read, rhs_value_for_read);
-			result = mBuilder.CreateStore(temporary, lhs_value_for_write);
-			break;
-		case BinaryExpr::OpCode::MOD_ASSIGN:
-			temporary = (isFloatType(*node.left)) ? mBuilder.CreateFRem(lhs_value_for_read, rhs_value_for_read) : mBuilder.CreateURem(lhs_value_for_read, rhs_value_for_read);
-			result = mBuilder.CreateStore(temporary, lhs_value_for_write);
-			break;
-		case BinaryExpr::OpCode::AND_ASSIGN:
-			temporary = mBuilder.CreateAnd(lhs_value_for_read, rhs_value_for_read);
-			result = mBuilder.CreateStore(temporary, lhs_value_for_write);
-			break;
-		case BinaryExpr::OpCode::OR_ASSIGN:
-			temporary = mBuilder.CreateOr(lhs_value_for_read, rhs_value_for_read);
-			result = mBuilder.CreateStore(temporary, lhs_value_for_write);
-			break;
-		case BinaryExpr::OpCode::XOR_ASSIGN:
-			temporary = mBuilder.CreateXor(lhs_value_for_read, rhs_value_for_read);
-			result = mBuilder.CreateStore(temporary, lhs_value_for_write);
-			break;
+//		case BinaryExpr::OpCode::ADD_ASSIGN:
+//			temporary = (isFloatType(*node.left)) ? mBuilder.CreateFAdd(lhs_value_for_read, rhs_value_for_read) : mBuilder.CreateAdd(lhs_value_for_read, rhs_value_for_read);
+//			result = mBuilder.CreateStore(temporary, lhs_value_for_write);
+//			break;
+//		case BinaryExpr::OpCode::SUB_ASSIGN:
+//			temporary = (isFloatType(*node.left)) ? mBuilder.CreateFSub(lhs_value_for_read, rhs_value_for_read) : mBuilder.CreateSub(lhs_value_for_read, rhs_value_for_read);
+//			result = mBuilder.CreateStore(temporary, lhs_value_for_write);
+//			break;
+//		case BinaryExpr::OpCode::MUL_ASSIGN:
+//			temporary = (isFloatType(*node.left)) ? mBuilder.CreateFMul(lhs_value_for_read, rhs_value_for_read) : mBuilder.CreateMul(lhs_value_for_read, rhs_value_for_read);
+//			result = mBuilder.CreateStore(temporary, lhs_value_for_write);
+//			break;
+//		case BinaryExpr::OpCode::DIV_ASSIGN:
+//			temporary = (isFloatType(*node.left)) ? mBuilder.CreateFDiv(lhs_value_for_read, rhs_value_for_read) : mBuilder.CreateUDiv(lhs_value_for_read, rhs_value_for_read);
+//			result = mBuilder.CreateStore(temporary, lhs_value_for_write);
+//			break;
+//		case BinaryExpr::OpCode::MOD_ASSIGN:
+//			temporary = (isFloatType(*node.left)) ? mBuilder.CreateFRem(lhs_value_for_read, rhs_value_for_read) : mBuilder.CreateURem(lhs_value_for_read, rhs_value_for_read);
+//			result = mBuilder.CreateStore(temporary, lhs_value_for_write);
+//			break;
+//		case BinaryExpr::OpCode::AND_ASSIGN:
+//			temporary = mBuilder.CreateAnd(lhs_value_for_read, rhs_value_for_read);
+//			result = mBuilder.CreateStore(temporary, lhs_value_for_write);
+//			break;
+//		case BinaryExpr::OpCode::OR_ASSIGN:
+//			temporary = mBuilder.CreateOr(lhs_value_for_read, rhs_value_for_read);
+//			result = mBuilder.CreateStore(temporary, lhs_value_for_write);
+//			break;
+//		case BinaryExpr::OpCode::XOR_ASSIGN:
+//			temporary = mBuilder.CreateXor(lhs_value_for_read, rhs_value_for_read);
+//			result = mBuilder.CreateStore(temporary, lhs_value_for_write);
+//			break;
 
 			// Arithmetic Operations
 		case BinaryExpr::OpCode::ARITHMETIC_ADD:
@@ -783,7 +784,7 @@ struct LLVMGeneratorStageVisitor : GenericDoubleVisitor
 			ASTNode* parameter_resolved;
 			llvm::Value* parameter_value_for_read;
 			llvm::Value* parameter_value_for_write;
-			if(!getValue(**i, parameter_resolved, parameter_value_for_read, parameter_value_for_write, false))
+			if(!getValue(**i, parameter_resolved, parameter_value_for_read, parameter_value_for_write, true, false))
 			{
 				BOOST_ASSERT(false && "invalid LLVM parameter value for function call");
 				terminateRevisit();
@@ -826,7 +827,7 @@ struct LLVMGeneratorStageVisitor : GenericDoubleVisitor
 		llvm::Value* llvm_result = NULL;
 		llvm::Value* llvm_value_for_read = NULL;
 		llvm::Value* llvm_value_for_write = NULL;
-		if(!getValue(*node.node, node_resolved, llvm_value_for_read, llvm_value_for_write, false))
+		if(!getValue(*node.node, node_resolved, llvm_value_for_read, llvm_value_for_write, true, false))
 		{
 			BOOST_ASSERT(false && "invalid LLVM parameter value for type conversion");
 			terminateRevisit();
@@ -1102,15 +1103,22 @@ private:
 	}
 
 private:
-	bool getValue(ASTNode& node, /*OUT*/ ASTNode*& resolved_symbol, /*OUT*/ llvm::Value*& llvm_value_for_read, /*OUT*/ llvm::Value*& llvm_value_for_write, bool require_write_access = false)
+	bool getValue(ASTNode& node, /*OUT*/ ASTNode*& resolved_symbol, /*OUT*/ llvm::Value*& llvm_value_for_read, /*OUT*/ llvm::Value*& llvm_value_for_write, bool require_read_access, bool require_write_access)
 	{
 		llvm_value_for_read = GET_SYNTHESIZED_LLVM_VALUE(&node);
-		if(llvm_value_for_read)
+		if(llvm_value_for_read && !llvm::isa<llvm::StoreInst>(llvm_value_for_read))
 		{
 			if(llvm_value_for_read->getType()->isPointerTy())
 			{
 				llvm_value_for_write = llvm_value_for_read;
-				llvm_value_for_read = mBuilder.CreateLoad(llvm_value_for_read);
+				if(require_read_access)
+				{
+					llvm_value_for_read = mBuilder.CreateLoad(llvm_value_for_read);
+				}
+				else
+				{
+					llvm_value_for_read = NULL;
+				}
 			}
 			else
 			{
@@ -1136,7 +1144,14 @@ private:
 				if(llvm_value_for_read->getType()->isPointerTy())
 				{
 					llvm_value_for_write = llvm_value_for_read;
-					llvm_value_for_read = mBuilder.CreateLoad(llvm_value_for_read);
+					if(require_read_access)
+					{
+						llvm_value_for_read = mBuilder.CreateLoad(llvm_value_for_read);
+					}
+					else
+					{
+						llvm_value_for_read = NULL;
+					}
 				}
 				else
 				{
@@ -1150,7 +1165,7 @@ private:
 			else
 			{
 				// nested value resolve
-				return getValue(*resolved_symbol, resolved_symbol, llvm_value_for_read, llvm_value_for_write, require_write_access);
+				return getValue(*resolved_symbol, resolved_symbol, llvm_value_for_read, llvm_value_for_write, require_read_access, require_write_access);
 			}
 		}
 

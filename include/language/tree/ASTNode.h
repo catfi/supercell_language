@@ -32,8 +32,10 @@
 #include <boost/preprocessor.hpp>
 #include <boost/archive/text_oarchive.hpp>
 #include <boost/archive/text_iarchive.hpp>
+#include <boost/serialization/base_object.hpp>
 #include <boost/serialization/export.hpp>
 #include <boost/serialization/vector.hpp>
+#include <boost/serialization/list.hpp>
 #include <boost/serialization/utility.hpp>
 #include <boost/mpl/contains.hpp>
 #include <boost/mpl/vector.hpp>
@@ -236,22 +238,52 @@ struct ASTNode : public VisitableBase<ASTNode>, ContextHub<ContextOwnership::tra
 
 public:
 	/**
-	 * @brief Compare if two AST tree are equal.
-	 * @param rhs another AST to be compared with.
-	 * @return @p true if two AST are equal in terms of their value, @p false if not.
+	 * Compare if two AST tree are equal
+	 *
+	 * @param rhs another AST to be compared with
+	 * @return true if equal, false otherwise
 	 */
 	bool isEqual(const ASTNode& rhs) const {
 		ASTNodeSet visited;
 		return isEqualImpl(rhs, visited);
 	}
 
+	/**
+	 * The actual compare implementation for each derived classes
+	 *
+	 * Note that this method is for internal use. DO NOT call it directly
+	 *
+	 * @param rhs the right-hand-side of the comparison
+	 * @param visited the visited node set to avoid redundant visitation
+	 * @return true if equal, false otherwise
+	 */
 	virtual bool isEqualImpl(const ASTNode& rhs, ASTNodeSet& visited) const = 0 ;
 
 public:
+	/**
+	 * Replace direct children pointer with the given one
+	 *
+	 * @param from the current child node to replace
+	 * @param to the new child node for replacement
+	 * @param update_parent update the parent pointer of child nodes
+	 * @return true if the replacement is completed, false otherwise
+	 */
 	virtual bool replaceUseWith(const ASTNode& from, const ASTNode& to, bool update_parent = true) = 0;
 
 public:
+	/**
+	 * Clone the ASTNode and all of its descendants
+	 *
+	 * @return the cloned ASTNode
+	 */
 	virtual ASTNode* clone() const = 0;
+
+public:
+    template<typename Archive>
+    void serialize(Archive& ar, const unsigned int version)
+    {
+    	ar & parent;
+    }
 
 protected:
 	ASTNode() : parent(NULL)
@@ -272,6 +304,14 @@ struct is_std_vector : boost::mpl::false_
 
 template<typename _Tp, typename _Alloc>
 struct is_std_vector<std::vector<_Tp, _Alloc>> : boost::mpl::true_
+{ };
+
+template<typename T>
+struct is_std_list : boost::mpl::false_
+{ };
+
+template<typename _Tp, typename _Alloc>
+struct is_std_list<std::list<_Tp, _Alloc>> : boost::mpl::true_
 { };
 
 template<typename T>
@@ -304,6 +344,15 @@ typedef boost::mpl::vector<ASTNode, Annotation, Annotations, Internal, Program,
 typedef boost::mpl::vector<ASTNode, Identifier, Identifier, Declaration,
 		Statement, IterativeStmt, SelectionStmt, Expression> ASTNodeInternalTypeVector;
 
+#define REPORT_COMPARE_MATCHED()	\
+		return true;
+
+//#define REPORT_COMPARE_MISMATCHED()	\
+//		return false;
+
+#define REPORT_COMPARE_MISMATCHED()	\
+		BOOST_ASSERT(false && "node mismatched"); \
+		return false;
 
 template<typename T>
 inline bool compareDispatch(T& a, T& b, ASTNodeSet& visited)
@@ -312,6 +361,8 @@ inline bool compareDispatch(T& a, T& b, ASTNodeSet& visited)
 	typedef boost::mpl::contains<ASTNodeTypeVector, typename boost::remove_const<T>::type> is_ast_t;
 	typedef is_std_pair<typename boost::remove_const<T>::type> is_std_pair_t;
 	typedef is_std_vector<typename boost::remove_const<T>::type> is_std_vector_t;
+	typedef is_std_list<typename boost::remove_const<T>::type> is_std_list_t;
+	typedef boost::mpl::or_<is_std_vector_t, is_std_list_t> is_iterative_type_t;
 	typedef is_boost_tuple<typename boost::remove_const<T>::type> is_boost_tuple_t;
 
 	typedef boost::mpl::not_<
@@ -319,10 +370,10 @@ inline bool compareDispatch(T& a, T& b, ASTNodeSet& visited)
 				is_pointer_t,
 				is_ast_t,
 				is_std_pair_t,
-				is_std_vector_t,
+				is_iterative_type_t,
 				is_boost_tuple_t>> is_other_t;
 
-	return compareDispatchImpl(a, b, visited, is_pointer_t(), is_ast_t(), is_std_pair_t(), is_std_vector_t(), is_boost_tuple_t(), is_other_t());
+	return compareDispatchImpl(a, b, visited, is_pointer_t(), is_ast_t(), is_std_pair_t(), is_iterative_type_t(), is_boost_tuple_t(), is_other_t());
 };
 
 template<typename T>
@@ -331,16 +382,22 @@ inline bool compareDispatchImpl(
 		boost::mpl::true_ /*is_pointer*/,
 		boost::mpl::false_ /*is_ast*/,
 		boost::mpl::false_ /*is_pair*/,
-		boost::mpl::false_ /*is_vector*/,
+		boost::mpl::false_ /*is_iterative_type*/,
 		boost::mpl::false_ /*is_tuple*/,
 		boost::mpl::false_ /*is_other*/)
 {
 	if(a == NULL && b == NULL)
-		return true;
+	{
+		REPORT_COMPARE_MATCHED()
+	}
 	else if((a == NULL && b != NULL) || (a != NULL && b == NULL))
-		return false;
+	{
+		REPORT_COMPARE_MISMATCHED()
+	}
 	else
+	{
 		return compareDispatch(*a, *b, visited);
+	}
 }
 
 template<typename T>
@@ -349,7 +406,7 @@ inline bool compareDispatchImpl(
 		boost::mpl::false_ /*is_pointer*/,
 		boost::mpl::true_ /*is_ast*/,
 		boost::mpl::false_ /*is_pair*/,
-		boost::mpl::false_ /*is_vector*/,
+		boost::mpl::false_ /*is_iterative_type*/,
 		boost::mpl::false_ /*is_tuple*/,
 		boost::mpl::false_ /*is_other*/)
 {
@@ -362,7 +419,7 @@ inline bool compareDispatchImpl(
 		boost::mpl::false_ /*is_pointer*/,
 		boost::mpl::false_ /*is_ast*/,
 		boost::mpl::true_ /*is_pair*/,
-		boost::mpl::false_ /*is_vector*/,
+		boost::mpl::false_ /*is_iterative_type*/,
 		boost::mpl::false_ /*is_tuple*/,
 		boost::mpl::false_ /*is_other*/)
 {
@@ -372,7 +429,7 @@ inline bool compareDispatchImpl(
 	}
 	else
 	{
-		return false;
+		REPORT_COMPARE_MISMATCHED()
 	}
 }
 
@@ -382,12 +439,14 @@ inline bool compareDispatchImpl(
 		boost::mpl::false_ /*is_pointer*/,
 		boost::mpl::false_ /*is_ast*/,
 		boost::mpl::false_ /*is_pair*/,
-		boost::mpl::true_ /*is_vector*/,
+		boost::mpl::true_ /*is_iterative_type*/,
 		boost::mpl::false_ /*is_tuple*/,
 		boost::mpl::false_ /*is_other*/)
 {
 	if(a.size() != b.size())
-		return false;
+	{
+		REPORT_COMPARE_MISMATCHED()
+	}
 
 	auto iterator_a = a.begin(); auto iterator_end_a = a.end();
 	auto iterator_b = b.begin(); auto iterator_end_b = b.end();
@@ -395,7 +454,10 @@ inline bool compareDispatchImpl(
 	while(iterator_a != iterator_end_a && iterator_b != iterator_end_b)
 	{
 		bool result = compareDispatch(*iterator_a, *iterator_b, visited);
-		if(!result) return false;
+		if(!result)
+		{
+			REPORT_COMPARE_MISMATCHED()
+		}
 
 		++iterator_a; ++iterator_b;
 	}
@@ -409,9 +471,13 @@ struct tuple_recursive_compare
 	static bool compare(T& a, T& b, ASTNodeSet& visited)
 	{
 		if(!compareDispatch(a.template get<boost::tuples::length<T>::value - N>(), b.template get<boost::tuples::length<T>::value - N>(), visited))
-			return false;
+		{
+			REPORT_COMPARE_MISMATCHED()
+		}
 		else
+		{
 			return tuple_recursive_compare<T, N-1>::compare(a, b, visited);
+		}
 	}
 };
 
@@ -420,7 +486,7 @@ struct tuple_recursive_compare<T, 0>
 {
 	static bool compare(T& a, T& b, ASTNodeSet& visited)
 	{
-		return true;
+		REPORT_COMPARE_MATCHED()
 	}
 };
 
@@ -430,7 +496,7 @@ inline bool compareDispatchImpl(
 		boost::mpl::false_ /*is_pointer*/,
 		boost::mpl::false_ /*is_ast*/,
 		boost::mpl::false_ /*is_pair*/,
-		boost::mpl::false_ /*is_vector*/,
+		boost::mpl::false_ /*is_iterative_type*/,
 		boost::mpl::true_ /*is_tuple*/,
 		boost::mpl::false_ /*is_other*/)
 {
@@ -443,7 +509,7 @@ inline bool compareDispatchImpl(
 		boost::mpl::false_ /*is_pointer*/,
 		boost::mpl::false_ /*is_ast*/,
 		boost::mpl::false_ /*is_pair*/,
-		boost::mpl::false_ /*is_vector*/,
+		boost::mpl::false_ /*is_iterative_type*/,
 		boost::mpl::false_ /*is_tuple*/,
 		boost::mpl::true_ /*is_other*/)
 {
@@ -458,6 +524,8 @@ inline bool replaceUseWithDispatch(T& a, const ASTNode& from, const ASTNode& to,
 	typedef boost::mpl::contains<ASTNodeTypeVector, typename boost::remove_const<T>::type> is_ast_t;
 	typedef is_std_pair<typename boost::remove_const<T>::type> is_std_pair_t;
 	typedef is_std_vector<typename boost::remove_const<T>::type> is_std_vector_t;
+	typedef is_std_list<typename boost::remove_const<T>::type> is_std_list_t;
+	typedef boost::mpl::or_<is_std_vector_t, is_std_list_t> is_iterative_type_t;
 	typedef is_boost_tuple<typename boost::remove_const<T>::type> is_boost_tuple_t;
 
 	typedef boost::mpl::not_<
@@ -465,10 +533,10 @@ inline bool replaceUseWithDispatch(T& a, const ASTNode& from, const ASTNode& to,
 				is_pointer_t,
 				is_ast_t,
 				is_std_pair_t,
-				is_std_vector_t,
+				is_iterative_type_t,
 				is_boost_tuple_t>> is_other_t;
 
-	return replaceUseWithDispatchImpl(a, from, to, update_parent, is_pointer_t(), is_ast_t(), is_std_pair_t(), is_std_vector_t(), is_boost_tuple_t(), is_other_t());
+	return replaceUseWithDispatchImpl(a, from, to, update_parent, is_pointer_t(), is_ast_t(), is_std_pair_t(), is_iterative_type_t(), is_boost_tuple_t(), is_other_t());
 };
 
 template<typename T>
@@ -477,7 +545,7 @@ inline bool replaceUseWithDispatchImpl(
 		boost::mpl::true_ /*is_pointer*/,
 		boost::mpl::false_ /*is_ast*/,
 		boost::mpl::false_ /*is_pair*/,
-		boost::mpl::false_ /*is_vector*/,
+		boost::mpl::false_ /*is_iterative_type*/,
 		boost::mpl::false_ /*is_tuple*/,
 		boost::mpl::false_ /*is_other*/)
 {
@@ -499,7 +567,7 @@ inline bool replaceUseWithDispatchImpl(
 		boost::mpl::false_ /*is_pointer*/,
 		boost::mpl::true_ /*is_ast*/,
 		boost::mpl::false_ /*is_pair*/,
-		boost::mpl::false_ /*is_vector*/,
+		boost::mpl::false_ /*is_iterative_type*/,
 		boost::mpl::false_ /*is_tuple*/,
 		boost::mpl::false_ /*is_other*/)
 {
@@ -512,7 +580,7 @@ inline bool replaceUseWithDispatchImpl(
 		boost::mpl::false_ /*is_pointer*/,
 		boost::mpl::false_ /*is_ast*/,
 		boost::mpl::true_ /*is_pair*/,
-		boost::mpl::false_ /*is_vector*/,
+		boost::mpl::false_ /*is_iterative_type*/,
 		boost::mpl::false_ /*is_tuple*/,
 		boost::mpl::false_ /*is_other*/)
 {
@@ -528,7 +596,7 @@ inline bool replaceUseWithDispatchImpl(
 		boost::mpl::false_ /*is_pointer*/,
 		boost::mpl::false_ /*is_ast*/,
 		boost::mpl::false_ /*is_pair*/,
-		boost::mpl::true_ /*is_vector*/,
+		boost::mpl::true_ /*is_iterative_type*/,
 		boost::mpl::false_ /*is_tuple*/,
 		boost::mpl::false_ /*is_other*/)
 {
@@ -571,7 +639,7 @@ inline bool replaceUseWithDispatchImpl(
 		boost::mpl::false_ /*is_pointer*/,
 		boost::mpl::false_ /*is_ast*/,
 		boost::mpl::false_ /*is_pair*/,
-		boost::mpl::false_ /*is_vector*/,
+		boost::mpl::false_ /*is_iterative_type*/,
 		boost::mpl::true_ /*is_tuple*/,
 		boost::mpl::false_ /*is_other*/)
 {
@@ -584,7 +652,7 @@ inline bool replaceUseWithDispatchImpl(
 		boost::mpl::false_ /*is_pointer*/,
 		boost::mpl::false_ /*is_ast*/,
 		boost::mpl::false_ /*is_pair*/,
-		boost::mpl::false_ /*is_vector*/,
+		boost::mpl::false_ /*is_iterative_type*/,
 		boost::mpl::false_ /*is_tuple*/,
 		boost::mpl::true_ /*is_other*/)
 {

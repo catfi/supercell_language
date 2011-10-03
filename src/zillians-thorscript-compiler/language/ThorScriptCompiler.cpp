@@ -26,10 +26,10 @@
 #include "language/stage/transformer/RestructureStage.h"
 #include "language/stage/transformer/ResolutionStage.h"
 #include "language/stage/transformer/ManglingStage.h"
-#include "language/stage/transformer/TypeConversionStage.h"
 #include "language/stage/generator/LLVMGeneratorStage.h"
 #include "language/stage/generator/LLVMDebugInfoGeneratorStage.h"
 #include "language/stage/generator/LLVMBitCodeGeneratorStage.h"
+#include "language/stage/generator/ASTSerializationStage.h"
 #include "language/stage/verifier/SemanticVerificationStage0.h"
 #include "language/stage/verifier/SemanticVerificationStage1.h"
 #include "language/stage/verifier/StaticTestVerificationStage.h"
@@ -47,13 +47,13 @@ ThorScriptCompiler::ThorScriptCompiler()
 			LiteralCompactionStage,
 			RestructureStage,
 			ResolutionStage,
-//			TypeConversionStage,
 			SemanticVerificationStage1,
 			StaticTestVerificationStage,
 			ManglingStage,
 			LLVMGeneratorStage,
 			LLVMDebugInfoGeneratorStage,
-			LLVMBitCodeGeneratorStage>>();
+			LLVMBitCodeGeneratorStage,
+			ASTSerializationStage>>();
 
 	addMode<
 		boost::mpl::vector<

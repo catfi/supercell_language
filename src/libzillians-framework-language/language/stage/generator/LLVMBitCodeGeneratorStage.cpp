@@ -45,7 +45,7 @@ std::pair<shared_ptr<po::options_description>, shared_ptr<po::options_descriptio
 	shared_ptr<po::options_description> option_desc_private(new po::options_description());
 
 	option_desc_public->add_options()
-		("emit-llvm", "emit llvm bitcode")
+		("emit-llvm", po::value<std::string>(), "emit llvm bitcode")
 		("dump-llvm", "dump llvm bitcode (stdout)");
 
 	foreach(i, option_desc_public->options()) option_desc_private->add(*i);
@@ -58,6 +58,10 @@ std::pair<shared_ptr<po::options_description>, shared_ptr<po::options_descriptio
 bool LLVMBitCodeGeneratorStage::parseOptions(po::variables_map& vm)
 {
 	emit_llvm = (vm.count("emit-llvm") > 0);
+	if(emit_llvm)
+	{
+		llvm_bc_file = vm["emit-llvm"].as<std::string>();
+	}
 	dump_llvm = (vm.count("dump-llvm") > 0);
 
 	return true;

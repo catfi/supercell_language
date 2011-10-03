@@ -35,8 +35,8 @@ BOOST_CLASS_EXPORT_GUID(zillians::language::tree::Package               , "Packa
 BOOST_CLASS_EXPORT_GUID(zillians::language::tree::Import                , "Import")
 BOOST_CLASS_EXPORT_GUID(zillians::language::tree::Block                 , "Block")
 BOOST_CLASS_EXPORT_GUID(zillians::language::tree::Identifier            , "Identifier")
-BOOST_CLASS_EXPORT_GUID(zillians::language::tree::SimpleIdentifier      , "SimpleIdentifi")
-BOOST_CLASS_EXPORT_GUID(zillians::language::tree::NestedIdentifier      , "NestedIdentifi")
+BOOST_CLASS_EXPORT_GUID(zillians::language::tree::SimpleIdentifier      , "SimpleIdentifier")
+BOOST_CLASS_EXPORT_GUID(zillians::language::tree::NestedIdentifier      , "NestedIdentifier")
 BOOST_CLASS_EXPORT_GUID(zillians::language::tree::TemplatedIdentifier   , "TemplatedIdent")
 BOOST_CLASS_EXPORT_GUID(zillians::language::tree::Literal               , "Literal")
 BOOST_CLASS_EXPORT_GUID(zillians::language::tree::NumericLiteral        , "NumericLiteral")
@@ -71,6 +71,7 @@ BOOST_CLASS_EXPORT_GUID(zillians::language::tree::MemberExpr            , "Membe
 BOOST_CLASS_EXPORT_GUID(zillians::language::tree::CallExpr              , "CallExpr")
 BOOST_CLASS_EXPORT_GUID(zillians::language::tree::CastExpr              , "CastExpr")
 
+
 namespace boost { namespace serialization {
 
 // boost::tuple
@@ -89,6 +90,7 @@ namespace boost { namespace serialization {
     BOOST_PP_REPEAT_FROM_TO(1,6,GENERATE_TUPLE_SERIALIZE,~);
 
 
+/*
 // ASTNode
 template<typename Archive>
 void serialize(Archive& ar, zillians::language::tree::ASTNode& node, const unsigned int version)
@@ -146,10 +148,6 @@ void serialize(Archive& ar, zillians::language::tree::Internal& node, const unsi
 	base_object<zillians::language::tree::ASTNode>(node);
 	ar & node.VoidTy;
 	ar & node.BooleanTy;
-	ar & node.UInt8Ty;
-	ar & node.UInt16Ty;
-	ar & node.UInt32Ty;
-	ar & node.UInt64Ty;
 	ar & node.Int8Ty;
 	ar & node.Int16Ty;
 	ar & node.Int32Ty;
@@ -158,6 +156,7 @@ void serialize(Archive& ar, zillians::language::tree::Internal& node, const unsi
 	ar & node.Float64Ty;
 	ar & node.ObjectTy;
 	ar & node.FunctionTy;
+	ar & node.StringTy;
 	ar & node.others;
 }
 
@@ -307,17 +306,13 @@ inline void save_construct_data(Archive& ar, const zillians::language::tree::Num
 	ar << (int&)p->type;
 	switch(p->type)
 	{
-	case PrimitiveType::type::BOOL	 : ar << p->value.b  ; break;
-	case PrimitiveType::type::UINT8	: ar << p->value.u8 ; break;
-	case PrimitiveType::type::UINT16   : ar << p->value.u16; break;
-	case PrimitiveType::type::UINT32   : ar << p->value.u32; break;
-	case PrimitiveType::type::UINT64   : ar << p->value.u64; break;
-	case PrimitiveType::type::INT8	 : ar << p->value.i8 ; break;
-	case PrimitiveType::type::INT16	: ar << p->value.i16; break;
-	case PrimitiveType::type::INT32	: ar << p->value.i32; break;
-	case PrimitiveType::type::INT64	: ar << p->value.i64; break;
-	case PrimitiveType::type::FLOAT32  : ar << p->value.f32; break;
-	case PrimitiveType::type::FLOAT64  : ar << p->value.f64; break;
+	case PrimitiveType::type::BOOL: ar << p->value.b; break;
+	case PrimitiveType::type::INT8: ar << p->value.i8; break;
+	case PrimitiveType::type::INT16: ar << p->value.i16; break;
+	case PrimitiveType::type::INT32: ar << p->value.i32; break;
+	case PrimitiveType::type::INT64: ar << p->value.i64; break;
+	case PrimitiveType::type::FLOAT32: ar << p->value.f32; break;
+	case PrimitiveType::type::FLOAT64: ar << p->value.f64; break;
 	}
 }
 
@@ -329,31 +324,23 @@ inline void load_construct_data(Archive& ar, zillians::language::tree::NumericLi
 	int type;
 	ar >> type;
 
-	bool			  b   ;
-	zillians::int8	i8  ;
-	zillians::int16   i16 ;
-	zillians::int32   i32 ;
-	zillians::int64   i64 ;
-	zillians::uint8   u8  ;
-	zillians::uint16  u16 ;
-	zillians::uint32  u32 ;
-	zillians::uint64  u64 ;
-	float			 f32 ;
-	double			f64 ;
+	bool			b;
+	zillians::int8	i8;
+	zillians::int16 i16;
+	zillians::int32 i32;
+	zillians::int64 i64;
+	float			f32;
+	double			f64;
 
 	switch(type)
 	{
-	case PrimitiveType::type::BOOL	 : ar >> b  ; ::new(p) NumericLiteral(b  ); break;
-	case PrimitiveType::type::UINT8	: ar >> u8 ; ::new(p) NumericLiteral(u8 ); break;
-	case PrimitiveType::type::UINT16   : ar >> u16; ::new(p) NumericLiteral(u16); break;
-	case PrimitiveType::type::UINT32   : ar >> u32; ::new(p) NumericLiteral(u32); break;
-	case PrimitiveType::type::UINT64   : ar >> u64; ::new(p) NumericLiteral(u64); break;
-	case PrimitiveType::type::INT8	 : ar >> i8 ; ::new(p) NumericLiteral(i8 ); break;
-	case PrimitiveType::type::INT16	: ar >> i16; ::new(p) NumericLiteral(i16); break;
-	case PrimitiveType::type::INT32	: ar >> i32; ::new(p) NumericLiteral(i32); break;
-	case PrimitiveType::type::INT64	: ar >> i64; ::new(p) NumericLiteral(i64); break;
-	case PrimitiveType::type::FLOAT32  : ar >> f32; ::new(p) NumericLiteral(f32); break;
-	case PrimitiveType::type::FLOAT64  : ar >> f64; ::new(p) NumericLiteral(f64); break;
+	case PrimitiveType::type::BOOL: ar >> b; ::new(p) NumericLiteral(b); break;
+	case PrimitiveType::type::INT8: ar >> i8; ::new(p) NumericLiteral(i8); break;
+	case PrimitiveType::type::INT16: ar >> i16; ::new(p) NumericLiteral(i16); break;
+	case PrimitiveType::type::INT32: ar >> i32; ::new(p) NumericLiteral(i32); break;
+	case PrimitiveType::type::INT64: ar >> i64; ::new(p) NumericLiteral(i64); break;
+	case PrimitiveType::type::FLOAT32: ar >> f32; ::new(p) NumericLiteral(f32); break;
+	case PrimitiveType::type::FLOAT64: ar >> f64; ::new(p) NumericLiteral(f64); break;
 	}
 }
 
@@ -1137,7 +1124,7 @@ inline void load_construct_data(Archive& ar, zillians::language::tree::CastExpr*
 	ar >> type;
 	::new(p) CastExpr(node, type);
 }
-
+*/
 
 } }
 
