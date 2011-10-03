@@ -70,13 +70,8 @@ ThorScriptCompiler::ThorScriptCompiler()
 		boost::mpl::vector<
 			ThorScriptParserStage,
 			LiteralCompactionStage,
-			StaticTestVerificationStage>>("mode-literal-compaction-stage-only", "for literal compaction stage");
-
-	addMode<
-		boost::mpl::vector<
-			ThorScriptParserStage,
 			RestructureStage,
-			StaticTestVerificationStage>>("mode-restructure-stage-only", "for restructure stage stage");
+			StaticTestVerificationStage>>("mode-xform-stage-only", "for transform stage");
 
 	addMode<
 		boost::mpl::vector<
