@@ -249,7 +249,7 @@ public:
 
 	static ASTNode* getOwnerAnnotationAttachPoint(ASTNode& node)
 	{
-		for(ASTNode* p = node.parent; !!p && !isPackageScope(p); p = p->parent)
+		for(ASTNode* p = &node; !!p && !isa<Package>(p); p = p->parent)
 			if(isa<Statement>(p) || isa<Declaration>(p))
 				return p;
 		return NULL;
