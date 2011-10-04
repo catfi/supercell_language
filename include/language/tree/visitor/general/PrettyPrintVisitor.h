@@ -128,7 +128,7 @@ struct PrettyPrintVisitor : Visitor<const ASTNode, void>
 		}
 		else
 		{
-			STREAM << L"<identifier name=\"" << node.toString() << L"\">" << std::endl;
+			STREAM << L"<identifier name=\"" << node.toString() << L"\"/>" << std::endl;
 		}
 	}
 
