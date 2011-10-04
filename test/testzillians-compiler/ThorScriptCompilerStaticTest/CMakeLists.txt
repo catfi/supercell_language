@@ -219,7 +219,7 @@ zillians_add_test_to_subject(SUBJECT thorscript-compiler-static-test-s1 TARGET t
 zillians_add_test_to_subject(SUBJECT thorscript-compiler-static-test-s1 TARGET thorscript-compiler-static-test-INVALID_NONSTATIC_CALL)
 zillians_add_test_to_subject(SUBJECT thorscript-compiler-static-test-s1 TARGET thorscript-compiler-static-test-INVALID_NONSTATIC_REF)
 zillians_add_test_to_subject(SUBJECT thorscript-compiler-static-test-s0 TARGET thorscript-compiler-static-test-MISSING_STATIC_INIT)
-#zillians_add_test_to_subject(SUBJECT thorscript-compiler-static-test-s1 TARGET thorscript-compiler-static-test-INVALID_ACCESS_PRIVATE)
+zillians_add_test_to_subject(SUBJECT thorscript-compiler-static-test-s1 TARGET thorscript-compiler-static-test-INVALID_ACCESS_PRIVATE)
 #zillians_add_test_to_subject(SUBJECT thorscript-compiler-static-test-s1 TARGET thorscript-compiler-static-test-INVALID_ACCESS_PROTECTED)
 
 #####################################################################

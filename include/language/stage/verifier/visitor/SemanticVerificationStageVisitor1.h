@@ -77,25 +77,46 @@ struct SemanticVerificationStageVisitor1 : GenericDoubleVisitor
 		if(ASTNodeHelper::isOwnedByFunction(node) && node.catagory == PrimaryExpr::Catagory::IDENTIFIER)
 		{
 			ASTNode* decl = ResolvedSymbol::get(&node);
-			if(isa<VariableDecl>(decl))
+			if(isa<VariableDecl>(decl) || isa<FunctionDecl>(decl))
 			{
-				VariableDecl* var_decl = cast<VariableDecl>(decl);
-				std::wstring name = var_decl->name->toString();
+				std::wstring name;
+				bool static_violation = false;
+				Declaration::VisibilitySpecifier::type visibility = Declaration::VisibilitySpecifier::PRIVATE;
 
-				// UNINIT_REF
-				if(!SemanticVerificationVariableDeclContext_HasBeenInit::get(var_decl))
-					LOG_MESSAGE(UNINIT_REF, &node, _var_id = name);
+				if(isa<VariableDecl>(decl))
+				{
+					VariableDecl* var_decl = cast<VariableDecl>(decl);
+					name = var_decl->name->toString();
+					visibility = var_decl->visibility;
 
-				// INVALID_NONSTATIC_REF
-				if(!_is_param(var_decl) && ASTNodeHelper::getOwnerFunction(node)->is_static && !var_decl->is_static)
+					// UNINIT_REF
+					if(!SemanticVerificationVariableDeclContext_HasBeenInit::get(var_decl))
+						LOG_MESSAGE(UNINIT_REF, &node, _var_id = name);
+
+					// INVALID_NONSTATIC_REF
+					static_violation = !_is_param(var_decl)
+							&& ASTNodeHelper::getOwnerFunction(node)->is_static && !var_decl->is_static;
+				}
+
+				if(isa<FunctionDecl>(decl))
+				{
+					FunctionDecl* func_decl = cast<FunctionDecl>(decl);
+					name = func_decl->name->toString();
+					visibility = func_decl->visibility;
+
+					// INVALID_NONSTATIC_REF
+					static_violation = ASTNodeHelper::getOwnerFunction(node)->is_static && !func_decl->is_static;
+				}
+
+				if(static_violation)
 					LOG_MESSAGE(INVALID_NONSTATIC_REF, &node, _var_id = name);
 
 				// INVALID_ACCESS_PRIVATE
 				// INVALID_ACCESS_PROTECTED
 				ClassDecl* use_point = ASTNodeHelper::getOwnerClass(node);
-				ClassDecl* decl_point = ASTNodeHelper::getOwnerClass(*var_decl);
+				ClassDecl* decl_point = ASTNodeHelper::getOwnerClass(*decl);
 				if(use_point != decl_point)
-					switch(var_decl->visibility)
+					switch(visibility)
 					{
 					case Declaration::VisibilitySpecifier::PRIVATE:
 						LOG_MESSAGE(INVALID_ACCESS_PRIVATE, &node, _id = name);
