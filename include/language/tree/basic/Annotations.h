@@ -30,10 +30,12 @@ namespace zillians { namespace language { namespace tree {
 
 struct Annotation : public ASTNode
 {
+	friend class boost::serialization::access;
+
 	DEFINE_VISITABLE();
 	DEFINE_HIERARCHY(Annotation, (Annotation)(ASTNode));
 
-	Annotation(SimpleIdentifier* name) : name(name)
+	explicit Annotation(SimpleIdentifier* name) : name(name)
 	{
 		if(name) name->parent = this;
 	}
@@ -61,14 +63,38 @@ struct Annotation : public ASTNode
     	END_REPLACE()
     }
 
+    virtual ASTNode* clone() const
+    {
+    	Annotation* cloned = new Annotation(name);
+    	foreach(i, attribute_list)
+    		cloned->appendKeyValue(
+    				(i->first) ? cast<SimpleIdentifier>(i->first->clone()) : NULL,
+    				(i->second) ? i->second->clone() : NULL);
+    	return cloned;
+    }
+
+    template<typename Archive>
+    void serialize(Archive& ar, const unsigned int version)
+    {
+    	ar & name;
+    	ar & attribute_list;
+    }
+
 	SimpleIdentifier* name;
 	std::vector<std::pair<SimpleIdentifier*/*key*/, ASTNode*/*value*/>> attribute_list;
+
+protected:
+	Annotation() { }
 };
 
 struct Annotations : public ASTNode
 {
+	friend class boost::serialization::access;
+
 	DEFINE_VISITABLE();
 	DEFINE_HIERARCHY(Annotations, (Annotations)(ASTNode));
+
+	Annotations() { }
 
 	void appendAnnotation(Annotation* annotation)
 	{
@@ -88,6 +114,20 @@ struct Annotations : public ASTNode
     	BEGIN_REPLACE()
 		REPLACE_USE_WITH(annotation_list)
     	END_REPLACE()
+    }
+
+    virtual ASTNode* clone() const
+    {
+    	Annotations* cloned = new Annotations();
+    	foreach(i, annotation_list)
+    		cloned->appendAnnotation((*i) ? cast<Annotation>((*i)->clone()) : NULL);
+    	return cloned;
+    }
+
+    template<typename Archive>
+    void serialize(Archive& ar, const unsigned int version)
+    {
+    	ar & annotation_list;
     }
 
 	std::vector<Annotation*> annotation_list;

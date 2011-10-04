@@ -35,6 +35,8 @@ namespace zillians { namespace language { namespace tree {
  */
 struct Package : public ASTNode
 {
+	friend class boost::serialization::access;
+
 	DEFINE_VISITABLE();
 	DEFINE_HIERARCHY(Package, (Package)(ASTNode));
 
@@ -89,9 +91,34 @@ struct Package : public ASTNode
     	END_REPLACE()
     }
 
+    virtual ASTNode* clone() const
+    {
+    	Package* cloned = new Package((id) ? cast<SimpleIdentifier>(id->clone()) : NULL);
+
+    	foreach(i, children)
+    		cloned->addPackage(cast<Package>((*i)->clone()));
+
+    	foreach(i, objects)
+    		cloned->addObject((*i)->clone());
+
+    	return cloned;
+    }
+
+    template<typename Archive>
+    void serialize(Archive& ar, const unsigned int version)
+    {
+    	ar & boost::serialization::base_object<ASTNode>(*this);
+    	ar & id;
+    	ar & children;
+    	ar & objects;
+    }
+
 	SimpleIdentifier* id;
 	std::vector<Package*> children;
 	std::vector<ASTNode*> objects;
+
+protected:
+	Package() { }
 };
 
 } } }

@@ -26,6 +26,8 @@ namespace zillians { namespace language { namespace tree {
 
 struct CallExpr : public Expression
 {
+	friend class boost::serialization::access;
+
 	DEFINE_VISITABLE();
 	DEFINE_HIERARCHY(CallExpr, (CallExpr)(Expression)(ASTNode));
 
@@ -65,8 +67,29 @@ struct CallExpr : public Expression
     	END_REPLACE()
     }
 
+    virtual ASTNode* clone() const
+    {
+    	CallExpr* cloned = new CallExpr((node) ? node->clone() : NULL);
+
+    	foreach(i, parameters)
+    		cloned->appendParameter((*i) ? cast<Expression>((*i)->clone()) : NULL);
+
+    	return cloned;
+    }
+
+    template<typename Archive>
+    void serialize(Archive& ar, const unsigned int version)
+    {
+    	ar & boost::serialization::base_object<Expression>(*this);
+    	ar & node;
+    	ar & parameters;
+    }
+
 	ASTNode* node;
 	std::vector<Expression*> parameters;
+
+protected:
+	CallExpr() { }
 };
 
 } } }

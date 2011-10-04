@@ -31,6 +31,8 @@ namespace zillians { namespace language { namespace tree {
 
 struct DeclarativeStmt : public Statement
 {
+	friend class boost::serialization::access;
+
 	DEFINE_VISITABLE();
 	DEFINE_HIERARCHY(DeclarativeStmt, (DeclarativeStmt)(Statement)(ASTNode));
 
@@ -55,7 +57,22 @@ struct DeclarativeStmt : public Statement
     	END_REPLACE()
     }
 
+    virtual ASTNode* clone() const
+    {
+    	return new DeclarativeStmt(cast<Declaration>(declaration->clone()));
+    }
+
+    template<typename Archive>
+    void serialize(Archive& ar, const unsigned int version)
+    {
+    	ar & boost::serialization::base_object<Statement>(*this);
+    	ar & declaration;
+    }
+
 	Declaration* declaration;
+
+protected:
+	DeclarativeStmt() { }
 };
 
 } } }

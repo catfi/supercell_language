@@ -34,6 +34,8 @@ namespace zillians { namespace language { namespace tree {
 
 struct FunctionDecl : public Declaration
 {
+	friend class boost::serialization::access;
+
 	DEFINE_VISITABLE();
 	DEFINE_HIERARCHY(FunctionDecl, (FunctionDecl)(Declaration)(ASTNode));
 
@@ -43,13 +45,19 @@ struct FunctionDecl : public Declaration
 		if(block) block->parent = this;
 	}
 
+	void prependParameter(VariableDecl* parameter_decl)
+	{
+		parameter_decl->parent = this;
+		parameters.insert(parameters.begin(), parameter_decl);
+	}
+
 	void appendParameter(VariableDecl* parameter_decl)
 	{
 		parameter_decl->parent = this;
 		parameters.push_back(parameter_decl);
 	}
 
-	void appendParameter(SimpleIdentifier* name, TypeSpecifier* type = NULL, ASTNode* initializer = NULL)
+	void appendParameter(SimpleIdentifier* name, TypeSpecifier* type = NULL, Expression* initializer = NULL)
 	{
 		VariableDecl* parameter_decl = new VariableDecl(name, type, false, false, false, Declaration::VisibilitySpecifier::DEFAULT, initializer);
 		parameter_decl->parent = this;
@@ -76,12 +84,41 @@ struct FunctionDecl : public Declaration
     	END_REPLACE()
     }
 
+    virtual ASTNode* clone() const
+    {
+    	FunctionDecl* cloned = new FunctionDecl(
+    			(name) ? cast<Identifier>(name->clone()) : NULL,
+    			(type) ? cast<TypeSpecifier>(type->clone()) : NULL,
+    			is_member, is_static, visibility,
+    			(block) ? cast<Block>(block->clone()) : NULL);
+
+    	foreach(i, parameters)
+    		cloned->appendParameter(cast<VariableDecl>((*i)->clone()));
+
+    	return cloned;
+    }
+
+    template<typename Archive>
+    void serialize(Archive& ar, const unsigned int version)
+    {
+    	ar & boost::serialization::base_object<Declaration>(*this);
+    	ar & parameters;
+    	ar & type;
+    	ar & is_member;
+    	ar & is_static;
+    	ar & (int&)visibility;
+    	ar & block;
+    }
+
 	std::vector<VariableDecl*> parameters;
 	TypeSpecifier* type;
 	bool is_member;
 	bool is_static;
 	Declaration::VisibilitySpecifier::type visibility;
 	Block* block;
+
+protected:
+	FunctionDecl() { }
 };
 
 } } }

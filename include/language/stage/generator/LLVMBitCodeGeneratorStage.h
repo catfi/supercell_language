@@ -39,6 +39,7 @@ public:
 private:
 	bool emit_llvm;
 	bool dump_llvm;
+	std::string llvm_bc_file;
 };
 
 } } }

@@ -33,7 +33,7 @@ zillians_add_subject_to_subject(PARENT thorscript-compiler-static-test-all CHILD
 zillians_add_subject_to_subject(PARENT thorscript-compiler-static-test-all CHILD thorscript-compiler-static-test-future)
 
 get_target_property(ThorScriptCompiler ts-compile LOCATION)
-SET(compile_options)
+SET(compile_options "--mode-xform-stage-only")
 SET(compile_options_s0 "--mode-semantic-verify-0")
 SET(compile_options_s1 "--mode-semantic-verify-1")
 
@@ -220,7 +220,7 @@ zillians_add_test_to_subject(SUBJECT thorscript-compiler-static-test-s1 TARGET t
 zillians_add_test_to_subject(SUBJECT thorscript-compiler-static-test-s1 TARGET thorscript-compiler-static-test-INVALID_NONSTATIC_REF)
 zillians_add_test_to_subject(SUBJECT thorscript-compiler-static-test-s0 TARGET thorscript-compiler-static-test-MISSING_STATIC_INIT)
 zillians_add_test_to_subject(SUBJECT thorscript-compiler-static-test-s1 TARGET thorscript-compiler-static-test-INVALID_ACCESS_PRIVATE)
-zillians_add_test_to_subject(SUBJECT thorscript-compiler-static-test-s1 TARGET thorscript-compiler-static-test-INVALID_ACCESS_PROTECTED)
+#zillians_add_test_to_subject(SUBJECT thorscript-compiler-static-test-s1 TARGET thorscript-compiler-static-test-INVALID_ACCESS_PROTECTED)
 
 #####################################################################
 # 3_statement
@@ -311,10 +311,10 @@ zillians_add_complex_test(
     DEPENDS ${ThorScriptCompiler}
     )
 
-zillians_add_test_to_subject(SUBJECT thorscript-compiler-static-test-s1     TARGET thorscript-compiler-static-test-CONTROL_REACHES_END)
+#zillians_add_test_to_subject(SUBJECT thorscript-compiler-static-test-s1     TARGET thorscript-compiler-static-test-CONTROL_REACHES_END)
 zillians_add_test_to_subject(SUBJECT thorscript-compiler-static-test-s0     TARGET thorscript-compiler-static-test-DEAD_CODE)
 zillians_add_test_to_subject(SUBJECT thorscript-compiler-static-test-future TARGET thorscript-compiler-static-test-INFINITE_RECURSION)
-zillians_add_test_to_subject(SUBJECT thorscript-compiler-static-test-s1     TARGET thorscript-compiler-static-test-MISSING_CASE)
+#zillians_add_test_to_subject(SUBJECT thorscript-compiler-static-test-s1     TARGET thorscript-compiler-static-test-MISSING_CASE)
 
 #####################################################################
 # [.]

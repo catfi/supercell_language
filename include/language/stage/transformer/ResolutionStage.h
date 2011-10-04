@@ -25,6 +25,9 @@
 
 namespace zillians { namespace language { namespace stage {
 
+/**
+ * ResolutionStage tries to resolve types and symbols for all nodes in the AST by using multiple passes
+ */
 class ResolutionStage : public Stage
 {
 public:
@@ -40,16 +43,12 @@ public:
 private:
 	bool resolveTypes(bool report_error_summary, bool& making_progress);
 	bool resolveSymbols(bool report_error_summary, bool& making_progress);
-//
-//public:
-//	std::size_t get_resolved_count();
-//	std::size_t get_unresolved_count();
 
 private:
 	bool debug;
 	bool disable_type_inference;
-	std::size_t total_resolved_count;
-	std::size_t total_unresolved_count;
+	std::size_t total_unresolved_count_type;
+	std::size_t total_unresolved_count_symbol;
 };
 
 } } }

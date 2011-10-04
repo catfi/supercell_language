@@ -79,9 +79,11 @@ struct SemanticVerificationStageVisitor0 : GenericDoubleVisitor
 			owner_context->names.insert(name);
 		else
 		{
-			ASTNode* owner = node.parent;
-			if(isa<FunctionDecl>(owner) || isa<Statement>(owner))
-				LOG_MESSAGE(DUPE_NAME, owner, _id = name);
+			if(isa<FunctionDecl>(node.parent) // function parameter repeat -- attach to function, not parameter
+					|| isa<DeclarativeStmt>(node.parent)) // local variable repeat -- attach to statement, not declaration
+			{
+				LOG_MESSAGE(DUPE_NAME, node.parent, _id = name);
+			}
 			else
 				LOG_MESSAGE(DUPE_NAME, &node, _id = name);
 		}
@@ -90,8 +92,7 @@ struct SemanticVerificationStageVisitor0 : GenericDoubleVisitor
 	void verify_DEAD_CODE(Statement &node)
 	{
 		// DEAD_CODE
-		ASTNode* owner = node.parent;
-		if(isa<Block>(owner) && !!SemanticVerificationBlockContext_HasVisitedReturn::get(owner))
+		if(isa<Block>(node.parent) && !!SemanticVerificationBlockContext_HasVisitedReturn::get(node.parent))
 			LOG_MESSAGE(DEAD_CODE, &node);
 	}
 
@@ -178,8 +179,7 @@ struct SemanticVerificationStageVisitor0 : GenericDoubleVisitor
 
 	void verify(TemplatedIdentifier &node)
 	{
-		ASTNode* owner = node.parent;
-		if(isa<FunctionDecl>(owner) || isa<ClassDecl>(owner))
+		if(_is_template(node.parent))
 		{
 			std::set<std::wstring> name_set;
 			size_t n = 0;
@@ -195,11 +195,11 @@ struct SemanticVerificationStageVisitor0 : GenericDoubleVisitor
 						if(name_set.find(name) == name_set.end())
 							name_set.insert(name);
 						else
-							LOG_MESSAGE(DUPE_NAME, owner, _id = name);
+							LOG_MESSAGE(DUPE_NAME, &node, _id = name);
 
 						// UNEXPECTED_VARIADIC_TEMPLATE_PARAM
 						if(name == L"..." && !is_end_of_foreach(i, node.templated_type_list))
-							LOG_MESSAGE(UNEXPECTED_VARIADIC_TEMPLATE_PARAM, owner);
+							LOG_MESSAGE(UNEXPECTED_VARIADIC_TEMPLATE_PARAM, &node);
 					}
 					break;
 				case TemplatedIdentifier::Usage::ACTUAL_ARGUMENT:
@@ -213,7 +213,7 @@ struct SemanticVerificationStageVisitor0 : GenericDoubleVisitor
 
 			// EXCEED_TEMPLATE_PARAM_LIMIT
 			if(n>getConfigurationContext().max_template_arg_param_count)
-				LOG_MESSAGE(EXCEED_TEMPLATE_PARAM_LIMIT, owner);
+				LOG_MESSAGE(EXCEED_TEMPLATE_PARAM_LIMIT, &node);
 		}
 
 		revisit(node);
@@ -223,7 +223,7 @@ struct SemanticVerificationStageVisitor0 : GenericDoubleVisitor
 	{
 		// WRITE_RVALUE
 		if(node.isAssignment() && node.left->isRValue())
-			LOG_MESSAGE(WRITE_RVALUE, ASTNodeHelper::getOwnerAnnotationAttachPoint(*node.left->parent));
+			LOG_MESSAGE(WRITE_RVALUE, &node);
 
 		revisit(node);
 	}
@@ -240,7 +240,7 @@ struct SemanticVerificationStageVisitor0 : GenericDoubleVisitor
 	{
 		// MISSING_BREAK_TARGET
 		// MISSING_CONTINUE_TARGET
-		if(node.isBreakOrContinue() && !ASTNodeHelper::isOwnedByIterativeStmt(node))
+		if(_is_break_or_continue(&node) && !ASTNodeHelper::isOwnedByIterativeStmt(node))
 			switch(node.opcode)
 			{
 			case BranchStmt::OpCode::BREAK:    LOG_MESSAGE(MISSING_BREAK_TARGET, &node); break;
@@ -260,9 +260,10 @@ struct SemanticVerificationStageVisitor0 : GenericDoubleVisitor
 		revisit(node);
 
 		// DEAD_CODE
-		ASTNode* owner = node.parent;
-		if(!isa<SelectionStmt>(owner) && !isa<IterativeStmt>(owner) && !!SemanticVerificationBlockContext_HasVisitedReturn::get(&node))
-			SemanticVerificationBlockContext_HasVisitedReturn::get_instance(owner);
+		if(!_is_control_stmt(node.parent) && !!SemanticVerificationBlockContext_HasVisitedReturn::get(&node))
+		{
+			SemanticVerificationBlockContext_HasVisitedReturn::get_instance(node.parent);
+		}
 	}
 
 	void verify(VariableDecl &node)
@@ -328,6 +329,21 @@ struct SemanticVerificationStageVisitor0 : GenericDoubleVisitor
 		verify_DUPE_NAME(*cast<Declaration>(&node));
 
 		revisit(node);
+	}
+
+private:
+	static bool _is_template(ASTNode* node)
+	{
+		return isa<FunctionDecl>(node) || isa<ClassDecl>(node);
+	}
+	static bool _is_control_stmt(ASTNode* node)
+	{
+		return isa<SelectionStmt>(node) || isa<IterativeStmt>(node) || isa<BranchStmt>(node);
+	}
+	static bool _is_break_or_continue(BranchStmt* branch_stmt)
+	{
+		return branch_stmt->opcode == BranchStmt::OpCode::BREAK
+				|| branch_stmt->opcode == BranchStmt::OpCode::CONTINUE;
 	}
 };
 

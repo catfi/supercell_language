@@ -26,15 +26,18 @@
 #include "language/tree/declaration/Declaration.h"
 #include "language/tree/basic/Identifier.h"
 #include "language/tree/basic/TypeSpecifier.h"
+#include "language/tree/expression/Expression.h"
 
 namespace zillians { namespace language { namespace tree {
 
 struct VariableDecl : public Declaration
 {
+	friend class boost::serialization::access;
+
 	DEFINE_VISITABLE();
 	DEFINE_HIERARCHY(VariableDecl, (VariableDecl)(Declaration)(ASTNode));
 
-	explicit VariableDecl(Identifier* name, TypeSpecifier* type, bool is_member, bool is_static, bool is_const, Declaration::VisibilitySpecifier::type visibility, ASTNode* initializer = NULL) : Declaration(name), type(type), is_member(is_member), is_static(is_static), is_const(is_const), visibility(visibility), initializer(initializer)
+	explicit VariableDecl(Identifier* name, TypeSpecifier* type, bool is_member, bool is_static, bool is_const, Declaration::VisibilitySpecifier::type visibility, Expression* initializer = NULL) : Declaration(name), type(type), is_member(is_member), is_static(is_static), is_const(is_const), visibility(visibility), initializer(initializer)
 	{
 		BOOST_ASSERT(name && "null variable name is not allowed");
 
@@ -42,7 +45,7 @@ struct VariableDecl : public Declaration
 		if(initializer) initializer->parent = this;
 	}
 
-	void setInitializer(ASTNode* init)
+	void setInitializer(Expression* init)
 	{
 		if(initializer) initializer->parent = NULL;
 		initializer = init;
@@ -69,12 +72,36 @@ struct VariableDecl : public Declaration
     	END_REPLACE()
     }
 
+    virtual ASTNode* clone() const
+    {
+    	return new VariableDecl(
+    			(name) ? cast<Identifier>(name->clone()) : NULL,
+    			(type) ? cast<TypeSpecifier>(type->clone()) : NULL,
+    			is_member, is_static, is_const, visibility,
+    			(initializer) ? cast<Expression>(initializer->clone()) : NULL);
+    }
+
+    template<typename Archive>
+    void serialize(Archive& ar, const unsigned int version)
+    {
+    	ar & boost::serialization::base_object<Declaration>(*this);
+    	ar & type;
+    	ar & is_member;
+    	ar & is_static;
+    	ar & is_const;
+    	ar & (int&)visibility;
+    	ar & initializer;
+    }
+
 	TypeSpecifier* type;
 	bool is_member;
 	bool is_static;
 	bool is_const;
 	Declaration::VisibilitySpecifier::type visibility;
-	ASTNode* initializer;
+	Expression* initializer;
+
+protected:
+	VariableDecl() { }
 };
 
 } } }

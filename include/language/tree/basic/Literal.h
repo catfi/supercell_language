@@ -33,6 +33,8 @@ struct Expression;
 
 struct Literal : public ASTNode
 {
+	friend class boost::serialization::access;
+
 	DEFINE_VISITABLE();
 	DEFINE_HIERARCHY(Literal, (Literal)(ASTNode));
 
@@ -45,10 +47,18 @@ struct Literal : public ASTNode
     {
     	return false;
     }
+
+    template<typename Archive>
+    void serialize(Archive& ar, const unsigned int version)
+    {
+    	ar & boost::serialization::base_object<ASTNode>(*this);
+    }
 };
 
 struct ObjectLiteral : public Literal
 {
+	friend class boost::serialization::access;
+
 	DEFINE_VISITABLE();
 	DEFINE_HIERARCHY(ObjectLiteral, (ObjectLiteral)(Literal)(ASTNode));
 
@@ -85,11 +95,28 @@ struct ObjectLiteral : public Literal
     	return false;
     }
 
+    virtual ASTNode* clone() const
+    {
+    	return new ObjectLiteral(type);
+    }
+
+    template<typename Archive>
+    void serialize(Archive& ar, const unsigned int version)
+    {
+    	ar & boost::serialization::base_object<Literal>(*this);
+    	ar & type;
+    }
+
 	LiteralType::type type;
+
+protected:
+	ObjectLiteral() { }
 };
 
 struct NumericLiteral : public Literal
 {
+	friend class boost::serialization::access;
+
 	DEFINE_VISITABLE();
 	DEFINE_HIERARCHY(NumericLiteral, (NumericLiteral)(Literal)(ASTNode));
 
@@ -142,6 +169,40 @@ struct NumericLiteral : public Literal
     	return false;
     }
 
+    virtual ASTNode* clone() const
+    {
+        switch(type)
+        {
+        case PrimitiveType::type::BOOL    : return new NumericLiteral(value.b);
+        case PrimitiveType::type::INT8    : return new NumericLiteral(value.i8);
+        case PrimitiveType::type::INT16   : return new NumericLiteral(value.i16);
+        case PrimitiveType::type::INT32   : return new NumericLiteral(value.i32);
+        case PrimitiveType::type::INT64   : return new NumericLiteral(value.i64);
+        case PrimitiveType::type::FLOAT32 : return new NumericLiteral(value.f32);
+        case PrimitiveType::type::FLOAT64 : return new NumericLiteral(value.f64);
+        default: break;
+        }
+        return NULL;
+    }
+
+    template<typename Archive>
+    void serialize(Archive& ar, const unsigned int version)
+    {
+    	ar & boost::serialization::base_object<Literal>(*this);
+    	ar & (int&)type;
+    	switch(type)
+    	{
+        case PrimitiveType::type::BOOL    : ar & value.b; break;
+        case PrimitiveType::type::INT8    : ar & value.i8; break;
+        case PrimitiveType::type::INT16   : ar & value.i16; break;
+        case PrimitiveType::type::INT32   : ar & value.i32; break;
+        case PrimitiveType::type::INT64   : ar & value.i64; break;
+        case PrimitiveType::type::FLOAT32 : ar & value.f32; break;
+        case PrimitiveType::type::FLOAT64 : ar & value.f64; break;
+        default: break;
+    	}
+    }
+
 	PrimitiveType::type type;
 
 	union ValueUnion
@@ -157,10 +218,15 @@ struct NumericLiteral : public Literal
 
 		uint64 raw;
 	} value;
+
+protected:
+	NumericLiteral() { }
 };
 
 struct StringLiteral : public Literal
 {
+	friend class boost::serialization::access;
+
 	DEFINE_VISITABLE();
 	DEFINE_HIERARCHY(StringLiteral, (StringLiteral)(Literal)(ASTNode));
 
@@ -188,7 +254,22 @@ struct StringLiteral : public Literal
     	return false;
     }
 
+    virtual ASTNode* clone() const
+    {
+    	return new StringLiteral(value);
+    }
+
+    template<typename Archive>
+    void serialize(Archive& ar, const unsigned int version)
+    {
+    	ar & boost::serialization::base_object<Literal>(*this);
+    	ar & value;
+    }
+
 	std::wstring value;
+
+protected:
+	StringLiteral() { }
 };
 
 } } }

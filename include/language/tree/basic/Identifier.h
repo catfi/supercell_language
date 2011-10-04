@@ -33,6 +33,8 @@ namespace zillians { namespace language { namespace tree {
 
 struct Identifier : public ASTNode
 {
+	friend class boost::serialization::access;
+
 	DEFINE_VISITABLE();
 	DEFINE_HIERARCHY(Identifier, (Identifier)(ASTNode));
 
@@ -51,10 +53,18 @@ struct Identifier : public ASTNode
     {
     	return false;
     }
+
+    template<typename Archive>
+    void serialize(Archive& ar, const unsigned int version)
+    {
+    	ar & boost::serialization::base_object<ASTNode>(*this);
+    }
 };
 
 struct SimpleIdentifier : public Identifier
 {
+	friend class boost::serialization::access;
+
 	DEFINE_VISITABLE();
 	DEFINE_HIERARCHY(SimpleIdentifier, (SimpleIdentifier)(Identifier)(ASTNode));
 
@@ -92,11 +102,28 @@ struct SimpleIdentifier : public Identifier
     	END_REPLACE()
     }
 
-	const std::wstring name;
+    virtual ASTNode* clone() const
+    {
+    	return new SimpleIdentifier(name);
+    }
+
+    template<typename Archive>
+    void serialize(Archive& ar, const unsigned int version)
+    {
+    	ar & boost::serialization::base_object<Identifier>(*this);
+    	ar & name;
+    }
+
+	std::wstring name;
+
+protected:
+	SimpleIdentifier() { }
 };
 
 struct NestedIdentifier : public Identifier
 {
+	friend class boost::serialization::access;
+
 	DEFINE_VISITABLE()
 	DEFINE_HIERARCHY(NestedIdentifier, (NestedIdentifier)(Identifier)(ASTNode));
 
@@ -152,11 +179,27 @@ struct NestedIdentifier : public Identifier
     	END_REPLACE()
     }
 
+	virtual ASTNode* clone() const
+	{
+		NestedIdentifier* cloned = new NestedIdentifier();
+		foreach(i, identifier_list) cloned->appendIdentifier(cast<Identifier>((*i)->clone()));
+		return cloned;
+	}
+
+    template<typename Archive>
+    void serialize(Archive& ar, const unsigned int version)
+    {
+    	ar & boost::serialization::base_object<Identifier>(*this);
+    	ar & identifier_list;
+    }
+
 	std::vector<Identifier*> identifier_list;
 };
 
 struct TemplatedIdentifier : public Identifier
 {
+	friend class boost::serialization::access;
+
 	DEFINE_VISITABLE()
 	DEFINE_HIERARCHY(TemplatedIdentifier, (TemplatedIdentifier)(Identifier)(ASTNode));
 
@@ -259,9 +302,28 @@ struct TemplatedIdentifier : public Identifier
     	END_REPLACE()
     }
 
+	virtual ASTNode* clone() const
+	{
+		TemplatedIdentifier* cloned = new TemplatedIdentifier(type, (id) ? cast<Identifier>(id->clone()) : NULL);
+		foreach(i, templated_type_list) cloned->templated_type_list.push_back((*i) ? (*i)->clone() : NULL);
+		return cloned;
+	}
+
+    template<typename Archive>
+    void serialize(Archive& ar, const unsigned int version)
+    {
+    	ar & boost::serialization::base_object<Identifier>(*this);
+    	ar & type;
+    	ar & id;
+    	ar & templated_type_list;
+    }
+
 	Usage::type type;
 	Identifier* id;
 	std::vector<ASTNode*> templated_type_list;
+
+protected:
+	TemplatedIdentifier() { }
 };
 
 } } }

@@ -27,6 +27,8 @@ namespace zillians { namespace language { namespace tree {
 
 struct Declaration : public ASTNode
 {
+	friend class boost::serialization::access;
+
 	DEFINE_VISITABLE();
 	DEFINE_HIERARCHY(Declaration, (Declaration)(ASTNode));
 
@@ -51,7 +53,7 @@ struct Declaration : public ASTNode
 		}
 	};
 
-	Declaration(Identifier* name) : name(name), annotations(NULL)
+	explicit Declaration(Identifier* name) : name(name), annotations(NULL)
 	{
 		if(name) name->parent = this;
 	}
@@ -79,8 +81,19 @@ struct Declaration : public ASTNode
     	END_REPLACE()
     }
 
+    template<typename Archive>
+    void serialize(Archive& ar, const unsigned int version)
+    {
+    	ar & boost::serialization::base_object<ASTNode>(*this);
+    	ar & name;
+    	ar & annotations;
+    }
+
 	Identifier* name;
 	Annotations* annotations;
+
+protected:
+	Declaration() { }
 };
 
 } } }

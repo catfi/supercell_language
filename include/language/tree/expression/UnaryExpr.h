@@ -29,6 +29,8 @@ namespace zillians { namespace language { namespace tree {
 
 struct UnaryExpr : public Expression
 {
+	friend class boost::serialization::access;
+
 	DEFINE_VISITABLE();
 	DEFINE_HIERARCHY(UnaryExpr, (UnaryExpr)(Expression)(ASTNode));
 
@@ -108,8 +110,24 @@ struct UnaryExpr : public Expression
     	END_REPLACE()
     }
 
+    virtual ASTNode* clone() const
+    {
+    	return new UnaryExpr(opcode, (node) ? node->clone() : NULL);
+    }
+
+    template<typename Archive>
+    void serialize(Archive& ar, const unsigned int version)
+    {
+    	ar & boost::serialization::base_object<Expression>(*this);
+    	ar & (int&)opcode;
+    	ar & node;
+    }
+
 	OpCode::type opcode;
 	ASTNode* node;
+
+protected:
+	UnaryExpr() { }
 };
 
 } } }

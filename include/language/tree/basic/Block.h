@@ -29,11 +29,19 @@ namespace zillians { namespace language { namespace tree {
 
 struct Block : public ASTNode
 {
+	friend class boost::serialization::access;
+
 	DEFINE_VISITABLE();
 	DEFINE_HIERARCHY(Block, (Block)(ASTNode));
 
 	explicit Block(bool is_pipelined = false, bool is_async = false) : is_pipelined_block(is_pipelined), is_async_block(is_async)
 	{ }
+
+	void prependObject(ASTNode* object)
+	{
+		object->parent = this;
+		objects.push_front(object);
+	}
 
 	void appendObject(ASTNode* object)
 	{
@@ -41,13 +49,133 @@ struct Block : public ASTNode
 		objects.push_back(object);
 	}
 
+	bool insertObjectBefore(ASTNode* before, ASTNode* object, bool replace_before = false)
+	{
+		if(!before)
+		{
+			prependObject(object);
+			return true;
+		}
+		else
+		{
+			auto it = std::find(objects.begin(), objects.end(), before);
+			if(it != objects.end())
+			{
+				object->parent = this;
+				objects.insert(it, object);
+
+				if(replace_before)
+					objects.erase(it);
+
+				return true;
+			}
+			else
+			{
+				return false;
+			}
+		}
+	}
+
+	bool insertObjectAfter(ASTNode* after, ASTNode* object, bool replace_after = false)
+	{
+		if(!after)
+		{
+			appendObject(object);
+			return true;
+		}
+		else
+		{
+			auto it = std::find(objects.begin(), objects.end(), after);
+			if(it != objects.end())
+			{
+				++it;
+				object->parent = this;
+				objects.insert(it, object);
+
+				if(replace_after)
+					objects.erase(it);
+
+				return true;
+			}
+			else
+			{
+				return false;
+			}
+		}
+	}
+
 	template<typename T>
-	void appendObjects(std::vector<T*>& object_list)
+	void prependObjects(T& object_list)
 	{
 		deduced_foreach(i, object_list)
-		{
 			(*i)->parent = this;
-			objects.push_back(*i);
+		objects.insert(objects.begin(), object_list.begin(), object_list.end());
+	}
+
+	template<typename T>
+	void appendObjects(T& object_list)
+	{
+		deduced_foreach(i, object_list)
+			(*i)->parent = this;
+		objects.insert(objects.end(), object_list.begin(), object_list.end());
+	}
+
+	template<typename T>
+	bool insertObjectsBefore(ASTNode* before, T& object_list, bool replace_before = false)
+	{
+		if(!before)
+		{
+			prependObjects(object_list);
+			return true;
+		}
+		else
+		{
+			auto it = std::find(objects.begin(), objects.end(), before);
+			if(it != objects.end())
+			{
+				deduced_foreach(i, object_list)
+					(*i)->parent = this;
+				objects.insert(it, object_list.begin(), object_list.end());
+
+				if(replace_before)
+					objects.erase(it);
+
+				return true;
+			}
+			else
+			{
+				return false;
+			}
+		}
+	}
+
+	template<typename T>
+	bool insertObjectsAfter(ASTNode* after, T& object_list, bool replace_after = false)
+	{
+		if(!after)
+		{
+			appendObjects(object_list);
+			return true;
+		}
+		else
+		{
+			auto it = std::find(objects.begin(), objects.end(), after);
+			if(it != objects.end())
+			{
+				deduced_foreach(i, object_list)
+					(*i)->parent = this;
+				++it;
+				objects.insert(it, object_list.begin(), object_list.end());
+
+				if(replace_after)
+					objects.erase(it);
+
+				return true;
+			}
+			else
+			{
+				return false;
+			}
 		}
 	}
 
@@ -67,9 +195,26 @@ struct Block : public ASTNode
     	END_REPLACE()
     }
 
+    virtual ASTNode* clone() const
+    {
+    	Block* cloned = new Block(is_pipelined_block, is_async_block);
+    	foreach(i, objects)
+    		cloned->objects.push_back((*i) ? (*i)->clone() : NULL);
+    	return cloned;
+    }
+
+    template<typename Archive>
+    void serialize(Archive& ar, const unsigned int version)
+    {
+    	ar & boost::serialization::base_object<ASTNode>(*this);
+    	ar & is_pipelined_block;
+    	ar & is_async_block;
+    	ar & objects;
+    }
+
 	bool is_pipelined_block;
 	bool is_async_block;
-	std::vector<ASTNode*> objects;
+	std::list<ASTNode*> objects;
 };
 
 } } }

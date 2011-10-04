@@ -30,6 +30,8 @@ struct TypeSpecifier;
 
 struct FunctionType: public ASTNode
 {
+	friend class boost::serialization::access;
+
 	DEFINE_VISITABLE();
 	DEFINE_HIERARCHY(FunctionType, (FunctionType)(ASTNode));
 
@@ -62,6 +64,17 @@ struct FunctionType: public ASTNode
 		REPLACE_USE_WITH(argument_types)
 		REPLACE_USE_WITH(return_type)
     	END_REPLACE()
+    }
+
+    virtual ASTNode* clone() const;
+
+    template<typename Archive>
+    void serialize(Archive& ar, const unsigned int version)
+    {
+    	ar & boost::serialization::base_object<ASTNode>(*this);
+    	ar & templated_parameters;
+    	ar & argument_types;
+    	ar & return_type;
     }
 
 	std::vector<Identifier*> templated_parameters;

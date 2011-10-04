@@ -67,10 +67,14 @@ struct PrettyPrintVisitor : Visitor<const ASTNode, void>
 
 	void print(const Block& node)
 	{
+		STREAM << L"<block>" << std::endl;
+		increaseIdent();
 		foreach(i, node.objects)
 		{
 			visit(**i);
 		}
+		decreaseIdent();
+		STREAM << L"</block>" << std::endl;
 	}
 
 	void print(const Annotations& node)
@@ -124,7 +128,7 @@ struct PrettyPrintVisitor : Visitor<const ASTNode, void>
 		}
 		else
 		{
-			STREAM << L"<identifier name=\"" << node.toString() << L"\">" << std::endl;
+			STREAM << L"<identifier name=\"" << node.toString() << L"\"/>" << std::endl;
 		}
 	}
 
@@ -416,11 +420,11 @@ struct PrettyPrintVisitor : Visitor<const ASTNode, void>
 			increaseIdent();
 			if(node.block)
 			{
-				STREAM << L"<block>" << std::endl;
-				increaseIdent();
 				visit(*node.block);
-				decreaseIdent();
-				STREAM << L"</blocl>" << std::endl;
+			}
+			else
+			{
+				STREAM << L"<null_block/>" << std::endl;
 			}
 			decreaseIdent();
 		}
@@ -584,13 +588,7 @@ struct PrettyPrintVisitor : Visitor<const ASTNode, void>
 			}
 			if(node.block)
 			{
-				STREAM << L"<block>" << std::endl;
-				{
-					increaseIdent();
-					visit(*node.block);
-					decreaseIdent();
-				}
-				STREAM << L"</block>" << std::endl;
+				visit(*node.block);
 			}
 			else
 			{
@@ -642,13 +640,7 @@ struct PrettyPrintVisitor : Visitor<const ASTNode, void>
 			}
 			if(node.block)
 			{
-				STREAM << L"<block>" << std::endl;
-				{
-					increaseIdent();
-					visit(*node.block);
-					decreaseIdent();
-				}
-				STREAM << L"</block>" << std::endl;
+				visit(*node.block);
 			}
 			else
 			{
@@ -686,13 +678,7 @@ struct PrettyPrintVisitor : Visitor<const ASTNode, void>
 			}
 			if(node.block)
 			{
-				STREAM << L"<block>" << std::endl;
-				{
-					increaseIdent();
-					visit(*node.block);
-					decreaseIdent();
-				}
-				STREAM << L"</block>" << std::endl;
+				visit(*node.block);
 			}
 			else
 			{
@@ -728,13 +714,14 @@ struct PrettyPrintVisitor : Visitor<const ASTNode, void>
 						STREAM << L"</condition>" << std::endl;
 					}
 					{
-						STREAM << L"<block>" << std::endl;
+						if(node.if_branch.block)
 						{
-							increaseIdent();
-							if(node.if_branch.block) visit(*node.if_branch.block);
-							decreaseIdent();
+							visit(*node.if_branch.block);
 						}
-						STREAM << L"</block>" << std::endl;
+						else
+						{
+							STREAM << L"<null_block/>" << std::endl;
+						}
 					}
 					decreaseIdent();
 				}
@@ -756,13 +743,14 @@ struct PrettyPrintVisitor : Visitor<const ASTNode, void>
 						STREAM << L"</condition>" << std::endl;
 					}
 					{
-						STREAM << L"<block>" << std::endl;
+						if(i->block)
 						{
-							increaseIdent();
-							if(i->block) visit(*i->block);
-							decreaseIdent();
+							visit(*i->block);
 						}
-						STREAM << L"</block>" << std::endl;
+						else
+						{
+							STREAM << L"<null_block/>" << std::endl;
+						}
 					}
 					decreaseIdent();
 				}
@@ -774,13 +762,14 @@ struct PrettyPrintVisitor : Visitor<const ASTNode, void>
 				{
 					increaseIdent();
 					{
-						STREAM << L"<block>" << std::endl;
+						if(node.else_block)
 						{
-							increaseIdent();
-							if(node.else_block) visit(*node.else_block);
-							decreaseIdent();
+							visit(*node.else_block);
 						}
-						STREAM << L"</block>" << std::endl;
+						else
+						{
+							STREAM << L"<null_block/>" << std::endl;
+						}
 					}
 					decreaseIdent();
 				}
@@ -827,13 +816,14 @@ struct PrettyPrintVisitor : Visitor<const ASTNode, void>
 						STREAM << L"</condition>" << std::endl;
 					}
 					{
-						STREAM << L"<block>" << std::endl;
+						if(i->block)
 						{
-							increaseIdent();
-							if(i->block) visit(*i->block);
-							decreaseIdent();
+							visit(*i->block);
 						}
-						STREAM << L"</block>" << std::endl;
+						else
+						{
+							STREAM << L"<null_block/>" << std::endl;
+						}
 					}
 					decreaseIdent();
 				}
@@ -860,17 +850,11 @@ struct PrettyPrintVisitor : Visitor<const ASTNode, void>
 				increaseIdent();
 				if(node.result)
 				{
-					STREAM << L"<block>" << std::endl;
-					{
-						increaseIdent();
-						visit(*node.result);
-						decreaseIdent();
-					}
-					STREAM << L"</block>" << std::endl;
+					visit(*node.result);
 				}
 				else
 				{
-					STREAM << L"<null_block/>" << std::endl;
+					STREAM << L"<null_expression/>" << std::endl;
 				}
 				decreaseIdent();
 			}
@@ -1173,11 +1157,11 @@ private:
 	static std::wstring decodeType(ASTNode* type)
 	{
 		if(!type)
-			return L"<unspecified>";
+			return L"[unspecified]";
 
 		if(!isa<TypeSpecifier>(type))
 		{
-			return L"<invalid>";
+			return L"[invalid]";
 		}
 		else
 		{
@@ -1185,12 +1169,12 @@ private:
 			TypeSpecifier* t = cast<TypeSpecifier>(type);
 			switch(t->type)
 			{
-			case TypeSpecifier::ReferredType::PRIMITIVE: return PrimitiveType::toString(t->referred.primitive);
-			case TypeSpecifier::ReferredType::UNSPECIFIED: return t->referred.unspecified->toString();
-			case TypeSpecifier::ReferredType::FUNCTION_TYPE: return decodeFunctionType(t->referred.function_type);
+			case TypeSpecifier::ReferredType::PRIMITIVE: return std::wstring(PrimitiveType::toString(t->referred.primitive)) + std::wstring(L" [primitive]");
+			case TypeSpecifier::ReferredType::UNSPECIFIED: return t->referred.unspecified->toString() + std::wstring(L" [unspecified]");
+			case TypeSpecifier::ReferredType::FUNCTION_TYPE: return decodeFunctionType(t->referred.function_type) + std::wstring(L" [function_type]");
 			}
 		}
-		return L"error";
+		return L"#error#";
 	}
 
 	static std::wstring decodeFunctionType(FunctionType* type)

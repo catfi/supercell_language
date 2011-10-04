@@ -24,8 +24,10 @@
 #include "utility/StringUtil.h"
 #include "utility/UnicodeUtil.h"
 #include "language/tree/ASTNode.h"
+#include "language/tree/ASTNodeHelper.h"
 #include "language/logging/LoggerWrapper.h"
 #include "language/context/LogInfoContext.h"
+#include "language/context/TransformerContext.h"
 #include "language/stage/parser/context/SourceInfoContext.h"
 #include <boost/parameter.hpp>
 #include <vector>
@@ -465,12 +467,14 @@ public:
 		# Generate header like : "test.cpp:32: " if node is not NULL
 		cog.outl('\t vector<string>& files = stage::ModuleSourceInfoContext::get(program_node)->source_files;')
 		cog.outl('\t if(node) { ')
-		cog.outl('\t\t LogInfoContext::set(node, new LogInfoContext(str_level, str_id, parameters));')
-		cog.outl('\t\t stage::SourceInfoContext* source_info = stage::SourceInfoContext::get(node);')
+
+		cog.outl('\t\t zillians::language::tree::ASTNode* attach_point = tree::ASTNodeHelper::getAttachPoint(*node);')
+		cog.outl('\t\t LogInfoContext::push_back(attach_point, LogInfo(str_level, str_id, parameters));')
+		cog.outl('\t\t stage::SourceInfoContext* source_info = stage::SourceInfoContext::get(attach_point);')
 		cog.outl('\t\t mWrapper->log(StringTable::%s, s_to_ws(files[source_info->source_index]), source_info->line, translated);' % id)
 		cog.outl('\t }');
 		cog.outl('\t else {');
-		cog.outl('\t\t LogInfoContext::set(program_node, new LogInfoContext(str_level, str_id, parameters));')
+		cog.outl('\t\t LogInfoContext::push_back(program_node, LogInfo(str_level, str_id, parameters));')
 		cog.outl('\t\t mWrapper->log(StringTable::%s, translated);' % id)
 		cog.outl('\t }');
 		cog.outl('}');

@@ -29,6 +29,8 @@ namespace zillians { namespace language { namespace tree {
 
 struct TernaryExpr : public Expression
 {
+	friend class boost::serialization::access;
+
 	DEFINE_VISITABLE();
 	DEFINE_HIERARCHY(TernaryExpr, (TernaryExpr)(Expression)(ASTNode));
 
@@ -68,9 +70,29 @@ struct TernaryExpr : public Expression
     	END_REPLACE()
     }
 
+    virtual ASTNode* clone() const
+    {
+    	return new TernaryExpr(
+    			(cond) ? cast<Expression>(cond->clone()) : NULL,
+    			(true_node) ? cast<Expression>(true_node->clone()) : NULL,
+    			(false_node) ? cast<Expression>(false_node->clone()) : NULL);
+    }
+
+    template<typename Archive>
+    void serialize(Archive& ar, const unsigned int version)
+    {
+    	ar & boost::serialization::base_object<Expression>(*this);
+    	ar & cond;
+    	ar & true_node;
+    	ar & false_node;
+    }
+
 	Expression* cond;
 	Expression* true_node;
 	Expression* false_node;
+
+protected:
+	TernaryExpr() { }
 };
 
 } } }

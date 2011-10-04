@@ -220,7 +220,8 @@ struct branch_statement
 #ifdef DEBUG
 		printf("branch_statement::init_return param(0) type = %s\n", typeid(_param_t(0)).name());
 #endif
-		BIND_CACHED_LOCATION(_result = new BranchStmt(BranchStmt::OpCode::RETURN, _param(0)));
+		Expression* expr = _param(0).is_initialized() ? *_param(0) : NULL;
+		BIND_CACHED_LOCATION(_result = new BranchStmt(BranchStmt::OpCode::RETURN, expr));
 	}
 	END_ACTION
 

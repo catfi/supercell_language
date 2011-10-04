@@ -31,6 +31,8 @@ namespace zillians { namespace language { namespace tree {
 
 struct IterativeStmt : public Statement
 {
+	friend class boost::serialization::access;
+
 	DEFINE_VISITABLE();
 	DEFINE_HIERARCHY(IterativeStmt, (IterativeStmt)(Statement)(ASTNode));
 
@@ -40,10 +42,17 @@ struct IterativeStmt : public Statement
     	END_COMPARE()
     }
 
+    template<typename Archive>
+    void serialize(Archive& ar, const unsigned int version)
+    {
+    	ar & boost::serialization::base_object<Statement>(*this);
+    }
 };
 
 struct ForStmt : public IterativeStmt
 {
+	friend class boost::serialization::access;
+
 	DEFINE_VISITABLE();
 	DEFINE_HIERARCHY(ForStmt, (ForStmt)(IterativeStmt)(Statement)(ASTNode));
 
@@ -79,14 +88,38 @@ struct ForStmt : public IterativeStmt
     	END_REPLACE()
     }
 
+    virtual ASTNode* clone() const
+    {
+    	return new ForStmt(
+    			(init) ? init->clone() : NULL,
+    			(cond) ? cond->clone() : NULL,
+    			(step) ? step->clone() : NULL,
+    			(block) ? block->clone() : NULL);
+    }
+
+    template<typename Archive>
+    void serialize(Archive& ar, const unsigned int version)
+    {
+    	ar & boost::serialization::base_object<IterativeStmt>(*this);
+    	ar & init;
+    	ar & cond;
+    	ar & step;
+    	ar & block;
+    }
+
 	ASTNode* init;
 	ASTNode* cond;
 	ASTNode* step;
 	ASTNode* block;
+
+protected:
+	ForStmt() { }
 };
 
 struct ForeachStmt : public IterativeStmt
 {
+	friend class boost::serialization::access;
+
 	DEFINE_VISITABLE();
 	DEFINE_HIERARCHY(ForeachStmt, (ForeachStmt)(IterativeStmt)(Statement)(ASTNode));
 
@@ -118,13 +151,35 @@ struct ForeachStmt : public IterativeStmt
     	END_REPLACE()
     }
 
+    virtual ASTNode* clone() const
+    {
+    	return new ForeachStmt(
+    			(iterator) ? iterator->clone() : NULL,
+    			(range) ? cast<Expression>(range->clone()) : NULL,
+    			(block) ? block->clone() : NULL);
+    }
+
+    template<typename Archive>
+    void serialize(Archive& ar, const unsigned int version)
+    {
+    	ar & boost::serialization::base_object<IterativeStmt>(*this);
+    	ar & iterator;
+    	ar & range;
+    	ar & block;
+    }
+
 	ASTNode* iterator; // TODO semantic-check: it must be L-value expression or declarative statement
 	Expression* range;
 	ASTNode* block;
+
+protected:
+	ForeachStmt() { }
 };
 
 struct WhileStmt : public IterativeStmt
 {
+	friend class boost::serialization::access;
+
 	DEFINE_VISITABLE();
 	DEFINE_HIERARCHY(WhileStmt, (WhileStmt)(IterativeStmt)(Statement)(ASTNode));
 
@@ -170,9 +225,29 @@ struct WhileStmt : public IterativeStmt
     	END_REPLACE()
     }
 
+    virtual ASTNode* clone() const
+    {
+    	return new WhileStmt(
+    			style,
+    			(cond) ? cast<Expression>(cond->clone()) : NULL,
+    			(block) ? block->clone() : NULL);
+    }
+
+    template<typename Archive>
+    void serialize(Archive& ar, const unsigned int version)
+    {
+    	ar & boost::serialization::base_object<IterativeStmt>(*this);
+    	ar & (int&)style;
+    	ar & cond;
+    	ar & block;
+    }
+
 	Style::type style;
 	Expression* cond;
 	ASTNode* block;
+
+protected:
+	WhileStmt() { }
 };
 
 } } }

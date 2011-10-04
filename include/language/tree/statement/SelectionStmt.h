@@ -29,6 +29,8 @@ namespace zillians { namespace language { namespace tree {
 
 struct Selection : ContextHub<ContextOwnership::transfer>
 {
+	friend class boost::serialization::access;
+
 	Selection() : cond(NULL), block(NULL)
 	{ }
 
@@ -60,12 +62,27 @@ struct Selection : ContextHub<ContextOwnership::transfer>
     	END_REPLACE()
     }
 
+    Selection clone() const
+    {
+    	Selection s((cond) ? cast<Expression>(cond->clone()) : NULL, (block) ? block->clone() : NULL);
+    	return s;
+    }
+
+    template<typename Archive>
+    void serialize(Archive& ar, const unsigned int version)
+    {
+    	ar & cond;
+    	ar & block;
+    }
+
 	Expression* cond;
 	ASTNode* block;
 };
 
 struct SelectionStmt : public Statement
 {
+	friend class boost::serialization::access;
+
 	DEFINE_VISITABLE();
 	DEFINE_HIERARCHY(SelectionStmt, (SelectionStmt)(Statement)(ASTNode));
 
@@ -80,10 +97,18 @@ struct SelectionStmt : public Statement
     	BEGIN_REPLACE_WITH_BASE(Statement)
     	END_REPLACE()
     }
+
+    template<typename Archive>
+    void serialize(Archive& ar, const unsigned int version)
+    {
+    	ar & boost::serialization::base_object<Statement>(*this);
+    }
 };
 
 struct IfElseStmt : public SelectionStmt
 {
+	friend class boost::serialization::access;
+
 	DEFINE_VISITABLE();
 	DEFINE_HIERARCHY(IfElseStmt, (IfElseStmt)(SelectionStmt)(Statement)(ASTNode));
 
@@ -132,13 +157,39 @@ struct IfElseStmt : public SelectionStmt
     	END_REPLACE()
     }
 
+    virtual ASTNode* clone() const
+    {
+    	IfElseStmt* cloned = new IfElseStmt(if_branch.clone());
+
+    	foreach(i, elseif_branches)
+    		cloned->addElseIfBranch(i->clone());
+
+    	cloned->setElseBranch((else_block) ? else_block->clone() : NULL);
+
+    	return cloned;
+    }
+
+    template<typename Archive>
+    void serialize(Archive& ar, const unsigned int version)
+    {
+    	ar & boost::serialization::base_object<SelectionStmt>(*this);
+    	ar & if_branch;
+    	ar & elseif_branches;
+    	ar & else_block;
+    }
+
 	Selection if_branch;
 	std::vector<Selection> elseif_branches;
 	ASTNode* else_block;
+
+protected:
+	IfElseStmt() { }
 };
 
 struct SwitchStmt : public SelectionStmt
 {
+	friend class boost::serialization::access;
+
 	DEFINE_VISITABLE();
 	DEFINE_HIERARCHY(SwitchStmt, (SwitchStmt)(SelectionStmt)(Statement)(ASTNode));
 
@@ -183,9 +234,33 @@ struct SwitchStmt : public SelectionStmt
     	END_REPLACE()
     }
 
+    virtual ASTNode* clone() const
+    {
+    	SwitchStmt* cloned = new SwitchStmt((node) ? cast<Expression>(node->clone()) : NULL);
+
+    	foreach(i, cases)
+    		cloned->addCase(i->clone());
+
+    	cloned->setDefaultCase((default_block) ? default_block->clone() : NULL);
+
+    	return cloned;
+    }
+
+    template<typename Archive>
+    void serialize(Archive& ar, const unsigned int version)
+    {
+    	ar & boost::serialization::base_object<SelectionStmt>(*this);
+    	ar & node;
+    	ar & cases;
+    	ar & default_block;
+    }
+
 	Expression* node;
 	std::vector<Selection> cases;
 	ASTNode* default_block;
+
+protected:
+	SwitchStmt() { }
 };
 
 } } }

@@ -21,7 +21,10 @@
 #define ZILLIANS_LANGUAGE_TREE_ASTNODEHELPER_H_
 
 #include "language/tree/ASTNodeFactory.h"
+#include "language/context/ParserContext.h"
 #include "language/context/ResolverContext.h"
+#include "language/context/TransformerContext.h"
+#include "language/stage/parser/context/SourceInfoContext.h"
 #include "language/tree/visitor/general/NodeInfoVisitor.h"
 
 namespace zillians { namespace language { namespace tree {
@@ -29,6 +32,16 @@ namespace zillians { namespace language { namespace tree {
 struct ASTNodeHelper
 {
 public:
+	static void propogateSourceInfo(ASTNode& to, ASTNode& from)
+	{
+		stage::SourceInfoContext* to_src_info = to.get<stage::SourceInfoContext>();
+		stage::SourceInfoContext* from_src_info = from.get<stage::SourceInfoContext>();
+
+		BOOST_ASSERT(to_src_info == NULL && "invalid propagating source info propagation");
+
+		to.set<stage::SourceInfoContext>(new stage::SourceInfoContext(*from_src_info));
+	}
+
 	static FunctionType* createFunctionTypeFromFunctionDecl(FunctionDecl* function_decl)
 	{
 		FunctionType* function_type = new FunctionType();
@@ -107,17 +120,32 @@ public:
 		return false;
 	}
 
-	static bool isVoidType(TypeSpecifier* type_specifier)
+	static bool isExtends(ClassDecl& derived_class, ClassDecl& base_class)
 	{
-		return type_specifier->type == TypeSpecifier::ReferredType::PRIMITIVE
-				&& type_specifier->referred.primitive == PrimitiveType::VOID;
+		// TODO: impl me
+		return false;
+	}
+
+	static bool isSameLineage(ClassDecl& a, ClassDecl& b)
+	{
+		return isExtends(a, b) || isExtends(b, a);
 	}
 
 	static bool isOwnedByExpression(ASTNode& node) { return !!getOwnerExpression(node); }
 	static Expression* getOwnerExpression(ASTNode& node)
 	{
-		for(ASTNode* p = node.parent; !!p && !isPackageScope(p) && !(isa<Statement>(p) || isa<FunctionDecl>(p)); p = p->parent)
+		for(ASTNode* p = node.parent; !!p && !_is_global_decl(p) && !(isa<Statement>(p) || isa<FunctionDecl>(p)); p = p->parent)
 			if(isa<Expression>(p))
+				return cast<Expression>(p);
+		return NULL;
+	}
+
+#if 0 // NOTE: do not use -- wrong philosophy
+	static bool isOwnedByLValue(ASTNode& node) { return !!getOwnerRValue(node); }
+	static Expression* getOwnerLValue(ASTNode& node)
+	{
+		for(ASTNode* p = node.parent; !!p && isa<Expression>(p); p = p->parent)
+			if(cast<Expression>(p)->isLValue())
 				return cast<Expression>(p);
 		return NULL;
 	}
@@ -130,11 +158,12 @@ public:
 				return cast<Expression>(p);
 		return NULL;
 	}
+#endif
 
 	static bool isOwnedByStatement(ASTNode& node) { return !!getOwnerStatement(node); }
 	static Statement* getOwnerStatement(ASTNode& node)
 	{
-		for(ASTNode* p = node.parent; !!p && !isPackageScope(p) && !isa<Block>(p); p = p->parent)
+		for(ASTNode* p = node.parent; !!p && !_is_global_decl(p) && !isa<Block>(p); p = p->parent)
 			if(isa<Statement>(p))
 				return cast<Statement>(p);
 		return NULL;
@@ -143,7 +172,7 @@ public:
 	static bool isOwnedByIterativeStmt(ASTNode& node) { return !!getOwnerIterativeStmt(node); }
 	static IterativeStmt* getOwnerIterativeStmt(ASTNode& node)
 	{
-		for(ASTNode* p = node.parent; !!p && !isPackageScope(p) && !isa<FunctionDecl>(p); p = p->parent)
+		for(ASTNode* p = node.parent; !!p && !_is_global_decl(p) && !isa<FunctionDecl>(p); p = p->parent)
 			if(isa<IterativeStmt>(p))
 				return cast<IterativeStmt>(p);
 		return NULL;
@@ -152,7 +181,7 @@ public:
 	static bool isOwnedBySelectionStmt(ASTNode& node) { return !!getOwnerSelectionStmt(node); }
 	static SelectionStmt* getOwnerSelectionStmt(ASTNode& node)
 	{
-		for(ASTNode* p = node.parent; !!p && !isPackageScope(p) && !isa<FunctionDecl>(p); p = p->parent)
+		for(ASTNode* p = node.parent; !!p && !_is_global_decl(p) && !isa<FunctionDecl>(p); p = p->parent)
 			if(isa<SelectionStmt>(p))
 				return cast<SelectionStmt>(p);
 		return NULL;
@@ -161,7 +190,7 @@ public:
 	static bool isOwnedByBlock(ASTNode& node) { return !!getOwnerBlock(node); }
 	static Block* getOwnerBlock(ASTNode& node)
 	{
-		for(ASTNode* p = node.parent; !!p && !isPackageScope(p); p = p->parent)
+		for(ASTNode* p = node.parent; !!p && !_is_global_decl(p); p = p->parent)
 			if(isa<Block>(p))
 				return cast<Block>(p);
 		return NULL;
@@ -178,7 +207,7 @@ public:
 	static bool isOwnedByFunction(ASTNode& node) { return (getOwnerFunction(node) != NULL); }
 	static FunctionDecl* getOwnerFunction(ASTNode& node)
 	{
-		for(ASTNode* p = node.parent; !!p && (!isPackageScope(p) || isa<FunctionDecl>(p)); p = p->parent)
+		for(ASTNode* p = node.parent; !!p && (!_is_global_decl(p) || isa<FunctionDecl>(p)); p = p->parent)
 			if(isa<FunctionDecl>(p))
 				return cast<FunctionDecl>(p);
 		return NULL;
@@ -187,7 +216,7 @@ public:
 	static bool isOwnedByClass(ASTNode& node) { return !!getOwnerClass(node); }
 	static ClassDecl* getOwnerClass(ASTNode& node)
 	{
-		for(ASTNode* p = node.parent; !!p && (!isPackageScope(p) || isa<ClassDecl>(p)); p = p->parent)
+		for(ASTNode* p = node.parent; !!p && (!_is_global_decl(p) || isa<ClassDecl>(p)); p = p->parent)
 			if(isa<ClassDecl>(p))
 				return cast<ClassDecl>(p);
 		return NULL;
@@ -196,7 +225,7 @@ public:
 	static bool isOwnedByInterface(ASTNode& node) { return !!getOwnerInterface(node); }
 	static InterfaceDecl* getOwnerInterface(ASTNode& node)
 	{
-		for(ASTNode* p = node.parent; !!p && (!isPackageScope(p) || isa<InterfaceDecl>(p)); p = p->parent)
+		for(ASTNode* p = node.parent; !!p && (!_is_global_decl(p) || isa<InterfaceDecl>(p)); p = p->parent)
 			if(isa<InterfaceDecl>(p))
 				return cast<InterfaceDecl>(p);
 		return NULL;
@@ -218,7 +247,7 @@ public:
 	static bool isOwnedByAnnotation(ASTNode& node) { return !!getOwnerAnnotation(node); }
 	static Annotation* getOwnerAnnotation(ASTNode& node)
 	{
-		for(ASTNode* p = node.parent; !!p && !isPackageScope(p); p = p->parent)
+		for(ASTNode* p = node.parent; !!p && !_is_global_decl(p); p = p->parent)
 			if(isa<Annotation>(p))
 				return cast<Annotation>(p);
 		return NULL;
@@ -242,12 +271,38 @@ public:
 		return NULL;
 	}
 
-	static ASTNode* getOwnerAnnotationAttachPoint(ASTNode& node)
+	static ASTNode* getOwnerDebugAnnotationAttachPoint(ASTNode& node)
 	{
-		for(ASTNode* p = node.parent; !!p && !isPackageScope(p); p = p->parent)
+		for(ASTNode* p = &node; !!p && !isa<Package>(p); p = p->parent)
 			if(isa<Statement>(p) || isa<Declaration>(p))
 				return p;
 		return NULL;
+	}
+
+	static ASTNode* getSplitReferenceAttachPoint(ASTNode& node)
+	{
+		ASTNode* target = NULL;
+		ASTNode* new_target = &node;
+		do
+		{
+			target = new_target;
+			new_target = SplitReferenceContext::get(target);
+		} while(!!new_target && new_target != target);
+		return target;
+	}
+
+	static ASTNode* getAttachPoint(ASTNode& node)
+	{
+		ASTNode* target = NULL;
+		ASTNode* new_target = &node;
+		do
+		{
+			target = new_target;
+			if(!(new_target = getSplitReferenceAttachPoint(*target))) // NOTE: check split-reference first
+				break;
+			new_target = getOwnerDebugAnnotationAttachPoint(*new_target);
+		} while(!!new_target && new_target != target);
+		return target;
 	}
 
 public:
@@ -264,7 +319,7 @@ private:
 	~ASTNodeHelper() { }
 
 private:
-	static bool isPackageScope(ASTNode* node)
+	static bool _is_global_decl(ASTNode* node)
 	{
 		return isa<Package>(node) || isa<Package>(node->parent);
 	}

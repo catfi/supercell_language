@@ -309,9 +309,9 @@ struct GenericVisitor : Visitor<const ASTNode, void, VisitorImplementation::recu
 	{
 		if(node.annotations) visit(*node.annotations);
 
+		if(node.initializer) visit(*node.initializer);
 		if(node.name)        visit(*node.name);
 		if(node.type)        visit(*node.type);
-		if(node.initializer) visit(*node.initializer);
 	}
 
 	//////////////////////////////////////////////////////////////////////
