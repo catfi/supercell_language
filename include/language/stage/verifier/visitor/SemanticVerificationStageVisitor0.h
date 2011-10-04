@@ -179,7 +179,7 @@ struct SemanticVerificationStageVisitor0 : GenericDoubleVisitor
 
 	void verify(TemplatedIdentifier &node)
 	{
-		if(isa<FunctionDecl>(node.parent) || isa<ClassDecl>(node.parent))
+		if(_is_template(node.parent))
 		{
 			std::set<std::wstring> name_set;
 			size_t n = 0;
@@ -240,7 +240,7 @@ struct SemanticVerificationStageVisitor0 : GenericDoubleVisitor
 	{
 		// MISSING_BREAK_TARGET
 		// MISSING_CONTINUE_TARGET
-		if(node.isBreakOrContinue() && !ASTNodeHelper::isOwnedByIterativeStmt(node))
+		if(_is_break_or_continue(&node) && !ASTNodeHelper::isOwnedByIterativeStmt(node))
 			switch(node.opcode)
 			{
 			case BranchStmt::OpCode::BREAK:    LOG_MESSAGE(MISSING_BREAK_TARGET, &node); break;
@@ -260,8 +260,7 @@ struct SemanticVerificationStageVisitor0 : GenericDoubleVisitor
 		revisit(node);
 
 		// DEAD_CODE
-		if(!isa<SelectionStmt>(node.parent) && !isa<IterativeStmt>(node.parent)
-				&& !!SemanticVerificationBlockContext_HasVisitedReturn::get(&node))
+		if(!_is_control_stmt(node.parent) && !!SemanticVerificationBlockContext_HasVisitedReturn::get(&node))
 		{
 			SemanticVerificationBlockContext_HasVisitedReturn::get_instance(node.parent);
 		}
@@ -330,6 +329,21 @@ struct SemanticVerificationStageVisitor0 : GenericDoubleVisitor
 		verify_DUPE_NAME(*cast<Declaration>(&node));
 
 		revisit(node);
+	}
+
+private:
+	static bool _is_template(ASTNode* node)
+	{
+		return isa<FunctionDecl>(node) || isa<ClassDecl>(node);
+	}
+	static bool _is_control_stmt(ASTNode* node)
+	{
+		return isa<SelectionStmt>(node) || isa<IterativeStmt>(node) || isa<BranchStmt>(node);
+	}
+	static bool _is_break_or_continue(BranchStmt* branch_stmt)
+	{
+		return branch_stmt->opcode == BranchStmt::OpCode::BREAK
+				|| branch_stmt->opcode == BranchStmt::OpCode::CONTINUE;
 	}
 };
 

@@ -87,25 +87,22 @@ struct SemanticVerificationStageVisitor1 : GenericDoubleVisitor
 					LOG_MESSAGE(UNINIT_REF, &node, _var_id = name);
 
 				// INVALID_NONSTATIC_REF
-				if(ASTNodeHelper::getOwnerFunction(node)->is_static && !var_decl->is_static)
+				if(!_is_param(var_decl) && ASTNodeHelper::getOwnerFunction(node)->is_static && !var_decl->is_static)
 					LOG_MESSAGE(INVALID_NONSTATIC_REF, &node, _var_id = name);
 
 				// INVALID_ACCESS_PRIVATE
 				// INVALID_ACCESS_PROTECTED
 				ClassDecl* use_point = ASTNodeHelper::getOwnerClass(node);
-				ClassDecl* declare_point = ASTNodeHelper::getOwnerClass(*var_decl);
-				if(use_point != declare_point)
+				ClassDecl* decl_point = ASTNodeHelper::getOwnerClass(*var_decl);
+				if(use_point != decl_point)
 					switch(var_decl->visibility)
 					{
 					case Declaration::VisibilitySpecifier::PRIVATE:
 						LOG_MESSAGE(INVALID_ACCESS_PRIVATE, &node, _id = name);
 						break;
 					case Declaration::VisibilitySpecifier::PROTECTED:
-						if(!ASTNodeHelper::isAncestorOf(*use_point, *declare_point)
-								&& !ASTNodeHelper::isAncestorOf(*declare_point, *use_point))
-						{
+						if(!ASTNodeHelper::isSameLineage(*use_point, *decl_point))
 							LOG_MESSAGE(INVALID_ACCESS_PROTECTED, &node, _id = name);
-						}
 						break;
 					}
 			}
@@ -175,16 +172,16 @@ struct SemanticVerificationStageVisitor1 : GenericDoubleVisitor
 			// MISSING_RETURN
 			SemanticVerificationFunctionDeclContext_HasVisitedReturn::get_instance(func_decl);
 
-			TypeSpecifier* param = func_decl->type;
-			TypeSpecifier* arg = cast<TypeSpecifier>(ResolvedType::get(&node));
+			TypeSpecifier* return_param = func_decl->type;
+			TypeSpecifier* return_arg = cast<TypeSpecifier>(ResolvedType::get(&node));
 
 			// UNEXPECTED_RETURN_VALUE
-			if(ASTNodeHelper::isVoidType(param) && !ASTNodeHelper::isVoidType(arg))
+			if(_is_void(return_param) && !_is_void(return_arg))
 				LOG_MESSAGE(UNEXPECTED_RETURN_VALUE, &node);
 
 			// MISSING_RETURN_VALUE
-			if(!ASTNodeHelper::isVoidType(param) && ASTNodeHelper::isVoidType(arg))
-				LOG_MESSAGE(MISSING_RETURN_VALUE, &node, _type = param->toString());
+			if(!_is_void(return_param) && _is_void(return_arg))
+				LOG_MESSAGE(MISSING_RETURN_VALUE, &node, _type = return_param->toString());
 		}
 
 		revisit(node);
@@ -216,8 +213,19 @@ struct SemanticVerificationStageVisitor1 : GenericDoubleVisitor
 		revisit(node);
 
 		// MISSING_RETURN
-		if(!ASTNodeHelper::isVoidType(node.type) && !SemanticVerificationFunctionDeclContext_HasVisitedReturn::get(&node))
+		if(!_is_void(node.type) && !SemanticVerificationFunctionDeclContext_HasVisitedReturn::get(&node))
 			LOG_MESSAGE(MISSING_RETURN, &node);
+	}
+
+private:
+	static bool _is_void(TypeSpecifier* type_specifier)
+	{
+		return type_specifier->type == TypeSpecifier::ReferredType::PRIMITIVE
+				&& type_specifier->referred.primitive == PrimitiveType::VOID;
+	}
+	static bool _is_param(VariableDecl* var_decl)
+	{
+		return isa<FunctionDecl>(var_decl->parent);
 	}
 };
 

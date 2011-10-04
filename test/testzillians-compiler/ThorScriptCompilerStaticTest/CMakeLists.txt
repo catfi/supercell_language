@@ -332,4 +332,4 @@ zillians_add_complex_test(
     )
 
 zillians_add_test_to_subject(SUBJECT thorscript-compiler-static-test-s1 TARGET thorscript-compiler-static-test-MISSING_RETURN)
-#zillians_add_test_to_subject(SUBJECT thorscript-compiler-static-test-s1 TARGET thorscript-compiler-static-test-UNINIT_REF)
+zillians_add_test_to_subject(SUBJECT thorscript-compiler-static-test-s1 TARGET thorscript-compiler-static-test-UNINIT_REF)
