@@ -23,7 +23,6 @@
 #include <vector>
 #include <set>
 #include <iterator>
-//#include <boost/bimap.hpp>
 #include <boost/filesystem.hpp>
 #include <boost/graph/adjacency_list.hpp>
 #include <boost/graph/adj_list_serialize.hpp>
@@ -38,8 +37,18 @@
 #include "language/grammar/ThorScriptPackageDependencyGrammar.h"
 #include "utility/UnicodeUtil.h"
 
-//namespace zillians { namespace language { namespace stage {
+//////////////////////////////////////////////////////////////////////////////
+// declaration for boost graph 'named_graph'
+//////////////////////////////////////////////////////////////////////////////
 
+namespace zillians { namespace language { namespace stage { namespace detail {
+
+/**
+ * About boost::graph named_graph:
+ * see:
+ * - http://stackoverflow.com/questions/7315687/boost-graph-library-named-graph-and-remove-vertex
+ * - BOOST_SOURCE_DIR/libs/graph/test/named_vertices_test.cpp
+ */
 struct vertex_info
 {
     std::string name;
@@ -47,7 +56,7 @@ struct vertex_info
     vertex_info() : name("uninitialized-name") { }
 };
 
-//} } }
+} } } }
 
 namespace boost { namespace graph {
     template<typename Type>
@@ -60,46 +69,25 @@ namespace boost { namespace graph {
     } ;
 
     template<>
-    struct internal_vertex_name<vertex_info> {
-        typedef vertex_name_extractor<vertex_info> type;
+    struct internal_vertex_name<zillians::language::stage::detail::vertex_info> {
+        typedef vertex_name_extractor<zillians::language::stage::detail::vertex_info> type;
     } ;
 
     template<>
-    struct internal_vertex_constructor<vertex_info> {
-        typedef vertex_from_name<vertex_info> type;
+    struct internal_vertex_constructor<zillians::language::stage::detail::vertex_info> {
+        typedef vertex_from_name<zillians::language::stage::detail::vertex_info> type;
     } ;
 } }
 
-typedef boost::adjacency_list<boost::vecS, boost::vecS, boost::directedS, vertex_info> FileGraphType;
+typedef boost::adjacency_list<boost::vecS, boost::vecS, boost::directedS, zillians::language::stage::detail::vertex_info> FileGraphType;
 
 namespace zillians { namespace language { namespace stage {
 
-ThorScriptDepStage::ThorScriptDepStage()
-{ }
+//////////////////////////////////////////////////////////////////////////////
+// static functions
+//////////////////////////////////////////////////////////////////////////////
 
-ThorScriptDepStage::~ThorScriptDepStage()
-{ }
-
-const char* ThorScriptDepStage::name()
-{
-	return "thor_script_dep_stage";
-}
-
-std::pair<shared_ptr<po::options_description>, shared_ptr<po::options_description>> ThorScriptDepStage::getOptions()
-{
-	shared_ptr<po::options_description> option_desc_public(new po::options_description());
-	shared_ptr<po::options_description> option_desc_private(new po::options_description());
-
-	option_desc_public->add_options() ;
-
-	foreach(i, option_desc_public->options()) option_desc_private->add(*i);
-
-	option_desc_private->add_options() ;
-
-	return std::make_pair(option_desc_public, option_desc_private);
-}
-
-std::set<std::string> glogAllTsFiles(const std::string& dirPath)
+static std::set<std::string> glogAllTsFiles(const std::string& dirPath)
 {
     std::set<std::string> result;
     namespace fs = boost::filesystem;
@@ -116,43 +104,28 @@ std::set<std::string> glogAllTsFiles(const std::string& dirPath)
     return result;
 }
 
-bool ThorScriptDepStage::parseOptions(po::variables_map& vm)
-{
-    if(vm.count("input"))
-    {
-        inputFiles = vm["input"].as<std::vector<std::string>>();
-        return true;
-    }
-    else
-    {
-        std::set<std::string> inputFileSet = glogAllTsFiles(".");
-        inputFiles.assign(inputFileSet.begin(), inputFileSet.end());
-        return true;
-    }
-}
-
-bool isDirectory(const std::string& pathString)
+static bool isDirectory(const std::string& pathString)
 {
     namespace fs = boost::filesystem;
     fs::path p(pathString);
     return fs::exists(p) && fs::is_directory(p);
 }
 
-bool isRegularFile(const std::string& pathString)
+static bool isRegularFile(const std::string& pathString)
 {
     namespace fs = boost::filesystem;
     fs::path p(pathString);
     return fs::exists(p) && fs::is_regular_file(p);
 }
 
-std::string packageNameToPathName(const std::wstring& packageName)
+static std::string packageNameToPathName(const std::wstring& packageName)
 {
     std::string result = ws_to_s(packageName);
     std::replace(result.begin(), result.end(), '.', '/');
     return result;
 }
 
-bool parseFileImportedPackages(const std::string& tsFileName, std::set<std::wstring>& packages)
+static bool parseFileImportedPackages(const std::string& tsFileName, std::set<std::wstring>& packages)
 {
     std::string filename = tsFileName ;
     std::ifstream in(filename, std::ios_base::in);
@@ -206,27 +179,35 @@ bool parseFileImportedPackages(const std::string& tsFileName, std::set<std::wstr
     return true;
 }
 
-typedef std::map<std::string, std::set<std::string>> FileDependencyType ;
-
 /**
- * @brief Add dependency of a ThorScript source file @p tsFileName to @p deps.
+ * @brief Add dependency of a ThorScript source file @p tsFileName to @p fileGraph.
  * @param[in] pathString Package path to add.
- * @param[in,out] deps Data structure to store dependency.
+ * @param[in,out] fileGraph Data structure to store dependency.
  */
-void addFileDependency(const std::string& tsFileName, FileDependencyType& deps, FileGraphType& fileGraph)
+static void addFileDependency(const std::string& tsFileName, FileGraphType& fileGraph)
 {
-    // if file already processed
-    if(deps.count(tsFileName))
+    boost::optional<boost::graph_traits<FileGraphType>::vertex_descriptor> currentVertexOpt = boost::graph::find_vertex(tsFileName, fileGraph);
+    if(currentVertexOpt && boost::out_degree(*currentVertexOpt, fileGraph) > 0)
     {
         return;
     }
 
-    deps[tsFileName] = std::set<std::string>();
+    /**
+     * @note
+     * It might be a flaw of boost graph.
+     * When using name_graph. e.g. <tt>add_vertex(name_of_vertex, graph)</tt>.
+     * Use <tt>boost::add_vertex()</tt> will cause strange compile error message.
+     * So please DO NOT USE <tt>boost::add_vertex()</tt> here,
+     * use <tt>boost::graph::add_vertex()</tt> instead.
+     * so is <tt>>boost::graph::add_edge()</tt>.
+     */
+    boost::graph::add_vertex(tsFileName, fileGraph);
 
     namespace fs = boost::filesystem;
     // parse ThorScript source file to get import packages
     std::set<std::wstring> fileImportedPackages;
     parseFileImportedPackages(tsFileName, fileImportedPackages);
+
     // transform import packages to path name
     // aka "a.b.c" -> "a/b/c"
     std::vector<std::string> pathNameOfImportedPackages(fileImportedPackages.size());
@@ -241,17 +222,15 @@ void addFileDependency(const std::string& tsFileName, FileDependencyType& deps, 
     // for each dep packages, collect dependent .t files.
     foreach(i, pathNameOfImportedPackages)
     {
-        // if is regular .t file, directly add to deps
+        // if is regular .t file, directly add to fileGraph
         if(isRegularFile(*i + ".t"))
         {
-            //deps[tsFileName].insert(*i + ".t");
             boost::graph::add_edge(tsFileName, *i + ".t", fileGraph);
         }
         // if is package directory, recusively add all files under the dir.
         else if(isDirectory(*i))
         {
             std::set<std::string> allFilesUnderDir = glogAllTsFiles(*i);
-            //deps[tsFileName].insert(allFilesUnderDir.begin(), allFilesUnderDir.end());
             for(auto f = allFilesUnderDir.begin(); f != allFilesUnderDir.end(); ++f)
             {
                 boost::graph::add_edge(tsFileName, *f, fileGraph);
@@ -260,11 +239,6 @@ void addFileDependency(const std::string& tsFileName, FileDependencyType& deps, 
     }
 
     // for each dependent file, recursive apply addFileDependency().
-    //const std::set<std::string>& se = deps[tsFileName] ;
-    //for(auto i = se.begin(); i != se.end(); ++i)
-    //{
-    //    addFileDependency(*i, deps, fileGraph);
-    //}
     typedef boost::property_map<FileGraphType, boost::vertex_index_t>::type IndexMap;
     IndexMap index = boost::get(boost::vertex_index, fileGraph);
     boost::graph_traits<FileGraphType>::out_edge_iterator ei, ei_end;
@@ -272,8 +246,7 @@ void addFileDependency(const std::string& tsFileName, FileDependencyType& deps, 
     for(boost::tie(ei, ei_end) = boost::out_edges(sourceVertexD, fileGraph); ei != ei_end; ++ei)
     {
         const std::string& targetFileName = fileGraph[index[boost::target(*ei, fileGraph)]].name;
-        addFileDependency(targetFileName, deps, fileGraph);
-
+        addFileDependency(targetFileName, fileGraph);
     }
 }
 
@@ -312,34 +285,10 @@ private:
     const GraphType& _g;
 };
 
-bool analyzeTangle(const FileDependencyType& deps, ::FileGraphType& g)
+static bool analyzeTangle(FileGraphType& g)
 {
-    // construct graph
-    // collect all files
-    std::set<std::string> files;
-    foreach(i, deps)
-    {
-        files.insert(i->first);
-        for(auto j = i->second.begin(); j != i->second.end(); ++j)
-        {
-            files.insert(*j);
-        }
-    }
-    // insert edge to graph
-    foreach(i, deps)
-    {
-        for(auto j = i->second.begin(); j != i->second.end(); ++j)
-        {
-            std::string s = i->first;
-            //int u = vertexIdMap.left.at(i->first);
-            //int v = vertexIdMap.left.at(*j);
-            std::string u = i->first;
-            std::string v = *j;
-            boost::graph::add_edge(u, v, g);
-        }
-    }
     // calculate strong connected components
-    std::vector<int> component(files.size());
+    std::vector<int> component(boost::num_vertices(g));
     strong_components(g, &component[0]);
 
     // init tangle graph
@@ -385,23 +334,63 @@ bool analyzeTangle(const FileDependencyType& deps, ::FileGraphType& g)
     return true;
 }
 
+//////////////////////////////////////////////////////////////////////////////
+// class member function
+//////////////////////////////////////////////////////////////////////////////
+
+ThorScriptDepStage::ThorScriptDepStage()
+{ }
+
+ThorScriptDepStage::~ThorScriptDepStage()
+{ }
+
+const char* ThorScriptDepStage::name()
+{
+	return "thor_script_dep_stage";
+}
+
+std::pair<shared_ptr<po::options_description>, shared_ptr<po::options_description>> ThorScriptDepStage::getOptions()
+{
+	shared_ptr<po::options_description> option_desc_public(new po::options_description());
+	shared_ptr<po::options_description> option_desc_private(new po::options_description());
+
+	option_desc_public->add_options() ;
+
+	foreach(i, option_desc_public->options()) option_desc_private->add(*i);
+
+	option_desc_private->add_options() ;
+
+	return std::make_pair(option_desc_public, option_desc_private);
+}
+
+bool ThorScriptDepStage::parseOptions(po::variables_map& vm)
+{
+    if(vm.count("input"))
+    {
+        inputFiles = vm["input"].as<std::vector<std::string>>();
+        return true;
+    }
+    else
+    {
+        std::set<std::string> inputFileSet = glogAllTsFiles(".");
+        inputFiles.assign(inputFileSet.begin(), inputFileSet.end());
+        return true;
+    }
+}
+
 bool ThorScriptDepStage::execute(bool& continue_execution)
 {
-    // TODO: replace the FileDependencyType with a file graph type
-    FileDependencyType deps;
-    FileGraphType fileGraph;
-
     // get file dependency
+    FileGraphType fileGraph;
     foreach(i, inputFiles)
     {
-        addFileDependency(*i, deps, fileGraph);
+        addFileDependency(*i, fileGraph);
     }
 
     // analyze source file tangles (strong connected components)
-    analyzeTangle(deps, fileGraph);
+    analyzeTangle(fileGraph);
 
     return true;
 }
 
 } } }
-
