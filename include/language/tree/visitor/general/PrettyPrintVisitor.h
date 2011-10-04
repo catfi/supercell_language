@@ -1173,11 +1173,11 @@ private:
 	static std::wstring decodeType(ASTNode* type)
 	{
 		if(!type)
-			return L"<unspecified>";
+			return L"[unspecified]";
 
 		if(!isa<TypeSpecifier>(type))
 		{
-			return L"<invalid>";
+			return L"[invalid]";
 		}
 		else
 		{
@@ -1185,12 +1185,12 @@ private:
 			TypeSpecifier* t = cast<TypeSpecifier>(type);
 			switch(t->type)
 			{
-			case TypeSpecifier::ReferredType::PRIMITIVE: return PrimitiveType::toString(t->referred.primitive);
-			case TypeSpecifier::ReferredType::UNSPECIFIED: return t->referred.unspecified->toString();
-			case TypeSpecifier::ReferredType::FUNCTION_TYPE: return decodeFunctionType(t->referred.function_type);
+			case TypeSpecifier::ReferredType::PRIMITIVE: return std::wstring(PrimitiveType::toString(t->referred.primitive)) + std::wstring(L" [primitive]");
+			case TypeSpecifier::ReferredType::UNSPECIFIED: return t->referred.unspecified->toString() + std::wstring(L" [unspecified]");
+			case TypeSpecifier::ReferredType::FUNCTION_TYPE: return decodeFunctionType(t->referred.function_type) + std::wstring(L" [function_type]");
 			}
 		}
-		return L"error";
+		return L"#error#";
 	}
 
 	static std::wstring decodeFunctionType(FunctionType* type)

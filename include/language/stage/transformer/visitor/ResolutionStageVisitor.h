@@ -52,7 +52,7 @@ struct ResolutionStageVisitor : GenericDoubleVisitor
 		};
 	};
 
-	ResolutionStageVisitor(Target::type type, Resolver& type_resolver) : type(type), resolver(type_resolver), resolved_count(0), unresolved_count(0), unspecified_type_count(0)
+	ResolutionStageVisitor(Target::type type, Resolver& type_resolver) : type(type), resolver(type_resolver), resolved_count(0), unresolved_count(0)
 	{
 		REGISTER_ALL_VISITABLE_ASTNODE(resolveInvoker)
 	}
@@ -66,21 +66,33 @@ struct ResolutionStageVisitor : GenericDoubleVisitor
 	{
 		revisit(node);
 
-		ResolvedType::set(&node, getInternalPrimitiveType(node.type));
+		if(!ResolvedType::get(&node))
+		{
+			ResolvedType::set(&node, getInternalPrimitiveType(node.type));
+			++resolved_count;
+		}
 	}
 
 	void resolve(ObjectLiteral& node)
 	{
 		revisit(node);
 
-		ResolvedType::set(&node, getInternalPrimitiveType(PrimitiveType::OBJECT));
+		if(!ResolvedType::get(&node))
+		{
+			ResolvedType::set(&node, getInternalPrimitiveType(PrimitiveType::OBJECT));
+			++resolved_count;
+		}
 	}
 
 	void resolve(StringLiteral& node)
 	{
 		revisit(node);
 
-		ResolvedType::set(&node, getInternalPrimitiveType(PrimitiveType::STRING));
+		if(!ResolvedType::get(&node))
+		{
+			ResolvedType::set(&node, getInternalPrimitiveType(PrimitiveType::STRING));
+			++resolved_count;
+		}
 	}
 
 	void resolve(Internal& node)
@@ -239,11 +251,14 @@ struct ResolutionStageVisitor : GenericDoubleVisitor
 
 		if(!node.result)
 		{
-			ASTNode* resolved_type = ResolvedType::get(&node);
-			if(!resolved_type)
+			if(!ResolvedType::get(&node))
 			{
 				ResolvedType::set(&node, getInternalPrimitiveType(PrimitiveType::VOID));
 			}
+		}
+		else
+		{
+			propogateType(node, *node.result);
 		}
 	}
 
@@ -297,7 +312,7 @@ struct ResolutionStageVisitor : GenericDoubleVisitor
 	{
 		revisit(node);
 		// propagate the type from contained node
-		ResolvedType::set(&node, ResolvedType::get(node.node));
+		propogateType(node, *node.node);
 	}
 
 	void resolve(BinaryExpr& node)
@@ -306,23 +321,37 @@ struct ResolutionStageVisitor : GenericDoubleVisitor
 		// TODO insert necessary cast expression here? or we left it for other phase but only check for compatibility
 		if(node.isArithmetic() || node.isBinary())
 		{
-			// get synthesized type from LHS and RHS
-			ASTNode* left_type = ResolvedType::get(node.left);
-			ASTNode* right_type = ResolvedType::get(node.right);
-
-			if(left_type && right_type)
+			if(!ResolvedType::get(&node))
 			{
-				if(!isArithmeticCapableType(left_type) || !isArithmeticCapableType(right_type))
+				// get synthesized type from LHS and RHS
+				ASTNode* left_type = ResolvedType::get(node.left);
+				ASTNode* right_type = ResolvedType::get(node.right);
+
+				if(left_type && right_type)
 				{
-					LOG_MESSAGE(INVALID_ARITHMETIC, &node);
-					if(!isArithmeticCapableType(left_type)) LOG_MESSAGE(INVALID_ARITHMETIC_INFO, &node, _id = ASTNodeHelper::nodeName(node.left));
-					if(!isArithmeticCapableType(right_type)) LOG_MESSAGE(INVALID_ARITHMETIC_INFO, &node, _id = ASTNodeHelper::nodeName(node.left));
-				}
-				else
-				{
-					bool precision_loss = false;
-					PrimitiveType::type promoted_type = PrimitiveType::promote(cast<TypeSpecifier>(left_type)->referred.primitive, cast<TypeSpecifier>(right_type)->referred.primitive, precision_loss);
-					ResolvedType::set(&node, getInternalPrimitiveType(promoted_type));
+					if(!isArithmeticCapableType(left_type) || !isArithmeticCapableType(right_type))
+					{
+						LOG_MESSAGE(INVALID_ARITHMETIC, &node);
+						if(!isArithmeticCapableType(left_type))
+						{
+							LOG_MESSAGE(INVALID_ARITHMETIC_INFO, &node, _id = ASTNodeHelper::nodeName(node.left));
+							unresolved_nodes.insert(node.left);
+							++unresolved_count;
+						}
+						if(!isArithmeticCapableType(right_type))
+						{
+							LOG_MESSAGE(INVALID_ARITHMETIC_INFO, &node, _id = ASTNodeHelper::nodeName(node.right));
+							unresolved_nodes.insert(node.right);
+							++unresolved_count;
+						}
+					}
+					else
+					{
+						bool precision_loss = false;
+						PrimitiveType::type promoted_type = PrimitiveType::promote(cast<TypeSpecifier>(left_type)->referred.primitive, cast<TypeSpecifier>(right_type)->referred.primitive, precision_loss);
+						ResolvedType::set(&node, getInternalPrimitiveType(promoted_type));
+						++resolved_count;
+					}
 				}
 			}
 		}
@@ -330,17 +359,21 @@ struct ResolutionStageVisitor : GenericDoubleVisitor
 		{
 			// always use LHS type
 			// TODO perform type inference here
-			ResolvedSymbol::set(&node, ResolvedSymbol::get(node.left));
-			ResolvedType::set(&node, ResolvedType::get(node.left));
+			propogateSymbol(node, *node.left);
+			propogateType(node, *node.left);
 		}
 		else if(node.isComparison() || node.isLogical())
 		{
 			// comparison should always yield boolean type
-			ResolvedType::set(&node, getInternalPrimitiveType(PrimitiveType::BOOL));
+			if(!ResolvedType::get(&node))
+			{
+				ResolvedType::set(&node, getInternalPrimitiveType(PrimitiveType::BOOL));
+				++resolved_count;
+			}
 		}
 		else
 		{
-
+			BOOST_ASSERT(false && "unimplemented");
 		}
 
 		convertImpl(node, *node.left, *node.right, node.isAssignment(), node.isArithmetic() || node.isBinary() || node.isComparison(), node.isLogical());
@@ -356,32 +389,41 @@ struct ResolutionStageVisitor : GenericDoubleVisitor
 	{
 		revisit(node);
 
-		ASTNode* type = ResolvedType::get(node.node);
-		if(type)
+		if(!ResolvedType::get(&node))
 		{
-			if(isa<FunctionDecl>(type))
+			ASTNode* type = ResolvedType::get(node.node);
+			if(type)
 			{
-				// if the callee type is function declaration, we should use its return type as call expression's type
-				ResolvedType::set(&node, cast<FunctionDecl>(type)->type);
-			}
-			else if(isa<TypeSpecifier>(type))
-			{
-				// if the callee is a variable and its type is a lambda type, we should use its lambda return type as call expression's type
-				TypeSpecifier* specifier = cast<TypeSpecifier>(type);
-				if(specifier->type == TypeSpecifier::ReferredType::FUNCTION_TYPE)
+				if(isa<FunctionDecl>(type))
 				{
-					ResolvedType::set(&node, specifier->referred.function_type->return_type);
+					// if the callee type is function declaration, we should use its return type as call expression's type
+					ResolvedType::set(&node, cast<FunctionDecl>(type)->type);
+					++resolved_count;
+				}
+				else if(isa<TypeSpecifier>(type))
+				{
+					// if the callee is a variable and its type is a lambda type, we should use its lambda return type as call expression's type
+					TypeSpecifier* specifier = cast<TypeSpecifier>(type);
+					if(specifier->type == TypeSpecifier::ReferredType::FUNCTION_TYPE)
+					{
+						ResolvedType::set(&node, specifier->referred.function_type->return_type);
+						++resolved_count;
+					}
+					else
+					{
+						// Error: Calling Non-Function
+						LOG_MESSAGE(CALL_NONFUNC, &node, _id = ASTNodeHelper::nodeName(&node));
+						unresolved_nodes.insert(&node);
+						++unresolved_count;
+					}
 				}
 				else
 				{
 					// Error: Calling Non-Function
 					LOG_MESSAGE(CALL_NONFUNC, &node, _id = ASTNodeHelper::nodeName(&node));
+					unresolved_nodes.insert(&node);
+					++unresolved_count;
 				}
-			}
-			else
-			{
-				// Error: Calling Non-Function
-				LOG_MESSAGE(CALL_NONFUNC, &node, _id = ASTNodeHelper::nodeName(&node));
 			}
 		}
 	}
@@ -422,12 +464,21 @@ struct ResolutionStageVisitor : GenericDoubleVisitor
 			}
 			else if(node.catagory == PrimaryExpr::Catagory::LAMBDA)
 			{
-				ResolvedType::set(&node, node.value.lambda);
+				if(!ResolvedType::get(&node))
+				{
+					ResolvedType::set(&node, node.value.lambda);
+					++resolved_count;
+				}
 			}
 			else if(node.catagory == PrimaryExpr::Catagory::LITERAL)
 			{
 				visit(*node.value.literal);
-				ResolvedType::set(&node, ResolvedType::get(node.value.literal));
+
+				if(!ResolvedType::get(&node))
+				{
+					ResolvedType::set(&node, ResolvedType::get(node.value.literal));
+					++resolved_count;
+				}
 			}
 		}
 	}
@@ -443,7 +494,11 @@ struct ResolutionStageVisitor : GenericDoubleVisitor
 		else if(type == Target::SYMBOL_RESOLUTION)
 		{
 			// the cast expression should always use the specified type
-			ResolvedType::set(&node, node.type);
+			if(!ResolvedType::get(&node))
+			{
+				ResolvedType::set(&node, node.type);
+				++resolved_count;
+			}
 		}
 	}
 
@@ -457,17 +512,11 @@ struct ResolutionStageVisitor : GenericDoubleVisitor
 		return resolved_count;
 	}
 
-	std::size_t getUnspecifiedCount()
-	{
-		return unspecified_type_count;
-	}
-
 	void reset()
 	{
 		unresolved_nodes.clear();
 		resolved_count = 0;
 		unresolved_count = 0;
-		unspecified_type_count = 0;
 	}
 
 	bool hasTransforms()
@@ -485,26 +534,31 @@ struct ResolutionStageVisitor : GenericDoubleVisitor
 	}
 
 private:
-	void tryResolveType(ASTNode* attach, TypeSpecifier* node, bool no_action = false)
+	bool tryResolveType(ASTNode* attach, TypeSpecifier* node, bool no_action = false)
 	{
 		if(!node)
-			return;
+			return false;
+
+		if(ResolvedType::get(attach))
+			return true;
 
 		if(node->type == TypeSpecifier::ReferredType::UNSPECIFIED)
 		{
 			if(resolver.resolveType(*attach, *node, no_action))
 			{
 				++resolved_count;
+				return true;
 			}
 			else
 			{
 				unresolved_nodes.insert(node);
 				++unresolved_count;
+				return false;
 			}
 		}
 		else
 		{
-			++unspecified_type_count;
+			return true;
 		}
 	}
 
@@ -512,6 +566,9 @@ private:
 	{
 		if(!scope || !node)
 			return false;
+
+		if(ResolvedSymbol::get(attach))
+			return true;
 
 		if(resolver.resolveSymbol(*attach, *scope, *node, no_action))
 		{
@@ -531,6 +588,9 @@ private:
 		if(!node)
 			return false;
 
+		if(ResolvedSymbol::get(attach))
+			return true;
+
 		if(resolver.resolveSymbol(*attach, *node, no_action))
 		{
 			++resolved_count;
@@ -548,6 +608,9 @@ private:
 	{
 		if(!scope || !node)
 			return false;
+
+		if(ResolvedPackage::get(attach))
+			return true;
 
 		if(resolver.resolvePackage(*attach, *scope, *node, no_action))
 		{
@@ -567,6 +630,9 @@ private:
 		if(!node)
 			return false;
 
+		if(ResolvedPackage::get(attach))
+			return true;
+
 		if(resolver.resolvePackage(*attach, *node, no_action))
 		{
 			++resolved_count;
@@ -584,6 +650,9 @@ private:
 	{
 		if(!scope || !node)
 			return false;
+
+		if(ResolvedSymbol::get(attach) && ResolvedPackage::get(attach))
+			return true;
 
 		if(resolver.resolveSymbol(*attach, *scope, *node, no_action))
 		{
@@ -611,6 +680,9 @@ private:
 		if(!node)
 			return false;
 
+		if(ResolvedSymbol::get(attach) && ResolvedPackage::get(attach))
+			return true;
+
 		if(resolver.resolveSymbol(*attach, *node, no_action))
 		{
 			++resolved_count;
@@ -634,65 +706,45 @@ private:
 
 
 private:
-//	void propogateType(ASTNode* to, ASTNode* from)
-//	{
-//		// recursively dig down the tree and find the actual resolved type
-//		ASTNode* resolved_type_from = NULL;
-//		while(resolved_type_from == NULL)
-//		{
-//			if(!from)
-//			{
-//				resolved_type_from = NULL;
-//				break;
-//			}
-//
-//			if(isa<ClassDecl>(from) || isa<InterfaceDecl>(from) || isa<EnumDecl>(from) || isa<FunctionDecl>(from))
-//			{
-//				resolved_type_from = from;
-//			}
-//			else if(isa<VariableDecl>(from))
-//			{
-//				from = cast<VariableDecl>(from)->type;
-//			}
-//			else if(isa<TypedefDecl>(from))
-//			{
-//				from = cast<TypedefDecl>(from)->type;
-//			}
-//			else if(isa<TypeSpecifier>(from))
-//			{
-//				TypeSpecifier* specifier = cast<TypeSpecifier>(from);
-//				switch(specifier->type)
-//				{
-//				case TypeSpecifier::ReferredType::FUNCTION_TYPE:
-//				case TypeSpecifier::ReferredType::PRIMITIVE:
-//					resolved_type_from = specifier; break;
-//				case TypeSpecifier::ReferredType::UNSPECIFIED:
-//					from = ResolvedType::get(from); break;
-//				default:
-//					break;
-//				}
-//			}
-//			else
-//			{
-//				from = ResolvedType::get(from); break;
-//			}
-//		}
-//
-//		ASTNode* resolved_type_to = ResolvedType::get(to);
-//		if(resolved_type_to)
-//		{
-//			// the resolved type should be changed during resolution stage
-//			BOOST_ASSERT(resolved_type_to == resolved_type_from && "type resolution changed during resolution stage");
-//		}
-//		else if(resolved_type_from)
-//		{
-//			ResolvedType::set(to, resolved_type_from);
-//		}
-//		else
-//		{
-//			// both resolved_type_to and resolved_type_from are NULL, so there's no need to update
-//		}
-//	}
+	void propogateType(ASTNode& to, ASTNode& from)
+	{
+		ASTNode* resolved_type_from = ResolvedType::get(&from);
+		ASTNode* resolved_type_to   = ResolvedType::get(&to);
+
+		if(!resolved_type_to)
+		{
+			if(!resolved_type_from)
+			{
+				unresolved_nodes.insert(&to);
+				++unresolved_count;
+			}
+			else
+			{
+				++resolved_count;
+				ResolvedType::set(&to, resolved_type_from);
+			}
+		}
+	}
+
+	void propogateSymbol(ASTNode& to, ASTNode& from)
+	{
+		ASTNode* resolved_symbol_from = ResolvedSymbol::get(&from);
+		ASTNode* resolved_symbol_to   = ResolvedSymbol::get(&to);
+
+		if(!resolved_symbol_to)
+		{
+			if(!resolved_symbol_from)
+			{
+				unresolved_nodes.insert(&to);
+				++unresolved_count;
+			}
+			else
+			{
+				++resolved_count;
+				ResolvedSymbol::set(&to, resolved_symbol_from);
+			}
+		}
+	}
 
 private:
 	bool isArithmeticCapableType(ASTNode* node)
@@ -906,7 +958,6 @@ public:
 	__gnu_cxx::hash_set<ASTNode*> unresolved_nodes;
 	std::size_t resolved_count;
 	std::size_t unresolved_count;
-	std::size_t unspecified_type_count;
 
 private:
 	ResolutionVisitor package_visitor;
