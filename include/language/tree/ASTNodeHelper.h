@@ -23,6 +23,7 @@
 #include "language/tree/ASTNodeFactory.h"
 #include "language/context/ParserContext.h"
 #include "language/context/ResolverContext.h"
+#include "language/context/TransformerContext.h"
 #include "language/stage/parser/context/SourceInfoContext.h"
 #include "language/tree/visitor/general/NodeInfoVisitor.h"
 
@@ -259,12 +260,38 @@ public:
 		return NULL;
 	}
 
-	static ASTNode* getOwnerAnnotationAttachPoint(ASTNode& node)
+	static ASTNode* getOwnerDebugAnnotationAttachPoint(ASTNode& node)
 	{
 		for(ASTNode* p = &node; !!p && !isa<Package>(p); p = p->parent)
 			if(isa<Statement>(p) || isa<Declaration>(p))
 				return p;
 		return NULL;
+	}
+
+	static ASTNode* getSplitReferenceAttachPoint(ASTNode& node)
+	{
+		ASTNode* target = NULL;
+		ASTNode* new_target = &node;
+		do
+		{
+			target = new_target;
+			new_target = SplitReferenceContext::get(target);
+		} while(!!new_target && new_target != target);
+		return target;
+	}
+
+	static ASTNode* getAttachPoint(ASTNode& node)
+	{
+		ASTNode* target = NULL;
+		ASTNode* new_target = &node;
+		do
+		{
+			target = new_target;
+			if(!(new_target = getSplitReferenceAttachPoint(*target))) // NOTE: check split-reference first
+				break;
+			new_target = getOwnerDebugAnnotationAttachPoint(*new_target);
+		} while(!!new_target && new_target != target);
+		return target;
 	}
 
 public:
