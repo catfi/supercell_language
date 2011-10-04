@@ -26,6 +26,8 @@ namespace zillians { namespace language {
 
 struct ResolvedType
 {
+	friend class boost::serialization::access;
+
 	explicit ResolvedType(tree::ASTNode* ref) : ref(ref)
 	{ }
 
@@ -43,13 +45,21 @@ struct ResolvedType
 		return node->set<ResolvedType>(new ResolvedType(ref));
 	}
 
+    template<typename Archive>
+    void serialize(Archive& ar, unsigned int version)
+    {
+    	ar & ref;
+    }
+
 	tree::ASTNode* ref;
+
+private:
+	ResolvedType() { }
 };
 
 struct AmbiguousResolvedType
 {
-	explicit AmbiguousResolvedType()
-	{ }
+	friend class boost::serialization::access;
 
 	static AmbiguousResolvedType* get(tree::ASTNode* node)
 	{
@@ -61,11 +71,19 @@ struct AmbiguousResolvedType
 		return node->set<AmbiguousResolvedType>(ref);
 	}
 
+    template<typename Archive>
+    void serialize(Archive& ar, unsigned int version)
+    {
+    	ar & refs;
+    }
+
 	std::vector<tree::ASTNode*> refs;
 };
 
 struct ResolvedSymbol
 {
+	friend class boost::serialization::access;
+
 	explicit ResolvedSymbol(tree::ASTNode* ref) : ref(ref)
 	{ }
 
@@ -83,13 +101,21 @@ struct ResolvedSymbol
 		return node->set<ResolvedSymbol>(new ResolvedSymbol(ref));
 	}
 
+    template<typename Archive>
+    void serialize(Archive& ar, unsigned int version)
+    {
+    	ar & ref;
+    }
+
 	tree::ASTNode* ref;
+
+private:
+	ResolvedSymbol() { }
 };
 
 struct AmbiguousResolvedSymbol
 {
-	explicit AmbiguousResolvedSymbol()
-	{ }
+	friend class boost::serialization::access;
 
 	static AmbiguousResolvedSymbol* get(tree::ASTNode* node)
 	{
@@ -101,11 +127,19 @@ struct AmbiguousResolvedSymbol
 		return node->set<AmbiguousResolvedSymbol>(ref);
 	}
 
+    template<typename Archive>
+    void serialize(Archive& ar, unsigned int version)
+    {
+    	ar & refs;
+    }
+
 	std::vector<tree::ASTNode*> refs;
 };
 
 struct ResolvedPackage
 {
+	friend class boost::serialization::access;
+
 	explicit ResolvedPackage(tree::ASTNode* ref) : ref(ref)
 	{ }
 
@@ -123,13 +157,21 @@ struct ResolvedPackage
 		return node->set<ResolvedPackage>(new ResolvedPackage(ref));
 	}
 
+    template<typename Archive>
+    void serialize(Archive& ar, unsigned int version)
+    {
+    	ar & ref;
+    }
+
 	tree::ASTNode* ref;
+
+private:
+	ResolvedPackage() { }
 };
 
 struct AmbiguousResolvedPackage
 {
-	explicit AmbiguousResolvedPackage()
-	{ }
+	friend class boost::serialization::access;
 
 	static AmbiguousResolvedPackage* get(tree::ASTNode* node)
 	{
@@ -140,6 +182,12 @@ struct AmbiguousResolvedPackage
 	{
 		return node->set<AmbiguousResolvedPackage>(ref);
 	}
+
+    template<typename Archive>
+    void serialize(Archive& ar, unsigned int version)
+    {
+    	ar & refs;
+    }
 
 	std::vector<tree::ASTNode*> refs;
 };

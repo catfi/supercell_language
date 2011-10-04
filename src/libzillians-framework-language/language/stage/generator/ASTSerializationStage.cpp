@@ -18,6 +18,7 @@
  */
 
 #include "language/stage/generator/ASTSerializationStage.h"
+#include "language/stage/generator/visitor/ASTSerializationStageVisitor.h"
 #include "language/context/ParserContext.h"
 #include "language/tree/ASTNodeSerialization.h"
 #include <boost/archive/text_oarchive.hpp>
@@ -76,6 +77,9 @@ bool ASTSerializationStage::execute(bool& continue_execution)
     boost::archive::text_oarchive oa(ofs);
     tree::ASTNode* to_serialize = getParserContext().program;
     oa << to_serialize;
+
+    visitor::ASTSerializationStageVisitor<boost::archive::text_oarchive> serialzer(oa);
+    serialzer.visit(*to_serialize);
 
 	return true;
 }
