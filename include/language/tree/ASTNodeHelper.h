@@ -134,8 +134,6 @@ public:
 	}
 
 	template<class T>
-	static bool isowner(ASTNode& node) { return !!owner<T>(node); }
-	template<class T>
 	static T* owner(ASTNode& node)
 	{
 		for(ASTNode* p = node.parent; !!p && !isa<Package>(p); p = p->parent)

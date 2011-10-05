@@ -99,8 +99,7 @@ struct SemanticVerificationStageVisitor1 : GenericDoubleVisitor
 						static_violation = ASTNodeHelper::owner<FunctionDecl>(node)->is_static && !var_decl->is_static;
 					}
 				}
-
-				if(isa<FunctionDecl>(decl))
+				else if(isa<FunctionDecl>(decl))
 				{
 					FunctionDecl* func_decl = cast<FunctionDecl>(decl);
 					name = func_decl->name->toString();
@@ -115,16 +114,16 @@ struct SemanticVerificationStageVisitor1 : GenericDoubleVisitor
 
 				// INVALID_ACCESS_PRIVATE
 				// INVALID_ACCESS_PROTECTED
-				ClassDecl* use_point = ASTNodeHelper::owner<ClassDecl>(node);
+				ClassDecl* ref_point = ASTNodeHelper::owner<ClassDecl>(node);
 				ClassDecl* decl_point = ASTNodeHelper::owner<ClassDecl>(*decl);
-				if(use_point != decl_point)
+				if(ref_point != decl_point)
 					switch(visibility)
 					{
 					case Declaration::VisibilitySpecifier::PRIVATE:
 						LOG_MESSAGE(INVALID_ACCESS_PRIVATE, &node, _id = name);
 						break;
 					case Declaration::VisibilitySpecifier::PROTECTED:
-						if(!ASTNodeHelper::extends(*use_point, *decl_point))
+						if(!ASTNodeHelper::extends(*ref_point, *decl_point))
 							LOG_MESSAGE(INVALID_ACCESS_PROTECTED, &node, _id = name);
 						break;
 					}

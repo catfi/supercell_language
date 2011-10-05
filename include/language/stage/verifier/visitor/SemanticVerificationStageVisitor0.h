@@ -152,7 +152,7 @@ struct SemanticVerificationStageVisitor0 : GenericDoubleVisitor
 
 	void verify(TemplatedIdentifier &node)
 	{
-		if(_is_template(node.parent))
+		if(_is_templatable(node.parent))
 		{
 			std::set<std::wstring> name_set;
 			size_t n = 0;
@@ -204,7 +204,7 @@ struct SemanticVerificationStageVisitor0 : GenericDoubleVisitor
 	void verify(Statement &node)
 	{
 		// DEAD_CODE
-		verify_DEAD_CODE(node);
+		_verify_DEAD_CODE(node);
 
 		revisit(node);
 	}
@@ -221,7 +221,7 @@ struct SemanticVerificationStageVisitor0 : GenericDoubleVisitor
 			}
 
 		// DEAD_CODE
-		verify_DEAD_CODE(node);
+		_verify_DEAD_CODE(node);
 		if(node.opcode == BranchStmt::OpCode::RETURN)
 			SemanticVerificationBlockContext_HasVisitedReturn::instance(ASTNodeHelper::owner<Block>(node));
 
@@ -233,13 +233,13 @@ struct SemanticVerificationStageVisitor0 : GenericDoubleVisitor
 		revisit(node);
 
 		// DEAD_CODE
-		if(!_is_conditional_exec(node.parent) && !!SemanticVerificationBlockContext_HasVisitedReturn::get(&node))
+		if(!_is_conditional(node.parent) && !!SemanticVerificationBlockContext_HasVisitedReturn::get(&node))
 			SemanticVerificationBlockContext_HasVisitedReturn::instance(node.parent);
 	}
 
 	void verify(VariableDecl &node)
 	{
-		verify_DUPE_NAME(*cast<Declaration>(&node));
+		_verify_DUPE_NAME(*cast<Declaration>(&node));
 
 		// MISSING_STATIC_INIT
 		if(node.is_static && !node.initializer)
@@ -250,7 +250,7 @@ struct SemanticVerificationStageVisitor0 : GenericDoubleVisitor
 
 	void verify(FunctionDecl &node)
 	{
-		verify_DUPE_NAME(*cast<Declaration>(&node));
+		_verify_DUPE_NAME(*cast<Declaration>(&node));
 
 		std::wstring name = node.name->toString();
 
@@ -263,7 +263,7 @@ struct SemanticVerificationStageVisitor0 : GenericDoubleVisitor
 		size_t n = 0;
 		foreach(i, node.parameters)
 		{
-#if 0 // NOTE: already handled by "::verify_DUPE_NAME"
+#if 0 // NOTE: already handled by "::_verify_DUPE_NAME"
 			std::wstring name = cast<VariableDecl>(*i)->name->toString();
 
 			// DUPE_NAME
@@ -297,13 +297,13 @@ struct SemanticVerificationStageVisitor0 : GenericDoubleVisitor
 
 	void verify(ClassDecl &node)
 	{
-		verify_DUPE_NAME(*cast<Declaration>(&node));
+		_verify_DUPE_NAME(*cast<Declaration>(&node));
 
 		revisit(node);
 	}
 
 private:
-	void verify_DUPE_NAME(Declaration &node)
+	void _verify_DUPE_NAME(Declaration &node)
 	{
 		// DUPE_NAME
 		SemanticVerificationScopeContext_NameSet* owner_context =
@@ -323,7 +323,7 @@ private:
 		}
 	}
 
-	void verify_DEAD_CODE(Statement &node)
+	void _verify_DEAD_CODE(Statement &node)
 	{
 		// DEAD_CODE
 		if(isa<Block>(node.parent) && !!SemanticVerificationBlockContext_HasVisitedReturn::get(node.parent))
@@ -331,14 +331,16 @@ private:
 	}
 
 private:
-	static bool _is_template(ASTNode* node)
+	static bool _is_templatable(ASTNode* node)
 	{
 		return isa<FunctionDecl>(node) || isa<ClassDecl>(node);
 	}
-	static bool _is_conditional_exec(ASTNode* node)
+
+	static bool _is_conditional(ASTNode* node)
 	{
 		return isa<SelectionStmt>(node) || isa<IterativeStmt>(node);
 	}
+
 	static bool _is_break_or_continue(BranchStmt* branch_stmt)
 	{
 		return branch_stmt->opcode == BranchStmt::OpCode::BREAK
