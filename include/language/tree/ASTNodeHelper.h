@@ -120,15 +120,22 @@ public:
 		return false;
 	}
 
-	static bool isExtends(ClassDecl& derived_class, ClassDecl& base_class)
+	static bool isExtendedFrom(ClassDecl& derived_class, ClassDecl& base_class)
 	{
-		// TODO: impl me
+		ASTNode* target = &derived_class;
+		while(!!target)
+		{
+			BOOST_ASSERT(isa<ClassDecl>(target));
+			if(target == &base_class)
+				return true;
+			target = ResolvedType::get(cast<ClassDecl>(target)->base);
+		}
 		return false;
 	}
 
 	static bool isSameLineage(ClassDecl& a, ClassDecl& b)
 	{
-		return isExtends(a, b) || isExtends(b, a);
+		return isExtendedFrom(a, b) || isExtendedFrom(b, a);
 	}
 
 	static bool isOwnedByExpression(ASTNode& node) { return !!getOwnerExpression(node); }
