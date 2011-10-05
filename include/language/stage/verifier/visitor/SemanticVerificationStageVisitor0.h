@@ -69,33 +69,6 @@ struct SemanticVerificationStageVisitor0 : GenericDoubleVisitor
 		REGISTER_ALL_VISITABLE_ASTNODE(verifyInvoker)
 	}
 
-	void verify_DUPE_NAME(Declaration &node)
-	{
-		// DUPE_NAME
-		SemanticVerificationScopeContext_NameSet* owner_context =
-				SemanticVerificationScopeContext_NameSet::get_instance(ASTNodeHelper::getOwnerNamedScope(node));
-		std::wstring name = node.name->toString();
-		if(owner_context->names.find(name) == owner_context->names.end())
-			owner_context->names.insert(name);
-		else
-		{
-			if(isa<FunctionDecl>(node.parent) // function parameter repeat -- attach to function, not parameter
-					|| isa<DeclarativeStmt>(node.parent)) // local variable repeat -- attach to statement, not declaration
-			{
-				LOG_MESSAGE(DUPE_NAME, node.parent, _id = name);
-			}
-			else
-				LOG_MESSAGE(DUPE_NAME, &node, _id = name);
-		}
-	}
-
-	void verify_DEAD_CODE(Statement &node)
-	{
-		// DEAD_CODE
-		if(isa<Block>(node.parent) && !!SemanticVerificationBlockContext_HasVisitedReturn::get(node.parent))
-			LOG_MESSAGE(DEAD_CODE, &node);
-	}
-
 	void verify(ASTNode& node)
 	{
 		revisit(node);
@@ -240,7 +213,7 @@ struct SemanticVerificationStageVisitor0 : GenericDoubleVisitor
 	{
 		// MISSING_BREAK_TARGET
 		// MISSING_CONTINUE_TARGET
-		if(_is_break_or_continue(&node) && !ASTNodeHelper::isOwnedByIterativeStmt(node))
+		if(_is_break_or_continue(&node) && !ASTNodeHelper::owner<IterativeStmt>(node))
 			switch(node.opcode)
 			{
 			case BranchStmt::OpCode::BREAK:    LOG_MESSAGE(MISSING_BREAK_TARGET, &node); break;
@@ -250,7 +223,7 @@ struct SemanticVerificationStageVisitor0 : GenericDoubleVisitor
 		// DEAD_CODE
 		verify_DEAD_CODE(node);
 		if(node.opcode == BranchStmt::OpCode::RETURN)
-			SemanticVerificationBlockContext_HasVisitedReturn::get_instance(ASTNodeHelper::getOwnerBlock(node));
+			SemanticVerificationBlockContext_HasVisitedReturn::instance(ASTNodeHelper::owner<Block>(node));
 
 		revisit(node);
 	}
@@ -260,10 +233,8 @@ struct SemanticVerificationStageVisitor0 : GenericDoubleVisitor
 		revisit(node);
 
 		// DEAD_CODE
-		if(!_is_control_stmt(node.parent) && !!SemanticVerificationBlockContext_HasVisitedReturn::get(&node))
-		{
-			SemanticVerificationBlockContext_HasVisitedReturn::get_instance(node.parent);
-		}
+		if(!_is_conditional_exec(node.parent) && !!SemanticVerificationBlockContext_HasVisitedReturn::get(&node))
+			SemanticVerificationBlockContext_HasVisitedReturn::instance(node.parent);
 	}
 
 	void verify(VariableDecl &node)
@@ -284,7 +255,7 @@ struct SemanticVerificationStageVisitor0 : GenericDoubleVisitor
 		std::wstring name = node.name->toString();
 
 		// INCOMPLETE_FUNC
-		if(!node.block && !ASTNodeHelper::hasAnnotationTag(node, L"native"))
+		if(!node.block && !ASTNodeHelper::findAnnotation(node, L"native"))
 			LOG_MESSAGE(INCOMPLETE_FUNC, &node, _func_id = name);
 
 		std::set<std::wstring> name_set;
@@ -332,13 +303,41 @@ struct SemanticVerificationStageVisitor0 : GenericDoubleVisitor
 	}
 
 private:
+	void verify_DUPE_NAME(Declaration &node)
+	{
+		// DUPE_NAME
+		SemanticVerificationScopeContext_NameSet* owner_context =
+				SemanticVerificationScopeContext_NameSet::instance(ASTNodeHelper::ownerNamedScope(node));
+		std::wstring name = node.name->toString();
+		if(owner_context->names.find(name) == owner_context->names.end())
+			owner_context->names.insert(name);
+		else
+		{
+			if(isa<FunctionDecl>(node.parent) // function parameter repeat -- attach to function, not parameter
+					|| isa<DeclarativeStmt>(node.parent)) // local variable repeat -- attach to statement, not declaration
+			{
+				LOG_MESSAGE(DUPE_NAME, node.parent, _id = name);
+			}
+			else
+				LOG_MESSAGE(DUPE_NAME, &node, _id = name);
+		}
+	}
+
+	void verify_DEAD_CODE(Statement &node)
+	{
+		// DEAD_CODE
+		if(isa<Block>(node.parent) && !!SemanticVerificationBlockContext_HasVisitedReturn::get(node.parent))
+			LOG_MESSAGE(DEAD_CODE, &node);
+	}
+
+private:
 	static bool _is_template(ASTNode* node)
 	{
 		return isa<FunctionDecl>(node) || isa<ClassDecl>(node);
 	}
-	static bool _is_control_stmt(ASTNode* node)
+	static bool _is_conditional_exec(ASTNode* node)
 	{
-		return isa<SelectionStmt>(node) || isa<IterativeStmt>(node) || isa<BranchStmt>(node);
+		return isa<SelectionStmt>(node) || isa<IterativeStmt>(node);
 	}
 	static bool _is_break_or_continue(BranchStmt* branch_stmt)
 	{

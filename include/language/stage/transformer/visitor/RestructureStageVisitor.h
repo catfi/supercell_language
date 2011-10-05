@@ -100,7 +100,7 @@ struct RestructureStageVisitor : GenericDoubleVisitor
 
 		// for all class member function
 		bool need_to_prepend_this_argument = false;
-		ClassDecl* owner_class = ASTNodeHelper::getOwnerClass(node);
+		ClassDecl* owner_class = ASTNodeHelper::owner<ClassDecl>(node);
 		if(owner_class && node.is_member && !node.is_static)
 		{
 			if(node.parameters.size() == 0)
@@ -165,7 +165,7 @@ struct RestructureStageVisitor : GenericDoubleVisitor
 		//
 		// note that we skip parameters in FunctionDecl, which shouldn't be transformed
 		//
-		if(node.initializer && ASTNodeHelper::isOwnedByFunction(node) && ASTNodeHelper::isOwnedByBlock(node))
+		if(node.initializer && ASTNodeHelper::isowner<FunctionDecl>(node) && ASTNodeHelper::isowner<Block>(node))
 		{
 			transforms.push_back([&](){
 				DeclarativeStmt* anchor = cast<DeclarativeStmt>(node.parent);
@@ -197,9 +197,9 @@ struct RestructureStageVisitor : GenericDoubleVisitor
 		}
 
 		// transform all class member variable with initializer into a initialization statement in all constructors
-		if(node.initializer && ASTNodeHelper::isOwnedByClass(node))
+		if(node.initializer && ASTNodeHelper::isowner<ClassDecl>(node))
 		{
-			ClassDecl* owner_class = ASTNodeHelper::getOwnerClass(node);
+			ClassDecl* owner_class = ASTNodeHelper::owner<ClassDecl>(node);
 			transforms.push_back([&, owner_class](){
 				foreach(i, owner_class->member_functions)
 				{

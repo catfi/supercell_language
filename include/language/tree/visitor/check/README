@@ -51,7 +51,7 @@ ERRORS:
                 iii. INVALID_NONSTATIC_REF                                      S1* -- need to know if func is static
         b. VISIBILITY
             I.  INVALID_ACCESS_PRIVATE                                          S1*
-            II. INVALID_ACCESS_PROTECTED                                        S1?
+            II. INVALID_ACCESS_PROTECTED                                        S1*
     E4. STATEMENT
         a. MISSING_BREAK_TARGET                                     S0
         b. MISSING_CONTINUE_TARGET                                  S0

@@ -74,7 +74,7 @@ struct SemanticVerificationStageVisitor1 : GenericDoubleVisitor
 
 	void verify(PrimaryExpr &node)
 	{
-		if(ASTNodeHelper::isOwnedByFunction(node) && node.catagory == PrimaryExpr::Catagory::IDENTIFIER)
+		if(!!ASTNodeHelper::owner<FunctionDecl>(node) && node.catagory == PrimaryExpr::Catagory::IDENTIFIER)
 		{
 			ASTNode* decl = ResolvedSymbol::get(&node);
 			if(isa<VariableDecl>(decl) || isa<FunctionDecl>(decl))
@@ -86,16 +86,18 @@ struct SemanticVerificationStageVisitor1 : GenericDoubleVisitor
 				if(isa<VariableDecl>(decl))
 				{
 					VariableDecl* var_decl = cast<VariableDecl>(decl);
-					name = var_decl->name->toString();
-					visibility = var_decl->visibility;
+					if(!ASTNodeHelper::isFuncParam(var_decl))
+					{
+						name = var_decl->name->toString();
+						visibility = var_decl->visibility;
 
-					// UNINIT_REF
-					if(!SemanticVerificationVariableDeclContext_HasBeenInit::get(var_decl))
-						LOG_MESSAGE(UNINIT_REF, &node, _var_id = name);
+						// UNINIT_REF
+						if(!SemanticVerificationVariableDeclContext_HasBeenInit::get(var_decl))
+							LOG_MESSAGE(UNINIT_REF, &node, _var_id = name);
 
-					// INVALID_NONSTATIC_REF
-					static_violation = !_is_param(var_decl)
-							&& ASTNodeHelper::getOwnerFunction(node)->is_static && !var_decl->is_static;
+						// INVALID_NONSTATIC_REF
+						static_violation = ASTNodeHelper::owner<FunctionDecl>(node)->is_static && !var_decl->is_static;
+					}
 				}
 
 				if(isa<FunctionDecl>(decl))
@@ -105,7 +107,7 @@ struct SemanticVerificationStageVisitor1 : GenericDoubleVisitor
 					visibility = func_decl->visibility;
 
 					// INVALID_NONSTATIC_REF
-					static_violation = ASTNodeHelper::getOwnerFunction(node)->is_static && !func_decl->is_static;
+					static_violation = ASTNodeHelper::owner<FunctionDecl>(node)->is_static && !func_decl->is_static;
 				}
 
 				if(static_violation)
@@ -113,8 +115,8 @@ struct SemanticVerificationStageVisitor1 : GenericDoubleVisitor
 
 				// INVALID_ACCESS_PRIVATE
 				// INVALID_ACCESS_PROTECTED
-				ClassDecl* use_point = ASTNodeHelper::getOwnerClass(node);
-				ClassDecl* decl_point = ASTNodeHelper::getOwnerClass(*decl);
+				ClassDecl* use_point = ASTNodeHelper::owner<ClassDecl>(node);
+				ClassDecl* decl_point = ASTNodeHelper::owner<ClassDecl>(*decl);
 				if(use_point != decl_point)
 					switch(visibility)
 					{
@@ -122,7 +124,7 @@ struct SemanticVerificationStageVisitor1 : GenericDoubleVisitor
 						LOG_MESSAGE(INVALID_ACCESS_PRIVATE, &node, _id = name);
 						break;
 					case Declaration::VisibilitySpecifier::PROTECTED:
-						if(!ASTNodeHelper::isExtendedFrom(*use_point, *decl_point))
+						if(!ASTNodeHelper::extends(*use_point, *decl_point))
 							LOG_MESSAGE(INVALID_ACCESS_PROTECTED, &node, _id = name);
 						break;
 					}
@@ -150,7 +152,7 @@ struct SemanticVerificationStageVisitor1 : GenericDoubleVisitor
 			decl_is_static = !var_decl->is_static;
 			name = var_decl->name->toString();
 		}
-		if(ASTNodeHelper::getOwnerFunction(node)->is_static && decl_is_static)
+		if(ASTNodeHelper::owner<FunctionDecl>(node)->is_static && decl_is_static)
 			LOG_MESSAGE(INVALID_NONSTATIC_CALL, &node, _func_id = name);
 
 		revisit(node);
@@ -177,7 +179,7 @@ struct SemanticVerificationStageVisitor1 : GenericDoubleVisitor
 			if(node.right->isRValue() || (node.right->isLValue()
 					&& !!SemanticVerificationVariableDeclContext_HasBeenInit::get(ResolvedSymbol::get(node.right))))
 			{
-				SemanticVerificationVariableDeclContext_HasBeenInit::get_instance(lhs_var_decl);
+				SemanticVerificationVariableDeclContext_HasBeenInit::instance(lhs_var_decl);
 			}
 		}
 
@@ -188,10 +190,10 @@ struct SemanticVerificationStageVisitor1 : GenericDoubleVisitor
 	{
 		if(node.opcode == BranchStmt::OpCode::RETURN)
 		{
-			FunctionDecl* func_decl = ASTNodeHelper::getOwnerFunction(node);
+			FunctionDecl* func_decl = ASTNodeHelper::owner<FunctionDecl>(node);
 
 			// MISSING_RETURN
-			SemanticVerificationFunctionDeclContext_HasVisitedReturn::get_instance(func_decl);
+			SemanticVerificationFunctionDeclContext_HasVisitedReturn::instance(func_decl);
 
 			TypeSpecifier* return_param = func_decl->type;
 			TypeSpecifier* return_arg = cast<TypeSpecifier>(ResolvedType::get(&node));
@@ -212,13 +214,13 @@ struct SemanticVerificationStageVisitor1 : GenericDoubleVisitor
 	void verify(VariableDecl &node)
 	{
 		// UNINIT_REF
-		if(ASTNodeHelper::isOwnedByFunction(node) && !!node.initializer)
+		if(!!ASTNodeHelper::owner<FunctionDecl>(node) && !!node.initializer)
 		{
 			if(node.initializer->isRValue() || (node.initializer->isLValue()
 					&& !!SemanticVerificationVariableDeclContext_HasBeenInit::get(
 							ResolvedSymbol::get(node.initializer)))) // NOTE: FIX-ME -- cannot resolve Expression !!
 			{
-				SemanticVerificationVariableDeclContext_HasBeenInit::get_instance(&node);
+				SemanticVerificationVariableDeclContext_HasBeenInit::instance(&node);
 			}
 		}
 
@@ -229,7 +231,7 @@ struct SemanticVerificationStageVisitor1 : GenericDoubleVisitor
 	{
 		// UNINIT_REF
 		foreach(i, node.parameters)
-			SemanticVerificationVariableDeclContext_HasBeenInit::get_instance(*i);
+			SemanticVerificationVariableDeclContext_HasBeenInit::instance(*i);
 
 		revisit(node);
 
@@ -243,10 +245,6 @@ private:
 	{
 		return type_specifier->type == TypeSpecifier::ReferredType::PRIMITIVE
 				&& type_specifier->referred.primitive == PrimitiveType::VOID;
-	}
-	static bool _is_param(VariableDecl* var_decl)
-	{
-		return isa<FunctionDecl>(var_decl->parent);
 	}
 };
 
