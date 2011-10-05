@@ -19,21 +19,21 @@
 # Contact Information: info@zillians.com
 #
 
-zillians_create_test_subject(SUBJECT framework-compiler-critical)
-zillians_create_test_subject(SUBJECT framework-compiler-misc)
+INCLUDE_DIRECTORIES(
+    ${PROJECT_COMMON_SOURCE_DIR}/include/
+    ${PROJECT_FRAMEWORK_SOURCE_DIR}/include/
+    )
 
-zillians_add_subject_to_subject(PARENT framework-critical CHILD framework-compiler-critical)
-zillians_add_subject_to_subject(PARENT framework-misc CHILD framework-compiler-misc)
+ADD_EXECUTABLE(
+    ThorScriptDepTest_ThorScriptDepHappyPathTest
+    ThorScriptDepHappyPathTest.cpp
+    ../../../../src/zillians-thorscript-dep/language/ThorScriptDep.cpp
+    )
 
-ADD_SUBDIRECTORY(LLVM_IR_Test)
-ADD_SUBDIRECTORY(RuntimeApiTest)
+TARGET_LINK_LIBRARIES(ThorScriptDepTest_ThorScriptDepHappyPathTest
+    zillians-common-core
+    zillians-framework-language
+    )
 
-ADD_SUBDIRECTORY(SemanticCheckTest)
-ADD_SUBDIRECTORY(StubCodeGenTest)
-
-ADD_SUBDIRECTORY(ThorScriptCompilerStaticTest)
-ADD_SUBDIRECTORY(ThorScriptParserTest)
-ADD_SUBDIRECTORY(ThorScriptTransformerTest)
-ADD_SUBDIRECTORY(ThorScriptTreeTest)
-ADD_SUBDIRECTORY(ThorScriptLoggerTest)
-ADD_SUBDIRECTORY(ThorScriptDepTest)
+zillians_add_simple_test(TARGET ThorScriptDepTest_ThorScriptDepHappyPathTest)
+zillians_add_test_to_subject(SUBJECT thorscript-dep-test TARGET ThorScriptDepTest_ThorScriptDepHappyPathTest)
