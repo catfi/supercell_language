@@ -35,17 +35,18 @@ struct ASTNodeContext
 		return node->get<T>();
 	}
 
-	static void set(tree::ASTNode* node, T* ctx)
-	{
-		node->set<T>(ctx);
-	}
-
-	static T* get_instance(tree::ASTNode* node)
+	static T* instance(tree::ASTNode* node)
 	{
 		T* x = get(node);
 		if(!x)
-			set(node, x = new T());
+			_set(node, x = new T());
 		return x;
+	}
+
+private:
+	static void _set(tree::ASTNode* node, T* ctx)
+	{
+		node->set<T>(ctx);
 	}
 };
 

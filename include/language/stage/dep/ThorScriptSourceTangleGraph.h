@@ -25,12 +25,12 @@
 namespace zillians { namespace language { namespace stage {
 
 typedef boost::adjacency_list<
-            boost::setS, // disallow dup edge
+            boost::setS, // disallow duplicated edge
             boost::vecS,
             boost::directedS, // directed graph
             std::set<std::string> // vertex can be accessed as std::set with g[v].insert(foo)
         > TangleGraphType;
 
-} } } // zillians language stage
+} } }
 
 #endif /* ZILLIANS_LANGUAGE_STAGE_DEP_THORSCRIPTSOURCETANGLES_H_ */

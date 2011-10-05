@@ -145,8 +145,8 @@ zillians_add_test_to_subject(SUBJECT thorscript-compiler-static-test-xform TARGE
 zillians_add_test_to_subject(SUBJECT thorscript-compiler-static-test-xform TARGET thorscript-compiler-static-test-MISMATCH_FUNC_ARGNUM_TOO_FEW)
 zillians_add_test_to_subject(SUBJECT thorscript-compiler-static-test-xform TARGET thorscript-compiler-static-test-MISMATCH_FUNC_ARGNUM_TOO_MANY)
 zillians_add_test_to_subject(SUBJECT thorscript-compiler-static-test-xform TARGET thorscript-compiler-static-test-MISMATCH_FUNC_ARGTYPE)
-#zillians_add_test_to_subject(SUBJECT thorscript-compiler-static-test-s1    TARGET thorscript-compiler-static-test-MISSING_RETURN_VALUE)
-#zillians_add_test_to_subject(SUBJECT thorscript-compiler-static-test-s1    TARGET thorscript-compiler-static-test-UNEXPECTED_RETURN_VALUE)
+zillians_add_test_to_subject(SUBJECT thorscript-compiler-static-test-s1    TARGET thorscript-compiler-static-test-MISSING_RETURN_VALUE)
+zillians_add_test_to_subject(SUBJECT thorscript-compiler-static-test-s1    TARGET thorscript-compiler-static-test-UNEXPECTED_RETURN_VALUE)
 
 # primary_expression
 zillians_add_complex_test(
@@ -215,7 +215,7 @@ zillians_add_complex_test(
     )
 
 #zillians_add_test_to_subject(SUBJECT thorscript-compiler-static-test-s0 TARGET thorscript-compiler-static-test-MISSING_CONST_INIT)
-#zillians_add_test_to_subject(SUBJECT thorscript-compiler-static-test-s1 TARGET thorscript-compiler-static-test-WRITE_CONST)
+zillians_add_test_to_subject(SUBJECT thorscript-compiler-static-test-s1 TARGET thorscript-compiler-static-test-WRITE_CONST)
 zillians_add_test_to_subject(SUBJECT thorscript-compiler-static-test-s1 TARGET thorscript-compiler-static-test-INVALID_NONSTATIC_CALL)
 zillians_add_test_to_subject(SUBJECT thorscript-compiler-static-test-s1 TARGET thorscript-compiler-static-test-INVALID_NONSTATIC_REF)
 zillians_add_test_to_subject(SUBJECT thorscript-compiler-static-test-s0 TARGET thorscript-compiler-static-test-MISSING_STATIC_INIT)
@@ -332,4 +332,4 @@ zillians_add_complex_test(
     )
 
 zillians_add_test_to_subject(SUBJECT thorscript-compiler-static-test-s1 TARGET thorscript-compiler-static-test-MISSING_RETURN)
-#zillians_add_test_to_subject(SUBJECT thorscript-compiler-static-test-s1 TARGET thorscript-compiler-static-test-UNINIT_REF)
+zillians_add_test_to_subject(SUBJECT thorscript-compiler-static-test-s1 TARGET thorscript-compiler-static-test-UNINIT_REF)

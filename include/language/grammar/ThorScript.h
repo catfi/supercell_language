@@ -86,7 +86,7 @@ struct Identifier : qi::grammar<Iterator, typename SA::identifier::attribute_typ
 			L"void",
 			L"int8", L"int16", L"int32", L"int64",
 			L"float32", L"float64",
-			L"true", L"false", L"null", L"self", L"global", L"...",
+			L"true", L"false", L"null", L"self", L"this", L"...",
 			L"const", L"static",
 			L"typedef", L"class", L"interface", L"enum",
 			L"public", L"protected", L"private",
@@ -332,7 +332,7 @@ struct ThorScript : qi::grammar<Iterator, typename SA::start::attribute_type, de
 			DECL_TOKEN(_FALSE, L"false");
 			DECL_TOKEN(_NULL, L"null");
 			DECL_TOKEN(SELF, L"self");
-			DECL_TOKEN(GLOBAL, L"global");
+			DECL_TOKEN(THIS, L"this");
 
 			DECL_TOKEN(CONST, L"const");
 			DECL_TOKEN(STATIC, L"static");
@@ -517,7 +517,7 @@ struct ThorScript : qi::grammar<Iterator, typename SA::start::attribute_type, de
 					| _FALSE                                  [ typename SA::primary_expression::template init_bool<false>() ]
 					| _NULL                                   [ typename SA::primary_expression::template init_object_literal<tree::ObjectLiteral::LiteralType::NULL_OBJECT>() ]
 					| SELF                                    [ typename SA::primary_expression::template init_object_literal<tree::ObjectLiteral::LiteralType::SELF_OBJECT>() ]
-					| GLOBAL                                  [ typename SA::primary_expression::template init_object_literal<tree::ObjectLiteral::LiteralType::GLOBAL_OBJECT>() ]
+					| THIS                                    //[ typename SA::primary_expression::template init_object_literal<tree::ObjectLiteral::LiteralType::THIS_OBJECT>() ]
 					| (LEFT_PAREN > expression > RIGHT_PAREN) [ typename SA::primary_expression::init_paren_expression() ]
 					|	(FUNCTION > LEFT_PAREN > -param_decl_list > RIGHT_PAREN > -type_specifier > block
 						) [ typename SA::primary_expression::init_lambda() ]
@@ -770,9 +770,9 @@ struct ThorScript : qi::grammar<Iterator, typename SA::start::attribute_type, de
 
 		branch_statement
 			= qi::eps [ typename SA::location::cache_loc() ]
-				>>	( (RETURN > expression_statement) [ typename SA::branch_statement::init_return() ]
-					| (BREAK > SEMICOLON)             [ typename SA::branch_statement::template init<tree::BranchStmt::OpCode::BREAK>() ]
-					| (CONTINUE > SEMICOLON)          [ typename SA::branch_statement::template init<tree::BranchStmt::OpCode::CONTINUE>() ]
+				>>	( (RETURN > -expression > SEMICOLON) [ typename SA::branch_statement::init_return() ]
+					| (BREAK > SEMICOLON)                [ typename SA::branch_statement::template init<tree::BranchStmt::OpCode::BREAK>() ]
+					| (CONTINUE > SEMICOLON)             [ typename SA::branch_statement::template init<tree::BranchStmt::OpCode::CONTINUE>() ]
 					)
 			;
 
@@ -873,7 +873,7 @@ struct ThorScript : qi::grammar<Iterator, typename SA::start::attribute_type, de
 			= qi::eps [ typename SA::location::cache_loc() ]
 				>>	(ENUM > IDENTIFIER
 						> LEFT_BRACE
-						> ((IDENTIFIER > -init_specifier) % COMMA)
+						> *(IDENTIFIER > -init_specifier > SEMICOLON)
 						> RIGHT_BRACE
 					) [ typename SA::enum_decl::init() ]
 			;
@@ -1018,7 +1018,7 @@ struct ThorScript : qi::grammar<Iterator, typename SA::start::attribute_type, de
 
 	// keywords
 	qi::rule<Iterator, detail::WhiteSpace<Iterator> >
-		_TRUE, _FALSE, _NULL, SELF, GLOBAL,
+		_TRUE, _FALSE, _NULL, SELF, THIS,
 		CONST, STATIC,
 		INT8, INT16, INT32, INT64, FLOAT32, FLOAT64, VOID,
 		TYPEDEF, CLASS, INTERFACE, ENUM,

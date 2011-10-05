@@ -69,32 +69,6 @@ struct SemanticVerificationStageVisitor0 : GenericDoubleVisitor
 		REGISTER_ALL_VISITABLE_ASTNODE(verifyInvoker)
 	}
 
-	void verify_DUPE_NAME(Declaration &node)
-	{
-		// DUPE_NAME
-		SemanticVerificationScopeContext_NameSet* owner_context =
-				SemanticVerificationScopeContext_NameSet::get_instance(ASTNodeHelper::getOwnerNamedScope(node));
-		std::wstring name = node.name->toString();
-		if(owner_context->names.find(name) == owner_context->names.end())
-			owner_context->names.insert(name);
-		else
-		{
-			ASTNode* owner = node.parent;
-			if(isa<FunctionDecl>(owner) || isa<Statement>(owner))
-				LOG_MESSAGE(DUPE_NAME, owner, _id = name);
-			else
-				LOG_MESSAGE(DUPE_NAME, &node, _id = name);
-		}
-	}
-
-	void verify_DEAD_CODE(Statement &node)
-	{
-		// DEAD_CODE
-		ASTNode* owner = node.parent;
-		if(isa<Block>(owner) && !!SemanticVerificationBlockContext_HasVisitedReturn::get(owner))
-			LOG_MESSAGE(DEAD_CODE, &node);
-	}
-
 	void verify(ASTNode& node)
 	{
 		revisit(node);
@@ -178,8 +152,7 @@ struct SemanticVerificationStageVisitor0 : GenericDoubleVisitor
 
 	void verify(TemplatedIdentifier &node)
 	{
-		ASTNode* owner = node.parent;
-		if(isa<FunctionDecl>(owner) || isa<ClassDecl>(owner))
+		if(_is_templatable(node.parent))
 		{
 			std::set<std::wstring> name_set;
 			size_t n = 0;
@@ -195,11 +168,11 @@ struct SemanticVerificationStageVisitor0 : GenericDoubleVisitor
 						if(name_set.find(name) == name_set.end())
 							name_set.insert(name);
 						else
-							LOG_MESSAGE(DUPE_NAME, owner, _id = name);
+							LOG_MESSAGE(DUPE_NAME, &node, _id = name);
 
 						// UNEXPECTED_VARIADIC_TEMPLATE_PARAM
 						if(name == L"..." && !is_end_of_foreach(i, node.templated_type_list))
-							LOG_MESSAGE(UNEXPECTED_VARIADIC_TEMPLATE_PARAM, owner);
+							LOG_MESSAGE(UNEXPECTED_VARIADIC_TEMPLATE_PARAM, &node);
 					}
 					break;
 				case TemplatedIdentifier::Usage::ACTUAL_ARGUMENT:
@@ -213,7 +186,7 @@ struct SemanticVerificationStageVisitor0 : GenericDoubleVisitor
 
 			// EXCEED_TEMPLATE_PARAM_LIMIT
 			if(n>getConfigurationContext().max_template_arg_param_count)
-				LOG_MESSAGE(EXCEED_TEMPLATE_PARAM_LIMIT, owner);
+				LOG_MESSAGE(EXCEED_TEMPLATE_PARAM_LIMIT, &node);
 		}
 
 		revisit(node);
@@ -223,7 +196,7 @@ struct SemanticVerificationStageVisitor0 : GenericDoubleVisitor
 	{
 		// WRITE_RVALUE
 		if(node.isAssignment() && node.left->isRValue())
-			LOG_MESSAGE(WRITE_RVALUE, node.left->parent);
+			LOG_MESSAGE(WRITE_RVALUE, &node);
 
 		revisit(node);
 	}
@@ -231,7 +204,7 @@ struct SemanticVerificationStageVisitor0 : GenericDoubleVisitor
 	void verify(Statement &node)
 	{
 		// DEAD_CODE
-		verify_DEAD_CODE(node);
+		_verify_DEAD_CODE(&node);
 
 		revisit(node);
 	}
@@ -240,7 +213,7 @@ struct SemanticVerificationStageVisitor0 : GenericDoubleVisitor
 	{
 		// MISSING_BREAK_TARGET
 		// MISSING_CONTINUE_TARGET
-		if(node.isBreakOrContinue() && !ASTNodeHelper::isOwnedByIterativeStmt(node))
+		if(_is_break_or_continue(&node) && !ASTNodeHelper::owner<IterativeStmt>(node))
 			switch(node.opcode)
 			{
 			case BranchStmt::OpCode::BREAK:    LOG_MESSAGE(MISSING_BREAK_TARGET, &node); break;
@@ -248,9 +221,9 @@ struct SemanticVerificationStageVisitor0 : GenericDoubleVisitor
 			}
 
 		// DEAD_CODE
-		verify_DEAD_CODE(node);
+		_verify_DEAD_CODE(&node);
 		if(node.opcode == BranchStmt::OpCode::RETURN)
-			SemanticVerificationBlockContext_HasVisitedReturn::get_instance(ASTNodeHelper::getOwnerBlock(node));
+			SemanticVerificationBlockContext_HasVisitedReturn::instance(ASTNodeHelper::owner<Block>(node));
 
 		revisit(node);
 	}
@@ -260,14 +233,13 @@ struct SemanticVerificationStageVisitor0 : GenericDoubleVisitor
 		revisit(node);
 
 		// DEAD_CODE
-		ASTNode* owner = node.parent;
-		if(!isa<SelectionStmt>(owner) && !isa<IterativeStmt>(owner) && !!SemanticVerificationBlockContext_HasVisitedReturn::get(&node))
-			SemanticVerificationBlockContext_HasVisitedReturn::get_instance(owner);
+		if(!_is_conditional(node.parent) && !!SemanticVerificationBlockContext_HasVisitedReturn::get(&node))
+			SemanticVerificationBlockContext_HasVisitedReturn::instance(node.parent);
 	}
 
 	void verify(VariableDecl &node)
 	{
-		verify_DUPE_NAME(*cast<Declaration>(&node));
+		_verify_DUPE_NAME(cast<Declaration>(&node));
 
 		// MISSING_STATIC_INIT
 		if(node.is_static && !node.initializer)
@@ -278,12 +250,12 @@ struct SemanticVerificationStageVisitor0 : GenericDoubleVisitor
 
 	void verify(FunctionDecl &node)
 	{
-		verify_DUPE_NAME(*cast<Declaration>(&node));
+		_verify_DUPE_NAME(cast<Declaration>(&node));
 
 		std::wstring name = node.name->toString();
 
 		// INCOMPLETE_FUNC
-		if(!node.block && !ASTNodeHelper::hasAnnotationTag(node, L"native"))
+		if(!node.block && !ASTNodeHelper::findAnnotation(node, L"native"))
 			LOG_MESSAGE(INCOMPLETE_FUNC, &node, _func_id = name);
 
 		std::set<std::wstring> name_set;
@@ -291,7 +263,7 @@ struct SemanticVerificationStageVisitor0 : GenericDoubleVisitor
 		size_t n = 0;
 		foreach(i, node.parameters)
 		{
-#if 0 // NOTE: already handled by "::verify_DUPE_NAME"
+#if 0 // NOTE: already handled by "::_verify_DUPE_NAME"
 			std::wstring name = cast<VariableDecl>(*i)->name->toString();
 
 			// DUPE_NAME
@@ -325,9 +297,53 @@ struct SemanticVerificationStageVisitor0 : GenericDoubleVisitor
 
 	void verify(ClassDecl &node)
 	{
-		verify_DUPE_NAME(*cast<Declaration>(&node));
+		_verify_DUPE_NAME(cast<Declaration>(&node));
 
 		revisit(node);
+	}
+
+private:
+	static void _verify_DUPE_NAME(Declaration* node)
+	{
+		// DUPE_NAME
+		SemanticVerificationScopeContext_NameSet* context =
+				SemanticVerificationScopeContext_NameSet::instance(ASTNodeHelper::ownerNamedScope(*node));
+		std::wstring name = node->name->toString();
+		if(context->names.find(name) == context->names.end())
+			context->names.insert(name);
+		else
+		{
+			if(isa<FunctionDecl>(node->parent) // function parameter repeat -- attach to function, not parameter
+					|| isa<DeclarativeStmt>(node->parent)) // local variable repeat -- attach to statement, not declaration
+			{
+				LOG_MESSAGE(DUPE_NAME, node->parent, _id = name);
+			}
+			else
+				LOG_MESSAGE(DUPE_NAME, node, _id = name);
+		}
+	}
+
+	static void _verify_DEAD_CODE(Statement* node)
+	{
+		// DEAD_CODE
+		if(isa<Block>(node->parent) && !!SemanticVerificationBlockContext_HasVisitedReturn::get(node->parent))
+			LOG_MESSAGE(DEAD_CODE, node);
+	}
+
+	static bool _is_templatable(ASTNode* node)
+	{
+		return isa<FunctionDecl>(node) || isa<ClassDecl>(node);
+	}
+
+	static bool _is_conditional(ASTNode* node)
+	{
+		return isa<SelectionStmt>(node) || isa<IterativeStmt>(node);
+	}
+
+	static bool _is_break_or_continue(BranchStmt* branch_stmt)
+	{
+		return branch_stmt->opcode == BranchStmt::OpCode::BREAK
+				|| branch_stmt->opcode == BranchStmt::OpCode::CONTINUE;
 	}
 };
 

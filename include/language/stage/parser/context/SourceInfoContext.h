@@ -45,12 +45,20 @@ struct ModuleSourceInfoContext
 		node->set<ModuleSourceInfoContext>(ctx);
 	}
 
+    template<typename Archive>
+    void serialize(Archive& ar, unsigned int version)
+    {
+    	ar & source_files;
+    }
+
 	std::vector<std::string> source_files;
 };
 
 /// SourceInfoContext will be stored in every AST Identifier, Statement, Expression, and Declaration
 struct SourceInfoContext
 {
+	friend class boost::serialization::access;
+
 	SourceInfoContext(int32 i, uint32 l, uint32 c) : source_index(i), line(l), column(c)
 	{ }
 
@@ -67,9 +75,20 @@ struct SourceInfoContext
 		node->set<SourceInfoContext>(ctx);
 	}
 
+    template<typename Archive>
+    void serialize(Archive& ar, unsigned int version)
+    {
+    	ar & source_index;
+    	ar & line;
+    	ar & column;
+    }
+
 	int32 source_index;
 	uint32 line;
 	uint32 column;
+
+private:
+	SourceInfoContext() { }
 };
 
 } } }

@@ -30,6 +30,8 @@ namespace zillians { namespace language {
  */
 struct SplitReferenceContext
 {
+	friend class boost::serialization::access;
+
 	explicit SplitReferenceContext(tree::ASTNode* ref) : ref(ref)
 	{ }
 
@@ -47,7 +49,16 @@ struct SplitReferenceContext
 		return node->set<SplitReferenceContext>(new SplitReferenceContext(ref));
 	}
 
+    template<typename Archive>
+    void serialize(Archive& ar, const unsigned int version)
+    {
+    	ar & ref;
+    }
+
 	tree::ASTNode* ref;
+
+private:
+	SplitReferenceContext() { }
 };
 
 } }

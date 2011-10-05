@@ -18,6 +18,7 @@
  */
 
 #include "language/stage/parser/ASTDeserializationStage.h"
+#include "language/stage/parser/visitor/ASTDeserializationStageVisitor.h"
 #include "language/context/ParserContext.h"
 #include "language/tree/ASTNodeSerialization.h"
 #include <boost/archive/text_oarchive.hpp>
@@ -78,6 +79,10 @@ bool ASTDeserializationStage::execute(bool& continue_execution)
     ia >> from_serialize;
 
     getParserContext().program = tree::cast<tree::Program>(from_serialize);
+
+    visitor::ASTDeserializationStageVisitor<boost::archive::text_iarchive> deserialzer(ia);
+    deserialzer.visit(*getParserContext().program);
+
 
 	return true;
 }

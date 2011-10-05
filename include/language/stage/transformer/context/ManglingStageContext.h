@@ -27,6 +27,8 @@ namespace zillians { namespace language { namespace stage {
 // this context will be generated and attached to ASTNode if necessary
 struct NameManglingContext
 {
+	friend class boost::serialization::access;
+
 	explicit NameManglingContext(const std::string& name) : managled_name(name)
 	{ }
 
@@ -40,11 +42,22 @@ struct NameManglingContext
 		node->set<NameManglingContext>(ctx);
 	}
 
+    template<typename Archive>
+    void serialize(Archive& ar, unsigned int version)
+    {
+    	ar & managled_name;
+    }
+
 	std::string managled_name;
+
+private:
+	NameManglingContext() { }
 };
 
 struct TypeIdManglingContext
 {
+	friend class boost::serialization::access;
+
 	explicit TypeIdManglingContext(uint64 id) : managled_id(id)
 	{ }
 
@@ -58,11 +71,22 @@ struct TypeIdManglingContext
 		node->set<TypeIdManglingContext>(ctx);
 	}
 
+    template<typename Archive>
+    void serialize(Archive& ar, unsigned int version)
+    {
+    	ar & managled_id;
+    }
+
 	uint64 managled_id;
+
+private:
+	TypeIdManglingContext() { }
 };
 
 struct SymbolIdManglingContext
 {
+	friend class boost::serialization::access;
+
 	explicit SymbolIdManglingContext(uint64 id) : managled_id(id)
 	{ }
 
@@ -76,7 +100,16 @@ struct SymbolIdManglingContext
 		node->set<SymbolIdManglingContext>(ctx);
 	}
 
+    template<typename Archive>
+    void serialize(Archive& ar, unsigned int version)
+    {
+    	ar & managled_id;
+    }
+
 	uint64 managled_id;
+
+private:
+	SymbolIdManglingContext() { }
 };
 
 } } }
