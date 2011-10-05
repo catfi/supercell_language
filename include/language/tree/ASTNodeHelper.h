@@ -120,16 +120,16 @@ public:
 		return false;
 	}
 
-	static bool isExtendedFrom(ClassDecl& derived_class, ClassDecl& base_class)
+	static bool isExtendedFrom(ClassDecl& derived, ClassDecl& base)
 	{
-		ASTNode* target = &derived_class;
-		while(!!target)
+		ASTNode* target = &derived;
+		do
 		{
-			BOOST_ASSERT(isa<ClassDecl>(target));
-			if(target == &base_class)
+			if(target == &base)
 				return true;
-			target = ResolvedType::get(cast<ClassDecl>(target)->base);
-		}
+			if(!isa<ClassDecl>(target))
+				return false;
+		} while(!!(target = ResolvedType::get(cast<ClassDecl>(target)->base)));
 		return false;
 	}
 
