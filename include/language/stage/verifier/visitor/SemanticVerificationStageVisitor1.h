@@ -76,16 +76,16 @@ struct SemanticVerificationStageVisitor1 : GenericDoubleVisitor
 	{
 		if(!!ASTNodeHelper::owner<FunctionDecl>(node) && node.catagory == PrimaryExpr::Catagory::IDENTIFIER)
 		{
-			ASTNode* decl = ResolvedSymbol::get(&node);
-			if(isa<VariableDecl>(decl) || isa<FunctionDecl>(decl))
+			ASTNode* unknown = ResolvedSymbol::get(&node);
+			if(isa<VariableDecl>(unknown) || isa<FunctionDecl>(unknown))
 			{
 				std::wstring name;
 				bool static_violation = false;
 				Declaration::VisibilitySpecifier::type visibility = Declaration::VisibilitySpecifier::PRIVATE;
 
-				if(isa<VariableDecl>(decl))
+				if(isa<VariableDecl>(unknown))
 				{
-					VariableDecl* var_decl = cast<VariableDecl>(decl);
+					VariableDecl* var_decl = cast<VariableDecl>(unknown);
 					if(!ASTNodeHelper::isFuncParam(var_decl))
 					{
 						name = var_decl->name->toString();
@@ -99,9 +99,9 @@ struct SemanticVerificationStageVisitor1 : GenericDoubleVisitor
 						static_violation = ASTNodeHelper::owner<FunctionDecl>(node)->is_static && !var_decl->is_static;
 					}
 				}
-				else if(isa<FunctionDecl>(decl))
+				else if(isa<FunctionDecl>(unknown))
 				{
-					FunctionDecl* func_decl = cast<FunctionDecl>(decl);
+					FunctionDecl* func_decl = cast<FunctionDecl>(unknown);
 					name = func_decl->name->toString();
 					visibility = func_decl->visibility;
 
@@ -115,7 +115,7 @@ struct SemanticVerificationStageVisitor1 : GenericDoubleVisitor
 				// INVALID_ACCESS_PRIVATE
 				// INVALID_ACCESS_PROTECTED
 				ClassDecl* ref_point = ASTNodeHelper::owner<ClassDecl>(node);
-				ClassDecl* decl_point = ASTNodeHelper::owner<ClassDecl>(*decl);
+				ClassDecl* decl_point = ASTNodeHelper::owner<ClassDecl>(*unknown);
 				if(ref_point != decl_point)
 					switch(visibility)
 					{
@@ -138,16 +138,16 @@ struct SemanticVerificationStageVisitor1 : GenericDoubleVisitor
 		// INVALID_NONSTATIC_CALL
 		bool decl_is_static = false;
 		std::wstring name;
-		ASTNode* decl = ResolvedSymbol::get(node.node);
-		if(isa<FunctionDecl>(decl))
+		ASTNode* unknown = ResolvedSymbol::get(node.node);
+		if(isa<FunctionDecl>(unknown))
 		{
-			FunctionDecl* func_decl = cast<FunctionDecl>(decl);
+			FunctionDecl* func_decl = cast<FunctionDecl>(unknown);
 			decl_is_static = !func_decl->is_static;
 			name = func_decl->name->toString();
 		}
-		if(isa<VariableDecl>(decl))
+		if(isa<VariableDecl>(unknown))
 		{
-			VariableDecl* var_decl = cast<VariableDecl>(decl);
+			VariableDecl* var_decl = cast<VariableDecl>(unknown);
 			decl_is_static = !var_decl->is_static;
 			name = var_decl->name->toString();
 		}
@@ -161,24 +161,25 @@ struct SemanticVerificationStageVisitor1 : GenericDoubleVisitor
 	{
 		if(node.isAssignment())
 		{
-			VariableDecl* lhs_var_decl = cast<VariableDecl>(ResolvedSymbol::get(node.left));
-
-			// if the binary expression is assignment and it's split from variable declaration
-			// (by checking the split reference is DeclarativeStmt or not)
-			// if it is, then the binary expression is the initializer, so we should skip checking "write to const"
-			ASTNode* ref = SplitReferenceContext::get(&node);
-			if(!ref || !isa<DeclarativeStmt>(ref))
+			ASTNode* unknown = ResolvedSymbol::get(node.left);
+			if(isa<VariableDecl>(unknown))
 			{
+				VariableDecl* var_decl = cast<VariableDecl>(unknown);
+
 				// WRITE_CONST
-				if(lhs_var_decl->is_const)
-					LOG_MESSAGE(WRITE_CONST, &node, _var_id = lhs_var_decl->name->toString());
-			}
+				// if the binary expression is assignment and it's split from variable declaration
+				// (by checking the split reference is DeclarativeStmt or not)
+				// if it is, then the binary expression is the initializer, so we should skip checking "write to const"
+				ASTNode* ref = SplitReferenceContext::get(&node);
+				if((!ref || !isa<DeclarativeStmt>(ref)) && var_decl->is_const)
+					LOG_MESSAGE(WRITE_CONST, &node, _var_id = var_decl->name->toString());
 
-			// UNINIT_REF
-			if(node.right->isRValue() || (node.right->isLValue()
-					&& !!SemanticVerificationVariableDeclContext_HasBeenInit::get(ResolvedSymbol::get(node.right))))
-			{
-				SemanticVerificationVariableDeclContext_HasBeenInit::instance(lhs_var_decl);
+				// UNINIT_REF
+				if(node.right->isRValue() || (node.right->isLValue()
+						&& !!SemanticVerificationVariableDeclContext_HasBeenInit::get(ResolvedSymbol::get(node.right))))
+				{
+					SemanticVerificationVariableDeclContext_HasBeenInit::instance(var_decl);
+				}
 			}
 		}
 
@@ -220,6 +221,50 @@ struct SemanticVerificationStageVisitor1 : GenericDoubleVisitor
 		// MISSING_RETURN
 		if(!_is_void(node.type) && !SemanticVerificationFunctionDeclContext_HasVisitedReturn::get(&node))
 			LOG_MESSAGE(MISSING_RETURN, &node);
+	}
+
+	void verify(SwitchStmt &node)
+	{
+		std::set<std::wstring> enum_value_set;
+		if(isa<PrimaryExpr>(node.node))
+		{
+			PrimaryExpr* prim_expr = cast<PrimaryExpr>(node.node);
+			if(prim_expr->catagory == PrimaryExpr::Catagory::IDENTIFIER)
+			{
+				ASTNode* unknown = ResolvedSymbol::get(prim_expr->value.identifier);
+				if(isa<VariableDecl>(unknown))
+				{
+					VariableDecl* var_decl = cast<VariableDecl>(unknown);
+					if(var_decl->type->type == TypeSpecifier::ReferredType::UNSPECIFIED)
+					{
+						ASTNode* unknown = ResolvedSymbol::get(var_decl->type->referred.unspecified);
+						if(isa<EnumDecl>(unknown))
+							foreach(i, cast<EnumDecl>(unknown)->enumeration_list)
+								enum_value_set.insert((*i).first->toString()); // NOTE: FIX-ME! -- should store value instead ?
+					}
+				}
+			}
+		}
+
+		std::set<std::wstring> case_value_set;
+		foreach(i, node.cases)
+			if(isa<PrimaryExpr>((*i).cond)) // NOTE: FIX-ME! -- may be a MemberExpr, should we resolve value instead ?
+			{
+				PrimaryExpr* prim_expr = cast<PrimaryExpr>((*i).cond);
+				if(prim_expr->catagory == PrimaryExpr::Catagory::IDENTIFIER)
+					case_value_set.insert(prim_expr->value.identifier->toString());
+			}
+
+		// MISSING_CASE
+		std::vector<std::wstring> result;
+		if(!node.default_block)
+		{
+			std::set_difference(enum_value_set.begin(), enum_value_set.end(),
+					case_value_set.begin(), case_value_set.end(),
+					std::back_inserter(result));
+			foreach(i, result)
+				LOG_MESSAGE(MISSING_CASE, &node, _id = *i);
+		}
 	}
 
 private:

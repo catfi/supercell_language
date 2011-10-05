@@ -204,7 +204,7 @@ struct SemanticVerificationStageVisitor0 : GenericDoubleVisitor
 	void verify(Statement &node)
 	{
 		// DEAD_CODE
-		_verify_DEAD_CODE(node);
+		_verify_DEAD_CODE(&node);
 
 		revisit(node);
 	}
@@ -221,7 +221,7 @@ struct SemanticVerificationStageVisitor0 : GenericDoubleVisitor
 			}
 
 		// DEAD_CODE
-		_verify_DEAD_CODE(node);
+		_verify_DEAD_CODE(&node);
 		if(node.opcode == BranchStmt::OpCode::RETURN)
 			SemanticVerificationBlockContext_HasVisitedReturn::instance(ASTNodeHelper::owner<Block>(node));
 
@@ -239,7 +239,7 @@ struct SemanticVerificationStageVisitor0 : GenericDoubleVisitor
 
 	void verify(VariableDecl &node)
 	{
-		_verify_DUPE_NAME(*cast<Declaration>(&node));
+		_verify_DUPE_NAME(cast<Declaration>(&node));
 
 		// MISSING_STATIC_INIT
 		if(node.is_static && !node.initializer)
@@ -250,7 +250,7 @@ struct SemanticVerificationStageVisitor0 : GenericDoubleVisitor
 
 	void verify(FunctionDecl &node)
 	{
-		_verify_DUPE_NAME(*cast<Declaration>(&node));
+		_verify_DUPE_NAME(cast<Declaration>(&node));
 
 		std::wstring name = node.name->toString();
 
@@ -297,40 +297,39 @@ struct SemanticVerificationStageVisitor0 : GenericDoubleVisitor
 
 	void verify(ClassDecl &node)
 	{
-		_verify_DUPE_NAME(*cast<Declaration>(&node));
+		_verify_DUPE_NAME(cast<Declaration>(&node));
 
 		revisit(node);
 	}
 
 private:
-	void _verify_DUPE_NAME(Declaration &node)
+	static void _verify_DUPE_NAME(Declaration* node)
 	{
 		// DUPE_NAME
-		SemanticVerificationScopeContext_NameSet* owner_context =
-				SemanticVerificationScopeContext_NameSet::instance(ASTNodeHelper::ownerNamedScope(node));
-		std::wstring name = node.name->toString();
-		if(owner_context->names.find(name) == owner_context->names.end())
-			owner_context->names.insert(name);
+		SemanticVerificationScopeContext_NameSet* context =
+				SemanticVerificationScopeContext_NameSet::instance(ASTNodeHelper::ownerNamedScope(*node));
+		std::wstring name = node->name->toString();
+		if(context->names.find(name) == context->names.end())
+			context->names.insert(name);
 		else
 		{
-			if(isa<FunctionDecl>(node.parent) // function parameter repeat -- attach to function, not parameter
-					|| isa<DeclarativeStmt>(node.parent)) // local variable repeat -- attach to statement, not declaration
+			if(isa<FunctionDecl>(node->parent) // function parameter repeat -- attach to function, not parameter
+					|| isa<DeclarativeStmt>(node->parent)) // local variable repeat -- attach to statement, not declaration
 			{
-				LOG_MESSAGE(DUPE_NAME, node.parent, _id = name);
+				LOG_MESSAGE(DUPE_NAME, node->parent, _id = name);
 			}
 			else
-				LOG_MESSAGE(DUPE_NAME, &node, _id = name);
+				LOG_MESSAGE(DUPE_NAME, node, _id = name);
 		}
 	}
 
-	void _verify_DEAD_CODE(Statement &node)
+	static void _verify_DEAD_CODE(Statement* node)
 	{
 		// DEAD_CODE
-		if(isa<Block>(node.parent) && !!SemanticVerificationBlockContext_HasVisitedReturn::get(node.parent))
-			LOG_MESSAGE(DEAD_CODE, &node);
+		if(isa<Block>(node->parent) && !!SemanticVerificationBlockContext_HasVisitedReturn::get(node->parent))
+			LOG_MESSAGE(DEAD_CODE, node);
 	}
 
-private:
 	static bool _is_templatable(ASTNode* node)
 	{
 		return isa<FunctionDecl>(node) || isa<ClassDecl>(node);

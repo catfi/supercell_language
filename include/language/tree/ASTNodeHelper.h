@@ -31,7 +31,6 @@ namespace zillians { namespace language { namespace tree {
 
 struct ASTNodeHelper
 {
-public:
 	static void propogateSourceInfo(ASTNode& to, ASTNode& from)
 	{
 		stage::SourceInfoContext* to_src_info = to.get<stage::SourceInfoContext>();
@@ -199,7 +198,6 @@ public:
 		return isa<FunctionDecl>(var_decl->parent);
 	}
 
-public:
 	static std::wstring nodeName(ASTNode* node)
 	{
 		static tree::visitor::NodeInfoVisitor v(1);
@@ -244,7 +242,6 @@ private:
 		return target;
 	}
 
-private:
 	ASTNodeHelper() { }
 	~ASTNodeHelper() { }
 };
