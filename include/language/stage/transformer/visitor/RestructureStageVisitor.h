@@ -165,7 +165,7 @@ struct RestructureStageVisitor : GenericDoubleVisitor
 		//
 		// note that we skip parameters in FunctionDecl, which shouldn't be transformed
 		//
-		if(node.initializer && ASTNodeHelper::isowner<FunctionDecl>(node) && ASTNodeHelper::isowner<Block>(node))
+		if(node.initializer && !!ASTNodeHelper::owner<FunctionDecl>(node) && !!ASTNodeHelper::owner<Block>(node))
 		{
 			transforms.push_back([&](){
 				DeclarativeStmt* anchor = cast<DeclarativeStmt>(node.parent);
@@ -197,7 +197,7 @@ struct RestructureStageVisitor : GenericDoubleVisitor
 		}
 
 		// transform all class member variable with initializer into a initialization statement in all constructors
-		if(node.initializer && ASTNodeHelper::isowner<ClassDecl>(node))
+		if(node.initializer && !!ASTNodeHelper::owner<ClassDecl>(node))
 		{
 			ClassDecl* owner_class = ASTNodeHelper::owner<ClassDecl>(node);
 			transforms.push_back([&, owner_class](){

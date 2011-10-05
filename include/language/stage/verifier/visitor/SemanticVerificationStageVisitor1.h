@@ -209,23 +209,6 @@ struct SemanticVerificationStageVisitor1 : GenericDoubleVisitor
 		revisit(node);
 	}
 
-	// NOTE: problematic.. hopefully we don't need this in the future..
-	void verify(VariableDecl &node)
-	{
-		// UNINIT_REF
-		if(!!ASTNodeHelper::owner<FunctionDecl>(node) && !!node.initializer)
-		{
-			if(node.initializer->isRValue() || (node.initializer->isLValue()
-					&& !!SemanticVerificationVariableDeclContext_HasBeenInit::get(
-							ResolvedSymbol::get(node.initializer)))) // NOTE: FIX-ME -- cannot resolve Expression !!
-			{
-				SemanticVerificationVariableDeclContext_HasBeenInit::instance(&node);
-			}
-		}
-
-		revisit(node);
-	}
-
 	void verify(FunctionDecl &node)
 	{
 		// UNINIT_REF
