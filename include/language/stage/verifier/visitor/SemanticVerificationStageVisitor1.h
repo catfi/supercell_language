@@ -122,7 +122,7 @@ struct SemanticVerificationStageVisitor1 : GenericDoubleVisitor
 						LOG_MESSAGE(INVALID_ACCESS_PRIVATE, &node, _id = name);
 						break;
 					case Declaration::VisibilitySpecifier::PROTECTED:
-						if(!ASTNodeHelper::isSameLineage(*use_point, *decl_point))
+						if(!ASTNodeHelper::isExtendedFrom(*use_point, *decl_point))
 							LOG_MESSAGE(INVALID_ACCESS_PROTECTED, &node, _id = name);
 						break;
 					}

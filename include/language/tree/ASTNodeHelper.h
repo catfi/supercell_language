@@ -133,11 +133,6 @@ public:
 		return false;
 	}
 
-	static bool isSameLineage(ClassDecl& a, ClassDecl& b)
-	{
-		return isExtendedFrom(a, b) || isExtendedFrom(b, a);
-	}
-
 	static bool isOwnedByExpression(ASTNode& node) { return !!getOwnerExpression(node); }
 	static Expression* getOwnerExpression(ASTNode& node)
 	{
