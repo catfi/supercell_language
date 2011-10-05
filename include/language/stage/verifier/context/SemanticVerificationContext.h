@@ -58,11 +58,24 @@ struct SemanticVerificationScopeContext_NameSet : public ASTNodeContext<Semantic
 struct SemanticVerificationBlockContext_HasVisitedReturn : public ASTNodeContext<SemanticVerificationBlockContext_HasVisitedReturn>
 { };
 
-struct SemanticVerificationFunctionDeclContext_HasVisitedReturn : public ASTNodeContext<SemanticVerificationFunctionDeclContext_HasVisitedReturn>
-{ };
+struct SemanticVerificationFunctionDeclContext_ReturnCount : public ASTNodeContext<SemanticVerificationFunctionDeclContext_ReturnCount>
+{
+	SemanticVerificationFunctionDeclContext_ReturnCount() : count(0)
+	{ }
+
+	size_t count;
+};
 
 struct SemanticVerificationVariableDeclContext_HasBeenInit : public ASTNodeContext<SemanticVerificationVariableDeclContext_HasBeenInit>
 { };
+
+struct SemanticVerificationFunctionDeclContext_PathCount : public ASTNodeContext<SemanticVerificationFunctionDeclContext_PathCount>
+{
+	SemanticVerificationFunctionDeclContext_PathCount() : count(0)
+	{ }
+
+	size_t count;
+};
 
 } } }
 
