@@ -194,11 +194,9 @@ struct SemanticVerificationStageVisitor1 : GenericDoubleVisitor
 		{
 			FunctionDecl* func_decl = ASTNodeHelper::owner<FunctionDecl>(node);
 
-			// CONTROL_REACHES_END
 			// MISSING_RETURN
 			SemanticVerificationFunctionDeclContext_ReturnCount* ReturnCount_context =
 					SemanticVerificationFunctionDeclContext_ReturnCount::instance(func_decl);
-			ReturnCount_context->count++;
 
 			TypeSpecifier* return_param = func_decl->type;
 			TypeSpecifier* return_arg = cast<TypeSpecifier>(ResolvedType::get(&node));
@@ -223,47 +221,13 @@ struct SemanticVerificationStageVisitor1 : GenericDoubleVisitor
 
 		revisit(node);
 
-		if(!_is_void(node.type))
-		{
-			SemanticVerificationFunctionDeclContext_ReturnCount* ReturnCount_context =
-					SemanticVerificationFunctionDeclContext_ReturnCount::get(&node);
-
-			if(!!ReturnCount_context)
-			{
-				SemanticVerificationFunctionDeclContext_PathCount* PathCount_context =
-						SemanticVerificationFunctionDeclContext_PathCount::instance(&node);
-
-				// CONTROL_REACHES_END
-				// NOTE: FIX-ME! -- should use context up-propagation instead -- see impl for s0 "DEAD_CODE"
-				if(PathCount_context->count > ReturnCount_context->count)
-					LOG_MESSAGE(CONTROL_REACHES_END, &node);
-			}
-			else
-			{
-				// MISSING_RETURN
-				LOG_MESSAGE(MISSING_RETURN, &node);
-			}
-		}
-	}
-
-	void verify(IfElseStmt &node)
-	{
-		// CONTROL_REACHES_END
-		FunctionDecl* func_decl = ASTNodeHelper::owner<FunctionDecl>(node);
-		SemanticVerificationFunctionDeclContext_PathCount* PathCount_context =
-				SemanticVerificationFunctionDeclContext_PathCount::instance(func_decl);
-		PathCount_context->count += 1+node.elseif_branches.size()+(!!node.else_block ? 1 : 0);
-
-		revisit(node);
+		// MISSING_RETURN
+		if(!_is_void(node.type) && !SemanticVerificationFunctionDeclContext_ReturnCount::get(&node))
+			LOG_MESSAGE(MISSING_RETURN, &node);
 	}
 
 	void verify(SwitchStmt &node)
 	{
-		// CONTROL_REACHES_END
-		FunctionDecl* func_decl = ASTNodeHelper::owner<FunctionDecl>(node);
-		SemanticVerificationFunctionDeclContext_PathCount* PathCount_context =
-				SemanticVerificationFunctionDeclContext_PathCount::instance(func_decl);
-
 		// MISSING_CASE
 		typedef std::map<std::wstring, int> enum_key_value_map_t;
 		enum_key_value_map_t enum_key_value_map;
@@ -295,17 +259,9 @@ struct SemanticVerificationStageVisitor1 : GenericDoubleVisitor
 							case_value_set.insert((*p).second);
 					}
 			}
-
-			// CONTROL_REACHES_END
-			PathCount_context->count++;
 		}
 		std::vector<std::wstring> result;
-		if(!!node.default_block)
-		{
-			// CONTROL_REACHES_END
-			PathCount_context->count++;
-		}
-		else
+		if(!node.default_block)
 			foreach(i, enum_key_value_map)
 				if(case_value_set.find((*i).second) == case_value_set.end())
 					LOG_MESSAGE(MISSING_CASE, &node, _id = (*i).first);
