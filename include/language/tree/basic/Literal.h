@@ -66,6 +66,8 @@ struct ObjectLiteral : public Literal
 		enum type {
 			NULL_OBJECT,
 			SELF_OBJECT,
+			THIS_OBJECT,
+			SUPER_OBJECT,
 			GLOBAL_OBJECT,
 		};
 
@@ -75,6 +77,8 @@ struct ObjectLiteral : public Literal
 			{
 			case NULL_OBJECT: return L"null";
 			case SELF_OBJECT: return L"self";
+			case THIS_OBJECT: return L"this";
+			case SUPER_OBJECT: return L"super";
 			case GLOBAL_OBJECT: return L"global";
 			}
 		}

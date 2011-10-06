@@ -292,25 +292,28 @@ static bool analyzeTangle(FileGraphType& g)
     strong_components(g, &component[0]);
 
     // init tangle graph
-    TangleGraphType tangleG;
+    zillians::int32 numTangles = (*std::max_element(component.begin(), component.end())) + 1;
+    TangleGraphType tangleG(numTangles);
+
+    // add files to tangle vertex
+    for(size_t i = 0; i != boost::num_vertices(g); ++i)
+    {
+        tangleG[component[i]].insert(g[i].name);
+    }
 
     // add tangle edges
     boost::property_map<TangleGraphType, boost::vertex_index_t>::type index = get(boost::vertex_index, g);
-    for (auto range = edges(g); range.first != range.second; ++range.first)
+    for(auto range = edges(g); range.first != range.second; ++range.first)
     {
         int sourceVertex = index[source(*range.first, g)];
         int targetVertex = index[target(*range.first, g)];
         int sourceTangle = component[sourceVertex];
         int targetTangle = component[targetVertex];
-        if(sourceTangle == targetTangle)
+        // filter self to self edge
+        if(sourceTangle != targetTangle)
         {
-            continue;
+            add_edge(sourceTangle, targetTangle, tangleG);
         }
-        add_edge(sourceTangle, targetTangle, tangleG);
-        const std::string& sourceFilename = g[sourceVertex].name;
-        const std::string& targetFilename = g[targetVertex].name;
-        tangleG[sourceTangle].insert(sourceFilename);
-        tangleG[targetTangle].insert(targetFilename);
     }
 
     // serialization

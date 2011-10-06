@@ -135,9 +135,9 @@ struct ResolutionVisitor : Visitor<ASTNode, void, VisitorImplementation::recursi
 			if(isSearchForType() || isSearchForSymbol())
 			{
 				foreach(i, node.children)
-					tryVisit(**i);
+					visit(**i);
 				foreach(i, node.objects)
-					tryVisit(**i);
+					visit(**i);
 			}
 
 			if(isSearchForPackage())
@@ -225,6 +225,9 @@ struct ResolutionVisitor : Visitor<ASTNode, void, VisitorImplementation::recursi
 						tryVisit(**i);
 					foreach(i, node.member_variables)
 						tryVisit(**i);
+
+					if(node.base) visit(*node.base);
+					foreach(i, node.implements) visit(**i);
 				}
 			}
 			else

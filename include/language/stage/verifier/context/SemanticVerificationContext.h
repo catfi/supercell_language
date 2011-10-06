@@ -35,17 +35,18 @@ struct ASTNodeContext
 		return node->get<T>();
 	}
 
-	static void set(tree::ASTNode* node, T* ctx)
-	{
-		node->set<T>(ctx);
-	}
-
-	static T* get_instance(tree::ASTNode* node)
+	static T* instance(tree::ASTNode* node)
 	{
 		T* x = get(node);
 		if(!x)
-			set(node, x = new T());
+			_set(node, x = new T());
 		return x;
+	}
+
+private:
+	static void _set(tree::ASTNode* node, T* ctx)
+	{
+		node->set<T>(ctx);
 	}
 };
 
@@ -57,11 +58,24 @@ struct SemanticVerificationScopeContext_NameSet : public ASTNodeContext<Semantic
 struct SemanticVerificationBlockContext_HasVisitedReturn : public ASTNodeContext<SemanticVerificationBlockContext_HasVisitedReturn>
 { };
 
-struct SemanticVerificationFunctionDeclContext_HasVisitedReturn : public ASTNodeContext<SemanticVerificationFunctionDeclContext_HasVisitedReturn>
-{ };
+struct SemanticVerificationFunctionDeclContext_ReturnCount : public ASTNodeContext<SemanticVerificationFunctionDeclContext_ReturnCount>
+{
+	SemanticVerificationFunctionDeclContext_ReturnCount() : count(0)
+	{ }
+
+	size_t count;
+};
 
 struct SemanticVerificationVariableDeclContext_HasBeenInit : public ASTNodeContext<SemanticVerificationVariableDeclContext_HasBeenInit>
 { };
+
+struct SemanticVerificationFunctionDeclContext_PathCount : public ASTNodeContext<SemanticVerificationFunctionDeclContext_PathCount>
+{
+	SemanticVerificationFunctionDeclContext_PathCount() : count(0)
+	{ }
+
+	size_t count;
+};
 
 } } }
 

@@ -134,7 +134,7 @@ struct ResolutionStageVisitor : GenericDoubleVisitor
 	void resolve(TypeSpecifier& node)
 	{
 		// TODO we should never reach here
-		BOOST_ASSERT(false && "reaching code that shouldn't be reached");
+		//BOOST_ASSERT(false && "reaching code that shouldn't be reached");
 	}
 
 	void resolve(ClassDecl& node)

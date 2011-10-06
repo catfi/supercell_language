@@ -468,7 +468,7 @@ public:
 		cog.outl('\t vector<string>& files = stage::ModuleSourceInfoContext::get(program_node)->source_files;')
 		cog.outl('\t if(node) { ')
 
-		cog.outl('\t\t zillians::language::tree::ASTNode* attach_point = tree::ASTNodeHelper::getAttachPoint(*node);')
+		cog.outl('\t\t zillians::language::tree::ASTNode* attach_point = tree::ASTNodeHelper::attachPoint(*node);')
 		cog.outl('\t\t LogInfoContext::push_back(attach_point, LogInfo(str_level, str_id, parameters));')
 		cog.outl('\t\t stage::SourceInfoContext* source_info = stage::SourceInfoContext::get(attach_point);')
 		cog.outl('\t\t mWrapper->log(StringTable::%s, s_to_ws(files[source_info->source_index]), source_info->line, translated);' % id)
