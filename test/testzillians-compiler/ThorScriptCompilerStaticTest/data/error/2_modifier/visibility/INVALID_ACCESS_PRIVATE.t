@@ -3,10 +3,17 @@ class QWE
     private var x:int32;
 }
 
-function f():void
+class ASD extends QWE
 {
-    var qwe:QWE = new QWE; // FIX-ME! -- segfaults in resolution stage
+    function f():void
+    {
+        @static_test { expect_message={ level="LEVEL_ERROR", id="INVALID_ACCESS_PRIVATE", parameters={ id="x" } } }
+        x=13;
+    }
+}
 
+function g(asd:ASD):void
+{
     @static_test { expect_message={ level="LEVEL_ERROR", id="INVALID_ACCESS_PRIVATE", parameters={ id="x" } } }
-    qwe.x=13;
+    asd.x=17;
 }

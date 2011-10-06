@@ -81,16 +81,16 @@ struct SemanticVerificationStageVisitor1 : GenericDoubleVisitor
 			{
 				std::wstring name;
 				bool static_violation = false;
-				Declaration::VisibilitySpecifier::type visibility = Declaration::VisibilitySpecifier::PRIVATE;
+				Declaration::VisibilitySpecifier::type visibility = Declaration::VisibilitySpecifier::PUBLIC;
 
 				if(isa<VariableDecl>(unknown))
 				{
 					VariableDecl* var_decl = cast<VariableDecl>(unknown);
+					name = var_decl->name->toString();
+					visibility = var_decl->visibility;
+
 					if(!ASTNodeHelper::isFuncParam(var_decl))
 					{
-						name = var_decl->name->toString();
-						visibility = var_decl->visibility;
-
 						// UNINIT_REF
 						if(!SemanticVerificationVariableDeclContext_HasBeenInit::get(var_decl))
 							LOG_MESSAGE(UNINIT_REF, &node, _var_id = name);
@@ -123,8 +123,10 @@ struct SemanticVerificationStageVisitor1 : GenericDoubleVisitor
 						LOG_MESSAGE(INVALID_ACCESS_PRIVATE, &node, _id = name);
 						break;
 					case Declaration::VisibilitySpecifier::PROTECTED:
-						if(!ASTNodeHelper::extends(*ref_point, *decl_point))
+						if(!(!!ref_point && !!decl_point && ASTNodeHelper::extends(*ref_point, *decl_point)))
+						{
 							LOG_MESSAGE(INVALID_ACCESS_PROTECTED, &node, _id = name);
+						}
 						break;
 					}
 			}
@@ -145,7 +147,7 @@ struct SemanticVerificationStageVisitor1 : GenericDoubleVisitor
 			decl_is_static = !func_decl->is_static;
 			name = func_decl->name->toString();
 		}
-		if(isa<VariableDecl>(unknown))
+		else if(isa<VariableDecl>(unknown))
 		{
 			VariableDecl* var_decl = cast<VariableDecl>(unknown);
 			decl_is_static = !var_decl->is_static;
@@ -192,11 +194,9 @@ struct SemanticVerificationStageVisitor1 : GenericDoubleVisitor
 		{
 			FunctionDecl* func_decl = ASTNodeHelper::owner<FunctionDecl>(node);
 
-			// CONTROL_REACHES_END
 			// MISSING_RETURN
 			SemanticVerificationFunctionDeclContext_ReturnCount* ReturnCount_context =
 					SemanticVerificationFunctionDeclContext_ReturnCount::instance(func_decl);
-			ReturnCount_context->count++;
 
 			TypeSpecifier* return_param = func_decl->type;
 			TypeSpecifier* return_arg = cast<TypeSpecifier>(ResolvedType::get(&node));
@@ -221,95 +221,50 @@ struct SemanticVerificationStageVisitor1 : GenericDoubleVisitor
 
 		revisit(node);
 
-		if(!_is_void(node.type))
-		{
-			SemanticVerificationFunctionDeclContext_ReturnCount* ReturnCount_context =
-					SemanticVerificationFunctionDeclContext_ReturnCount::get(&node);
-
-			if(!!ReturnCount_context)
-			{
-				SemanticVerificationFunctionDeclContext_PathCount* PathCount_context =
-						SemanticVerificationFunctionDeclContext_PathCount::instance(&node);
-
-				// CONTROL_REACHES_END
-				// NOTE: FIX-ME! -- should use context up-propagation instead -- see impl for s0 "DEAD_CODE"
-				if(PathCount_context->count > ReturnCount_context->count)
-					LOG_MESSAGE(CONTROL_REACHES_END, &node);
-			}
-			else
-			{
-				// MISSING_RETURN
-				LOG_MESSAGE(MISSING_RETURN, &node);
-			}
-		}
-	}
-
-	void verify(IfElseStmt &node)
-	{
-		// CONTROL_REACHES_END
-		FunctionDecl* func_decl = ASTNodeHelper::owner<FunctionDecl>(node);
-		SemanticVerificationFunctionDeclContext_PathCount* PathCount_context =
-				SemanticVerificationFunctionDeclContext_PathCount::instance(func_decl);
-		PathCount_context->count += 1+node.elseif_branches.size()+(!!node.else_block ? 1 : 0);
-
-		revisit(node);
+		// MISSING_RETURN
+		if(!_is_void(node.type) && !SemanticVerificationFunctionDeclContext_ReturnCount::get(&node))
+			LOG_MESSAGE(MISSING_RETURN, &node);
 	}
 
 	void verify(SwitchStmt &node)
 	{
-		// CONTROL_REACHES_END
-		FunctionDecl* func_decl = ASTNodeHelper::owner<FunctionDecl>(node);
-		SemanticVerificationFunctionDeclContext_PathCount* PathCount_context =
-				SemanticVerificationFunctionDeclContext_PathCount::instance(func_decl);
-
 		// MISSING_CASE
-		std::set<std::wstring> enum_value_set;
-		if(isa<PrimaryExpr>(node.node))
-		{
-			PrimaryExpr* prim_expr = cast<PrimaryExpr>(node.node);
-			if(prim_expr->catagory == PrimaryExpr::Catagory::IDENTIFIER)
+		typedef std::map<std::wstring, int> enum_key_value_map_t;
+		enum_key_value_map_t enum_key_value_map;
+		EnumDecl* enum_decl = _resolve_enum(node.node);
+		if(!!enum_decl)
+			foreach(i, enum_decl->enumeration_list)
 			{
-				ASTNode* unknown = ResolvedSymbol::get(prim_expr->value.identifier);
-				if(isa<VariableDecl>(unknown))
-				{
-					VariableDecl* var_decl = cast<VariableDecl>(unknown);
-					if(var_decl->type->type == TypeSpecifier::ReferredType::UNSPECIFIED)
-					{
-						ASTNode* unknown = ResolvedSymbol::get(var_decl->type->referred.unspecified);
-						if(isa<EnumDecl>(unknown))
-							foreach(i, cast<EnumDecl>(unknown)->enumeration_list)
-								enum_value_set.insert((*i).first->toString()); // NOTE: FIX-ME! -- should store value instead ?
-					}
-				}
+				std::wstring key = (*i).first->toString();
+				int value = -1;
+				if(_resolve_int32((*i).second, &value))
+					enum_key_value_map.insert(enum_key_value_map_t::value_type(key, value));
 			}
-		}
-		std::set<std::wstring> case_value_set;
+		typedef std::set<int> case_value_set_t;
+		case_value_set_t case_value_set;
 		foreach(i, node.cases)
 		{
-			if(isa<PrimaryExpr>((*i).cond)) // NOTE: FIX-ME! -- may be a MemberExpr, should we resolve value instead ?
+			int value = -1;
+			if(_resolve_int32((*i).cond, &value))
+				case_value_set.insert(value);
+			else if(isa<MemberExpr>((*i).cond))
 			{
-				PrimaryExpr* prim_expr = cast<PrimaryExpr>((*i).cond);
-				if(prim_expr->catagory == PrimaryExpr::Catagory::IDENTIFIER)
-					case_value_set.insert(prim_expr->value.identifier->toString());
+				MemberExpr* member_expr = cast<MemberExpr>((*i).cond);
+				EnumDecl* enum_decl = _resolve_enum(member_expr->node);
+				if(!!enum_decl)
+					if(isa<SimpleIdentifier>(member_expr->member))
+					{
+						enum_key_value_map_t::iterator p = enum_key_value_map.find(member_expr->member->toString());
+						if(p != enum_key_value_map.end())
+							case_value_set.insert((*p).second);
+					}
 			}
-
-			// CONTROL_REACHES_END
-			PathCount_context->count++;
 		}
 		std::vector<std::wstring> result;
-		if(!!node.default_block)
-		{
-			// CONTROL_REACHES_END
-			PathCount_context->count++;
-		}
-		else
-		{
-			std::set_difference(enum_value_set.begin(), enum_value_set.end(),
-					case_value_set.begin(), case_value_set.end(),
-					std::back_inserter(result));
-			foreach(i, result)
-				LOG_MESSAGE(MISSING_CASE, &node, _id = *i);
-		}
+		if(!node.default_block)
+			foreach(i, enum_key_value_map)
+				if(case_value_set.find((*i).second) == case_value_set.end())
+					LOG_MESSAGE(MISSING_CASE, &node, _id = (*i).first);
 	}
 
 private:
@@ -317,6 +272,30 @@ private:
 	{
 		return type_specifier->type == TypeSpecifier::ReferredType::PRIMITIVE
 				&& type_specifier->referred.primitive == PrimitiveType::VOID;
+	}
+
+	static EnumDecl* _resolve_enum(ASTNode* unknown)
+	{
+		TypeSpecifier* type_specifier = cast<TypeSpecifier>(ResolvedType::get(unknown));
+		if(type_specifier->type != TypeSpecifier::ReferredType::UNSPECIFIED)
+			return NULL;
+		ASTNode* unknown_unspecified = ResolvedSymbol::get(type_specifier->referred.unspecified);
+		if(!isa<EnumDecl>(unknown_unspecified))
+			return NULL;
+		return cast<EnumDecl>(unknown_unspecified);
+	}
+
+	static bool _resolve_int32(Expression* expr, int* value)
+	{
+		if(!isa<PrimaryExpr>(expr))
+			return false;
+		PrimaryExpr* prim_expr = cast<PrimaryExpr>(expr);
+		if(prim_expr->catagory != PrimaryExpr::Catagory::LITERAL)
+			return false;
+		if(!isa<NumericLiteral>(prim_expr->value.literal))
+			return false;
+		*value = cast<NumericLiteral>(prim_expr->value.literal)->value.i32;
+		return true;
 	}
 };
 

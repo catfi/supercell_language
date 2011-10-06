@@ -59,23 +59,15 @@ struct SemanticVerificationBlockContext_HasVisitedReturn : public ASTNodeContext
 { };
 
 struct SemanticVerificationFunctionDeclContext_ReturnCount : public ASTNodeContext<SemanticVerificationFunctionDeclContext_ReturnCount>
-{
-	SemanticVerificationFunctionDeclContext_ReturnCount() : count(0)
-	{ }
-
-	size_t count;
-};
+{ };
 
 struct SemanticVerificationVariableDeclContext_HasBeenInit : public ASTNodeContext<SemanticVerificationVariableDeclContext_HasBeenInit>
 { };
 
-struct SemanticVerificationFunctionDeclContext_PathCount : public ASTNodeContext<SemanticVerificationFunctionDeclContext_PathCount>
-{
-	SemanticVerificationFunctionDeclContext_PathCount() : count(0)
-	{ }
-
-	size_t count;
-};
+#if 0 // NOTE: candidate impl detail
+struct SemanticVerificationEnumKeyContext_HasVisited : public ASTNodeContext<SemanticVerificationEnumKeyContext_HasVisited>
+{ };
+#endif
 
 } } }
 
