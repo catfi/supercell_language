@@ -23,6 +23,7 @@
 #include "core/Prerequisite.h"
 #include "core/Singleton.h"
 #include "language/context/ParserContext.h"
+#include "language/tree/ASTNodeHelper.h"
 
 namespace zillians { namespace language {
 
@@ -91,7 +92,7 @@ private:
 #define LOG_MESSAGE(id, node, ...) \
 		zillians::language::LoggerWrapper::instance()->getLogger()->id( \
 				zillians::language::_program_node = getParserContext().program, \
-				zillians::language::_node = node, \
+				zillians::language::_node = ASTNodeHelper::_owner_debug_annotation_attach_point(*node), \
 				##__VA_ARGS__)
 
 } }
