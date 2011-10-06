@@ -1,4 +1,4 @@
-enum MY_ENUM { p, q, r }
+enum MY_ENUM { p; q; r; }
 
 function f(a:MY_ENUM):void
 {
@@ -7,7 +7,7 @@ function f(a:MY_ENUM):void
     @static_test { expect_message={ level="LEVEL_WARNING", id="MISSING_CASE", parameters={ id="r" } } }
     switch(a)
     {
-    case p: x=13;
-    case q: x=17;
+    case MY_ENUM.p: x=13; // FIX-ME! -- segfaults in resolution stage
+    case MY_ENUM.q: x=17;
     }
 }
