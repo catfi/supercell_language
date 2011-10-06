@@ -225,6 +225,9 @@ struct ResolutionVisitor : Visitor<ASTNode, void, VisitorImplementation::recursi
 						tryVisit(**i);
 					foreach(i, node.member_variables)
 						tryVisit(**i);
+
+					if(node.base) visit(*node.base);
+					foreach(i, node.implements) visit(**i);
 				}
 			}
 			else
