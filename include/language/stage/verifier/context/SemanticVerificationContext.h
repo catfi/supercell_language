@@ -77,6 +77,11 @@ struct SemanticVerificationFunctionDeclContext_PathCount : public ASTNodeContext
 	size_t count;
 };
 
+#if 0 // NOTE: candidate impl detail
+struct SemanticVerificationSwitchStmtContext_HasVisitedCase : public ASTNodeContext<SemanticVerificationSwitchStmtContext_HasVisitedCase>
+{ };
+#endif
+
 } } }
 
 #endif /* ZILLIANS_LANGUAGE_STAGE_SEMANTICVERIFICATIONCONTEXT_H_ */

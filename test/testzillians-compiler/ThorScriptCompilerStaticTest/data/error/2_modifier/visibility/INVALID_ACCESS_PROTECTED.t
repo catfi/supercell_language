@@ -7,7 +7,12 @@ class ASD extends QWE
 {
     function f():void
     {
-        @static_test { expect_message={ level="LEVEL_ERROR", id="INVALID_ACCESS_PROTECTED", parameters={ id="x" } } }
         x=13;
     }
+}
+
+function g(qwe:QWE):void
+{
+    @static_test { expect_message={ level="LEVEL_ERROR", id="INVALID_ACCESS_PROTECTED", parameters={ id="x" } } }
+    qwe.x=17;
 }
