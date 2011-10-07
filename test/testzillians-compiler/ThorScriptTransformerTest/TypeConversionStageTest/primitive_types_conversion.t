@@ -1,13 +1,13 @@
 package com.zillians.compiler_test;
 
 function test():void {
-	var a:int8;
-	var b:int16;
-	var c:int32;
-	var d:int64;
+	var a:int8 = 0;
+	var b:int16 = 0;
+	var c:int32 = 0;
+	var d:int64 = 0;
 	
-	var e:float32;
-	var f:float64;
+	var e:float32 = 0;
+	var f:float64 = 0;
 	
 	// these will all result in precision loss, so warnings will be thrown here
 	/*
