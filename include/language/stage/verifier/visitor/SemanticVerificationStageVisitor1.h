@@ -72,6 +72,23 @@ struct SemanticVerificationStageVisitor1 : GenericDoubleVisitor
 		revisit(node);
 	}
 
+	void verify(MemberExpr &node)
+	{
+//		ASTNode* unknown = ResolvedSymbol::get(node.node);
+//		if(isa<VariableDecl>(unknown))
+//		{
+//			VariableDecl* var_decl = cast<VariableDecl>(unknown);
+//		}
+//
+//		ASTNode* unknown_member = ResolvedSymbol::get(node.member);
+//		if(isa<VariableDecl>(unknown_member))
+//		{
+//			VariableDecl* var_decl = cast<VariableDecl>(unknown_member);
+//		}
+
+		revisit(node);
+	}
+
 	void verify(PrimaryExpr &node)
 	{
 		if(ASTNodeHelper::hasOwner<FunctionDecl>(node) && node.catagory == PrimaryExpr::Catagory::IDENTIFIER)
@@ -269,19 +286,17 @@ struct SemanticVerificationStageVisitor1 : GenericDoubleVisitor
 			if(isa<Identifier>(unknown))
 				SemanticVerificationEnumKeyContext_HasVisited::bind(unknown);
 		}
-		if(!node.default_block)
-		{
-			EnumDecl* enum_decl = _resolve_enum(node.node);
-			if(!!enum_decl)
-				foreach(i, enum_decl->enumeration_list)
-					SemanticVerificationEnumKeyContext_HasVisited::unbind((*i).first);
+		EnumDecl* enum_decl = _resolve_enum(node.node);
+		if(!!enum_decl)
 			foreach(i, enum_decl->enumeration_list)
-				if(!!SemanticVerificationEnumKeyContext_HasVisited::get((*i).first))
-				{
+				SemanticVerificationEnumKeyContext_HasVisited::unbind((*i).first);
+		foreach(i, enum_decl->enumeration_list)
+			if(!!SemanticVerificationEnumKeyContext_HasVisited::get((*i).first))
+			{
+				if(!node.default_block)
 					LOG_MESSAGE(MISSING_CASE, &node, _id = (*i).first->toString());
-					SemanticVerificationEnumKeyContext_HasVisited::unbind((*i).first);
-				}
-		}
+				SemanticVerificationEnumKeyContext_HasVisited::unbind((*i).first);
+			}
 
 		revisit(node);
 
