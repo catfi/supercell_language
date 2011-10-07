@@ -186,9 +186,9 @@ struct ASTNodeHelper
 		do
 		{
 			target = new_target;
-			if(!(new_target = _split_reference_attach_point(*target))) // NOTE: check split-reference first
+			if(!(new_target = _split_reference_attach_point(target))) // NOTE: check split-reference first
 				break;
-			new_target = _owner_debug_annotation_attach_point(*new_target);
+			new_target = _owner_debug_annotation_attach_point(new_target);
 		} while(!!new_target && new_target != target);
 		return target;
 	}
@@ -223,18 +223,18 @@ private:
 	}
 
 public:
-	static ASTNode* _owner_debug_annotation_attach_point(ASTNode& node)
+	static ASTNode* _owner_debug_annotation_attach_point(ASTNode* node)
 	{
-		for(ASTNode* p = &node; !!p && !isa<Package>(p); p = p->parent)
+		for(ASTNode* p = node; !!p && !isa<Package>(p); p = p->parent)
 			if(_is_debug_annotation_attach_point(p))
 				return p;
 		return NULL;
 	}
 
-	static ASTNode* _split_reference_attach_point(ASTNode& node)
+	static ASTNode* _split_reference_attach_point(ASTNode* node)
 	{
 		ASTNode* target = NULL;
-		ASTNode* new_target = &node;
+		ASTNode* new_target = node;
 		do
 		{
 			target = new_target;

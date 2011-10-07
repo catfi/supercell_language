@@ -92,7 +92,7 @@ private:
 #define LOG_MESSAGE(id, node, ...) \
 		zillians::language::LoggerWrapper::instance()->getLogger()->id( \
 				zillians::language::_program_node = getParserContext().program, \
-				zillians::language::_node = ASTNodeHelper::_owner_debug_annotation_attach_point(*node), \
+				zillians::language::_node = node, \
 				##__VA_ARGS__)
 
 } }
