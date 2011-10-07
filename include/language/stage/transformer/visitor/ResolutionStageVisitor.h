@@ -135,6 +135,7 @@ struct ResolutionStageVisitor : GenericDoubleVisitor
 	{
 		// TODO we should never reach here
 		//BOOST_ASSERT(false && "reaching code that shouldn't be reached");
+		tryResolveType(&node, &node);
 	}
 
 	void resolve(ClassDecl& node)
@@ -167,13 +168,14 @@ struct ResolutionStageVisitor : GenericDoubleVisitor
 		{
 			// try to resolve return type
 			if(node.type)
-				tryResolveType(node.type, node.type);
+				visit(*node.type);
 
 			// try to resolve parameter type
 			foreach(i, node.parameters)
 			{
 				if((*i)->type)
-					tryResolveType((*i)->type, (*i)->type);
+					visit(*((*i)->type));
+					//tryResolveType((*i)->type, (*i)->type);
 			}
 
 		}
@@ -212,7 +214,9 @@ struct ResolutionStageVisitor : GenericDoubleVisitor
 	{
 		if(type == Target::TYPE_RESOLUTION)
 		{
-			tryResolveType(node.type, node.type);
+			//tryResolveType(node.type, node.type);
+			if(node.type)
+				visit(*node.type);
 		}
 		else if(type == Target::SYMBOL_RESOLUTION)
 		{
@@ -225,7 +229,9 @@ struct ResolutionStageVisitor : GenericDoubleVisitor
 	{
 		if(type == Target::TYPE_RESOLUTION)
 		{
-			tryResolveType(node.type, node.type);
+			//tryResolveType(node.type, node.type);
+			if(node.type)
+				visit(*node.type);
 
 			if(node.initializer)
 			{
@@ -489,7 +495,9 @@ struct ResolutionStageVisitor : GenericDoubleVisitor
 
 		if(type == Target::TYPE_RESOLUTION)
 		{
-			tryResolveType(node.type, node.type);
+			//tryResolveType(node.type, node.type);
+			if(node.type)
+				visit(*node.type);
 		}
 		else if(type == Target::SYMBOL_RESOLUTION)
 		{
