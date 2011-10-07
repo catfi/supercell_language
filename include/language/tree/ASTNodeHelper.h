@@ -222,7 +222,6 @@ private:
 						&& (!isa<VariableDecl>(node) || !isFuncParam(cast<VariableDecl>(node)))); // exclude function parameters
 	}
 
-public:
 	static ASTNode* _owner_debug_annotation_attach_point(ASTNode* node)
 	{
 		for(ASTNode* p = node; !!p && !isa<Package>(p); p = p->parent)
@@ -243,7 +242,6 @@ public:
 		return target;
 	}
 
-private:
 	ASTNodeHelper() { }
 	~ASTNodeHelper() { }
 };
