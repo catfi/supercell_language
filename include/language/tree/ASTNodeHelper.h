@@ -119,7 +119,7 @@ struct ASTNodeHelper
 		return false;
 	}
 
-	static bool extends(ClassDecl& derived, ClassDecl& base)
+	static bool isInheritedFrom(ClassDecl& derived, ClassDecl& base)
 	{
 		ASTNode* target = &derived;
 		do
@@ -132,8 +132,9 @@ struct ASTNodeHelper
 		return false;
 	}
 
+	template<class T> static bool hasOwner(ASTNode& node) { return !!getOwner<T>(node); }
 	template<class T>
-	static T* owner(ASTNode& node)
+	static T* getOwner(ASTNode& node)
 	{
 		for(ASTNode* p = node.parent; !!p && !isa<Package>(p); p = p->parent)
 			if(isa<T>(p))
@@ -141,15 +142,7 @@ struct ASTNodeHelper
 		return NULL;
 	}
 
-	static ASTNode* ownerNamedScope(ASTNode& node)
-	{
-		for(ASTNode* p = node.parent; !!p; p = p->parent)
-			if(_is_named_scope(p))
-				return p;
-		return NULL;
-	}
-
-	static bool isDirectlyOwnedByPackage(ASTNode& node) { return !!getDirectOwnerPackage(node); }
+	static bool hasDirectOwnerPackage(ASTNode& node) { return !!getDirectOwnerPackage(node); }
 	static Package* getDirectOwnerPackage(ASTNode& node)
 	{
 		for(ASTNode* p = node.parent; !!p; p = p->parent)
@@ -159,6 +152,14 @@ struct ASTNodeHelper
 			if(isa<InterfaceDecl>(p)) return NULL;
 			if(isa<Package>(p))       return cast<Package>(p);
 		}
+		return NULL;
+	}
+
+	static ASTNode* getOwnerNamedScope(ASTNode& node)
+	{
+		for(ASTNode* p = node.parent; !!p; p = p->parent)
+			if(_is_named_scope(p))
+				return p;
 		return NULL;
 	}
 
@@ -179,16 +180,16 @@ struct ASTNodeHelper
 		return NULL;
 	}
 
-	static ASTNode* attachPoint(ASTNode& node)
+	static ASTNode* getAttachPoint(ASTNode& node)
 	{
 		ASTNode* target = NULL;
 		ASTNode* new_target = &node;
 		do
 		{
 			target = new_target;
-			if(!(new_target = _split_reference_attach_point(target))) // NOTE: check split-reference first
+			if(!(new_target = _get_split_reference_attach_point(target))) // NOTE: check split-reference first
 				break;
-			new_target = _owner_debug_annotation_attach_point(new_target);
+			new_target = _get_owner_debug_annotation_attach_point(new_target);
 		} while(!!new_target && new_target != target);
 		return target;
 	}
@@ -198,7 +199,7 @@ struct ASTNodeHelper
 		return isa<FunctionDecl>(var_decl->parent);
 	}
 
-	static std::wstring nodeName(ASTNode* node)
+	static std::wstring getNodeName(ASTNode* node)
 	{
 		static tree::visitor::NodeInfoVisitor v(1);
 		v.reset();
@@ -222,15 +223,7 @@ private:
 						&& (!isa<VariableDecl>(node) || !isFuncParam(cast<VariableDecl>(node)))); // exclude function parameters
 	}
 
-	static ASTNode* _owner_debug_annotation_attach_point(ASTNode* node)
-	{
-		for(ASTNode* p = node; !!p && !isa<Package>(p); p = p->parent)
-			if(_is_debug_annotation_attach_point(p))
-				return p;
-		return NULL;
-	}
-
-	static ASTNode* _split_reference_attach_point(ASTNode* node)
+	static ASTNode* _get_split_reference_attach_point(ASTNode* node)
 	{
 		ASTNode* target = NULL;
 		ASTNode* new_target = node;
@@ -240,6 +233,14 @@ private:
 			new_target = SplitReferenceContext::get(target);
 		} while(!!new_target && new_target != target);
 		return target;
+	}
+
+	static ASTNode* _get_owner_debug_annotation_attach_point(ASTNode* node)
+	{
+		for(ASTNode* p = node; !!p && !isa<Package>(p); p = p->parent)
+			if(_is_debug_annotation_attach_point(p))
+				return p;
+		return NULL;
 	}
 
 	ASTNodeHelper() { }

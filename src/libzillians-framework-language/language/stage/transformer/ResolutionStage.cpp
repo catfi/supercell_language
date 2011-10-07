@@ -143,7 +143,7 @@ bool ResolutionStage::resolveTypes(bool report_error_summary, bool& making_progr
 
 			for(__gnu_cxx::hash_set<ASTNode*>::iterator it = visitor.unresolved_nodes.begin(); it != visitor.unresolved_nodes.end(); ++it)
 			{
-				LOG_MESSAGE(UNDEFINED_TYPE_INFO, *it, _id = ASTNodeHelper::nodeName(*it));
+				LOG_MESSAGE(UNDEFINED_TYPE_INFO, *it, _id = ASTNodeHelper::getNodeName(*it));
 			}
 		}
 		return false;
@@ -193,7 +193,7 @@ bool ResolutionStage::resolveSymbols(bool report_error_summary, bool& making_pro
 
 			for(__gnu_cxx::hash_set<ASTNode*>::iterator it = visitor.unresolved_nodes.begin(); it != visitor.unresolved_nodes.end(); ++it)
 			{
-				LOG_MESSAGE(UNDEFINED_SYMBOL_INFO, *it, _id = ASTNodeHelper::nodeName(*it));
+				LOG_MESSAGE(UNDEFINED_SYMBOL_INFO, *it, _id = ASTNodeHelper::getNodeName(*it));
 			}
 		}
 		return false;

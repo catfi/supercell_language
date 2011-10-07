@@ -29,14 +29,14 @@ zillians_create_test_subject(SUBJECT thorscript-compiler-static-test-xform)
 zillians_create_test_subject(SUBJECT thorscript-compiler-static-test-s1)
 zillians_create_test_subject(SUBJECT thorscript-compiler-static-test-future)
 
-zillians_add_subject_to_subject(PARENT thorscript-compiler-static-test-all CHILD thorscript-compiler-static-test-parse)
+#zillians_add_subject_to_subject(PARENT thorscript-compiler-static-test-all CHILD thorscript-compiler-static-test-parse)
 zillians_add_subject_to_subject(PARENT thorscript-compiler-static-test-all CHILD thorscript-compiler-static-test-s0)
-zillians_add_subject_to_subject(PARENT thorscript-compiler-static-test-all CHILD thorscript-compiler-static-test-xform)
+#zillians_add_subject_to_subject(PARENT thorscript-compiler-static-test-all CHILD thorscript-compiler-static-test-xform)
 zillians_add_subject_to_subject(PARENT thorscript-compiler-static-test-all CHILD thorscript-compiler-static-test-s1)
-zillians_add_subject_to_subject(PARENT thorscript-compiler-static-test-all CHILD thorscript-compiler-static-test-future)
+#zillians_add_subject_to_subject(PARENT thorscript-compiler-static-test-all CHILD thorscript-compiler-static-test-future)
 
 get_target_property(ThorScriptCompiler ts-compile LOCATION)
-SET(compile_options "--mode-xform-stage-only")
+SET(compile_options_xform "--mode-xform-stage-only")
 SET(compile_options_s0 "--mode-semantic-verify-0")
 SET(compile_options_s1 "--mode-semantic-verify-1")
 
@@ -51,7 +51,7 @@ SET(compile_options_s1 "--mode-semantic-verify-1")
 # ambiguous
 zillians_add_complex_test(
     TARGET thorscript-compiler-static-test-AMBIGUOUS_REF
-    SHELL ${ThorScriptCompiler} ${compile_options} ${CMAKE_CURRENT_SOURCE_DIR}/data/error/0_name/ambiguous/AMBIGUOUS_REF.t
+    SHELL ${ThorScriptCompiler} ${compile_options_xform} ${CMAKE_CURRENT_SOURCE_DIR}/data/error/0_name/ambiguous/AMBIGUOUS_REF.t
     DEPENDS ${ThorScriptCompiler}
     )
 zillians_add_complex_test(
@@ -71,7 +71,7 @@ zillians_add_complex_test(
     )
 zillians_add_complex_test(
     TARGET thorscript-compiler-static-test-UNKNOWN_NAME
-    SHELL ${ThorScriptCompiler} ${compile_options} ${CMAKE_CURRENT_SOURCE_DIR}/data/error/0_name/unknown/UNKNOWN_NAME.t
+    SHELL ${ThorScriptCompiler} ${compile_options_xform} ${CMAKE_CURRENT_SOURCE_DIR}/data/error/0_name/unknown/UNKNOWN_NAME.t
     DEPENDS ${ThorScriptCompiler}
     )
 
@@ -85,12 +85,12 @@ zillians_add_test_to_subject(SUBJECT thorscript-compiler-static-test-xform TARGE
 # cast / expression
 zillians_add_complex_test(
     TARGET thorscript-compiler-static-test-INVALID_CONV
-    SHELL ${ThorScriptCompiler} ${compile_options} ${CMAKE_CURRENT_SOURCE_DIR}/data/error/1_type/cast/expression/INVALID_CONV.t
+    SHELL ${ThorScriptCompiler} ${compile_options_xform} ${CMAKE_CURRENT_SOURCE_DIR}/data/error/1_type/cast/expression/INVALID_CONV.t
     DEPENDS ${ThorScriptCompiler}
     )
 zillians_add_complex_test(
     TARGET thorscript-compiler-static-test-NO_MATCHING_MEMBER_FUNC
-    SHELL ${ThorScriptCompiler} ${compile_options} ${CMAKE_CURRENT_SOURCE_DIR}/data/error/1_type/cast/expression/NO_MATCHING_MEMBER_FUNC.t
+    SHELL ${ThorScriptCompiler} ${compile_options_xform} ${CMAKE_CURRENT_SOURCE_DIR}/data/error/1_type/cast/expression/NO_MATCHING_MEMBER_FUNC.t
     DEPENDS ${ThorScriptCompiler}
     )
 zillians_add_complex_test(
@@ -106,7 +106,7 @@ zillians_add_test_to_subject(SUBJECT thorscript-compiler-static-test-s0    TARGE
 # cast / statement
 zillians_add_complex_test(
     TARGET thorscript-compiler-static-test-INVALID_CONV_BOOL
-    SHELL ${ThorScriptCompiler} ${compile_options} ${CMAKE_CURRENT_SOURCE_DIR}/data/error/1_type/cast/statement/INVALID_CONV_BOOL.t
+    SHELL ${ThorScriptCompiler} ${compile_options_xform} ${CMAKE_CURRENT_SOURCE_DIR}/data/error/1_type/cast/statement/INVALID_CONV_BOOL.t
     DEPENDS ${ThorScriptCompiler}
     )
 
@@ -115,22 +115,22 @@ zillians_add_test_to_subject(SUBJECT thorscript-compiler-static-test-xform TARGE
 # function
 zillians_add_complex_test(
     TARGET thorscript-compiler-static-test-CALL_NONFUNC
-    SHELL ${ThorScriptCompiler} ${compile_options} ${CMAKE_CURRENT_SOURCE_DIR}/data/error/1_type/function/CALL_NONFUNC.t
+    SHELL ${ThorScriptCompiler} ${compile_options_xform} ${CMAKE_CURRENT_SOURCE_DIR}/data/error/1_type/function/CALL_NONFUNC.t
     DEPENDS ${ThorScriptCompiler}
     )
 zillians_add_complex_test(
     TARGET thorscript-compiler-static-test-MISMATCH_FUNC_ARGNUM_TOO_FEW
-    SHELL ${ThorScriptCompiler} ${compile_options} ${CMAKE_CURRENT_SOURCE_DIR}/data/error/1_type/function/MISMATCH_FUNC_ARGNUM_TOO_FEW.t
+    SHELL ${ThorScriptCompiler} ${compile_options_xform} ${CMAKE_CURRENT_SOURCE_DIR}/data/error/1_type/function/MISMATCH_FUNC_ARGNUM_TOO_FEW.t
     DEPENDS ${ThorScriptCompiler}
     )
 zillians_add_complex_test(
     TARGET thorscript-compiler-static-test-MISMATCH_FUNC_ARGNUM_TOO_MANY
-    SHELL ${ThorScriptCompiler} ${compile_options} ${CMAKE_CURRENT_SOURCE_DIR}/data/error/1_type/function/MISMATCH_FUNC_ARGNUM_TOO_MANY.t
+    SHELL ${ThorScriptCompiler} ${compile_options_xform} ${CMAKE_CURRENT_SOURCE_DIR}/data/error/1_type/function/MISMATCH_FUNC_ARGNUM_TOO_MANY.t
     DEPENDS ${ThorScriptCompiler}
     )
 zillians_add_complex_test(
     TARGET thorscript-compiler-static-test-MISMATCH_FUNC_ARGTYPE
-    SHELL ${ThorScriptCompiler} ${compile_options} ${CMAKE_CURRENT_SOURCE_DIR}/data/error/1_type/function/MISMATCH_FUNC_ARGTYPE.t
+    SHELL ${ThorScriptCompiler} ${compile_options_xform} ${CMAKE_CURRENT_SOURCE_DIR}/data/error/1_type/function/MISMATCH_FUNC_ARGTYPE.t
     DEPENDS ${ThorScriptCompiler}
     )
 zillians_add_complex_test(
@@ -154,17 +154,17 @@ zillians_add_test_to_subject(SUBJECT thorscript-compiler-static-test-s1    TARGE
 # primary_expression
 zillians_add_complex_test(
     TARGET thorscript-compiler-static-test-MEMBER_OF_NONCLASS
-    SHELL ${ThorScriptCompiler} ${compile_options} ${CMAKE_CURRENT_SOURCE_DIR}/data/error/1_type/primary_expression/MEMBER_OF_NONCLASS.t
+    SHELL ${ThorScriptCompiler} ${compile_options_xform} ${CMAKE_CURRENT_SOURCE_DIR}/data/error/1_type/primary_expression/MEMBER_OF_NONCLASS.t
     DEPENDS ${ThorScriptCompiler}
     )
 zillians_add_complex_test(
     TARGET thorscript-compiler-static-test-NO_SUCH_MEMBER
-    SHELL ${ThorScriptCompiler} ${compile_options} ${CMAKE_CURRENT_SOURCE_DIR}/data/error/1_type/primary_expression/NO_SUCH_MEMBER.t
+    SHELL ${ThorScriptCompiler} ${compile_options_xform} ${CMAKE_CURRENT_SOURCE_DIR}/data/error/1_type/primary_expression/NO_SUCH_MEMBER.t
     DEPENDS ${ThorScriptCompiler}
     )
 zillians_add_complex_test(
     TARGET thorscript-compiler-static-test-SUBSCRIPT_OF_NONARRAY
-    SHELL ${ThorScriptCompiler} ${compile_options} ${CMAKE_CURRENT_SOURCE_DIR}/data/error/1_type/primary_expression/SUBSCRIPT_OF_NONARRAY.t
+    SHELL ${ThorScriptCompiler} ${compile_options_xform} ${CMAKE_CURRENT_SOURCE_DIR}/data/error/1_type/primary_expression/SUBSCRIPT_OF_NONARRAY.t
     DEPENDS ${ThorScriptCompiler}
     )
 
@@ -305,7 +305,7 @@ zillians_add_complex_test(
     )
 zillians_add_complex_test(
     TARGET thorscript-compiler-static-test-INFINITE_RECURSION
-    SHELL ${ThorScriptCompiler} ${compile_options} ${CMAKE_CURRENT_SOURCE_DIR}/data/warn/control_path/INFINITE_RECURSION.t
+    SHELL ${ThorScriptCompiler} ${compile_options_xform} ${CMAKE_CURRENT_SOURCE_DIR}/data/warn/control_path/INFINITE_RECURSION.t
     DEPENDS ${ThorScriptCompiler}
     )
 zillians_add_complex_test(

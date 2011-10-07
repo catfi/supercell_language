@@ -334,13 +334,13 @@ struct ResolutionStageVisitor : GenericDoubleVisitor
 						LOG_MESSAGE(INVALID_ARITHMETIC, &node);
 						if(!isArithmeticCapableType(left_type))
 						{
-							LOG_MESSAGE(INVALID_ARITHMETIC_INFO, &node, _id = ASTNodeHelper::nodeName(node.left));
+							LOG_MESSAGE(INVALID_ARITHMETIC_INFO, &node, _id = ASTNodeHelper::getNodeName(node.left));
 							unresolved_nodes.insert(node.left);
 							++unresolved_count;
 						}
 						if(!isArithmeticCapableType(right_type))
 						{
-							LOG_MESSAGE(INVALID_ARITHMETIC_INFO, &node, _id = ASTNodeHelper::nodeName(node.right));
+							LOG_MESSAGE(INVALID_ARITHMETIC_INFO, &node, _id = ASTNodeHelper::getNodeName(node.right));
 							unresolved_nodes.insert(node.right);
 							++unresolved_count;
 						}
@@ -412,7 +412,7 @@ struct ResolutionStageVisitor : GenericDoubleVisitor
 					else
 					{
 						// Error: Calling Non-Function
-						LOG_MESSAGE(CALL_NONFUNC, &node, _id = ASTNodeHelper::nodeName(&node));
+						LOG_MESSAGE(CALL_NONFUNC, &node, _id = ASTNodeHelper::getNodeName(&node));
 						unresolved_nodes.insert(&node);
 						++unresolved_count;
 					}
@@ -420,7 +420,7 @@ struct ResolutionStageVisitor : GenericDoubleVisitor
 				else
 				{
 					// Error: Calling Non-Function
-					LOG_MESSAGE(CALL_NONFUNC, &node, _id = ASTNodeHelper::nodeName(&node));
+					LOG_MESSAGE(CALL_NONFUNC, &node, _id = ASTNodeHelper::getNodeName(&node));
 					unresolved_nodes.insert(&node);
 					++unresolved_count;
 				}
@@ -791,7 +791,7 @@ private:
 					else
 					{
 						// LHS it primitive, RHS is NOT primitive, error here
-						LOG_MESSAGE(INVALID_CONV, &node_to_debug, _rhs_type = ASTNodeHelper::nodeName(specifier_right), _lhs_type = ASTNodeHelper::nodeName(specifier_left));
+						LOG_MESSAGE(INVALID_CONV, &node_to_debug, _rhs_type = ASTNodeHelper::getNodeName(specifier_right), _lhs_type = ASTNodeHelper::getNodeName(specifier_left));
 					}
 				}
 				else if(specifier_left->type == TypeSpecifier::ReferredType::FUNCTION_TYPE)
@@ -804,7 +804,7 @@ private:
 						if(!ASTNodeHelper::compareTypeSpecifier(specifier_left, specifier_right))
 						{
 							// LHS it primitive, RHS is NOT primitive, error here
-							LOG_MESSAGE(INVALID_CONV, &node_to_debug, _rhs_type = ASTNodeHelper::nodeName(specifier_right), _lhs_type = ASTNodeHelper::nodeName(specifier_left));
+							LOG_MESSAGE(INVALID_CONV, &node_to_debug, _rhs_type = ASTNodeHelper::getNodeName(specifier_right), _lhs_type = ASTNodeHelper::getNodeName(specifier_left));
 						}
 					}
 					else
@@ -822,14 +822,14 @@ private:
 								FunctionType* function_type_right = ASTNodeHelper::createFunctionTypeFromFunctionDecl(function_decl_right);
 								if(!ASTNodeHelper::compareFunctionType(specifier_left->referred.function_type, function_type_right))
 								{
-									LOG_MESSAGE(INVALID_CONV, &node_to_debug, _rhs_type = ASTNodeHelper::nodeName(specifier_right), _lhs_type = ASTNodeHelper::nodeName(specifier_left));
+									LOG_MESSAGE(INVALID_CONV, &node_to_debug, _rhs_type = ASTNodeHelper::getNodeName(specifier_right), _lhs_type = ASTNodeHelper::getNodeName(specifier_left));
 								}
 							}
 						}
 						else
 						{
 							// LHS it primitive, RHS is NOT primitive, error here
-							LOG_MESSAGE(INVALID_CONV, &node_to_debug, _rhs_type = ASTNodeHelper::nodeName(specifier_right), _lhs_type = ASTNodeHelper::nodeName(specifier_left));
+							LOG_MESSAGE(INVALID_CONV, &node_to_debug, _rhs_type = ASTNodeHelper::getNodeName(specifier_right), _lhs_type = ASTNodeHelper::getNodeName(specifier_left));
 						}
 					}
 				}
@@ -852,7 +852,7 @@ private:
 			}
 			else
 			{
-				LOG_MESSAGE(INVALID_CONV, &node_to_debug, _rhs_type = ASTNodeHelper::nodeName(resolved_type_right), _lhs_type = ASTNodeHelper::nodeName(resolved_type_left));
+				LOG_MESSAGE(INVALID_CONV, &node_to_debug, _rhs_type = ASTNodeHelper::getNodeName(resolved_type_right), _lhs_type = ASTNodeHelper::getNodeName(resolved_type_left));
 			}
 		}
 
@@ -925,14 +925,14 @@ private:
 
 		if(!isa<TypeSpecifier>(resolved_type))
 		{
-			LOG_MESSAGE(INVALID_CONV, &node, _rhs_type = ASTNodeHelper::nodeName(resolved_type), _lhs_type = ASTNodeHelper::nodeName(getParserContext().program->internal->BooleanTy));
+			LOG_MESSAGE(INVALID_CONV, &node, _rhs_type = ASTNodeHelper::getNodeName(resolved_type), _lhs_type = ASTNodeHelper::getNodeName(getParserContext().program->internal->BooleanTy));
 			return;
 		}
 
 		TypeSpecifier* specifier = cast<TypeSpecifier>(resolved_type);
 		if(specifier->type != TypeSpecifier::ReferredType::PRIMITIVE/* || !PrimitiveType::isIntegerType(specifier->referred.primitive)*/)
 		{
-			LOG_MESSAGE(INVALID_CONV, &node, _rhs_type = ASTNodeHelper::nodeName(specifier), _lhs_type = ASTNodeHelper::nodeName(getParserContext().program->internal->BooleanTy));
+			LOG_MESSAGE(INVALID_CONV, &node, _rhs_type = ASTNodeHelper::getNodeName(specifier), _lhs_type = ASTNodeHelper::getNodeName(getParserContext().program->internal->BooleanTy));
 			return;
 		}
 
