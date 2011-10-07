@@ -121,14 +121,14 @@ struct ASTNodeHelper
 
 	static bool isInheritedFrom(ClassDecl& derived, ClassDecl& base)
 	{
-		ASTNode* target = &derived;
+		ASTNode* current = &derived;
 		do
 		{
-			if(target == &base)
+			if(current == &base)
 				return true;
-			if(!isa<ClassDecl>(target))
+			if(!isa<ClassDecl>(current))
 				return false;
-		} while(!!(target = ResolvedType::get(cast<ClassDecl>(target)->base)));
+		} while(!!(current = ResolvedType::get(cast<ClassDecl>(current)->base)));
 		return false;
 	}
 
@@ -182,16 +182,16 @@ struct ASTNodeHelper
 
 	static ASTNode* getAttachPoint(ASTNode& node)
 	{
-		ASTNode* target = NULL;
-		ASTNode* new_target = &node;
+		ASTNode* current = NULL;
+		ASTNode* next = &node;
 		do
 		{
-			target = new_target;
-			if(!(new_target = _get_split_reference_attach_point(target))) // NOTE: check split-reference first
+			current = next;
+			if(!(next = _get_split_reference_attach_point(current))) // NOTE: check split-reference first
 				break;
-			new_target = _get_owner_debug_annotation_attach_point(new_target);
-		} while(!!new_target && new_target != target);
-		return target;
+			next = _get_owner_debug_annotation_attach_point(next);
+		} while(!!next && next != current);
+		return current;
 	}
 
 	static bool isFuncParam(VariableDecl* var_decl)
@@ -225,14 +225,14 @@ private:
 
 	static ASTNode* _get_split_reference_attach_point(ASTNode* node)
 	{
-		ASTNode* target = NULL;
-		ASTNode* new_target = node;
+		ASTNode* current = NULL;
+		ASTNode* next = node;
 		do
 		{
-			target = new_target;
-			new_target = SplitReferenceContext::get(target);
-		} while(!!new_target && new_target != target);
-		return target;
+			current = next;
+			next = SplitReferenceContext::get(current);
+		} while(!!next && next != current);
+		return current;
 	}
 
 	static ASTNode* _get_owner_debug_annotation_attach_point(ASTNode* node)

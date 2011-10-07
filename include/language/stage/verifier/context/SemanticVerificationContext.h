@@ -55,14 +55,18 @@ private:
 	}
 };
 
+// DUPE_NAME
 struct SemanticVerificationScopeContext_NameSet : public ASTNodeContext<SemanticVerificationScopeContext_NameSet>
 {
 	std::set<std::wstring> names;
 };
 
+// DEAD_CODE
 struct SemanticVerificationBlockContext_HasVisitedReturn : public ASTNodeContext<SemanticVerificationBlockContext_HasVisitedReturn>
 { };
 
+// MISSING_RETURN
+// CONTROL_REACHES_END
 struct SemanticVerificationFunctionDeclContext_ReturnCount : public ASTNodeContext<SemanticVerificationFunctionDeclContext_ReturnCount>
 {
 	SemanticVerificationFunctionDeclContext_ReturnCount() : count(0)
@@ -71,12 +75,15 @@ struct SemanticVerificationFunctionDeclContext_ReturnCount : public ASTNodeConte
 	size_t count;
 };
 
+// UNINIT_REF
 struct SemanticVerificationVariableDeclContext_HasBeenInit : public ASTNodeContext<SemanticVerificationVariableDeclContext_HasBeenInit>
 { };
 
+// MISSING_CASE
 struct SemanticVerificationEnumKeyContext_HasVisited : public ASTNodeContext<SemanticVerificationEnumKeyContext_HasVisited>
 { };
 
+// CONTROL_REACHES_END
 struct SemanticVerificationBlockContext_BranchCount : public ASTNodeContext<SemanticVerificationBlockContext_BranchCount>
 {
 	SemanticVerificationBlockContext_BranchCount() : count(0)
