@@ -79,8 +79,8 @@ struct SemanticVerificationStageVisitor1 : GenericDoubleVisitor
 			ASTNode* unknown = ResolvedSymbol::get(&node);
 			if(isa<VariableDecl>(unknown) || isa<FunctionDecl>(unknown))
 			{
-				std::wstring name;
 				bool static_violation = false;
+				std::wstring name;
 				Declaration::VisibilitySpecifier::type visibility = Declaration::VisibilitySpecifier::PUBLIC;
 				bool is_static = false;
 
@@ -128,9 +128,7 @@ struct SemanticVerificationStageVisitor1 : GenericDoubleVisitor
 						break;
 					case Declaration::VisibilitySpecifier::PROTECTED:
 						if(!(!!ref_point && !!decl_point && ASTNodeHelper::isInheritedFrom(*ref_point, *decl_point)))
-						{
 							LOG_MESSAGE(INVALID_ACCESS_PROTECTED, &node, _id = name);
-						}
 						break;
 					}
 			}
@@ -201,16 +199,14 @@ struct SemanticVerificationStageVisitor1 : GenericDoubleVisitor
 			// MISSING_RETURN
 			SemanticVerificationFunctionDeclContext_ReturnCount::bind(func_decl)->count++;
 
+			// MISSING_RETURN_VALUE
+			// UNEXPECTED_RETURN_VALUE
 			TypeSpecifier* return_param = func_decl->type;
 			TypeSpecifier* return_arg = cast<TypeSpecifier>(ResolvedType::get(&node));
-
-			// UNEXPECTED_RETURN_VALUE
-			if(_is_void(return_param) && !_is_void(return_arg))
-				LOG_MESSAGE(UNEXPECTED_RETURN_VALUE, &node);
-
-			// MISSING_RETURN_VALUE
 			if(!_is_void(return_param) && _is_void(return_arg))
 				LOG_MESSAGE(MISSING_RETURN_VALUE, &node, _type = return_param->toString());
+			if(_is_void(return_param) && !_is_void(return_arg))
+				LOG_MESSAGE(UNEXPECTED_RETURN_VALUE, &node);
 		}
 
 		revisit(node);
