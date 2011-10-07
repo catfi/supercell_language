@@ -314,7 +314,7 @@ zillians_add_complex_test(
     DEPENDS ${ThorScriptCompiler}
     )
 
-#zillians_add_test_to_subject(SUBJECT thorscript-compiler-static-test-s1     TARGET thorscript-compiler-static-test-CONTROL_REACHES_END)
+zillians_add_test_to_subject(SUBJECT thorscript-compiler-static-test-s1     TARGET thorscript-compiler-static-test-CONTROL_REACHES_END)
 zillians_add_test_to_subject(SUBJECT thorscript-compiler-static-test-s0     TARGET thorscript-compiler-static-test-DEAD_CODE)
 zillians_add_test_to_subject(SUBJECT thorscript-compiler-static-test-future TARGET thorscript-compiler-static-test-INFINITE_RECURSION)
 #zillians_add_test_to_subject(SUBJECT thorscript-compiler-static-test-s1     TARGET thorscript-compiler-static-test-MISSING_CASE)

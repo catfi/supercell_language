@@ -35,12 +35,17 @@ struct ASTNodeContext
 		return node->get<T>();
 	}
 
-	static T* instance(tree::ASTNode* node)
+	static T* bind(tree::ASTNode* node)
 	{
 		T* x = get(node);
 		if(!x)
 			_set(node, x = new T());
 		return x;
+	}
+
+	static void unbind(tree::ASTNode* node)
+	{
+		_set(node, NULL);
 	}
 
 private:
@@ -59,15 +64,26 @@ struct SemanticVerificationBlockContext_HasVisitedReturn : public ASTNodeContext
 { };
 
 struct SemanticVerificationFunctionDeclContext_ReturnCount : public ASTNodeContext<SemanticVerificationFunctionDeclContext_ReturnCount>
-{ };
+{
+	SemanticVerificationFunctionDeclContext_ReturnCount() : count(0)
+	{ }
+
+	size_t count;
+};
 
 struct SemanticVerificationVariableDeclContext_HasBeenInit : public ASTNodeContext<SemanticVerificationVariableDeclContext_HasBeenInit>
 { };
 
-#if 0 // NOTE: candidate impl detail
 struct SemanticVerificationEnumKeyContext_HasVisited : public ASTNodeContext<SemanticVerificationEnumKeyContext_HasVisited>
 { };
-#endif
+
+struct SemanticVerificationBlockContext_BranchCount : public ASTNodeContext<SemanticVerificationBlockContext_BranchCount>
+{
+	SemanticVerificationBlockContext_BranchCount() : count(0)
+	{ }
+
+	size_t count;
+};
 
 } } }
 
