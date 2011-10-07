@@ -20,5 +20,5 @@
 #
 
 ADD_SUBDIRECTORY(0_basic_resolution)
-ADD_SUBDIRECTORY(1_type_synthesis)
+#ADD_SUBDIRECTORY(1_type_synthesis)
 #ADD_SUBDIRECTORY(2_type_inference)
