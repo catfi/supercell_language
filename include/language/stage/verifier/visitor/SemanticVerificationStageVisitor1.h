@@ -79,12 +79,12 @@ struct SemanticVerificationStageVisitor1 : GenericDoubleVisitor
 			if(isa<VariableDecl>(unknown))
 			{
 				VariableDecl* var_decl = cast<VariableDecl>(unknown);
-				verify_VISIBILITY_ACCESS_VIOLATION(&node, unknown, var_decl->name->toString(), var_decl->visibility);
+				verifyVisibilityAccessViolation(&node, unknown, var_decl->name->toString(), var_decl->visibility);
 			}
 			else if(isa<FunctionDecl>(unknown))
 			{
 				FunctionDecl* func_decl = cast<FunctionDecl>(unknown);
-				verify_VISIBILITY_ACCESS_VIOLATION(&node, unknown, func_decl->name->toString(), func_decl->visibility);
+				verifyVisibilityAccessViolation(&node, unknown, func_decl->name->toString(), func_decl->visibility);
 			}
 
 		revisit(node);
@@ -111,7 +111,7 @@ struct SemanticVerificationStageVisitor1 : GenericDoubleVisitor
 							LOG_MESSAGE(INVALID_NONSTATIC_REF, &node, _var_id = var_decl->name->toString());
 					}
 
-					verify_VISIBILITY_ACCESS_VIOLATION(&node, unknown, var_decl->name->toString(), var_decl->visibility);
+					verifyVisibilityAccessViolation(&node, unknown, var_decl->name->toString(), var_decl->visibility);
 				}
 				else if(isa<FunctionDecl>(unknown))
 				{
@@ -121,7 +121,7 @@ struct SemanticVerificationStageVisitor1 : GenericDoubleVisitor
 					if(ASTNodeHelper::getOwner<FunctionDecl>(node)->is_static && !func_decl->is_static)
 						LOG_MESSAGE(INVALID_NONSTATIC_REF, &node, _var_id = func_decl->name->toString());
 
-					verify_VISIBILITY_ACCESS_VIOLATION(&node, unknown, func_decl->name->toString(), func_decl->visibility);
+					verifyVisibilityAccessViolation(&node, unknown, func_decl->name->toString(), func_decl->visibility);
 				}
 		}
 
@@ -194,9 +194,9 @@ struct SemanticVerificationStageVisitor1 : GenericDoubleVisitor
 			// UNEXPECTED_RETURN_VALUE
 			TypeSpecifier* return_param = func_decl->type;
 			TypeSpecifier* return_arg = cast<TypeSpecifier>(ResolvedType::get(&node));
-			if(!is_void(return_param) && is_void(return_arg))
+			if(!isVoid(return_param) && isVoid(return_arg))
 				LOG_MESSAGE(MISSING_RETURN_VALUE, &node, _type = return_param->toString());
-			if(is_void(return_param) && !is_void(return_arg))
+			if(isVoid(return_param) && !isVoid(return_arg))
 				LOG_MESSAGE(UNEXPECTED_RETURN_VALUE, &node);
 		}
 
@@ -211,7 +211,7 @@ struct SemanticVerificationStageVisitor1 : GenericDoubleVisitor
 
 		revisit(node);
 
-		if(!is_void(node.type))
+		if(!isVoid(node.type))
 		{
 			// MISSING_RETURN
 			if(SemanticVerificationFunctionDeclContext_ReturnCount::bind(&node)->count == 0)
@@ -260,7 +260,7 @@ struct SemanticVerificationStageVisitor1 : GenericDoubleVisitor
 			if(isa<Identifier>(unknown))
 				SemanticVerificationEnumKeyContext_HasVisited::bind(unknown);
 		}
-		EnumDecl* enum_decl = resolve_enum(node.node);
+		EnumDecl* enum_decl = resolveEnum(node.node);
 		if(!!enum_decl)
 			foreach(i, enum_decl->enumeration_list)
 				SemanticVerificationEnumKeyContext_HasVisited::unbind((*i).first);
@@ -285,13 +285,13 @@ struct SemanticVerificationStageVisitor1 : GenericDoubleVisitor
 	}
 
 private:
-	static bool is_void(TypeSpecifier* type_specifier)
+	static bool isVoid(TypeSpecifier* type_specifier)
 	{
 		return type_specifier->type == TypeSpecifier::ReferredType::PRIMITIVE
 				&& type_specifier->referred.primitive == PrimitiveType::VOID;
 	}
 
-	static EnumDecl* resolve_enum(ASTNode* unknown)
+	static EnumDecl* resolveEnum(ASTNode* unknown)
 	{
 		TypeSpecifier* type_specifier = cast<TypeSpecifier>(ResolvedType::get(unknown));
 		if(type_specifier->type != TypeSpecifier::ReferredType::UNSPECIFIED)
@@ -302,7 +302,7 @@ private:
 		return cast<EnumDecl>(unknown_unspecified);
 	}
 
-	static void verify_VISIBILITY_ACCESS_VIOLATION(
+	static void verifyVisibilityAccessViolation(
 			ASTNode* unknown_ref, ASTNode* unknown_decl, std::wstring name_decl, Declaration::VisibilitySpecifier::type visibility_decl)
 	{
 		// INVALID_ACCESS_PRIVATE
