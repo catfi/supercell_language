@@ -74,17 +74,26 @@ struct SemanticVerificationStageVisitor1 : GenericDoubleVisitor
 
 	void verify(MemberExpr &node)
 	{
-//		ASTNode* unknown = ResolvedSymbol::get(node.node);
-//		if(isa<VariableDecl>(unknown))
-//		{
-//			VariableDecl* var_decl = cast<VariableDecl>(unknown);
-//		}
-//
-//		ASTNode* unknown_member = ResolvedSymbol::get(node.member);
-//		if(isa<VariableDecl>(unknown_member))
-//		{
-//			VariableDecl* var_decl = cast<VariableDecl>(unknown_member);
-//		}
+		ASTNode* unknown = ResolvedSymbol::get(&node);
+		if(isa<VariableDecl>(unknown) || isa<FunctionDecl>(unknown))
+		{
+			std::wstring name;
+			Declaration::VisibilitySpecifier::type visibility = Declaration::VisibilitySpecifier::PUBLIC;
+			if(isa<VariableDecl>(unknown))
+			{
+				VariableDecl* var_decl = cast<VariableDecl>(unknown);
+				name = var_decl->name->toString();
+				visibility = var_decl->visibility;
+			}
+			else if(isa<FunctionDecl>(unknown))
+			{
+				FunctionDecl* func_decl = cast<FunctionDecl>(unknown);
+				name = func_decl->name->toString();
+				visibility = func_decl->visibility;
+			}
+
+			_verify_VISIBILITY_ACCESS_VIOLATION(&node, unknown, name, visibility);
+		}
 
 		revisit(node);
 	}
@@ -133,21 +142,8 @@ struct SemanticVerificationStageVisitor1 : GenericDoubleVisitor
 				if(static_violation)
 					LOG_MESSAGE(INVALID_NONSTATIC_REF, &node, _var_id = name);
 
-				// INVALID_ACCESS_PRIVATE
-				// INVALID_ACCESS_PROTECTED
-				ClassDecl* ref_point = ASTNodeHelper::getOwner<ClassDecl>(node);
-				ClassDecl* decl_point = ASTNodeHelper::getOwner<ClassDecl>(*unknown);
-				if(ref_point != decl_point)
-					switch(visibility)
-					{
-					case Declaration::VisibilitySpecifier::PRIVATE:
-						LOG_MESSAGE(INVALID_ACCESS_PRIVATE, &node, _id = name);
-						break;
-					case Declaration::VisibilitySpecifier::PROTECTED:
-						if(!(!!ref_point && !!decl_point && ASTNodeHelper::isInheritedFrom(*ref_point, *decl_point)))
-							LOG_MESSAGE(INVALID_ACCESS_PROTECTED, &node, _id = name);
-						break;
-					}
+
+				_verify_VISIBILITY_ACCESS_VIOLATION(&node, unknown, name, visibility);
 			}
 		}
 
@@ -326,6 +322,26 @@ private:
 		if(!isa<EnumDecl>(unknown_unspecified))
 			return NULL;
 		return cast<EnumDecl>(unknown_unspecified);
+	}
+
+	static void _verify_VISIBILITY_ACCESS_VIOLATION(
+			ASTNode* unknown_ref, ASTNode* unknown_decl, std::wstring name_decl, Declaration::VisibilitySpecifier::type visibility_decl)
+	{
+		// INVALID_ACCESS_PRIVATE
+		// INVALID_ACCESS_PROTECTED
+		ClassDecl* ref_point = ASTNodeHelper::getOwner<ClassDecl>(*unknown_ref);
+		ClassDecl* decl_point = ASTNodeHelper::getOwner<ClassDecl>(*unknown_decl);
+		if(ref_point != decl_point)
+			switch(visibility_decl)
+			{
+			case Declaration::VisibilitySpecifier::PRIVATE:
+				LOG_MESSAGE(INVALID_ACCESS_PRIVATE, unknown_ref, _id = name_decl);
+				break;
+			case Declaration::VisibilitySpecifier::PROTECTED:
+				if(!(!!ref_point && !!decl_point && ASTNodeHelper::isInheritedFrom(*ref_point, *decl_point)))
+					LOG_MESSAGE(INVALID_ACCESS_PROTECTED, unknown_ref, _id = name_decl);
+				break;
+			}
 	}
 };
 
