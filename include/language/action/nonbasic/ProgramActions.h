@@ -55,7 +55,7 @@ struct program
 #ifdef DEBUG
 		printf("program::append_import_decl param(0) type = %s\n", typeid(_param_t(0)).name());
 #endif
-		if(!!getParserContext().program)
+		if(getParserContext().program)
 		{
 			Import* import = new Import(_param(0)); BIND_CACHED_LOCATION(import);
 			getParserContext().program->addImport(import);
@@ -68,7 +68,7 @@ struct program
 #ifdef DEBUG
 		printf("program::append_global_decl param(0) type = %s\n", typeid(_param_t(0)).name());
 #endif
-		if(!!getParserContext().active_package)
+		if(getParserContext().active_package)
 			getParserContext().active_package->addObject(_param(0));
 	}
 	END_ACTION

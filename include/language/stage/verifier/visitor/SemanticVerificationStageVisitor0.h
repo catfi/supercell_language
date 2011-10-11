@@ -233,7 +233,7 @@ struct SemanticVerificationStageVisitor0 : GenericDoubleVisitor
 		revisit(node);
 
 		// DEAD_CODE
-		if(!isConditional(node.parent) && !!SemanticVerificationBlockContext_HasVisitedReturn::get(&node))
+		if(!isConditional(node.parent) && SemanticVerificationBlockContext_HasVisitedReturn::is_bound(&node))
 			SemanticVerificationBlockContext_HasVisitedReturn::bind(node.parent);
 	}
 
@@ -274,7 +274,7 @@ struct SemanticVerificationStageVisitor0 : GenericDoubleVisitor
 #endif
 
 			// MISSING_PARAM_INIT
-			if(!!cast<VariableDecl>(*i)->initializer)
+			if(cast<VariableDecl>(*i)->initializer)
 				visited_optional_param = true;
 			else if(visited_optional_param)
 				LOG_MESSAGE(MISSING_PARAM_INIT, &node, _param_index = (int)n+1, _func_id = name);
@@ -326,7 +326,7 @@ private:
 	static void verifyDeadCode(Statement* node)
 	{
 		// DEAD_CODE
-		if(isa<Block>(node->parent) && !!SemanticVerificationBlockContext_HasVisitedReturn::get(node->parent))
+		if(isa<Block>(node->parent) && SemanticVerificationBlockContext_HasVisitedReturn::is_bound(node->parent))
 			LOG_MESSAGE(DEAD_CODE, node);
 	}
 

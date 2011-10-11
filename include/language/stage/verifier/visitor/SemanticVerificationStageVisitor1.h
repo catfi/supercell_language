@@ -171,7 +171,7 @@ struct SemanticVerificationStageVisitor1 : GenericDoubleVisitor
 
 				// UNINIT_REF
 				if(node.right->isRValue() || (node.right->isLValue()
-						&& !!SemanticVerificationVariableDeclContext_HasBeenInit::get(ResolvedSymbol::get(node.right))))
+						&& SemanticVerificationVariableDeclContext_HasBeenInit::is_bound(ResolvedSymbol::get(node.right))))
 				{
 					SemanticVerificationVariableDeclContext_HasBeenInit::bind(var_decl);
 				}
@@ -261,11 +261,11 @@ struct SemanticVerificationStageVisitor1 : GenericDoubleVisitor
 				SemanticVerificationEnumKeyContext_HasVisited::bind(unknown);
 		}
 		EnumDecl* enum_decl = resolveEnum(node.node);
-		if(!!enum_decl)
+		if(enum_decl)
 			foreach(i, enum_decl->enumeration_list)
 				SemanticVerificationEnumKeyContext_HasVisited::unbind((*i).first);
 		foreach(i, enum_decl->enumeration_list)
-			if(!!SemanticVerificationEnumKeyContext_HasVisited::get((*i).first))
+			if(SemanticVerificationEnumKeyContext_HasVisited::is_bound((*i).first))
 			{
 				if(!node.default_block)
 					LOG_MESSAGE(MISSING_CASE, &node, _id = (*i).first->toString());
@@ -316,7 +316,7 @@ private:
 				LOG_MESSAGE(INVALID_ACCESS_PRIVATE, unknown_ref, _id = name_decl);
 				break;
 			case Declaration::VisibilitySpecifier::PROTECTED:
-				if(!(!!ref_point && !!decl_point && ASTNodeHelper::isInheritedFrom(*ref_point, *decl_point)))
+				if(!(ref_point && decl_point && ASTNodeHelper::isInheritedFrom(*ref_point, *decl_point)))
 					LOG_MESSAGE(INVALID_ACCESS_PROTECTED, unknown_ref, _id = name_decl);
 				break;
 			}

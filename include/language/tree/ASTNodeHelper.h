@@ -128,24 +128,24 @@ struct ASTNodeHelper
 				return true;
 			if(!isa<ClassDecl>(current))
 				return false;
-		} while(!!(current = ResolvedType::get(cast<ClassDecl>(current)->base)));
+		} while(current = ResolvedType::get(cast<ClassDecl>(current)->base));
 		return false;
 	}
 
-	template<class T> static bool hasOwner(ASTNode& node) { return !!getOwner<T>(node); }
+	template<class T> static bool hasOwner(ASTNode& node) { return getOwner<T>(node); }
 	template<class T>
 	static T* getOwner(ASTNode& node)
 	{
-		for(ASTNode* p = node.parent; !!p && !isa<Package>(p); p = p->parent)
+		for(ASTNode* p = node.parent; p && !isa<Package>(p); p = p->parent)
 			if(isa<T>(p))
 				return cast<T>(p);
 		return NULL;
 	}
 
-	static bool hasDirectOwnerPackage(ASTNode& node) { return !!getDirectOwnerPackage(node); }
+	static bool hasDirectOwnerPackage(ASTNode& node) { return getDirectOwnerPackage(node); }
 	static Package* getDirectOwnerPackage(ASTNode& node)
 	{
-		for(ASTNode* p = node.parent; !!p; p = p->parent)
+		for(ASTNode* p = node.parent; p; p = p->parent)
 		{
 			if(isa<FunctionDecl>(p))  return NULL;
 			if(isa<ClassDecl>(p))     return NULL;
@@ -157,7 +157,7 @@ struct ASTNodeHelper
 
 	static ASTNode* getOwnerNamedScope(ASTNode& node)
 	{
-		for(ASTNode* p = node.parent; !!p; p = p->parent)
+		for(ASTNode* p = node.parent; p; p = p->parent)
 			if(_is_named_scope(p))
 				return p;
 		return NULL;
@@ -190,7 +190,7 @@ struct ASTNodeHelper
 			if(!(next = _get_split_reference_attach_point(current))) // NOTE: check split-reference first
 				break;
 			next = _get_owner_debug_annotation_attach_point(next);
-		} while(!!next && next != current);
+		} while(next && next != current);
 		return current;
 	}
 
@@ -231,13 +231,13 @@ private:
 		{
 			current = next;
 			next = SplitReferenceContext::get(current);
-		} while(!!next && next != current);
+		} while(next && next != current);
 		return current;
 	}
 
 	static ASTNode* _get_owner_debug_annotation_attach_point(ASTNode* node)
 	{
-		for(ASTNode* p = node; !!p && !isa<Package>(p); p = p->parent)
+		for(ASTNode* p = node; p && !isa<Package>(p); p = p->parent)
 			if(_is_debug_annotation_attach_point(p))
 				return p;
 		return NULL;
