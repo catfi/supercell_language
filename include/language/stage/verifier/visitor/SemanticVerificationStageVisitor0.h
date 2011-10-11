@@ -280,10 +280,8 @@ struct SemanticVerificationStageVisitor0 : GenericDoubleVisitor
 				LOG_MESSAGE(MISSING_PARAM_INIT, &node, _param_index = (int)n+1, _func_id = name);
 
 			// UNEXPECTED_VARIADIC_PARAM
-			if(cast<VariableDecl>(*i)->type->type == TypeSpecifier::ReferredType::PRIMITIVE &&
-					cast<VariableDecl>(*i)->type->referred.primitive == PrimitiveType::VARIADIC_ELLIPSIS &&
-					!is_end_of_foreach(i, node.parameters))
-						LOG_MESSAGE(UNEXPECTED_VARIADIC_PARAM, &node);
+			if(isEllipsis(cast<VariableDecl>(*i)->type) && !is_end_of_foreach(i, node.parameters))
+				LOG_MESSAGE(UNEXPECTED_VARIADIC_PARAM, &node);
 
 			n++;
 		}
@@ -303,6 +301,12 @@ struct SemanticVerificationStageVisitor0 : GenericDoubleVisitor
 	}
 
 private:
+	static bool isEllipsis(TypeSpecifier* type_specifier)
+	{
+		return type_specifier->type == TypeSpecifier::ReferredType::PRIMITIVE
+				&& type_specifier->referred.primitive == PrimitiveType::VARIADIC_ELLIPSIS;
+	}
+
 	static void verifyDupeName(Declaration* node)
 	{
 		// DUPE_NAME
