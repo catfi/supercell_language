@@ -154,7 +154,7 @@ struct primary_expression
 		bool                                   is_static  = false;
 		FunctionDecl* function_decl =
 				new FunctionDecl(NULL, type, is_member, is_static, visibility, _param(2)); BIND_CACHED_LOCATION(function_decl);
-		if(!!parameters)
+		if(parameters)
 			deduced_foreach_value(i, *parameters)
 				function_decl->appendParameter(i);
 		BIND_CACHED_LOCATION(_result = new PrimaryExpr(function_decl));

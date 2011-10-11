@@ -97,7 +97,7 @@
 #define BIND_CACHED_LOCATION(x) \
 		{ \
 			BOOST_MPL_ASSERT(( boost::is_same<_local_t(0), LOCATION_TYPE&> )); \
-			if(!!_local(0)) \
+			if(_local(0)) \
 				stage::SourceInfoContext::set((x), new stage::SourceInfoContext(*(_local(0).get()))); \
 		}
 

@@ -138,7 +138,7 @@ struct function_decl
 		bool                                   is_member  = false;
 		bool                                   is_static  = false;
 		BIND_CACHED_LOCATION(_result = new FunctionDecl(name, type, is_member, is_static, visibility, block));
-		if(!!parameters)
+		if(parameters)
 			deduced_foreach_value(i, *parameters)
 				cast<FunctionDecl>(_result)->appendParameter(i);
 	}
@@ -177,10 +177,10 @@ struct class_decl
 		Identifier* name = _param(0);
 		Identifier* extends_from_ident = _param(1).is_initialized() ? *_param(1) : NULL;
 		TypeSpecifier* extends_from = NULL;
-		if(!!extends_from_ident)
+		if(extends_from_ident)
 			BIND_CACHED_LOCATION(extends_from = new TypeSpecifier(extends_from_ident));
 		BIND_CACHED_LOCATION(_result = new ClassDecl(name));
-		if(!!extends_from)
+		if(extends_from)
 			cast<ClassDecl>(_result)->setBase(extends_from);
 		if(_param(2).is_initialized())
 			deduced_foreach_value(i, *_param(2))
@@ -278,7 +278,7 @@ struct interface_member_function_decl
 		bool                                   is_static       = false;
 		BIND_CACHED_LOCATION(_result = new FunctionDecl(_param(2), _param(4), is_member, is_static, visibility));
 		_result->setAnnotation(annotation_list);
-		if(!!parameters)
+		if(parameters)
 			deduced_foreach_value(i, *parameters)
 				cast<FunctionDecl>(_result)->appendParameter(i);
 	}

@@ -30,6 +30,11 @@ namespace zillians { namespace language { namespace stage {
 template<class T>
 struct ASTNodeContext
 {
+	static bool is_bound(tree::ASTNode* node)
+	{
+		return get(node);
+	}
+
 	static T* get(tree::ASTNode* node)
 	{
 		return node->get<T>();
