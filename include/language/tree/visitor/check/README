@@ -52,8 +52,8 @@ ERRORS:
                 ii.  INVALID_NONSTATIC_CALL                                     S1* -- need to know if func is static
                 iii. INVALID_NONSTATIC_REF                                      S1* -- need to know if func is static
         b. VISIBILITY
-            I.  INVALID_ACCESS_PRIVATE                                          S1?
-            II. INVALID_ACCESS_PROTECTED                                        S1?
+            I.  INVALID_ACCESS_PRIVATE                                          S1*
+            II. INVALID_ACCESS_PROTECTED                                        S1*
     E4. STATEMENT
         a. MISSING_BREAK_TARGET                                     S0
         b. MISSING_CONTINUE_TARGET                                  S0
@@ -74,7 +74,7 @@ WARNINGS:
     W2. UNINIT_REF                                                              S1*
     W3. CONTROL_PATH
         b. CONTROL_REACHES_END                                                  S1*
-        c. MISSING_CASE                                                         S1?
+        c. MISSING_CASE                                                         S1? -- segfault in resolve stage
         d. DEAD_CODE                                                S0
         e. INFINITE_RECURSION                                                       FUTURE
     /*
