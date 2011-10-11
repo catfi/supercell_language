@@ -41,7 +41,7 @@ static std::basic_ostream<char> &_set_indent(std::basic_ostream<char> &ss, size_
 	return ss << std::setfill(INDENT_CHAR) << std::setw(INDENT_WIDTH*depth) << "";
 }
 
-std::string parse_elem_bpp(ptree::value_type& elem, PARSE_STATE* parse_state, int depth)
+std::string parse_elem(ptree::value_type& elem, PARSE_STATE* parse_state, int depth)
 {
 	static std::string prev_elem_text;
 	std::stringstream ss;
@@ -99,7 +99,7 @@ std::string parse_elem_bpp(ptree::value_type& elem, PARSE_STATE* parse_state, in
 			for(ptree::iterator p = inner_node.begin(); p != inner_node.end(); p++)
 			{
 				PARSE_STATE parse_state = STATE_ANY;
-				std::string s = parse_elem_bpp(*p, &parse_state, depth+1);
+				std::string s = parse_elem(*p, &parse_state, depth+1);
 				if(parse_state == STATE_FAIL)
 					return "";
 				ss << s;
@@ -120,7 +120,7 @@ int main(int argc, char** argv)
 		PARSE_STATE parse_state = STATE_ANY;
 	    ptree pt;
 	    read_xml(pFilename, pt);
-		std::string s = parse_elem_bpp(*pt.begin(), &parse_state, 0);
+		std::string s = parse_elem(*pt.begin(), &parse_state, 0);
 		_replace_string(s, "\\n", "");
 		if(parse_state == STATE_FAIL)
 			return -1;
