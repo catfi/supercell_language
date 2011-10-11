@@ -150,7 +150,7 @@ struct SemanticVerificationStageVisitor0 : GenericDoubleVisitor
 	}
 #endif
 
-	void verify(TemplatedIdentifier &node)
+	void verify(TemplatedIdentifier& node)
 	{
 		if(isTemplatable(node.parent))
 		{
@@ -192,7 +192,7 @@ struct SemanticVerificationStageVisitor0 : GenericDoubleVisitor
 		revisit(node);
 	}
 
-	void verify(BinaryExpr &node)
+	void verify(BinaryExpr& node)
 	{
 		// WRITE_RVALUE
 		if(node.isAssignment() && node.left->isRValue())
@@ -201,7 +201,7 @@ struct SemanticVerificationStageVisitor0 : GenericDoubleVisitor
 		revisit(node);
 	}
 
-	void verify(Statement &node)
+	void verify(Statement& node)
 	{
 		// DEAD_CODE
 		verifyDeadCode(&node);
@@ -209,7 +209,7 @@ struct SemanticVerificationStageVisitor0 : GenericDoubleVisitor
 		revisit(node);
 	}
 
-	void verify(BranchStmt &node)
+	void verify(BranchStmt& node)
 	{
 		// MISSING_BREAK_TARGET
 		// MISSING_CONTINUE_TARGET
@@ -228,7 +228,7 @@ struct SemanticVerificationStageVisitor0 : GenericDoubleVisitor
 		revisit(node);
 	}
 
-	void verify(Block &node)
+	void verify(Block& node)
 	{
 		revisit(node);
 
@@ -237,7 +237,7 @@ struct SemanticVerificationStageVisitor0 : GenericDoubleVisitor
 			SemanticVerificationBlockContext_HasVisitedReturn::bind(node.parent);
 	}
 
-	void verify(VariableDecl &node)
+	void verify(VariableDecl& node)
 	{
 		verifyDupeName(cast<Declaration>(&node));
 
@@ -248,7 +248,7 @@ struct SemanticVerificationStageVisitor0 : GenericDoubleVisitor
 		revisit(node);
 	}
 
-	void verify(FunctionDecl &node)
+	void verify(FunctionDecl& node)
 	{
 		verifyDupeName(cast<Declaration>(&node));
 
@@ -295,7 +295,7 @@ struct SemanticVerificationStageVisitor0 : GenericDoubleVisitor
 		revisit(node);
 	}
 
-	void verify(ClassDecl &node)
+	void verify(ClassDecl& node)
 	{
 		verifyDupeName(cast<Declaration>(&node));
 
