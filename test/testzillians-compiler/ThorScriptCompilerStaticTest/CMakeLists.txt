@@ -262,10 +262,22 @@ zillians_add_complex_test(
     SHELL ${ThorScriptCompiler} ${compile_options_s0} ${CMAKE_CURRENT_SOURCE_DIR}/data/error/4_parameter/UNEXPECTED_VARIADIC_TEMPLATE_PARAM.t
     DEPENDS ${ThorScriptCompiler}
     )
+zillians_add_complex_test(
+    TARGET thorscript-compiler-static-test-UNEXPECTED_VARIADIC_ARG
+    SHELL ${ThorScriptCompiler} ${compile_options_s0} ${CMAKE_CURRENT_SOURCE_DIR}/data/error/4_parameter/UNEXPECTED_VARIADIC_ARG.t
+    DEPENDS ${ThorScriptCompiler}
+    )
+zillians_add_complex_test(
+    TARGET thorscript-compiler-static-test-UNEXPECTED_VARIADIC_TEMPLATE_ARG
+    SHELL ${ThorScriptCompiler} ${compile_options_s0} ${CMAKE_CURRENT_SOURCE_DIR}/data/error/4_parameter/UNEXPECTED_VARIADIC_TEMPLATE_ARG.t
+    DEPENDS ${ThorScriptCompiler}
+    )
 
 zillians_add_test_to_subject(SUBJECT thorscript-compiler-static-test-s0 TARGET thorscript-compiler-static-test-MISSING_PARAM_INIT)
 zillians_add_test_to_subject(SUBJECT thorscript-compiler-static-test-s0 TARGET thorscript-compiler-static-test-UNEXPECTED_VARIADIC_PARAM)
 zillians_add_test_to_subject(SUBJECT thorscript-compiler-static-test-s0 TARGET thorscript-compiler-static-test-UNEXPECTED_VARIADIC_TEMPLATE_PARAM)
+#zillians_add_test_to_subject(SUBJECT thorscript-compiler-static-test-s0 TARGET thorscript-compiler-static-test-UNEXPECTED_VARIADIC_ARG)
+#zillians_add_test_to_subject(SUBJECT thorscript-compiler-static-test-s0 TARGET thorscript-compiler-static-test-UNEXPECTED_VARIADIC_TEMPLATE_ARG)
 
 #####################################################################
 # 5_limit

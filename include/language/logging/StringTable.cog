@@ -253,6 +253,14 @@ struct StringTable
 			en_US = 'NOTE: lacking message ==> UNEXPECTED_VARIADIC_TEMPLATE_PARAM',
 			zh_TW = 'NOTE: 暫無中文翻譯 ==> UNEXPECTED_VARIADIC_TEMPLATE_PARAM'
 			))
+	LOG_STRING.create('UNEXPECTED_VARIADIC_ARG', LOG_LEVEL.LEVEL_ERROR, 0, dict(
+			en_US = 'NOTE: lacking message ==> UNEXPECTED_VARIADIC_ARG',
+			zh_TW = 'NOTE: 暫無中文翻譯 ==> UNEXPECTED_VARIADIC_ARG'
+			))
+	LOG_STRING.create('UNEXPECTED_VARIADIC_TEMPLATE_ARG', LOG_LEVEL.LEVEL_ERROR, 0, dict(
+			en_US = 'NOTE: lacking message ==> UNEXPECTED_VARIADIC_TEMPLATE_ARG',
+			zh_TW = 'NOTE: 暫無中文翻譯 ==> UNEXPECTED_VARIADIC_TEMPLATE_ARG'
+			))
 	LOG_STRING.create('EXCEED_PARAM_LIMIT', LOG_LEVEL.LEVEL_ERROR, 0, dict(
 			en_US = 'NOTE: lacking message ==> EXCEED_PARAM_LIMIT',
 			zh_TW = 'NOTE: 暫無中文翻譯 ==> EXCEED_PARAM_LIMIT'

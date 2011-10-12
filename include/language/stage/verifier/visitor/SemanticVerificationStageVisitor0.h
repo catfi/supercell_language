@@ -177,7 +177,11 @@ struct SemanticVerificationStageVisitor0 : GenericDoubleVisitor
 					break;
 				case TemplatedIdentifier::Usage::ACTUAL_ARGUMENT:
 					// NOTE: no need to check DUPE_NAME
-					// NOTE: no need to check UNEXPECTED_VARIADIC_TEMPLATE_PARAM (not possible until s1)
+
+					// UNEXPECTED_VARIADIC_TEMPLATE_ARG
+					if(isEllipsis(cast<TypeSpecifier>(*i)) && !is_end_of_foreach(i, node.templated_type_list))
+						LOG_MESSAGE(UNEXPECTED_VARIADIC_TEMPLATE_ARG, &node);
+
 					break;
 				}
 
