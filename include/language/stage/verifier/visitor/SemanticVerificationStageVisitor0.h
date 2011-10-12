@@ -51,6 +51,7 @@ using zillians::language::tree::visitor::NameManglingVisitor;
 // MISSING_PARAM_INIT
 // UNEXPECTED_VARIADIC_PARAM
 // UNEXPECTED_VARIADIC_TEMPLATE_PARAM
+// UNEXPECTED_VARIADIC_TEMPLATE_ARG
 // EXCEED_PARAM_LIMIT
 // EXCEED_TEMPLATE_PARAM_LIMIT
 
@@ -152,46 +153,42 @@ struct SemanticVerificationStageVisitor0 : GenericDoubleVisitor
 
 	void verify(TemplatedIdentifier& node)
 	{
-		if(isTemplatable(node.parent))
+		std::set<std::wstring> name_set;
+		size_t n = 0;
+		foreach(i, node.templated_type_list)
 		{
-			std::set<std::wstring> name_set;
-			size_t n = 0;
-			foreach(i, node.templated_type_list)
+			switch(node.type)
 			{
-				switch(node.type)
+			case TemplatedIdentifier::Usage::FORMAL_PARAMETER:
 				{
-				case TemplatedIdentifier::Usage::FORMAL_PARAMETER:
-					{
-						std::wstring name = cast<Identifier>(*i)->toString();
+					std::wstring name = cast<Identifier>(*i)->toString();
 
-						// DUPE_NAME
-						if(name_set.find(name) == name_set.end())
-							name_set.insert(name);
-						else
-							LOG_MESSAGE(DUPE_NAME, &node, _id = name);
+					// DUPE_NAME
+					if(name_set.find(name) == name_set.end())
+						name_set.insert(name);
+					else
+						LOG_MESSAGE(DUPE_NAME, &node, _id = name);
 
-						// UNEXPECTED_VARIADIC_TEMPLATE_PARAM
-						if(name == L"..." && !is_end_of_foreach(i, node.templated_type_list))
-							LOG_MESSAGE(UNEXPECTED_VARIADIC_TEMPLATE_PARAM, &node);
-					}
-					break;
-				case TemplatedIdentifier::Usage::ACTUAL_ARGUMENT:
-					// NOTE: no need to check DUPE_NAME
-
-					// UNEXPECTED_VARIADIC_TEMPLATE_ARG
-					if(isEllipsis(cast<TypeSpecifier>(*i)) && !is_end_of_foreach(i, node.templated_type_list))
-						LOG_MESSAGE(UNEXPECTED_VARIADIC_TEMPLATE_ARG, &node);
-
-					break;
+					// UNEXPECTED_VARIADIC_TEMPLATE_PARAM
+					if(name == L"..." && !is_end_of_foreach(i, node.templated_type_list))
+						LOG_MESSAGE(UNEXPECTED_VARIADIC_TEMPLATE_PARAM, &node);
 				}
+				break;
+			case TemplatedIdentifier::Usage::ACTUAL_ARGUMENT:
 
-				n++;
+				// UNEXPECTED_VARIADIC_TEMPLATE_ARG
+				if(isEllipsis(cast<TypeSpecifier>(*i)) && !is_end_of_foreach(i, node.templated_type_list))
+					LOG_MESSAGE(UNEXPECTED_VARIADIC_TEMPLATE_ARG, &node);
+
+				break;
 			}
 
-			// EXCEED_TEMPLATE_PARAM_LIMIT
-			if(n>getConfigurationContext().max_template_arg_param_count)
-				LOG_MESSAGE(EXCEED_TEMPLATE_PARAM_LIMIT, &node);
+			n++;
 		}
+
+		// EXCEED_TEMPLATE_PARAM_LIMIT
+		if(n>getConfigurationContext().max_template_arg_param_count)
+			LOG_MESSAGE(EXCEED_TEMPLATE_PARAM_LIMIT, &node);
 
 		revisit(node);
 	}
@@ -336,11 +333,6 @@ private:
 		// DEAD_CODE
 		if(isa<Block>(node->parent) && SemanticVerificationBlockContext_HasVisitedReturn::is_bound(node->parent))
 			LOG_MESSAGE(DEAD_CODE, node);
-	}
-
-	static bool isTemplatable(ASTNode* node)
-	{
-		return isa<FunctionDecl>(node) || isa<ClassDecl>(node);
 	}
 
 	static bool isConditional(ASTNode* node)

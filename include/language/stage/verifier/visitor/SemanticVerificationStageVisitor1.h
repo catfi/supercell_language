@@ -48,6 +48,7 @@ using zillians::language::tree::visitor::NameManglingVisitor;
 // INVALID_NONSTATIC_REF
 // INVALID_ACCESS_PRIVATE
 // INVALID_ACCESS_PROTECTED
+// UNEXPECTED_VARIADIC_ARG
 
 // WARNINGS:
 // ====================================

@@ -19,14 +19,14 @@ ERRORS:
     E1. NAME
         a. UNKNOWN
             I.  UNKNOWN_NAME                                            T
-            II. INCOMPLETE_FUNC                                     S0
+            II. INCOMPLETE_FUNC                                     S0*
         b. AMBIGUOUS
-            I.  DUPE_NAME                                           S0
+            I.  DUPE_NAME                                           S0*
             II. AMBIGUOUS_REF                                           T
     E2. TYPE
         a. CAST
             I.   EXPRESSION
-                 i.   WRITE_RVALUE                                  S0
+                 i.   WRITE_RVALUE                                  S0*
                  ii.  INVALID_CONV                                      T
                  iii. NO_MATCHING_MEMBER_FUNC                           T -- (same as E2.c.III)
             II.  STATEMENT
@@ -50,24 +50,24 @@ ERRORS:
                 i.  MISSING_CONST_INIT                      P
                 ii. WRITE_CONST                                                 S1*
             II. STATIC
-                i.   MISSING_STATIC_INIT                            S0
+                i.   MISSING_STATIC_INIT                            S0*
                 ii.  INVALID_NONSTATIC_CALL                                     S1* -- need to know if func is static
                 iii. INVALID_NONSTATIC_REF                                      S1* -- need to know if func is static
         b. VISIBILITY
             I.  INVALID_ACCESS_PRIVATE                                          S1*
             II. INVALID_ACCESS_PROTECTED                                        S1*
     E4. STATEMENT
-        a. MISSING_BREAK_TARGET                                     S0
-        b. MISSING_CONTINUE_TARGET                                  S0
+        a. MISSING_BREAK_TARGET                                     S0*
+        b. MISSING_CONTINUE_TARGET                                  S0*
     E5. DECLARATION
-        a. MISSING_PARAM_INIT                                       S0
-        b. UNEXPECTED_VARIADIC_PARAM                                S0
-        c. UNEXPECTED_VARIADIC_TEMPLATE_PARAM                       S0
-        d. UNEXPECTED_VARIADIC_ARG                                  S0
-        e. UNEXPECTED_VARIADIC_TEMPLATE_ARG                         S0
+        a. MISSING_PARAM_INIT                                       S0*
+        b. UNEXPECTED_VARIADIC_PARAM                                S0*
+        c. UNEXPECTED_VARIADIC_TEMPLATE_PARAM                       S0*
+        d. UNEXPECTED_VARIADIC_ARG                                  S0? -- need resolved symbol
+        e. UNEXPECTED_VARIADIC_TEMPLATE_ARG                         S0*
     E6. LIMIT
-        a. EXCEED_PARAM_LIMIT                                       S0
-        b. EXCEED_TEMPLATE_PARAM_LIMIT                              S0
+        a. EXCEED_PARAM_LIMIT                                       S0*
+        b. EXCEED_TEMPLATE_PARAM_LIMIT                              S0*
                                                 /////////////////////////////////////////////////////////////////////
 
 WARNINGS:
@@ -79,7 +79,7 @@ WARNINGS:
     W3. CONTROL_PATH
         b. CONTROL_REACHES_END                                                  S1*
         c. MISSING_CASE                                                         S1? -- segfault in resolve stage
-        d. DEAD_CODE                                                S0
+        d. DEAD_CODE                                                S0*
         e. INFINITE_RECURSION                                                       FUTURE
     /*
     W4. UNUSED_VAR                                                                  FUTURE
@@ -120,8 +120,8 @@ MESSAGES:
     E5.a:     MISSING_PARAM_INIT                 = default argument missing for parameter $INT of $ID
     E5.b:     UNEXPECTED_VARIADIC_PARAM          = <<< syntax-error in gcc >>>
     E5.c:     UNEXPECTED_VARIADIC_TEMPLATE_PARAM = <<< syntax-error in gcc >>>
-    E5.d:     UNEXPECTED_VARIADIC_ARG            = <<< ??? >>>
-    E5.e:     UNEXPECTED_VARIADIC_TEMPLATE_ARG   = <<< ??? >>>
+    E5.d:     UNEXPECTED_VARIADIC_ARG            = <<< no c++ equivalence >>>
+    E5.e:     UNEXPECTED_VARIADIC_TEMPLATE_ARG   = <<< no c++ equivalence >>>
     E6.a:     EXCEED_PARAM_LIMIT                 = <<< no c++ equivalence >>>
     E6.b:     EXCEED_TEMPLATE_PARAM_LIMIT        = <<< no c++ equivalence >>>
 

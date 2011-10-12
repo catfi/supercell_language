@@ -277,7 +277,7 @@ zillians_add_test_to_subject(SUBJECT thorscript-compiler-static-test-s0 TARGET t
 zillians_add_test_to_subject(SUBJECT thorscript-compiler-static-test-s0 TARGET thorscript-compiler-static-test-UNEXPECTED_VARIADIC_PARAM)
 zillians_add_test_to_subject(SUBJECT thorscript-compiler-static-test-s0 TARGET thorscript-compiler-static-test-UNEXPECTED_VARIADIC_TEMPLATE_PARAM)
 #zillians_add_test_to_subject(SUBJECT thorscript-compiler-static-test-s0 TARGET thorscript-compiler-static-test-UNEXPECTED_VARIADIC_ARG)
-#zillians_add_test_to_subject(SUBJECT thorscript-compiler-static-test-s0 TARGET thorscript-compiler-static-test-UNEXPECTED_VARIADIC_TEMPLATE_ARG)
+zillians_add_test_to_subject(SUBJECT thorscript-compiler-static-test-s0 TARGET thorscript-compiler-static-test-UNEXPECTED_VARIADIC_TEMPLATE_ARG)
 
 #####################################################################
 # 5_limit
