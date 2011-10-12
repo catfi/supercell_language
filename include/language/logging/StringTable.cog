@@ -189,6 +189,14 @@ struct StringTable
 			en_US = 'invalid types $primary_type(wstring) and $subscript_type(wstring) for array subscript',
 			zh_TW = 'NOTE: 暫無中文翻譯 ==> SUBSCRIPT_OF_NONARRAY'
 			))
+	LOG_STRING.create('UNEXPECTED_VARIADIC_ARG', LOG_LEVEL.LEVEL_ERROR, 0, dict(
+			en_US = 'NOTE: lacking message ==> UNEXPECTED_VARIADIC_ARG',
+			zh_TW = 'NOTE: 暫無中文翻譯 ==> UNEXPECTED_VARIADIC_ARG'
+			))
+	LOG_STRING.create('UNEXPECTED_VARIADIC_TEMPLATE_ARG', LOG_LEVEL.LEVEL_ERROR, 0, dict(
+			en_US = 'NOTE: lacking message ==> UNEXPECTED_VARIADIC_TEMPLATE_ARG',
+			zh_TW = 'NOTE: 暫無中文翻譯 ==> UNEXPECTED_VARIADIC_TEMPLATE_ARG'
+			))
 	LOG_STRING.create('MISMATCH_CALL_ARGNUM', LOG_LEVEL.LEVEL_ERROR, 0, dict(
 			en_US = 'too many/few arguments to function $func_id(wstring)',
 			zh_TW = 'NOTE: 暫無中文翻譯 ==> MISMATCH_CALL_ARGNUM'
@@ -253,13 +261,9 @@ struct StringTable
 			en_US = 'NOTE: lacking message ==> UNEXPECTED_VARIADIC_TEMPLATE_PARAM',
 			zh_TW = 'NOTE: 暫無中文翻譯 ==> UNEXPECTED_VARIADIC_TEMPLATE_PARAM'
 			))
-	LOG_STRING.create('UNEXPECTED_VARIADIC_ARG', LOG_LEVEL.LEVEL_ERROR, 0, dict(
-			en_US = 'NOTE: lacking message ==> UNEXPECTED_VARIADIC_ARG',
-			zh_TW = 'NOTE: 暫無中文翻譯 ==> UNEXPECTED_VARIADIC_ARG'
-			))
-	LOG_STRING.create('UNEXPECTED_VARIADIC_TEMPLATE_ARG', LOG_LEVEL.LEVEL_ERROR, 0, dict(
-			en_US = 'NOTE: lacking message ==> UNEXPECTED_VARIADIC_TEMPLATE_ARG',
-			zh_TW = 'NOTE: 暫無中文翻譯 ==> UNEXPECTED_VARIADIC_TEMPLATE_ARG'
+	LOG_STRING.create('PACKAGE_NAME_COLLIDE_PARENT', LOG_LEVEL.LEVEL_ERROR, 0, dict(
+			en_US = '$package_id(wstring) has the same name as the package in which it is declared',
+			zh_TW = 'NOTE: 暫無中文翻譯 ==> PACKAGE_NAME_COLLIDE_PARENT'
 			))
 	LOG_STRING.create('EXCEED_PARAM_LIMIT', LOG_LEVEL.LEVEL_ERROR, 0, dict(
 			en_US = 'NOTE: lacking message ==> EXCEED_PARAM_LIMIT',
