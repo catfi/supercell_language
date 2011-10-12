@@ -75,7 +75,6 @@ struct SemanticVerificationStageVisitor0 : GenericDoubleVisitor
 		revisit(node);
 	}
 
-#if 0
 	void verify(Package& node)
 	{
 		revisit(node);
@@ -85,11 +84,12 @@ struct SemanticVerificationStageVisitor0 : GenericDoubleVisitor
 		{
 			if(node.id->toString() == cast<Package>(node.parent)->id->toString())
 			{
-				// TODO log semantic check error
+				LOG_MESSAGE(PACKAGE_NAME_COLLIDE_PARENT, &node, _package_id = node.id->toString());
 			}
 		}
 	}
 
+#if 0
 	void verify(ClassDecl& node)
 	{
 		// CHECK: variable name and function name should not conflict with each other
