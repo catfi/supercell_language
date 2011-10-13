@@ -283,7 +283,7 @@ zillians_add_complex_test(
 zillians_add_test_to_subject(SUBJECT thorscript-compiler-static-test-s0 TARGET thorscript-compiler-static-test-MISSING_PARAM_INIT)
 zillians_add_test_to_subject(SUBJECT thorscript-compiler-static-test-s0 TARGET thorscript-compiler-static-test-UNEXPECTED_VARIADIC_PARAM)
 zillians_add_test_to_subject(SUBJECT thorscript-compiler-static-test-s0 TARGET thorscript-compiler-static-test-UNEXPECTED_VARIADIC_TEMPLATE_PARAM)
-#zillians_add_test_to_subject(SUBJECT thorscript-compiler-static-test-s0 TARGET thorscript-compiler-static-test-PACKAGE_NAME_COLLIDE_PARENT)
+zillians_add_test_to_subject(SUBJECT thorscript-compiler-static-test-s0 TARGET thorscript-compiler-static-test-PACKAGE_NAME_COLLIDE_PARENT)
 
 #####################################################################
 # 5_limit
