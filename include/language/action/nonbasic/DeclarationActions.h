@@ -38,7 +38,7 @@ struct global_decl
 #endif
 		_result = _param(1);
 		if(_param(0).is_initialized())
-			_result->setAnnotation(*_param(0));
+			_result->setAnnotations(*_param(0));
 	}
 	END_ACTION
 };
@@ -221,7 +221,7 @@ struct class_member_decl
 		Declaration::VisibilitySpecifier::type visibility      = _param(1).is_initialized() ? *_param(1) : Declaration::VisibilitySpecifier::DEFAULT;
 		bool                                   is_static       = _param(2).is_initialized();
 		_result = _param(3);
-		_result->setAnnotation(annotation_list);
+		_result->setAnnotations(annotation_list);
 		if(isa<VariableDecl>(_result))
 		{
 			cast<VariableDecl>(_result)->visibility = visibility;
@@ -277,7 +277,7 @@ struct interface_member_function_decl
 		bool                                   is_member       = false;
 		bool                                   is_static       = false;
 		BIND_CACHED_LOCATION(_result = new FunctionDecl(_param(2), _param(4), is_member, is_static, visibility));
-		_result->setAnnotation(annotation_list);
+		_result->setAnnotations(annotation_list);
 		if(parameters)
 			deduced_foreach_value(i, *parameters)
 				cast<FunctionDecl>(_result)->appendParameter(i);

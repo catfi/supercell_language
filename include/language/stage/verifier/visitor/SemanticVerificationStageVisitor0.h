@@ -77,16 +77,14 @@ struct SemanticVerificationStageVisitor0 : GenericDoubleVisitor
 
 	void verify(Package& node)
 	{
-		revisit(node);
-
-		// CHECK: the package name should not conflict with its parent and sibling
-		if(node.parent && isa<Package>(node.parent))
+		// PACKAGE_NAME_COLLIDE_PARENT
+		if(node.parent && isa<Package>(node.parent)
+				&& node.id->toString() == cast<Package>(node.parent)->id->toString())
 		{
-			if(node.id->toString() == cast<Package>(node.parent)->id->toString())
-			{
-				LOG_MESSAGE(PACKAGE_NAME_COLLIDE_PARENT, &node, _package_id = node.id->toString());
-			}
+			LOG_MESSAGE(PACKAGE_NAME_COLLIDE_PARENT, &node, _package_id = node.id->toString());
 		}
+
+		revisit(node);
 	}
 
 #if 0

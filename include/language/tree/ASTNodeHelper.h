@@ -219,8 +219,10 @@ private:
 	static bool isDebugAnnotationAttachPoint(ASTNode* node)
 	{
 		return isa<Statement>(node)
-				|| (isa<Declaration>(node)
-						&& (!isa<VariableDecl>(node) || !isFuncParam(cast<VariableDecl>(node)))); // exclude function parameters
+				||	(isa<Declaration>(node)
+						&& (!isa<VariableDecl>(node) || !isFuncParam(cast<VariableDecl>(node))) // exclude function parameters
+					)
+				|| isa<Package>(node);
 	}
 
 	static ASTNode* getSplitReferenceAttachPoint(ASTNode* node)

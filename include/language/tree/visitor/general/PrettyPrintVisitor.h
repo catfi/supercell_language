@@ -195,6 +195,9 @@ struct PrettyPrintVisitor : Visitor<const ASTNode, void>
 			printSourceInfo(node);
 		}
 		{
+			printAnnotation(node.annotations);
+		}
+		{
 			increaseIdent();
 			foreach(i, node.children)
 			{
@@ -883,9 +886,6 @@ struct PrettyPrintVisitor : Visitor<const ASTNode, void>
 			printSourceInfo(node);
 		}
 		{
-			printAnnotation(node.annotations);
-		}
-		{
 			increaseIdent();
 			switch(node.catagory)
 			{
@@ -905,9 +905,6 @@ struct PrettyPrintVisitor : Visitor<const ASTNode, void>
 			printSourceInfo(node);
 		}
 		{
-			printAnnotation(node.annotations);
-		}
-		{
 			increaseIdent();
 			visit(*node.node);
 			decreaseIdent();
@@ -920,9 +917,6 @@ struct PrettyPrintVisitor : Visitor<const ASTNode, void>
 		STREAM << L"<binary_expr opcode=\"" << BinaryExpr::OpCode::toString(node.opcode) << L"\">" << std::endl;
 		{
 			printSourceInfo(node);
-		}
-		{
-			printAnnotation(node.annotations);
 		}
 		{
 			increaseIdent();
@@ -954,9 +948,6 @@ struct PrettyPrintVisitor : Visitor<const ASTNode, void>
 		STREAM << L"<ternary_expr>" << std::endl;
 		{
 			printSourceInfo(node);
-		}
-		{
-			printAnnotation(node.annotations);
 		}
 		{
 			increaseIdent();
@@ -999,9 +990,6 @@ struct PrettyPrintVisitor : Visitor<const ASTNode, void>
 			printSourceInfo(node);
 		}
 		{
-			printAnnotation(node.annotations);
-		}
-		{
 			increaseIdent();
 			{
 				STREAM << L"<left_hand_side>" << std::endl;
@@ -1022,9 +1010,6 @@ struct PrettyPrintVisitor : Visitor<const ASTNode, void>
 		STREAM << L"<call_expr>" << std::endl;
 		{
 			printSourceInfo(node);
-		}
-		{
-			printAnnotation(node.annotations);
 		}
 		{
 			increaseIdent();
@@ -1060,9 +1045,6 @@ struct PrettyPrintVisitor : Visitor<const ASTNode, void>
 		STREAM << L"<cast_expr type=\"" << decodeType(node.type) << L"\">" << std::endl;
 		{
 			printSourceInfo(node);
-		}
-		{
-			printAnnotation(node.annotations);
 		}
 		{
 			increaseIdent();

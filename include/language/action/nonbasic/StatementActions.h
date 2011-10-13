@@ -37,7 +37,7 @@ struct statement
 #endif
 		_result = _param(1);
 		if(_param(0).is_initialized())
-			cast<Statement>(_result)->setAnnotation(*_param(0));
+			cast<Statement>(_result)->setAnnotations(*_param(0));
 	}
 	END_ACTION
 
