@@ -17,20 +17,34 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef ZILLIANS_LANGUAGE_STAGE_DEP_THORSCRIPTSOURCETANGLES_H_
-#define ZILLIANS_LANGUAGE_STAGE_DEP_THORSCRIPTSOURCETANGLES_H_
+#ifndef ZILLIANS_LANGUAGE_STAGE_MAKE_THORSCRIPTMAKESTAGE_H_
+#define ZILLIANS_LANGUAGE_STAGE_MAKE_THORSCRIPTMAKESTAGE_H_
 
-#include <boost/graph/adjacency_list.hpp>
+#include <vector>
+#include <string>
+#include "language/stage/Stage.h"
 
 namespace zillians { namespace language { namespace stage {
 
-typedef boost::adjacency_list<
-            boost::setS, // disallow duplicated edge
-            boost::vecS,
-            boost::bidirectionalS, // directed graph
-            std::set<std::string> // vertex can be accessed as std::set with g[v].insert(foo)
-        > TangleGraphType;
+/**
+ * The ThorScriptMakeStage invoke compile commands with ts-compile.
+ */
+class ThorScriptMakeStage : public Stage
+{
+public:
+	ThorScriptMakeStage();
+	virtual ~ThorScriptMakeStage();
+
+public:
+	virtual const char* name();
+	virtual std::pair<shared_ptr<po::options_description>, shared_ptr<po::options_description>> getOptions();
+	virtual bool parseOptions(po::variables_map& vm);
+	virtual bool execute(bool& continue_execution);
+
+public:
+    std::vector<std::string> inputFiles;
+};
 
 } } }
 
-#endif /* ZILLIANS_LANGUAGE_STAGE_DEP_THORSCRIPTSOURCETANGLES_H_ */
+#endif /* ZILLIANS_LANGUAGE_STAGE_MAKE_THORSCRIPTMAKESTAGE_H_ */

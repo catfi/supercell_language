@@ -1,6 +1,6 @@
 # 
 # Zillians MMO
-# Copyright (C) 2007-2010 Zillians.com, Inc.
+# Copyright (C) 2007-2009 Zillians.com, Inc.
 # For more information see http:#www.zillians.com
 #
 # Zillians MMO is the library and runtime for massive multiplayer online game
@@ -19,22 +19,21 @@
 # Contact Information: info@zillians.com
 #
 
-zillians_create_test_subject(SUBJECT framework-compiler-critical)
-zillians_create_test_subject(SUBJECT framework-compiler-misc)
+include_directories(
+    ${PROJECT_COMMON_SOURCE_DIR}/include/
+    ${PROJECT_FRAMEWORK_SOURCE_DIR}/include/
+    )
 
-zillians_add_subject_to_subject(PARENT framework-critical CHILD framework-compiler-critical)
-zillians_add_subject_to_subject(PARENT framework-misc CHILD framework-compiler-misc)
-
-ADD_SUBDIRECTORY(LLVM_IR_Test)
-ADD_SUBDIRECTORY(RuntimeApiTest)
-
-ADD_SUBDIRECTORY(SemanticCheckTest)
-ADD_SUBDIRECTORY(StubCodeGenTest)
-
-ADD_SUBDIRECTORY(ThorScriptCompilerStaticTest)
-ADD_SUBDIRECTORY(ThorScriptParserTest)
-ADD_SUBDIRECTORY(ThorScriptTransformerTest)
-ADD_SUBDIRECTORY(ThorScriptTreeTest)
-ADD_SUBDIRECTORY(ThorScriptLoggerTest)
-ADD_SUBDIRECTORY(ThorScriptDepTest)
-ADD_SUBDIRECTORY(ThorScriptMakeTest)
+add_executable(ts-make
+    main.cpp
+    language/ThorScriptMake.cpp
+    )
+    
+target_link_libraries(ts-make
+    #    zillians-common-core
+    #    zillians-common-utility
+        zillians-framework-language
+    )
+    
+get_target_property(ThorScriptMake ts-make LOCATION)
+message(STATUS "Using ThorScript Make: \"${ThorScriptMake}\"")

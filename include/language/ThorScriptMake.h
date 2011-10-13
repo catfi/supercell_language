@@ -15,22 +15,25 @@
  * COPYRIGHT HOLDER(S) BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN
  * AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ *
+ * @date Sep 26, 2010, yoco create init version
  */
 
-#ifndef ZILLIANS_LANGUAGE_STAGE_DEP_THORSCRIPTSOURCETANGLES_H_
-#define ZILLIANS_LANGUAGE_STAGE_DEP_THORSCRIPTSOURCETANGLES_H_
+#ifndef ZILLIANS_LANGUAGE_THORSCRIPTMAKE_H_
+#define ZILLIANS_LANGUAGE_THORSCRIPTMAKE_H_
 
-#include <boost/graph/adjacency_list.hpp>
+#include "language/stage/StageBuilder.h"
 
-namespace zillians { namespace language { namespace stage {
+namespace zillians { namespace language {
 
-typedef boost::adjacency_list<
-            boost::setS, // disallow duplicated edge
-            boost::vecS,
-            boost::bidirectionalS, // directed graph
-            std::set<std::string> // vertex can be accessed as std::set with g[v].insert(foo)
-        > TangleGraphType;
+class ThorScriptMake : public stage::StageBuilder
+{
+public:
+	ThorScriptMake();
+	virtual ~ThorScriptMake();
+};
 
-} } }
+} }
 
-#endif /* ZILLIANS_LANGUAGE_STAGE_DEP_THORSCRIPTSOURCETANGLES_H_ */
+
+#endif /*ZILLIANS_LANGUAGE_THORSCRIPTMAKE_H_ */

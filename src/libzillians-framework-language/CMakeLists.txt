@@ -63,6 +63,7 @@ add_library(zillians-framework-language
 	language/tree/basic/FunctionType.cpp  
 	language/stage/dep/ThorScriptDepStage.cpp
     language/stage/dep/ThorScriptPackageDependencyGrammar.cpp
+    language/stage/make/ThorScriptMakeStage.cpp
 	)
 
 set(StringTablePath ${PROJECT_FRAMEWORK_SOURCE_DIR}/include/language/logging)

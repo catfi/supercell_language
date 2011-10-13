@@ -1,6 +1,6 @@
 /**
  * Zillians MMO
- * Copyright (C) 2007-2011 Zillians.com, Inc.
+ * Copyright (C) 2007-2010 Zillians.com, Inc.
  * For more information see http://www.zillians.com
  *
  * Zillians MMO is the library and runtime for massive multiplayer online game
@@ -17,20 +17,21 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef ZILLIANS_LANGUAGE_STAGE_DEP_THORSCRIPTSOURCETANGLES_H_
-#define ZILLIANS_LANGUAGE_STAGE_DEP_THORSCRIPTSOURCETANGLES_H_
+#include "language/ThorScriptMake.h"
+#include "language/stage/make/ThorScriptMakeStage.h"
 
-#include <boost/graph/adjacency_list.hpp>
+using namespace zillians::language::stage;
 
-namespace zillians { namespace language { namespace stage {
+namespace zillians { namespace language {
 
-typedef boost::adjacency_list<
-            boost::setS, // disallow duplicated edge
-            boost::vecS,
-            boost::bidirectionalS, // directed graph
-            std::set<std::string> // vertex can be accessed as std::set with g[v].insert(foo)
-        > TangleGraphType;
+ThorScriptMake::ThorScriptMake()
+{
+	addDefaultMode<
+		boost::mpl::vector<
+			ThorScriptMakeStage>>();
+}
 
-} } }
+ThorScriptMake::~ThorScriptMake()
+{ }
 
-#endif /* ZILLIANS_LANGUAGE_STAGE_DEP_THORSCRIPTSOURCETANGLES_H_ */
+} }
