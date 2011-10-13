@@ -1,8 +1,8 @@
 package com.zillians.compiler_test;
 
-function f0(x:uint64, y:uint64):uint64
+function f0(x:int64, y:int64):int64
 {
-	var _x:uint64 = x;
-	var _y:uint64 = y;
+	var _x:int64 = x;
+	var _y:int64 = y;
 	return _x + _y;
 }
