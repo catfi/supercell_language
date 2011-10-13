@@ -93,7 +93,7 @@ struct SemanticVerificationStageVisitor1 : GenericDoubleVisitor
 
 	void verify(PrimaryExpr& node)
 	{
-		if(ASTNodeHelper::hasOwner<FunctionDecl>(node) && node.catagory == PrimaryExpr::Catagory::IDENTIFIER)
+		if(ASTNodeHelper::hasOwner<FunctionDecl>(&node) && node.catagory == PrimaryExpr::Catagory::IDENTIFIER)
 		{
 			ASTNode* unknown = ResolvedSymbol::get(&node);
 			if(unknown) // NOTE: NULL if package
@@ -108,7 +108,7 @@ struct SemanticVerificationStageVisitor1 : GenericDoubleVisitor
 							LOG_MESSAGE(UNINIT_REF, &node, _var_id = var_decl->name->toString());
 
 						// INVALID_NONSTATIC_REF
-						if(ASTNodeHelper::getOwner<FunctionDecl>(node)->is_static && !var_decl->is_static)
+						if(ASTNodeHelper::getOwner<FunctionDecl>(&node)->is_static && !var_decl->is_static)
 							LOG_MESSAGE(INVALID_NONSTATIC_REF, &node, _var_id = var_decl->name->toString());
 					}
 
@@ -119,7 +119,7 @@ struct SemanticVerificationStageVisitor1 : GenericDoubleVisitor
 					FunctionDecl* func_decl = cast<FunctionDecl>(unknown);
 
 					// INVALID_NONSTATIC_REF
-					if(ASTNodeHelper::getOwner<FunctionDecl>(node)->is_static && !func_decl->is_static)
+					if(ASTNodeHelper::getOwner<FunctionDecl>(&node)->is_static && !func_decl->is_static)
 						LOG_MESSAGE(INVALID_NONSTATIC_REF, &node, _var_id = func_decl->name->toString());
 
 					verifyVisibilityAccessViolation(&node, unknown, func_decl->name->toString(), func_decl->visibility);
@@ -138,13 +138,13 @@ struct SemanticVerificationStageVisitor1 : GenericDoubleVisitor
 		if(isa<FunctionDecl>(unknown))
 		{
 			FunctionDecl* func_decl = cast<FunctionDecl>(unknown);
-			if(ASTNodeHelper::getOwner<FunctionDecl>(node)->is_static && !func_decl->is_static)
+			if(ASTNodeHelper::getOwner<FunctionDecl>(&node)->is_static && !func_decl->is_static)
 				LOG_MESSAGE(INVALID_NONSTATIC_CALL, &node, _func_id = func_decl->name->toString());
 		}
 		else if(isa<VariableDecl>(unknown))
 		{
 			VariableDecl* var_decl = cast<VariableDecl>(unknown);
-			if(ASTNodeHelper::getOwner<FunctionDecl>(node)->is_static && !var_decl->is_static)
+			if(ASTNodeHelper::getOwner<FunctionDecl>(&node)->is_static && !var_decl->is_static)
 				LOG_MESSAGE(INVALID_NONSTATIC_CALL, &node, _func_id = var_decl->name->toString());
 		}
 
@@ -192,7 +192,7 @@ struct SemanticVerificationStageVisitor1 : GenericDoubleVisitor
 	{
 		if(node.opcode == BranchStmt::OpCode::RETURN)
 		{
-			FunctionDecl* func_decl = ASTNodeHelper::getOwner<FunctionDecl>(node);
+			FunctionDecl* func_decl = ASTNodeHelper::getOwner<FunctionDecl>(&node);
 
 			// MISSING_RETURN
 			SemanticVerificationFunctionDeclContext_ReturnCount::bind(func_decl)->count++;
@@ -320,8 +320,8 @@ private:
 	{
 		// INVALID_ACCESS_PRIVATE
 		// INVALID_ACCESS_PROTECTED
-		ClassDecl* ref_point = ASTNodeHelper::getOwner<ClassDecl>(*unknown_ref);
-		ClassDecl* decl_point = ASTNodeHelper::getOwner<ClassDecl>(*unknown_decl);
+		ClassDecl* ref_point = ASTNodeHelper::getOwner<ClassDecl>(unknown_ref);
+		ClassDecl* decl_point = ASTNodeHelper::getOwner<ClassDecl>(unknown_decl);
 		if(ref_point != decl_point)
 			switch(visibility_decl)
 			{
@@ -329,7 +329,7 @@ private:
 				LOG_MESSAGE(INVALID_ACCESS_PRIVATE, unknown_ref, _id = name_decl);
 				break;
 			case Declaration::VisibilitySpecifier::PROTECTED:
-				if(!(ref_point && decl_point && ASTNodeHelper::isInheritedFrom(*ref_point, *decl_point)))
+				if(!(ref_point && decl_point && ASTNodeHelper::isInheritedFrom(ref_point, decl_point)))
 					LOG_MESSAGE(INVALID_ACCESS_PROTECTED, unknown_ref, _id = name_decl);
 				break;
 			}

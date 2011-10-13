@@ -214,7 +214,7 @@ struct SemanticVerificationStageVisitor0 : GenericDoubleVisitor
 	{
 		// MISSING_BREAK_TARGET
 		// MISSING_CONTINUE_TARGET
-		if(isBreakOrContinue(&node) && !ASTNodeHelper::getOwner<IterativeStmt>(node))
+		if(isBreakOrContinue(&node) && !ASTNodeHelper::getOwner<IterativeStmt>(&node))
 			switch(node.opcode)
 			{
 			case BranchStmt::OpCode::BREAK:    LOG_MESSAGE(MISSING_BREAK_TARGET, &node); break;
@@ -224,7 +224,7 @@ struct SemanticVerificationStageVisitor0 : GenericDoubleVisitor
 		// DEAD_CODE (NOTE: necessary because verify(BranchStmt&) is shadowed by verify(Statement&))
 		verifyDeadCode(&node);
 		if(node.opcode == BranchStmt::OpCode::RETURN)
-			SemanticVerificationBlockContext_HasVisitedReturn::bind(ASTNodeHelper::getOwner<Block>(node));
+			SemanticVerificationBlockContext_HasVisitedReturn::bind(ASTNodeHelper::getOwner<Block>(&node));
 
 		revisit(node);
 	}
@@ -256,7 +256,7 @@ struct SemanticVerificationStageVisitor0 : GenericDoubleVisitor
 		std::wstring name = node.name->toString();
 
 		// INCOMPLETE_FUNC
-		if(!node.block && !ASTNodeHelper::findAnnotation(node, L"native"))
+		if(!node.block && !ASTNodeHelper::findAnnotation(&node, L"native"))
 			LOG_MESSAGE(INCOMPLETE_FUNC, &node, _func_id = name);
 
 		std::set<std::wstring> name_set;
@@ -311,7 +311,7 @@ private:
 	static void verifyDupeName(ASTNode* node)
 	{
 		// DUPE_NAME
-		ASTNode* owner = ASTNodeHelper::getOwnerNamedScope(*node);
+		ASTNode* owner = ASTNodeHelper::getOwnerNamedScope(node);
 		std::wstring name;
 		if(isa<Declaration>(node))
 			name = cast<Declaration>(node)->name->toString();

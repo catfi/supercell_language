@@ -119,12 +119,12 @@ struct ASTNodeHelper
 		return false;
 	}
 
-	static bool isInheritedFrom(ClassDecl& derived, ClassDecl& base)
+	static bool isInheritedFrom(ClassDecl* derived, ClassDecl* base)
 	{
-		ASTNode* current = &derived;
+		ASTNode* current = derived;
 		do
 		{
-			if(current == &base)
+			if(current == base)
 				return true;
 			if(!isa<ClassDecl>(current))
 				return false;
@@ -132,20 +132,20 @@ struct ASTNodeHelper
 		return false;
 	}
 
-	template<class T> static bool hasOwner(ASTNode& node) { return getOwner<T>(node); }
+	template<class T> static bool hasOwner(ASTNode* node) { return getOwner<T>(node); }
 	template<class T>
-	static T* getOwner(ASTNode& node)
+	static T* getOwner(ASTNode* node)
 	{
-		for(ASTNode* p = node.parent; p && !isa<Package>(p); p = p->parent)
+		for(ASTNode* p = node->parent; p && !isa<Package>(p); p = p->parent)
 			if(isa<T>(p))
 				return cast<T>(p);
 		return NULL;
 	}
 
-	static bool hasDirectOwnerPackage(ASTNode& node) { return getDirectOwnerPackage(node); }
-	static Package* getDirectOwnerPackage(ASTNode& node)
+	static bool hasDirectOwnerPackage(ASTNode* node) { return getDirectOwnerPackage(node); }
+	static Package* getDirectOwnerPackage(ASTNode* node)
 	{
-		for(ASTNode* p = node.parent; p; p = p->parent)
+		for(ASTNode* p = node->parent; p; p = p->parent)
 		{
 			if(isa<FunctionDecl>(p))  return NULL;
 			if(isa<ClassDecl>(p))     return NULL;
@@ -155,21 +155,21 @@ struct ASTNodeHelper
 		return NULL;
 	}
 
-	static ASTNode* getOwnerNamedScope(ASTNode& node)
+	static ASTNode* getOwnerNamedScope(ASTNode* node)
 	{
-		for(ASTNode* p = node.parent; p; p = p->parent)
+		for(ASTNode* p = node->parent; p; p = p->parent)
 			if(isNamedScope(p))
 				return p;
 		return NULL;
 	}
 
-	static Annotation* findAnnotation(ASTNode& node, std::wstring tag)
+	static Annotation* findAnnotation(ASTNode* node, std::wstring tag)
 	{
 		Annotations* annotations = NULL;
-		if(isa<Declaration>(&node))
-			annotations = cast<Declaration>(&node)->annotations;
-		else if(isa<Statement>(&node))
-			annotations = cast<Statement>(&node)->annotations;
+		if(isa<Declaration>(node))
+			annotations = cast<Declaration>(node)->annotations;
+		else if(isa<Statement>(node))
+			annotations = cast<Statement>(node)->annotations;
 		else
 			return NULL;
 		if(!annotations)
@@ -180,10 +180,10 @@ struct ASTNodeHelper
 		return NULL;
 	}
 
-	static ASTNode* getAttachPoint(ASTNode& node)
+	static ASTNode* getAttachPoint(ASTNode* node)
 	{
 		ASTNode* current = NULL;
-		ASTNode* next = &node;
+		ASTNode* next = node;
 		do
 		{
 			current = next;
