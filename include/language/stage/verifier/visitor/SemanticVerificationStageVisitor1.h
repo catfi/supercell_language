@@ -292,21 +292,24 @@ struct SemanticVerificationStageVisitor1 : GenericDoubleVisitor
 	}
 
 private:
-	static bool isVoid(TypeSpecifier* type_specifier)
+	static bool isVoid(TypeSpecifier* node)
 	{
-		return type_specifier->type == TypeSpecifier::ReferredType::PRIMITIVE
-				&& type_specifier->referred.primitive == PrimitiveType::VOID;
+		BOOST_ASSERT(node && "null pointer exception");
+		return node->type == TypeSpecifier::ReferredType::PRIMITIVE
+				&& node->referred.primitive == PrimitiveType::VOID;
 	}
 
-	static bool isEllipsis(TypeSpecifier* type_specifier)
+	static bool isEllipsis(TypeSpecifier* node)
 	{
-		return type_specifier->type == TypeSpecifier::ReferredType::PRIMITIVE
-				&& type_specifier->referred.primitive == PrimitiveType::VARIADIC_ELLIPSIS;
+		BOOST_ASSERT(node && "null pointer exception");
+		return node->type == TypeSpecifier::ReferredType::PRIMITIVE
+				&& node->referred.primitive == PrimitiveType::VARIADIC_ELLIPSIS;
 	}
 
-	static EnumDecl* resolveEnum(ASTNode* unknown)
+	static EnumDecl* resolveEnum(ASTNode* node)
 	{
-		TypeSpecifier* type_specifier = cast<TypeSpecifier>(ResolvedType::get(unknown));
+		BOOST_ASSERT(node && "null pointer exception");
+		TypeSpecifier* type_specifier = cast<TypeSpecifier>(ResolvedType::get(node));
 		if(type_specifier->type != TypeSpecifier::ReferredType::UNSPECIFIED)
 			return NULL;
 		ASTNode* unknown_unspecified = ResolvedSymbol::get(type_specifier->referred.unspecified);
@@ -316,21 +319,24 @@ private:
 	}
 
 	static void verifyVisibilityAccessViolation(
-			ASTNode* unknown_ref, ASTNode* unknown_decl, std::wstring name_decl, Declaration::VisibilitySpecifier::type visibility_decl)
+			ASTNode* node_ref, ASTNode* node_decl, std::wstring name_decl, Declaration::VisibilitySpecifier::type visibility_decl)
 	{
+		BOOST_ASSERT(node_ref && node_decl && "null pointer exception");
+		BOOST_ASSERT(!name_decl.empty() && "empty name");
+
 		// INVALID_ACCESS_PRIVATE
 		// INVALID_ACCESS_PROTECTED
-		ClassDecl* ref_point = ASTNodeHelper::getOwner<ClassDecl>(unknown_ref);
-		ClassDecl* decl_point = ASTNodeHelper::getOwner<ClassDecl>(unknown_decl);
+		ClassDecl* ref_point = ASTNodeHelper::getOwner<ClassDecl>(node_ref);
+		ClassDecl* decl_point = ASTNodeHelper::getOwner<ClassDecl>(node_decl);
 		if(ref_point != decl_point)
 			switch(visibility_decl)
 			{
 			case Declaration::VisibilitySpecifier::PRIVATE:
-				LOG_MESSAGE(INVALID_ACCESS_PRIVATE, unknown_ref, _id = name_decl);
+				LOG_MESSAGE(INVALID_ACCESS_PRIVATE, node_ref, _id = name_decl);
 				break;
 			case Declaration::VisibilitySpecifier::PROTECTED:
 				if(!(ref_point && decl_point && ASTNodeHelper::isInheritedFrom(ref_point, decl_point)))
-					LOG_MESSAGE(INVALID_ACCESS_PROTECTED, unknown_ref, _id = name_decl);
+					LOG_MESSAGE(INVALID_ACCESS_PROTECTED, node_ref, _id = name_decl);
 				break;
 			}
 	}

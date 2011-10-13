@@ -302,14 +302,17 @@ struct SemanticVerificationStageVisitor0 : GenericDoubleVisitor
 	}
 
 private:
-	static bool isEllipsis(TypeSpecifier* type_specifier)
+	static bool isEllipsis(TypeSpecifier* node)
 	{
-		return type_specifier->type == TypeSpecifier::ReferredType::PRIMITIVE
-				&& type_specifier->referred.primitive == PrimitiveType::VARIADIC_ELLIPSIS;
+		BOOST_ASSERT(node && "null pointer exception");
+		return node->type == TypeSpecifier::ReferredType::PRIMITIVE
+				&& node->referred.primitive == PrimitiveType::VARIADIC_ELLIPSIS;
 	}
 
 	static void verifyDupeName(ASTNode* node)
 	{
+		BOOST_ASSERT(node && "null pointer exception");
+
 		// DUPE_NAME
 		ASTNode* owner = ASTNodeHelper::getOwnerNamedScope(node);
 		std::wstring name;
@@ -317,6 +320,8 @@ private:
 			name = cast<Declaration>(node)->name->toString();
 		else if(isa<Package>(node))
 			name = cast<Package>(node)->id->toString();
+		else
+			BOOST_ASSERT(false && "reaching unreachable code");
 		if(owner && !name.empty())
 		{
 			SemanticVerificationScopeContext_NameSet* owner_context =
@@ -338,6 +343,8 @@ private:
 
 	static void verifyDeadCode(Statement* node)
 	{
+		BOOST_ASSERT(node && "null pointer exception");
+
 		// DEAD_CODE
 		if(isa<Block>(node->parent) && SemanticVerificationBlockContext_HasVisitedReturn::is_bound(node->parent))
 			LOG_MESSAGE(DEAD_CODE, node);
@@ -345,13 +352,17 @@ private:
 
 	static bool isConditional(ASTNode* node)
 	{
+		BOOST_ASSERT(node && "null pointer exception");
+
 		return isa<SelectionStmt>(node) || isa<IterativeStmt>(node);
 	}
 
-	static bool isBreakOrContinue(BranchStmt* branch_stmt)
+	static bool isBreakOrContinue(BranchStmt* node)
 	{
-		return branch_stmt->opcode == BranchStmt::OpCode::BREAK
-				|| branch_stmt->opcode == BranchStmt::OpCode::CONTINUE;
+		BOOST_ASSERT(node && "null pointer exception");
+
+		return node->opcode == BranchStmt::OpCode::BREAK
+				|| node->opcode == BranchStmt::OpCode::CONTINUE;
 	}
 };
 

@@ -41,15 +41,17 @@ struct ASTNodeHelper
 		to.set<stage::SourceInfoContext>(new stage::SourceInfoContext(*from_src_info));
 	}
 
-	static FunctionType* createFunctionTypeFromFunctionDecl(FunctionDecl* function_decl)
+	static FunctionType* createFunctionTypeFromFunctionDecl(FunctionDecl* node)
 	{
+		BOOST_ASSERT(node && "null pointer exception");
+
 		FunctionType* function_type = new FunctionType();
 
-		function_type->return_type = function_decl->type;
+		function_type->return_type = node->type;
 
-		if(isa<TemplatedIdentifier>(function_decl->name))
+		if(isa<TemplatedIdentifier>(node->name))
 		{
-			TemplatedIdentifier* templated_name = cast<TemplatedIdentifier>(function_decl->name);
+			TemplatedIdentifier* templated_name = cast<TemplatedIdentifier>(node->name);
 			foreach(i, templated_name->templated_type_list)
 			{
 				Identifier* templated_parameter = cast<Identifier>(*i);
@@ -57,7 +59,7 @@ struct ASTNodeHelper
 			}
 		}
 
-		foreach(i, function_decl->parameters)
+		foreach(i, node->parameters)
 		{
 			function_type->appendParameterType((*i)->type);
 		}
@@ -67,6 +69,8 @@ struct ASTNodeHelper
 
 	static bool compareFunctionType(FunctionType* a, FunctionType* b)
 	{
+		BOOST_ASSERT(a && b && "null pointer exception");
+
 		if(a->argument_types.size() != b->argument_types.size()) return false;
 		if(a->templated_parameters.size() != b->templated_parameters.size()) return false;
 
@@ -87,6 +91,8 @@ struct ASTNodeHelper
 
 	static bool compareTypeSpecifier(TypeSpecifier* a, TypeSpecifier* b)
 	{
+		BOOST_ASSERT(a && b && "null pointer exception");
+
 		if(a->type != b->type)
 			return false;
 
@@ -119,12 +125,13 @@ struct ASTNodeHelper
 		return false;
 	}
 
-	static bool isInheritedFrom(ClassDecl* derived, ClassDecl* base)
+	static bool isInheritedFrom(ClassDecl* node_derived, ClassDecl* node_base)
 	{
-		ASTNode* current = derived;
+		BOOST_ASSERT(node_derived && node_base && "null pointer exception");
+		ASTNode* current = node_derived;
 		do
 		{
-			if(current == base)
+			if(current == node_base)
 				return true;
 			if(!isa<ClassDecl>(current))
 				return false;
@@ -136,6 +143,7 @@ struct ASTNodeHelper
 	template<class T>
 	static T* getOwner(ASTNode* node)
 	{
+		BOOST_ASSERT(node && "null pointer exception");
 		for(ASTNode* p = node->parent; p && !isa<Package>(p); p = p->parent)
 			if(isa<T>(p))
 				return cast<T>(p);
@@ -145,6 +153,7 @@ struct ASTNodeHelper
 	static bool hasDirectOwnerPackage(ASTNode* node) { return getDirectOwnerPackage(node); }
 	static Package* getDirectOwnerPackage(ASTNode* node)
 	{
+		BOOST_ASSERT(node && "null pointer exception");
 		for(ASTNode* p = node->parent; p; p = p->parent)
 		{
 			if(isa<FunctionDecl>(p))  return NULL;
@@ -157,6 +166,7 @@ struct ASTNodeHelper
 
 	static ASTNode* getOwnerNamedScope(ASTNode* node)
 	{
+		BOOST_ASSERT(node && "null pointer exception");
 		for(ASTNode* p = node->parent; p; p = p->parent)
 			if(isNamedScope(p))
 				return p;
@@ -165,6 +175,8 @@ struct ASTNodeHelper
 
 	static Annotation* findAnnotation(ASTNode* node, std::wstring tag)
 	{
+		BOOST_ASSERT(node && "null pointer exception");
+		BOOST_ASSERT(!tag.empty() && "empty annotation tag");
 		Annotations* annotations = NULL;
 		if(isa<Declaration>(node))
 			annotations = cast<Declaration>(node)->annotations;
@@ -182,6 +194,7 @@ struct ASTNodeHelper
 
 	static ASTNode* getAttachPoint(ASTNode* node)
 	{
+		BOOST_ASSERT(node && "null pointer exception");
 		ASTNode* current = NULL;
 		ASTNode* next = node;
 		do
@@ -194,13 +207,15 @@ struct ASTNodeHelper
 		return current;
 	}
 
-	static bool isFuncParam(VariableDecl* var_decl)
+	static bool isFuncParam(VariableDecl* node)
 	{
-		return isa<FunctionDecl>(var_decl->parent);
+		BOOST_ASSERT(node && "null pointer exception");
+		return isa<FunctionDecl>(node->parent);
 	}
 
 	static std::wstring getNodeName(ASTNode* node)
 	{
+		BOOST_ASSERT(node && "null pointer exception");
 		static tree::visitor::NodeInfoVisitor v(1);
 		v.reset();
 		v.visit(*node);
@@ -210,6 +225,7 @@ struct ASTNodeHelper
 private:
 	static bool isNamedScope(ASTNode* node)
 	{
+		BOOST_ASSERT(node && "null pointer exception");
 		return isa<FunctionDecl>(node)
 				|| isa<ClassDecl>(node)
 				|| isa<InterfaceDecl>(node)
@@ -218,6 +234,7 @@ private:
 
 	static bool isDebugAnnotationAttachPoint(ASTNode* node)
 	{
+		BOOST_ASSERT(node && "null pointer exception");
 		return isa<Statement>(node)
 				||	(isa<Declaration>(node)
 						&& (!isa<VariableDecl>(node) || !isFuncParam(cast<VariableDecl>(node))) // exclude function parameters
@@ -227,6 +244,7 @@ private:
 
 	static ASTNode* getSplitReferenceAttachPoint(ASTNode* node)
 	{
+		BOOST_ASSERT(node && "null pointer exception");
 		ASTNode* current = NULL;
 		ASTNode* next = node;
 		do
@@ -239,6 +257,7 @@ private:
 
 	static ASTNode* getOwnerDebugAnnotationAttachPoint(ASTNode* node)
 	{
+		BOOST_ASSERT(node && "null pointer exception");
 		for(ASTNode* p = node; p && !isa<Package>(p); p = p->parent)
 			if(isDebugAnnotationAttachPoint(p))
 				return p;
