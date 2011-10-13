@@ -33,8 +33,9 @@ struct program
 	{
 #ifdef DEBUG
 		printf("program::append_package_decl param(0) type = %s\n", typeid(_param_t(0)).name());
+		printf("program::append_package_decl param(1) type = %s\n", typeid(_param_t(1)).name());
 #endif
-		NestedIdentifier *nested_ident = cast<NestedIdentifier>(_param(0));
+		NestedIdentifier *nested_ident = cast<NestedIdentifier>(_param(1));
 		Package* prev_package = getParserContext().program->root;
 		deduced_foreach_value(i, nested_ident->identifier_list)
 		{
@@ -47,6 +48,8 @@ struct program
 			prev_package = package;
 		}
 		getParserContext().active_package = prev_package;
+		if(_param(0).is_initialized())
+			getParserContext().active_package->setAnnotations(*_param(0));
 	}
 	END_ACTION
 
