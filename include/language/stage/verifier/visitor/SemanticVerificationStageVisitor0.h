@@ -214,7 +214,7 @@ struct SemanticVerificationStageVisitor0 : GenericDoubleVisitor
 	{
 		// MISSING_BREAK_TARGET
 		// MISSING_CONTINUE_TARGET
-		if(isBreakOrContinue(&node) && !ASTNodeHelper::getOwner<IterativeStmt>(node))
+		if(isBreakOrContinue(&node) && !ASTNodeHelper::getOwner<IterativeStmt>(&node))
 			switch(node.opcode)
 			{
 			case BranchStmt::OpCode::BREAK:    LOG_MESSAGE(MISSING_BREAK_TARGET, &node); break;
@@ -224,7 +224,7 @@ struct SemanticVerificationStageVisitor0 : GenericDoubleVisitor
 		// DEAD_CODE (NOTE: necessary because verify(BranchStmt&) is shadowed by verify(Statement&))
 		verifyDeadCode(&node);
 		if(node.opcode == BranchStmt::OpCode::RETURN)
-			SemanticVerificationBlockContext_HasVisitedReturn::bind(ASTNodeHelper::getOwner<Block>(node));
+			SemanticVerificationBlockContext_HasVisitedReturn::bind(ASTNodeHelper::getOwner<Block>(&node));
 
 		revisit(node);
 	}
@@ -256,7 +256,7 @@ struct SemanticVerificationStageVisitor0 : GenericDoubleVisitor
 		std::wstring name = node.name->toString();
 
 		// INCOMPLETE_FUNC
-		if(!node.block && !ASTNodeHelper::findAnnotation(node, L"native"))
+		if(!node.block && !ASTNodeHelper::findAnnotation(&node, L"native"))
 			LOG_MESSAGE(INCOMPLETE_FUNC, &node, _func_id = name);
 
 		std::set<std::wstring> name_set;
@@ -302,21 +302,26 @@ struct SemanticVerificationStageVisitor0 : GenericDoubleVisitor
 	}
 
 private:
-	static bool isEllipsis(TypeSpecifier* type_specifier)
+	static bool isEllipsis(TypeSpecifier* node)
 	{
-		return type_specifier->type == TypeSpecifier::ReferredType::PRIMITIVE
-				&& type_specifier->referred.primitive == PrimitiveType::VARIADIC_ELLIPSIS;
+		BOOST_ASSERT(node && "null pointer exception");
+		return node->type == TypeSpecifier::ReferredType::PRIMITIVE
+				&& node->referred.primitive == PrimitiveType::VARIADIC_ELLIPSIS;
 	}
 
 	static void verifyDupeName(ASTNode* node)
 	{
+		BOOST_ASSERT(node && "null pointer exception");
+
 		// DUPE_NAME
-		ASTNode* owner = ASTNodeHelper::getOwnerNamedScope(*node);
+		ASTNode* owner = ASTNodeHelper::getOwnerNamedScope(node);
 		std::wstring name;
 		if(isa<Declaration>(node))
 			name = cast<Declaration>(node)->name->toString();
 		else if(isa<Package>(node))
 			name = cast<Package>(node)->id->toString();
+		else
+			BOOST_ASSERT(false && "reaching unreachable code");
 		if(owner && !name.empty())
 		{
 			SemanticVerificationScopeContext_NameSet* owner_context =
@@ -338,6 +343,8 @@ private:
 
 	static void verifyDeadCode(Statement* node)
 	{
+		BOOST_ASSERT(node && "null pointer exception");
+
 		// DEAD_CODE
 		if(isa<Block>(node->parent) && SemanticVerificationBlockContext_HasVisitedReturn::is_bound(node->parent))
 			LOG_MESSAGE(DEAD_CODE, node);
@@ -345,13 +352,17 @@ private:
 
 	static bool isConditional(ASTNode* node)
 	{
+		BOOST_ASSERT(node && "null pointer exception");
+
 		return isa<SelectionStmt>(node) || isa<IterativeStmt>(node);
 	}
 
-	static bool isBreakOrContinue(BranchStmt* branch_stmt)
+	static bool isBreakOrContinue(BranchStmt* node)
 	{
-		return branch_stmt->opcode == BranchStmt::OpCode::BREAK
-				|| branch_stmt->opcode == BranchStmt::OpCode::CONTINUE;
+		BOOST_ASSERT(node && "null pointer exception");
+
+		return node->opcode == BranchStmt::OpCode::BREAK
+				|| node->opcode == BranchStmt::OpCode::CONTINUE;
 	}
 };
 
