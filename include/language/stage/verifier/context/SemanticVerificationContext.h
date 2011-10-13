@@ -44,17 +44,17 @@ struct ASTNodeContext
 	{
 		T* x = get(node);
 		if(!x)
-			_set(node, x = new T());
+			set(node, x = new T());
 		return x;
 	}
 
 	static void unbind(tree::ASTNode* node)
 	{
-		_set(node, NULL);
+		set(node, NULL);
 	}
 
 private:
-	static void _set(tree::ASTNode* node, T* ctx)
+	static void set(tree::ASTNode* node, T* ctx)
 	{
 		node->set<T>(ctx);
 	}

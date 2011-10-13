@@ -158,7 +158,7 @@ struct ASTNodeHelper
 	static ASTNode* getOwnerNamedScope(ASTNode& node)
 	{
 		for(ASTNode* p = node.parent; p; p = p->parent)
-			if(_is_named_scope(p))
+			if(isNamedScope(p))
 				return p;
 		return NULL;
 	}
@@ -187,9 +187,9 @@ struct ASTNodeHelper
 		do
 		{
 			current = next;
-			if(!(next = _get_split_reference_attach_point(current))) // NOTE: check split-reference first
+			if(!(next = getSplitReferenceAttachPoint(current))) // NOTE: check split-reference first
 				break;
-			next = _get_owner_debug_annotation_attach_point(next);
+			next = getOwnerDebugAnnotationAttachPoint(next);
 		} while(next && next != current);
 		return current;
 	}
@@ -208,7 +208,7 @@ struct ASTNodeHelper
 	}
 
 private:
-	static bool _is_named_scope(ASTNode* node)
+	static bool isNamedScope(ASTNode* node)
 	{
 		return isa<FunctionDecl>(node)
 				|| isa<ClassDecl>(node)
@@ -216,14 +216,16 @@ private:
 				|| isa<Package>(node);
 	}
 
-	static bool _is_debug_annotation_attach_point(ASTNode* node)
+	static bool isDebugAnnotationAttachPoint(ASTNode* node)
 	{
 		return isa<Statement>(node)
-				|| (isa<Declaration>(node)
-						&& (!isa<VariableDecl>(node) || !isFuncParam(cast<VariableDecl>(node)))); // exclude function parameters
+				||	(isa<Declaration>(node)
+						&& (!isa<VariableDecl>(node) || !isFuncParam(cast<VariableDecl>(node))) // exclude function parameters
+					)
+				|| isa<Package>(node);
 	}
 
-	static ASTNode* _get_split_reference_attach_point(ASTNode* node)
+	static ASTNode* getSplitReferenceAttachPoint(ASTNode* node)
 	{
 		ASTNode* current = NULL;
 		ASTNode* next = node;
@@ -235,10 +237,10 @@ private:
 		return current;
 	}
 
-	static ASTNode* _get_owner_debug_annotation_attach_point(ASTNode* node)
+	static ASTNode* getOwnerDebugAnnotationAttachPoint(ASTNode* node)
 	{
 		for(ASTNode* p = node; p && !isa<Package>(p); p = p->parent)
-			if(_is_debug_annotation_attach_point(p))
+			if(isDebugAnnotationAttachPoint(p))
 				return p;
 		return NULL;
 	}

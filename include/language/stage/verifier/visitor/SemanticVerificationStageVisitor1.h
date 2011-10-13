@@ -48,6 +48,7 @@ using zillians::language::tree::visitor::NameManglingVisitor;
 // INVALID_NONSTATIC_REF
 // INVALID_ACCESS_PRIVATE
 // INVALID_ACCESS_PROTECTED
+// UNEXPECTED_VARIADIC_ARG
 
 // WARNINGS:
 // ====================================
@@ -137,17 +138,23 @@ struct SemanticVerificationStageVisitor1 : GenericDoubleVisitor
 		if(isa<FunctionDecl>(unknown))
 		{
 			FunctionDecl* func_decl = cast<FunctionDecl>(unknown);
-			is_static = !func_decl->is_static;
-			name = func_decl->name->toString();
+			if(ASTNodeHelper::getOwner<FunctionDecl>(node)->is_static && !func_decl->is_static)
+				LOG_MESSAGE(INVALID_NONSTATIC_CALL, &node, _func_id = func_decl->name->toString());
 		}
 		else if(isa<VariableDecl>(unknown))
 		{
 			VariableDecl* var_decl = cast<VariableDecl>(unknown);
-			is_static = !var_decl->is_static;
-			name = var_decl->name->toString();
+			if(ASTNodeHelper::getOwner<FunctionDecl>(node)->is_static && !var_decl->is_static)
+				LOG_MESSAGE(INVALID_NONSTATIC_CALL, &node, _func_id = var_decl->name->toString());
 		}
-		if(ASTNodeHelper::getOwner<FunctionDecl>(node)->is_static && is_static)
-			LOG_MESSAGE(INVALID_NONSTATIC_CALL, &node, _func_id = name);
+
+		// UNEXPECTED_VARIADIC_ARG
+		foreach(i, node.parameters)
+		{
+			ASTNode* unknown = ResolvedSymbol::get(*i);
+			if(isa<VariableDecl>(unknown) && isEllipsis(cast<VariableDecl>(unknown)->type) && !is_end_of_foreach(i, node.parameters))
+				LOG_MESSAGE(UNEXPECTED_VARIADIC_ARG, &node);
+		}
 
 		revisit(node);
 	}
@@ -289,6 +296,12 @@ private:
 	{
 		return type_specifier->type == TypeSpecifier::ReferredType::PRIMITIVE
 				&& type_specifier->referred.primitive == PrimitiveType::VOID;
+	}
+
+	static bool isEllipsis(TypeSpecifier* type_specifier)
+	{
+		return type_specifier->type == TypeSpecifier::ReferredType::PRIMITIVE
+				&& type_specifier->referred.primitive == PrimitiveType::VARIADIC_ELLIPSIS;
 	}
 
 	static EnumDecl* resolveEnum(ASTNode* unknown)

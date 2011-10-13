@@ -51,6 +51,7 @@ using zillians::language::tree::visitor::NameManglingVisitor;
 // MISSING_PARAM_INIT
 // UNEXPECTED_VARIADIC_PARAM
 // UNEXPECTED_VARIADIC_TEMPLATE_PARAM
+// UNEXPECTED_VARIADIC_TEMPLATE_ARG
 // EXCEED_PARAM_LIMIT
 // EXCEED_TEMPLATE_PARAM_LIMIT
 
@@ -74,21 +75,21 @@ struct SemanticVerificationStageVisitor0 : GenericDoubleVisitor
 		revisit(node);
 	}
 
-#if 0
 	void verify(Package& node)
 	{
-		revisit(node);
+		verifyDupeName(&node);
 
-		// CHECK: the package name should not conflict with its parent and sibling
-		if(node.parent && isa<Package>(node.parent))
+		// PACKAGE_NAME_COLLIDE_PARENT
+		if(node.parent && isa<Package>(node.parent)
+				&& node.id->toString() == cast<Package>(node.parent)->id->toString())
 		{
-			if(node.id->toString() == cast<Package>(node.parent)->id->toString())
-			{
-				// TODO log semantic check error
-			}
+			LOG_MESSAGE(PACKAGE_NAME_COLLIDE_PARENT, &node, _package_id = node.id->toString());
 		}
+
+		revisit(node);
 	}
 
+#if 0
 	void verify(ClassDecl& node)
 	{
 		// CHECK: variable name and function name should not conflict with each other
@@ -150,49 +151,49 @@ struct SemanticVerificationStageVisitor0 : GenericDoubleVisitor
 	}
 #endif
 
-	void verify(TemplatedIdentifier &node)
+	void verify(TemplatedIdentifier& node)
 	{
-		if(isTemplatable(node.parent))
+		std::set<std::wstring> name_set;
+		size_t n = 0;
+		foreach(i, node.templated_type_list)
 		{
-			std::set<std::wstring> name_set;
-			size_t n = 0;
-			foreach(i, node.templated_type_list)
+			switch(node.type)
 			{
-				switch(node.type)
+			case TemplatedIdentifier::Usage::FORMAL_PARAMETER:
 				{
-				case TemplatedIdentifier::Usage::FORMAL_PARAMETER:
-					{
-						std::wstring name = cast<Identifier>(*i)->toString();
+					std::wstring name = cast<Identifier>(*i)->toString();
 
-						// DUPE_NAME
-						if(name_set.find(name) == name_set.end())
-							name_set.insert(name);
-						else
-							LOG_MESSAGE(DUPE_NAME, &node, _id = name);
+					// DUPE_NAME
+					if(name_set.find(name) == name_set.end())
+						name_set.insert(name);
+					else
+						LOG_MESSAGE(DUPE_NAME, &node, _id = name);
 
-						// UNEXPECTED_VARIADIC_TEMPLATE_PARAM
-						if(name == L"..." && !is_end_of_foreach(i, node.templated_type_list))
-							LOG_MESSAGE(UNEXPECTED_VARIADIC_TEMPLATE_PARAM, &node);
-					}
-					break;
-				case TemplatedIdentifier::Usage::ACTUAL_ARGUMENT:
-					// NOTE: no need to check DUPE_NAME
-					// NOTE: no need to check UNEXPECTED_VARIADIC_TEMPLATE_PARAM (not possible until s1)
-					break;
+					// UNEXPECTED_VARIADIC_TEMPLATE_PARAM
+					if(name == L"..." && !is_end_of_foreach(i, node.templated_type_list))
+						LOG_MESSAGE(UNEXPECTED_VARIADIC_TEMPLATE_PARAM, &node);
 				}
+				break;
+			case TemplatedIdentifier::Usage::ACTUAL_ARGUMENT:
 
-				n++;
+				// UNEXPECTED_VARIADIC_TEMPLATE_ARG
+				if(isEllipsis(cast<TypeSpecifier>(*i)) && !is_end_of_foreach(i, node.templated_type_list))
+					LOG_MESSAGE(UNEXPECTED_VARIADIC_TEMPLATE_ARG, &node);
+
+				break;
 			}
 
-			// EXCEED_TEMPLATE_PARAM_LIMIT
-			if(n>getConfigurationContext().max_template_arg_param_count)
-				LOG_MESSAGE(EXCEED_TEMPLATE_PARAM_LIMIT, &node);
+			n++;
 		}
+
+		// EXCEED_TEMPLATE_PARAM_LIMIT
+		if(n>getConfigurationContext().max_template_arg_param_count)
+			LOG_MESSAGE(EXCEED_TEMPLATE_PARAM_LIMIT, &node);
 
 		revisit(node);
 	}
 
-	void verify(BinaryExpr &node)
+	void verify(BinaryExpr& node)
 	{
 		// WRITE_RVALUE
 		if(node.isAssignment() && node.left->isRValue())
@@ -201,7 +202,7 @@ struct SemanticVerificationStageVisitor0 : GenericDoubleVisitor
 		revisit(node);
 	}
 
-	void verify(Statement &node)
+	void verify(Statement& node)
 	{
 		// DEAD_CODE
 		verifyDeadCode(&node);
@@ -209,7 +210,7 @@ struct SemanticVerificationStageVisitor0 : GenericDoubleVisitor
 		revisit(node);
 	}
 
-	void verify(BranchStmt &node)
+	void verify(BranchStmt& node)
 	{
 		// MISSING_BREAK_TARGET
 		// MISSING_CONTINUE_TARGET
@@ -228,7 +229,7 @@ struct SemanticVerificationStageVisitor0 : GenericDoubleVisitor
 		revisit(node);
 	}
 
-	void verify(Block &node)
+	void verify(Block& node)
 	{
 		revisit(node);
 
@@ -237,9 +238,9 @@ struct SemanticVerificationStageVisitor0 : GenericDoubleVisitor
 			SemanticVerificationBlockContext_HasVisitedReturn::bind(node.parent);
 	}
 
-	void verify(VariableDecl &node)
+	void verify(VariableDecl& node)
 	{
-		verifyDupeName(cast<Declaration>(&node));
+		verifyDupeName(&node);
 
 		// MISSING_STATIC_INIT
 		if(node.is_static && !node.initializer)
@@ -248,9 +249,9 @@ struct SemanticVerificationStageVisitor0 : GenericDoubleVisitor
 		revisit(node);
 	}
 
-	void verify(FunctionDecl &node)
+	void verify(FunctionDecl& node)
 	{
-		verifyDupeName(cast<Declaration>(&node));
+		verifyDupeName(&node);
 
 		std::wstring name = node.name->toString();
 
@@ -280,10 +281,8 @@ struct SemanticVerificationStageVisitor0 : GenericDoubleVisitor
 				LOG_MESSAGE(MISSING_PARAM_INIT, &node, _param_index = (int)n+1, _func_id = name);
 
 			// UNEXPECTED_VARIADIC_PARAM
-			if(cast<VariableDecl>(*i)->type->type == TypeSpecifier::ReferredType::PRIMITIVE &&
-					cast<VariableDecl>(*i)->type->referred.primitive == PrimitiveType::VARIADIC_ELLIPSIS &&
-					!is_end_of_foreach(i, node.parameters))
-						LOG_MESSAGE(UNEXPECTED_VARIADIC_PARAM, &node);
+			if(isEllipsis(cast<VariableDecl>(*i)->type) && !is_end_of_foreach(i, node.parameters))
+				LOG_MESSAGE(UNEXPECTED_VARIADIC_PARAM, &node);
 
 			n++;
 		}
@@ -295,31 +294,45 @@ struct SemanticVerificationStageVisitor0 : GenericDoubleVisitor
 		revisit(node);
 	}
 
-	void verify(ClassDecl &node)
+	void verify(ClassDecl& node)
 	{
-		verifyDupeName(cast<Declaration>(&node));
+		verifyDupeName(&node);
 
 		revisit(node);
 	}
 
 private:
-	static void verifyDupeName(Declaration* node)
+	static bool isEllipsis(TypeSpecifier* type_specifier)
+	{
+		return type_specifier->type == TypeSpecifier::ReferredType::PRIMITIVE
+				&& type_specifier->referred.primitive == PrimitiveType::VARIADIC_ELLIPSIS;
+	}
+
+	static void verifyDupeName(ASTNode* node)
 	{
 		// DUPE_NAME
-		SemanticVerificationScopeContext_NameSet* context =
-				SemanticVerificationScopeContext_NameSet::bind(ASTNodeHelper::getOwnerNamedScope(*node));
-		std::wstring name = node->name->toString();
-		if(context->names.find(name) == context->names.end())
-			context->names.insert(name);
-		else
+		ASTNode* owner = ASTNodeHelper::getOwnerNamedScope(*node);
+		std::wstring name;
+		if(isa<Declaration>(node))
+			name = cast<Declaration>(node)->name->toString();
+		else if(isa<Package>(node))
+			name = cast<Package>(node)->id->toString();
+		if(owner && !name.empty())
 		{
-			if(isa<FunctionDecl>(node->parent) // function parameter repeat -- attach to function, not parameter
-					|| isa<DeclarativeStmt>(node->parent)) // local variable repeat -- attach to statement, not declaration
-			{
-				LOG_MESSAGE(DUPE_NAME, node->parent, _id = name);
-			}
+			SemanticVerificationScopeContext_NameSet* owner_context =
+					SemanticVerificationScopeContext_NameSet::bind(owner);
+			if(owner_context->names.find(name) == owner_context->names.end())
+				owner_context->names.insert(name);
 			else
-				LOG_MESSAGE(DUPE_NAME, node, _id = name);
+			{
+				if(isa<FunctionDecl>(node->parent) // function parameter repeat -- attach to function, not parameter
+						|| isa<DeclarativeStmt>(node->parent)) // local variable repeat -- attach to statement, not declaration
+				{
+					LOG_MESSAGE(DUPE_NAME, node->parent, _id = name);
+				}
+				else
+					LOG_MESSAGE(DUPE_NAME, node, _id = name);
+			}
 		}
 	}
 
@@ -328,11 +341,6 @@ private:
 		// DEAD_CODE
 		if(isa<Block>(node->parent) && SemanticVerificationBlockContext_HasVisitedReturn::is_bound(node->parent))
 			LOG_MESSAGE(DEAD_CODE, node);
-	}
-
-	static bool isTemplatable(ASTNode* node)
-	{
-		return isa<FunctionDecl>(node) || isa<ClassDecl>(node);
 	}
 
 	static bool isConditional(ASTNode* node)
