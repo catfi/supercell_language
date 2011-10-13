@@ -889,11 +889,12 @@ struct ThorScript : qi::grammar<Iterator, typename SA::start::attribute_type, de
 		///
 
 		program
-			= qi::eps [ typename SA::location::cache_loc() ]
-				>>	(-( (PACKAGE > nested_identifier > SEMICOLON)     [ typename SA::program::append_package() ] )
-						> *( (IMPORT > nested_identifier > SEMICOLON) [ typename SA::program::append_import() ] )
-						> *( global_decl                              [ typename SA::program::append_global_decl() ] )
-					)
+			=	-(	(-annotation_list >> location [ typename SA::location::cache_loc() ]
+						>> PACKAGE >> nested_identifier >> SEMICOLON
+					) [ typename SA::program::append_package() ]
+				)
+				> *( (IMPORT > nested_identifier > SEMICOLON) [ typename SA::program::append_import() ] )
+				> *( global_decl                              [ typename SA::program::append_global_decl() ] )
 			;
 
 		///

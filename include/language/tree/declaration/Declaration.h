@@ -58,7 +58,7 @@ struct Declaration : public ASTNode
 		if(name) name->parent = this;
 	}
 
-	void setAnnotation(Annotations* anns)
+	void setAnnotations(Annotations* anns)
 	{
 		if(annotations) annotations->parent = NULL;
 		anns->parent = this;

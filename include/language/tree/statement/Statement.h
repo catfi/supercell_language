@@ -36,7 +36,7 @@ struct Statement : public ASTNode
 	Statement() : annotations(NULL)
 	{ }
 
-	void setAnnotation(Annotations* anns)
+	void setAnnotations(Annotations* anns)
 	{
 		if(annotations) annotations->parent = NULL;
 		anns->parent = this;
