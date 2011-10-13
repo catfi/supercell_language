@@ -77,6 +77,8 @@ struct SemanticVerificationStageVisitor0 : GenericDoubleVisitor
 
 	void verify(Package& node)
 	{
+		verifyDupeName(&node);
+
 		// PACKAGE_NAME_COLLIDE_PARENT
 		if(node.parent && isa<Package>(node.parent)
 				&& node.id->toString() == cast<Package>(node.parent)->id->toString())
@@ -238,7 +240,7 @@ struct SemanticVerificationStageVisitor0 : GenericDoubleVisitor
 
 	void verify(VariableDecl& node)
 	{
-		verifyDupeName(cast<Declaration>(&node));
+		verifyDupeName(&node);
 
 		// MISSING_STATIC_INIT
 		if(node.is_static && !node.initializer)
@@ -249,7 +251,7 @@ struct SemanticVerificationStageVisitor0 : GenericDoubleVisitor
 
 	void verify(FunctionDecl& node)
 	{
-		verifyDupeName(cast<Declaration>(&node));
+		verifyDupeName(&node);
 
 		std::wstring name = node.name->toString();
 
@@ -294,7 +296,7 @@ struct SemanticVerificationStageVisitor0 : GenericDoubleVisitor
 
 	void verify(ClassDecl& node)
 	{
-		verifyDupeName(cast<Declaration>(&node));
+		verifyDupeName(&node);
 
 		revisit(node);
 	}
@@ -306,23 +308,31 @@ private:
 				&& type_specifier->referred.primitive == PrimitiveType::VARIADIC_ELLIPSIS;
 	}
 
-	static void verifyDupeName(Declaration* node)
+	static void verifyDupeName(ASTNode* node)
 	{
 		// DUPE_NAME
-		SemanticVerificationScopeContext_NameSet* context =
-				SemanticVerificationScopeContext_NameSet::bind(ASTNodeHelper::getOwnerNamedScope(*node));
-		std::wstring name = node->name->toString();
-		if(context->names.find(name) == context->names.end())
-			context->names.insert(name);
-		else
+		ASTNode* owner = ASTNodeHelper::getOwnerNamedScope(*node);
+		std::wstring name;
+		if(isa<Declaration>(node))
+			name = cast<Declaration>(node)->name->toString();
+		else if(isa<Package>(node))
+			name = cast<Package>(node)->id->toString();
+		if(owner && !name.empty())
 		{
-			if(isa<FunctionDecl>(node->parent) // function parameter repeat -- attach to function, not parameter
-					|| isa<DeclarativeStmt>(node->parent)) // local variable repeat -- attach to statement, not declaration
-			{
-				LOG_MESSAGE(DUPE_NAME, node->parent, _id = name);
-			}
+			SemanticVerificationScopeContext_NameSet* owner_context =
+					SemanticVerificationScopeContext_NameSet::bind(owner);
+			if(owner_context->names.find(name) == owner_context->names.end())
+				owner_context->names.insert(name);
 			else
-				LOG_MESSAGE(DUPE_NAME, node, _id = name);
+			{
+				if(isa<FunctionDecl>(node->parent) // function parameter repeat -- attach to function, not parameter
+						|| isa<DeclarativeStmt>(node->parent)) // local variable repeat -- attach to statement, not declaration
+				{
+					LOG_MESSAGE(DUPE_NAME, node->parent, _id = name);
+				}
+				else
+					LOG_MESSAGE(DUPE_NAME, node, _id = name);
+			}
 		}
 	}
 
