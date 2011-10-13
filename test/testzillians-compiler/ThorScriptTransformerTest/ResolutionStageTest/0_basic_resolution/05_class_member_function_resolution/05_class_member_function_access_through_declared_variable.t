@@ -2,7 +2,7 @@ package com.zillians.compiler_test;
 
 class test_me
 {
-	static function f0(x:uint64, y:uint64):uint64
+	static function f0(x:int64, y:int64):int64
 	{
 		return x + y;
 	}
