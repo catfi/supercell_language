@@ -140,12 +140,8 @@ struct SemanticVerificationStageVisitor1 : GenericDoubleVisitor
 		// UNEXPECTED_VARIADIC_ARG
 		foreach(i, node.parameters)
 		{
-			ASTNode* resolved_symbol = ResolvedSymbol::get(*i);
-			if(isa<VariableDecl>(resolved_symbol)
-					&& isEllipsis(cast<VariableDecl>(resolved_symbol)->type) && !is_end_of_foreach(i, node.parameters))
-			{
+			if(isEllipsis(cast<TypeSpecifier>(ResolvedType::get(*i))) && !is_end_of_foreach(i, node.parameters))
 				LOG_MESSAGE(UNEXPECTED_VARIADIC_ARG, &node);
-			}
 		}
 
 		revisit(node);
