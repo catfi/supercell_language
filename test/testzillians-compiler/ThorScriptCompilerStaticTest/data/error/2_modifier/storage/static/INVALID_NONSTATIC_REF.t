@@ -18,11 +18,11 @@ class QWE
         // reference static member variable
         y=17;
 
-        // call non-static local variable
+        // ref non-static local variable
         var p:int32 = 0;
         p;
 
-        // call static local variable
+        // ref static local variable
         static var q:int32 = 0;
         q;
     }
