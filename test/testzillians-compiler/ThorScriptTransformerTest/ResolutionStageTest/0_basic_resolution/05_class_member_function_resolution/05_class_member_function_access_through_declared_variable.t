@@ -8,7 +8,7 @@ class test_me
 	}
 }
 
-function test()
+function test():void
 {
 	var c:test_me;// = new test_me();
 	c.f0();

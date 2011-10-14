@@ -117,7 +117,7 @@ struct ResolutionStageVisitor : GenericDoubleVisitor
 	void resolve(Import& node)
 	{
 		package_visitor.reset();
-		package_visitor.search(node.ns);
+		package_visitor.candidate(node.ns);
 		package_visitor.filter(ResolutionVisitor::Filter::PACKAGE);
 
 		// TODO how to handle mutual import?
@@ -235,7 +235,9 @@ struct ResolutionStageVisitor : GenericDoubleVisitor
 
 			if(node.initializer)
 			{
-				convertImpl(node, node, *node.initializer, true /*is_assignment*/, false /*is_arithmetic*/, false /*is_logica*/);
+				// this should be never reached because the initializer are transformed/restructured prior to resolution stage
+				BOOST_ASSERT(false && "reaching unreachable code");
+				//convertImpl(node, node, *node.initializer, true /*is_assignment*/, false /*is_arithmetic*/, false /*is_logical*/);
 			}
 		}
 		else if(type == Target::SYMBOL_RESOLUTION)
@@ -247,7 +249,10 @@ struct ResolutionStageVisitor : GenericDoubleVisitor
 //				LOG4CXX_ERROR(LoggerWrapper::Resolver, L"ambiguous variable declared: " << node.name->toString());
 //			}
 			if(node.initializer)
-				visit(*node.initializer);
+			{
+				BOOST_ASSERT(false && "reaching unreachable code");
+				//visit(*node.initializer);
+			}
 		}
 	}
 
@@ -317,8 +322,27 @@ struct ResolutionStageVisitor : GenericDoubleVisitor
 	void resolve(UnaryExpr& node)
 	{
 		revisit(node);
-		// propagate the type from contained node
-		propogateType(node, *node.node);
+
+		if(node.opcode == UnaryExpr::OpCode::NEW)
+		{
+			if(!ResolvedType::get(&node))
+			{
+
+			}
+		}
+		else if(node.opcode == UnaryExpr::OpCode::LOGICAL_NOT)
+		{
+			if(!ResolvedType::get(&node))
+			{
+				ResolvedType::set(&node, getInternalPrimitiveType(PrimitiveType::BOOL));
+				++resolved_count;
+			}
+		}
+		else
+		{
+			// propagate the type from contained node
+			propogateType(node, *node.node);
+		}
 	}
 
 	void resolve(BinaryExpr& node)
@@ -659,7 +683,7 @@ private:
 		if(!scope || !node)
 			return false;
 
-		if(ResolvedSymbol::get(attach) && ResolvedPackage::get(attach))
+		if(ResolvedSymbol::get(attach) || ResolvedPackage::get(attach))
 			return true;
 
 		if(resolver.resolveSymbol(*attach, *scope, *node, no_action))
@@ -688,7 +712,7 @@ private:
 		if(!node)
 			return false;
 
-		if(ResolvedSymbol::get(attach) && ResolvedPackage::get(attach))
+		if(ResolvedSymbol::get(attach) || ResolvedPackage::get(attach))
 			return true;
 
 		if(resolver.resolveSymbol(*attach, *node, no_action))
