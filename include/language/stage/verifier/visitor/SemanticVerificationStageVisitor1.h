@@ -75,54 +75,55 @@ struct SemanticVerificationStageVisitor1 : GenericDoubleVisitor
 
 	void verify(MemberExpr& node)
 	{
-		ASTNode* resolved_symbol = ResolvedSymbol::get(&node);
-		if(resolved_symbol) // NOTE: NULL if package
-		{
-			// INVALID_ACCESS_PRIVATE
-			// INVALID_ACCESS_PROTECTED
-			if(isa<VariableDecl>(resolved_symbol))
-				verifyVisibilityAccessViolation(&node, cast<VariableDecl>(resolved_symbol));
-			else if(isa<FunctionDecl>(resolved_symbol))
-				verifyVisibilityAccessViolation(&node, cast<FunctionDecl>(resolved_symbol));
-		}
+		ASTNode* unknown = ResolvedSymbol::get(&node);
+		if(unknown) // NOTE: NULL if package
+			if(isa<VariableDecl>(unknown))
+			{
+				VariableDecl* var_decl = cast<VariableDecl>(unknown);
+				verifyVisibilityAccessViolation(&node, unknown, var_decl->name->toString(), var_decl->visibility);
+			}
+			else if(isa<FunctionDecl>(unknown))
+			{
+				FunctionDecl* func_decl = cast<FunctionDecl>(unknown);
+				verifyVisibilityAccessViolation(&node, unknown, func_decl->name->toString(), func_decl->visibility);
+			}
 
 		revisit(node);
 	}
 
 	void verify(PrimaryExpr& node)
 	{
-		if(node.catagory == PrimaryExpr::Catagory::IDENTIFIER)
+		if(ASTNodeHelper::hasOwner<FunctionDecl>(&node) && node.catagory == PrimaryExpr::Catagory::IDENTIFIER)
 		{
-			ASTNode* resolved_symbol = ResolvedSymbol::get(&node);
-			if(resolved_symbol) // NOTE: NULL if package
-			{
-				if(isa<VariableDecl>(resolved_symbol))
+			ASTNode* unknown = ResolvedSymbol::get(&node);
+			if(unknown) // NOTE: NULL if package
+				if(isa<VariableDecl>(unknown))
 				{
-					VariableDecl* var_decl = cast<VariableDecl>(resolved_symbol);
+					VariableDecl* var_decl = cast<VariableDecl>(unknown);
+
+					if(!ASTNodeHelper::isFuncParam(var_decl))
+					{
+						// UNINIT_REF
+						if(!SemanticVerificationVariableDeclContext_HasBeenInit::get(var_decl))
+							LOG_MESSAGE(UNINIT_REF, &node, _var_id = var_decl->name->toString());
+
+						// INVALID_NONSTATIC_REF
+						if(ASTNodeHelper::getOwner<FunctionDecl>(&node)->is_static && !var_decl->is_static)
+							LOG_MESSAGE(INVALID_NONSTATIC_REF, &node, _var_id = var_decl->name->toString());
+					}
+
+					verifyVisibilityAccessViolation(&node, unknown, var_decl->name->toString(), var_decl->visibility);
+				}
+				else if(isa<FunctionDecl>(unknown))
+				{
+					FunctionDecl* func_decl = cast<FunctionDecl>(unknown);
 
 					// INVALID_NONSTATIC_REF
-					verifyStaticAccessViolation(&node, var_decl);
+					if(ASTNodeHelper::getOwner<FunctionDecl>(&node)->is_static && !func_decl->is_static)
+						LOG_MESSAGE(INVALID_NONSTATIC_REF, &node, _var_id = func_decl->name->toString());
 
-					// INVALID_ACCESS_PRIVATE
-					// INVALID_ACCESS_PROTECTED
-					verifyVisibilityAccessViolation(&node, var_decl);
-
-					// UNINIT_REF
-					if(!SemanticVerificationVariableDeclContext_HasBeenInit::get(var_decl))
-						LOG_MESSAGE(UNINIT_REF, &node, _var_id = var_decl->name->toString());
+					verifyVisibilityAccessViolation(&node, unknown, func_decl->name->toString(), func_decl->visibility);
 				}
-				else if(isa<FunctionDecl>(resolved_symbol))
-				{
-					FunctionDecl* func_decl = cast<FunctionDecl>(resolved_symbol);
-
-					// INVALID_NONSTATIC_REF
-					verifyStaticAccessViolation(&node, func_decl);
-
-					// INVALID_ACCESS_PRIVATE
-					// INVALID_ACCESS_PROTECTED
-					verifyVisibilityAccessViolation(&node, func_decl);
-				}
-			}
 		}
 
 		revisit(node);
@@ -131,16 +132,27 @@ struct SemanticVerificationStageVisitor1 : GenericDoubleVisitor
 	void verify(CallExpr& node)
 	{
 		// INVALID_NONSTATIC_CALL
-		ASTNode* resolved_symbol = ResolvedSymbol::get(node.node);
-		if(isa<FunctionDecl>(resolved_symbol))
-			verifyStaticAccessViolation(&node, cast<FunctionDecl>(resolved_symbol), true);
-		else if(isa<VariableDecl>(resolved_symbol))
-			verifyStaticAccessViolation(&node, cast<VariableDecl>(resolved_symbol), true);
+		bool is_static = false;
+		std::wstring name;
+		ASTNode* unknown = ResolvedSymbol::get(node.node);
+		if(isa<FunctionDecl>(unknown))
+		{
+			FunctionDecl* func_decl = cast<FunctionDecl>(unknown);
+			if(ASTNodeHelper::getOwner<FunctionDecl>(&node)->is_static && !func_decl->is_static)
+				LOG_MESSAGE(INVALID_NONSTATIC_CALL, &node, _func_id = func_decl->name->toString());
+		}
+		else if(isa<VariableDecl>(unknown))
+		{
+			VariableDecl* var_decl = cast<VariableDecl>(unknown);
+			if(ASTNodeHelper::getOwner<FunctionDecl>(&node)->is_static && !var_decl->is_static)
+				LOG_MESSAGE(INVALID_NONSTATIC_CALL, &node, _func_id = var_decl->name->toString());
+		}
 
 		// UNEXPECTED_VARIADIC_ARG
 		foreach(i, node.parameters)
 		{
-			if(isEllipsis(cast<TypeSpecifier>(ResolvedType::get(*i))) && !is_end_of_foreach(i, node.parameters))
+			ASTNode* unknown = ResolvedSymbol::get(*i);
+			if(isa<VariableDecl>(unknown) && isEllipsis(cast<VariableDecl>(unknown)->type) && !is_end_of_foreach(i, node.parameters))
 				LOG_MESSAGE(UNEXPECTED_VARIADIC_ARG, &node);
 		}
 
@@ -151,10 +163,10 @@ struct SemanticVerificationStageVisitor1 : GenericDoubleVisitor
 	{
 		if(node.isAssignment())
 		{
-			ASTNode* resolved_symbol = ResolvedSymbol::get(node.left);
-			if(isa<VariableDecl>(resolved_symbol))
+			ASTNode* unknown = ResolvedSymbol::get(node.left);
+			if(isa<VariableDecl>(unknown))
 			{
-				VariableDecl* var_decl = cast<VariableDecl>(resolved_symbol);
+				VariableDecl* var_decl = cast<VariableDecl>(unknown);
 
 				// WRITE_CONST
 				// if the binary expression is assignment and it's split from variable declaration
@@ -187,11 +199,11 @@ struct SemanticVerificationStageVisitor1 : GenericDoubleVisitor
 
 			// MISSING_RETURN_VALUE
 			// UNEXPECTED_RETURN_VALUE
-			TypeSpecifier* param_type = func_decl->type;
-			TypeSpecifier* arg_type = cast<TypeSpecifier>(ResolvedType::get(&node));
-			if(!isVoid(param_type) && isVoid(arg_type))
-				LOG_MESSAGE(MISSING_RETURN_VALUE, &node, _type = param_type->toString());
-			if(isVoid(param_type) && !isVoid(arg_type))
+			TypeSpecifier* return_param = func_decl->type;
+			TypeSpecifier* return_arg = cast<TypeSpecifier>(ResolvedType::get(&node));
+			if(!isVoid(return_param) && isVoid(return_arg))
+				LOG_MESSAGE(MISSING_RETURN_VALUE, &node, _type = return_param->toString());
+			if(isVoid(return_param) && !isVoid(return_arg))
 				LOG_MESSAGE(UNEXPECTED_RETURN_VALUE, &node);
 		}
 
@@ -251,25 +263,21 @@ struct SemanticVerificationStageVisitor1 : GenericDoubleVisitor
 		// MISSING_CASE
 		foreach(i, node.cases)
 		{
-			ASTNode* resolved_symbol = ResolvedSymbol::get((*i).cond);
-			if(isa<Identifier>(resolved_symbol))
-				SemanticVerificationEnumKeyContext_HasVisited::bind(resolved_symbol);
+			ASTNode* unknown = ResolvedSymbol::get((*i).cond);
+			if(isa<Identifier>(unknown))
+				SemanticVerificationEnumKeyContext_HasVisited::bind(unknown);
 		}
 		EnumDecl* enum_decl = resolveEnum(node.node);
 		if(enum_decl)
-		{
 			foreach(i, enum_decl->enumeration_list)
 				SemanticVerificationEnumKeyContext_HasVisited::unbind((*i).first);
-		}
 		foreach(i, enum_decl->enumeration_list)
-		{
 			if(SemanticVerificationEnumKeyContext_HasVisited::is_bound((*i).first))
 			{
 				if(!node.default_block)
 					LOG_MESSAGE(MISSING_CASE, &node, _id = (*i).first->toString());
 				SemanticVerificationEnumKeyContext_HasVisited::unbind((*i).first);
 			}
-		}
 
 		revisit(node);
 
@@ -302,54 +310,35 @@ private:
 	{
 		BOOST_ASSERT(node && "null pointer exception");
 		TypeSpecifier* type_specifier = cast<TypeSpecifier>(ResolvedType::get(node));
-		if(type_specifier->type == TypeSpecifier::ReferredType::UNSPECIFIED)
-		{
-			ASTNode* resolved_symbol = ResolvedSymbol::get(type_specifier->referred.unspecified);
-			if(isa<EnumDecl>(resolved_symbol))
-				return cast<EnumDecl>(resolved_symbol);
-		}
-		return NULL;
+		if(type_specifier->type != TypeSpecifier::ReferredType::UNSPECIFIED)
+			return NULL;
+		ASTNode* unknown_unspecified = ResolvedSymbol::get(type_specifier->referred.unspecified);
+		if(!isa<EnumDecl>(unknown_unspecified))
+			return NULL;
+		return cast<EnumDecl>(unknown_unspecified);
 	}
 
-	template<class T>
-	static void verifyVisibilityAccessViolation(ASTNode* node_ref, T* node_decl)
+	static void verifyVisibilityAccessViolation(
+			ASTNode* node_ref, ASTNode* node_decl, std::wstring name_decl, Declaration::VisibilitySpecifier::type visibility_decl)
 	{
 		BOOST_ASSERT(node_ref && node_decl && "null pointer exception");
-		BOOST_ASSERT(!node_decl->name->toString().empty() && "empty name");
+		BOOST_ASSERT(!name_decl.empty() && "empty name");
 
 		// INVALID_ACCESS_PRIVATE
 		// INVALID_ACCESS_PROTECTED
-		if(node_decl->is_member)
-		{
-			ClassDecl* ref_point = ASTNodeHelper::getOwner<ClassDecl>(node_ref);
-			ClassDecl* decl_point = ASTNodeHelper::getOwner<ClassDecl>(node_decl);
-			if(decl_point && ref_point != decl_point)
+		ClassDecl* ref_point = ASTNodeHelper::getOwner<ClassDecl>(node_ref);
+		ClassDecl* decl_point = ASTNodeHelper::getOwner<ClassDecl>(node_decl);
+		if(ref_point != decl_point)
+			switch(visibility_decl)
 			{
-				switch(node_decl->visibility)
-				{
-				case Declaration::VisibilitySpecifier::PRIVATE:
-					LOG_MESSAGE(INVALID_ACCESS_PRIVATE, node_ref, _id = node_decl->name->toString());
-					break;
-				case Declaration::VisibilitySpecifier::PROTECTED:
-					if(!ref_point || !ASTNodeHelper::isInheritedFrom(ref_point, decl_point))
-						LOG_MESSAGE(INVALID_ACCESS_PROTECTED, node_ref, _id = node_decl->name->toString());
-					break;
-				}
+			case Declaration::VisibilitySpecifier::PRIVATE:
+				LOG_MESSAGE(INVALID_ACCESS_PRIVATE, node_ref, _id = name_decl);
+				break;
+			case Declaration::VisibilitySpecifier::PROTECTED:
+				if(!(ref_point && decl_point && ASTNodeHelper::isInheritedFrom(ref_point, decl_point)))
+					LOG_MESSAGE(INVALID_ACCESS_PROTECTED, node_ref, _id = name_decl);
+				break;
 			}
-		}
-	}
-
-	template<class T>
-	static void verifyStaticAccessViolation(ASTNode* node_ref, T* node_decl, bool is_call = false)
-	{
-		// INVALID_NONSTATIC_REF
-		if(ASTNodeHelper::getOwner<FunctionDecl>(node_ref)->is_static && node_decl->is_member && !node_decl->is_static)
-		{
-			if(is_call)
-				LOG_MESSAGE(INVALID_NONSTATIC_CALL, node_ref, _func_id = node_decl->name->toString());
-			else
-				LOG_MESSAGE(INVALID_NONSTATIC_REF, node_ref, _var_id = node_decl->name->toString());
-		}
 	}
 };
 

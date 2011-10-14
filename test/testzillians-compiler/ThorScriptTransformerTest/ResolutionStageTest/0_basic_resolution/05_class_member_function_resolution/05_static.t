@@ -24,8 +24,9 @@ class test_me
 	
 	static function f4(x:int64, y:int64):int64
 	{
+		var t:int64 = 0;
 		if(x == 0 || y == 0)
-			return 0;
+			return t;
 		else
 			return f4(x-1, y-1); // verify resolution to local function (self)
 	}
