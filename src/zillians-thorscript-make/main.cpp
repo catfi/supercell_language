@@ -1,6 +1,6 @@
 /**
  * Zillians MMO
- * Copyright (C) 2007-2011 Zillians.com, Inc.
+ * Copyright (C) 2007-2010 Zillians.com, Inc.
  * For more information see http://www.zillians.com
  *
  * Zillians MMO is the library and runtime for massive multiplayer online game
@@ -16,21 +16,19 @@
  * AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
+/**
+ * @date Sep 26, 2011 yoco - Initial version created.
+ */
 
-#ifndef ZILLIANS_LANGUAGE_STAGE_DEP_THORSCRIPTSOURCETANGLES_H_
-#define ZILLIANS_LANGUAGE_STAGE_DEP_THORSCRIPTSOURCETANGLES_H_
+#include "language/logging/LoggerWrapper.h"
+#include "language/ThorScriptMake.h"
 
-#include <boost/graph/adjacency_list.hpp>
+int main(int argc, const char** argv)
+{
+	// TODO: We temporarily use setlocale to force the application to use system default locale.
+	// TODO: To make compile logger support utf8 encoding.
+	setlocale(LC_ALL, "");
 
-namespace zillians { namespace language { namespace stage {
-
-typedef boost::adjacency_list<
-            boost::setS, // disallow duplicated edge
-            boost::vecS,
-            boost::bidirectionalS, // directed graph
-            std::set<std::string> // vertex can be accessed as std::set with g[v].insert(foo)
-        > TangleGraphType;
-
-} } }
-
-#endif /* ZILLIANS_LANGUAGE_STAGE_DEP_THORSCRIPTSOURCETANGLES_H_ */
+	zillians::language::ThorScriptMake make;
+	return make.main(argc, argv);
+}

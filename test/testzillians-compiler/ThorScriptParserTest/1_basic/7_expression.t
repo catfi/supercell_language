@@ -50,4 +50,6 @@ function f():void
     --x;
 
     x ? 1 : 0;
+
+    new QWE;
 }

@@ -546,13 +546,12 @@ struct ThorScript : qi::grammar<Iterator, typename SA::start::attribute_type, de
 		// rank: 1
 		prefix_expression
 			= qi::eps [ typename SA::location::cache_loc() ]
-				>>	(postfix_expression
+				>>	(	( -( NEW > qi::attr(tree::UnaryExpr::OpCode::NEW) ) >> postfix_expression )
 					|	(	( ( INCREMENT        > qi::attr(tree::UnaryExpr::OpCode::PREFIX_INCREMENT) )
 							| ( DECREMENT        > qi::attr(tree::UnaryExpr::OpCode::PREFIX_DECREMENT) )
 							| ( BINARY_NOT       > qi::attr(tree::UnaryExpr::OpCode::BINARY_NOT) )
 							| ( LOGICAL_NOT      > qi::attr(tree::UnaryExpr::OpCode::LOGICAL_NOT) )
 							| ( ARITHMETIC_MINUS > qi::attr(tree::UnaryExpr::OpCode::ARITHMETIC_NEGATE) )
-							| ( NEW              > qi::attr(tree::UnaryExpr::OpCode::NEW) )
 							) > prefix_expression
 						)
 					) [ typename SA::prefix_expression::init() ]

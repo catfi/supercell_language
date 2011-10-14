@@ -229,7 +229,14 @@ struct prefix_expression
 		switch(_param(0).which())
 		{
 		case 0:
-			_result = boost::get<Expression*>(_param(0));
+			{
+				typedef boost::fusion::vector2<boost::optional<UnaryExpr::OpCode::type>, Expression*> fusion_vec_t;
+				fusion_vec_t &vec = boost::get<fusion_vec_t>(_param(0));
+				boost::optional<UnaryExpr::OpCode::type> optional_type = boost::fusion::at_c<0>(vec);
+				_result = boost::fusion::at_c<1>(vec);
+				if(optional_type.is_initialized())
+					BIND_CACHED_LOCATION(_result = new UnaryExpr(UnaryExpr::OpCode::NEW, _result));
+			}
 			break;
 		case 1:
 			{
