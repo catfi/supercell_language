@@ -192,7 +192,7 @@ struct ASTNodeHelper
 		return NULL;
 	}
 
-	static ASTNode* getAttachPoint(ASTNode* node)
+	static ASTNode* getDebugAnnotationAttachPoint(ASTNode* node)
 	{
 		BOOST_ASSERT(node && "null pointer exception");
 		ASTNode* current = NULL;
@@ -211,6 +211,23 @@ struct ASTNodeHelper
 	{
 		BOOST_ASSERT(node && "null pointer exception");
 		return isa<FunctionDecl>(node->parent);
+	}
+
+	static bool isDeclStmtVarDecl(VariableDecl* node)
+	{
+		BOOST_ASSERT(node && "null pointer exception");
+		return isa<DeclarativeStmt>(node->parent);
+	}
+
+	static bool isInvalidDebugAnnotationAttachPoint(ASTNode* node)
+	{
+		BOOST_ASSERT(node && "null pointer exception");
+		if(isa<VariableDecl>(node))
+		{
+			VariableDecl* var_decl = cast<VariableDecl>(node);
+			return isFuncParam(var_decl) || isDeclStmtVarDecl(var_decl);
+		}
+		return false;
 	}
 
 	static std::wstring getNodeName(ASTNode* node)
@@ -235,11 +252,10 @@ private:
 	static bool isDebugAnnotationAttachPoint(ASTNode* node)
 	{
 		BOOST_ASSERT(node && "null pointer exception");
-		return isa<Statement>(node)
-				||	(isa<Declaration>(node)
-						&& (!isa<VariableDecl>(node) || !isFuncParam(cast<VariableDecl>(node))) // exclude function parameters
-					)
-				|| isa<Package>(node);
+		return (isa<Statement>(node)
+				|| isa<Declaration>(node)
+				|| isa<Package>(node))
+						&& !isInvalidDebugAnnotationAttachPoint(node);
 	}
 
 	static ASTNode* getSplitReferenceAttachPoint(ASTNode* node)

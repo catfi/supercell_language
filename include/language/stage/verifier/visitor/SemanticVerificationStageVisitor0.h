@@ -259,21 +259,10 @@ struct SemanticVerificationStageVisitor0 : GenericDoubleVisitor
 		if(!node.block && !ASTNodeHelper::findAnnotation(&node, L"native"))
 			LOG_MESSAGE(INCOMPLETE_FUNC, &node, _func_id = name);
 
-		std::set<std::wstring> name_set;
 		bool visited_optional_param = false;
 		size_t n = 0;
 		foreach(i, node.parameters)
 		{
-#if 0 // NOTE: already handled by "::verifyDupeName"
-			std::wstring name = cast<VariableDecl>(*i)->name->toString();
-
-			// DUPE_NAME
-			if(name_set.find(name) == name_set.end())
-				name_set.insert(name);
-			else
-				LOG_MESSAGE(DUPE_NAME, &node, _id = name);
-#endif
-
 			// MISSING_PARAM_INIT
 			if(cast<VariableDecl>(*i)->initializer)
 				visited_optional_param = true;
