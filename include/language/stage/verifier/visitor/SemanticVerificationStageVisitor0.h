@@ -259,14 +259,14 @@ struct SemanticVerificationStageVisitor0 : GenericDoubleVisitor
 		if(!node.block && !ASTNodeHelper::findAnnotation(&node, L"native"))
 			LOG_MESSAGE(INCOMPLETE_FUNC, &node, _func_id = name);
 
-		bool visited_optional_param = false;
+		bool has_visited_optional_param = false;
 		size_t n = 0;
 		foreach(i, node.parameters)
 		{
 			// MISSING_PARAM_INIT
 			if(cast<VariableDecl>(*i)->initializer)
-				visited_optional_param = true;
-			else if(visited_optional_param)
+				has_visited_optional_param = true;
+			else if(has_visited_optional_param)
 				LOG_MESSAGE(MISSING_PARAM_INIT, &node, _param_index = (int)n+1, _func_id = name);
 
 			// UNEXPECTED_VARIADIC_PARAM
@@ -303,7 +303,6 @@ private:
 		BOOST_ASSERT(node && "null pointer exception");
 
 		// DUPE_NAME
-		ASTNode* owner = ASTNodeHelper::getOwnerNamedScope(node);
 		std::wstring name;
 		if(isa<Declaration>(node))
 			name = cast<Declaration>(node)->name->toString();
@@ -311,22 +310,15 @@ private:
 			name = cast<Package>(node)->id->toString();
 		else
 			BOOST_ASSERT(false && "reaching unreachable code");
+		ASTNode* owner = ASTNodeHelper::getOwnerNamedScope(node);
 		if(owner && !name.empty())
 		{
-			SemanticVerificationScopeContext_NameSet* owner_context =
+			SemanticVerificationScopeContext_NameSet* context =
 					SemanticVerificationScopeContext_NameSet::bind(owner);
-			if(owner_context->names.find(name) == owner_context->names.end())
-				owner_context->names.insert(name);
+			if(context->names.find(name) == context->names.end())
+				context->names.insert(name);
 			else
-			{
-				if(isa<FunctionDecl>(node->parent) // function parameter repeat -- attach to function, not parameter
-						|| isa<DeclarativeStmt>(node->parent)) // local variable repeat -- attach to statement, not declaration
-				{
-					LOG_MESSAGE(DUPE_NAME, node->parent, _id = name);
-				}
-				else
-					LOG_MESSAGE(DUPE_NAME, node, _id = name);
-			}
+				LOG_MESSAGE(DUPE_NAME, node, _id = name);
 		}
 	}
 
@@ -342,14 +334,12 @@ private:
 	static bool isConditional(ASTNode* node)
 	{
 		BOOST_ASSERT(node && "null pointer exception");
-
 		return isa<SelectionStmt>(node) || isa<IterativeStmt>(node);
 	}
 
 	static bool isBreakOrContinue(BranchStmt* node)
 	{
 		BOOST_ASSERT(node && "null pointer exception");
-
 		return node->opcode == BranchStmt::OpCode::BREAK
 				|| node->opcode == BranchStmt::OpCode::CONTINUE;
 	}
