@@ -100,7 +100,7 @@ struct RestructureStageVisitor : GenericDoubleVisitor
 
 		// for all class member function
 		bool need_to_prepend_this_argument = false;
-		ClassDecl* owner_class = ASTNodeHelper::getOwner<ClassDecl>(node);
+		ClassDecl* owner_class = ASTNodeHelper::getOwner<ClassDecl>(&node);
 		if(owner_class && node.is_member && !node.is_static)
 		{
 			if(node.parameters.size() == 0)
@@ -165,7 +165,7 @@ struct RestructureStageVisitor : GenericDoubleVisitor
 		//
 		// note that we skip parameters in FunctionDecl, which shouldn't be transformed
 		//
-		if(node.initializer && ASTNodeHelper::hasOwner<FunctionDecl>(node) && ASTNodeHelper::hasOwner<Block>(node))
+		if(node.initializer && ASTNodeHelper::hasOwner<FunctionDecl>(&node) && ASTNodeHelper::hasOwner<Block>(&node))
 		{
 			transforms.push_back([&](){
 				DeclarativeStmt* anchor = cast<DeclarativeStmt>(node.parent);
@@ -197,9 +197,9 @@ struct RestructureStageVisitor : GenericDoubleVisitor
 		}
 
 		// transform all class member variable with initializer into a initialization statement in all constructors
-		if(node.initializer && ASTNodeHelper::hasOwner<ClassDecl>(node))
+		if(node.initializer && ASTNodeHelper::hasOwner<ClassDecl>(&node))
 		{
-			ClassDecl* owner_class = ASTNodeHelper::getOwner<ClassDecl>(node);
+			ClassDecl* owner_class = ASTNodeHelper::getOwner<ClassDecl>(&node);
 			transforms.push_back([&, owner_class](){
 				foreach(i, owner_class->member_functions)
 				{
@@ -229,18 +229,79 @@ struct RestructureStageVisitor : GenericDoubleVisitor
 		}
 	}
 
+	void restruct(UnaryExpr& node)
+	{
+		revisit(node);
+
+		// transform simple new operator to new function call
+		// for example: new X
+		//
+		//  unary_expr(new)
+		//        |
+		//   primary_expr
+		//        |
+		//       "X"
+		//
+		// will be transformed into: X.new(zillians.system.objectCreate())
+		//
+		//                    call_expr
+		//                   /         \
+		//        member_expr           \ (parameters[0])
+		//       /           \           \
+		//  primary_expr    id("new")     call_expr
+		//       |                       /         \
+		//      "X"                 member_expr  <empty parameter>
+		//                         /           \
+		//                    member_expr    id("objectCreate")
+		//                   /           \
+		//              primary_expr     id("system")
+		//                   |
+		//             id("zillians")
+		//
+		//
+		// for example: new X(a, b)
+		//
+		//      unary_expr(new)
+		//            |
+		//         call_expr
+		//        /         +--------------------+
+		//  primary_expr     \ (parameters[0])    \ (parameter[1])
+		//       |            \                    \
+		//    id("X")     primary_expr         primary_expr
+		//                     |                    |
+		//                  id("a")              id("b")
+		//
+		// will be transformed into:
+		//
+		//                    call_expr
+		//                   /         +-------------------------------+-------------------+
+		//        member_expr           \ (parameters[0])               \ (parameters[1])   \
+		//       /           \           \                               \                   \
+		//  primary_expr    id("new")     call_expr                  primary_expr        primary_expr
+		//       |                       /         \                      |                   |
+		//      "X"                 member_expr  <empty parameter>     id("a")             id("b")
+		//                         /           \
+		//                    member_expr    id("objectCreate")
+		//                   /           \
+		//              primary_expr     id("system")
+		//                   |
+		//             id("zillians")
+		//
+
+	}
+
 	void restruct(BinaryExpr& node)
 	{
 		revisit(node);
 
 		// transform all arithmetic assignment into separate arithmetic expression and assignment expression
-		// for example (a += b):
+		// for example: a += b
 		//
 		//      +=
 		//     /  \
 		//    a    b
 		//
-		// will be transformed into:
+		// will be transformed into: a = a + b
 		//
 		//      =
 		//     / \
@@ -248,7 +309,7 @@ struct RestructureStageVisitor : GenericDoubleVisitor
 		//       / \
 		//      a   b
 		//
-		// for a more advanced example (a += b += c):
+		// for a more advanced example: a += b += c
 		//
 		//      +=
 		//     /  \
@@ -256,7 +317,7 @@ struct RestructureStageVisitor : GenericDoubleVisitor
 		//        /  \
 		//       b    c
 		//
-		// will be transformed into:
+		// will be transformed into: a = a + (b = (b + c))
 		//
 		//      =
 		//     / \

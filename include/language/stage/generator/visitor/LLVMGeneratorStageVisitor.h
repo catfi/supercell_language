@@ -168,7 +168,7 @@ struct LLVMGeneratorStageVisitor : GenericDoubleVisitor
 		// here we only generate AllocaInst for AST variables within function
 		// those sit in global scope or class member scope will be stored in some other object and access through game object API
 		// (all global variables are stored in a single game object, which is assembled by compiler)
-		if(ASTNodeHelper::hasOwner<FunctionDecl>(node))
+		if(ASTNodeHelper::hasOwner<FunctionDecl>(&node))
 		{
 			if(hasValue(node)) return;
 			if(isBlockInsertionMasked() || isBlockTerminated(currentBlock()))	return;
@@ -1312,13 +1312,16 @@ private:
 			}
 			else
 			{
-				NodeInfoVisitor node_info_visitor;
-				node_info_visitor.visit(*from);
-				std::wstring from_info = node_info_visitor.stream.str();
-				node_info_visitor.visit(*to);
-				std::wstring to_info = node_info_visitor.stream.str();
+				if(isa<VariableDecl>(from))
+				{
+					NodeInfoVisitor node_info_visitor;
+					node_info_visitor.visit(*from);
+					std::wstring from_info = node_info_visitor.stream.str();
+					node_info_visitor.visit(*to);
+					std::wstring to_info = node_info_visitor.stream.str();
 
-				LOG4CXX_ERROR(LoggerWrapper::GeneratorStage, L"failed to propagate NULL value from \"" << from_info << "\" to \"" << to_info << L"\"");
+					LOG4CXX_ERROR(LoggerWrapper::GeneratorStage, L"failed to propagate NULL value from \"" << from_info << "\" to \"" << to_info << L"\"");
+				}
 			}
 		}
 

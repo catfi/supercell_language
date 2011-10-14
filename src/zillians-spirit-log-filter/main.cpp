@@ -3,14 +3,17 @@
 #include <iomanip>
 #include <ostream>
 
-#define TIXML_USE_TICPP
-#include <ticpp/ticpp.h>
+#define BOOST_MPL_CFG_NO_PREPROCESSED_HEADERS
+#include <boost/property_tree/ptree.hpp>
+#include <boost/property_tree/xml_parser.hpp>
 
 #define INDENT_CHAR  ' '
 #define INDENT_WIDTH 2
 #define DOT_CHAR     '-'
 #define DOT_WIDTH    0
 #define NEW_STYLE_TRY_SUCCESS
+
+using boost::property_tree::ptree;
 
 enum PARSE_STATE
 {
@@ -38,15 +41,15 @@ static std::basic_ostream<char> &_set_indent(std::basic_ostream<char> &ss, size_
 	return ss << std::setfill(INDENT_CHAR) << std::setw(INDENT_WIDTH*depth) << "";
 }
 
-std::string parse_elem(ticpp::Element* elem, PARSE_STATE* parse_state, int depth)
+std::string parse_elem(ptree::value_type& elem, PARSE_STATE* parse_state, int depth)
 {
 	static std::string prev_elem_text;
 	std::stringstream ss;
-	std::string elem_value = elem->Value();
+	std::string elem_value = elem.first;
 	if(elem_value == "try")
 	{
 		*parse_state = STATE_TRY;
-		std::string raw_elem_text = elem->GetText(false);
+		std::string raw_elem_text = elem.second.data();
 		std::string elem_text = raw_elem_text;
 		_filter_whitespace(elem_text);
 		if(!elem_text.empty() && elem_text != prev_elem_text)
@@ -63,7 +66,7 @@ std::string parse_elem(ticpp::Element* elem, PARSE_STATE* parse_state, int depth
 	else if(elem_value == "success")
 	{
 		*parse_state = STATE_SUCCESS;
-		std::string raw_elem_text = elem->GetText(false);
+		std::string raw_elem_text = elem.second.data();
 		std::string elem_text = raw_elem_text;
 		_filter_whitespace(elem_text);
 		if(!elem_text.empty() && elem_text != prev_elem_text)
@@ -87,16 +90,16 @@ std::string parse_elem(ticpp::Element* elem, PARSE_STATE* parse_state, int depth
 	}
 	else
 	{
-		if(elem->NoChildren())
+		ptree inner_node = elem.second;
+		if(inner_node.empty())
 			_set_indent(ss, depth) << '<' << elem_value << "/>" << std::endl; // NOTE: never occurs due to "try/success/fail/attribute"
 		else
 		{
 			_set_indent(ss, depth) << '<' << elem_value << '>' << std::endl;
-			ticpp::Iterator<ticpp::Element> p; // NOTE: must declare on line separate to for loop
-			for(p = p.begin(elem); p != p.end(); p++)
+			for(ptree::iterator p = inner_node.begin(); p != inner_node.end(); p++)
 			{
 				PARSE_STATE parse_state = STATE_ANY;
-				std::string s = parse_elem(p.Get(), &parse_state, depth+1);
+				std::string s = parse_elem(*p, &parse_state, depth+1);
 				if(parse_state == STATE_FAIL)
 					return "";
 				ss << s;
@@ -114,18 +117,18 @@ int main(int argc, char** argv)
 	char* pFilename = argv[1];
 	try
 	{
-		ticpp::Document doc(pFilename);
-		doc.LoadFile();
 		PARSE_STATE parse_state = STATE_ANY;
-		std::string s = parse_elem(dynamic_cast<ticpp::Node*>(&doc)->FirstChildElement(), &parse_state, 0);
+	    ptree pt;
+	    read_xml(pFilename, pt);
+		std::string s = parse_elem(*pt.begin(), &parse_state, 0);
 		_replace_string(s, "\\n", "");
 		if(parse_state == STATE_FAIL)
 			return -1;
 		std::cout << s;
 	}
-	catch(ticpp::Exception& ex)
+	catch(...)
 	{
-		std::cout << ex.what();
+		std::cout << "fail!" << std::endl;
 		return -1;
 	}
 

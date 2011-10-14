@@ -132,9 +132,12 @@ struct GenericDoubleVisitor : Visitor<ASTNode, void, VisitorImplementation::recu
 
 		void apply(Package& node)
 		{
+			if(node.annotations) user_visitor->visit(*node.annotations);
+
 			if(node.id) user_visitor->visit(*node.id);
 			foreach(i, node.children)	user_visitor->visit(**i);
 			foreach(i, node.objects)	user_visitor->visit(**i);
+			if(node.annotations) user_visitor->visit(*node.annotations);
 		}
 
 		void apply(Import& node)
