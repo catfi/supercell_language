@@ -205,6 +205,15 @@ struct SemanticVerificationStageVisitor1 : GenericDoubleVisitor
 		revisit(node);
 	}
 
+	void verify(VariableDecl& node)
+	{
+		cleanup.push_back([&](){
+			SemanticVerificationVariableDeclContext_HasBeenInit::unbind(&node);
+		});
+
+		revisit(node);
+	}
+
 	void verify(FunctionDecl& node)
 	{
 		// UNINIT_REF
@@ -228,10 +237,16 @@ struct SemanticVerificationStageVisitor1 : GenericDoubleVisitor
 				}
 			}
 		}
+
+		SemanticVerificationFunctionDeclContext_ReturnCount::unbind(&node); // NOTE: manual cleanup
 	}
 
 	void verify(Block& node)
 	{
+		cleanup.push_back([&](){
+			SemanticVerificationBlockContext_BranchCount::unbind(&node);
+		});
+
 		revisit(node);
 
 		// CONTROL_REACHES_END
@@ -274,7 +289,7 @@ struct SemanticVerificationStageVisitor1 : GenericDoubleVisitor
 				{
 					if(!node.default_block)
 						LOG_MESSAGE(MISSING_CASE, &node, _id = (*i).first->toString());
-					SemanticVerificationEnumKeyContext_HasVisited::unbind((*i).first);
+					SemanticVerificationEnumKeyContext_HasVisited::unbind((*i).first); // NOTE: manual cleanup
 				}
 			}
 		}
@@ -346,6 +361,17 @@ private:
 				LOG_MESSAGE(INVALID_NONSTATIC_REF, node_ref, _var_id = node_decl->name->toString());
 		}
 	}
+
+public:
+	void applyCleanup()
+	{
+		foreach(i, cleanup)
+			(*i)();
+		cleanup.clear();
+	}
+
+private:
+	std::vector<std::function<void()>> cleanup;
 };
 
 } } } }

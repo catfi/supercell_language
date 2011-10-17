@@ -60,6 +60,9 @@ private:
 	}
 };
 
+/////////////////////////////////////////////////////////////////////
+/// s0
+
 // DUPE_NAME
 struct SemanticVerificationScopeContext_NameSet : public ASTNodeContext<SemanticVerificationScopeContext_NameSet>
 {
@@ -69,6 +72,9 @@ struct SemanticVerificationScopeContext_NameSet : public ASTNodeContext<Semantic
 // DEAD_CODE
 struct SemanticVerificationBlockContext_HasVisitedReturn : public ASTNodeContext<SemanticVerificationBlockContext_HasVisitedReturn>
 { };
+
+/////////////////////////////////////////////////////////////////////
+/// s1
 
 // MISSING_RETURN
 // CONTROL_REACHES_END
