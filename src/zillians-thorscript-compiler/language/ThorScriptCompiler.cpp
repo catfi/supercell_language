@@ -71,7 +71,15 @@ ThorScriptCompiler::ThorScriptCompiler()
 			ThorScriptParserStage,
 			LiteralCompactionStage,
 			RestructureStage,
-			StaticTestVerificationStage>>("mode-xform-stage-only", "for transform stage");
+			StaticTestVerificationStage>>("mode-xform-stage-only", "for debugging transform stage");
+
+	addMode<
+		boost::mpl::vector<
+			ThorScriptParserStage,
+			LiteralCompactionStage,
+			RestructureStage,
+			ResolutionStage,
+			StaticTestVerificationStage>>("mode-resolution-stage-only", "for debugging resolution stage");
 
 	addMode<
 		boost::mpl::vector<
