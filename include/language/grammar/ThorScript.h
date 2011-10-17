@@ -742,14 +742,14 @@ struct ThorScript : qi::grammar<Iterator, typename SA::start::attribute_type, de
 
 		selection_statement
 			= qi::eps [ typename SA::location::cache_loc() ]
-				>>	(	(IF > LEFT_PAREN > expression > RIGHT_PAREN > statement
-							> *(ELIF > LEFT_PAREN > expression > RIGHT_PAREN > statement)
-							> -(ELSE > statement)
+				>>	(	(IF > LEFT_PAREN > expression > RIGHT_PAREN > aux_block
+							> *(ELIF > LEFT_PAREN > expression > RIGHT_PAREN > aux_block)
+							> -(ELSE > aux_block)
 						) [ typename SA::selection_statement::init_if_statement() ]
 					|	(SWITCH > LEFT_PAREN > expression > RIGHT_PAREN
 							> LEFT_BRACE
-							>	*( ( CASE > expression > COLON > *statement )
-								 | ( DEFAULT > COLON > *statement )
+							>	*( ( CASE > expression > COLON > *aux_block )
+								 | ( DEFAULT > COLON > *aux_block )
 								 )
 							> RIGHT_BRACE
 						) [ typename SA::selection_statement::init_switch_statement() ]
@@ -758,13 +758,13 @@ struct ThorScript : qi::grammar<Iterator, typename SA::start::attribute_type, de
 
 		iteration_statement
 			= qi::eps [ typename SA::location::cache_loc() ]
-				>>	(	(WHILE > LEFT_PAREN > expression > RIGHT_PAREN > -statement
+				>>	(	(WHILE > LEFT_PAREN > expression > RIGHT_PAREN > -aux_block
 						) [ typename SA::iteration_statement::init_while_loop() ]
-					|	(DO > statement > WHILE > LEFT_PAREN > expression > RIGHT_PAREN > SEMICOLON
+					|	(DO > aux_block > WHILE > LEFT_PAREN > expression > RIGHT_PAREN > SEMICOLON
 						) [ typename SA::iteration_statement::init_do_while_loop() ]
-					|	(FOREACH > LEFT_PAREN > ((VAR > variable_decl_stem) | postfix_expression) > IN > expression > RIGHT_PAREN > -statement
+					|	(FOREACH > LEFT_PAREN > ((VAR > variable_decl_stem) | postfix_expression) > IN > expression > RIGHT_PAREN > -aux_block
 						) [ typename SA::iteration_statement::init_foreach() ]
-					|	(FOR > LEFT_PAREN > (variable_decl | (expression > SEMICOLON)) > expression > SEMICOLON > expression > RIGHT_PAREN > -statement
+					|	(FOR > LEFT_PAREN > (variable_decl | (expression > SEMICOLON)) > expression > SEMICOLON > expression > RIGHT_PAREN > -aux_block
 						) [ typename SA::iteration_statement::init_for() ]
 					)
 			;
@@ -783,6 +783,11 @@ struct ThorScript : qi::grammar<Iterator, typename SA::start::attribute_type, de
 						> *statement
 						> RIGHT_BRACE
 					) [ typename SA::block::init() ]
+			;
+
+		aux_block
+			= qi::eps [ typename SA::location::cache_loc() ]
+				>> statement [ typename SA::aux_block::init() ]
 			;
 
 		///
@@ -980,6 +985,7 @@ struct ThorScript : qi::grammar<Iterator, typename SA::start::attribute_type, de
 		INIT_RULE(iteration_statement);
 		INIT_RULE(branch_statement);
 		INIT_RULE(block);
+		INIT_RULE(aux_block);
 
 		// global_decl
 		INIT_RULE(global_decl);
@@ -1086,6 +1092,7 @@ struct ThorScript : qi::grammar<Iterator, typename SA::start::attribute_type, de
 	DECL_RULE(iteration_statement);
 	DECL_RULE(branch_statement);
 	DECL_RULE(block);
+	DECL_RULE(aux_block);
 
 	// global_decl
 	DECL_RULE(global_decl);
