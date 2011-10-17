@@ -41,6 +41,19 @@ SET(compile_options_s0 "--mode-semantic-verify-0")
 SET(compile_options_s1 "--mode-semantic-verify-1")
 
 #################################################
+# bug
+#################################################
+
+# bug_2011_10_17
+zillians_add_complex_test(
+    TARGET thorscript-compiler-static-test-bug_2011_10_17
+    SHELL ${ThorScriptCompiler} ${compile_options_s1} ${CMAKE_CURRENT_SOURCE_DIR}/data/bug/bug_2011_10_17.t
+    DEPENDS ${ThorScriptCompiler}
+    )
+
+zillians_add_test_to_subject(SUBJECT thorscript-compiler-static-test-s1 TARGET thorscript-compiler-static-test-bug_2011_10_17)
+
+#################################################
 # error
 #################################################
 
