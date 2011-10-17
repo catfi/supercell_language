@@ -243,25 +243,11 @@ struct ResolutionStageVisitor : GenericDoubleVisitor
 		{
 			if(node.type)
 				visit(*node.type);
-
-			if(node.initializer)
-			{
-				// this should be never reached because the initializer are transformed/restructured prior to resolution stage
-				UNREACHABLE_CODE();
-			}
 		}
 		else if(type == Target::SYMBOL_RESOLUTION)
 		{
-//			if(tryResolveSymbol(node.name, true))
-//			{
-//				// error, the variable declared name should be resolvable because that would lead to ambiguous name conflict
-//				// TODO make the error message cleaner
-//				LOG4CXX_ERROR(LoggerWrapper::Resolver, L"ambiguous variable declared: " << node.name->toString());
-//			}
 			if(node.initializer)
-			{
-				UNREACHABLE_CODE();
-			}
+				visit(*node.initializer);
 		}
 	}
 
@@ -270,16 +256,9 @@ struct ResolutionStageVisitor : GenericDoubleVisitor
 		revisit(node);
 
 		if(!node.result)
-		{
-			if(!ResolvedType::get(&node))
-			{
-				ResolvedType::set(&node, getInternalPrimitiveType(PrimitiveType::VOID));
-			}
-		}
+			propogateType(node, *getInternalPrimitiveType(PrimitiveType::VOID));
 		else
-		{
 			propogateType(node, *node.result);
-		}
 	}
 
 	void resolve(DeclarativeStmt& node)
@@ -318,9 +297,7 @@ struct ResolutionStageVisitor : GenericDoubleVisitor
 
 		convertLogical(node.if_branch.cond);
 		foreach(i, node.elseif_branches)
-		{
 			convertLogical(i->cond);
-		}
 	}
 
 	void resolve(SwitchStmt& node)
@@ -341,11 +318,7 @@ struct ResolutionStageVisitor : GenericDoubleVisitor
 		}
 		else if(node.opcode == UnaryExpr::OpCode::LOGICAL_NOT)
 		{
-			if(!ResolvedType::get(&node))
-			{
-				ResolvedType::set(&node, getInternalPrimitiveType(PrimitiveType::BOOL));
-				++resolved_count;
-			}
+			propogateType(node, *getInternalPrimitiveType(PrimitiveType::BOOL));
 		}
 		else
 		{
@@ -404,11 +377,7 @@ struct ResolutionStageVisitor : GenericDoubleVisitor
 		else if(node.isComparison() || node.isLogical())
 		{
 			// comparison should always yield boolean type
-			if(!ResolvedType::get(&node))
-			{
-				ResolvedType::set(&node, getInternalPrimitiveType(PrimitiveType::BOOL));
-				++resolved_count;
-			}
+			propogateType(node, *getInternalPrimitiveType(PrimitiveType::BOOL));
 		}
 		else
 		{
@@ -755,6 +724,17 @@ private:
 				++resolved_count;
 				ResolvedType::set(&to, resolved_type_from);
 			}
+		}
+	}
+
+	void propogateType(ASTNode& to, TypeSpecifier& from)
+	{
+		ASTNode* resolved_type_to = ResolvedType::get(&to);
+
+		if(!resolved_type_to)
+		{
+			++resolved_count;
+			ResolvedType::set(&to, &from);
 		}
 	}
 
