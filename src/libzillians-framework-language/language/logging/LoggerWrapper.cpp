@@ -73,12 +73,29 @@ void LoggerWrapper::initialize()
 	// %m -> message
 	// %n -> new line
 	static const log4cxx::LogString default_pattern(LOG4CXX_STR("[%p] [%c] %m%n"));
-	log4cxx::LayoutPtr layout(new log4cxx::PatternLayout(default_pattern));
-	log4cxx::AppenderPtr appender(new log4cxx::ConsoleAppender(layout));
-	root->addAppender(appender);
+	static const log4cxx::LogString simple_pattern(LOG4CXX_STR("%m%n"));
+
+	log4cxx::LayoutPtr default_layout(new log4cxx::PatternLayout(default_pattern));
+	log4cxx::AppenderPtr default_appender(new log4cxx::ConsoleAppender(default_layout));
+
+	log4cxx::LayoutPtr simple_layout(new log4cxx::PatternLayout(simple_pattern));
+	log4cxx::AppenderPtr simple_appender(new log4cxx::ConsoleAppender(simple_layout));
+
+	// configure the default appender
+	root->addAppender(simple_appender);
 
 	// log level: TRACE -> DEBUG -> INFO -> WARN -> ERROR -> FATAL
+
+	// configure the default log level
 	root->setLevel(log4cxx::Level::getDebug());
+
+	// configure each logger independently
+	Compiler->setLevel(log4cxx::Level::getError());
+	Resolver->setLevel(log4cxx::Level::getError());
+	TransformerStage->setLevel(log4cxx::Level::getError());
+	GeneratorStage->setLevel(log4cxx::Level::getError());
+	CompilerLogger->setLevel(log4cxx::Level::getError());
+
 }
 
 uint32 LoggerWrapper::getWarningDegree()
