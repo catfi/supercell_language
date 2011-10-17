@@ -1312,13 +1312,16 @@ private:
 			}
 			else
 			{
-				NodeInfoVisitor node_info_visitor;
-				node_info_visitor.visit(*from);
-				std::wstring from_info = node_info_visitor.stream.str();
-				node_info_visitor.visit(*to);
-				std::wstring to_info = node_info_visitor.stream.str();
+				if(isa<VariableDecl>(from))
+				{
+					NodeInfoVisitor node_info_visitor;
+					node_info_visitor.visit(*from);
+					std::wstring from_info = node_info_visitor.stream.str();
+					node_info_visitor.visit(*to);
+					std::wstring to_info = node_info_visitor.stream.str();
 
-				LOG4CXX_ERROR(LoggerWrapper::GeneratorStage, L"failed to propagate NULL value from \"" << from_info << "\" to \"" << to_info << L"\"");
+					LOG4CXX_ERROR(LoggerWrapper::GeneratorStage, L"failed to propagate NULL value from \"" << from_info << "\" to \"" << to_info << L"\"");
+				}
 			}
 		}
 

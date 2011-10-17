@@ -43,6 +43,12 @@
 #include <boost/mpl/not.hpp>
 #include <boost/type_traits.hpp>
 
+#define UNREACHABLE_CODE() \
+	BOOST_ASSERT(false && "reaching unreachable code")
+
+#define UNIMPLEMENTED_CODE() \
+	BOOST_ASSERT(false && "not yet implemented")
+
 #define DEFINE_HIERARCHY_BASE() \
 	static int stype() \
 	{ \

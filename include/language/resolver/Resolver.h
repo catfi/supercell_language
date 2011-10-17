@@ -105,7 +105,7 @@ public:
 		if(!ResolvedSymbol::get(&attach))
 		{
 			resolution_visitor.reset();
-			resolution_visitor.search(&node);
+			resolution_visitor.candidate(&node);
 			resolution_visitor.filter(visitor::ResolutionVisitor::Filter::SYMBOL);
 
 			{
@@ -114,7 +114,7 @@ public:
 				LOG4CXX_DEBUG(LoggerWrapper::Resolver, L"looking at scope: " << node_info_visitor.stream.str());
 			}
 
-			resolution_visitor.visit(scope);
+			resolution_visitor.tryVisit(scope);
 
 			return checkResolvedSymbol(attach, node, no_action);
 		}
@@ -144,7 +144,7 @@ public:
 		{
 			// set the look-for target
 			resolution_visitor.reset();
-			resolution_visitor.search(&node);
+			resolution_visitor.candidate(&node);
 			resolution_visitor.filter(visitor::ResolutionVisitor::Filter::SYMBOL);
 
 			for(__gnu_cxx::hash_set<ASTNode*>::const_iterator scope = current_scopes.begin(); scope != current_scopes.end(); ++scope)
@@ -153,7 +153,7 @@ public:
 				node_info_visitor.visit(**scope);
 				LOG4CXX_DEBUG(LoggerWrapper::Resolver, L"looking at scope: \"" << node_info_visitor.stream.str() << L"\"");
 
-				resolution_visitor.visit(**scope);
+				resolution_visitor.tryVisit(**scope);
 			}
 
 			return checkResolvedSymbol(attach, node, no_action);
@@ -198,6 +198,14 @@ private:
 				}
 			}
 			else if(isa<FunctionDecl>(ref)) // declared function (as class member function or global function)
+			{
+				if(!no_action)
+				{
+					ResolvedSymbol::set(&attach, ref);
+					ResolvedType::set(&attach, ref);
+				}
+			}
+			else if(isa<EnumDecl>(ref))
 			{
 				if(!no_action)
 				{
@@ -269,10 +277,10 @@ public:
 		if(node.type == TypeSpecifier::ReferredType::UNSPECIFIED)
 		{
 			resolution_visitor.reset();
-			resolution_visitor.search(node.referred.unspecified);
+			resolution_visitor.candidate(node.referred.unspecified);
 			resolution_visitor.filter(visitor::ResolutionVisitor::Filter::TYPE);
 
-			resolution_visitor.visit(scope);
+			resolution_visitor.tryVisit(scope);
 
 			return checkResolvedType(attach, node, no_action);
 		}
@@ -292,12 +300,12 @@ public:
 		{
 			// set the look-for target
 			resolution_visitor.reset();
-			resolution_visitor.search(node.referred.unspecified);
+			resolution_visitor.candidate(node.referred.unspecified);
 			resolution_visitor.filter(visitor::ResolutionVisitor::Filter::TYPE);
 
 			for(__gnu_cxx::hash_set<ASTNode*>::const_iterator scope = current_scopes.begin(); scope != current_scopes.end(); ++scope)
 			{
-				resolution_visitor.visit(**scope);
+				resolution_visitor.tryVisit(**scope);
 			}
 
 			return checkResolvedType(attach, node, no_action);
@@ -392,10 +400,10 @@ public:
 		if(!ResolvedPackage::get(&attach))
 		{
 			resolution_visitor.reset();
-			resolution_visitor.search(&node);
+			resolution_visitor.candidate(&node);
 			resolution_visitor.filter(visitor::ResolutionVisitor::Filter::PACKAGE);
 
-			resolution_visitor.visit(scope);
+			resolution_visitor.tryVisit(scope);
 
 			return checkResolvedPackage(attach, node, no_action);
 		}
@@ -414,12 +422,12 @@ public:
 		if(!ResolvedPackage::get(&attach))
 		{
 			resolution_visitor.reset();
-			resolution_visitor.search(&node);
+			resolution_visitor.candidate(&node);
 			resolution_visitor.filter(visitor::ResolutionVisitor::Filter::PACKAGE);
 
 			for(__gnu_cxx::hash_set<ASTNode*>::const_iterator scope = current_scopes.begin(); scope != current_scopes.end(); ++scope)
 			{
-				resolution_visitor.visit(**scope);
+				resolution_visitor.tryVisit(**scope);
 			}
 
 			return checkResolvedPackage(attach, node, no_action);
