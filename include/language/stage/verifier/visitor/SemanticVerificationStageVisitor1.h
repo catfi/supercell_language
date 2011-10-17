@@ -140,8 +140,13 @@ struct SemanticVerificationStageVisitor1 : GenericDoubleVisitor
 		// UNEXPECTED_VARIADIC_ARG
 		foreach(i, node.parameters)
 		{
-			if(isEllipsis(cast<TypeSpecifier>(ResolvedType::get(*i))) && !is_end_of_foreach(i, node.parameters))
-				LOG_MESSAGE(UNEXPECTED_VARIADIC_ARG, &node);
+			ASTNode* resolved_type = ResolvedType::get(*i);
+			if(isa<TypeSpecifier>(resolved_type)) // NOTE: only need to handle ellipsis case
+			{
+				TypeSpecifier* type_specifier = cast<TypeSpecifier>(resolved_type);
+				if(isEllipsis(type_specifier) && !is_end_of_foreach(i, node.parameters))
+					LOG_MESSAGE(UNEXPECTED_VARIADIC_ARG, &node);
+			}
 		}
 
 		revisit(node);
@@ -188,10 +193,12 @@ struct SemanticVerificationStageVisitor1 : GenericDoubleVisitor
 			// MISSING_RETURN_VALUE
 			// UNEXPECTED_RETURN_VALUE
 			TypeSpecifier* param_type = func_decl->type;
-			TypeSpecifier* arg_type = cast<TypeSpecifier>(ResolvedType::get(&node));
-			if(!isVoid(param_type) && isVoid(arg_type))
+			ASTNode* resolved_type = ResolvedType::get(&node);
+			bool arg_is_void = isa<TypeSpecifier>(resolved_type) ?
+					isVoid(cast<TypeSpecifier>(resolved_type)) : false; // NOTE: only need to handle void case
+			if(!isVoid(param_type) && arg_is_void)
 				LOG_MESSAGE(MISSING_RETURN_VALUE, &node, _type = param_type->toString());
-			if(isVoid(param_type) && !isVoid(arg_type))
+			if(isVoid(param_type) && !arg_is_void)
 				LOG_MESSAGE(UNEXPECTED_RETURN_VALUE, &node);
 		}
 
@@ -249,25 +256,26 @@ struct SemanticVerificationStageVisitor1 : GenericDoubleVisitor
 	void verify(SwitchStmt& node)
 	{
 		// MISSING_CASE
-		foreach(i, node.cases)
+		ASTNode* resolved_type = ResolvedType::get(node.node);
+		if(isa<EnumDecl>(resolved_type)) // NOTE: only need to handle enum case
 		{
-			ASTNode* resolved_symbol = ResolvedSymbol::get((*i).cond);
-			if(isa<Identifier>(resolved_symbol))
-				SemanticVerificationEnumKeyContext_HasVisited::bind(resolved_symbol);
-		}
-		EnumDecl* enum_decl = resolveEnum(node.node);
-		if(enum_decl)
-		{
+			EnumDecl* enum_decl = cast<EnumDecl>(resolved_type);
 			foreach(i, enum_decl->enumeration_list)
-				SemanticVerificationEnumKeyContext_HasVisited::unbind((*i).first);
-		}
-		foreach(i, enum_decl->enumeration_list)
-		{
-			if(SemanticVerificationEnumKeyContext_HasVisited::is_bound((*i).first))
+				SemanticVerificationEnumKeyContext_HasVisited::bind((*i).first);
+			foreach(i, node.cases)
 			{
-				if(!node.default_block)
-					LOG_MESSAGE(MISSING_CASE, &node, _id = (*i).first->toString());
-				SemanticVerificationEnumKeyContext_HasVisited::unbind((*i).first);
+				ASTNode* resolved_symbol = ResolvedSymbol::get((*i).cond);
+				if(isa<Identifier>(resolved_symbol))
+					SemanticVerificationEnumKeyContext_HasVisited::unbind(resolved_symbol);
+			}
+			foreach(i, enum_decl->enumeration_list)
+			{
+				if(SemanticVerificationEnumKeyContext_HasVisited::is_bound((*i).first))
+				{
+					if(!node.default_block)
+						LOG_MESSAGE(MISSING_CASE, &node, _id = (*i).first->toString());
+					SemanticVerificationEnumKeyContext_HasVisited::unbind((*i).first);
+				}
 			}
 		}
 
@@ -296,19 +304,6 @@ private:
 		BOOST_ASSERT(node && "null pointer exception");
 		return node->type == TypeSpecifier::ReferredType::PRIMITIVE
 				&& node->referred.primitive == PrimitiveType::VARIADIC_ELLIPSIS;
-	}
-
-	static EnumDecl* resolveEnum(ASTNode* node)
-	{
-		BOOST_ASSERT(node && "null pointer exception");
-		TypeSpecifier* type_specifier = cast<TypeSpecifier>(ResolvedType::get(node));
-		if(type_specifier->type == TypeSpecifier::ReferredType::UNSPECIFIED)
-		{
-			ASTNode* resolved_symbol = ResolvedSymbol::get(type_specifier->referred.unspecified);
-			if(isa<EnumDecl>(resolved_symbol))
-				return cast<EnumDecl>(resolved_symbol);
-		}
-		return NULL;
 	}
 
 	template<class T>
