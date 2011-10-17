@@ -188,7 +188,11 @@ struct SemanticVerificationStageVisitor1 : GenericDoubleVisitor
 			FunctionDecl* func_decl = ASTNodeHelper::getOwner<FunctionDecl>(&node);
 
 			// MISSING_RETURN
-			SemanticVerificationFunctionDeclContext_ReturnCount::bind(func_decl)->count++;
+			SemanticVerificationFunctionDeclContext_HasReturn::bind(func_decl);
+
+			// CONTROL_REACHES_END
+			if(isa<Block>(node.parent))
+				SemanticVerificationBlockContext_AlwaysReturns::bind(node.parent);
 
 			// MISSING_RETURN_VALUE
 			// UNEXPECTED_RETURN_VALUE
@@ -225,33 +229,26 @@ struct SemanticVerificationStageVisitor1 : GenericDoubleVisitor
 		if(!isVoid(node.type))
 		{
 			// MISSING_RETURN
-			if(SemanticVerificationFunctionDeclContext_ReturnCount::bind(&node)->count == 0)
+			if(!SemanticVerificationFunctionDeclContext_HasReturn::get(&node))
 				LOG_MESSAGE(MISSING_RETURN, &node);
 			else
 			{
 				// CONTROL_REACHES_END
-				if(SemanticVerificationBlockContext_BranchCount::bind(node.block)->count
-						> SemanticVerificationFunctionDeclContext_ReturnCount::bind(&node)->count)
-				{
+				if(!SemanticVerificationBlockContext_AlwaysReturns::get(node.block))
 					LOG_MESSAGE(CONTROL_REACHES_END, &node);
-				}
 			}
 		}
 
-		SemanticVerificationFunctionDeclContext_ReturnCount::unbind(&node); // NOTE: manual cleanup
+		SemanticVerificationFunctionDeclContext_HasReturn::unbind(&node); // NOTE: manual cleanup
 	}
 
 	void verify(Block& node)
 	{
 		cleanup.push_back([&](){
-			SemanticVerificationBlockContext_BranchCount::unbind(&node);
+			SemanticVerificationBlockContext_AlwaysReturns::unbind(&node);
 		});
 
 		revisit(node);
-
-		// CONTROL_REACHES_END
-		if(SemanticVerificationBlockContext_BranchCount::bind(&node)->count == 0)
-			SemanticVerificationBlockContext_BranchCount::bind(&node)->count = 1;
 	}
 
 	void verify(IfElseStmt& node)
@@ -259,13 +256,13 @@ struct SemanticVerificationStageVisitor1 : GenericDoubleVisitor
 		revisit(node);
 
 		// CONTROL_REACHES_END
-		size_t count = 0;
-		count += SemanticVerificationBlockContext_BranchCount::bind(node.if_branch.block)->count;
+		bool always_returns = true;
+		always_returns &= (bool)SemanticVerificationBlockContext_AlwaysReturns::get(node.if_branch.block);
 		foreach(i, node.elseif_branches)
-			count += SemanticVerificationBlockContext_BranchCount::bind((*i).block)->count;
-		count += SemanticVerificationBlockContext_BranchCount::bind(node.else_block)->count;
-		if(isa<Block>(node.parent))
-			SemanticVerificationBlockContext_BranchCount::bind(node.parent)->count += count;
+			always_returns &= (bool)SemanticVerificationBlockContext_AlwaysReturns::get((*i).block);
+		always_returns &= (bool)SemanticVerificationBlockContext_AlwaysReturns::get(node.else_block);
+		if(isa<Block>(node.parent) && always_returns)
+			SemanticVerificationBlockContext_AlwaysReturns::bind(node.parent);
 	}
 
 	void verify(SwitchStmt& node)
@@ -297,13 +294,13 @@ struct SemanticVerificationStageVisitor1 : GenericDoubleVisitor
 		revisit(node);
 
 		// CONTROL_REACHES_END
-		size_t count = 0;
-		count += SemanticVerificationBlockContext_BranchCount::bind(node.node)->count;
+		bool always_returns = true;
+		always_returns &= (bool)SemanticVerificationBlockContext_AlwaysReturns::get(node.node);
 		foreach(i, node.cases)
-			count += SemanticVerificationBlockContext_BranchCount::bind((*i).block)->count;
-		count += SemanticVerificationBlockContext_BranchCount::bind(node.default_block)->count;
-		if(isa<Block>(node.parent))
-			SemanticVerificationBlockContext_BranchCount::bind(node.parent)->count += count;
+			always_returns &= (bool)SemanticVerificationBlockContext_AlwaysReturns::get((*i).block);
+		always_returns &= (bool)SemanticVerificationBlockContext_AlwaysReturns::get(node.default_block);
+		if(isa<Block>(node.parent) && always_returns)
+			SemanticVerificationBlockContext_AlwaysReturns::bind(node.parent);
 	}
 
 private:
