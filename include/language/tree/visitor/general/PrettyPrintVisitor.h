@@ -366,24 +366,9 @@ struct PrettyPrintVisitor : Visitor<const ASTNode, void>
 		}
 		{
 			increaseIdent();
-			foreach(i, node.enumeration_list)
+			foreach(i, node.values)
 			{
-				STREAM << L"<enumeration key=\"" << i->first->toString() << "\">" << std::endl;
-				if(i->second)
-				{
-					increaseIdent();
-					{
-						STREAM << L"<value>" << std::endl;
-						{
-							increaseIdent();
-							visit(*i->second);
-							decreaseIdent();
-						}
-						STREAM << L"</value>" << std::endl;
-					}
-					decreaseIdent();
-				}
-				STREAM << L"</enumeration>" << std::endl;
+				visit(**i);
 			}
 			decreaseIdent();
 		}

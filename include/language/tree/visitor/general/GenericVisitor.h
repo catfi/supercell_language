@@ -272,10 +272,9 @@ struct GenericVisitor : Visitor<const ASTNode, void, VisitorImplementation::recu
 		if(node.annotations) visit(*node.annotations);
 
 		if(node.name) visit(*node.name);
-		foreach(i, node.enumeration_list)
+		foreach(i, node.values)
 		{
-			if(i->first)  visit(*i->first);
-			if(i->second) visit(*i->second);
+			visit(**i);
 		}
 	}
 

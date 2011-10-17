@@ -243,7 +243,7 @@ struct SemanticVerificationStageVisitor0 : GenericDoubleVisitor
 		verifyDupeName(&node);
 
 		// MISSING_STATIC_INIT
-		if(node.is_static && !node.initializer)
+		if(!isa<EnumDecl>(node.parent) && !isa<FunctionDecl>(node.parent) && node.is_static && !node.initializer)
 			LOG_MESSAGE(MISSING_STATIC_INIT, &node);
 
 		revisit(node);

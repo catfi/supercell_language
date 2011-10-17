@@ -215,10 +215,9 @@ struct ResolutionStageVisitor : GenericDoubleVisitor
 		else if(type == Target::SYMBOL_RESOLUTION)
 		{
 			// there can be some symbol (which should be constant expressions) defined in the enumeration value
-			foreach(i, node.enumeration_list)
+			foreach(i, node.values)
 			{
-				if(i->second)
-					visit(*i->second);
+				visit(**i);
 			}
 		}
 	}

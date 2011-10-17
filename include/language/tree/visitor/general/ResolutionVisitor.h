@@ -278,13 +278,9 @@ struct ResolutionVisitor : Visitor<ASTNode, void, VisitorImplementation::recursi
 			{
 				if(isLast())
 				{
-					foreach(i, node.enumeration_list)
+					foreach(i, node.values)
 					{
-						bool is_template_partial_match = false;
-						if(compare(current, i->first, is_template_partial_match))
-						{
-							enlist(i->first, is_template_partial_match);
-						}
+						tryMatch(**i);
 					}
 				}
 			}
@@ -317,13 +313,9 @@ struct ResolutionVisitor : Visitor<ASTNode, void, VisitorImplementation::recursi
 					else
 					{
 						next();
-						foreach(i, node.enumeration_list)
+						foreach(i, node.values)
 						{
-							bool is_template_partial_match = false;
-							if(compare(current, i->first, is_template_partial_match))
-							{
-								enlist(i->first, is_template_partial_match);
-							}
+							tryMatch(**i);
 						}
 						prev();
 					}
