@@ -55,7 +55,7 @@ struct ResolutionVisitor : Visitor<ASTNode, void, VisitorImplementation::recursi
 
 		if(isSearchForType())
 		{
-			LOG4CXX_ERROR(LoggerWrapper::Compiler, L"resolution visitor is trying to resolve type on unspecified node \"" << node_info_visitor.stream.str() << L"\"");
+			LOG4CXX_ERROR(LoggerWrapper::Resolver, L"resolution visitor is trying to resolve type on unspecified node \"" << node_info_visitor.stream.str() << L"\"");
 
 			ASTNode* resolved_type = ResolvedType::get(&node);
 			if(resolved_type)
@@ -64,7 +64,7 @@ struct ResolutionVisitor : Visitor<ASTNode, void, VisitorImplementation::recursi
 
 		if(isSearchForSymbol())
 		{
-			LOG4CXX_DEBUG(LoggerWrapper::Compiler, L"resolution visitor is trying to resolve symbol on unspecified node \"" << node_info_visitor.stream.str() << L"\"");
+			LOG4CXX_DEBUG(LoggerWrapper::Resolver, L"resolution visitor is trying to resolve symbol on unspecified node \"" << node_info_visitor.stream.str() << L"\"");
 
 			ASTNode* resolved_symbol = ResolvedSymbol::get(&node);
 			if(resolved_symbol)
@@ -78,7 +78,7 @@ struct ResolutionVisitor : Visitor<ASTNode, void, VisitorImplementation::recursi
 
 		if(isSearchForPackage())
 		{
-			LOG4CXX_DEBUG(LoggerWrapper::Compiler, L"resolution visitor is trying to resolve package on unspecified node \"" << node_info_visitor.stream.str() << L"\"");
+			LOG4CXX_DEBUG(LoggerWrapper::Resolver, L"resolution visitor is trying to resolve package on unspecified node \"" << node_info_visitor.stream.str() << L"\"");
 
 			ASTNode* resolved_package = ResolvedPackage::get(&node);
 			if(resolved_package)

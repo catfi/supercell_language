@@ -159,7 +159,7 @@ struct RestructureStageVisitor : GenericDoubleVisitor
 			//
 			// will be transformed into:
 			//
-			//       block------------------\
+			//       block------------------+
 			//      /  |  \                  \
 			//     ......  var_decl           =
 			//            /        \         / \

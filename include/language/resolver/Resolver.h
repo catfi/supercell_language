@@ -231,7 +231,7 @@ private:
 			}
 			else
 			{
-				LOG4CXX_ERROR(LoggerWrapper::Resolver, L"resolve symbol \"" << node.toString() << L"\" to unkown symbol");
+				LOG4CXX_DEBUG(LoggerWrapper::Resolver, L"resolve symbol \"" << node.toString() << L"\" to unkown symbol");
 				valid = false;
 			}
 
@@ -243,7 +243,7 @@ private:
 			if(resolution_visitor.candidates.size() > 1)
 			{
 				// mode than one candidate
-				LOG4CXX_ERROR(LoggerWrapper::Resolver, L"ambiguous symbol \"" << node.toString() << L"\"");
+				LOG4CXX_DEBUG(LoggerWrapper::Resolver, L"ambiguous symbol \"" << node.toString() << L"\"");
 
 				tree::visitor::NodeInfoVisitor node_info_visitor;
 				foreach(i, resolution_visitor.candidates)
@@ -256,7 +256,7 @@ private:
 			else
 			{
 				// no candidate
-				LOG4CXX_ERROR(LoggerWrapper::Resolver, L"unresolved symbol \"" << node.toString() << L"\"");
+				LOG4CXX_DEBUG(LoggerWrapper::Resolver, L"unresolved symbol \"" << node.toString() << L"\"");
 			}
 
 			resolution_visitor.reset();
@@ -366,7 +366,7 @@ private:
 			if(resolution_visitor.candidates.size() > 1)
 			{
 				// mode than one candidate
-				LOG4CXX_ERROR(LoggerWrapper::Resolver, L"ambiguous type \"" << node.referred.unspecified->toString() << L"\"");
+				LOG4CXX_DEBUG(LoggerWrapper::Resolver, L"ambiguous type \"" << node.referred.unspecified->toString() << L"\"");
 
 				tree::visitor::NodeInfoVisitor node_info_visitor;
 				foreach(i, resolution_visitor.candidates)
@@ -379,7 +379,7 @@ private:
 			else
 			{
 				// no candidate
-				LOG4CXX_ERROR(LoggerWrapper::Resolver, L"unresolved type \"" << node.referred.unspecified->toString() << L"\"");
+				LOG4CXX_DEBUG(LoggerWrapper::Resolver, L"unresolved type \"" << node.referred.unspecified->toString() << L"\"");
 			}
 
 			resolution_visitor.reset();
@@ -471,7 +471,7 @@ private:
 			if(resolution_visitor.candidates.size() > 1)
 			{
 				// mode than one candidate
-				LOG4CXX_ERROR(LoggerWrapper::Resolver, L"ambiguous package \"" << node.toString() << L"\"");
+				LOG4CXX_DEBUG(LoggerWrapper::Resolver, L"ambiguous package \"" << node.toString() << L"\"");
 
 				tree::visitor::NodeInfoVisitor node_info_visitor;
 				foreach(i, resolution_visitor.candidates)
@@ -484,7 +484,7 @@ private:
 			else
 			{
 				// no candidate
-				LOG4CXX_ERROR(LoggerWrapper::Resolver, L"unresolved package \"" << node.toString() << L"\"");
+				LOG4CXX_DEBUG(LoggerWrapper::Resolver, L"unresolved package \"" << node.toString() << L"\"");
 			}
 
 			resolution_visitor.reset();
