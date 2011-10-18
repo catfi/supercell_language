@@ -676,36 +676,36 @@ inline bool replaceUseWithDispatchImpl(
 			else \
 				visited.insert(this); \
 		} \
-		const self_type* p = cast<const self_type>(&rhs); \
-		if(p == NULL) \
+		const self_type* __p = cast<const self_type>(&rhs); \
+		if(__p == NULL) \
 			return false;
 
 #define BEGIN_COMPARE_WITH_BASE(base_class_name) \
 		typedef boost::remove_const<boost::remove_reference<decltype(*this)>::type>::type self_type; \
-		const self_type* p = cast<const self_type>(&rhs); \
-		if(p == NULL) \
+		const self_type* __p = cast<const self_type>(&rhs); \
+		if(__p == NULL) \
 			return false; \
-		if(!base_class_name::isEqualImpl(*p, visited)) \
+		if(!base_class_name::isEqualImpl(*__p, visited)) \
 			return false;
 
 #define COMPARE_MEMBER(member) \
-		if(!internal::compareDispatch(member, p->member, visited)) return false;
+		if(!internal::compareDispatch(member, __p->member, visited)) return false;
 
 #define END_COMPARE()	\
 		return true;
 
 #define BEGIN_REPLACE() \
-		bool result = false;
+		bool __result = false;
 
 #define BEGIN_REPLACE_WITH_BASE(base_class_name) \
-		bool result = false; \
-		result |= base_class_name::replaceUseWith(from, to, update_parent);
+		bool __result = false; \
+		__result |= base_class_name::replaceUseWith(from, to, update_parent);
 
 #define REPLACE_USE_WITH(member) \
-		result |= internal::replaceUseWithDispatch(member, from, to, update_parent);
+		__result |= internal::replaceUseWithDispatch(member, from, to, update_parent);
 
 #define END_REPLACE()	\
-		return result;
+		return __result;
 
 typedef GarbageCollector<const ASTNode> ASTNodeGC;
 

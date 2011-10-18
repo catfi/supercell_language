@@ -254,10 +254,31 @@ struct ResolutionStageVisitor : GenericDoubleVisitor
 	{
 		revisit(node);
 
-		if(!node.result)
-			propogateType(node, *getInternalPrimitiveType(PrimitiveType::VOID));
-		else
-			propogateType(node, *node.result);
+		// for all branch statement of return type, we should resolve the type of it
+		if(node.opcode == BranchStmt::OpCode::RETURN)
+		{
+			// get owner function's return type
+			TypeSpecifier* function_return_type = ASTNodeHelper::getOwner<FunctionDecl>(&node)->type;
+
+			if(!node.result)
+			{
+				// if the result node is invalid, we should check if the function's return type is also void, otherwise it's invalid
+				if(function_return_type->isPrimitiveType() && function_return_type->referred.primitive == PrimitiveType::VOID)
+				{
+					propogateType(node, *getInternalPrimitiveType(PrimitiveType::VOID));
+				}
+				else
+				{
+					LOG_MESSAGE(MISSING_RETURN_VALUE, &node, _type = ASTNodeHelper::getNodeName(function_return_type));
+				}
+			}
+			else
+			{
+				// otherwise we should set the type to function's return type
+				propogateType(node, *function_return_type);
+				convertDispatch(&node, function_return_type, node.result, true /*is_assignment*/, false /*is_arithmetic*/, false /*is_logical*/);
+			}
+		}
 	}
 
 	void resolve(DeclarativeStmt& node)
@@ -411,7 +432,7 @@ struct ResolutionStageVisitor : GenericDoubleVisitor
 				{
 					// if the callee is a variable and its type is a lambda type, we should use its lambda return type as call expression's type
 					TypeSpecifier* specifier = cast<TypeSpecifier>(type);
-					if(specifier->type == TypeSpecifier::ReferredType::FUNCTION_TYPE)
+					if(specifier->isFunctionType())
 					{
 						ResolvedType::set(&node, specifier->referred.function_type->return_type);
 						++resolved_count;
@@ -542,7 +563,7 @@ private:
 		if(ResolvedType::get(attach))
 			return true;
 
-		if(node->type == TypeSpecifier::ReferredType::UNSPECIFIED)
+		if(node->isUnspecified())
 		{
 			if(resolver.resolveType(*attach, *node, no_action))
 			{
@@ -764,7 +785,7 @@ private:
 			return false;
 
 		TypeSpecifier* specifier = cast<TypeSpecifier>(node);
-		if(specifier->type != TypeSpecifier::ReferredType::PRIMITIVE)
+		if(!specifier->isPrimitiveType())
 			return false;
 
 		if(PrimitiveType::isArithmeticCapable(specifier->referred.primitive))
@@ -780,8 +801,18 @@ private:
 
 	void convertDispatch(ASTNode* node_to_debug, ASTNode* lhs, ASTNode* rhs, bool is_assignment, bool is_arithmetic, bool is_logical)
 	{
-		ASTNode* resolved_type_left = ResolvedType::get(lhs);
-		ASTNode* resolved_type_right = ResolvedType::get(rhs);
+		ASTNode* resolved_type_left;
+		ASTNode* resolved_type_right;
+
+		if(!isa<TypeSpecifier>(lhs) || (isa<TypeSpecifier>(lhs) && cast<TypeSpecifier>(lhs)->isUnspecified()))
+			resolved_type_left = ResolvedType::get(lhs);
+		else
+			resolved_type_left = lhs;
+
+		if(!isa<TypeSpecifier>(rhs) || (isa<TypeSpecifier>(rhs) && cast<TypeSpecifier>(rhs)->isUnspecified()))
+			resolved_type_right = ResolvedType::get(rhs);
+		else
+			resolved_type_right = rhs;
 
 		if(!resolved_type_left || !resolved_type_right)
 			return;
@@ -791,11 +822,11 @@ private:
 			if(isa<TypeSpecifier>(resolved_type_left))
 			{
 				TypeSpecifier* specifier_left = cast<TypeSpecifier>(resolved_type_left);
-				if(specifier_left->type == TypeSpecifier::ReferredType::PRIMITIVE)
+				if(specifier_left->isPrimitiveType())
 				{
 					// if LHS type is primitive type, the RHS can only be primitive type
 					TypeSpecifier* specifier_right = cast<TypeSpecifier>(resolved_type_right);
-					if(specifier_right && specifier_right->type == TypeSpecifier::ReferredType::PRIMITIVE)
+					if(specifier_right && specifier_right->isPrimitiveType())
 					{
 						convertPrimitive(rhs, specifier_left, specifier_right);
 					}
@@ -805,7 +836,7 @@ private:
 						LOG_MESSAGE(INVALID_CONV, node_to_debug, _rhs_type = ASTNodeHelper::getNodeName(specifier_right), _lhs_type = ASTNodeHelper::getNodeName(specifier_left));
 					}
 				}
-				else if(specifier_left->type == TypeSpecifier::ReferredType::FUNCTION_TYPE)
+				else if(specifier_left->isFunctionType())
 				{
 					// if LHS is lambda function type, RHS must be another lambda function type
 					TypeSpecifier* specifier_right = cast<TypeSpecifier>(resolved_type_right);
@@ -844,7 +875,7 @@ private:
 						}
 					}
 				}
-				else if(specifier_left->type == TypeSpecifier::ReferredType::UNSPECIFIED)
+				else if(specifier_left->isUnspecified())
 				{
 					UNIMPLEMENTED_CODE();
 				}
@@ -875,7 +906,7 @@ private:
 			TypeSpecifier* specifier_right = cast<TypeSpecifier>(resolved_type_right);
 
 			if( (!specifier_left || !specifier_right) ||
-				(specifier_left->type != TypeSpecifier::ReferredType::PRIMITIVE || specifier_right->type != TypeSpecifier::ReferredType::PRIMITIVE) ||
+				(!specifier_left->isPrimitiveType() || !specifier_right->isPrimitiveType()) ||
 				(!PrimitiveType::isArithmeticCapable(specifier_left->referred.primitive) || !PrimitiveType::isArithmeticCapable(specifier_right->referred.primitive)))
 			{
 				LOG_MESSAGE(INVALID_ARITHMETIC, node_to_debug);
@@ -922,6 +953,8 @@ private:
 					parent->replaceUseWith(*node, *cast_expr, false);
 					cast_expr->parent = parent;
 
+					propogateType(*cast_expr, *getInternalPrimitiveType(cast_expr->type->referred.primitive));
+
 					ASTNodeHelper::propogateSourceInfo(*cast_expr, *node); // propagate the source info
 				});
 			}
@@ -946,7 +979,7 @@ private:
 		}
 
 		TypeSpecifier* specifier = cast<TypeSpecifier>(resolved_type);
-		if(specifier->type != TypeSpecifier::ReferredType::PRIMITIVE/* || !PrimitiveType::isIntegerType(specifier->referred.primitive)*/)
+		if(!specifier->isPrimitiveType()/* || !PrimitiveType::isIntegerType(specifier->referred.primitive)*/)
 		{
 			LOG_MESSAGE(INVALID_CONV, node, _rhs_type = ASTNodeHelper::getNodeName(specifier), _lhs_type = ASTNodeHelper::getNodeName(getParserContext().program->internal->BooleanTy));
 			return;
