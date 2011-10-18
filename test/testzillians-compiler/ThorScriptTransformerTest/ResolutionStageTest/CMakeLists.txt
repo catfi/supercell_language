@@ -19,6 +19,9 @@
 # Contact Information: info@zillians.com
 #
 
+zillians_create_test_subject(SUBJECT thorscript-transformer-resolution-test-all)
+zillians_add_subject_to_subject(PARENT thorscript-transformer-test-all CHILD thorscript-transformer-resolution-test-all)
+
 ADD_SUBDIRECTORY(0_basic_resolution)
 #ADD_SUBDIRECTORY(1_type_synthesis)
 #ADD_SUBDIRECTORY(2_type_inference)
