@@ -177,28 +177,27 @@ struct RestructureStageVisitor : GenericDoubleVisitor
 					DeclarativeStmt* anchor = cast<DeclarativeStmt>(node.parent);
 					Block* parent = (anchor && anchor->parent) ? cast<Block>(anchor->parent) : NULL;
 					SimpleIdentifier* name = cast<SimpleIdentifier>(node.name);
+
 					BOOST_ASSERT(parent != NULL && name != NULL && anchor != NULL && "variable declaration has incorrect hierarchy");
-					if(parent && name && anchor)
-					{
-						Identifier*     new_identifier      = cast<Identifier>(node.name->clone());
-						PrimaryExpr*    new_primary_expr    = new PrimaryExpr(new_identifier);
-						BinaryExpr*     new_assignment_expr = new BinaryExpr(BinaryExpr::OpCode::ASSIGN, new_primary_expr, node.initializer);
-						ExpressionStmt* new_expr_stmt       = new ExpressionStmt(new_assignment_expr);
 
-						SplitReferenceContext::set(new_identifier, anchor);
-						SplitReferenceContext::set(new_primary_expr, anchor);
-						SplitReferenceContext::set(new_assignment_expr, anchor);
-						SplitReferenceContext::set(new_expr_stmt, anchor);
+					Identifier*     new_identifier      = cast<Identifier>(node.name->clone());
+					PrimaryExpr*    new_primary_expr    = new PrimaryExpr(new_identifier);
+					BinaryExpr*     new_assignment_expr = new BinaryExpr(BinaryExpr::OpCode::ASSIGN, new_primary_expr, node.initializer);
+					ExpressionStmt* new_expr_stmt       = new ExpressionStmt(new_assignment_expr);
 
-						parent->insertObjectAfter(anchor, new_expr_stmt, false);
+					SplitReferenceContext::set(new_identifier, anchor);
+					SplitReferenceContext::set(new_primary_expr, anchor);
+					SplitReferenceContext::set(new_assignment_expr, anchor);
+					SplitReferenceContext::set(new_expr_stmt, anchor);
 
-						ASTNodeHelper::propogateSourceInfo(*new_identifier, node); // propagate the source info
-						ASTNodeHelper::propogateSourceInfo(*new_primary_expr, node); // propagate the source info
-						ASTNodeHelper::propogateSourceInfo(*new_assignment_expr, node); // propagate the source info
-						ASTNodeHelper::propogateSourceInfo(*new_expr_stmt, node); // propagate the source info
+					parent->insertObjectAfter(anchor, new_expr_stmt, false);
 
-						node.initializer = NULL;
-					}
+					ASTNodeHelper::propogateSourceInfo(*new_identifier, node); // propagate the source info
+					ASTNodeHelper::propogateSourceInfo(*new_primary_expr, node); // propagate the source info
+					ASTNodeHelper::propogateSourceInfo(*new_assignment_expr, node); // propagate the source info
+					ASTNodeHelper::propogateSourceInfo(*new_expr_stmt, node); // propagate the source info
+
+					node.initializer = NULL;
 				});
 			}
 
