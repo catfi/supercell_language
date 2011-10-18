@@ -833,6 +833,24 @@ struct PrettyPrintVisitor : Visitor<const ASTNode, void>
 				STREAM << L"</case>" << std::endl;
 				++c;
 			}
+			{
+				STREAM << L"<default>" << std::endl;
+				{
+					increaseIdent();
+					{
+						if(node.default_block)
+						{
+							visit(*node.default_block);
+						}
+						else
+						{
+							STREAM << L"<null_block/>" << std::endl;
+						}
+					}
+					decreaseIdent();
+				}
+				STREAM << L"</default>" << std::endl;
+			}
 			decreaseIdent();
 		}
 		STREAM << L"</switch_stmt>" << std::endl;

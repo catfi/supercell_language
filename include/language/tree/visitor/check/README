@@ -24,7 +24,7 @@ ERRORS:
             I.   EXPRESSION
                  i.   WRITE_RVALUE                                  S0*
                  ii.  INVALID_CONV                                      T
-                 iii. NO_MATCHING_MEMBER_FUNC                           T -- (same as E2.c.III)
+                 iii. NO_MATCHING_MEMBER_FUNC                           T -- (same as E2.c.II-IV)
             II.  STATEMENT
                  - INVALID_CONV_BOOL                                    T
             III. DECLARATION
@@ -33,7 +33,7 @@ ERRORS:
             I.   MEMBER_OF_NONCLASS                                     T
             II.  NO_SUCH_MEMBER                                         T
             III. SUBSCRIPT_OF_NONARRAY                                  T
-            IV.  UNEXPECTED_VARIADIC_ARG                            S0? -- need resolved symbol
+            IV.  UNEXPECTED_VARIADIC_ARG                                        S1(X) -- unnecessary
             V.   UNEXPECTED_VARIADIC_TEMPLATE_ARG                   S0*
         c. FUNCTION
             I.   CALL_NONFUNC                                           T
@@ -45,7 +45,7 @@ ERRORS:
     E3. MODIFIER
         a. STORAGE
             I.  CONST
-                i.  MISSING_CONST_INIT                      P
+                i.  MISSING_CONST_INIT                      P -- grammar
                 ii. WRITE_CONST                                                 S1*
             II. STATIC
                 i.   MISSING_STATIC_INIT                            S0*
@@ -57,6 +57,7 @@ ERRORS:
     E4. STATEMENT
         a. MISSING_BREAK_TARGET                                     S0*
         b. MISSING_CONTINUE_TARGET                                  S0*
+        c. MULTIPLE_DEFAULT_LABELS                          P -- semantic action
     E5. DECLARATION
         a. MISSING_PARAM_INIT                                       S0*
         b. UNEXPECTED_VARIADIC_PARAM                                S0*
@@ -104,9 +105,9 @@ MESSAGES:
     E2.c.I:   CALL_NONFUNC                       = $ID cannot be used as a function
     E2.c.II:  MISMATCH_CALL_ARGNUM_TOO_MANY      = too many arguments to function $ID
     E2.c.III: MISMATCH_CALL_ARGNUM_TOO_FEW       = too few arguments to function $ID
-    E2.c.III: MISMATCH_CALL_ARGTYPE              = cannot convert $ID to $ID2 for argument $INT to $ID3
-    E2.c.IV:  UNEXPECTED_RETURN_VALUE            = return-statement with a value, in function returning 'void'
-    E2.c.V:   MISSING_RETURN_VALUE               = return-statement with no value, in function returning $ID
+    E2.c.IV:  MISMATCH_CALL_ARGTYPE              = cannot convert $ID to $ID2 for argument $INT to $ID3
+    E2.c.V:   UNEXPECTED_RETURN_VALUE            = return-statement with a value, in function returning 'void'
+    E2.c.VI:  MISSING_RETURN_VALUE               = return-statement with no value, in function returning $ID
     E3.a.I:   MISSING_CONST_INIT                 = uninitialized const $ID
               WRITE_CONST                        = assignment of read-only variable $ID
     E3.a.II:  MISSING_STATIC_INIT                = <<< no c++ equivalence >>>
@@ -116,6 +117,7 @@ MESSAGES:
     E3.b.II:  INVALID_ACCESS_PROTECTED           = $ID is protected
     E4.a:     MISSING_BREAK_TARGET               = break statement not within loop or switch
     E4.b:     MISSING_CONTINUE_TARGET            = continue statement not within a loop
+    E4.c:     MULTIPLE_DEFAULT_LABELS            = multiple default labels in one switch
     E5.a:     MISSING_PARAM_INIT                 = default argument missing for parameter $INT of $ID
     E5.b:     UNEXPECTED_VARIADIC_PARAM          = <<< syntax-error in gcc >>>
     E5.c:     UNEXPECTED_VARIADIC_TEMPLATE_PARAM = <<< syntax-error in gcc >>>

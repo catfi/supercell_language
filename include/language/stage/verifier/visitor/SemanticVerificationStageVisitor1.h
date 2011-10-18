@@ -251,7 +251,7 @@ struct SemanticVerificationStageVisitor1 : GenericDoubleVisitor
 		revisit(node);
 
 		if(isa<Block>(node.parent) && SemanticVerificationBlockContext_AlwaysReturns::get(&node))
-			SemanticVerificationBlockContext_AlwaysReturns::bind(&node);
+			SemanticVerificationBlockContext_AlwaysReturns::bind(node.parent);
 	}
 
 	void verify(IfElseStmt& node)
@@ -263,7 +263,8 @@ struct SemanticVerificationStageVisitor1 : GenericDoubleVisitor
 		always_returns &= (bool)SemanticVerificationBlockContext_AlwaysReturns::get(node.if_branch.block);
 		foreach(i, node.elseif_branches)
 			always_returns &= (bool)SemanticVerificationBlockContext_AlwaysReturns::get((*i).block);
-		always_returns &= (bool)SemanticVerificationBlockContext_AlwaysReturns::get(node.else_block);
+		if(node.else_block)
+			always_returns &= (bool)SemanticVerificationBlockContext_AlwaysReturns::get(node.else_block);
 		if(isa<Block>(node.parent) && always_returns)
 			SemanticVerificationBlockContext_AlwaysReturns::bind(node.parent);
 	}
@@ -298,10 +299,10 @@ struct SemanticVerificationStageVisitor1 : GenericDoubleVisitor
 
 		// CONTROL_REACHES_END
 		bool always_returns = true;
-		always_returns &= (bool)SemanticVerificationBlockContext_AlwaysReturns::get(node.node);
 		foreach(i, node.cases)
 			always_returns &= (bool)SemanticVerificationBlockContext_AlwaysReturns::get((*i).block);
-		always_returns &= (bool)SemanticVerificationBlockContext_AlwaysReturns::get(node.default_block);
+		if(node.default_block)
+			always_returns &= (bool)SemanticVerificationBlockContext_AlwaysReturns::get(node.default_block);
 		if(isa<Block>(node.parent) && always_returns)
 			SemanticVerificationBlockContext_AlwaysReturns::bind(node.parent);
 	}
@@ -310,15 +311,8 @@ struct SemanticVerificationStageVisitor1 : GenericDoubleVisitor
 	{
 		revisit(node);
 
-		bool always_returns = false;
-		if(isa<WhileStmt>(&node))
-			always_returns = SemanticVerificationBlockContext_AlwaysReturns::get(cast<WhileStmt>(&node)->block);
-		if(isa<ForeachStmt>(&node))
-			always_returns = SemanticVerificationBlockContext_AlwaysReturns::get(cast<ForeachStmt>(&node)->block);
-		if(isa<ForStmt>(&node))
-			always_returns = SemanticVerificationBlockContext_AlwaysReturns::get(cast<ForStmt>(&node)->block);
-		if(isa<Block>(node.parent) && always_returns)
-			SemanticVerificationBlockContext_AlwaysReturns::bind(&node);
+		if(isa<Block>(node.parent) && SemanticVerificationBlockContext_AlwaysReturns::get(node.block))
+			SemanticVerificationBlockContext_AlwaysReturns::bind(node.parent);
 	}
 
 private:

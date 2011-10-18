@@ -64,7 +64,7 @@ struct block
 	END_ACTION
 };
 
-struct aux_block
+struct statement_block
 {
 	DEFINE_ATTRIBUTES(ASTNode*)
 	DEFINE_LOCALS(LOCATION_TYPE)
@@ -72,7 +72,7 @@ struct aux_block
 	BEGIN_ACTION(init)
 	{
 #ifdef DEBUG
-		printf("aux_block param(0) type = %s\n", typeid(_param_t(0)).name());
+		printf("statement_block param(0) type = %s\n", typeid(_param_t(0)).name());
 #endif
 		if(isa<Block>(_param(0)))
 			_result = _param(0);
@@ -81,6 +81,23 @@ struct aux_block
 			BIND_CACHED_LOCATION(_result = new Block());
 			cast<Block>(_result)->appendObject(_param(0));
 		}
+	}
+	END_ACTION
+};
+
+struct statement_list_block
+{
+	DEFINE_ATTRIBUTES(ASTNode*)
+	DEFINE_LOCALS(LOCATION_TYPE)
+
+	BEGIN_ACTION(init)
+	{
+#ifdef DEBUG
+		printf("statement_list_block param(0) type = %s\n", typeid(_param_t(0)).name());
+#endif
+		BIND_CACHED_LOCATION(_result = new Block());
+		deduced_foreach_value(i, _param(0))
+			cast<Block>(_result)->appendObject(i);
 	}
 	END_ACTION
 };

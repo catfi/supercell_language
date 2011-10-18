@@ -110,7 +110,8 @@ struct ThorScriptTreeAction
 	typedef action::statement            statement;
 	typedef action::decl_statement       decl_statement;
 	typedef action::block                block;
-	typedef action::aux_block            aux_block;
+	typedef action::statement_block      statement_block;
+	typedef action::statement_list_block statement_list_block;
 	typedef action::expression_statement expression_statement;
 	typedef action::selection_statement  selection_statement;
 	typedef action::iteration_statement  iteration_statement;

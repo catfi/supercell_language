@@ -284,6 +284,7 @@ struct GenericDoubleVisitor : Visitor<ASTNode, void, VisitorImplementation::recu
 				if(i->cond) user_visitor->visit(*i->cond);
 				if(i->block) user_visitor->visit(*i->block);
 			}
+			if(node.default_block) visit(*node.default_block);
 		}
 
 		void apply(BranchStmt& node)

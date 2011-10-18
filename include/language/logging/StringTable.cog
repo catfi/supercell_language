@@ -249,6 +249,10 @@ struct StringTable
 			en_US = 'continue statement not within a loop',
 			zh_TW = 'NOTE: 暫無中文翻譯 ==> MISSING_CONTINUE_TARGET'
 			))
+	LOG_STRING.create('MULTIPLE_DEFAULT_LABELS', LOG_LEVEL.LEVEL_ERROR, 0, dict(
+			en_US = 'multiple default labels in one switch',
+			zh_TW = 'NOTE: 暫無中文翻譯 ==> MULTIPLE_DEFAULT_LABELS'
+			))
 	LOG_STRING.create('MISSING_PARAM_INIT', LOG_LEVEL.LEVEL_ERROR, 0, dict(
 			en_US = 'default argument missing for parameter $param_index(uint32) of $func_id(wstring)',
 			zh_TW = 'NOTE: 暫無中文翻譯 ==> MISSING_PARAM_INIT'

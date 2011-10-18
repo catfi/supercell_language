@@ -36,9 +36,11 @@ zillians_add_subject_to_subject(PARENT thorscript-compiler-static-test-all CHILD
 #zillians_add_subject_to_subject(PARENT thorscript-compiler-static-test-all CHILD thorscript-compiler-static-test-future)
 
 get_target_property(ThorScriptCompiler ts-compile LOCATION)
-SET(compile_options_xform "--mode-xform-stage-only")
-SET(compile_options_s0 "--mode-semantic-verify-0")
-SET(compile_options_s1 "--mode-semantic-verify-1")
+SET(compile_options_parse "--mode-parse")
+SET(compile_options_s0    "--mode-semantic-verify-0")
+SET(compile_options_xform "--mode-xform")
+SET(compile_options_s1    "--mode-semantic-verify-1")
+SET(compile_options_future "")
 
 #################################################
 # bug
@@ -182,7 +184,7 @@ zillians_add_complex_test(
     )
 zillians_add_complex_test(
     TARGET thorscript-compiler-static-test-UNEXPECTED_VARIADIC_ARG
-    SHELL ${ThorScriptCompiler} ${compile_options_s0} ${CMAKE_CURRENT_SOURCE_DIR}/data/error/1_type/primary_expression/UNEXPECTED_VARIADIC_ARG.t
+    SHELL ${ThorScriptCompiler} ${compile_options_s1} ${CMAKE_CURRENT_SOURCE_DIR}/data/error/1_type/primary_expression/UNEXPECTED_VARIADIC_ARG.t
     DEPENDS ${ThorScriptCompiler}
     )
 zillians_add_complex_test(
@@ -194,7 +196,7 @@ zillians_add_complex_test(
 zillians_add_test_to_subject(SUBJECT thorscript-compiler-static-test-xform TARGET thorscript-compiler-static-test-MEMBER_OF_NONCLASS)
 zillians_add_test_to_subject(SUBJECT thorscript-compiler-static-test-xform TARGET thorscript-compiler-static-test-NO_SUCH_MEMBER)
 zillians_add_test_to_subject(SUBJECT thorscript-compiler-static-test-xform TARGET thorscript-compiler-static-test-SUBSCRIPT_OF_NONARRAY)
-#zillians_add_test_to_subject(SUBJECT thorscript-compiler-static-test-s0 TARGET thorscript-compiler-static-test-UNEXPECTED_VARIADIC_ARG)
+#zillians_add_test_to_subject(SUBJECT thorscript-compiler-static-test-s1 TARGET thorscript-compiler-static-test-UNEXPECTED_VARIADIC_ARG)
 zillians_add_test_to_subject(SUBJECT thorscript-compiler-static-test-s0 TARGET thorscript-compiler-static-test-UNEXPECTED_VARIADIC_TEMPLATE_ARG)
 
 #####################################################################
@@ -204,7 +206,7 @@ zillians_add_test_to_subject(SUBJECT thorscript-compiler-static-test-s0 TARGET t
 # storage / const
 #zillians_add_complex_test(
 #    TARGET thorscript-compiler-static-test-MISSING_CONST_INIT
-#    SHELL ${ThorScriptCompiler} ${compile_options_s0} ${CMAKE_CURRENT_SOURCE_DIR}/data/error/2_modifier/storage/const/MISSING_CONST_INIT.t
+#    SHELL ${ThorScriptCompiler} ${compile_options_parse} ${CMAKE_CURRENT_SOURCE_DIR}/data/error/2_modifier/storage/const/MISSING_CONST_INIT.t
 #    DEPENDS ${ThorScriptCompiler}
 #    )
 zillians_add_complex_test(
@@ -242,7 +244,7 @@ zillians_add_complex_test(
     DEPENDS ${ThorScriptCompiler}
     )
 
-#zillians_add_test_to_subject(SUBJECT thorscript-compiler-static-test-s0 TARGET thorscript-compiler-static-test-MISSING_CONST_INIT)
+#zillians_add_test_to_subject(SUBJECT thorscript-compiler-static-test-parse TARGET thorscript-compiler-static-test-MISSING_CONST_INIT)
 zillians_add_test_to_subject(SUBJECT thorscript-compiler-static-test-s1 TARGET thorscript-compiler-static-test-WRITE_CONST)
 zillians_add_test_to_subject(SUBJECT thorscript-compiler-static-test-s1 TARGET thorscript-compiler-static-test-INVALID_NONSTATIC_CALL)
 zillians_add_test_to_subject(SUBJECT thorscript-compiler-static-test-s1 TARGET thorscript-compiler-static-test-INVALID_NONSTATIC_REF)
@@ -264,9 +266,15 @@ zillians_add_complex_test(
     SHELL ${ThorScriptCompiler} ${compile_options_s0} ${CMAKE_CURRENT_SOURCE_DIR}/data/error/3_statement/MISSING_CONTINUE_TARGET.t
     DEPENDS ${ThorScriptCompiler}
     )
+zillians_add_complex_test(
+    TARGET thorscript-compiler-static-test-MULTIPLE_DEFAULT_LABELS
+    SHELL ${ThorScriptCompiler} ${compile_options_parse} ${CMAKE_CURRENT_SOURCE_DIR}/data/error/3_statement/MULTIPLE_DEFAULT_LABELS.t
+    DEPENDS ${ThorScriptCompiler}
+    )
 
 zillians_add_test_to_subject(SUBJECT thorscript-compiler-static-test-s0 TARGET thorscript-compiler-static-test-MISSING_BREAK_TARGET)
 zillians_add_test_to_subject(SUBJECT thorscript-compiler-static-test-s0 TARGET thorscript-compiler-static-test-MISSING_CONTINUE_TARGET)
+zillians_add_test_to_subject(SUBJECT thorscript-compiler-static-test-parse TARGET thorscript-compiler-static-test-MULTIPLE_DEFAULT_LABELS)
 
 #####################################################################
 # 4_parameter
