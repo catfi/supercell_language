@@ -203,6 +203,15 @@ struct Block : public ASTNode
     	return cloned;
     }
 
+    bool merge(Block& rhs)
+    {
+    	foreach(i, rhs.objects)
+		{
+    		objects.push_back(*i);
+		}
+    	return true;
+    }
+
     template<typename Archive>
     void serialize(Archive& ar, const unsigned int version)
     {
