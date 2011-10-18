@@ -249,6 +249,9 @@ struct SemanticVerificationStageVisitor1 : GenericDoubleVisitor
 		});
 
 		revisit(node);
+
+		if(isa<Block>(node.parent) && SemanticVerificationBlockContext_AlwaysReturns::get(&node))
+			SemanticVerificationBlockContext_AlwaysReturns::bind(&node);
 	}
 
 	void verify(IfElseStmt& node)
