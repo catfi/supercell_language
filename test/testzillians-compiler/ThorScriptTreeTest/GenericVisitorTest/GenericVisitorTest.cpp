@@ -20,10 +20,10 @@
 #include "core/Prerequisite.h"
 #include "language/tree/ASTNode.h"
 #include "language/tree/ASTNodeFactory.h"
-#include "language/tree/visitor/general/GenericVisitor.h"
-#include "language/tree/visitor/general/GenericDoubleVisitor.h"
-#include "language/tree/visitor/general/GenericComposableVisitor.h"
-#include "language/tree/visitor/general/ObjectCountVisitor.h"
+#include "language/tree/visitor/GenericVisitor.h"
+#include "language/tree/visitor/GenericDoubleVisitor.h"
+#include "language/tree/visitor/GenericComposableVisitor.h"
+#include "language/tree/visitor/ObjectCountVisitor.h"
 #include "../ASTNodeSamples.h"
 #include <iostream>
 #include <string>

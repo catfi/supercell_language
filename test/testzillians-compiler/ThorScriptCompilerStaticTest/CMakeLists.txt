@@ -35,7 +35,6 @@ zillians_add_subject_to_subject(PARENT thorscript-compiler-static-test-all CHILD
 zillians_add_subject_to_subject(PARENT thorscript-compiler-static-test-all CHILD thorscript-compiler-static-test-s1)
 #zillians_add_subject_to_subject(PARENT thorscript-compiler-static-test-all CHILD thorscript-compiler-static-test-future)
 
-get_target_property(ThorScriptCompiler ts-compile LOCATION)
 SET(compile_options_xform "--mode-xform-stage-only")
 SET(compile_options_s0 "--mode-semantic-verify-0")
 SET(compile_options_s1 "--mode-semantic-verify-1")

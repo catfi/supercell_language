@@ -35,19 +35,34 @@ struct program
 		printf("program::append_package_decl param(0) type = %s\n", typeid(_param_t(0)).name());
 		printf("program::append_package_decl param(1) type = %s\n", typeid(_param_t(1)).name());
 #endif
-		NestedIdentifier *nested_ident = cast<NestedIdentifier>(_param(1));
-		Package* prev_package = getParserContext().program->root;
-		deduced_foreach_value(i, nested_ident->identifier_list)
+		if(isa<NestedIdentifier>(_param(1)))
 		{
-			Package *package = prev_package->findPackage(i->toString());
+			NestedIdentifier *nested_ident = cast<NestedIdentifier>(_param(1));
+			Package* prev_package = getParserContext().program->root;
+			deduced_foreach_value(i, nested_ident->identifier_list)
+			{
+				Package *package = prev_package->findPackage(i->toString());
+				if(!package)
+				{
+					BIND_CACHED_LOCATION(package = new Package(cast<SimpleIdentifier>(i)));
+					prev_package->addPackage(package);
+				}
+				prev_package = package;
+			}
+			getParserContext().active_package = prev_package;
+		}
+		else if(isa<SimpleIdentifier>(_param(1)))
+		{
+			SimpleIdentifier *simple_ident = cast<SimpleIdentifier>(_param(1));
+			Package* root_package = getParserContext().program->root;
+			Package *package = root_package->findPackage(simple_ident->toString());
 			if(!package)
 			{
-				BIND_CACHED_LOCATION(package = new Package(cast<SimpleIdentifier>(i)));
-				prev_package->addPackage(package);
+				BIND_CACHED_LOCATION(package = new Package(simple_ident));
+				root_package->addPackage(package);
 			}
-			prev_package = package;
+			getParserContext().active_package = package;
 		}
-		getParserContext().active_package = prev_package;
 		if(_param(0).is_initialized())
 			getParserContext().active_package->setAnnotations(*_param(0));
 	}

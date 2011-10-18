@@ -116,7 +116,7 @@ int StageConductor::main(int argc, const char** argv)
 
 			if(!(*stage)->execute(c))
 			{
-				std::cerr << "execution failed at stage: " << (*stage)->name() << std::endl;
+				//std::cerr << "execution failed at stage: " << (*stage)->name() << std::endl;
 				return -1;
 			}
 

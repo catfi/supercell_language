@@ -25,7 +25,7 @@
 #include "language/context/ResolverContext.h"
 #include "language/context/TransformerContext.h"
 #include "language/stage/parser/context/SourceInfoContext.h"
-#include "language/tree/visitor/general/NodeInfoVisitor.h"
+#include "language/tree/visitor/NodeInfoVisitor.h"
 
 namespace zillians { namespace language { namespace tree {
 

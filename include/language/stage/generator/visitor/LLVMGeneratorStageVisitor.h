@@ -22,8 +22,8 @@
 
 #include "core/Prerequisite.h"
 #include "language/tree/ASTNodeHelper.h"
-#include "language/tree/visitor/general/GenericDoubleVisitor.h"
-#include "language/tree/visitor/general/NodeInfoVisitor.h"
+#include "language/tree/visitor/GenericDoubleVisitor.h"
+#include "language/tree/visitor/NodeInfoVisitor.h"
 #include "language/stage/generator/detail/LLVMForeach.h"
 #include "language/stage/generator/detail/LLVMHelper.h"
 #include "language/context/ResolverContext.h"

@@ -29,7 +29,8 @@
 #include "language/stage/generator/LLVMGeneratorStage.h"
 #include "language/stage/generator/LLVMDebugInfoGeneratorStage.h"
 #include "language/stage/generator/LLVMBitCodeGeneratorStage.h"
-#include "language/stage/generator/ASTSerializationStage.h"
+#include "language/stage/serialization/ASTDeserializationStage.h"
+#include "language/stage/serialization/ASTSerializationStage.h"
 #include "language/stage/verifier/SemanticVerificationStage0.h"
 #include "language/stage/verifier/SemanticVerificationStage1.h"
 #include "language/stage/verifier/StaticTestVerificationStage.h"
@@ -43,6 +44,7 @@ ThorScriptCompiler::ThorScriptCompiler()
 	addDefaultMode<
 		boost::mpl::vector<
 			ThorScriptParserStage,
+			ASTDeserializationStage,
 			SemanticVerificationStage0,
 			LiteralCompactionStage,
 			RestructureStage,
@@ -58,24 +60,37 @@ ThorScriptCompiler::ThorScriptCompiler()
 	addMode<
 		boost::mpl::vector<
 			ThorScriptParserStage,
+			ASTDeserializationStage,
 			StaticTestVerificationStage>>("mode-parse-syntax-only", "for syntax check stage");
 
 	addMode<
 		boost::mpl::vector<
 			ThorScriptParserStage,
+			ASTDeserializationStage,
 			SemanticVerificationStage0,
 			StaticTestVerificationStage>>("mode-semantic-verify-0", "for semantic verification stage 0");
 
 	addMode<
 		boost::mpl::vector<
 			ThorScriptParserStage,
+			ASTDeserializationStage,
 			LiteralCompactionStage,
 			RestructureStage,
-			StaticTestVerificationStage>>("mode-xform-stage-only", "for transform stage");
+			StaticTestVerificationStage>>("mode-xform-stage-only", "for debugging transform stage");
 
 	addMode<
 		boost::mpl::vector<
 			ThorScriptParserStage,
+			ASTDeserializationStage,
+			LiteralCompactionStage,
+			RestructureStage,
+			ResolutionStage,
+			StaticTestVerificationStage>>("mode-resolution-stage-only", "for debugging resolution stage");
+
+	addMode<
+		boost::mpl::vector<
+			ThorScriptParserStage,
+			ASTDeserializationStage,
 			SemanticVerificationStage0,
 			LiteralCompactionStage,
 			RestructureStage,

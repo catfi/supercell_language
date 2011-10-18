@@ -21,7 +21,7 @@
 #include "language/tree/ASTNode.h"
 #include "language/tree/ASTNodeFactory.h"
 #include "language/tree/ASTNodeSerialization.h"
-#include "language/tree/visitor/general/PrettyPrintVisitor.h"
+#include "language/tree/visitor/PrettyPrintVisitor.h"
 #include "../ASTNodeSamples.h"
 #include <iostream>
 #include <string>

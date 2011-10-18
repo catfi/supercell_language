@@ -21,9 +21,9 @@
 #define ZILLIANS_LANGUAGE_STAGE_VISITOR_SEMANTICVERIFICATIONSTAGEVISITOR0_H_
 
 #include "core/Prerequisite.h"
-#include "language/tree/visitor/general/GenericVisitor.h"
-#include "language/tree/visitor/general/GenericDoubleVisitor.h"
-#include "language/tree/visitor/general/NameManglingVisitor.h"
+#include "language/tree/visitor/GenericVisitor.h"
+#include "language/tree/visitor/GenericDoubleVisitor.h"
+#include "language/tree/visitor/NameManglingVisitor.h"
 #include "language/stage/transformer/context/ManglingStageContext.h"
 #include "language/logging/StringTable.h"
 #include "language/logging/LoggerWrapper.h"
@@ -243,7 +243,7 @@ struct SemanticVerificationStageVisitor0 : GenericDoubleVisitor
 		verifyDupeName(&node);
 
 		// MISSING_STATIC_INIT
-		if(node.is_static && !node.initializer)
+		if(!isa<EnumDecl>(node.parent) && !isa<FunctionDecl>(node.parent) && node.is_static && !node.initializer)
 			LOG_MESSAGE(MISSING_STATIC_INIT, &node);
 
 		revisit(node);

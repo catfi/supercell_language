@@ -22,9 +22,9 @@
 
 #include "core/Prerequisite.h"
 #include "language/context/TransformerContext.h"
-#include "language/tree/visitor/general/GenericVisitor.h"
-#include "language/tree/visitor/general/GenericDoubleVisitor.h"
-#include "language/tree/visitor/general/NameManglingVisitor.h"
+#include "language/tree/visitor/GenericVisitor.h"
+#include "language/tree/visitor/GenericDoubleVisitor.h"
+#include "language/tree/visitor/NameManglingVisitor.h"
 #include "language/stage/transformer/context/ManglingStageContext.h"
 #include "language/logging/StringTable.h"
 #include "language/logging/LoggerWrapper.h"
@@ -260,21 +260,21 @@ struct SemanticVerificationStageVisitor1 : GenericDoubleVisitor
 		if(isa<EnumDecl>(resolved_type)) // NOTE: only need to handle enum case
 		{
 			EnumDecl* enum_decl = cast<EnumDecl>(resolved_type);
-			foreach(i, enum_decl->enumeration_list)
-				SemanticVerificationEnumKeyContext_HasVisited::bind((*i).first);
+			foreach(i, enum_decl->values)
+				SemanticVerificationEnumKeyContext_HasVisited::bind(*i);
 			foreach(i, node.cases)
 			{
 				ASTNode* resolved_symbol = ResolvedSymbol::get((*i).cond);
 				if(isa<Identifier>(resolved_symbol))
 					SemanticVerificationEnumKeyContext_HasVisited::unbind(resolved_symbol);
 			}
-			foreach(i, enum_decl->enumeration_list)
+			foreach(i, enum_decl->values)
 			{
-				if(SemanticVerificationEnumKeyContext_HasVisited::is_bound((*i).first))
+				if(SemanticVerificationEnumKeyContext_HasVisited::is_bound(*i))
 				{
 					if(!node.default_block)
-						LOG_MESSAGE(MISSING_CASE, &node, _id = (*i).first->toString());
-					SemanticVerificationEnumKeyContext_HasVisited::unbind((*i).first);
+						LOG_MESSAGE(MISSING_CASE, &node, _id = (*i)->name->toString());
+					SemanticVerificationEnumKeyContext_HasVisited::unbind(*i);
 				}
 			}
 		}

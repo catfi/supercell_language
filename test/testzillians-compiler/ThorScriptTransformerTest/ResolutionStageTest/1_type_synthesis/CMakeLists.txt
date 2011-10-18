@@ -19,12 +19,10 @@
 # Contact Information: info@zillians.com
 #
 
-get_target_property(ThorScriptCompiler ts-compile LOCATION)
-
 zillians_add_complex_test(
     TARGET thorscript-transformer-test-resolution-type-synthesis
     SHELL ${ThorScriptCompiler} ${CMAKE_CURRENT_SOURCE_DIR}/1_type_synthesis.t
     DEPENDS ${ThorScriptCompiler}
     )
 
-zillians_add_test_to_subject(SUBJECT thorscript-transformer-test-all TARGET thorscript-transformer-test-resolution-type-synthesis)
+zillians_add_test_to_subject(SUBJECT thorscript-transformer-resolution-test-all TARGET thorscript-transformer-test-resolution-type-synthesis)

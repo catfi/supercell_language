@@ -1,4 +1,4 @@
-package com.zillians.compiler_test;
+package compiler_test;
 
 var x:int64 = 0;
 var y:int64 = 0;

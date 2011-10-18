@@ -117,6 +117,39 @@ struct Package : public ASTNode
     	return cloned;
     }
 
+    bool merge(Package& rhs)
+    {
+    	if(!id->isEqual(*rhs.id))
+    		return false;
+
+    	foreach(i, rhs.children)
+    	{
+    		bool merged = false;
+    		foreach(j, children)
+			{
+    			if((*i)->id->isEqual(*(*j)->id))
+    			{
+    				(*i)->merge(**j);
+    				merged = true;
+    			}
+			}
+
+    		if(!merged)
+    		{
+    			children.push_back(*i);
+    		}
+    	}
+
+    	foreach(i, rhs.objects)
+    	{
+    		objects.push_back(*i);
+    	}
+
+    	annotations->merge(*rhs.annotations);
+
+    	return true;
+    }
+
     template<typename Archive>
     void serialize(Archive& ar, const unsigned int version)
     {

@@ -109,7 +109,7 @@ struct StringTable
 			zh_TW = '溢位'
 			))
 	LOG_STRING.create('UNDEFINED_TYPE', LOG_LEVEL.LEVEL_ERROR, 0, dict(
-			en_US = 'there are $count(uint32) unresolved symbols',
+			en_US = 'there are $count(uint32) unresolved types',
 			zh_TW = '找到$count(uint32)個未定義的型別'
 			))
 	LOG_STRING.create('UNDEFINED_TYPE_INFO', LOG_LEVEL.LEVEL_ERROR, 0, dict(
