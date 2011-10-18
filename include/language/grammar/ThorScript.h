@@ -792,7 +792,7 @@ struct ThorScript : qi::grammar<Iterator, typename SA::start::attribute_type, de
 
 		statement_list_block
 			= qi::eps [ typename SA::location::cache_loc() ]
-				>> (*statement) [ typename SA::statement_list_block::init() ]
+				>> (*statement) [ typename SA::block::init() ]
 			;
 
 		///
@@ -991,7 +991,7 @@ struct ThorScript : qi::grammar<Iterator, typename SA::start::attribute_type, de
 		INIT_RULE(branch_statement);
 		INIT_RULE(block);
 		INIT_RULE(statement_block);
-		DECL_RULE(statement_list_block);
+		INIT_RULE(statement_list_block);
 
 		// global_decl
 		INIT_RULE(global_decl);
@@ -1099,7 +1099,7 @@ struct ThorScript : qi::grammar<Iterator, typename SA::start::attribute_type, de
 	DECL_RULE(branch_statement);
 	DECL_RULE(block);
 	DECL_RULE(statement_block);
-	DECL_RULE(statement_list_block);
+	DECL_RULE_CUSTOM_SA(statement_list_block, block);
 
 	// global_decl
 	DECL_RULE(global_decl);

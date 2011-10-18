@@ -85,23 +85,6 @@ struct statement_block
 	END_ACTION
 };
 
-struct statement_list_block
-{
-	DEFINE_ATTRIBUTES(ASTNode*)
-	DEFINE_LOCALS(LOCATION_TYPE)
-
-	BEGIN_ACTION(init)
-	{
-#ifdef DEBUG
-		printf("statement_list_block param(0) type = %s\n", typeid(_param_t(0)).name());
-#endif
-		BIND_CACHED_LOCATION(_result = new Block());
-		deduced_foreach_value(i, _param(0))
-			cast<Block>(_result)->appendObject(i);
-	}
-	END_ACTION
-};
-
 struct variable_decl_list
 {
 	DEFINE_ATTRIBUTES(std::vector<VariableDecl*>)

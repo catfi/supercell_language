@@ -100,8 +100,8 @@ struct selection_statement
 		printf("selection_statement::init_if_statement param(2) type = %s\n", typeid(_param_t(2)).name());
 		printf("selection_statement::init_if_statement param(3) type = %s\n", typeid(_param_t(3)).name());
 #endif
-		Expression* cond = _param(0);
-		ASTNode* block = _param(1);
+		Expression* cond  = _param(0);
+		ASTNode*    block = _param(1);
 		BIND_CACHED_LOCATION(_result = new IfElseStmt(Selection(cond, block)));
 		deduced_foreach_value(i, _param(2))
 		{
@@ -128,10 +128,10 @@ struct selection_statement
 			{
 			case 0:
 				{
-					typedef boost::fusion::vector2<Expression*, ASTNode*> fusion_vec_t;
+					typedef boost::fusion::vector2<Expression*, Block*> fusion_vec_t;
 					fusion_vec_t &vec = boost::get<fusion_vec_t>(i);
 					Expression* cond  = boost::fusion::at_c<0>(vec);
-					ASTNode*    block = boost::fusion::at_c<1>(vec);
+					Block*      block = boost::fusion::at_c<1>(vec);
 					cast<SwitchStmt>(_result)->addCase(Selection(cond, block));
 				}
 				break;
@@ -140,7 +140,7 @@ struct selection_statement
 					has_visited_default_label = true;
 				else
 					LOG_MESSAGE(MULTIPLE_DEFAULT_LABELS, _result);
-				cast<SwitchStmt>(_result)->setDefaultCase(boost::get<ASTNode*>(i));
+				cast<SwitchStmt>(_result)->setDefaultCase(boost::get<Block*>(i));
 				break;
 			}
 		}
