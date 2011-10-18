@@ -101,10 +101,14 @@ bool ThorScriptParserStage::execute(bool& continue_execution)
 	// prepare the module source info context for the root program node
    	ModuleSourceInfoContext::set(getParserContext().program, new ModuleSourceInfoContext());
 
-	if(inputs.size() > 0)
-		foreach(i, inputs)
+	foreach(i, inputs)
+	{
+		boost::filesystem::path p(*i);
+		if(strcmp(p.extension().c_str(), ".t") == 0)
 			if(!parse(*i))
 				return false;
+	}
+
 	return true;
 }
 
