@@ -153,17 +153,21 @@ struct RestructureStageVisitor : GenericDoubleVisitor
 			//
 			//       block
 			//      /  |  \
-			//     ......  var_decl
-			//            /        \
-			//           a         (initializer)
+			//     ......  decl_stmt
+			//                 |
+			//              var_decl
+			//             /        \
+			//            a         (initializer)
 			//
 			// will be transformed into:
 			//
-			//       block------------------+
-			//      /  |  \                  \
-			//     ......  var_decl           =
-			//            /        \         / \
-			//           a         (null)	a   (initializer)
+			//       block---------------+
+			//      /  |  \               \
+			//     ......  decl_stmt       expr_stmt
+			//                 |               |
+			//              var_decl     binary_expr(=)
+			//             /        \         / \
+			//            a         (null)	a   (initializer)
 			//
 			// note that we skip parameters in FunctionDecl, which shouldn't be transformed
 			//
