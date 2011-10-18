@@ -306,6 +306,21 @@ struct SemanticVerificationStageVisitor1 : GenericDoubleVisitor
 			SemanticVerificationBlockContext_AlwaysReturns::bind(node.parent);
 	}
 
+	void verify(IterativeStmt& node)
+	{
+		revisit(node);
+
+		bool always_returns = false;
+		if(isa<WhileStmt>(&node))
+			always_returns = SemanticVerificationBlockContext_AlwaysReturns::get(cast<WhileStmt>(&node)->block);
+		if(isa<ForeachStmt>(&node))
+			always_returns = SemanticVerificationBlockContext_AlwaysReturns::get(cast<ForeachStmt>(&node)->block);
+		if(isa<ForStmt>(&node))
+			always_returns = SemanticVerificationBlockContext_AlwaysReturns::get(cast<ForStmt>(&node)->block);
+		if(isa<Block>(node.parent) && always_returns)
+			SemanticVerificationBlockContext_AlwaysReturns::bind(&node);
+	}
+
 private:
 	static bool isVoid(TypeSpecifier* node)
 	{
