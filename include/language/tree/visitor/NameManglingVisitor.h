@@ -23,7 +23,7 @@
 #include "core/Prerequisite.h"
 #include "utility/UnicodeUtil.h"
 #include "core/Visitor.h"
-#include "language/tree/visitor/general/GenericVisitor.h"
+#include "language/tree/visitor/GenericVisitor.h"
 
 namespace zillians { namespace language { namespace tree { namespace visitor {
 

@@ -21,9 +21,9 @@
 #define ZILLIANS_LANGUAGE_RESOLVER_H_
 
 #include "language/tree/ASTNodeFactory.h"
-#include "language/tree/visitor/general/ResolutionVisitor.h"
-#include "language/tree/visitor/general/PrettyPrintVisitor.h"
-#include "language/tree/visitor/general/NodeInfoVisitor.h"
+#include "language/tree/visitor/ResolutionVisitor.h"
+#include "language/tree/visitor/PrettyPrintVisitor.h"
+#include "language/tree/visitor/NodeInfoVisitor.h"
 #include "utility/Foreach.h"
 #include "language/context/ResolverContext.h"
 

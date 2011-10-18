@@ -21,7 +21,7 @@
 #define ZILLIANS_LANGUAGE_TREE_VISITOR_GENERICCOMPOSABLEVISITOR_H_
 
 #include "core/Prerequisite.h"
-#include "language/tree/visitor/general/GenericDoubleVisitor.h"
+#include "language/tree/visitor/GenericDoubleVisitor.h"
 #include <boost/fusion/container.hpp>
 #include <boost/fusion/support/detail/access.hpp>
 #include <boost/preprocessor/repetition/enum_params.hpp>
@@ -45,7 +45,7 @@ struct GenericComposableVisitor : GenericDoubleVisitor, boost::fusion::vector<BO
 	// GenericComposableVisitor(T0)
 	// GenericComposableVisitor(T0, T1)
 	// GenericComposableVisitor(T0, T1, T2, ...)
-	#include "language/tree/visitor/general/detail/GenericComposableVisitorCtor.h"
+	#include "language/tree/visitor/detail/GenericComposableVisitorCtor.h"
 
 	struct invoke_visit
 	{

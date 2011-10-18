@@ -24,7 +24,7 @@
 #define ZILLIANS_LANGUAGE_TREE_VISITOR_GARBAGECOLLECTIONVISITOR_H_
 
 #include "core/Prerequisite.h"
-#include "language/tree/visitor/general/GenericComposableVisitor.h"
+#include "language/tree/visitor/GenericComposableVisitor.h"
 
 namespace zillians { namespace language { namespace tree { namespace visitor {
 

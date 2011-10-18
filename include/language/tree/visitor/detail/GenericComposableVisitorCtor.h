@@ -26,7 +26,7 @@
 #include <boost/preprocessor/repetition/enum_binary_params.hpp>
 
 #define BOOST_PP_FILENAME_1 \
-    "language/tree/visitor/general/detail/GenericComposableVisitorCtor.h"
+    "language/tree/visitor/detail/GenericComposableVisitorCtor.h"
 #define BOOST_PP_ITERATION_LIMITS (1, FUSION_MAX_VECTOR_SIZE)
 #include BOOST_PP_ITERATE()
 

@@ -28,7 +28,7 @@
 #include "language/logging/StringTable.h"
 #include "core/Visitor.h"
 #include "language/tree/ASTNodeFactory.h"
-#include "language/tree/visitor/general/GenericDoubleVisitor.h"
+#include "language/tree/visitor/GenericDoubleVisitor.h"
 #include "language/stage/parser/context/SourceInfoContext.h"
 #include "language/context/LogInfoContext.h"
 

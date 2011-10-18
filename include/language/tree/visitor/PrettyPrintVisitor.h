@@ -24,7 +24,7 @@
 #define ZILLIANS_LANGUAGE_TREE_VISITOR_PRETTYPRINTVISITOR_H_
 
 #include "core/Prerequisite.h"
-#include "language/tree/visitor/general/GenericVisitor.h"
+#include "language/tree/visitor/GenericVisitor.h"
 #include "core/Visitor.h"
 #include "language/tree/ASTNodeFactory.h"
 #include "language/stage/parser/context/SourceInfoContext.h"

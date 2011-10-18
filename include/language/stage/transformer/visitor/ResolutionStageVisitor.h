@@ -22,8 +22,8 @@
 
 #include "core/Prerequisite.h"
 #include "language/tree/ASTNodeHelper.h"
-#include "language/tree/visitor/general/GenericDoubleVisitor.h"
-#include "language/tree/visitor/general/ResolutionVisitor.h"
+#include "language/tree/visitor/GenericDoubleVisitor.h"
+#include "language/tree/visitor/ResolutionVisitor.h"
 #include "language/logging/LoggerWrapper.h"
 #include "language/logging/StringTable.h"
 #include "language/resolver/Resolver.h"

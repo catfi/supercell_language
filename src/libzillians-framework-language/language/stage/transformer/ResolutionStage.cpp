@@ -19,9 +19,9 @@
 
 #include "language/stage/transformer/ResolutionStage.h"
 #include "language/stage/transformer/visitor/ResolutionStageVisitor.h"
-#include "language/tree/visitor/general/NodeTypeNameVisitor.h"
-#include "language/tree/visitor/general/NodeInfoVisitor.h"
-#include "language/tree/visitor/general/PrettyPrintVisitor.h"
+#include "language/tree/visitor/NodeTypeNameVisitor.h"
+#include "language/tree/visitor/NodeInfoVisitor.h"
+#include "language/tree/visitor/PrettyPrintVisitor.h"
 #include "language/resolver/Resolver.h"
 #include "language/context/ParserContext.h"
 #include "language/tree/ASTNodeHelper.h"

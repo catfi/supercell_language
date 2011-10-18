@@ -1,6 +1,6 @@
 /**
  * Zillians MMO
- * Copyright (C) 2007-2010 Zillians.com, Inc.
+ * Copyright (C) 2007-2011 Zillians.com, Inc.
  * For more information see http://www.zillians.com
  *
  * Zillians MMO is the library and runtime for massive multiplayer online game
@@ -17,25 +17,45 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
+#ifndef ZILLIANS_LANGUAGE_TREE_VISITOR_OBJECTCOUNTVISITOR_H_
+#define ZILLIANS_LANGUAGE_TREE_VISITOR_OBJECTCOUNTVISITOR_H_
+
 #include "core/Prerequisite.h"
-#include "language/tree/ASTNode.h"
-#include "language/tree/ASTNodeFactory.h"
-#include "language/tree/visitor/general/PrettyPrintVisitor.h"
-#include "language/stage/generator/LLVMGlobalDispatchGeneratorStage.h"
-#include "language/stage/generator/visitor/LLVMGlobalDispatchGeneratorVisitor.h"
+#include "language/tree/visitor/GenericDoubleVisitor.h"
 
-#define BOOST_TEST_MODULE ThorScriptTreeTest_GlobalDispatchGenerator
-#define BOOST_TEST_MAIN
-#include <boost/test/unit_test.hpp>
+namespace zillians { namespace language { namespace tree { namespace visitor {
 
-using namespace zillians;
-using namespace zillians::language::tree;
-using namespace zillians::language::tree::visitor;
-
-BOOST_AUTO_TEST_SUITE( ThorScriptTreeTest_GlobalDispatchGeneratorSuite )
-
-BOOST_AUTO_TEST_CASE( ThorScriptTreeTest_GlobalDispatchGeneratorCase1 )
+template<bool Composed = false>
+struct ObjectCountVisitor : GenericDoubleVisitor
 {
-}
+	CREATE_INVOKER(countInvoker, count);
 
-BOOST_AUTO_TEST_SUITE_END()
+	ObjectCountVisitor() : total_count(0L)
+	{
+		REGISTER_ALL_VISITABLE_ASTNODE(countInvoker)
+	}
+
+	void count(ASTNode& node)
+	{
+		++total_count;
+		if(!Composed)
+			revisit(node);
+	}
+
+	std::size_t get_count()
+	{
+		return total_count;
+	}
+
+	void reset()
+	{
+		total_count = 0;
+	}
+
+protected:
+	std::size_t total_count;
+};
+
+} } } }
+
+#endif /* ZILLIANS_LANGUAGE_TREE_VISITOR_OBJECTCOUNTVISITOR_H_ */

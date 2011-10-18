@@ -19,7 +19,7 @@
 
 #include "language/stage/verifier/StaticTestVerificationStage.h"
 #include "language/stage/verifier/visitor/StaticTestVerificationStageVisitor.h"
-#include "language/tree/visitor/general/PrettyPrintVisitor.h"
+#include "language/tree/visitor/PrettyPrintVisitor.h"
 #include "language/context/ParserContext.h"
 
 namespace zillians { namespace language { namespace stage {

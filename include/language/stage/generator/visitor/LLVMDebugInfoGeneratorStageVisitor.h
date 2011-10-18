@@ -23,7 +23,7 @@
 #include "core/Prerequisite.h"
 #include <boost/filesystem.hpp>
 
-#include "language/tree/visitor/general/GenericDoubleVisitor.h"
+#include "language/tree/visitor/GenericDoubleVisitor.h"
 #include "language/context/ParserContext.h"
 #include "language/stage/parser/context/SourceInfoContext.h"
 #include "language/stage/transformer/context/ManglingStageContext.h"

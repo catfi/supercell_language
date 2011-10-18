@@ -22,8 +22,8 @@
 
 #include "core/Prerequisite.h"
 #include "core/Visitor.h"
-#include "language/tree/visitor/general/GenericVisitor.h"
-#include "language/tree/visitor/general/NodeInfoVisitor.h"
+#include "language/tree/visitor/GenericVisitor.h"
+#include "language/tree/visitor/NodeInfoVisitor.h"
 #include "language/tree/ASTNodeFactory.h"
 #include "language/context/ResolverContext.h"
 

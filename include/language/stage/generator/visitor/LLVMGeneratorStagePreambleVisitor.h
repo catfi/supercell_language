@@ -21,7 +21,7 @@
 #define ZILLIANS_LANGUAGE_STAGE_VISITOR_LLVMGENERATORPREAMBLESTAGEVISITOR_H_
 
 #include "core/Prerequisite.h"
-#include "language/tree/visitor/general/GenericDoubleVisitor.h"
+#include "language/tree/visitor/GenericDoubleVisitor.h"
 #include "language/stage/generator/detail/LLVMHelper.h"
 #include "language/stage/transformer/context/ManglingStageContext.h"
 #include "language/stage/generator/context/SynthesizedFunctionContext.h"

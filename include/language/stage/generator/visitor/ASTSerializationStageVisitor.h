@@ -22,7 +22,7 @@
 
 #include "core/Prerequisite.h"
 #include "language/tree/ASTNodeHelper.h"
-#include "language/tree/visitor/general/GenericDoubleVisitor.h"
+#include "language/tree/visitor/GenericDoubleVisitor.h"
 #include "language/context/ResolverContext.h"
 #include "language/context/TransformerContext.h"
 #include "language/stage/parser/context/SourceInfoContext.h"

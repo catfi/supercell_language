@@ -21,7 +21,7 @@
 #include "language/context/ParserContext.h"
 #include "language/grammar/ThorScript.h"
 #include "language/action/SemanticActions.h"
-#include "language/tree/visitor/general/PrettyPrintVisitor.h"
+#include "language/tree/visitor/PrettyPrintVisitor.h"
 #include "language/ThorScriptCompiler.h"
 #include "utility/Foreach.h"
 #include "utility/UnicodeUtil.h"
