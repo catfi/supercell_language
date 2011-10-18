@@ -50,7 +50,6 @@ add_library(zillians-framework-language
     language/context/ParserContext.cpp
     language/logging/LoggerWrapper.cpp
     language/stage/StageConductor.cpp
-    language/stage/parser/ASTDeserializationStage.cpp
     language/stage/transformer/LiteralCompactionStage.cpp
     language/stage/transformer/ResolutionStage.cpp
     language/stage/transformer/ManglingStage.cpp
@@ -59,7 +58,9 @@ add_library(zillians-framework-language
     language/stage/verifier/SemanticVerificationStage1.cpp
 	language/stage/verifier/StaticTestVerificationStage.cpp    
 	language/stage/verifier/visitor/StaticTestVerificationStageVisitor.cpp
-	language/stage/generator/ASTSerializationStage.cpp    
+	language/stage/serialization/ASTSerializationStage.cpp
+	language/stage/serialization/ASTDeserializationStage.cpp    
+	language/stage/serialization/detail/ASTSerializationHelper.cpp    
 	language/tree/basic/FunctionType.cpp  
 	language/stage/dep/ThorScriptDepStage.cpp
     language/stage/dep/ThorScriptPackageDependencyGrammar.cpp
