@@ -241,6 +241,7 @@ struct GenericVisitor : Visitor<const ASTNode, void, VisitorImplementation::recu
 		if(node.id) visit(*node.id);
 		foreach(i, node.children) visit(**i);
 		foreach(i, node.objects)  visit(**i);
+		if(node.annotations) visit(*node.annotations);
 	}
 
 	void apply(const Import& node)

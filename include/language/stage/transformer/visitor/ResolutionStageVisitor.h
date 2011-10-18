@@ -37,7 +37,9 @@ namespace zillians { namespace language { namespace stage { namespace visitor {
 /**
  * ResolutionStageVisitor is the visitation helper for ResolutionStage
  *
- * @see ResolutionStage
+ * ResolutionStageVisitor will visit every node in the AST that needs to be resolved as type or symbol by using Resolver
+ *
+ * @see ResolutionStage, Resolver
  * @todo implement resolution cache
  */
 struct ResolutionStageVisitor : GenericDoubleVisitor
@@ -102,25 +104,41 @@ struct ResolutionStageVisitor : GenericDoubleVisitor
 
 	void resolve(Package& node)
 	{
+		// tell resolver that we're entering this package scope
 		resolver.enterScope(node);
+
+		// and then visit the sub-elements of this package
+		// (note that this visitor is actually a DFS visitor)
 		revisit(node);
+
+		// tell resolver that we're leaving this package scope
 		resolver.leaveScope(node);
 	}
 
 	void resolve(Block& node)
 	{
+		// tell resolver that we're entering this block scope
 		resolver.enterScope(node);
+
+		// and then visit the sub-elements of this block, which could be a bunch of statements
+		// note that there can be unresolved type specifier in those statements,
+		// for example, for type resolution, DecarlativeStmt pointing to a VariableDecl, so the type of that VariableDecl should be properly resolved
+		// another example, for symbol resolution, PrimaryExpr must be resolved to a symbol, which can be pointing to a VariableDecl
 		revisit(node);
+
+		// tell resolver that we're leaving this block scope
 		resolver.leaveScope(node);
 	}
 
 	void resolve(Import& node)
 	{
+		// search for package
 		package_visitor.reset();
-		package_visitor.search(node.ns);
+		package_visitor.candidate(node.ns);
 		package_visitor.filter(ResolutionVisitor::Filter::PACKAGE);
 
-		// TODO how to handle mutual import?
+		// TODO each file should have its own reachable package set
+		// TODO and the set is used for root primary expression translation
 		package_visitor.visit(*getParserContext().program);
 
 		if(package_visitor.candidates.size() == 1)
@@ -133,15 +151,14 @@ struct ResolutionStageVisitor : GenericDoubleVisitor
 
 	void resolve(TypeSpecifier& node)
 	{
-		// TODO we should never reach here
-		//BOOST_ASSERT(false && "reaching code that shouldn't be reached");
+		// this can be reached from visiting type specifier of a variable declaration
+		// or visiting type specifier of the return type of function declaration
+		// or visiting
 		tryResolveType(&node, &node);
 	}
 
 	void resolve(ClassDecl& node)
 	{
-		BOOST_ASSERT(type == Target::TYPE_RESOLUTION || type == Target::SYMBOL_RESOLUTION);
-
 		resolver.enterScope(node);
 		revisit(node);
 		resolver.leaveScope(node);
@@ -149,8 +166,6 @@ struct ResolutionStageVisitor : GenericDoubleVisitor
 
 	void resolve(InterfaceDecl& node)
 	{
-		BOOST_ASSERT(type == Target::TYPE_RESOLUTION || type == Target::SYMBOL_RESOLUTION);
-
 		resolver.enterScope(node);
 		revisit(node);
 		resolver.leaveScope(node);
@@ -158,38 +173,35 @@ struct ResolutionStageVisitor : GenericDoubleVisitor
 
 	void resolve(FunctionDecl& node)
 	{
-		BOOST_ASSERT(type == Target::TYPE_RESOLUTION || type == Target::SYMBOL_RESOLUTION);
-
+		// when entering FunctionDecl scope
+		// all parameters can be seen by the resolver
+		// see ResolutionVisitor.h
 		resolver.enterScope(node);
 
 		LOG4CXX_DEBUG(LoggerWrapper::TransformerStage, L"trying to resolve function: " << node.name->toString());
 
 		if(type == Target::TYPE_RESOLUTION)
 		{
-			// try to resolve return type
+			// try to resolve return type of the function
 			if(node.type)
 				visit(*node.type);
 
-			// try to resolve parameter type
+			// try to resolve parameters, which contains type specifier needed to be resolved
 			foreach(i, node.parameters)
-			{
-				if((*i)->type)
-					visit(*((*i)->type));
-					//tryResolveType((*i)->type, (*i)->type);
-			}
+				visit(**i);
 
 		}
 		else if(type == Target::SYMBOL_RESOLUTION)
 		{
+			// there's no direct symbol needed to be resolved of a function declaration
 			// do nothing
 		}
 
-		// visit all statements in the function block
+		// visit all statements in the function block, which might contain resolvable type or symbol
 		if(node.block)
-		{
 			visit(*node.block);
-		}
 
+		// leaving FunctionDecl scope
 		resolver.leaveScope(node);
 	}
 
@@ -197,11 +209,12 @@ struct ResolutionStageVisitor : GenericDoubleVisitor
 	{
 		if(type == Target::TYPE_RESOLUTION)
 		{
-			// for type resolution, there couldn't be any type specifier needs to be resolved inside enum, do nothing
+			// there couldn't be any type specifier needs to be resolved inside enum,
+			// do nothing
 		}
 		else if(type == Target::SYMBOL_RESOLUTION)
 		{
-			// for symbol resolution, there can be some symbol (which should be constant expression) defined in the enumeration value
+			// there can be some symbol (which should be constant expressions) defined in the enumeration value
 			foreach(i, node.enumeration_list)
 			{
 				if(i->second)
@@ -214,14 +227,13 @@ struct ResolutionStageVisitor : GenericDoubleVisitor
 	{
 		if(type == Target::TYPE_RESOLUTION)
 		{
-			//tryResolveType(node.type, node.type);
 			if(node.type)
 				visit(*node.type);
 		}
 		else if(type == Target::SYMBOL_RESOLUTION)
 		{
-			// we should never reach here
-			BOOST_ASSERT(false && "reaching code that shouldn't be reached");
+			// we should never reach here because there can't be any symbol inside a typedef declaration
+			UNREACHABLE_CODE();
 		}
 	}
 
@@ -229,13 +241,13 @@ struct ResolutionStageVisitor : GenericDoubleVisitor
 	{
 		if(type == Target::TYPE_RESOLUTION)
 		{
-			//tryResolveType(node.type, node.type);
 			if(node.type)
 				visit(*node.type);
 
 			if(node.initializer)
 			{
-				convertImpl(node, node, *node.initializer, true /*is_assignment*/, false /*is_arithmetic*/, false /*is_logica*/);
+				// this should be never reached because the initializer are transformed/restructured prior to resolution stage
+				UNREACHABLE_CODE();
 			}
 		}
 		else if(type == Target::SYMBOL_RESOLUTION)
@@ -247,7 +259,9 @@ struct ResolutionStageVisitor : GenericDoubleVisitor
 //				LOG4CXX_ERROR(LoggerWrapper::Resolver, L"ambiguous variable declared: " << node.name->toString());
 //			}
 			if(node.initializer)
-				visit(*node.initializer);
+			{
+				UNREACHABLE_CODE();
+			}
 		}
 	}
 
@@ -281,7 +295,7 @@ struct ResolutionStageVisitor : GenericDoubleVisitor
 	void resolve(ForStmt& node)
 	{
 		revisit(node);
-		convertLogical(*node.cond);
+		convertLogical(node.cond);
 	}
 
 	void resolve(ForeachStmt& node)
@@ -295,17 +309,17 @@ struct ResolutionStageVisitor : GenericDoubleVisitor
 	void resolve(WhileStmt& node)
 	{
 		revisit(node);
-		convertLogical(*node.cond);
+		convertLogical(node.cond);
 	}
 
 	void resolve(IfElseStmt& node)
 	{
 		revisit(node);
 
-		convertLogical(*node.if_branch.cond);
+		convertLogical(node.if_branch.cond);
 		foreach(i, node.elseif_branches)
 		{
-			convertLogical(*i->cond);
+			convertLogical(i->cond);
 		}
 	}
 
@@ -317,8 +331,27 @@ struct ResolutionStageVisitor : GenericDoubleVisitor
 	void resolve(UnaryExpr& node)
 	{
 		revisit(node);
-		// propagate the type from contained node
-		propogateType(node, *node.node);
+
+		if(node.opcode == UnaryExpr::OpCode::NEW)
+		{
+			if(!ResolvedType::get(&node))
+			{
+
+			}
+		}
+		else if(node.opcode == UnaryExpr::OpCode::LOGICAL_NOT)
+		{
+			if(!ResolvedType::get(&node))
+			{
+				ResolvedType::set(&node, getInternalPrimitiveType(PrimitiveType::BOOL));
+				++resolved_count;
+			}
+		}
+		else
+		{
+			// propagate the type from contained node
+			propogateType(node, *node.node);
+		}
 	}
 
 	void resolve(BinaryExpr& node)
@@ -382,7 +415,7 @@ struct ResolutionStageVisitor : GenericDoubleVisitor
 			BOOST_ASSERT(false && "unimplemented");
 		}
 
-		convertImpl(node, *node.left, *node.right, node.isAssignment(), node.isArithmetic() || node.isBinary() || node.isComparison(), node.isLogical());
+		convertDispatch(&node, node.left, node.right, node.isAssignment(), node.isArithmetic() || node.isBinary() || node.isComparison(), node.isLogical());
 	}
 
 	void resolve(TernaryExpr& node)
@@ -438,8 +471,8 @@ struct ResolutionStageVisitor : GenericDoubleVisitor
 	{
 		if(type == Target::TYPE_RESOLUTION)
 		{
-			// we should never reach here
-			//BOOST_ASSERT(false && "reaching code that shouldn't be reached");
+			// there's no type needed to be resolved inside a member expression
+			// do nothing
 		}
 		else if(type == Target::SYMBOL_RESOLUTION)
 		{
@@ -452,61 +485,53 @@ struct ResolutionStageVisitor : GenericDoubleVisitor
 	{
 		if(type == Target::TYPE_RESOLUTION)
 		{
-			// we should never reach here
-			//BOOST_ASSERT(false && "reaching code that shouldn't be reached");
-//			switch(node.catagory)
-//			{
-//			case PrimaryExpr::Catagory::IDENTIFIER: ResolvedType::set(&node, ResolvedType::get(node.value.identifier)); break;
-//			case PrimaryExpr::Catagory::LAMBDA: ResolvedType::set(&node, node.value.lambda); break;
-//			case PrimaryExpr::Catagory::LITERAL: ResolvedType::set(&node, ResolvedType::get(node.value.literal)); break;
-//			default: break;
-//			}
+			// there's no type needed to be resolved inside a primary expression
+			// do nothing
 		}
 		else if(type == Target::SYMBOL_RESOLUTION)
 		{
 			if(node.catagory == PrimaryExpr::Catagory::IDENTIFIER)
 			{
+				// for general primary expression which is specified by an identifier
+				// we should resolve its type to a symbol or package
 				tryResolveSymbolOrPackage(&node, node.value.identifier);
 			}
 			else if(node.catagory == PrimaryExpr::Catagory::LAMBDA)
 			{
-				if(!ResolvedType::get(&node))
-				{
-					ResolvedType::set(&node, node.value.lambda);
-					++resolved_count;
-				}
+				// no symbol is defined for lambda expression
+				// just visit its children and propagate type
+				// TODO this should be unreachable because we will restruct lambda expression beforehand
+				visit(*node.value.lambda);
+
+				propogateType(node, *node.value.lambda);
 			}
 			else if(node.catagory == PrimaryExpr::Catagory::LITERAL)
 			{
+				// no symbol is defined for literal
+				// just visit its children and propagate type
 				visit(*node.value.literal);
 
-				if(!ResolvedType::get(&node))
-				{
-					ResolvedType::set(&node, ResolvedType::get(node.value.literal));
-					++resolved_count;
-				}
+				propogateType(node, *node.value.literal);
 			}
 		}
 	}
 
 	void resolve(CastExpr& node)
 	{
-		visit(*node.node);
-
 		if(type == Target::TYPE_RESOLUTION)
 		{
-			//tryResolveType(node.type, node.type);
+			// the type we are casting to is a type specifier, so we have to resolve its type
 			if(node.type)
 				visit(*node.type);
 		}
 		else if(type == Target::SYMBOL_RESOLUTION)
 		{
+			// there can be symbol declared inside the expression to cast
+			// just visit the expression node
+			visit(*node.node);
+
 			// the cast expression should always use the specified type
-			if(!ResolvedType::get(&node))
-			{
-				ResolvedType::set(&node, node.type);
-				++resolved_count;
-			}
+			propogateType(node, *node.type);
 		}
 	}
 
@@ -535,9 +560,8 @@ struct ResolutionStageVisitor : GenericDoubleVisitor
 	void applyTransforms()
 	{
 		foreach(i, transforms)
-		{
 			(*i)();
-		}
+
 		transforms.clear();
 	}
 
@@ -659,7 +683,7 @@ private:
 		if(!scope || !node)
 			return false;
 
-		if(ResolvedSymbol::get(attach) && ResolvedPackage::get(attach))
+		if(ResolvedSymbol::get(attach) || ResolvedPackage::get(attach))
 			return true;
 
 		if(resolver.resolveSymbol(*attach, *scope, *node, no_action))
@@ -688,7 +712,7 @@ private:
 		if(!node)
 			return false;
 
-		if(ResolvedSymbol::get(attach) && ResolvedPackage::get(attach))
+		if(ResolvedSymbol::get(attach) || ResolvedPackage::get(attach))
 			return true;
 
 		if(resolver.resolveSymbol(*attach, *node, no_action))
@@ -775,10 +799,10 @@ private:
 		return getParserContext().program->internal->getPrimitiveTy(t);
 	}
 
-	void convertImpl(ASTNode& node_to_debug, ASTNode& lhs, ASTNode& rhs, bool is_assignment, bool is_arithmetic, bool is_logical)
+	void convertDispatch(ASTNode* node_to_debug, ASTNode* lhs, ASTNode* rhs, bool is_assignment, bool is_arithmetic, bool is_logical)
 	{
-		ASTNode* resolved_type_left = ResolvedType::get(&lhs);
-		ASTNode* resolved_type_right = ResolvedType::get(&rhs);
+		ASTNode* resolved_type_left = ResolvedType::get(lhs);
+		ASTNode* resolved_type_right = ResolvedType::get(rhs);
 
 		if(!resolved_type_left || !resolved_type_right)
 			return;
@@ -799,7 +823,7 @@ private:
 					else
 					{
 						// LHS it primitive, RHS is NOT primitive, error here
-						LOG_MESSAGE(INVALID_CONV, &node_to_debug, _rhs_type = ASTNodeHelper::getNodeName(specifier_right), _lhs_type = ASTNodeHelper::getNodeName(specifier_left));
+						LOG_MESSAGE(INVALID_CONV, node_to_debug, _rhs_type = ASTNodeHelper::getNodeName(specifier_right), _lhs_type = ASTNodeHelper::getNodeName(specifier_left));
 					}
 				}
 				else if(specifier_left->type == TypeSpecifier::ReferredType::FUNCTION_TYPE)
@@ -812,7 +836,7 @@ private:
 						if(!ASTNodeHelper::compareTypeSpecifier(specifier_left, specifier_right))
 						{
 							// LHS it primitive, RHS is NOT primitive, error here
-							LOG_MESSAGE(INVALID_CONV, &node_to_debug, _rhs_type = ASTNodeHelper::getNodeName(specifier_right), _lhs_type = ASTNodeHelper::getNodeName(specifier_left));
+							LOG_MESSAGE(INVALID_CONV, node_to_debug, _rhs_type = ASTNodeHelper::getNodeName(specifier_right), _lhs_type = ASTNodeHelper::getNodeName(specifier_left));
 						}
 					}
 					else
@@ -830,37 +854,38 @@ private:
 								FunctionType* function_type_right = ASTNodeHelper::createFunctionTypeFromFunctionDecl(function_decl_right);
 								if(!ASTNodeHelper::compareFunctionType(specifier_left->referred.function_type, function_type_right))
 								{
-									LOG_MESSAGE(INVALID_CONV, &node_to_debug, _rhs_type = ASTNodeHelper::getNodeName(specifier_right), _lhs_type = ASTNodeHelper::getNodeName(specifier_left));
+									LOG_MESSAGE(INVALID_CONV, node_to_debug, _rhs_type = ASTNodeHelper::getNodeName(specifier_right), _lhs_type = ASTNodeHelper::getNodeName(specifier_left));
 								}
 							}
 						}
 						else
 						{
 							// LHS it primitive, RHS is NOT primitive, error here
-							LOG_MESSAGE(INVALID_CONV, &node_to_debug, _rhs_type = ASTNodeHelper::getNodeName(specifier_right), _lhs_type = ASTNodeHelper::getNodeName(specifier_left));
+							LOG_MESSAGE(INVALID_CONV, node_to_debug, _rhs_type = ASTNodeHelper::getNodeName(specifier_right), _lhs_type = ASTNodeHelper::getNodeName(specifier_left));
 						}
 					}
 				}
 				else if(specifier_left->type == TypeSpecifier::ReferredType::UNSPECIFIED)
 				{
-					BOOST_ASSERT(false && "reaching unreachable code");
+					UNIMPLEMENTED_CODE();
 				}
 				else
 				{
-					BOOST_ASSERT(false && "reaching unreachable code");
+					UNREACHABLE_CODE();
 				}
 			}
 			else if(isa<ClassDecl>(resolved_type_left))
 			{
 				// TODO check if the RHS class can be casted into LHS class by look at the class extension structure
+				UNIMPLEMENTED_CODE();
 			}
 			else if(isa<InterfaceDecl>(resolved_type_left))
 			{
-
+				UNIMPLEMENTED_CODE();
 			}
 			else
 			{
-				LOG_MESSAGE(INVALID_CONV, &node_to_debug, _rhs_type = ASTNodeHelper::getNodeName(resolved_type_right), _lhs_type = ASTNodeHelper::getNodeName(resolved_type_left));
+				LOG_MESSAGE(INVALID_CONV, node_to_debug, _rhs_type = ASTNodeHelper::getNodeName(resolved_type_right), _lhs_type = ASTNodeHelper::getNodeName(resolved_type_left));
 			}
 		}
 
@@ -874,7 +899,7 @@ private:
 				(specifier_left->type != TypeSpecifier::ReferredType::PRIMITIVE || specifier_right->type != TypeSpecifier::ReferredType::PRIMITIVE) ||
 				(!PrimitiveType::isArithmeticCapable(specifier_left->referred.primitive) || !PrimitiveType::isArithmeticCapable(specifier_right->referred.primitive)))
 			{
-				LOG_MESSAGE(INVALID_ARITHMETIC, &node_to_debug);
+				LOG_MESSAGE(INVALID_ARITHMETIC, node_to_debug);
 			}
 			else
 			{
@@ -889,7 +914,7 @@ private:
 		}
 	}
 
-	void convertPrimitive(ASTNode& node, TypeSpecifier* specifier_left, TypeSpecifier* specifier_right)
+	void convertPrimitive(ASTNode* node, TypeSpecifier* specifier_left, TypeSpecifier* specifier_right)
 	{
 		if(!specifier_left || !specifier_right)
 			return;
@@ -906,55 +931,59 @@ private:
 			{
 				if(precision_loss)
 				{
-					LOG_MESSAGE(IMPLICIT_CAST_PRECISION_LOSS, &node);
+					LOG_MESSAGE(IMPLICIT_CAST_PRECISION_LOSS, node);
 				}
 
 				// insert cast expression to cast RHS to LHS
-				transforms.push_back([&, specifier_left]{
-					ASTNode* parent = node.parent; // save the parent pointer for later use
+				transforms.push_back([=]{
+					ASTNode* parent = node->parent; // save the parent pointer for later use
 
-					CastExpr* cast_expr = new CastExpr(cast<Expression>(&node), specifier_left);
-					// replace the node with update_parent = true because we will update it manually
-					parent->replaceUseWith(node, *cast_expr, false);
+					CastExpr* cast_expr = new CastExpr(cast<Expression>(node), specifier_left);
+					// replace the node with update_parent = false because we will update it manually
+					parent->replaceUseWith(*node, *cast_expr, false);
 					cast_expr->parent = parent;
 
-					ASTNodeHelper::propogateSourceInfo(*cast_expr, node); // propagate the source info
+					ASTNodeHelper::propogateSourceInfo(*cast_expr, *node); // propagate the source info
 				});
+			}
+			else
+			{
+				LOG_MESSAGE(INVALID_CONV, node, _rhs_type = ASTNodeHelper::getNodeName(node), _lhs_type = ASTNodeHelper::getNodeName(specifier_left));
 			}
 		}
 	}
 
-	void convertLogical(ASTNode& node)
+	void convertLogical(ASTNode* node)
 	{
-		ASTNode* resolved_type = ResolvedType::get(&node);
+		ASTNode* resolved_type = ResolvedType::get(node);
 
 		if(!resolved_type)
 			return;
 
 		if(!isa<TypeSpecifier>(resolved_type))
 		{
-			LOG_MESSAGE(INVALID_CONV, &node, _rhs_type = ASTNodeHelper::getNodeName(resolved_type), _lhs_type = ASTNodeHelper::getNodeName(getParserContext().program->internal->BooleanTy));
+			LOG_MESSAGE(INVALID_CONV, node, _rhs_type = ASTNodeHelper::getNodeName(resolved_type), _lhs_type = ASTNodeHelper::getNodeName(getParserContext().program->internal->BooleanTy));
 			return;
 		}
 
 		TypeSpecifier* specifier = cast<TypeSpecifier>(resolved_type);
 		if(specifier->type != TypeSpecifier::ReferredType::PRIMITIVE/* || !PrimitiveType::isIntegerType(specifier->referred.primitive)*/)
 		{
-			LOG_MESSAGE(INVALID_CONV, &node, _rhs_type = ASTNodeHelper::getNodeName(specifier), _lhs_type = ASTNodeHelper::getNodeName(getParserContext().program->internal->BooleanTy));
+			LOG_MESSAGE(INVALID_CONV, node, _rhs_type = ASTNodeHelper::getNodeName(specifier), _lhs_type = ASTNodeHelper::getNodeName(getParserContext().program->internal->BooleanTy));
 			return;
 		}
 
 		if(specifier->referred.primitive != PrimitiveType::BOOL)
 		{
-			transforms.push_back([&, specifier]{
-				ASTNode* parent = node.parent; // save the parent pointer for later use
+			transforms.push_back([=]{
+				ASTNode* parent = node->parent; // save the parent pointer for later use
 
-				BinaryExpr* compare_expr = new BinaryExpr(BinaryExpr::OpCode::COMPARE_GT, cast<Expression>(&node), new PrimaryExpr(new NumericLiteral(specifier->referred.primitive, 0)));
-				// replace the node with update_parent = true because we will update it manually
-				parent->replaceUseWith(node, *compare_expr, false);
+				BinaryExpr* compare_expr = new BinaryExpr(BinaryExpr::OpCode::COMPARE_GT, cast<Expression>(node), new PrimaryExpr(new NumericLiteral(specifier->referred.primitive, 0)));
+				// replace the node with update_parent = false because we will update it manually
+				parent->replaceUseWith(*node, *compare_expr, false);
 				compare_expr->parent = parent;
 
-				ASTNodeHelper::propogateSourceInfo(*compare_expr, node); // propagate the source info
+				ASTNodeHelper::propogateSourceInfo(*compare_expr, *node); // propagate the source info
 			});
 		}
 	}
