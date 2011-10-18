@@ -179,10 +179,28 @@ struct PrettyPrintVisitor : Visitor<const ASTNode, void>
 		{
 			printSourceInfo(node);
 		}
+		if(node.imported_root)
+		{
+			increaseIdent();
+			{
+				STREAM << L"<imported_root>" << std::endl;
+				{
+					visit(*node.imported_root);
+				}
+				STREAM << L"</imported_root>" << std::endl;
+			}
+			decreaseIdent();
+		}
 		if(node.root)
 		{
 			increaseIdent();
-			visit(*node.root);
+			{
+				STREAM << L"<root>" << std::endl;
+				{
+					visit(*node.root);
+				}
+				STREAM << L"</root>" << std::endl;
+			}
 			decreaseIdent();
 		}
 		STREAM << L"</program>" << std::endl;
