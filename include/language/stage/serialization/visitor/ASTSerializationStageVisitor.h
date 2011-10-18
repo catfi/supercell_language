@@ -23,33 +23,19 @@
 #include "core/Prerequisite.h"
 #include "language/tree/ASTNodeHelper.h"
 #include "language/tree/visitor/GenericDoubleVisitor.h"
-#include "language/context/ResolverContext.h"
-#include "language/context/TransformerContext.h"
-#include "language/stage/parser/context/SourceInfoContext.h"
-#include "language/stage/transformer/context/ManglingStageContext.h"
-#include "core/ContextHubSerialization.h"
+#include "language/stage/serialization/detail/ASTSerializationCommon.h"
 
 using namespace zillians::language::tree;
 using zillians::language::tree::visitor::GenericDoubleVisitor;
 
 namespace zillians { namespace language { namespace stage { namespace visitor {
 
+/**
+ * ASTSerializationStageVisitor is a helper to serialize all context object stored in ContextHub of AST
+ */
 template<typename Archive>
 struct ASTSerializationStageVisitor : GenericDoubleVisitor
 {
-	typedef ContextHubSerialization<
-			boost::mpl::vector<
-				ResolvedType,
-				ResolvedSymbol,
-				ResolvedPackage,
-				SplitReferenceContext,
-				ModuleSourceInfoContext,
-				SourceInfoContext,
-				NameManglingContext,
-				TypeIdManglingContext,
-				SymbolIdManglingContext
-				> > FullSerializer;
-
 	CREATE_INVOKER(serializeInvoker, serialize)
 
 	ASTSerializationStageVisitor(Archive& oa) : archive(oa)

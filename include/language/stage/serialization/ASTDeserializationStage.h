@@ -17,18 +17,21 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef ZILLIANS_LANGUAGE_STAGE_GENERATOR_ASTSERIALIZATIONSTAGE_H_
-#define ZILLIANS_LANGUAGE_STAGE_GENERATOR_ASTSERIALIZATIONSTAGE_H_
+#ifndef ZILLIANS_LANGUAGE_STAGE_PARSER_ASTDESERIALIZATIONSTAGE_H_
+#define ZILLIANS_LANGUAGE_STAGE_PARSER_ASTDESERIALIZATIONSTAGE_H_
 
 #include "language/stage/Stage.h"
 
 namespace zillians { namespace language { namespace stage {
 
-class ASTSerializationStage : public Stage
+/**
+ * ASTDeserializationStage will de-serialize AST file through Boost Serialization
+ */
+class ASTDeserializationStage : public Stage
 {
 public:
-	ASTSerializationStage();
-	virtual ~ASTSerializationStage();
+	ASTDeserializationStage();
+	virtual ~ASTDeserializationStage();
 
 public:
 	virtual const char* name();
@@ -37,10 +40,11 @@ public:
 	virtual bool execute(bool& continue_execution);
 
 private:
-	bool enabled;
-	std::string ast_file;
+	bool enabled_load;
+	std::string ast_file_to_load;
+	std::vector<std::string> inputs;
 };
 
 } } }
 
-#endif /* ZILLIANS_LANGUAGE_STAGE_GENERATOR_ASTSERIALIZATIONSTAGE_H_ */
+#endif /* ZILLIANS_LANGUAGE_STAGE_PARSER_ASTDESERIALIZATIONSTAGE_H_ */

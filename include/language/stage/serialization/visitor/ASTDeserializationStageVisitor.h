@@ -23,33 +23,19 @@
 #include "core/Prerequisite.h"
 #include "language/tree/ASTNodeHelper.h"
 #include "language/tree/visitor/GenericDoubleVisitor.h"
-#include "language/context/ResolverContext.h"
-#include "language/context/TransformerContext.h"
-#include "language/stage/parser/context/SourceInfoContext.h"
-#include "language/stage/transformer/context/ManglingStageContext.h"
-#include "core/ContextHubSerialization.h"
+#include "language/stage/serialization/detail/ASTSerializationCommon.h"
 
 using namespace zillians::language::tree;
 using zillians::language::tree::visitor::GenericDoubleVisitor;
 
 namespace zillians { namespace language { namespace stage { namespace visitor {
 
+/**
+ * ASTDeserializationStageVisitor is a helper to de-serialize all context object stored in ContextHub of AST
+ */
 template<typename Archive>
 struct ASTDeserializationStageVisitor : GenericDoubleVisitor
 {
-	typedef ContextHubSerialization<
-			boost::mpl::vector<
-				ResolvedType,
-				ResolvedSymbol,
-				ResolvedPackage,
-				SplitReferenceContext,
-				ModuleSourceInfoContext,
-				SourceInfoContext,
-				NameManglingContext,
-				TypeIdManglingContext,
-				SymbolIdManglingContext
-				> > FullDeserializer;
-
 	CREATE_INVOKER(deserializeInvoker, deserialize)
 
 	ASTDeserializationStageVisitor(Archive& ia) : archive(ia)
@@ -59,8 +45,8 @@ struct ASTDeserializationStageVisitor : GenericDoubleVisitor
 
 	void deserialize(ASTNode& node)
 	{
-		FullDeserializer deserializer(node);
-		archive >> deserializer;
+		FullSerializer serializer(node);
+		archive >> serializer;
 		revisit(node);
 	}
 

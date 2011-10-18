@@ -17,12 +17,9 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#include "language/stage/parser/ASTDeserializationStage.h"
-#include "language/stage/parser/visitor/ASTDeserializationStageVisitor.h"
+#include "language/stage/serialization/ASTDeserializationStage.h"
+#include "language/stage/serialization/detail/ASTSerializationHelper.h"
 #include "language/context/ParserContext.h"
-#include "language/tree/ASTNodeSerialization.h"
-#include <boost/archive/text_oarchive.hpp>
-#include <boost/archive/text_iarchive.hpp>
 #include <boost/filesystem.hpp>
 
 namespace zillians { namespace language { namespace stage {
@@ -74,11 +71,10 @@ bool ASTDeserializationStage::execute(bool& continue_execution)
 
 	if(enabled_load)
 	{
-		ASTNode* deserialized = tryDeserialize(ast_file_to_load);
-		if(!deserialized) return false;
+		tree::ASTNode* deserialized = ASTSerializationHelper::deserialize(ast_file_to_load);
+		if(!deserialized || !tree::isa<tree::Package>(deserialized)) return false;
 
 		getParserContext().program->root = tree::cast<tree::Package>(deserialized);
-
 	}
 
 	foreach(i, inputs)
@@ -86,30 +82,15 @@ bool ASTDeserializationStage::execute(bool& continue_execution)
 		boost::filesystem::path p(*i);
 		if(strcmp(p.extension().c_str(), ".ast") == 0)
 		{
-			ASTNode* deserialized = tryDeserialize(*i);
-			if(!deserialized) return false;
+			tree::ASTNode* deserialized = ASTSerializationHelper::deserialize(*i);
+			if(!deserialized || !tree::isa<tree::Package>(deserialized)) return false;
 
-			// TODO merge with imported root ast
-			//getParserContext().program->imported_root
+			// merge with imported root ast
+			getParserContext().program->imported_root->merge(*tree::cast<tree::Package>(deserialized));
 		}
 	}
 
 	return true;
-}
-
-tree::ASTNode* ASTDeserializationStage::tryDeserialize(const std::string& s)
-{
-	std::ifstream ifs(s);
-	if(!ifs.good()) return NULL;
-
-	boost::archive::text_iarchive ia(ifs);
-	tree::ASTNode* from_serialize = NULL;
-	ia >> from_serialize;
-
-	visitor::ASTDeserializationStageVisitor<boost::archive::text_iarchive> deserialzer(ia);
-	deserialzer.visit(*from_serialize);
-
-	return from_serialize;
 }
 
 } } }

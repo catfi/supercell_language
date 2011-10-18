@@ -17,12 +17,9 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#include "language/stage/generator/ASTSerializationStage.h"
-#include "language/stage/generator/visitor/ASTSerializationStageVisitor.h"
+#include "language/stage/serialization/ASTSerializationStage.h"
+#include "language/stage/serialization/detail/ASTSerializationHelper.h"
 #include "language/context/ParserContext.h"
-#include "language/tree/ASTNodeSerialization.h"
-#include <boost/archive/text_oarchive.hpp>
-#include <boost/archive/text_iarchive.hpp>
 
 namespace zillians { namespace language { namespace stage {
 
@@ -71,15 +68,8 @@ bool ASTSerializationStage::execute(bool& continue_execution)
 	if(!hasParserContext())
 		return false;
 
-    std::ofstream ofs(ast_file);
-    if(!ofs.good()) return false;
-
-    boost::archive::text_oarchive oa(ofs);
-    tree::ASTNode* to_serialize = getParserContext().program->root;
-    oa << to_serialize;
-
-    visitor::ASTSerializationStageVisitor<boost::archive::text_oarchive> serialzer(oa);
-    serialzer.visit(*to_serialize);
+	if(!ASTSerializationHelper::serialize(ast_file, getParserContext().program->root))
+		return false;
 
 	return true;
 }

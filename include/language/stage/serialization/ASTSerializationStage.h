@@ -24,11 +24,14 @@
 
 namespace zillians { namespace language { namespace stage {
 
-class ASTDeserializationStage : public Stage
+/**
+ * ASTSerializationStage will serialize AST into file through Boost Serialization
+ */
+class ASTSerializationStage : public Stage
 {
 public:
-	ASTDeserializationStage();
-	virtual ~ASTDeserializationStage();
+	ASTSerializationStage();
+	virtual ~ASTSerializationStage();
 
 public:
 	virtual const char* name();
@@ -37,12 +40,8 @@ public:
 	virtual bool execute(bool& continue_execution);
 
 private:
-	tree::ASTNode* tryDeserialize(const std::string& s);
-
-private:
-	bool enabled_load;
-	std::string ast_file_to_load;
-	std::vector<std::string> inputs;
+	bool enabled;
+	std::string ast_file;
 };
 
 } } }
