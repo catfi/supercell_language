@@ -109,7 +109,7 @@ struct StringTable
 			zh_TW = '溢位'
 			))
 	LOG_STRING.create('UNDEFINED_TYPE', LOG_LEVEL.LEVEL_ERROR, 0, dict(
-			en_US = 'there are $count(uint32) unresolved symbols',
+			en_US = 'there are $count(uint32) unresolved types',
 			zh_TW = '找到$count(uint32)個未定義的型別'
 			))
 	LOG_STRING.create('UNDEFINED_TYPE_INFO', LOG_LEVEL.LEVEL_ERROR, 0, dict(
@@ -212,10 +212,6 @@ struct StringTable
 	LOG_STRING.create('MISSING_RETURN_VALUE', LOG_LEVEL.LEVEL_ERROR, 0, dict(
 			en_US = 'return-statement with no value, in function returning $type(wstring)',
 			zh_TW = 'NOTE: 暫無中文翻譯 ==> MISSING_RETURN_VALUE'
-			))
-	LOG_STRING.create('MISSING_CONST_INIT', LOG_LEVEL.LEVEL_ERROR, 0, dict(
-			en_US = 'uninitialized const $var_id(wstring)',
-			zh_TW = 'NOTE: 暫無中文翻譯 ==> MISSING_CONST_INIT'
 			))
 	LOG_STRING.create('WRITE_CONST', LOG_LEVEL.LEVEL_ERROR, 0, dict(
 			en_US = 'assignment of read-only variable $var_id(wstring)',

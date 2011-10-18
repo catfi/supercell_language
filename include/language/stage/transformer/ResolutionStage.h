@@ -45,10 +45,16 @@ private:
 	bool resolveSymbols(bool report_error_summary, bool& making_progress);
 
 private:
+	void removeTrivialErrors();
+	void reportErrors();
+
+private:
 	bool debug;
 	bool disable_type_inference;
 	std::size_t total_unresolved_count_type;
 	std::size_t total_unresolved_count_symbol;
+	__gnu_cxx::hash_set<tree::ASTNode*> unresolved_symbols;
+	__gnu_cxx::hash_set<tree::ASTNode*> unresolved_types;
 };
 
 } } }

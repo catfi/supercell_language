@@ -19,7 +19,7 @@
 
 #include "language/stage/transformer/RestructureStage.h"
 #include "language/stage/transformer/visitor/RestructureStageVisitor.h"
-#include "language/tree/visitor/general/PrettyPrintVisitor.h"
+#include "language/tree/visitor/PrettyPrintVisitor.h"
 #include "language/context/ParserContext.h"
 
 namespace zillians { namespace language { namespace stage {

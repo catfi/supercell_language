@@ -20,8 +20,8 @@
 #include "core/Prerequisite.h"
 #include "language/tree/ASTNode.h"
 #include "language/tree/ASTNodeFactory.h"
-#include "language/tree/visitor/general/GarbageCollectionVisitor.h"
-#include "language/tree/visitor/general/ObjectCountVisitor.h"
+#include "language/tree/visitor/GarbageCollectionVisitor.h"
+#include "language/tree/visitor/ObjectCountVisitor.h"
 #include "../ASTNodeSamples.h"
 #include <iostream>
 #include <string>

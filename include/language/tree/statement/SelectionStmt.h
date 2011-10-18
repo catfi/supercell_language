@@ -48,7 +48,7 @@ struct Selection : ContextHub<ContextOwnership::transfer>
 
 	bool isEqualImpl(const Selection& rhs, ASTNodeSet& visited) const
 	{
-		const Selection* p = &rhs;
+		const Selection* __p = &rhs;
 		COMPARE_MEMBER(cond)
 		COMPARE_MEMBER(block)
 		return true;

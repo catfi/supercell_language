@@ -19,9 +19,9 @@
 
 #include "language/stage/transformer/ResolutionStage.h"
 #include "language/stage/transformer/visitor/ResolutionStageVisitor.h"
-#include "language/tree/visitor/general/NodeTypeNameVisitor.h"
-#include "language/tree/visitor/general/NodeInfoVisitor.h"
-#include "language/tree/visitor/general/PrettyPrintVisitor.h"
+#include "language/tree/visitor/NodeTypeNameVisitor.h"
+#include "language/tree/visitor/NodeInfoVisitor.h"
+#include "language/tree/visitor/PrettyPrintVisitor.h"
 #include "language/resolver/Resolver.h"
 #include "language/context/ParserContext.h"
 #include "language/tree/ASTNodeHelper.h"
@@ -95,6 +95,12 @@ bool ResolutionStage::execute(bool& continue_execution)
 	if(!complete_symbol_resolution)
 		resolveSymbols(true, dummy);
 
+	// remove trivial and redundant errors
+	removeTrivialErrors();
+
+	// report errors
+	reportErrors();
+
 	if(debug)
 	{
 		tree::visitor::PrettyPrintVisitor printer;
@@ -139,11 +145,9 @@ bool ResolutionStage::resolveTypes(bool report_error_summary, bool& making_progr
 	{
 		if(report_error_summary)
 		{
-			LOG_MESSAGE(UNDEFINED_TYPE, (ASTNode*)NULL, _count = unresolved_count);
-
 			for(__gnu_cxx::hash_set<ASTNode*>::iterator it = visitor.unresolved_nodes.begin(); it != visitor.unresolved_nodes.end(); ++it)
 			{
-				LOG_MESSAGE(UNDEFINED_TYPE_INFO, *it, _id = ASTNodeHelper::getNodeName(*it));
+				unresolved_types.insert(*it);
 			}
 		}
 		return false;
@@ -189,11 +193,9 @@ bool ResolutionStage::resolveSymbols(bool report_error_summary, bool& making_pro
 	{
 		if(report_error_summary)
 		{
-			LOG_MESSAGE(UNDEFINED_SYMBOL, (ASTNode*)NULL, _count = unresolved_count);
-
 			for(__gnu_cxx::hash_set<ASTNode*>::iterator it = visitor.unresolved_nodes.begin(); it != visitor.unresolved_nodes.end(); ++it)
 			{
-				LOG_MESSAGE(UNDEFINED_SYMBOL_INFO, *it, _id = ASTNodeHelper::getNodeName(*it));
+				unresolved_symbols.insert(*it);
 			}
 		}
 		return false;
@@ -201,6 +203,136 @@ bool ResolutionStage::resolveSymbols(bool report_error_summary, bool& making_pro
 	else
 	{
 		return true;
+	}
+}
+
+void ResolutionStage::removeTrivialErrors()
+{
+	if(unresolved_symbols.size() > 0 || unresolved_types.size() > 0)
+	{
+		__gnu_cxx::hash_set<ASTNode*>::iterator it = unresolved_symbols.begin();
+		std::vector<std::function<void()>> cleanup;
+
+		while(it != unresolved_symbols.end())
+		{
+			// search for any ancestor of it in unresolved_symbols
+			for(__gnu_cxx::hash_set<ASTNode*>::iterator i = unresolved_symbols.begin(); i != unresolved_symbols.end(); ++i)
+			{
+				ASTNode* parent = (*it)->parent;
+				while(parent)
+				{
+					if(*i == parent)
+					{
+						cleanup.push_back([=]{
+							unresolved_symbols.erase(parent);
+						});
+					}
+					parent = parent->parent;
+				}
+			}
+
+			// search for any ancestor of it in unresolved_types
+			for(__gnu_cxx::hash_set<ASTNode*>::iterator i = unresolved_types.begin(); i != unresolved_types.end(); ++i)
+			{
+				ASTNode* parent = (*it)->parent;
+				while(parent)
+				{
+					if(*i == parent)
+					{
+						cleanup.push_back([=]{
+							unresolved_types.erase(parent);
+						});
+					}
+					parent = parent->parent;
+				}
+			}
+
+			// remove any ancestor of it since it's not leaf node, so the error is trivial due to unresolved descendant
+			foreach(i, cleanup) (*i)();
+
+			if(cleanup.size() > 0)
+			{
+				cleanup.clear();
+				it = unresolved_symbols.begin();
+			}
+			else
+			{
+				++it;
+			}
+		}
+
+		it = unresolved_types.begin();
+
+		while(it != unresolved_types.end())
+		{
+			// search for any ancestor of it in unresolved_symbols
+			for(__gnu_cxx::hash_set<ASTNode*>::iterator i = unresolved_symbols.begin(); i != unresolved_symbols.end(); ++i)
+			{
+				ASTNode* parent = (*it)->parent;
+				while(parent)
+				{
+					if(*i == parent)
+					{
+						cleanup.push_back([=]{
+							unresolved_symbols.erase(parent);
+						});
+					}
+					parent = parent->parent;
+				}
+			}
+
+			// search for any ancestor of it in unresolved_types
+			for(__gnu_cxx::hash_set<ASTNode*>::iterator i = unresolved_types.begin(); i != unresolved_types.end(); ++i)
+			{
+				ASTNode* parent = (*it)->parent;
+				while(parent)
+				{
+					if(*i == parent)
+					{
+						cleanup.push_back([=]{
+							unresolved_types.erase(parent);
+						});
+					}
+					parent = parent->parent;
+				}
+			}
+
+			// remove any ancestor of it since it's not leaf node, so the error is trivial due to unresolved descendant
+			foreach(i, cleanup) (*i)();
+
+			if(cleanup.size() > 0)
+			{
+				cleanup.clear();
+				it = unresolved_types.begin();
+			}
+			else
+			{
+				++it;
+			}
+		}
+	}
+}
+
+void ResolutionStage::reportErrors()
+{
+	if(unresolved_symbols.size() > 0)
+	{
+		for(__gnu_cxx::hash_set<ASTNode*>::iterator it = unresolved_symbols.begin(); it != unresolved_symbols.end(); ++it)
+		{
+			// avoid duplicate error message if a symbol is not resolved
+			if(unresolved_types.count(*it) > 0)
+				unresolved_types.erase(*it);
+
+			LOG_MESSAGE(UNDEFINED_SYMBOL_INFO, *it, _id = ASTNodeHelper::getNodeName(*it));
+		}
+	}
+
+	if(unresolved_types.size() > 0)
+	{
+		for(__gnu_cxx::hash_set<ASTNode*>::iterator it = unresolved_symbols.begin(); it != unresolved_symbols.end(); ++it)
+		{
+			LOG_MESSAGE(UNDEFINED_TYPE_INFO, *it, _id = ASTNodeHelper::getNodeName(*it));
+		}
 	}
 }
 

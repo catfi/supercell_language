@@ -19,7 +19,7 @@
 
 #include "language/stage/verifier/SemanticVerificationStage0.h"
 #include "language/stage/verifier/visitor/SemanticVerificationStageVisitor0.h"
-#include "language/tree/visitor/general/PrettyPrintVisitor.h"
+#include "language/tree/visitor/PrettyPrintVisitor.h"
 #include "language/context/ParserContext.h"
 
 namespace zillians { namespace language { namespace stage {

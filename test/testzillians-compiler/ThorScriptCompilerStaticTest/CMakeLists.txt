@@ -35,7 +35,6 @@ zillians_add_subject_to_subject(PARENT thorscript-compiler-static-test-all CHILD
 zillians_add_subject_to_subject(PARENT thorscript-compiler-static-test-all CHILD thorscript-compiler-static-test-s1)
 #zillians_add_subject_to_subject(PARENT thorscript-compiler-static-test-all CHILD thorscript-compiler-static-test-future)
 
-get_target_property(ThorScriptCompiler ts-compile LOCATION)
 SET(compile_options_parse "--mode-parse")
 SET(compile_options_s0    "--mode-semantic-verify-0")
 SET(compile_options_xform "--mode-xform")
@@ -163,7 +162,7 @@ zillians_add_test_to_subject(SUBJECT thorscript-compiler-static-test-xform TARGE
 zillians_add_test_to_subject(SUBJECT thorscript-compiler-static-test-xform TARGET thorscript-compiler-static-test-MISMATCH_FUNC_ARGNUM_TOO_FEW)
 zillians_add_test_to_subject(SUBJECT thorscript-compiler-static-test-xform TARGET thorscript-compiler-static-test-MISMATCH_FUNC_ARGNUM_TOO_MANY)
 zillians_add_test_to_subject(SUBJECT thorscript-compiler-static-test-xform TARGET thorscript-compiler-static-test-MISMATCH_FUNC_ARGTYPE)
-zillians_add_test_to_subject(SUBJECT thorscript-compiler-static-test-s1    TARGET thorscript-compiler-static-test-MISSING_RETURN_VALUE)
+#zillians_add_test_to_subject(SUBJECT thorscript-compiler-static-test-s1    TARGET thorscript-compiler-static-test-MISSING_RETURN_VALUE)
 zillians_add_test_to_subject(SUBJECT thorscript-compiler-static-test-s1    TARGET thorscript-compiler-static-test-UNEXPECTED_RETURN_VALUE)
 
 # primary_expression
@@ -204,11 +203,6 @@ zillians_add_test_to_subject(SUBJECT thorscript-compiler-static-test-s0 TARGET t
 #####################################################################
 
 # storage / const
-#zillians_add_complex_test(
-#    TARGET thorscript-compiler-static-test-MISSING_CONST_INIT
-#    SHELL ${ThorScriptCompiler} ${compile_options_parse} ${CMAKE_CURRENT_SOURCE_DIR}/data/error/2_modifier/storage/const/MISSING_CONST_INIT.t
-#    DEPENDS ${ThorScriptCompiler}
-#    )
 zillians_add_complex_test(
     TARGET thorscript-compiler-static-test-WRITE_CONST
     SHELL ${ThorScriptCompiler} ${compile_options_s1} ${CMAKE_CURRENT_SOURCE_DIR}/data/error/2_modifier/storage/const/WRITE_CONST.t
@@ -244,7 +238,6 @@ zillians_add_complex_test(
     DEPENDS ${ThorScriptCompiler}
     )
 
-#zillians_add_test_to_subject(SUBJECT thorscript-compiler-static-test-parse TARGET thorscript-compiler-static-test-MISSING_CONST_INIT)
 zillians_add_test_to_subject(SUBJECT thorscript-compiler-static-test-s1 TARGET thorscript-compiler-static-test-WRITE_CONST)
 zillians_add_test_to_subject(SUBJECT thorscript-compiler-static-test-s1 TARGET thorscript-compiler-static-test-INVALID_NONSTATIC_CALL)
 zillians_add_test_to_subject(SUBJECT thorscript-compiler-static-test-s1 TARGET thorscript-compiler-static-test-INVALID_NONSTATIC_REF)

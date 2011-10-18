@@ -22,9 +22,9 @@
 
 #include "core/Prerequisite.h"
 #include "language/context/TransformerContext.h"
-#include "language/tree/visitor/general/GenericVisitor.h"
-#include "language/tree/visitor/general/GenericDoubleVisitor.h"
-#include "language/tree/visitor/general/NameManglingVisitor.h"
+#include "language/tree/visitor/GenericVisitor.h"
+#include "language/tree/visitor/GenericDoubleVisitor.h"
+#include "language/tree/visitor/NameManglingVisitor.h"
 #include "language/stage/transformer/context/ManglingStageContext.h"
 #include "language/logging/StringTable.h"
 #include "language/logging/LoggerWrapper.h"
@@ -198,10 +198,14 @@ struct SemanticVerificationStageVisitor1 : GenericDoubleVisitor
 			// UNEXPECTED_RETURN_VALUE
 			TypeSpecifier* param_type = func_decl->type;
 			ASTNode* resolved_type = ResolvedType::get(&node);
-			bool arg_is_void = isa<TypeSpecifier>(resolved_type) ?
-					isVoid(cast<TypeSpecifier>(resolved_type)) : false; // NOTE: only need to handle void case
+			bool arg_is_void = (bool)!resolved_type;
+			if(resolved_type)
+				arg_is_void = isa<TypeSpecifier>(resolved_type) ?
+						isVoid(cast<TypeSpecifier>(resolved_type)) : false; // NOTE: only need to handle void case
+#if 0
 			if(!isVoid(param_type) && arg_is_void)
 				LOG_MESSAGE(MISSING_RETURN_VALUE, &node, _type = param_type->toString());
+#endif
 			if(isVoid(param_type) && !arg_is_void)
 				LOG_MESSAGE(UNEXPECTED_RETURN_VALUE, &node);
 		}
@@ -276,21 +280,21 @@ struct SemanticVerificationStageVisitor1 : GenericDoubleVisitor
 		if(isa<EnumDecl>(resolved_type)) // NOTE: only need to handle enum case
 		{
 			EnumDecl* enum_decl = cast<EnumDecl>(resolved_type);
-			foreach(i, enum_decl->enumeration_list)
-				SemanticVerificationEnumKeyContext_HasVisited::bind((*i).first);
+			foreach(i, enum_decl->values)
+				SemanticVerificationEnumKeyContext_HasVisited::bind(*i);
 			foreach(i, node.cases)
 			{
 				ASTNode* resolved_symbol = ResolvedSymbol::get((*i).cond);
-				if(isa<Identifier>(resolved_symbol))
+				if(isa<VariableDecl>(resolved_symbol))
 					SemanticVerificationEnumKeyContext_HasVisited::unbind(resolved_symbol);
 			}
-			foreach(i, enum_decl->enumeration_list)
+			foreach(i, enum_decl->values)
 			{
-				if(SemanticVerificationEnumKeyContext_HasVisited::is_bound((*i).first))
+				if(SemanticVerificationEnumKeyContext_HasVisited::is_bound(*i))
 				{
 					if(!node.default_block)
-						LOG_MESSAGE(MISSING_CASE, &node, _id = (*i).first->toString());
-					SemanticVerificationEnumKeyContext_HasVisited::unbind((*i).first); // NOTE: manual cleanup
+						LOG_MESSAGE(MISSING_CASE, &node, _id = (*i)->name->toString());
+					SemanticVerificationEnumKeyContext_HasVisited::unbind(*i);
 				}
 			}
 		}
