@@ -38,15 +38,18 @@ struct Program : public ASTNode
 	DEFINE_VISITABLE();
 	DEFINE_HIERARCHY(Program, (Program)(ASTNode));
 
-	Program() : root(new Package(new SimpleIdentifier(L""))), internal(new Internal())
+	Program() : imported_root(new Package(new SimpleIdentifier(L""))), root(new Package(new SimpleIdentifier(L""))), internal(new Internal())
 	{
+		imported_root->parent = this;
+		root->parent = this;
 		internal->parent = this;
 	}
 
-	Program(Package* root) : root(root), internal(new Internal())
+	Program(Package* root) : imported_root(new Package(new SimpleIdentifier(L""))), root(root), internal(new Internal())
 	{
 		BOOST_ASSERT(root && "null root for program node is not allowed");
 
+		imported_root->parent = this;
 		root->parent = this;
 		internal->parent = this;
 	}
@@ -61,6 +64,8 @@ struct Program : public ASTNode
     {
     	BEGIN_COMPARE()
 		COMPARE_MEMBER(imports)
+		// no comparison since we don't tree two program node different if their imported root is different
+		if(0) { COMPARE_MEMBER(imported_root) }
 		COMPARE_MEMBER(root)
 		COMPARE_MEMBER(internal)
 		END_COMPARE()
@@ -70,6 +75,8 @@ struct Program : public ASTNode
     {
     	BEGIN_REPLACE()
 		REPLACE_USE_WITH(imports)
+		// no replace use with since we won't operate on the imported root since it's imported and has been processed
+		if(0) { REPLACE_USE_WITH(imported_root) }
 		REPLACE_USE_WITH(root)
 		REPLACE_USE_WITH(internal)
     	END_REPLACE()
@@ -89,12 +96,15 @@ struct Program : public ASTNode
     void serialize(Archive& ar, const unsigned int version)
     {
     	ar & boost::serialization::base_object<ASTNode>(*this);
+    	// no serialization since it must be de-serialized from somewhere and we don't want our AST become redundant
+    	if(0) ar & imported_root;
     	ar & imports;
     	ar & root;
     	ar & internal;
     }
 
 	std::vector<Import*> imports;
+	Package* imported_root;
 	Package* root;
 	Internal* internal;
 };

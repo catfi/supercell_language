@@ -230,6 +230,7 @@ struct GenericVisitor : Visitor<const ASTNode, void, VisitorImplementation::recu
 	{
 		foreach(i, node.imports) visit(**i);
 
+		if(node.imported_root) visit(*node.imported_root);
 		if(node.root) visit(*node.root);
 		if(node.internal) visit(*node.internal);
 	}
