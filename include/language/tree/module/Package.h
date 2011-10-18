@@ -129,7 +129,7 @@ struct Package : public ASTNode
 			{
     			if((*i)->id->isEqual(*(*j)->id))
     			{
-    				(*i)->merge(**j);
+    				(*j)->merge(**i);
     				merged = true;
     			}
 			}
