@@ -35,10 +35,10 @@ add_library(zillians-framework-language-spirit
 
 get_target_property(__lib_location zillians-framework-language-spirit LOCATION)
 
-add_custom_command(TARGET zillians-framework-language-spirit POST_BUILD
-    COMMAND /usr/bin/strip --strip-debug ${__lib_location}
-    COMMENT "Stripping boost spirit debug symbols"
-    )
+#add_custom_command(TARGET zillians-framework-language-spirit POST_BUILD
+#    COMMAND /usr/bin/strip --strip-debug ${__lib_location}
+#    COMMENT "Stripping boost spirit debug symbols"
+#    )
 
 target_link_libraries(zillians-framework-language-spirit
     zillians-common-utility

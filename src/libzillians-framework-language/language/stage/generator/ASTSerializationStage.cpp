@@ -75,7 +75,7 @@ bool ASTSerializationStage::execute(bool& continue_execution)
     if(!ofs.good()) return false;
 
     boost::archive::text_oarchive oa(ofs);
-    tree::ASTNode* to_serialize = getParserContext().program;
+    tree::ASTNode* to_serialize = getParserContext().program->root;
     oa << to_serialize;
 
     visitor::ASTSerializationStageVisitor<boost::archive::text_oarchive> serialzer(oa);

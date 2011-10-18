@@ -23,10 +23,11 @@
 #include "language/tree/ASTNodeSerialization.h"
 #include <boost/archive/text_oarchive.hpp>
 #include <boost/archive/text_iarchive.hpp>
+#include <boost/filesystem.hpp>
 
 namespace zillians { namespace language { namespace stage {
 
-ASTDeserializationStage::ASTDeserializationStage() : enabled(false)
+ASTDeserializationStage::ASTDeserializationStage() : enabled_load(false)
 { }
 
 ASTDeserializationStage::~ASTDeserializationStage()
@@ -43,7 +44,7 @@ std::pair<shared_ptr<po::options_description>, shared_ptr<po::options_descriptio
 	shared_ptr<po::options_description> option_desc_private(new po::options_description());
 
 	option_desc_public->add_options()
-		("load-ast", po::value<std::string>(), "load serialized AST file");
+		("load-ast", po::value<std::string>(), "load serialized AST file as root");
 
 	foreach(i, option_desc_public->options()) option_desc_private->add(*i);
 
@@ -54,37 +55,61 @@ std::pair<shared_ptr<po::options_description>, shared_ptr<po::options_descriptio
 
 bool ASTDeserializationStage::parseOptions(po::variables_map& vm)
 {
-	enabled = (vm.count("load-ast") > 0);
-	if(enabled)
+	if(vm.count("load-ast") > 0)
 	{
-		ast_file = vm["load-ast"].as<std::string>();
+		enabled_load = true;
+		ast_file_to_load = vm["load-ast"].as<std::string>();
 	}
+
+	inputs = vm["input"].as<std::vector<std::string>>();
+
 	return true;
 }
 
 bool ASTDeserializationStage::execute(bool& continue_execution)
 {
-	if(!enabled)
-		return true;
-
 	// prepare the global parser context
 	if(!hasParserContext())
 		setParserContext(new ParserContext());
 
-    std::ifstream ifs(ast_file);
-    if(!ifs.good()) return false;
+	if(enabled_load)
+	{
+		ASTNode* deserialized = tryDeserialize(ast_file_to_load);
+		if(!deserialized) return false;
 
-    boost::archive::text_iarchive ia(ifs);
-    tree::ASTNode* from_serialize = NULL;
-    ia >> from_serialize;
+		getParserContext().program->root = tree::cast<tree::Package>(deserialized);
 
-    getParserContext().program = tree::cast<tree::Program>(from_serialize);
+	}
 
-    visitor::ASTDeserializationStageVisitor<boost::archive::text_iarchive> deserialzer(ia);
-    deserialzer.visit(*getParserContext().program);
+	foreach(i, inputs)
+	{
+		boost::filesystem::path p(*i);
+		if(strcmp(p.extension().c_str(), ".ast") == 0)
+		{
+			ASTNode* deserialized = tryDeserialize(*i);
+			if(!deserialized) return false;
 
+			// TODO merge with imported root ast
+			//getParserContext().program->imported_root
+		}
+	}
 
 	return true;
+}
+
+tree::ASTNode* ASTDeserializationStage::tryDeserialize(const std::string& s)
+{
+	std::ifstream ifs(s);
+	if(!ifs.good()) return NULL;
+
+	boost::archive::text_iarchive ia(ifs);
+	tree::ASTNode* from_serialize = NULL;
+	ia >> from_serialize;
+
+	visitor::ASTDeserializationStageVisitor<boost::archive::text_iarchive> deserialzer(ia);
+	deserialzer.visit(*from_serialize);
+
+	return from_serialize;
 }
 
 } } }
