@@ -9,7 +9,7 @@ bool getImportedPackagesTImpl(Iterator begin, Iterator end, std::vector<std::wst
     return qi::phrase_parse(begin, end,
             // Begin grammar
             (
-                  -( L"package" > *(boost::spirit::unicode::char_ - ';') > L';' )
+                  -( L"module" > *(boost::spirit::unicode::char_ - ';') > L';' )
                 > *( L"import"  >
                         (
                             // import . = a.b.c;

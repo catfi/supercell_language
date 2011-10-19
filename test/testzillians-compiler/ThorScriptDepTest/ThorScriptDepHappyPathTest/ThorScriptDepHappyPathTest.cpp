@@ -47,17 +47,17 @@ BOOST_AUTO_TEST_CASE( ThorScriptDepTest_ThorScriptDepHappyPathTestCase1 )
                   import d.d1; \
                   import e.e1;' >> src/a.t");
 
-    system("echo 'package b;' > src/b.t");
+    system("echo 'module b;' > src/b.t");
 
     system("echo 'import c.c2;' > src/c/c1.t");
     system("echo 'import c.c1;' > src/c/c2.t");
-    system("echo 'package c.c3;' > src/c/c3.t");
+    system("echo 'module c.c3;' > src/c/c3.t");
 
     system("echo 'import e.e1;' > src/d/d1.t");
 
     system("echo 'import e.e1.e12;' > src/e/e1/e11.t");
     system("echo 'import e.e1.e11;' > src/e/e1/e12.t");
-    system("echo 'package e.e1.e13;' > src/e/e1/e13.t");
+    system("echo 'module e.e1.e13;' > src/e/e1/e13.t");
 
     const char* argv[] = {"testbin", "src/a.t"};
 
@@ -126,9 +126,9 @@ BOOST_AUTO_TEST_CASE( ThorScriptDepTest_ThorScriptDepHappyPathTestCase2 )
     // Construct file system and file content
 
     boost::filesystem::create_directories(boost::filesystem::path("src"));
-    system("echo 'package a; import b;' > src/a.t");
-    system("echo 'package b; import c;' > src/b.t");
-    system("echo 'package c; import a;' > src/c.t");
+    system("echo 'module a; import b;' > src/a.t");
+    system("echo 'module b; import c;' > src/b.t");
+    system("echo 'module c; import a;' > src/c.t");
 
     const char* argv[] = {"testbin", "src/a.t"};
 
@@ -167,7 +167,7 @@ BOOST_AUTO_TEST_CASE( ThorScriptDepTest_ThorScriptDepHappyPathTestCase3 )
     // Construct file system and file content
 
     boost::filesystem::create_directories(boost::filesystem::path("src"));
-    system("echo 'package a;' > src/a.t");
+    system("echo 'module a;' > src/a.t");
 
     const char* argv[] = {"testbin", "src/a.t"};
 
@@ -205,9 +205,9 @@ BOOST_AUTO_TEST_CASE( ThorScriptDepTest_ThorScriptDepAmbiguousTestCase1 )
     // Construct file system and file content
 
     boost::filesystem::create_directories(boost::filesystem::path("src"));
-    system("echo 'package a; import b;' > src/a.t");
-    system("echo 'package b; import c;' > src/b.t");
-    system("echo 'package c; import a;' > src/c.t");
+    system("echo 'module a; import b;' > src/a.t");
+    system("echo 'module b; import c;' > src/b.t");
+    system("echo 'module c; import a;' > src/c.t");
 
     const char* argv[] = {"testbin", "src/a.t"};
 
