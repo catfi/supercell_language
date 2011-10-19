@@ -75,6 +75,6 @@ for ARG in "$@"; do
     echo
 done
 
-echo "success!"
+echo "success! (test.sh)"
 exit 0
 
