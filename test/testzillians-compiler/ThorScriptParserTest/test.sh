@@ -36,7 +36,7 @@ for ARG in "$@"; do
         fi
         continue
     fi
-    $EXEC $ARG --mode-parse-syntax-only --debug-parser |& grep -v "[DEBUG]" > $TEMP_FILE_A
+    $EXEC $ARG --mode-parse --debug-parser |& grep -v "[DEBUG]" > $TEMP_FILE_A
     ERROR_CODE="${PIPESTATUS[0]}" # NOTE: need PIPESTATUS because piped grep always succeeds
     if [ $ERROR_CODE -ne 0 ]; then
         cat $TEMP_FILE_A # NOTE: for convenience of reference
