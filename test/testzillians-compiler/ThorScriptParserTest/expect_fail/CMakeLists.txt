@@ -21,9 +21,8 @@
 
 zillians_add_complex_test(
     TARGET thorscript-parser-test-expect_fail
-    SHELL ${CMAKE_CURRENT_SOURCE_DIR}/../test.sh ${ThorScriptCompiler} ${ThorScriptLogFilter} 0
-            ${CMAKE_CURRENT_SOURCE_DIR}/expect_fail.t
-    DEPENDS ${ThorScriptCompiler} ${ThorScriptLogFilter}
+    SHELL ${ThorScriptCompiler} ${CMAKE_CURRENT_SOURCE_DIR}/expect_fail.t
+    DEPENDS ${ThorScriptCompiler}
     EXPECT_FAIL "TRUE"
     )
 
