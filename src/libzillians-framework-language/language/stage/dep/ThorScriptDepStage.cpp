@@ -87,7 +87,7 @@ namespace zillians { namespace language { namespace stage {
 // static functions
 //////////////////////////////////////////////////////////////////////////////
 
-static std::set<std::string> glogAllTsFiles(const std::string& dirPath)
+static std::set<std::string> globAllTsFiles(const std::string& dirPath)
 {
     std::set<std::string> result;
     namespace fs = boost::filesystem;
@@ -184,8 +184,9 @@ static bool parseFileImportedPackages(const std::string& tsFileName, std::set<st
  * @param[in] pathString Package path to add.
  * @param[in,out] fileGraph Data structure to store dependency.
  */
-static void addFileDependency(const std::string& tsFileName, FileGraphType& fileGraph)
+static void addFileDependency(std::string tsFileName, FileGraphType& fileGraph)
 {
+    //tsFileName = "src/" + tsFileName;
     boost::optional<boost::graph_traits<FileGraphType>::vertex_descriptor> currentVertexOpt = boost::graph::find_vertex(tsFileName, fileGraph);
     if(currentVertexOpt && boost::out_degree(*currentVertexOpt, fileGraph) > 0)
     {
@@ -217,6 +218,7 @@ static void addFileDependency(const std::string& tsFileName, FileGraphType& file
                    [] (const std::wstring& packageName) {
                         std::string result = ws_to_s(packageName);
                         std::replace(result.begin(), result.end(), '.', '/');
+                        result = "src/" + result;
                         return result;
                    });
     // for each dep packages, collect dependent .t files.
@@ -230,7 +232,7 @@ static void addFileDependency(const std::string& tsFileName, FileGraphType& file
         // if is package directory, recusively add all files under the dir.
         else if(isDirectory(*i))
         {
-            std::set<std::string> allFilesUnderDir = glogAllTsFiles(*i);
+            std::set<std::string> allFilesUnderDir = globAllTsFiles(*i);
             for(auto f = allFilesUnderDir.begin(); f != allFilesUnderDir.end(); ++f)
             {
                 boost::graph::add_edge(tsFileName, *f, fileGraph);
@@ -375,7 +377,7 @@ bool ThorScriptDepStage::parseOptions(po::variables_map& vm)
     }
     else
     {
-        std::set<std::string> inputFileSet = glogAllTsFiles(".");
+        std::set<std::string> inputFileSet = globAllTsFiles(".");
         inputFiles.assign(inputFileSet.begin(), inputFileSet.end());
         return true;
     }
