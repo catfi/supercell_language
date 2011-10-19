@@ -28,7 +28,7 @@ class QWE
     }
 }
 
-var r:int32 = 0;
+var r:int32;
 
 // from global function..
 function f2():void

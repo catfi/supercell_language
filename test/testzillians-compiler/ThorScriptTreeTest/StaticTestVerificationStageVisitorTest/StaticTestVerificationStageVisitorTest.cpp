@@ -93,7 +93,7 @@ Program* createPassSample()
 							zillians::language::LogInfo errorContext(L"LEVEL_WARNING", L"EXAMPLE_UNDECLARED_VARIABLE", m);
 
 							ExpressionStmt* stmt = new ExpressionStmt(new BinaryExpr(BinaryExpr::OpCode::ASSIGN, new PrimaryExpr(new SimpleIdentifier(L"EXAMPLE_UNDECLARED_VARIABLE")), new PrimaryExpr(new SimpleIdentifier(L"b"))));
-							stmt->setAnnotation(annos);
+							stmt->setAnnotations(annos);
                             zillians::language::LogInfoContext::push_back(stmt, errorContext);
 
 							block->appendObject(stmt);
@@ -163,7 +163,7 @@ Program* createFailSample()
                             zillians::language::LogInfo errorContext(L"LEVEL_WARNING", L"EXAMPLE_UNDECLARED_VARIABLE", m);
 
 							ExpressionStmt* stmt = new ExpressionStmt(new BinaryExpr(BinaryExpr::OpCode::ASSIGN, new PrimaryExpr(new SimpleIdentifier(L"EXAMPLE_UNDECLARED_VARIABLE")), new PrimaryExpr(new SimpleIdentifier(L"b"))));
-							stmt->setAnnotation(annos);
+							stmt->setAnnotations(annos);
                             zillians::language::LogInfoContext::push_back(stmt, errorContext);
 
 							// set source info context

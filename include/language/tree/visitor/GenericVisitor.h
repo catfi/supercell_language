@@ -389,6 +389,7 @@ struct GenericVisitor : Visitor<const ASTNode, void, VisitorImplementation::recu
 			if(i->cond)  visit(*i->cond);
 			if(i->block) visit(*i->block);
 		}
+		if(node.default_block) visit(*node.default_block);
 	}
 
 	void apply(const BranchStmt& node)

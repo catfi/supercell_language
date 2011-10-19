@@ -61,7 +61,7 @@ ThorScriptCompiler::ThorScriptCompiler()
 		boost::mpl::vector<
 			ThorScriptParserStage,
 			ASTDeserializationStage,
-			StaticTestVerificationStage>>("mode-parse-syntax-only", "for syntax check stage");
+			StaticTestVerificationStage>>("mode-parse", "for syntax check stage");
 
 	addMode<
 		boost::mpl::vector<
@@ -76,7 +76,7 @@ ThorScriptCompiler::ThorScriptCompiler()
 			ASTDeserializationStage,
 			LiteralCompactionStage,
 			RestructureStage,
-			StaticTestVerificationStage>>("mode-xform-stage-only", "for debugging transform stage");
+			StaticTestVerificationStage>>("mode-xform", "for debugging transform stage");
 
 	addMode<
 		boost::mpl::vector<
