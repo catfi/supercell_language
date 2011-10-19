@@ -23,6 +23,7 @@
 #include "core/Prerequisite.h"
 #include "core/Singleton.h"
 #include "language/context/ParserContext.h"
+#include "language/tree/ASTNodeHelper.h"
 
 namespace zillians { namespace language {
 

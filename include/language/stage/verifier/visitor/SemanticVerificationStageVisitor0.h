@@ -213,17 +213,17 @@ struct SemanticVerificationStageVisitor0 : GenericDoubleVisitor
 	{
 		// MISSING_BREAK_TARGET
 		// MISSING_CONTINUE_TARGET
-		if(_is_break_or_continue(&node) && !ASTNodeHelper::owner<IterativeStmt>(node))
+		if(_is_break_or_continue(&node) && !ASTNodeHelper::getOwner<IterativeStmt>(node))
 			switch(node.opcode)
 			{
 			case BranchStmt::OpCode::BREAK:    LOG_MESSAGE(MISSING_BREAK_TARGET, &node); break;
 			case BranchStmt::OpCode::CONTINUE: LOG_MESSAGE(MISSING_CONTINUE_TARGET, &node); break;
 			}
 
-		// DEAD_CODE
+		// DEAD_CODE (NOTE: necessary because verify(BranchStmt&) is shadowed by verify(Statement&))
 		_verify_DEAD_CODE(&node);
 		if(node.opcode == BranchStmt::OpCode::RETURN)
-			SemanticVerificationBlockContext_HasVisitedReturn::instance(ASTNodeHelper::owner<Block>(node));
+			SemanticVerificationBlockContext_HasVisitedReturn::bind(ASTNodeHelper::getOwner<Block>(node));
 
 		revisit(node);
 	}
@@ -234,7 +234,7 @@ struct SemanticVerificationStageVisitor0 : GenericDoubleVisitor
 
 		// DEAD_CODE
 		if(!_is_conditional(node.parent) && !!SemanticVerificationBlockContext_HasVisitedReturn::get(&node))
-			SemanticVerificationBlockContext_HasVisitedReturn::instance(node.parent);
+			SemanticVerificationBlockContext_HasVisitedReturn::bind(node.parent);
 	}
 
 	void verify(VariableDecl &node)
@@ -307,7 +307,7 @@ private:
 	{
 		// DUPE_NAME
 		SemanticVerificationScopeContext_NameSet* context =
-				SemanticVerificationScopeContext_NameSet::instance(ASTNodeHelper::ownerNamedScope(*node));
+				SemanticVerificationScopeContext_NameSet::bind(ASTNodeHelper::getOwnerNamedScope(*node));
 		std::wstring name = node->name->toString();
 		if(context->names.find(name) == context->names.end())
 			context->names.insert(name);

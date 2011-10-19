@@ -72,31 +72,50 @@ struct SemanticVerificationStageVisitor1 : GenericDoubleVisitor
 		revisit(node);
 	}
 
+	void verify(MemberExpr &node)
+	{
+//		ASTNode* unknown = ResolvedSymbol::get(node.node);
+//		if(isa<VariableDecl>(unknown))
+//		{
+//			VariableDecl* var_decl = cast<VariableDecl>(unknown);
+//		}
+//
+//		ASTNode* unknown_member = ResolvedSymbol::get(node.member);
+//		if(isa<VariableDecl>(unknown_member))
+//		{
+//			VariableDecl* var_decl = cast<VariableDecl>(unknown_member);
+//		}
+
+		revisit(node);
+	}
+
 	void verify(PrimaryExpr &node)
 	{
-		if(!!ASTNodeHelper::owner<FunctionDecl>(node) && node.catagory == PrimaryExpr::Catagory::IDENTIFIER)
+		if(ASTNodeHelper::hasOwner<FunctionDecl>(node) && node.catagory == PrimaryExpr::Catagory::IDENTIFIER)
 		{
 			ASTNode* unknown = ResolvedSymbol::get(&node);
 			if(isa<VariableDecl>(unknown) || isa<FunctionDecl>(unknown))
 			{
-				std::wstring name;
 				bool static_violation = false;
-				Declaration::VisibilitySpecifier::type visibility = Declaration::VisibilitySpecifier::PRIVATE;
+				std::wstring name;
+				Declaration::VisibilitySpecifier::type visibility = Declaration::VisibilitySpecifier::PUBLIC;
+				bool is_static = false;
 
 				if(isa<VariableDecl>(unknown))
 				{
 					VariableDecl* var_decl = cast<VariableDecl>(unknown);
+					name = var_decl->name->toString();
+					visibility = var_decl->visibility;
+					is_static = var_decl->is_static;
+
 					if(!ASTNodeHelper::isFuncParam(var_decl))
 					{
-						name = var_decl->name->toString();
-						visibility = var_decl->visibility;
-
 						// UNINIT_REF
 						if(!SemanticVerificationVariableDeclContext_HasBeenInit::get(var_decl))
 							LOG_MESSAGE(UNINIT_REF, &node, _var_id = name);
 
 						// INVALID_NONSTATIC_REF
-						static_violation = ASTNodeHelper::owner<FunctionDecl>(node)->is_static && !var_decl->is_static;
+						static_violation = ASTNodeHelper::getOwner<FunctionDecl>(node)->is_static && !is_static;
 					}
 				}
 				else if(isa<FunctionDecl>(unknown))
@@ -104,18 +123,20 @@ struct SemanticVerificationStageVisitor1 : GenericDoubleVisitor
 					FunctionDecl* func_decl = cast<FunctionDecl>(unknown);
 					name = func_decl->name->toString();
 					visibility = func_decl->visibility;
+					is_static = func_decl->is_static;
 
 					// INVALID_NONSTATIC_REF
-					static_violation = ASTNodeHelper::owner<FunctionDecl>(node)->is_static && !func_decl->is_static;
+					static_violation = ASTNodeHelper::getOwner<FunctionDecl>(node)->is_static && !is_static;
 				}
 
+				// INVALID_NONSTATIC_REF
 				if(static_violation)
 					LOG_MESSAGE(INVALID_NONSTATIC_REF, &node, _var_id = name);
 
 				// INVALID_ACCESS_PRIVATE
 				// INVALID_ACCESS_PROTECTED
-				ClassDecl* ref_point = ASTNodeHelper::owner<ClassDecl>(node);
-				ClassDecl* decl_point = ASTNodeHelper::owner<ClassDecl>(*unknown);
+				ClassDecl* ref_point = ASTNodeHelper::getOwner<ClassDecl>(node);
+				ClassDecl* decl_point = ASTNodeHelper::getOwner<ClassDecl>(*unknown);
 				if(ref_point != decl_point)
 					switch(visibility)
 					{
@@ -123,7 +144,7 @@ struct SemanticVerificationStageVisitor1 : GenericDoubleVisitor
 						LOG_MESSAGE(INVALID_ACCESS_PRIVATE, &node, _id = name);
 						break;
 					case Declaration::VisibilitySpecifier::PROTECTED:
-						if(!ASTNodeHelper::extends(*ref_point, *decl_point))
+						if(!(!!ref_point && !!decl_point && ASTNodeHelper::isInheritedFrom(*ref_point, *decl_point)))
 							LOG_MESSAGE(INVALID_ACCESS_PROTECTED, &node, _id = name);
 						break;
 					}
@@ -136,22 +157,22 @@ struct SemanticVerificationStageVisitor1 : GenericDoubleVisitor
 	void verify(CallExpr &node)
 	{
 		// INVALID_NONSTATIC_CALL
-		bool decl_is_static = false;
+		bool is_static = false;
 		std::wstring name;
 		ASTNode* unknown = ResolvedSymbol::get(node.node);
 		if(isa<FunctionDecl>(unknown))
 		{
 			FunctionDecl* func_decl = cast<FunctionDecl>(unknown);
-			decl_is_static = !func_decl->is_static;
+			is_static = !func_decl->is_static;
 			name = func_decl->name->toString();
 		}
-		if(isa<VariableDecl>(unknown))
+		else if(isa<VariableDecl>(unknown))
 		{
 			VariableDecl* var_decl = cast<VariableDecl>(unknown);
-			decl_is_static = !var_decl->is_static;
+			is_static = !var_decl->is_static;
 			name = var_decl->name->toString();
 		}
-		if(ASTNodeHelper::owner<FunctionDecl>(node)->is_static && decl_is_static)
+		if(ASTNodeHelper::getOwner<FunctionDecl>(node)->is_static && is_static)
 			LOG_MESSAGE(INVALID_NONSTATIC_CALL, &node, _func_id = name);
 
 		revisit(node);
@@ -178,7 +199,7 @@ struct SemanticVerificationStageVisitor1 : GenericDoubleVisitor
 				if(node.right->isRValue() || (node.right->isLValue()
 						&& !!SemanticVerificationVariableDeclContext_HasBeenInit::get(ResolvedSymbol::get(node.right))))
 				{
-					SemanticVerificationVariableDeclContext_HasBeenInit::instance(var_decl);
+					SemanticVerificationVariableDeclContext_HasBeenInit::bind(var_decl);
 				}
 			}
 		}
@@ -190,24 +211,19 @@ struct SemanticVerificationStageVisitor1 : GenericDoubleVisitor
 	{
 		if(node.opcode == BranchStmt::OpCode::RETURN)
 		{
-			FunctionDecl* func_decl = ASTNodeHelper::owner<FunctionDecl>(node);
+			FunctionDecl* func_decl = ASTNodeHelper::getOwner<FunctionDecl>(node);
 
-			// CONTROL_REACHES_END
 			// MISSING_RETURN
-			SemanticVerificationFunctionDeclContext_ReturnCount* ReturnCount_context =
-					SemanticVerificationFunctionDeclContext_ReturnCount::instance(func_decl);
-			ReturnCount_context->count++;
-
-			TypeSpecifier* return_param = func_decl->type;
-			TypeSpecifier* return_arg = cast<TypeSpecifier>(ResolvedType::get(&node));
-
-			// UNEXPECTED_RETURN_VALUE
-			if(_is_void(return_param) && !_is_void(return_arg))
-				LOG_MESSAGE(UNEXPECTED_RETURN_VALUE, &node);
+			SemanticVerificationFunctionDeclContext_ReturnCount::bind(func_decl)->count++;
 
 			// MISSING_RETURN_VALUE
+			// UNEXPECTED_RETURN_VALUE
+			TypeSpecifier* return_param = func_decl->type;
+			TypeSpecifier* return_arg = cast<TypeSpecifier>(ResolvedType::get(&node));
 			if(!_is_void(return_param) && _is_void(return_arg))
 				LOG_MESSAGE(MISSING_RETURN_VALUE, &node, _type = return_param->toString());
+			if(_is_void(return_param) && !_is_void(return_arg))
+				LOG_MESSAGE(UNEXPECTED_RETURN_VALUE, &node);
 		}
 
 		revisit(node);
@@ -217,99 +233,81 @@ struct SemanticVerificationStageVisitor1 : GenericDoubleVisitor
 	{
 		// UNINIT_REF
 		foreach(i, node.parameters)
-			SemanticVerificationVariableDeclContext_HasBeenInit::instance(*i);
+			SemanticVerificationVariableDeclContext_HasBeenInit::bind(*i);
 
 		revisit(node);
 
 		if(!_is_void(node.type))
 		{
-			SemanticVerificationFunctionDeclContext_ReturnCount* ReturnCount_context =
-					SemanticVerificationFunctionDeclContext_ReturnCount::get(&node);
-
-			if(!!ReturnCount_context)
-			{
-				SemanticVerificationFunctionDeclContext_PathCount* PathCount_context =
-						SemanticVerificationFunctionDeclContext_PathCount::instance(&node);
-
-				// CONTROL_REACHES_END
-				// NOTE: FIX-ME! -- should use context up-propagation instead -- see impl for s0 "DEAD_CODE"
-				if(PathCount_context->count > ReturnCount_context->count)
-					LOG_MESSAGE(CONTROL_REACHES_END, &node);
-			}
+			// MISSING_RETURN
+			if(SemanticVerificationFunctionDeclContext_ReturnCount::bind(&node)->count == 0)
+				LOG_MESSAGE(MISSING_RETURN, &node);
 			else
 			{
-				// MISSING_RETURN
-				LOG_MESSAGE(MISSING_RETURN, &node);
+				// CONTROL_REACHES_END
+				if(SemanticVerificationBlockContext_BranchCount::bind(node.block)->count
+						> SemanticVerificationFunctionDeclContext_ReturnCount::bind(&node)->count)
+				{
+					LOG_MESSAGE(CONTROL_REACHES_END, &node);
+				}
 			}
 		}
+	}
+
+	void verify(Block &node)
+	{
+		revisit(node);
+
+		// CONTROL_REACHES_END
+		if(SemanticVerificationBlockContext_BranchCount::bind(&node)->count == 0)
+			SemanticVerificationBlockContext_BranchCount::bind(&node)->count = 1;
 	}
 
 	void verify(IfElseStmt &node)
 	{
-		// CONTROL_REACHES_END
-		FunctionDecl* func_decl = ASTNodeHelper::owner<FunctionDecl>(node);
-		SemanticVerificationFunctionDeclContext_PathCount* PathCount_context =
-				SemanticVerificationFunctionDeclContext_PathCount::instance(func_decl);
-		PathCount_context->count += 1+node.elseif_branches.size()+(!!node.else_block ? 1 : 0);
-
 		revisit(node);
+
+		// CONTROL_REACHES_END
+		size_t count = 0;
+		count += SemanticVerificationBlockContext_BranchCount::bind(node.if_branch.block)->count;
+		foreach(i, node.elseif_branches)
+			count += SemanticVerificationBlockContext_BranchCount::bind((*i).block)->count;
+		count += SemanticVerificationBlockContext_BranchCount::bind(node.else_block)->count;
+		if(isa<Block>(node.parent))
+			SemanticVerificationBlockContext_BranchCount::bind(node.parent)->count += count;
 	}
 
 	void verify(SwitchStmt &node)
 	{
-		// CONTROL_REACHES_END
-		FunctionDecl* func_decl = ASTNodeHelper::owner<FunctionDecl>(node);
-		SemanticVerificationFunctionDeclContext_PathCount* PathCount_context =
-				SemanticVerificationFunctionDeclContext_PathCount::instance(func_decl);
-
 		// MISSING_CASE
-		std::set<std::wstring> enum_value_set;
-		if(isa<PrimaryExpr>(node.node))
-		{
-			PrimaryExpr* prim_expr = cast<PrimaryExpr>(node.node);
-			if(prim_expr->catagory == PrimaryExpr::Catagory::IDENTIFIER)
-			{
-				ASTNode* unknown = ResolvedSymbol::get(prim_expr->value.identifier);
-				if(isa<VariableDecl>(unknown))
-				{
-					VariableDecl* var_decl = cast<VariableDecl>(unknown);
-					if(var_decl->type->type == TypeSpecifier::ReferredType::UNSPECIFIED)
-					{
-						ASTNode* unknown = ResolvedSymbol::get(var_decl->type->referred.unspecified);
-						if(isa<EnumDecl>(unknown))
-							foreach(i, cast<EnumDecl>(unknown)->enumeration_list)
-								enum_value_set.insert((*i).first->toString()); // NOTE: FIX-ME! -- should store value instead ?
-					}
-				}
-			}
-		}
-		std::set<std::wstring> case_value_set;
 		foreach(i, node.cases)
 		{
-			if(isa<PrimaryExpr>((*i).cond)) // NOTE: FIX-ME! -- may be a MemberExpr, should we resolve value instead ?
+			ASTNode* unknown = ResolvedSymbol::get((*i).cond);
+			if(isa<Identifier>(unknown))
+				SemanticVerificationEnumKeyContext_HasVisited::bind(unknown);
+		}
+		EnumDecl* enum_decl = _resolve_enum(node.node);
+		if(!!enum_decl)
+			foreach(i, enum_decl->enumeration_list)
+				SemanticVerificationEnumKeyContext_HasVisited::unbind((*i).first);
+		foreach(i, enum_decl->enumeration_list)
+			if(!!SemanticVerificationEnumKeyContext_HasVisited::get((*i).first))
 			{
-				PrimaryExpr* prim_expr = cast<PrimaryExpr>((*i).cond);
-				if(prim_expr->catagory == PrimaryExpr::Catagory::IDENTIFIER)
-					case_value_set.insert(prim_expr->value.identifier->toString());
+				if(!node.default_block)
+					LOG_MESSAGE(MISSING_CASE, &node, _id = (*i).first->toString());
+				SemanticVerificationEnumKeyContext_HasVisited::unbind((*i).first);
 			}
 
-			// CONTROL_REACHES_END
-			PathCount_context->count++;
-		}
-		std::vector<std::wstring> result;
-		if(!!node.default_block)
-		{
-			// CONTROL_REACHES_END
-			PathCount_context->count++;
-		}
-		else
-		{
-			std::set_difference(enum_value_set.begin(), enum_value_set.end(),
-					case_value_set.begin(), case_value_set.end(),
-					std::back_inserter(result));
-			foreach(i, result)
-				LOG_MESSAGE(MISSING_CASE, &node, _id = *i);
-		}
+		revisit(node);
+
+		// CONTROL_REACHES_END
+		size_t count = 0;
+		count += SemanticVerificationBlockContext_BranchCount::bind(node.node)->count;
+		foreach(i, node.cases)
+			count += SemanticVerificationBlockContext_BranchCount::bind((*i).block)->count;
+		count += SemanticVerificationBlockContext_BranchCount::bind(node.default_block)->count;
+		if(isa<Block>(node.parent))
+			SemanticVerificationBlockContext_BranchCount::bind(node.parent)->count += count;
 	}
 
 private:
@@ -317,6 +315,17 @@ private:
 	{
 		return type_specifier->type == TypeSpecifier::ReferredType::PRIMITIVE
 				&& type_specifier->referred.primitive == PrimitiveType::VOID;
+	}
+
+	static EnumDecl* _resolve_enum(ASTNode* unknown)
+	{
+		TypeSpecifier* type_specifier = cast<TypeSpecifier>(ResolvedType::get(unknown));
+		if(type_specifier->type != TypeSpecifier::ReferredType::UNSPECIFIED)
+			return NULL;
+		ASTNode* unknown_unspecified = ResolvedSymbol::get(type_specifier->referred.unspecified);
+		if(!isa<EnumDecl>(unknown_unspecified))
+			return NULL;
+		return cast<EnumDecl>(unknown_unspecified);
 	}
 };
 

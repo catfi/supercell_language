@@ -35,12 +35,17 @@ struct ASTNodeContext
 		return node->get<T>();
 	}
 
-	static T* instance(tree::ASTNode* node)
+	static T* bind(tree::ASTNode* node)
 	{
 		T* x = get(node);
 		if(!x)
 			_set(node, x = new T());
 		return x;
+	}
+
+	static void unbind(tree::ASTNode* node)
+	{
+		_set(node, NULL);
 	}
 
 private:
@@ -50,14 +55,18 @@ private:
 	}
 };
 
+// DUPE_NAME
 struct SemanticVerificationScopeContext_NameSet : public ASTNodeContext<SemanticVerificationScopeContext_NameSet>
 {
 	std::set<std::wstring> names;
 };
 
+// DEAD_CODE
 struct SemanticVerificationBlockContext_HasVisitedReturn : public ASTNodeContext<SemanticVerificationBlockContext_HasVisitedReturn>
 { };
 
+// MISSING_RETURN
+// CONTROL_REACHES_END
 struct SemanticVerificationFunctionDeclContext_ReturnCount : public ASTNodeContext<SemanticVerificationFunctionDeclContext_ReturnCount>
 {
 	SemanticVerificationFunctionDeclContext_ReturnCount() : count(0)
@@ -66,12 +75,18 @@ struct SemanticVerificationFunctionDeclContext_ReturnCount : public ASTNodeConte
 	size_t count;
 };
 
+// UNINIT_REF
 struct SemanticVerificationVariableDeclContext_HasBeenInit : public ASTNodeContext<SemanticVerificationVariableDeclContext_HasBeenInit>
 { };
 
-struct SemanticVerificationFunctionDeclContext_PathCount : public ASTNodeContext<SemanticVerificationFunctionDeclContext_PathCount>
+// MISSING_CASE
+struct SemanticVerificationEnumKeyContext_HasVisited : public ASTNodeContext<SemanticVerificationEnumKeyContext_HasVisited>
+{ };
+
+// CONTROL_REACHES_END
+struct SemanticVerificationBlockContext_BranchCount : public ASTNodeContext<SemanticVerificationBlockContext_BranchCount>
 {
-	SemanticVerificationFunctionDeclContext_PathCount() : count(0)
+	SemanticVerificationBlockContext_BranchCount() : count(0)
 	{ }
 
 	size_t count;

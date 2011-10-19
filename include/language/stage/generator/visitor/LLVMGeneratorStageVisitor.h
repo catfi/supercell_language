@@ -159,7 +159,7 @@ struct LLVMGeneratorStageVisitor : GenericDoubleVisitor
 
 	void generate(VariableDecl& node)
 	{
-		//if(ASTNodeHelper::isDirectlyOwnedByPackage(node))
+		//if(ASTNodeHelper::hasDirectOwnerPackage(node))
 		if(node.parent && isa<Package>(node.parent))
 			return;
 
@@ -168,7 +168,7 @@ struct LLVMGeneratorStageVisitor : GenericDoubleVisitor
 		// here we only generate AllocaInst for AST variables within function
 		// those sit in global scope or class member scope will be stored in some other object and access through game object API
 		// (all global variables are stored in a single game object, which is assembled by compiler)
-		if(!!ASTNodeHelper::owner<FunctionDecl>(node))
+		if(ASTNodeHelper::hasOwner<FunctionDecl>(node))
 		{
 			if(hasValue(node)) return;
 			if(isBlockInsertionMasked() || isBlockTerminated(currentBlock()))	return;
