@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 INPUT_THOR="$1.t"
 INPUT_WRAP="$2.c"
 
