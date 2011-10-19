@@ -78,6 +78,9 @@ struct SemanticVerificationStageVisitor0 : GenericDoubleVisitor
 	void verify(Package& node)
 	{
 		verifyDupeName(&node);
+		cleanup.push_back([&](){
+			SemanticVerificationScopeContext_NameSet::unbind(&node);
+		});
 
 		// PACKAGE_NAME_COLLIDE_PARENT
 		if(node.parent && isa<Package>(node.parent)
@@ -231,6 +234,10 @@ struct SemanticVerificationStageVisitor0 : GenericDoubleVisitor
 
 	void verify(Block& node)
 	{
+		cleanup.push_back([&](){
+			SemanticVerificationBlockContext_HasVisitedReturn::unbind(&node);
+		});
+
 		revisit(node);
 
 		// DEAD_CODE
@@ -252,6 +259,9 @@ struct SemanticVerificationStageVisitor0 : GenericDoubleVisitor
 	void verify(FunctionDecl& node)
 	{
 		verifyDupeName(&node);
+		cleanup.push_back([&](){
+			SemanticVerificationScopeContext_NameSet::unbind(&node);
+		});
 
 		std::wstring name = node.name->toString();
 
@@ -286,6 +296,9 @@ struct SemanticVerificationStageVisitor0 : GenericDoubleVisitor
 	void verify(ClassDecl& node)
 	{
 		verifyDupeName(&node);
+		cleanup.push_back([&](){
+			SemanticVerificationScopeContext_NameSet::unbind(&node);
+		});
 
 		revisit(node);
 	}
@@ -343,6 +356,17 @@ private:
 		return node->opcode == BranchStmt::OpCode::BREAK
 				|| node->opcode == BranchStmt::OpCode::CONTINUE;
 	}
+
+public:
+	void applyCleanup()
+	{
+		foreach(i, cleanup)
+			(*i)();
+		cleanup.clear();
+	}
+
+private:
+	std::vector<std::function<void()>> cleanup;
 };
 
 } } } }

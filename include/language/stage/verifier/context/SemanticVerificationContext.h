@@ -60,6 +60,9 @@ private:
 	}
 };
 
+/////////////////////////////////////////////////////////////////////
+/// s0
+
 // DUPE_NAME
 struct SemanticVerificationScopeContext_NameSet : public ASTNodeContext<SemanticVerificationScopeContext_NameSet>
 {
@@ -70,15 +73,13 @@ struct SemanticVerificationScopeContext_NameSet : public ASTNodeContext<Semantic
 struct SemanticVerificationBlockContext_HasVisitedReturn : public ASTNodeContext<SemanticVerificationBlockContext_HasVisitedReturn>
 { };
 
+/////////////////////////////////////////////////////////////////////
+/// s1
+
 // MISSING_RETURN
 // CONTROL_REACHES_END
-struct SemanticVerificationFunctionDeclContext_ReturnCount : public ASTNodeContext<SemanticVerificationFunctionDeclContext_ReturnCount>
-{
-	SemanticVerificationFunctionDeclContext_ReturnCount() : count(0)
-	{ }
-
-	size_t count;
-};
+struct SemanticVerificationFunctionDeclContext_HasReturn : public ASTNodeContext<SemanticVerificationFunctionDeclContext_HasReturn>
+{ };
 
 // UNINIT_REF
 struct SemanticVerificationVariableDeclContext_HasBeenInit : public ASTNodeContext<SemanticVerificationVariableDeclContext_HasBeenInit>
@@ -89,13 +90,8 @@ struct SemanticVerificationEnumKeyContext_HasVisited : public ASTNodeContext<Sem
 { };
 
 // CONTROL_REACHES_END
-struct SemanticVerificationBlockContext_BranchCount : public ASTNodeContext<SemanticVerificationBlockContext_BranchCount>
-{
-	SemanticVerificationBlockContext_BranchCount() : count(0)
-	{ }
-
-	size_t count;
-};
+struct SemanticVerificationBlockContext_AlwaysReturns : public ASTNodeContext<SemanticVerificationBlockContext_AlwaysReturns>
+{ };
 
 } } }
 

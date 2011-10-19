@@ -188,19 +188,36 @@ struct SemanticVerificationStageVisitor1 : GenericDoubleVisitor
 			FunctionDecl* func_decl = ASTNodeHelper::getOwner<FunctionDecl>(&node);
 
 			// MISSING_RETURN
-			SemanticVerificationFunctionDeclContext_ReturnCount::bind(func_decl)->count++;
+			SemanticVerificationFunctionDeclContext_HasReturn::bind(func_decl);
+
+			// CONTROL_REACHES_END
+			if(isa<Block>(node.parent))
+				SemanticVerificationBlockContext_AlwaysReturns::bind(node.parent);
 
 			// MISSING_RETURN_VALUE
 			// UNEXPECTED_RETURN_VALUE
 			TypeSpecifier* param_type = func_decl->type;
 			ASTNode* resolved_type = ResolvedType::get(&node);
-			bool arg_is_void = isa<TypeSpecifier>(resolved_type) ?
-					isVoid(cast<TypeSpecifier>(resolved_type)) : false; // NOTE: only need to handle void case
+			bool arg_is_void = (bool)!resolved_type;
+			if(resolved_type)
+				arg_is_void = isa<TypeSpecifier>(resolved_type) ?
+						isVoid(cast<TypeSpecifier>(resolved_type)) : false; // NOTE: only need to handle void case
+#if 0
 			if(!isVoid(param_type) && arg_is_void)
 				LOG_MESSAGE(MISSING_RETURN_VALUE, &node, _type = param_type->toString());
+#endif
 			if(isVoid(param_type) && !arg_is_void)
 				LOG_MESSAGE(UNEXPECTED_RETURN_VALUE, &node);
 		}
+
+		revisit(node);
+	}
+
+	void verify(VariableDecl& node)
+	{
+		cleanup.push_back([&](){
+			SemanticVerificationVariableDeclContext_HasBeenInit::unbind(&node);
+		});
 
 		revisit(node);
 	}
@@ -216,27 +233,29 @@ struct SemanticVerificationStageVisitor1 : GenericDoubleVisitor
 		if(!isVoid(node.type))
 		{
 			// MISSING_RETURN
-			if(SemanticVerificationFunctionDeclContext_ReturnCount::bind(&node)->count == 0)
+			if(!SemanticVerificationFunctionDeclContext_HasReturn::get(&node))
 				LOG_MESSAGE(MISSING_RETURN, &node);
 			else
 			{
 				// CONTROL_REACHES_END
-				if(SemanticVerificationBlockContext_BranchCount::bind(node.block)->count
-						> SemanticVerificationFunctionDeclContext_ReturnCount::bind(&node)->count)
-				{
+				if(!SemanticVerificationBlockContext_AlwaysReturns::get(node.block))
 					LOG_MESSAGE(CONTROL_REACHES_END, &node);
-				}
 			}
 		}
+
+		SemanticVerificationFunctionDeclContext_HasReturn::unbind(&node); // NOTE: manual cleanup
 	}
 
 	void verify(Block& node)
 	{
+		cleanup.push_back([&](){
+			SemanticVerificationBlockContext_AlwaysReturns::unbind(&node);
+		});
+
 		revisit(node);
 
-		// CONTROL_REACHES_END
-		if(SemanticVerificationBlockContext_BranchCount::bind(&node)->count == 0)
-			SemanticVerificationBlockContext_BranchCount::bind(&node)->count = 1;
+		if(isa<Block>(node.parent) && SemanticVerificationBlockContext_AlwaysReturns::get(&node))
+			SemanticVerificationBlockContext_AlwaysReturns::bind(node.parent);
 	}
 
 	void verify(IfElseStmt& node)
@@ -244,13 +263,14 @@ struct SemanticVerificationStageVisitor1 : GenericDoubleVisitor
 		revisit(node);
 
 		// CONTROL_REACHES_END
-		size_t count = 0;
-		count += SemanticVerificationBlockContext_BranchCount::bind(node.if_branch.block)->count;
+		bool always_returns = true;
+		always_returns &= (bool)SemanticVerificationBlockContext_AlwaysReturns::get(node.if_branch.block);
 		foreach(i, node.elseif_branches)
-			count += SemanticVerificationBlockContext_BranchCount::bind((*i).block)->count;
-		count += SemanticVerificationBlockContext_BranchCount::bind(node.else_block)->count;
-		if(isa<Block>(node.parent))
-			SemanticVerificationBlockContext_BranchCount::bind(node.parent)->count += count;
+			always_returns &= (bool)SemanticVerificationBlockContext_AlwaysReturns::get((*i).block);
+		if(node.else_block)
+			always_returns &= (bool)SemanticVerificationBlockContext_AlwaysReturns::get(node.else_block);
+		if(isa<Block>(node.parent) && always_returns)
+			SemanticVerificationBlockContext_AlwaysReturns::bind(node.parent);
 	}
 
 	void verify(SwitchStmt& node)
@@ -265,7 +285,7 @@ struct SemanticVerificationStageVisitor1 : GenericDoubleVisitor
 			foreach(i, node.cases)
 			{
 				ASTNode* resolved_symbol = ResolvedSymbol::get((*i).cond);
-				if(isa<Identifier>(resolved_symbol))
+				if(isa<VariableDecl>(resolved_symbol))
 					SemanticVerificationEnumKeyContext_HasVisited::unbind(resolved_symbol);
 			}
 			foreach(i, enum_decl->values)
@@ -282,13 +302,21 @@ struct SemanticVerificationStageVisitor1 : GenericDoubleVisitor
 		revisit(node);
 
 		// CONTROL_REACHES_END
-		size_t count = 0;
-		count += SemanticVerificationBlockContext_BranchCount::bind(node.node)->count;
+		bool always_returns = true;
 		foreach(i, node.cases)
-			count += SemanticVerificationBlockContext_BranchCount::bind((*i).block)->count;
-		count += SemanticVerificationBlockContext_BranchCount::bind(node.default_block)->count;
-		if(isa<Block>(node.parent))
-			SemanticVerificationBlockContext_BranchCount::bind(node.parent)->count += count;
+			always_returns &= (bool)SemanticVerificationBlockContext_AlwaysReturns::get((*i).block);
+		if(node.default_block)
+			always_returns &= (bool)SemanticVerificationBlockContext_AlwaysReturns::get(node.default_block);
+		if(isa<Block>(node.parent) && always_returns)
+			SemanticVerificationBlockContext_AlwaysReturns::bind(node.parent);
+	}
+
+	void verify(IterativeStmt& node)
+	{
+		revisit(node);
+
+		if(isa<Block>(node.parent) && SemanticVerificationBlockContext_AlwaysReturns::get(node.block))
+			SemanticVerificationBlockContext_AlwaysReturns::bind(node.parent);
 	}
 
 private:
@@ -346,6 +374,17 @@ private:
 				LOG_MESSAGE(INVALID_NONSTATIC_REF, node_ref, _var_id = node_decl->name->toString());
 		}
 	}
+
+public:
+	void applyCleanup()
+	{
+		foreach(i, cleanup)
+			(*i)();
+		cleanup.clear();
+	}
+
+private:
+	std::vector<std::function<void()>> cleanup;
 };
 
 } } } }

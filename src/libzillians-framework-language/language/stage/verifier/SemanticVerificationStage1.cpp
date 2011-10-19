@@ -65,6 +65,7 @@ bool SemanticVerificationStage1::execute(bool& continue_execution)
 	{
 		visitor::SemanticVerificationStageVisitor1 verifier;
 		verifier.visit(*parser_context.program);
+		verifier.applyCleanup();
 		return true;
 	}
 	else

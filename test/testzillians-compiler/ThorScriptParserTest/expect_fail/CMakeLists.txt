@@ -19,18 +19,11 @@
 # Contact Information: info@zillians.com
 #
 
-zillians_create_test_subject(SUBJECT thorscript-parser-test-all)
-zillians_create_test_subject(SUBJECT thorscript-parser-test-ast-all)
-zillians_add_subject_to_subject(PARENT framework-compiler-critical CHILD thorscript-parser-test-all)
-zillians_add_subject_to_subject(PARENT framework-compiler-critical CHILD thorscript-parser-test-ast-all)
+zillians_add_complex_test(
+    TARGET thorscript-parser-test-expect_fail
+    SHELL ${ThorScriptCompiler} ${CMAKE_CURRENT_SOURCE_DIR}/expect_fail.t
+    DEPENDS ${ThorScriptCompiler}
+    EXPECT_FAIL "TRUE"
+    )
 
-get_target_property(ThorScriptCompiler ts-compile LOCATION)
-get_target_property(ThorScriptLogFilter ts-log-filter LOCATION)
-
-ADD_SUBDIRECTORY(0_lexer)
-ADD_SUBDIRECTORY(1_basic)
-ADD_SUBDIRECTORY(2_terminal)
-ADD_SUBDIRECTORY(3_control_structure)
-ADD_SUBDIRECTORY(4_advanced)
-ADD_SUBDIRECTORY(bugs_pending_fix)
-ADD_SUBDIRECTORY(expect_fail)
+zillians_add_test_to_subject(SUBJECT thorscript-parser-test-all TARGET thorscript-parser-test-expect_fail)
