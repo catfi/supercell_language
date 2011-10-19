@@ -211,6 +211,7 @@ struct SwitchStmt : public SelectionStmt
 
 	void setDefaultCase(ASTNode* block)
 	{
+		if(default_block) default_block->parent = NULL;
 		default_block = block;
 		if(default_block) default_block->parent = this;
 	}

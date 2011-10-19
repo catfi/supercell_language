@@ -73,7 +73,7 @@ struct ForStmt : public IterativeStmt
 	DEFINE_VISITABLE();
 	DEFINE_HIERARCHY(ForStmt, (ForStmt)(IterativeStmt)(Statement)(ASTNode));
 
-	explicit ForStmt(ASTNode* init, ASTNode* cond, ASTNode* step, ASTNode* block = NULL) : init(init), cond(cond), step(step), IterativeStmt(block)
+	explicit ForStmt(ASTNode* init, ASTNode* cond, ASTNode* step, ASTNode* block = NULL) : IterativeStmt(block), init(init), cond(cond), step(step)
 	{
 		BOOST_ASSERT(init && "null init for for statement is not allowed");
 		BOOST_ASSERT(cond && "null cond for for  statement is not allowed");
@@ -135,7 +135,7 @@ struct ForeachStmt : public IterativeStmt
 	DEFINE_VISITABLE();
 	DEFINE_HIERARCHY(ForeachStmt, (ForeachStmt)(IterativeStmt)(Statement)(ASTNode));
 
-	explicit ForeachStmt(ASTNode* iterator, Expression* range, ASTNode* block = NULL) : iterator(iterator), range(range), IterativeStmt(block)
+	explicit ForeachStmt(ASTNode* iterator, Expression* range, ASTNode* block = NULL) : IterativeStmt(block), iterator(iterator), range(range)
 	{
 		BOOST_ASSERT(iterator && "null iterator for foreach statement is not allowed");
 		BOOST_ASSERT(range && "null range for foreach statement is not allowed");
@@ -207,7 +207,7 @@ struct WhileStmt : public IterativeStmt
 		}
 	};
 
-	explicit WhileStmt(Style::type style, Expression* cond, ASTNode* block = NULL) : style(style), cond(cond), IterativeStmt(block)
+	explicit WhileStmt(Style::type style, Expression* cond, ASTNode* block = NULL) : IterativeStmt(block), style(style), cond(cond)
 	{
 		BOOST_ASSERT(cond && "null condition for while statement is not allowed");
 
