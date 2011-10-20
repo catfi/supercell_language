@@ -25,25 +25,25 @@ include_directories( ${PROJECT_COMMON_SOURCE_DIR}/include/
     ${PROJECT_FRAMEWORK_SOURCE_DIR}/include/
     )
 
+set(out_files "")
+set(StringTablePath ${PROJECT_FRAMEWORK_SOURCE_DIR}/include/language/logging)
+COG_GEN(
+    OUTPUT out_files
+    COG_FILE ${StringTablePath}/StringTable.cog
+    COMMENT "cog.py -- Generating StringTable.h from StringTable.cog .."
+    )
+add_custom_target(generate-string-table
+    DEPENDS ${out_files}
+    )
+
 add_library(zillians-framework-language-spirit
     language/stage/parser/ThorScriptParserStage.cpp
     )
-
-#ADD_PRECOMPILED_HEADER(zillians-framework-language-spirit
-#    ${PROJECT_FRAMEWORK_SOURCE_DIR}/include/language/_PreCompiledHeaders.h
-#    )
-
-get_target_property(__lib_location zillians-framework-language-spirit LOCATION)
-
-#add_custom_command(TARGET zillians-framework-language-spirit POST_BUILD
-#    COMMAND /usr/bin/strip --strip-debug ${__lib_location}
-#    COMMENT "Stripping boost spirit debug symbols"
-#    )
-
 target_link_libraries(zillians-framework-language-spirit
     zillians-common-utility
     zillians-common-core
     )
+add_dependencies(zillians-framework-language-spirit generate-string-table)
 
 add_library(zillians-framework-language
     language/context/ConfigurationContext.cpp
@@ -67,37 +67,6 @@ add_library(zillians-framework-language
     language/stage/make/ThorScriptMakeStage.cpp
 	)
 
-set(StringTablePath ${PROJECT_FRAMEWORK_SOURCE_DIR}/include/language/logging)
-
-# Generate StringTable.h
-#add_custom_command(OUTPUT ${StringTablePath}/StringTable.h
-#	COMMAND cog.py -d -o ${StringTablePath}/StringTable.h ${StringTablePath}/StringTable.cog
-#	DEPENDS ${StringTablePath}/StringTable.cog
-#	COMMENT "Generate StringTable.h by using cog.py"
-#	)
-
-SET(out_files "")
-COG_GEN(
-    OUTPUT out_files
-    COG_FILE ${StringTablePath}/StringTable.cog
-    COMMENT "cog.py -- Generating StringTable.h from StringTable.cog .."
-    )
-
-add_custom_target(generate-string-table ALL echo DEPENDS ${out_files} COMMENT "Generate Compiler String Table")
-add_dependencies(zillians-framework-language generate-string-table)
-
-if(LLVM_FOUND)
-    add_definitions( ${LLVM_CPPFLAGS} )
-    
-    add_library(zillians-framework-language-llvm
-        language/context/GeneratorContext.cpp
-        language/stage/generator/LLVMGeneratorStage.cpp
-        language/stage/generator/LLVMDebugInfoGeneratorStage.cpp
-        language/stage/generator/LLVMBitCodeGeneratorStage.cpp
-        language/stage/generator/LLVMGlobalDispatchGeneratorStage.cpp
-        )
-endif()
-
 if(LLVM_FOUND)
     target_link_libraries(zillians-framework-language
         zillians-framework-language-spirit
@@ -105,7 +74,15 @@ if(LLVM_FOUND)
         zillians-common-utility
         zillians-common-core
         )
-    
+
+    add_definitions( ${LLVM_CPPFLAGS} )
+    add_library(zillians-framework-language-llvm
+        language/context/GeneratorContext.cpp
+        language/stage/generator/LLVMGeneratorStage.cpp
+        language/stage/generator/LLVMDebugInfoGeneratorStage.cpp
+        language/stage/generator/LLVMBitCodeGeneratorStage.cpp
+        language/stage/generator/LLVMGlobalDispatchGeneratorStage.cpp
+        )
     target_link_libraries(zillians-framework-language-llvm
 		${LLVM_LDFLAGS}
         ${LLVM_ALL_LIBS}
@@ -120,4 +97,14 @@ else()
         )
 endif()
 
+add_dependencies(zillians-framework-language generate-string-table)
 
+#get_target_property(__lib_location zillians-framework-language-spirit LOCATION)
+#add_custom_command(TARGET zillians-framework-language-spirit POST_BUILD
+#    COMMAND /usr/bin/strip --strip-debug ${__lib_location}
+#    COMMENT "Stripping boost spirit debug symbols"
+#    )
+
+#ADD_PRECOMPILED_HEADER(zillians-framework-language-spirit
+#    ${PROJECT_FRAMEWORK_SOURCE_DIR}/include/language/_PreCompiledHeaders.h
+#    )
