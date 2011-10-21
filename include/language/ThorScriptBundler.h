@@ -18,7 +18,7 @@
  */
 
 #ifndef ZILLIANS_LANGUAGE_THORSCRIPTBUNDLER_H_
-#define ThorScriptDriver.h
+#define ZILLIANS_LANGUAGE_THORSCRIPTBUNDLER_H_
 
 #include "core/Prerequisite.h"
 #include "language/tree/ASTNode.h"
