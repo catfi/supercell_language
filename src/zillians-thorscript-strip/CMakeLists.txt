@@ -26,7 +26,7 @@ include_directories(
 
 add_executable(ts-strip
     main.cpp
-    language/ThorScriptStripper.cpp
+    language/ThorScriptStrip.cpp
     )
     
 target_link_libraries(ts-strip
@@ -35,5 +35,5 @@ target_link_libraries(ts-strip
     zillians-framework-language
     )
     
-get_target_property(ThorScriptStripper ts-strip LOCATION)
-message(STATUS "Using ThorScript Stripper: \"${ThorScriptStripper}\"")
+get_target_property(ThorScriptStrip ts-strip LOCATION)
+message(STATUS "Using ThorScript Strip: \"${ThorScriptStrip}\"")

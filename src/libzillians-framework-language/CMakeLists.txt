@@ -67,6 +67,7 @@ add_library(zillians-framework-language
     language/stage/dep/ThorScriptPackageDependencyGrammar.cpp
     language/stage/make/ThorScriptMakeStage.cpp
     language/stage/bundle/ThorScriptBundleStage.cpp
+    language/stage/strip/ThorScriptStripStage.cpp
 	)
 
 if(LLVM_FOUND)

@@ -1,6 +1,6 @@
 /**
  * Zillians MMO
- * Copyright (C) 2007-2010 Zillians.com, Inc.
+ * Copyright (C) 2007-2011 Zillians.com, Inc.
  * For more information see http://www.zillians.com
  *
  * Zillians MMO is the library and runtime for massive multiplayer online game
@@ -16,19 +16,25 @@
  * AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-/**
- * @date Jul 18, 2011 sdk - Initial version created.
- */
 
-#include "language/logging/LoggerWrapper.h"
-#include "language/ThorScriptStripper.h"
+#ifndef ZILLIANS_LANGUAGE_THORSCRIPTSTRIP_H_
+#define ZILLIANS_LANGUAGE_THORSCRIPTSTRIP_H_
 
-int main(int argc, const char** argv)
+#include "language/stage/StageBuilder.h"
+
+namespace zillians { namespace language {
+
+class ThorScriptStrip : public stage::StageBuilder
 {
-	// TODO: We temporarily use setlocale to force the application to use system default locale.
-	// TODO: To make compile logger support utf8 encoding.
-	setlocale(LC_ALL, "");
+public:
+	ThorScriptStrip();
+	virtual ~ThorScriptStrip();
 
-	zillians::language::ThorScriptStripper stripper;
-	return stripper.main(argc, argv);
-}
+public:
+	virtual void initialize();
+	virtual void finalize();
+};
+
+} }
+
+#endif /* ZILLIANS_LANGUAGE_THORSCRIPTSTRIP_H_ */
