@@ -21,9 +21,12 @@
 #include <boost/filesystem.hpp>
 #include <boost/archive/text_oarchive.hpp>
 #include <boost/archive/text_iarchive.hpp>
+#include <apr_general.h>
+#include <apr_thread_proc.h>
 
 #include "utility/archive/Archive.h"
 #include "language/stage/bundle/ThorScriptBundleStage.h"
+#include "language/stage/serialization/detail/ASTSerializationHelper.h"
 #include "language/tree/ASTNode.h"
 #include "language/tree/ASTNodeFactory.h"
 #include "language/tree/ASTNodeSerialization.h"
@@ -31,10 +34,14 @@
 
 namespace zillians { namespace language { namespace stage {
 
+// LLVM_LD_PROGRAM is defined in CMakeLists.txt
+#define THORSCRIPT_LLVM_LD_PROGRAM		LLVM_LD_PROGRAM
+
 #define THORSCRIPT_BITCODE_EXTENSION	".bc"
 #define THORSCRIPT_AST_EXTENSION		".ast"
 #define THORSCRIPT_DEFAULT_BUNDLE_NAME	"output.bundle"
-
+#define THORSCRIPT_AST_TEMP_MERGED_FILE "ast_merged_tmp"
+#define THORSCRIPT_BC_TMP_MERGED_FILE	"bc_merged_tmp"
 
 //////////////////////////////////////////////////////////////////////////////
 // static functions
@@ -47,11 +54,22 @@ void initializeZipInfo(zip_fileinfo& zip_info)
 	// TODO: Fill the dates
 }
 
-std::string getRandomFileName(std::string extension)
+std::string getRandomFileName(const std::string extension)
 {
 	UUID filename;
 	filename.random();
 	return (std::string)filename + extension;
+}
+
+bool getBufferFromFile(const std::string& file_name, std::vector<unsigned char>& buffer)
+{
+	std::ifstream file(file_name.c_str(), std::ios::in | std::ios::binary | std::ios::ate);
+	buffer.resize( file.tellg() );
+	file.seekg (0, std::ios::beg);
+	file.read((char*)&buffer[0], buffer.size());
+	file.close();
+
+	return true;
 }
 
 
@@ -157,35 +175,62 @@ bool ThorScriptBundleStage::execute(bool& continue_execution)
 
 void ThorScriptBundleStage::getMergeBitCodeBuffer(std::vector<unsigned char>& buffer)
 {
+	// apr initialization
+	apr_pool_t* pool;
+	apr_pool_create(&pool, NULL);
+	apr_initialize();
 
+	// create llvm-ld process
+	if (launchLLVMLinker(pool, THORSCRIPT_BC_TMP_MERGED_FILE))
+	{
+		// Retrieve the buffer from temp file
+		std::string bc_filename(THORSCRIPT_BC_TMP_MERGED_FILE);
+		bc_filename += THORSCRIPT_BITCODE_EXTENSION;
+
+		getBufferFromFile(bc_filename, buffer);
+
+		// LLVM linker will generate two files. One is bc file the other one is for ld. We need to delete both
+		std::remove(THORSCRIPT_BC_TMP_MERGED_FILE); // file for ld
+		std::remove(bc_filename.c_str()); // bc file
+	}
+
+	// apr finalization
+	apr_pool_destroy(pool);
+	apr_terminate();
 }
 
 void ThorScriptBundleStage::getMergeASTBuffer(std::vector<unsigned char>& buffer)
 {
 	using namespace tree;
-    ASTNode* program = NULL;
+    Package* package = NULL;
 
     for (int i = 0; i < ast_files.size(); i++)
     {
-    	ASTNode* current_program = NULL;
+        ASTNode* deserialized = ASTSerializationHelper::deserialize(ast_files[i]);
 
-        std::ifstream ifs(ast_files[i]);
-        boost::archive::text_iarchive ia(ifs);
-        ia >> current_program;
-
-        if (program == NULL)
+		if(!deserialized || !isa<Package>(deserialized)) continue;
+       	Package* current_package = cast<Package>(deserialized);
+        if (package == NULL)
         {
-        	program = current_program;
+        	package = current_package;
         }
         else
         {
         	// Merge with the previous program
-
+        	package->merge(*current_package);
         }
     }
 
-    // Serialize to ostream
+    // TODO: No write to disk
+    if (package)
+    {
+    	std::string temp_filename = THORSCRIPT_AST_TEMP_MERGED_FILE;
+		ASTSerializationHelper::serialize(temp_filename, package);
 
+		// Read the source buffer
+		getBufferFromFile(temp_filename, buffer);
+		std::remove(temp_filename.c_str());
+    }
 }
 
 void ThorScriptBundleStage::getManifestBuffer(std::vector<unsigned char>& buffer)
@@ -195,6 +240,47 @@ void ThorScriptBundleStage::getManifestBuffer(std::vector<unsigned char>& buffer
 	file.seekg(0, std::ios::beg);
 	file.read((char*)&buffer[0], buffer.size());
 	file.close();
+}
+
+bool ThorScriptBundleStage::launchLLVMLinker(apr_pool_t* pool, const std::string& target_file)
+{
+	apr_status_t rv;
+	apr_procattr_t *pattr;
+	int argc = 0;
+	std::vector<const char*> argv;
+	apr_proc_t proc;
+
+	/* prepare process attribute */
+	if ((rv = apr_procattr_create(&pattr, pool)) != APR_SUCCESS) return false;
+	if ((rv = apr_procattr_io_set(pattr, APR_NO_PIPE, APR_NO_PIPE, APR_NO_PIPE)) != APR_SUCCESS) return false;
+	if ((rv = apr_procattr_cmdtype_set(pattr, APR_PROGRAM_ENV)) != APR_SUCCESS) return false;
+
+	/* detaching process has different effects on platform.
+	 * On Unix, detached process implies a daemon process.
+	 * On Windows, detached process implies a process without the console window. */
+	apr_procattr_detach_set(pattr, FALSE);
+
+	// Prepare input bitcode files
+	argv.push_back(THORSCRIPT_LLVM_LD_PROGRAM);
+	for (int i = 0; i < bitcode_files.size(); i++)
+	{
+		argv.push_back(bitcode_files[i].c_str());
+	}
+
+	// Prepare output bitcode file
+	argv.push_back("-o");
+	argv.push_back(target_file.c_str());
+	argv.push_back(NULL);/* @argvs should be null-terminated */
+
+	if ((rv = apr_proc_create(&proc, THORSCRIPT_LLVM_LD_PROGRAM, (const char* const *) &argv[0],
+			NULL, (apr_procattr_t*) pattr, pool)) != APR_SUCCESS) return false;
+
+	// Wait for completion
+	int st;
+	apr_exit_why_e why;
+	rv = apr_proc_wait(&proc, &st, &why, APR_WAIT);
+
+	return APR_STATUS_IS_CHILD_DONE(rv);
 }
 
 } } }

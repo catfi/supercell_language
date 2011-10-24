@@ -50,6 +50,9 @@ private:
 	void getMergeASTBuffer(std::vector<unsigned char>& buffer);
 	void getManifestBuffer(std::vector<unsigned char>& buffer);
 
+private:
+	bool launchLLVMLinker(apr_pool_t* pool, const std::string& target_file);
+
 public:
     std::vector<std::string> bitcode_files;
     std::vector<std::string> ast_files;
