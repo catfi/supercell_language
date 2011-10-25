@@ -23,6 +23,7 @@
 ADD_DEFINITIONS(-DLLVM_LD_PROGRAM="${LLVM_LD}")
 
 INCLUDE(UsingCog)
+#add_subdirectory(language/tree)
 
 include_directories( ${PROJECT_COMMON_SOURCE_DIR}/include/
     ${PROJECT_FRAMEWORK_SOURCE_DIR}/include/
@@ -49,7 +50,7 @@ target_link_libraries(zillians-framework-language-spirit
     )
 add_dependencies(zillians-framework-language-spirit generate-string-table)
 
-add_library(zillians-framework-language
+add_library(zillians-framework-language SHARED
     language/context/ConfigurationContext.cpp
     language/context/ParserContext.cpp
     language/logging/LoggerWrapper.cpp
@@ -64,8 +65,9 @@ add_library(zillians-framework-language
 	language/stage/verifier/visitor/StaticTestVerificationStageVisitor.cpp
 	language/stage/serialization/ASTSerializationStage.cpp
 	language/stage/serialization/ASTDeserializationStage.cpp    
-	language/stage/serialization/detail/ASTSerializationHelper.cpp    
+	language/stage/serialization/detail/ASTSerializationHelper.cpp
 	language/tree/basic/FunctionType.cpp  
+	language/tree/ASTNodeSerialization.cpp
 	language/stage/dep/ThorScriptDepStage.cpp
     language/stage/dep/ThorScriptPackageDependencyGrammar.cpp
     language/stage/make/ThorScriptMakeStage.cpp
