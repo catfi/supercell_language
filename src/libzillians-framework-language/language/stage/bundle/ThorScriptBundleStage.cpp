@@ -31,6 +31,12 @@
 #include "language/tree/ASTNodeFactory.h"
 #include "language/tree/ASTNodeSerialization.h"
 
+#include "llvm/LLVMContext.h"
+#include "llvm/Linker.h"
+#include "llvm/Support/PathV1.h"
+#include "llvm/Bitcode/BitstreamWriter.h"
+#include "llvm/Bitcode/ReaderWriter.h"
+
 
 namespace zillians { namespace language { namespace stage {
 
@@ -175,28 +181,28 @@ bool ThorScriptBundleStage::execute(bool& continue_execution)
 
 void ThorScriptBundleStage::getMergeBitCodeBuffer(std::vector<unsigned char>& buffer)
 {
-	// apr initialization
-	apr_pool_t* pool;
-	apr_pool_create(&pool, NULL);
-	apr_initialize();
+	/**
+	 * The message is output directly from Linker class. If we need to mute it, need to
+	 * pass ControlFlags::QuietWarnings|ControlFlags::QuietErrors
+	 */
+	llvm::LLVMContext& context = llvm::getGlobalContext();
+	llvm::Linker linker("ts-bundle", output_file.c_str(), context);
 
-	// create llvm-ld process
-	if (launchLLVMLinker(pool, THORSCRIPT_BC_TMP_MERGED_FILE))
-	{
-		// Retrieve the buffer from temp file
-		std::string bc_filename(THORSCRIPT_BC_TMP_MERGED_FILE);
-		bc_filename += THORSCRIPT_BITCODE_EXTENSION;
+	linker.addSystemPaths();
 
-		getBufferFromFile(bc_filename, buffer);
+	// Convert to llvm::sys::Path
+	std::vector<llvm::sys::Path> files;
+	for (int i = 0; i < bitcode_files.size(); i++)
+		files.push_back( llvm::sys::Path(bitcode_files[i]) );
 
-		// LLVM linker will generate two files. One is bc file the other one is for ld. We need to delete both
-		std::remove(THORSCRIPT_BC_TMP_MERGED_FILE); // file for ld
-		std::remove(bc_filename.c_str()); // bc file
-	}
+	bool error = linker.LinkInFiles(files);
+	if (error == true) return;
 
-	// apr finalization
-	apr_pool_destroy(pool);
-	apr_terminate();
+	// Well, the linker had linked all the bc files, and only the module contained within interests us.
+	shared_ptr<llvm::Module> composite(linker.releaseModule());
+
+	llvm::BitstreamWriter stream(buffer);
+	llvm::WriteBitcodeToStream(composite.get(), stream);
 }
 
 void ThorScriptBundleStage::getMergeASTBuffer(std::vector<unsigned char>& buffer)
@@ -240,47 +246,6 @@ void ThorScriptBundleStage::getManifestBuffer(std::vector<unsigned char>& buffer
 	file.seekg(0, std::ios::beg);
 	file.read((char*)&buffer[0], buffer.size());
 	file.close();
-}
-
-bool ThorScriptBundleStage::launchLLVMLinker(apr_pool_t* pool, const std::string& target_file)
-{
-	apr_status_t rv;
-	apr_procattr_t *pattr;
-	int argc = 0;
-	std::vector<const char*> argv;
-	apr_proc_t proc;
-
-	/* prepare process attribute */
-	if ((rv = apr_procattr_create(&pattr, pool)) != APR_SUCCESS) return false;
-	if ((rv = apr_procattr_io_set(pattr, APR_NO_PIPE, APR_NO_PIPE, APR_NO_PIPE)) != APR_SUCCESS) return false;
-	if ((rv = apr_procattr_cmdtype_set(pattr, APR_PROGRAM_ENV)) != APR_SUCCESS) return false;
-
-	/* detaching process has different effects on platform.
-	 * On Unix, detached process implies a daemon process.
-	 * On Windows, detached process implies a process without the console window. */
-	apr_procattr_detach_set(pattr, FALSE);
-
-	// Prepare input bitcode files
-	argv.push_back(THORSCRIPT_LLVM_LD_PROGRAM);
-	for (int i = 0; i < bitcode_files.size(); i++)
-	{
-		argv.push_back(bitcode_files[i].c_str());
-	}
-
-	// Prepare output bitcode file
-	argv.push_back("-o");
-	argv.push_back(target_file.c_str());
-	argv.push_back(NULL);/* @argvs should be null-terminated */
-
-	if ((rv = apr_proc_create(&proc, THORSCRIPT_LLVM_LD_PROGRAM, (const char* const *) &argv[0],
-			NULL, (apr_procattr_t*) pattr, pool)) != APR_SUCCESS) return false;
-
-	// Wait for completion
-	int st;
-	apr_exit_why_e why;
-	rv = apr_proc_wait(&proc, &st, &why, APR_WAIT);
-
-	return APR_STATUS_IS_CHILD_DONE(rv);
 }
 
 } } }
