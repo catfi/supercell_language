@@ -25,9 +25,6 @@
 
 #include "language/tree/ASTNode.h"
 #include "utility/Foreach.h"
-#include <boost/archive/text_oarchive.hpp>
-#include <boost/archive/text_iarchive.hpp>
-#include <boost/serialization/export.hpp>
 
 namespace zillians { namespace language { namespace tree {
 
