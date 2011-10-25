@@ -18,23 +18,20 @@
  */
 
 #include "language/ThorScriptBundler.h"
+#include "language/stage/bundle/ThorScriptBundleStage.h"
 
 using namespace zillians::language::stage;
 
 namespace zillians { namespace language {
 
 ThorScriptBundler::ThorScriptBundler()
-{ }
+{
+	addDefaultMode<
+		boost::mpl::vector<
+			ThorScriptBundleStage>>();
+}
 
 ThorScriptBundler::~ThorScriptBundler()
 { }
-
-void ThorScriptBundler::initialize()
-{
-}
-
-void ThorScriptBundler::finalize()
-{
-}
 
 } }
