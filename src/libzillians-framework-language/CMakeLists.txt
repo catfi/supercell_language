@@ -19,11 +19,7 @@
 # Contact Information: info@zillians.com
 #
 
-# Add definition for llvm-ld
-ADD_DEFINITIONS(-DLLVM_LD_PROGRAM="${LLVM_LD}")
-
 INCLUDE(UsingCog)
-#add_subdirectory(language/tree)
 
 include_directories( ${PROJECT_COMMON_SOURCE_DIR}/include/
     ${PROJECT_FRAMEWORK_SOURCE_DIR}/include/
