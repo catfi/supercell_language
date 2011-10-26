@@ -90,7 +90,9 @@ ADD_SUBDIRECTORY(zillians-stub-gen)
 
 ADD_SUBDIRECTORY(zillians-spirit-log-filter)
 
-ADD_SUBDIRECTORY(libzillians-framework-language)
+IF(COG_COUND)
+    ADD_SUBDIRECTORY(libzillians-framework-language)
+ENDIF()
 
 ADD_SUBDIRECTORY(zillians-thorscript-bundler)
 ADD_SUBDIRECTORY(zillians-thorscript-compiler)

@@ -23,7 +23,6 @@
 ADD_DEFINITIONS(-DLLVM_LD_PROGRAM="${LLVM_LD}")
 
 INCLUDE(UsingCog)
-#add_subdirectory(language/tree)
 
 include_directories( ${PROJECT_COMMON_SOURCE_DIR}/include/
     ${PROJECT_FRAMEWORK_SOURCE_DIR}/include/
@@ -76,14 +75,6 @@ add_library(zillians-framework-language SHARED
 	)
 
 if(LLVM_FOUND)
-    target_link_libraries(zillians-framework-language
-        zillians-framework-language-spirit
-        zillians-framework-language-llvm
-        zillians-common-utility
-        zillians-common-core
-        zillians-common-utility-archive
-        )
-
     add_definitions( ${LLVM_CPPFLAGS} )
     add_library(zillians-framework-language-llvm
         language/context/GeneratorContext.cpp
@@ -97,6 +88,14 @@ if(LLVM_FOUND)
         ${LLVM_ALL_LIBS}
         zillians-common-utility
         zillians-common-core
+        )
+
+    target_link_libraries(zillians-framework-language
+        zillians-framework-language-spirit
+        zillians-common-utility
+        zillians-common-core
+        zillians-common-utility-archive
+        zillians-framework-language-llvm
         )
 else()
     target_link_libraries(zillians-framework-language
