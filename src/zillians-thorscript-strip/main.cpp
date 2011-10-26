@@ -21,7 +21,7 @@
  */
 
 #include "language/logging/LoggerWrapper.h"
-#include "language/ThorScriptBundler.h"
+#include "language/ThorScriptStrip.h"
 
 int main(int argc, const char** argv)
 {
@@ -29,6 +29,6 @@ int main(int argc, const char** argv)
 	// TODO: To make compile logger support utf8 encoding.
 	setlocale(LC_ALL, "");
 
-	zillians::language::ThorScriptBundler bundler;
-	return bundler.main(argc, argv);
+	zillians::language::ThorScriptStrip strip;
+	return strip.main(argc, argv);
 }

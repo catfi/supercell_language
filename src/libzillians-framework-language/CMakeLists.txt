@@ -19,10 +19,14 @@
 # Contact Information: info@zillians.com
 #
 
+# Add definition for llvm-ld
+ADD_DEFINITIONS(-DLLVM_LD_PROGRAM="${LLVM_LD}")
+
 INCLUDE(UsingCog)
 
 include_directories( ${PROJECT_COMMON_SOURCE_DIR}/include/
     ${PROJECT_FRAMEWORK_SOURCE_DIR}/include/
+    ${ZILLIANS_DEP_PATH}/linux
     )
 
 set(out_files "")
@@ -65,6 +69,8 @@ add_library(zillians-framework-language
 	language/stage/dep/ThorScriptDepStage.cpp
     language/stage/dep/ThorScriptPackageDependencyGrammar.cpp
     language/stage/make/ThorScriptMakeStage.cpp
+    language/stage/bundle/ThorScriptBundleStage.cpp
+    language/stage/strip/ThorScriptStripStage.cpp
 	)
 
 if(LLVM_FOUND)
@@ -73,6 +79,7 @@ if(LLVM_FOUND)
         zillians-framework-language-llvm
         zillians-common-utility
         zillians-common-core
+        zillians-common-utility-archive
         )
 
     add_definitions( ${LLVM_CPPFLAGS} )
@@ -94,6 +101,7 @@ else()
         zillians-framework-language-spirit
         zillians-common-utility
         zillians-common-core
+        zillians-common-utility-archive
         )
 endif()
 

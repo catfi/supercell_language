@@ -16,19 +16,30 @@
  * AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-/**
- * @date Jul 18, 2011 sdk - Initial version created.
- */
 
-#include "language/logging/LoggerWrapper.h"
-#include "language/ThorScriptBundler.h"
+#include "language/ThorScriptStrip.h"
+#include "language/stage/strip/ThorScriptStripStage.h"
 
-int main(int argc, const char** argv)
+using namespace zillians::language::stage;
+
+namespace zillians { namespace language {
+
+ThorScriptStrip::ThorScriptStrip()
 {
-	// TODO: We temporarily use setlocale to force the application to use system default locale.
-	// TODO: To make compile logger support utf8 encoding.
-	setlocale(LC_ALL, "");
-
-	zillians::language::ThorScriptBundler bundler;
-	return bundler.main(argc, argv);
+	addDefaultMode<
+		boost::mpl::vector<
+			ThorScriptStripStage>>();
 }
+
+ThorScriptStrip::~ThorScriptStrip()
+{ }
+
+void ThorScriptStrip::initialize()
+{
+}
+
+void ThorScriptStrip::finalize()
+{
+}
+
+} }

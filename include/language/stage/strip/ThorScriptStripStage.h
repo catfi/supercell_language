@@ -17,26 +17,34 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef ZILLIANS_LANGUAGE_THORSCRIPTSTRIPPER_H_
-#define ZILLIANS_LANGUAGE_THORSCRIPTSTRIPPER_H_
+#ifndef ZILLIANS_LANGUAGE_STAGE_STRIP_THORSCRIPTSTRIPSTAGE_H_
+#define ZILLIANS_LANGUAGE_STAGE_STRIP_THORSCRIPTSTRIPSTAGE_H_
 
-#include "core/Prerequisite.h"
-#include "language/tree/ASTNode.h"
-#include "language/stage/StageConductor.h"
+#include "language/stage/Stage.h"
 
-namespace zillians { namespace language {
+namespace zillians { namespace language { namespace stage {
 
-class ThorScriptStripper : public stage::StageConductor
+/**
+ * The ThorScriptStripStage Strip function definition, left only declaration.
+ *
+ * For all type-related semantic checks, we need to put it into SemanticVerificationStage1
+ */
+class ThorScriptStripStage : public Stage
 {
 public:
-	ThorScriptStripper();
-	virtual ~ThorScriptStripper();
+	ThorScriptStripStage();
+	virtual ~ThorScriptStripStage();
 
 public:
-	virtual void initialize();
-	virtual void finalize();
+	virtual const char* name();
+	virtual std::pair<shared_ptr<po::options_description>, shared_ptr<po::options_description>> getOptions();
+	virtual bool parseOptions(po::variables_map& vm);
+	virtual bool execute(bool& continue_execution);
+
+public:
+    std::vector<std::string> inputFiles;
 };
 
-} }
+} } }
 
-#endif /* ZILLIANS_LANGUAGE_THORSCRIPTSTRIPPER_H_ */
+#endif /* ZILLIANS_LANGUAGE_STAGE_STRIP_THORSCRIPTSTRIPSTAGE_H_ */
