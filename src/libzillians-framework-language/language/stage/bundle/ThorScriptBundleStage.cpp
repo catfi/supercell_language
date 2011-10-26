@@ -40,9 +40,6 @@
 
 namespace zillians { namespace language { namespace stage {
 
-// LLVM_LD_PROGRAM is defined in CMakeLists.txt
-#define THORSCRIPT_LLVM_LD_PROGRAM		LLVM_LD_PROGRAM
-
 #define THORSCRIPT_BITCODE_EXTENSION	".bc"
 #define THORSCRIPT_AST_EXTENSION		".ast"
 #define THORSCRIPT_DEFAULT_BUNDLE_NAME	"output.bundle"
