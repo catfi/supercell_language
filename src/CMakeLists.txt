@@ -90,7 +90,7 @@ ADD_SUBDIRECTORY(zillians-stub-gen)
 
 ADD_SUBDIRECTORY(zillians-spirit-log-filter)
 
-IF(COG_COUND)
+IF(COG_FOUND)
     ADD_SUBDIRECTORY(libzillians-framework-language)
 ENDIF()
 

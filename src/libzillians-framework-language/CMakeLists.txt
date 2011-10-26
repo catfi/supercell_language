@@ -34,7 +34,6 @@ set(StringTablePath ${PROJECT_FRAMEWORK_SOURCE_DIR}/include/language/logging)
 COG_GEN(
     OUTPUT out_files
     COG_FILE ${StringTablePath}/StringTable.cog
-    COMMENT "cog.py -- Generating StringTable.h from StringTable.cog .."
     )
 add_custom_target(generate-string-table
     DEPENDS ${out_files}
