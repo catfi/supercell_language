@@ -24,7 +24,7 @@ INCLUDE_DIRECTORIES(
     ${PROJECT_FRAMEWORK_SOURCE_DIR}/include/
     )
 
-ADD_EXECUTABLE(ThorScriptTreeTest_SerializationTest SerializationTest.cpp)
+ADD_EXECUTABLE(ThorScriptTreeTest_SerializationTest SerializationTest.cpp ../../../../src/libzillians-framework-language/language/tree/ASTNodeSerialization.cpp)
 
 TARGET_LINK_LIBRARIES(ThorScriptTreeTest_SerializationTest
     zillians-common-core
