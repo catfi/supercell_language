@@ -24,17 +24,13 @@ using namespace zillians::language::stage;
 namespace zillians { namespace language {
 
 ThorScriptLinker::ThorScriptLinker()
-{ }
+{
+	addDefaultMode<
+		boost::mpl::vector<
+			ThorScriptLinkerStage>>();
+}
 
 ThorScriptLinker::~ThorScriptLinker()
 { }
-
-void ThorScriptLinker::initialize()
-{
-}
-
-void ThorScriptLinker::finalize()
-{
-}
 
 } }

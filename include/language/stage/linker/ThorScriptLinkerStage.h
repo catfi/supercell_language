@@ -17,22 +17,35 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef ZILLIANS_LANGUAGE_THORSCRIPTLINKER_H_
-#define ZILLIANS_LANGUAGE_THORSCRIPTLINKER_H_
+#ifndef ZILLIANS_LANGUAGE_STAGE_MAKE_THORSCRIPTLINKERSTAGE_H_
+#define ZILLIANS_LANGUAGE_STAGE_MAKE_THORSCRIPTLINKERSTAGE_H_
 
-#include "core/Prerequisite.h"
-#include "language/stage/linker/ThorScriptLinkerStage.h"
-#include "language/stage/StageBuilder.h"
+#include <vector>
+#include <string>
+#include "language/stage/Stage.h"
 
-namespace zillians { namespace language {
+namespace zillians { namespace language { namespace stage {
 
-class ThorScriptLinker : public stage::StageBuilder
+/**
+ * The ThorScriptLinkerStage is responsible for:
+ *
+ */
+class ThorScriptLinkerStage : public Stage
 {
 public:
-	ThorScriptLinker();
-	virtual ~ThorScriptLinker();
+	ThorScriptLinkerStage();
+	virtual ~ThorScriptLinkerStage();
+
+public:
+	virtual const char* name();
+	virtual std::pair<shared_ptr<po::options_description>, shared_ptr<po::options_description>> getOptions();
+	virtual bool parseOptions(po::variables_map& vm);
+	virtual bool execute(bool& continue_execution);
+
+private:
+	std::string output_file;
 };
 
-} }
+} } }
 
-#endif /* ZILLIANS_LANGUAGE_THORSCRIPTLINKER_H_ */
+#endif /* ZILLIANS_LANGUAGE_STAGE_MAKE_THORSCRIPTLINKERSTAGE_H_ */
