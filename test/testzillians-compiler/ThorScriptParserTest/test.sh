@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 TEMP_FILE_A=`mktemp`
 TEMP_FILE_B=`mktemp`
