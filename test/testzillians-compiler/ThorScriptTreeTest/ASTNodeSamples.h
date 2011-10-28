@@ -174,4 +174,55 @@ ASTNode* createSample4()
 	return program;
 }
 
+// class with member function template
+ASTNode* createSample5()
+{
+	Program* program = new Program();
+	{
+		Package* com_package = new Package(new SimpleIdentifier(L"com"));
+		program->root->addPackage(com_package);
+		{
+			Package* zillians_package = new Package(new SimpleIdentifier(L"zillians"));
+			com_package->addPackage(zillians_package);
+			{
+				ClassDecl* class_decl = new ClassDecl(new SimpleIdentifier(L"some_class"));
+				zillians_package->addObject(class_decl);
+				{
+                    // normal function
+					FunctionDecl* some_member_function = new FunctionDecl(
+							new SimpleIdentifier(L"some_member_function"),
+							NULL,
+							true,
+							false,
+							Declaration::VisibilitySpecifier::PUBLIC,
+							new Block());
+					class_decl->addFunction(some_member_function);
+
+                    // formal function template
+					FunctionDecl* template_function = new FunctionDecl(
+                            new TemplatedIdentifier(TemplatedIdentifier::Usage::FORMAL_PARAMETER, new SimpleIdentifier(L"some_member_function")),
+                            NULL,
+                            true,
+                            false,
+                            Declaration::VisibilitySpecifier::PUBLIC,
+                            new Block());
+					class_decl->addFunction(template_function);
+
+                    // specialized function template
+					FunctionDecl* specialized_function = new FunctionDecl(
+                            new TemplatedIdentifier(TemplatedIdentifier::Usage::ACTUAL_ARGUMENT, new SimpleIdentifier(L"some_member_function")),
+                            NULL,
+                            true,
+                            false,
+                            Declaration::VisibilitySpecifier::PUBLIC,
+                            new Block());
+					class_decl->addFunction(specialized_function);
+				}
+			}
+		}
+	}
+
+	return program;
+}
+
 #endif /* ASTNODESAMPLES_H_ */

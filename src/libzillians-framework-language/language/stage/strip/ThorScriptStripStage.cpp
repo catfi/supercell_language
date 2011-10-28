@@ -28,6 +28,7 @@
 #include <boost/archive/text_iarchive.hpp>
 #include <boost/serialization/set.hpp>
 #include "language/stage/strip/ThorScriptStripStage.h"
+#include "language/stage/strip/visitor/ThorScriptStripStageVisitor.h"
 #include "utility/UnicodeUtil.h"
 
 namespace zillians { namespace language { namespace stage {
@@ -36,6 +37,28 @@ namespace zillians { namespace language { namespace stage {
 // static functions
 //////////////////////////////////////////////////////////////////////////////
 
+void stripOneFile(const std::string& astFile)
+{
+    std::ifstream fin(astFile.c_str());
+    if(!fin.is_open())
+    {
+        std::cerr << "Input file '" << fin << "' does not exists." << std::endl;
+        return;
+    }
+
+    boost::archive::text_iarchive ia(fin);
+    zillians::language::tree::ASTNode* program;
+    ia >> program;
+    fin.close();
+
+    visitor::ThorScriptStripStageVisitor stripVisitor;
+    stripVisitor.visit(*program);
+
+    std::ofstream fout(astFile.c_str());
+    boost::archive::text_oarchive oa(fout);
+    oa << program;
+    fout.close();
+}
 
 //////////////////////////////////////////////////////////////////////////////
 // class member function
@@ -86,7 +109,7 @@ bool ThorScriptStripStage::execute(bool& continue_execution)
     // strip function definition in ast
     foreach(i, inputFiles)
     {
-
+        stripOneFile(*i);
     }
 
     return true;
