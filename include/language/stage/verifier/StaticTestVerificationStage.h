@@ -40,6 +40,9 @@ public:
 	virtual std::pair<shared_ptr<po::options_description>, shared_ptr<po::options_description>> getOptions();
 	virtual bool parseOptions(po::variables_map& vm);
 	virtual bool execute(bool& continue_execution);
+
+public:
+    bool enabled;
 };
 
 } } }
