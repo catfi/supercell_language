@@ -68,6 +68,7 @@ add_library(zillians-framework-language SHARED
     language/stage/make/ThorScriptMakeStage.cpp
     language/stage/bundle/ThorScriptBundleStage.cpp
     language/stage/strip/ThorScriptStripStage.cpp
+    language/stage/linker/ThorScriptLinkerStage.cpp
 	)
 
 if(LLVM_FOUND)
