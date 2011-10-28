@@ -43,6 +43,17 @@ public:
 	virtual bool execute(bool& continue_execution);
 
 private:
+	bool extractFilesFromBundle(std::string& bc_file, std::string& ast_file, std::string& manifest_file);
+	bool buildAssemblyCode(const std::string& bc_file, std::string& asm_file);
+	bool buildNativeCode(std::string& asm_file);
+
+private:
+	std::vector<std::string> link_search_paths;
+	std::vector<std::string> runtime_search_paths;
+
+	std::vector<std::string> native_files;
+	std::vector<std::string> link_libraries;
+	std::string bundle_file;
 	std::string output_file;
 };
 
