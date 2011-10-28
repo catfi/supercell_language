@@ -31,7 +31,6 @@ set(StringTablePath ${PROJECT_FRAMEWORK_SOURCE_DIR}/include/language/logging)
 COG_GEN(
     OUTPUT out_files
     COG_FILE ${StringTablePath}/StringTable.cog
-    COMMENT "cog.py -- Generating StringTable.h from StringTable.cog .."
     )
 add_custom_target(generate-string-table
     DEPENDS ${out_files}
@@ -72,14 +71,6 @@ add_library(zillians-framework-language SHARED
 	)
 
 if(LLVM_FOUND)
-    target_link_libraries(zillians-framework-language
-        zillians-framework-language-spirit
-        zillians-framework-language-llvm
-        zillians-common-utility
-        zillians-common-core
-        zillians-common-utility-archive
-        )
-
     add_definitions( ${LLVM_CPPFLAGS} )
     add_library(zillians-framework-language-llvm
         language/context/GeneratorContext.cpp
@@ -93,6 +84,14 @@ if(LLVM_FOUND)
         ${LLVM_ALL_LIBS}
         zillians-common-utility
         zillians-common-core
+        )
+
+    target_link_libraries(zillians-framework-language
+        zillians-framework-language-spirit
+        zillians-common-utility
+        zillians-common-core
+        zillians-common-utility-archive
+        zillians-framework-language-llvm
         )
 else()
     target_link_libraries(zillians-framework-language
