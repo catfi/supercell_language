@@ -21,7 +21,7 @@
 
 zillians_add_complex_test(
     TARGET thorscript-compiler-transform-test-02-global
-    SHELL ${ThorScriptCompiler} ${compile_options_resolution} ${CMAKE_CURRENT_SOURCE_DIR}/02_global.t
+    SHELL ${ThorScriptCompiler} ${compile_options_resolution} ${CMAKE_CURRENT_SOURCE_DIR}/02_global.t --enable-static-test
     DEPENDS ${ThorScriptCompiler}
     )
 
@@ -29,7 +29,7 @@ zillians_add_test_to_subject(SUBJECT thorscript-transformer-resolution-test-all 
 
 zillians_add_complex_test(
     TARGET thorscript-compiler-transform-test-02-scoped
-    SHELL ${ThorScriptCompiler} ${compile_options_resolution} ${CMAKE_CURRENT_SOURCE_DIR}/02_scoped.t
+    SHELL ${ThorScriptCompiler} ${compile_options_resolution} ${CMAKE_CURRENT_SOURCE_DIR}/02_scoped.t --enable-static-test
     DEPENDS ${ThorScriptCompiler}
     )
 

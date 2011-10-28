@@ -21,7 +21,7 @@
 
 zillians_add_complex_test(
     TARGET thorscript-transformer-test-resolution-type-synthesis
-    SHELL ${ThorScriptCompiler} ${CMAKE_CURRENT_SOURCE_DIR}/1_type_synthesis.t
+    SHELL ${ThorScriptCompiler} ${CMAKE_CURRENT_SOURCE_DIR}/1_type_synthesis.t --enable-static-test
     DEPENDS ${ThorScriptCompiler}
     )
 
