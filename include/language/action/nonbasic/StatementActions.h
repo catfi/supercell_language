@@ -38,7 +38,7 @@ struct statement
 		printf("statement param(1) type = %s\n", typeid(_param_t(1)).name());
 #endif
 		_result = _param(1);
-		if(_param(0).is_initialized())
+		if(result && _param(0).is_initialized())
 			cast<Statement>(_result)->setAnnotations(*_param(0));
 	}
 	END_ACTION
@@ -82,7 +82,9 @@ struct expression_statement
 		printf("expression_statement param(0) type = %s\n", typeid(_param_t(0)).name());
 #endif
 		if(_param(0).is_initialized())
-			BIND_CACHED_LOCATION(_result = new ExpressionStmt(*_param(0)));
+			BIND_CACHED_LOCATION(_result = new ExpressionStmt(*_param(0))) // NOTE: omit SEMICOLON
+		else
+			_result = NULL;
 	}
 	END_ACTION
 };
