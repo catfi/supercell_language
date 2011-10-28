@@ -38,7 +38,7 @@ struct statement
 		printf("statement param(1) type = %s\n", typeid(_param_t(1)).name());
 #endif
 		_result = _param(1);
-		if(result && _param(0).is_initialized())
+		if(_result && _param(0).is_initialized())
 			cast<Statement>(_result)->setAnnotations(*_param(0));
 	}
 	END_ACTION
