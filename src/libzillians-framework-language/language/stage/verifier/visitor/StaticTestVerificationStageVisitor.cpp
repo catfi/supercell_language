@@ -38,13 +38,19 @@ static void printLogInfoVec(const std::vector<LogInfo>& logInfoVec)
         std::wcout << L"    log_level : " << logInfoVec[i].log_level << std::endl ;
         std::wcout << L"    log_id    : " << logInfoVec[i].log_id << std::endl ;
         std::wcout << L"    parameters: " ;
-        foreach(j ,logInfoVec[i].parameters)
+        if(logInfoVec[i].parameters.empty())
         {
-            if(j != logInfoVec[i].parameters.begin())
+            std::wcout << L"(NONE)" << std::endl ;
+        }
+        else {
+            foreach(j ,logInfoVec[i].parameters)
             {
-                std::wcout << "                " ;
+                if(j != logInfoVec[i].parameters.begin())
+                {
+                    std::wcout << "                " ;
+                }
+                std::wcout << j->first << ": " << j->second << std::endl ;
             }
-            std::wcout << j->first << ": " << j->second << std::endl ;
         }
     }
 }
