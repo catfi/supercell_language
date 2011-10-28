@@ -37,7 +37,7 @@ struct global_decl
 		printf("global_decl param(1) type = %s\n", typeid(_param_t(1)).name());
 #endif
 		_result = _param(1);
-		if(result && _param(0).is_initialized())
+		if(_result && _param(0).is_initialized())
 			_result->setAnnotations(*_param(0));
 	}
 	END_ACTION
@@ -78,7 +78,7 @@ struct param_decl_with_init
 		printf("param_decl_with_init param(1) type = %s\n", typeid(_param_t(1)).name());
 #endif
 		_result = _param(0);
-		if(result && _param(1).is_initialized())
+		if(_result && _param(1).is_initialized())
 			_result->setInitializer(*_param(1));
 	}
 	END_ACTION
