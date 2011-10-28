@@ -37,7 +37,7 @@ struct global_decl
 		printf("global_decl param(1) type = %s\n", typeid(_param_t(1)).name());
 #endif
 		_result = _param(1);
-		if(_param(0).is_initialized())
+		if(result && _param(0).is_initialized())
 			_result->setAnnotations(*_param(0));
 	}
 	END_ACTION
@@ -78,7 +78,7 @@ struct param_decl_with_init
 		printf("param_decl_with_init param(1) type = %s\n", typeid(_param_t(1)).name());
 #endif
 		_result = _param(0);
-		if(_param(1).is_initialized())
+		if(result && _param(1).is_initialized())
 			_result->setInitializer(*_param(1));
 	}
 	END_ACTION
@@ -102,8 +102,11 @@ struct const_decl
 		printf("const_decl param(1) type = %s\n", typeid(_param_t(1)).name());
 #endif
 		_result = _param(0);
-		cast<VariableDecl>(_result)->is_const = true;
-		cast<VariableDecl>(_result)->setInitializer(_param(1));
+		if(_result)
+		{
+			cast<VariableDecl>(_result)->is_const = true;
+			cast<VariableDecl>(_result)->setInitializer(_param(1));
+		}
 	}
 	END_ACTION
 };
@@ -221,16 +224,19 @@ struct class_member_decl
 		Declaration::VisibilitySpecifier::type visibility      = _param(1).is_initialized() ? *_param(1) : Declaration::VisibilitySpecifier::DEFAULT;
 		bool                                   is_static       = _param(2).is_initialized();
 		_result = _param(3);
-		_result->setAnnotations(annotation_list);
-		if(isa<VariableDecl>(_result))
+		if(_result)
 		{
-			cast<VariableDecl>(_result)->visibility = visibility;
-			cast<VariableDecl>(_result)->is_static  = is_static;
-		}
-		else if(isa<FunctionDecl>(_result))
-		{
-			cast<FunctionDecl>(_result)->visibility = visibility;
-			cast<FunctionDecl>(_result)->is_static  = is_static;
+			_result->setAnnotations(annotation_list);
+			if(isa<VariableDecl>(_result))
+			{
+				cast<VariableDecl>(_result)->visibility = visibility;
+				cast<VariableDecl>(_result)->is_static  = is_static;
+			}
+			else if(isa<FunctionDecl>(_result))
+			{
+				cast<FunctionDecl>(_result)->visibility = visibility;
+				cast<FunctionDecl>(_result)->is_static  = is_static;
+			}
 		}
 	}
 	END_ACTION

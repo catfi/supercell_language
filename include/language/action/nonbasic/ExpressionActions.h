@@ -247,6 +247,8 @@ struct prefix_expression
 				BIND_CACHED_LOCATION(_result = new UnaryExpr(type, expr));
 			}
 			break;
+		default:
+			_result = NULL;
 		}
 	}
 	END_ACTION
