@@ -17,23 +17,24 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef ZILLIANS_LANGUAGE_STAGE_VERIFIER_STATICTESTVERIFICATIONSTAGE_H_
-#define ZILLIANS_LANGUAGE_STAGE_VERIFIER_STATICTESTVERIFICATIONSTAGE_H_
+#ifndef ZILLIANS_LANGUAGE_STAGE_MAKE_THORSCRIPTLINKERSTAGE_H_
+#define ZILLIANS_LANGUAGE_STAGE_MAKE_THORSCRIPTLINKERSTAGE_H_
 
+#include <vector>
+#include <string>
 #include "language/stage/Stage.h"
 
 namespace zillians { namespace language { namespace stage {
 
 /**
- * The StaticTestVerificationStage is run right after the parsing, so there's zero type information available.
+ * The ThorScriptLinkerStage is responsible for:
  *
- * For all type-related semantic checks, we need to put it into SemanticVerificationStage1
  */
-class StaticTestVerificationStage : public Stage
+class ThorScriptLinkerStage : public Stage
 {
 public:
-	StaticTestVerificationStage();
-	virtual ~StaticTestVerificationStage();
+	ThorScriptLinkerStage();
+	virtual ~ThorScriptLinkerStage();
 
 public:
 	virtual const char* name();
@@ -41,10 +42,21 @@ public:
 	virtual bool parseOptions(po::variables_map& vm);
 	virtual bool execute(bool& continue_execution);
 
-public:
-    bool enabled;
+private:
+	bool extractFilesFromBundle(std::string& bc_file, std::string& ast_file, std::string& manifest_file);
+	bool buildAssemblyCode(const std::string& bc_file, std::string& asm_file);
+	bool buildNativeCode(std::string& asm_file);
+
+private:
+	std::vector<std::string> link_search_paths;
+	std::vector<std::string> runtime_search_paths;
+
+	std::vector<std::string> native_files;
+	std::vector<std::string> link_libraries;
+	std::string bundle_file;
+	std::string output_file;
 };
 
 } } }
 
-#endif /* ZILLIANS_LANGUAGE_STAGE_VERIFIER_STATICTESTVERIFICATIONSTAGE_H_ */
+#endif /* ZILLIANS_LANGUAGE_STAGE_MAKE_THORSCRIPTLINKERSTAGE_H_ */

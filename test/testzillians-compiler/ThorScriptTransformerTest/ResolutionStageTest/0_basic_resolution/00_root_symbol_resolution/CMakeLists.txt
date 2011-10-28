@@ -21,7 +21,7 @@
 
 zillians_add_complex_test(
     TARGET thorscript-compiler-transform-test-00
-    SHELL ${ThorScriptCompiler} ${compile_options_resolution} ${CMAKE_CURRENT_SOURCE_DIR}/00.t
+    SHELL ${ThorScriptCompiler} ${compile_options_resolution} ${CMAKE_CURRENT_SOURCE_DIR}/00.t --enable-static-test
     DEPENDS ${ThorScriptCompiler}
     )
     
