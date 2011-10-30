@@ -38,7 +38,7 @@ struct Identifier : public ASTNode
 	Identifier()
 	{ }
 
-	virtual const std::wstring& toString() const = 0;
+	virtual std::wstring toString() const = 0;
 	virtual bool isEmpty() const = 0;
 
     virtual bool isEqualImpl(const ASTNode& rhs, ASTNodeSet& visited) const
@@ -68,16 +68,9 @@ struct SimpleIdentifier : public Identifier
 	explicit SimpleIdentifier(const std::wstring& s) : name(s)
 	{ }
 
-	virtual const std::wstring& toString() const
+	virtual std::wstring toString() const
 	{
-		static std::wstring t;
-		if(name.length() == 0)
-		{
-			t = L"<empty>";
-			return t;
-		}
-		else
-			return name;
+		return name;
 	}
 
 	virtual bool isEmpty() const
@@ -127,10 +120,9 @@ struct NestedIdentifier : public Identifier
 	NestedIdentifier()
 	{ }
 
-	virtual const std::wstring& toString() const
+	virtual std::wstring toString() const
 	{
-		static std::wstring t;
-		t.clear();
+		std::wstring t;
 
 		foreach(i, identifier_list)
 		{
@@ -138,9 +130,6 @@ struct NestedIdentifier : public Identifier
 			if(!is_end_of_foreach(i, identifier_list))
 				t += L".";
 		}
-
-		if(t.length() == 0)
-			t = L"<empty>";
 
 		return t;
 	}
@@ -222,10 +211,9 @@ struct TemplatedIdentifier : public Identifier
 		id->parent = this;
 	}
 
-	virtual const std::wstring& toString() const
+	virtual std::wstring toString() const
 	{
-		static std::wstring t;
-		t.clear();
+		std::wstring t;
 
 		if(type == Usage::FORMAL_PARAMETER)
 		{
@@ -243,9 +231,6 @@ struct TemplatedIdentifier : public Identifier
 		{
 			// TODO how to dump type specifier without having its header?
 		}
-
-		if(t.length() == 0)
-			t = L"<empty>";
 
 		return t;
 	}
