@@ -29,42 +29,30 @@ struct program
 	DEFINE_ATTRIBUTES(void)
 	DEFINE_LOCALS(LOCATION_TYPE)
 
-	BEGIN_ACTION(append_package)
+	BEGIN_ACTION(define_active_package)
 	{
-#ifdef DEBUG
-		printf("program::append_package_decl param(0) type = %s\n", typeid(_param_t(0)).name());
-		printf("program::append_package_decl param(1) type = %s\n", typeid(_param_t(1)).name());
-#endif
-		if(isa<NestedIdentifier>(_param(1)))
+		SimpleIdentifier *simple_ident = cast<SimpleIdentifier>(_param(1));
+
+		Package *package = getParserContext().parent_package->findPackage(simple_ident->toString());
+		if(!package)
 		{
-			NestedIdentifier *nested_ident = cast<NestedIdentifier>(_param(1));
-			Package* prev_package = getParserContext().program->root;
-			deduced_foreach_value(i, nested_ident->identifier_list)
-			{
-				Package *package = prev_package->findPackage(i->toString());
-				if(!package)
-				{
-					BIND_CACHED_LOCATION(package = new Package(cast<SimpleIdentifier>(i)));
-					prev_package->addPackage(package);
-				}
-				prev_package = package;
-			}
-			getParserContext().active_package = prev_package;
+			BIND_CACHED_LOCATION(package = new Package(simple_ident));
+			getParserContext().parent_package->addPackage(package);
 		}
-		else if(isa<SimpleIdentifier>(_param(1)))
-		{
-			SimpleIdentifier *simple_ident = cast<SimpleIdentifier>(_param(1));
-			Package* root_package = getParserContext().program->root;
-			Package *package = root_package->findPackage(simple_ident->toString());
-			if(!package)
-			{
-				BIND_CACHED_LOCATION(package = new Package(simple_ident));
-				root_package->addPackage(package);
-			}
-			getParserContext().active_package = package;
-		}
+
+		getParserContext().active_package = package;
+
 		if(_param(0).is_initialized())
-			getParserContext().active_package->setAnnotations(*_param(0));
+		{
+			if(getParserContext().active_package->annotations)
+			{
+				getParserContext().active_package->annotations->merge(**_param(0));
+			}
+			else
+			{
+				getParserContext().active_package->setAnnotations(*_param(0));
+			}
+		}
 	}
 	END_ACTION
 
@@ -78,6 +66,11 @@ struct program
 			Import* import = new Import(_param(0)); BIND_CACHED_LOCATION(import);
 			getParserContext().program->addImport(import);
 		}
+	}
+	END_ACTION
+
+	BEGIN_ACTION(append_alias)
+	{
 	}
 	END_ACTION
 

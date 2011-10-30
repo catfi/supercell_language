@@ -1,4 +1,4 @@
-package com.zillians.compiler_test.impl;
+module impl;
 
 function f0(x:int64, y:int64):int64
 {

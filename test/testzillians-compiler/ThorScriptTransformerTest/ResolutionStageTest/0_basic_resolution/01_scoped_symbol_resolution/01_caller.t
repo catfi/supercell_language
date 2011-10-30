@@ -1,10 +1,11 @@
-package com.zillians.compiler_test;
+module compiler_test;
+
+import impl = impl;
 
 function f0(x:int64, y:int64):int64
 {
 	return impl.f0(x, y);
 }
-
 /*
 function f1(x:int64, y:int64):int64
 {
@@ -25,8 +26,7 @@ function f4(x:int64, y:int64):int64
 {
 	return impl.f4(x, y);
 }
-*/
-/*
+
 function f5():int64
 {
 	return impl.f5(x, y);
