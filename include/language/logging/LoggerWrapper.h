@@ -91,7 +91,7 @@ private:
 
 #define LOG_MESSAGE(id, node, ...) \
 		zillians::language::LoggerWrapper::instance()->getLogger()->id( \
-				zillians::language::_program_node = getParserContext().program, \
+				zillians::language::_source_node = getParserContext().active_source, \
 				zillians::language::_node = node, \
 				##__VA_ARGS__)
 

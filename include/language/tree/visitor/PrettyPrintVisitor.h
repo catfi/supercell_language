@@ -174,23 +174,31 @@ struct PrettyPrintVisitor : Visitor<const ASTNode, void>
 	//////////////////////////////////////////////////////////////////////
 	/// Module
 
-	void print(const Program& node)
+	void print(const Tangle& node)
+	{
+		STREAM << L"<tangle>" << std::endl;
+		{
+			increaseIdent();
+			foreach(i, node.sources)
+			{
+				STREAM << L"<package name=\"" << i->first->toString() << "\">" << std::endl;
+				{
+					increaseIdent();
+					visit(*(i->second));
+					decreaseIdent();
+				}
+				STREAM << L"</package>" << std::endl;
+			}
+			decreaseIdent();
+		}
+		STREAM << L"</tangle>" << std::endl;
+	}
+
+	void print(const Source& node)
 	{
 		STREAM << L"<program>" << std::endl;
 		{
 			printSourceInfo(node);
-		}
-		if(node.imported_root)
-		{
-			increaseIdent();
-			{
-				STREAM << L"<imported_root>" << std::endl;
-				{
-					visit(*node.imported_root);
-				}
-				STREAM << L"</imported_root>" << std::endl;
-			}
-			decreaseIdent();
 		}
 		if(node.root)
 		{

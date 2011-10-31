@@ -59,13 +59,13 @@ bool RestructureStage::execute(bool& continue_execution)
 
 	ParserContext& parser_context = getParserContext();
 
-	if(parser_context.program)
+	if(parser_context.active_source)
 	{
 		// restructure the entire tree in multiple passes
 		while(true)
 		{
 			visitor::RestructureStageVisitor restruct;
-			restruct.visit(*parser_context.program);
+			restruct.visit(*parser_context.tangle);
 			if(restruct.hasTransforms())
 				restruct.applyTransforms();
 			else
@@ -75,7 +75,7 @@ bool RestructureStage::execute(bool& continue_execution)
 		if(debug)
 		{
 			tree::visitor::PrettyPrintVisitor printer;
-			printer.visit(*parser_context.program);
+			printer.visit(*parser_context.tangle);
 		}
 
 		return true;

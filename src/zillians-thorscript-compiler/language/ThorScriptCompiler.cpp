@@ -53,7 +53,7 @@ ThorScriptCompiler::ThorScriptCompiler()
 			StaticTestVerificationStage,
 			ManglingStage,
 			LLVMGeneratorStage,
-			LLVMDebugInfoGeneratorStage,
+//			LLVMDebugInfoGeneratorStage,
 			LLVMBitCodeGeneratorStage,
 			ASTSerializationStage>>();
 

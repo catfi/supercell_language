@@ -61,10 +61,10 @@ bool SemanticVerificationStage0::execute(bool& continue_execution)
 
 	ParserContext& parser_context = getParserContext();
 
-	if(parser_context.program)
+	if(parser_context.tangle)
 	{
 		visitor::SemanticVerificationStageVisitor0 verifier;
-		verifier.visit(*parser_context.program);
+		verifier.visit(*parser_context.tangle);
 		verifier.applyCleanup();
 		return true;
 	}

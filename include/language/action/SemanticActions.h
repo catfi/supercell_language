@@ -129,8 +129,8 @@ struct ThorScriptTreeAction
 #ifdef DEBUG
 			printf("start::reset param(0) type = %s\n", typeid(_param_t(0)).name());
 #endif
-			BIND_CACHED_LOCATION(getParserContext().program);
-			getParserContext().active_package = getParserContext().program->root;
+			BIND_CACHED_LOCATION(getParserContext().active_source);
+			getParserContext().active_package = getParserContext().active_source->root;
 		}
 		END_ACTION
 	};

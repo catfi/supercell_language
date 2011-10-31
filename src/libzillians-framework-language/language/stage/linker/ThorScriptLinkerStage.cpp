@@ -49,7 +49,6 @@
 #include "llvm/Support/Host.h"
 #include "llvm/Support/Program.h"
 
-
 namespace zillians { namespace language { namespace stage {
 
 #define THORSCRIPT_ASM_EXTENSION		".s"

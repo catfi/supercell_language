@@ -37,9 +37,9 @@ using namespace zillians::language::tree::visitor;
 
 BOOST_AUTO_TEST_SUITE( ThorScriptTreeTest_StaticTestVerificationStageVisitorTestTestSuite )
 
-Program* createPassSample()
+Source* createPassSample()
 {
-	Program* program = new Program();
+	Source* program = new Source();
 	{
 		Package* com_package = new Package(new SimpleIdentifier(L"com"));
 		program->root->addPackage(com_package);
@@ -106,9 +106,9 @@ Program* createPassSample()
 	return program;
 }
 
-Program* createFailSample()
+Source* createFailSample()
 {
-	Program* program = new Program();
+	Source* program = new Source();
 	{
 		Package* com_package = new Package(new SimpleIdentifier(L"com"));
 		program->root->addPackage(com_package);
@@ -197,16 +197,16 @@ BOOST_AUTO_TEST_CASE( ThorScriptTreeTest_StaticTestVerificationStageVisitorTestC
 
 	zillians::language::stage::visitor::StaticTestVerificationStageVisitor checker;
 
-	Program* okProgram = createPassSample();
+	Source* okProgram = createPassSample();
 	checker.programNode = okProgram;
-    getParserContext().program = okProgram;
+    getParserContext().active_source = okProgram;
 	stage::ModuleSourceInfoContext::set(okProgram, module_info);
 	checker.check(*okProgram);
 	BOOST_CHECK(checker.isAllMatch());
 
-	Program* failProgram = createFailSample();
+	Source* failProgram = createFailSample();
 	checker.programNode = failProgram;
-    getParserContext().program = okProgram;
+    getParserContext().active_source = okProgram;
 	stage::ModuleSourceInfoContext::set(failProgram, module_info);
 	checker.check(*failProgram);
 	BOOST_CHECK(!checker.isAllMatch());
