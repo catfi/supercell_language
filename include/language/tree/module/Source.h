@@ -20,8 +20,8 @@
  * @date Aug 5, 2011 sdk - Initial version created.
  */
 
-#ifndef ZILLIANS_LANGUAGE_TREE_PROGRAM_H_
-#define ZILLIANS_LANGUAGE_TREE_PROGRAM_H_
+#ifndef ZILLIANS_LANGUAGE_TREE_SOURCE_H_
+#define ZILLIANS_LANGUAGE_TREE_SOURCE_H_
 
 #include "language/tree/ASTNode.h"
 #include "language/tree/basic/Identifier.h"
@@ -31,27 +31,22 @@
 
 namespace zillians { namespace language { namespace tree {
 
-struct Program : public ASTNode
+struct Source : public ASTNode
 {
 	friend class boost::serialization::access;
 
 	DEFINE_VISITABLE();
-	DEFINE_HIERARCHY(Program, (Program)(ASTNode));
+	DEFINE_HIERARCHY(Source, (Source)(ASTNode));
 
-	Program() : imported_root(new Package(new SimpleIdentifier(L""))), root(new Package(new SimpleIdentifier(L""))), internal(new Internal())
+	Source(const std::string& filename, bool is_imported = false) : is_imported(is_imported), filename(filename), root(new Package(new SimpleIdentifier(L"")))
 	{
-		imported_root->parent = this;
 		root->parent = this;
-		internal->parent = this;
 	}
 
-	Program(Package* root) : imported_root(new Package(new SimpleIdentifier(L""))), root(root), internal(new Internal())
+	Source(const std::string& filename, Package* root, bool is_imported = false) : is_imported(is_imported), filename(filename), root(root)
 	{
-		BOOST_ASSERT(root && "null root for program node is not allowed");
-
-		imported_root->parent = this;
+		BOOST_ASSERT(root && "null root for Source node is not allowed");
 		root->parent = this;
-		internal->parent = this;
 	}
 
 	void addImport(Import* import)
@@ -63,11 +58,9 @@ struct Program : public ASTNode
     virtual bool isEqualImpl(const ASTNode& rhs, ASTNodeSet& visited) const
     {
     	BEGIN_COMPARE()
+		COMPARE_MEMBER(filename)
 		COMPARE_MEMBER(imports)
-		// no comparison since we don't tree two program node different if their imported root is different
-		if(0) { COMPARE_MEMBER(imported_root) }
 		COMPARE_MEMBER(root)
-		COMPARE_MEMBER(internal)
 		END_COMPARE()
     }
 
@@ -75,16 +68,13 @@ struct Program : public ASTNode
     {
     	BEGIN_REPLACE()
 		REPLACE_USE_WITH(imports)
-		// no replace use with since we won't operate on the imported root since it's imported and has been processed
-		if(0) { REPLACE_USE_WITH(imported_root) }
 		REPLACE_USE_WITH(root)
-		REPLACE_USE_WITH(internal)
     	END_REPLACE()
     }
 
     virtual ASTNode* clone() const
     {
-    	Program* cloned = new Program(cast<Package>(root->clone()));
+    	Source* cloned = new Source(filename, cast<Package>(root->clone()));
 
     	foreach(i, imports)
     		cloned->addImport(cast<Import>((*i)->clone()));
@@ -96,19 +86,21 @@ struct Program : public ASTNode
     void serialize(Archive& ar, const unsigned int version)
     {
     	ar & boost::serialization::base_object<ASTNode>(*this);
-    	// no serialization since it must be de-serialized from somewhere and we don't want our AST become redundant
-    	if(0) ar & imported_root;
+    	ar & filename;
     	ar & imports;
     	ar & root;
-    	ar & internal;
     }
 
+    bool is_imported;
+    std::string filename;
 	std::vector<Import*> imports;
-	Package* imported_root;
 	Package* root;
-	Internal* internal;
+
+private:
+	Source(bool is_imported = false) : is_imported(is_imported)
+	{ }
 };
 
 } } }
 
-#endif /* ZILLIANS_LANGUAGE_TREE_PROGRAM_H_ */
+#endif /* ZILLIANS_LANGUAGE_TREE_SOURCE_H_ */

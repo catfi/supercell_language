@@ -95,9 +95,6 @@ private:
     std::vector<LogInfo> constructLogInfoVecFromAnnotations(zillians::language::tree::Annotations* annos);
     bool compareLogInfoVec(ASTNode* errorNode, std::vector<LogInfo> annotatedLogInfoVec, std::vector<LogInfo> hookedLogInfoVec);
 
-public:
-	Program* programNode;
-
 private:
 	bool mAllMatch;
 };

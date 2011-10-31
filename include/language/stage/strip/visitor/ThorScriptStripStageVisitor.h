@@ -68,7 +68,7 @@ struct ThorScriptStripStageVisitor : public zillians::language::tree::visitor::G
 private:
 
 public:
-	Program* programNode;
+	Source* programNode;
 
 private:
 

@@ -40,7 +40,6 @@ typedef ContextHubSerialization<
 				ResolvedSymbol,
 				ResolvedPackage,
 				SplitReferenceContext,
-				ModuleSourceInfoContext,
 				SourceInfoContext,
 				NameManglingContext,
 				TypeIdManglingContext,

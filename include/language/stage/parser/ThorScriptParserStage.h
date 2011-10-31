@@ -22,6 +22,7 @@
 
 #include "language/stage/Stage.h"
 #include "language/stage/parser/context/SourceInfoContext.h"
+#include <boost/filesystem.hpp>
 
 namespace zillians { namespace language { namespace stage {
 
@@ -38,13 +39,14 @@ public:
 	virtual bool execute(bool& continue_execution);
 
 private:
-	bool parse(std::string filename);
+	bool parse(const boost::filesystem::path& p);
 
 private:
 	bool debug_parser;
 	bool debug_ast;
 	bool debug_ast_with_loc;
 	bool use_relative_path;
+	boost::filesystem::path root_dir;
 	std::vector<std::string> inputs;
 };
 

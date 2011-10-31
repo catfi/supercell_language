@@ -9,7 +9,7 @@ BOOST_CLASS_EXPORT_IMPLEMENT(zillians::language::tree::ASTNode            );
 BOOST_CLASS_EXPORT_IMPLEMENT(zillians::language::tree::Annotation         );
 BOOST_CLASS_EXPORT_IMPLEMENT(zillians::language::tree::Annotations        );
 BOOST_CLASS_EXPORT_IMPLEMENT(zillians::language::tree::Internal           );
-BOOST_CLASS_EXPORT_IMPLEMENT(zillians::language::tree::Program            );
+BOOST_CLASS_EXPORT_IMPLEMENT(zillians::language::tree::Source            );
 BOOST_CLASS_EXPORT_IMPLEMENT(zillians::language::tree::Package            );
 BOOST_CLASS_EXPORT_IMPLEMENT(zillians::language::tree::Import             );
 BOOST_CLASS_EXPORT_IMPLEMENT(zillians::language::tree::Block              );

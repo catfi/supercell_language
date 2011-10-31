@@ -21,7 +21,7 @@
 #include "language/logging/LoggerWrapper.h"
 #include "language/logging/StringTable.h"
 #include "language/tree/basic/Block.h"
-#include "language/tree/module/Program.h"
+#include "language/tree/module/Source.h"
 #include "language/stage/parser/context/SourceInfoContext.h"
 #include <iostream>
 #include <string>
@@ -41,7 +41,7 @@ int main()
 
 	// Create fake ASTNodes
 	zillians::language::tree::Block node;
-	zillians::language::tree::Program program_node;
+	zillians::language::tree::Source program_node;
 
 	int source_index = 0;
 	stage::ModuleSourceInfoContext* module_info = new stage::ModuleSourceInfoContext();
@@ -51,10 +51,10 @@ int main()
 	stage::ModuleSourceInfoContext::set(&program_node, module_info);
 	stage::SourceInfoContext::set(&node, new stage::SourceInfoContext(source_index, 32, 10) );
 
-	logger->EXAMPLE_UNDEFINED_VARIABLE(_program_node = program_node, _node = node, _id="mString", _file="Super.cpp", _line=3);
-	logger->EXAMPLE_UNDEFINED_VARIABLE(_file="Super.cpp", _line=3, _node = node, _id="mString", _program_node = program_node);
+	logger->EXAMPLE_UNDEFINED_VARIABLE(_source_node = program_node, _node = node, _id="mString", _file="Super.cpp", _line=3);
+	logger->EXAMPLE_UNDEFINED_VARIABLE(_file="Super.cpp", _line=3, _node = node, _id="mString", _source_node = program_node);
 
-	logger->EXAMPLE_UNUSED_VARIABLE(_id="x", _node = node, _program_node = program_node);
+	logger->EXAMPLE_UNUSED_VARIABLE(_id="x", _node = node, _source_node = program_node);
 
 	return 0;
 }

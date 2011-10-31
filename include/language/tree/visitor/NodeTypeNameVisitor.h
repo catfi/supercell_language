@@ -49,7 +49,7 @@ struct NodeTypeNameVisitor : Visitor<ASTNode, void, VisitorImplementation::recur
 	void name(ObjectLiteral& node)		{ class_name = L"ObjectLiteral";	}
 	void name(TypeSpecifier& node)		{ class_name = L"TypeSpecifier";	}
 	void name(FunctionType& node)		{ class_name = L"FunctionType";		}
-	void name(Program& node)			{ class_name = L"Program";			}
+	void name(Source& node)			{ class_name = L"Program";			}
 	void name(Package& node)			{ class_name = L"Package";			}
 	void name(Import& node)				{ class_name = L"Import";			}
 	void name(Declaration& node)		{ class_name = L"Declaration";		}

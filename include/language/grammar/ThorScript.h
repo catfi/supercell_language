@@ -899,8 +899,8 @@ struct ThorScript : qi::grammar<Iterator, typename SA::start::attribute_type, de
 
 		program
 			=	*( ( (IMPORT >> nested_identifier > SEMICOLON) [ typename SA::program::append_import() ] ) |
-				     ( (IMPORT >> IDENTIFIER >> ASSIGN > nested_identifier > SEMICOLON) [ typename SA::program::append_alias() ] ) |
-				     ( (IMPORT >> qi::lit('.') >> ASSIGN > nested_identifier > SEMICOLON) [ typename SA::program::append_global_alias() ] ) )
+				     ( (IMPORT >> IDENTIFIER >> ASSIGN > nested_identifier > SEMICOLON) [ typename SA::program::append_import_alias() ] ) |
+				     ( (IMPORT >> qi::lit('.') >> ASSIGN > nested_identifier > SEMICOLON) [ typename SA::program::append_import_global_alias() ] ) )
 				> *( global_decl                              [ typename SA::program::append_global_decl() ] )
 			;
 

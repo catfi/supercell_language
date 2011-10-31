@@ -130,7 +130,7 @@ struct ResolutionVisitor : Visitor<ASTNode, void, VisitorImplementation::recursi
 		}
 	}
 
-	void resolve(Program& node)
+	void resolve(Source& node)
 	{
 		tryVisit(*node.root);
 	}

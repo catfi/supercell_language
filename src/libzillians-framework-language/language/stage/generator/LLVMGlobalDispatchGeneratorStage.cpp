@@ -69,9 +69,9 @@ bool LLVMGlobalDispatchGeneratorStage::execute(bool& continue_execution)
 
 	visitor::LLVMGlobalDispatchGeneratorStageVisitor visitor;
 
-	if(mParserContext->program)
+	if(mParserContext->active_source)
 	{
-		visitor.visit(*mParserContext->program);
+		visitor.visit(*mParserContext->active_source);
 		this->generateGlobalDispatcher(visitor.mServerFunctions);
 	}
 

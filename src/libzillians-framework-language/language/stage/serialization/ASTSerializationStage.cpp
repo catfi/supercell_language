@@ -68,7 +68,7 @@ bool ASTSerializationStage::execute(bool& continue_execution)
 	if(!hasParserContext())
 		return false;
 
-	if(!ASTSerializationHelper::serialize(ast_file, getParserContext().program->root))
+	if(!ASTSerializationHelper::serialize(ast_file, getParserContext().tangle))
 		return false;
 
 	return true;

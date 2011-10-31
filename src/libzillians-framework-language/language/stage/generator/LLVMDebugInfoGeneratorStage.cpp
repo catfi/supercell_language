@@ -64,9 +64,9 @@ bool LLVMDebugInfoGeneratorStage::execute(bool& continue_execution)
 
 	visitor::LLVMDebugInfoGeneratorStageVisitor visitor(*getGeneratorContext().context, *getGeneratorContext().modules[0]);
 
-	if(getParserContext().program)
+	if(getParserContext().active_source)
 	{
-		visitor.visit(*getParserContext().program);
+		visitor.visit(*getParserContext().active_source);
 	}
 
 	return true;

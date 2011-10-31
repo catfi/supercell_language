@@ -144,7 +144,8 @@ enum class ASTNodeType : int
 	Annotation,
 	Annotations,
 	Internal,
-	Program,
+	Tangle,
+	Source,
 	Package,
 	Import,
 	Block,
@@ -194,7 +195,8 @@ struct ASTNode;
 struct Annotation;
 struct Annotations;
 struct Internal;
-struct Program;
+struct Tangle;
+struct Source;
 struct Package;
 struct Import;
 struct Block;
@@ -320,6 +322,14 @@ struct is_std_list<std::list<_Tp, _Alloc>> : boost::mpl::true_
 { };
 
 template<typename T>
+struct is_std_multimap : boost::mpl::false_
+{ };
+
+template<typename _Key, typename _Tp, typename _Compare, typename _Alloc>
+struct is_std_multimap<std::multimap<_Key, _Tp, _Compare, _Alloc>> : boost::mpl::true_
+{ };
+
+template<typename T>
 struct is_boost_tuple : boost::mpl::false_
 { };
 
@@ -336,7 +346,7 @@ template<typename T0, typename T1>
 struct is_std_pair<std::pair<T0, T1>> : boost::mpl::true_
 { };
 
-typedef boost::mpl::vector<ASTNode, Annotation, Annotations, Internal, Program,
+typedef boost::mpl::vector<ASTNode, Annotation, Annotations, Internal, Tangle, Source,
 		Package, Import, Block, Identifier, SimpleIdentifier, NestedIdentifier,
 		TemplatedIdentifier, Literal, NumericLiteral, StringLiteral,
 		ObjectLiteral, TypeSpecifier, FunctionType, Declaration, ClassDecl,
@@ -367,7 +377,8 @@ inline bool compareDispatch(T& a, T& b, ASTNodeSet& visited)
 	typedef is_std_pair<typename boost::remove_const<T>::type> is_std_pair_t;
 	typedef is_std_vector<typename boost::remove_const<T>::type> is_std_vector_t;
 	typedef is_std_list<typename boost::remove_const<T>::type> is_std_list_t;
-	typedef boost::mpl::or_<is_std_vector_t, is_std_list_t> is_iterative_type_t;
+	typedef is_std_multimap<typename boost::remove_const<T>::type> is_std_multimap_t;
+	typedef boost::mpl::or_<is_std_vector_t, is_std_list_t, is_std_multimap_t> is_iterative_type_t;
 	typedef is_boost_tuple<typename boost::remove_const<T>::type> is_boost_tuple_t;
 
 	typedef boost::mpl::not_<
@@ -530,18 +541,20 @@ inline bool replaceUseWithDispatch(T& a, const ASTNode& from, const ASTNode& to,
 	typedef is_std_pair<typename boost::remove_const<T>::type> is_std_pair_t;
 	typedef is_std_vector<typename boost::remove_const<T>::type> is_std_vector_t;
 	typedef is_std_list<typename boost::remove_const<T>::type> is_std_list_t;
+	typedef is_std_multimap<typename boost::remove_const<T>::type> is_std_multimap_t;
 	typedef boost::mpl::or_<is_std_vector_t, is_std_list_t> is_iterative_type_t;
 	typedef is_boost_tuple<typename boost::remove_const<T>::type> is_boost_tuple_t;
 
 	typedef boost::mpl::not_<
 			boost::mpl::or_<
-				is_pointer_t,
-				is_ast_t,
-				is_std_pair_t,
-				is_iterative_type_t,
-				is_boost_tuple_t>> is_other_t;
+				boost::mpl::or_<
+					is_pointer_t,
+					is_ast_t,
+					is_std_pair_t,
+					is_iterative_type_t,
+					is_boost_tuple_t>, is_std_multimap_t>> is_other_t;
 
-	return replaceUseWithDispatchImpl(a, from, to, update_parent, is_pointer_t(), is_ast_t(), is_std_pair_t(), is_iterative_type_t(), is_boost_tuple_t(), is_other_t());
+	return replaceUseWithDispatchImpl(a, from, to, update_parent, is_pointer_t(), is_ast_t(), is_std_pair_t(), is_std_multimap_t(), is_iterative_type_t(), is_boost_tuple_t(), is_other_t());
 };
 
 template<typename T>
@@ -550,6 +563,7 @@ inline bool replaceUseWithDispatchImpl(
 		boost::mpl::true_ /*is_pointer*/,
 		boost::mpl::false_ /*is_ast*/,
 		boost::mpl::false_ /*is_pair*/,
+		boost::mpl::false_ /*is_std_multimap*/,
 		boost::mpl::false_ /*is_iterative_type*/,
 		boost::mpl::false_ /*is_tuple*/,
 		boost::mpl::false_ /*is_other*/)
@@ -572,6 +586,7 @@ inline bool replaceUseWithDispatchImpl(
 		boost::mpl::false_ /*is_pointer*/,
 		boost::mpl::true_ /*is_ast*/,
 		boost::mpl::false_ /*is_pair*/,
+		boost::mpl::false_ /*is_std_multimap*/,
 		boost::mpl::false_ /*is_iterative_type*/,
 		boost::mpl::false_ /*is_tuple*/,
 		boost::mpl::false_ /*is_other*/)
@@ -585,6 +600,7 @@ inline bool replaceUseWithDispatchImpl(
 		boost::mpl::false_ /*is_pointer*/,
 		boost::mpl::false_ /*is_ast*/,
 		boost::mpl::true_ /*is_pair*/,
+		boost::mpl::false_ /*is_std_multimap*/,
 		boost::mpl::false_ /*is_iterative_type*/,
 		boost::mpl::false_ /*is_tuple*/,
 		boost::mpl::false_ /*is_other*/)
@@ -601,6 +617,28 @@ inline bool replaceUseWithDispatchImpl(
 		boost::mpl::false_ /*is_pointer*/,
 		boost::mpl::false_ /*is_ast*/,
 		boost::mpl::false_ /*is_pair*/,
+		boost::mpl::true_ /*is_std_multimap*/,
+		boost::mpl::false_ /*is_iterative_type*/,
+		boost::mpl::false_ /*is_tuple*/,
+		boost::mpl::false_ /*is_other*/)
+{
+	bool result = false;
+
+	auto iterator_a = a.begin(); auto iterator_end_a = a.end();
+	while(iterator_a != iterator_end_a )
+	{
+		result |= replaceUseWithDispatch(iterator_a->second, from, to, update_parent);
+	}
+	return result;
+}
+
+template<typename T>
+inline bool replaceUseWithDispatchImpl(
+		T& a, const ASTNode& from, const ASTNode& to, bool update_parent,
+		boost::mpl::false_ /*is_pointer*/,
+		boost::mpl::false_ /*is_ast*/,
+		boost::mpl::false_ /*is_pair*/,
+		boost::mpl::false_ /*is_std_multimap*/,
 		boost::mpl::true_ /*is_iterative_type*/,
 		boost::mpl::false_ /*is_tuple*/,
 		boost::mpl::false_ /*is_other*/)
@@ -644,6 +682,7 @@ inline bool replaceUseWithDispatchImpl(
 		boost::mpl::false_ /*is_pointer*/,
 		boost::mpl::false_ /*is_ast*/,
 		boost::mpl::false_ /*is_pair*/,
+		boost::mpl::false_ /*is_std_multimap*/,
 		boost::mpl::false_ /*is_iterative_type*/,
 		boost::mpl::true_ /*is_tuple*/,
 		boost::mpl::false_ /*is_other*/)
@@ -657,6 +696,7 @@ inline bool replaceUseWithDispatchImpl(
 		boost::mpl::false_ /*is_pointer*/,
 		boost::mpl::false_ /*is_ast*/,
 		boost::mpl::false_ /*is_pair*/,
+		boost::mpl::false_ /*is_std_multimap*/,
 		boost::mpl::false_ /*is_iterative_type*/,
 		boost::mpl::false_ /*is_tuple*/,
 		boost::mpl::true_ /*is_other*/)
@@ -718,7 +758,8 @@ BOOST_CLASS_EXPORT_KEY2(zillians::language::tree::ASTNode               , "ASTNo
 BOOST_CLASS_EXPORT_KEY2(zillians::language::tree::Annotation            , "Annotation")
 BOOST_CLASS_EXPORT_KEY2(zillians::language::tree::Annotations           , "Annotations")
 BOOST_CLASS_EXPORT_KEY2(zillians::language::tree::Internal              , "Internal")
-BOOST_CLASS_EXPORT_KEY2(zillians::language::tree::Program               , "Program")
+BOOST_CLASS_EXPORT_KEY2(zillians::language::tree::Tangle                , "Tangle")
+BOOST_CLASS_EXPORT_KEY2(zillians::language::tree::Source                , "Source")
 BOOST_CLASS_EXPORT_KEY2(zillians::language::tree::Package               , "Package")
 BOOST_CLASS_EXPORT_KEY2(zillians::language::tree::Import                , "Import")
 BOOST_CLASS_EXPORT_KEY2(zillians::language::tree::Block                 , "Block")

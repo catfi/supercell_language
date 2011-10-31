@@ -39,7 +39,7 @@ BOOST_AUTO_TEST_SUITE( ThorScriptTreeTest_GarbageCollectionVisitorSuite )
 
 BOOST_AUTO_TEST_CASE( ThorScriptTreeTest_GarbageCollectionVisitorTestCase1 )
 {
-	Program* node = new Program();
+	Source* node = new Source();
 
 	int count_before_gc = 0;
 	{
@@ -68,7 +68,7 @@ BOOST_AUTO_TEST_CASE( ThorScriptTreeTest_GarbageCollectionVisitorTestCase1 )
 
 BOOST_AUTO_TEST_CASE( ThorScriptTreeTest_GarbageCollectionVisitorTestCase2 )
 {
-	Program* node = new Program(new Package(new SimpleIdentifier(L"test")));
+	Source* node = new Source(new Package(new SimpleIdentifier(L"test")));
 
 	int count_before_gc = 0;
 	{

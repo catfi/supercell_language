@@ -32,13 +32,13 @@ using namespace zillians::language::tree;
 
 ASTNode* createSample1()
 {
-	Program* program = new Program();
+	Source* program = new Source();
 	return program;
 }
 
 ASTNode* createSample2()
 {
-	Program* program = new Program();
+	Source* program = new Source();
 	{
 		Package* com_package = new Package(new SimpleIdentifier(L"com"));
 		program->root->addPackage(com_package);
@@ -55,7 +55,7 @@ ASTNode* createSample2()
 
 ASTNode* createSample3()
 {
-	Program* program = new Program();
+	Source* program = new Source();
 	{
 		Package* com_package = new Package(new SimpleIdentifier(L"com"));
 		program->root->addPackage(com_package);
@@ -116,7 +116,7 @@ ASTNode* createSample3()
 
 ASTNode* createSample4()
 {
-	Program* program = new Program();
+	Source* program = new Source();
 	{
 		Package* com_package = new Package(new SimpleIdentifier(L"com"));
 		program->root->addPackage(com_package);
@@ -177,7 +177,7 @@ ASTNode* createSample4()
 // class with member function template
 ASTNode* createSample5()
 {
-	Program* program = new Program();
+	Source* program = new Source();
 	{
 		Package* com_package = new Package(new SimpleIdentifier(L"com"));
 		program->root->addPackage(com_package);

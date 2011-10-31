@@ -39,8 +39,8 @@ BOOST_AUTO_TEST_SUITE( ThorScriptTreeTest_BasicTreeGenerationTestSuite )
 BOOST_AUTO_TEST_CASE( ThorScriptTreeTest_BasicTreeGenerationTestCase1_IsA )
 {
 	{
-		ASTNode *node = new Program(new Package(new SimpleIdentifier(L"")));
-		BOOST_CHECK(isa<Program>(node));
+		ASTNode *node = new Source(new Package(new SimpleIdentifier(L"")));
+		BOOST_CHECK(isa<Source>(node));
 		BOOST_CHECK(!isa<Literal>(node));
 	}
 
@@ -65,12 +65,12 @@ BOOST_AUTO_TEST_CASE( ThorScriptTreeTest_BasicTreeGenerationTestCase1_IsA )
 BOOST_AUTO_TEST_CASE( ThorScriptTreeTest_BasicTreeGenerationTestCase2 )
 {
 	{
-		Program* program = new Program(new Package(new SimpleIdentifier(L"")));
+		Source* program = new Source(new Package(new SimpleIdentifier(L"")));
 		BOOST_CHECK(program->root->id->toString() == L"<empty>");
 	}
 
 	{
-		Program* program = new Program();
+		Source* program = new Source();
 		BOOST_CHECK(program->root->id->toString() == L"<empty>"); // the default package name is "<empty>"
 	}
 }

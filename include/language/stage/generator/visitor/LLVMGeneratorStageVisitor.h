@@ -121,7 +121,7 @@ struct LLVMGeneratorStageVisitor : GenericDoubleVisitor
 		revisit(node);
 	}
 
-	void generate(Program& node)
+	void generate(Source& node)
 	{
 		// create LLVM global variables to store VTT and other global variables in thorscript
 		revisit(node);

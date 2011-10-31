@@ -29,47 +29,25 @@ struct program
 	DEFINE_ATTRIBUTES(void)
 	DEFINE_LOCALS(LOCATION_TYPE)
 
-	BEGIN_ACTION(define_active_package)
-	{
-		SimpleIdentifier *simple_ident = cast<SimpleIdentifier>(_param(1));
-
-		Package *package = getParserContext().parent_package->findPackage(simple_ident->toString());
-		if(!package)
-		{
-			BIND_CACHED_LOCATION(package = new Package(simple_ident));
-			getParserContext().parent_package->addPackage(package);
-		}
-
-		getParserContext().active_package = package;
-
-		if(_param(0).is_initialized())
-		{
-			if(getParserContext().active_package->annotations)
-			{
-				getParserContext().active_package->annotations->merge(**_param(0));
-			}
-			else
-			{
-				getParserContext().active_package->setAnnotations(*_param(0));
-			}
-		}
-	}
-	END_ACTION
-
 	BEGIN_ACTION(append_import)
 	{
 #ifdef DEBUG
 		printf("program::append_import_decl param(0) type = %s\n", typeid(_param_t(0)).name());
 #endif
-		if(getParserContext().program)
+		if(getParserContext().active_source)
 		{
 			Import* import = new Import(_param(0)); BIND_CACHED_LOCATION(import);
-			getParserContext().program->addImport(import);
+			getParserContext().active_source->addImport(import);
 		}
 	}
 	END_ACTION
 
-	BEGIN_ACTION(append_alias)
+	BEGIN_ACTION(append_import_alias)
+	{
+	}
+	END_ACTION
+
+	BEGIN_ACTION(append_import_global_alias)
 	{
 	}
 	END_ACTION

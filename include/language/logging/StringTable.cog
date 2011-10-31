@@ -396,7 +396,7 @@ struct StringTable
 };
 
 // Default parameters appear in each function
-BOOST_PARAMETER_NAME(program_node)
+BOOST_PARAMETER_NAME(source_node)
 BOOST_PARAMETER_NAME(node)
 
 // Generated parameters appear among all the messages
@@ -461,7 +461,7 @@ public:
 		param_list_string = ''
 		for (var, type) in param_list:	# will generate like this (FILE(string))(LINE(string))
 			param_list_string = param_list_string + '(' + str(var) + ',(' + str(type) + ')' + ')'
-		cog.outl('BOOST_PARAMETER_MEMBER_FUNCTION( (void), %s, tag, (required (program_node, (tree::Program*))(node, (tree::ASTNode*)) %s )) {' % (id, param_list_string))
+		cog.outl('BOOST_PARAMETER_MEMBER_FUNCTION( (void), %s, tag, (required (source_node, (tree::Source*))(node, (tree::ASTNode*)) %s )) {' % (id, param_list_string))
 
 		# Variable declaration
 		cog.outl('\t map<wstring, wstring> parameters;')
@@ -477,16 +477,15 @@ public:
 			cog.outl('\t insert_parameters(parameters, L"%s", %s);' % (var, var))
 
 		# Generate header like : "test.cpp:32: " if node is not NULL
-		cog.outl('\t vector<string>& files = stage::ModuleSourceInfoContext::get(program_node)->source_files;')
 		cog.outl('\t if(node) { ')
 
 		cog.outl('\t\t zillians::language::tree::ASTNode* attach_point = tree::ASTNodeHelper::getDebugAnnotationAttachPoint(node);')
 		cog.outl('\t\t LogInfoContext::push_back(attach_point, LogInfo(str_level, str_id, parameters));')
 		cog.outl('\t\t stage::SourceInfoContext* source_info = stage::SourceInfoContext::get(attach_point);')
-		cog.outl('\t\t mWrapper->log(StringTable::%s, s_to_ws(files[source_info->source_index]), source_info->line, translated);' % id)
+		cog.outl('\t\t mWrapper->log(StringTable::%s, s_to_ws(source_node->filename), source_info->line, translated);' % id)
 		cog.outl('\t }');
 		cog.outl('\t else {');
-		cog.outl('\t\t LogInfoContext::push_back(program_node, LogInfo(str_level, str_id, parameters));')
+		cog.outl('\t\t LogInfoContext::push_back(source_node, LogInfo(str_level, str_id, parameters));')
 		cog.outl('\t\t mWrapper->log(StringTable::%s, translated);' % id)
 		cog.outl('\t }');
 		cog.outl('}');

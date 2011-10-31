@@ -76,9 +76,9 @@ if(LLVM_FOUND)
     add_library(zillians-framework-language-llvm
         language/context/GeneratorContext.cpp
         language/stage/generator/LLVMGeneratorStage.cpp
-        language/stage/generator/LLVMDebugInfoGeneratorStage.cpp
+        #language/stage/generator/LLVMDebugInfoGeneratorStage.cpp
         language/stage/generator/LLVMBitCodeGeneratorStage.cpp
-        language/stage/generator/LLVMGlobalDispatchGeneratorStage.cpp
+        #language/stage/generator/LLVMGlobalDispatchGeneratorStage.cpp
         )
     target_link_libraries(zillians-framework-language-llvm
 		${LLVM_LDFLAGS}
