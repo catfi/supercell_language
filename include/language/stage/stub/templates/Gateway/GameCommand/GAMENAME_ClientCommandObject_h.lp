@@ -2,26 +2,26 @@
 
 #include "language/stage/transformer/context/ManglingStageContext.h"
 #include "language/tree/ASTNodeHelper.h"
+#include "language/tree/ASTNode.h"
 #include "language/tree/visitor/GenericDoubleVisitor.h"
 #include "utility/Foreach.h"
 #include <sstream>
 #include <iostream>
 #include <string>
+#include <vector>
 
-using namespace zillians::language::tree;
+using namespace zillians::language;
+using namespace zillians::language::tree; // needed by CREATE_INVOKER
 
-std::wstring GameName;
-std::wstring FuncName;
-std::wstring FuncID;
-
-void f(FunctionDecl& node);
-struct GeneratorVisitor : visitor::GenericDoubleVisitor
+struct AtClientServerFuncGeneratorVisitor : public visitor::GenericDoubleVisitor
 {
     CREATE_INVOKER(generateInvoker, generate)
 
-    std::wstring GameName; // TODO: need spec
+    std::vector<FunctionDecl*>& mAtClientFuncList;
+    std::vector<FunctionDecl*>& mAtServerFuncList;
 
-    GeneratorVisitor()
+    AtClientServerFuncGeneratorVisitor(std::vector<FunctionDecl*>& AtClientFuncList, std::vector<FunctionDecl*>& AtServerFuncList)
+        : mAtClientFuncList(AtClientFuncList), mAtServerFuncList(AtServerFuncList)
     {
         REGISTER_ALL_VISITABLE_ASTNODE(generateInvoker)
     }
@@ -33,75 +33,85 @@ struct GeneratorVisitor : visitor::GenericDoubleVisitor
 
     void generate(FunctionDecl& node)
     {
-    	f(node);
+        if(ASTNodeHelper::findAnnotation(&node, L"client"))
+            mAtClientFuncList.push_back(&node);
+        if(ASTNodeHelper::findAnnotation(&node, L"server"))
+            mAtServerFuncList.push_back(&node);
     }
 };
 
 //]]]
 
-//-[[[entry(auto)
-//-]]]
+//[[[entry
+void gen_gateway_stub(Package* node)
+{
+//[[[driver
+//]]]
+}
+//]]]
 
 #include "vw/services/api/ApiTypes.h"
 #include "objects/ClientCommandObject.h"
 namespace zillians{
 
 //[[[code
-//GeneratorVisitor v; v.visit(*node);
+std::wstring GameName = L"Dummy";
+std::vector<FunctionDecl*> AtClientFuncList;
+std::vector<FunctionDecl*> AtServerFuncList;
+AtClientServerFuncGeneratorVisitor v(AtClientFuncList, AtServerFuncList); v.visit(*node);
+foreach(i, AtClientFuncList)
+{
+    if(ASTNodeHelper::findAnnotation(*i, L"client"))
+    {
+        std::wstring FuncName = (*i)->name->toString();
+        std::wstringstream ss;
+        ss << std::hex << stage::SymbolIdManglingContext::get(*i)->managled_id;
+        std::wstring FuncID = ss.str();
+
+        //[[[gen(replace:GAME_NAME=GameName, FUNCTION_NAME=FuncName, FUNCTION_ID=FuncID)
+        class ${GAME_NAME}_${FUNCTION_NAME}_ClientCommandObject : public ClientCommandObject
+        {
+        public:
+            ${GAME_NAME}_${FUNCTION_NAME}_ClientCommandObject()
+            { }
+
+            ~${GAME_NAME}_${FUNCTION_NAME}_ClientCommandObject()
+            { }
+
+            enum 
+            { 
+                // GENERATE_BEGIN
+                TYPE = ${FUNCTION_ID} // the type need to be unique globally (across all RPC command types)
+                // GENERATE_END
+            };
+
+        public:
+            // GENERATE_BEGIN
+            //[[[code
+            foreach(j, (*i)->parameters)
+                std::wcout << ASTNodeHelper::getNodeName((*j)->type) << L" " << (*j)->name->toString() << L";" << std::endl;
+            //]]]
+            // GENERATE_END
+
+        public:
+            template<typename Archive>
+            void serialize(Archive& ar, const unsigned int version)
+            {
+                ClientCommandObject::serialize(ar, version); // 16 bytes
+                // GENERATE_BEGIN
+                //[[[code
+                foreach(j, (*i)->parameters)
+                    std::wcout << L"ar & " << (*j)->name->toString() << L";" << std::endl;
+                //]]]
+                // GENERATE_END
+            }
+        };
+        //]]]
+    }
+}
 //]]]
 
 } // namespace zillians
-
-void f(FunctionDecl& node)
-{
-    if(ASTNodeHelper::findAnnotation(&node, L"client") || ASTNodeHelper::findAnnotation(&node, L"server"))
-    {
-        std::wstring FuncName = node.name->toString();
-        std::wstringstream ss;
-        ss << std::hex << stage::SymbolIdManglingContext::get(&node)->managled_id;
-        std::string FuncID = ss.str();
-
-		//[[[gen(replace:GAME_NAME=GameName, FUNCTION_NAME=FuncName, FUNCTION_ID=FuncID)
-		class ${GAME_NAME}_${FUNCTION_NAME}_ClientCommandObject : public ClientCommandObject
-		{
-		public:
-			${GAME_NAME}_${FUNCTION_NAME}_ClientCommandObject()
-			{ }
-		
-			~${GAME_NAME}_${FUNCTION_NAME}_ClientCommandObject()
-			{ }
-		
-			enum 
-			{ 
-				// GENERATE_BEGIN
-				TYPE = ${FUNCTION_ID} // the type need to be unique globally (across all RPC command types)
-				// GENERATE_END
-			};
-		
-		public:
-			// GENERATE_BEGIN
-			//[[[code
-			foreach(i, node.parameters)
-				std::wcout << ASTNodeHelper::getNodeName((*i)->type) << L" " << (*i)->name->toString() << L";" << std::endl;
-			//]]]
-			// GENERATE_END
-		
-		public:
-			template<typename Archive>
-			void serialize(Archive& ar, const unsigned int version)
-			{
-				ClientCommandObject::serialize(ar, version); // 16 bytes
-				// GENERATE_BEGIN
-				//[[[code
-				foreach(i, node.parameters)
-					std::wcout << L"ar & " << (*i)->name->toString() << L";" << std::endl;
-				//]]]
-				// GENERATE_END
-			}
-		};
-		//]]]
-    }
-}
 
 /*
 #include "vw/services/api/ApiTypes.h" 

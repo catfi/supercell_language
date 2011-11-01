@@ -28,6 +28,12 @@
 #define SERVER_STUB_NAME  "server_stub"
 #define GATEWAY_STUB_NAME "gateway_stub"
 
+using namespace zillians::language::tree;
+
+//extern void gen_client_stub(Package* node);
+//extern void gen_server_stub(Package* node);
+extern void gen_gateway_stub(Package* node);
+
 namespace zillians { namespace language { namespace stage {
 
 ThorScriptStubStage::ThorScriptStubStage() : stub_type(UNKNOWN_STUB)
@@ -92,13 +98,13 @@ bool ThorScriptStubStage::execute(bool& continue_execution)
 	return true;
 }
 
-void ThorScriptStubStage::genStub(tree::Package* package)
+void ThorScriptStubStage::genStub(tree::Package* node)
 {
 	switch(stub_type)
 	{
-	case CLIENT_STUB: break;
-	case SERVER_STUB: break;
-	case GATEWAY_STUB: break;
+//	case CLIENT_STUB:  gen_client_stub(node); break;
+//	case SERVER_STUB:  gen_server_stub(node); break;
+	case GATEWAY_STUB: gen_gateway_stub(node); break;
 	}
 }
 
