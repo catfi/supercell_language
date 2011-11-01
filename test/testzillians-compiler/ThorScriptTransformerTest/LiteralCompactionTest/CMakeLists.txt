@@ -23,7 +23,7 @@ get_target_property(ThorScriptCompiler ts-compile LOCATION)
 
 zillians_add_complex_test(
     TARGET thorscript-transformer-test-literal-compaction-integers
-    SHELL ${ThorScriptCompiler} ${CMAKE_CURRENT_SOURCE_DIR}/integers.t --enable-static-test
+    SHELL ${ThorScriptCompiler} ${CMAKE_CURRENT_SOURCE_DIR}/integers.t
     DEPENDS ${ThorScriptCompiler}
     )
 
