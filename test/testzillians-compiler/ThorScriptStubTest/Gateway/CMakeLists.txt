@@ -19,26 +19,15 @@
 # Contact Information: info@zillians.com
 #
 
-zillians_create_test_subject(SUBJECT framework-compiler-critical)
-zillians_create_test_subject(SUBJECT framework-compiler-misc)
+zillians_add_complex_test(
+    TARGET thorscript-stub-test-gateway
+    SHELL ${CMAKE_CURRENT_SOURCE_DIR}/test.sh ${ThorScriptCompiler}
+            ${CMAKE_CURRENT_SOURCE_DIR}/data/input.t
+            ${CMAKE_CURRENT_SOURCE_DIR}/gold/output
+    DEPENDS ${ThorScriptCompiler}
+    )
 
-zillians_add_subject_to_subject(PARENT framework-critical CHILD framework-compiler-critical)
-zillians_add_subject_to_subject(PARENT framework-misc CHILD framework-compiler-misc)
-
-ADD_SUBDIRECTORY(LLVM_IR_Test)
-ADD_SUBDIRECTORY(RuntimeApiTest)
-
-ADD_SUBDIRECTORY(SemanticCheckTest)
-ADD_SUBDIRECTORY(StubCodeGenTest)
-
-get_target_property(ThorScriptCompiler ts-compile LOCATION)
-
-ADD_SUBDIRECTORY(ThorScriptCompilerStaticTest)
-ADD_SUBDIRECTORY(ThorScriptParserTest)
-ADD_SUBDIRECTORY(ThorScriptTransformerTest)
-ADD_SUBDIRECTORY(ThorScriptTreeTest)
-ADD_SUBDIRECTORY(ThorScriptLoggerTest)
-ADD_SUBDIRECTORY(ThorScriptDepTest)
-ADD_SUBDIRECTORY(ThorScriptStripTest)
-ADD_SUBDIRECTORY(ThorScriptStubTest)
-ADD_SUBDIRECTORY(ThorScriptMakeTest)
+#zillians_add_simple_test(TARGET ThorScriptStubTest)
+#zillians_add_test_to_subject(SUBJECT thorscript-stub-test-client TARGET ThorScriptStubTest)
+#zillians_add_test_to_subject(SUBJECT thorscript-stub-test-server TARGET ThorScriptStubTest)
+#zillians_add_test_to_subject(SUBJECT thorscript-stub-test-gateway TARGET ThorScriptStubTest)
