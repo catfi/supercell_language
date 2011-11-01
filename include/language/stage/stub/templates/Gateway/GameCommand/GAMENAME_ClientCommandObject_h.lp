@@ -1,17 +1,21 @@
 //[[[global
 
-#include <iostream>
-
-/*
 #include "language/stage/transformer/context/ManglingStageContext.h"
 #include "language/tree/ASTNodeHelper.h"
-#include <sstream.h>
+#include "language/tree/visitor/GenericDoubleVisitor.h"
+#include "utility/Foreach.h"
+#include <sstream>
+#include <iostream>
 #include <string>
 
-using namespace zillians::language;
+using namespace zillians::language::tree;
+
+std::wstring GameName;
+std::wstring FuncName;
+std::wstring FuncID;
 
 void f(FunctionDecl& node);
-struct GeneratorVisitor : GenericDoubleVisitor
+struct GeneratorVisitor : visitor::GenericDoubleVisitor
 {
     CREATE_INVOKER(generateInvoker, generate)
 
@@ -32,9 +36,11 @@ struct GeneratorVisitor : GenericDoubleVisitor
     	f(node);
     }
 };
-*/
 
 //]]]
+
+//-[[[entry(auto)
+//-]]]
 
 #include "vw/services/api/ApiTypes.h"
 #include "objects/ClientCommandObject.h"
@@ -46,12 +52,9 @@ namespace zillians{
 
 } // namespace zillians
 
-//[[[entry(auto)
-//]]]
-
 void f(FunctionDecl& node)
 {
-    if(tree::ASTNodeHelper::findAnnotation(&node, L"client") || tree::ASTNodeHelper::findAnnotation(&node, L"server"))
+    if(ASTNodeHelper::findAnnotation(&node, L"client") || ASTNodeHelper::findAnnotation(&node, L"server"))
     {
         std::wstring FuncName = node.name->toString();
         std::wstringstream ss;
@@ -79,7 +82,7 @@ void f(FunctionDecl& node)
 			// GENERATE_BEGIN
 			//[[[code
 			foreach(i, node.parameters)
-				std::wcout << tree::getNodeName((*i)->type) << L" " << (*i)->name->toString() << L";" << std::endl;
+				std::wcout << ASTNodeHelper::getNodeName((*i)->type) << L" " << (*i)->name->toString() << L";" << std::endl;
 			//]]]
 			// GENERATE_END
 		
