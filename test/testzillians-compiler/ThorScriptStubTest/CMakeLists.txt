@@ -19,26 +19,4 @@
 # Contact Information: info@zillians.com
 #
 
-zillians_create_test_subject(SUBJECT framework-compiler-critical)
-zillians_create_test_subject(SUBJECT framework-compiler-misc)
-
-zillians_add_subject_to_subject(PARENT framework-critical CHILD framework-compiler-critical)
-zillians_add_subject_to_subject(PARENT framework-misc CHILD framework-compiler-misc)
-
-ADD_SUBDIRECTORY(LLVM_IR_Test)
-ADD_SUBDIRECTORY(RuntimeApiTest)
-
-ADD_SUBDIRECTORY(SemanticCheckTest)
-ADD_SUBDIRECTORY(StubCodeGenTest)
-
-get_target_property(ThorScriptCompiler ts-compile LOCATION)
-
-ADD_SUBDIRECTORY(ThorScriptCompilerStaticTest)
-ADD_SUBDIRECTORY(ThorScriptParserTest)
-ADD_SUBDIRECTORY(ThorScriptTransformerTest)
-ADD_SUBDIRECTORY(ThorScriptTreeTest)
-ADD_SUBDIRECTORY(ThorScriptLoggerTest)
-ADD_SUBDIRECTORY(ThorScriptDepTest)
-ADD_SUBDIRECTORY(ThorScriptStripTest)
-ADD_SUBDIRECTORY(ThorScriptStubTest)
-ADD_SUBDIRECTORY(ThorScriptMakeTest)
+ADD_SUBDIRECTORY(Gateway)
