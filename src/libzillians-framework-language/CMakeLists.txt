@@ -28,9 +28,9 @@ include_directories( ${PROJECT_COMMON_SOURCE_DIR}/include/
 
 set(out_files "")
 set(StringTablePath ${PROJECT_FRAMEWORK_SOURCE_DIR}/include/language/logging)
-COG_GEN(
-    OUTPUT out_files
-    COG_FILE ${StringTablePath}/StringTable.cog
+zillians_add_cog_gen(
+    OUTPUT_VARIABLE out_files
+    INPUT ${StringTablePath}/StringTable.cog
     )
 add_custom_target(generate-string-table
     DEPENDS ${out_files}
