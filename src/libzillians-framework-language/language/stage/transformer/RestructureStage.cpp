@@ -54,6 +54,8 @@ bool RestructureStage::parseOptions(po::variables_map& vm)
 
 bool RestructureStage::execute(bool& continue_execution)
 {
+	UNUSED_ARGUMENT(continue_execution);
+
 	if(!hasParserContext())
 		return false;
 

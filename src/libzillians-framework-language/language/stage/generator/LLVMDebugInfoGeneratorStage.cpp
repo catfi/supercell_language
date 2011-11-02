@@ -59,6 +59,8 @@ bool LLVMDebugInfoGeneratorStage::parseOptions(po::variables_map& vm)
 
 bool LLVMDebugInfoGeneratorStage::execute(bool& continue_execution)
 {
+	UNUSED_ARGUMENT(continue_execution);
+
 	if (!enabled)
 		return true;
 
@@ -68,8 +70,6 @@ bool LLVMDebugInfoGeneratorStage::execute(bool& continue_execution)
 	{
 		visitor.visit(*getParserContext().active_source);
 	}
-
-	UNUSED_ARGUMENT(continue_execution);
 
 	return true;
 }

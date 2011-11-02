@@ -58,6 +58,8 @@ bool ManglingStage::parseOptions(po::variables_map& vm)
 
 bool ManglingStage::execute(bool& continue_execution)
 {
+	UNUSED_ARGUMENT(continue_execution);
+
 	if(disable_mangling)
 		return true;
 

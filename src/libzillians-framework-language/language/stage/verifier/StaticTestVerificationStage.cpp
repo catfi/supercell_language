@@ -61,6 +61,8 @@ bool StaticTestVerificationStage::parseOptions(po::variables_map& vm)
 
 bool StaticTestVerificationStage::execute(bool& continue_execution)
 {
+	UNUSED_ARGUMENT(continue_execution);
+
     if(!enabled)
         return true;
 

@@ -19,7 +19,7 @@
 
 #include "language/stage/transformer/ResolutionStage.h"
 #include "language/stage/transformer/visitor/ResolutionStageVisitor.h"
-#include "language/tree/visitor/NodeTypeNameVisitor.h"
+//#include "language/tree/visitor/NodeTypeNameVisitor.h"
 #include "language/tree/visitor/NodeInfoVisitor.h"
 #include "language/tree/visitor/PrettyPrintVisitor.h"
 #include "language/resolver/Resolver.h"
@@ -69,6 +69,8 @@ bool ResolutionStage::parseOptions(po::variables_map& vm)
 
 bool ResolutionStage::execute(bool& continue_execution)
 {
+	UNUSED_ARGUMENT(continue_execution);
+
 	if(!hasParserContext())
 		return false;
 

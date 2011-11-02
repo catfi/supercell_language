@@ -64,6 +64,8 @@ bool LLVMGlobalDispatchGeneratorStage::parseOptions(po::variables_map& vm)
 
 bool LLVMGlobalDispatchGeneratorStage::execute(bool& continue_execution)
 {
+	UNUSED_ARGUMENT(continue_execution);
+
 	if (!mEnabled)
 		return true;
 
@@ -74,8 +76,6 @@ bool LLVMGlobalDispatchGeneratorStage::execute(bool& continue_execution)
 		visitor.visit(*mParserContext->active_source);
 		this->generateGlobalDispatcher(visitor.mServerFunctions);
 	}
-
-	UNUSED_ARGUMENT(continue_execution);
 
 	return true;
 }

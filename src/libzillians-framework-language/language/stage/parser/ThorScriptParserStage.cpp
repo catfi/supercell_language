@@ -132,6 +132,8 @@ bool ThorScriptParserStage::parseOptions(po::variables_map& vm)
 
 bool ThorScriptParserStage::execute(bool& continue_execution)
 {
+	UNUSED_ARGUMENT(continue_execution);
+
 	// prepare the global parser context
 	if(!hasParserContext())
 		setParserContext(new ParserContext());
@@ -143,8 +145,6 @@ bool ThorScriptParserStage::execute(bool& continue_execution)
 			if(!parse(p))
 				return false;
 	}
-
-	UNUSED_ARGUMENT(continue_execution);
 
 	return true;
 }

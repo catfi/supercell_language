@@ -75,6 +75,8 @@ bool LLVMGeneratorStage::parseOptions(po::variables_map& vm)
 
 bool LLVMGeneratorStage::execute(bool& continue_execution)
 {
+	UNUSED_ARGUMENT(continue_execution);
+
 	if(!enabled)
 		return true;
 
@@ -98,8 +100,6 @@ bool LLVMGeneratorStage::execute(bool& continue_execution)
 
 	getGeneratorContext().modules.push_back(module);
 	getGeneratorContext().context = context;
-
-	UNUSED_ARGUMENT(continue_execution);
 
 	return true;
 }

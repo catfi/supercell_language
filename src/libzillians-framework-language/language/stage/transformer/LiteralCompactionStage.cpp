@@ -54,6 +54,8 @@ bool LiteralCompactionStage::parseOptions(po::variables_map& vm)
 
 bool LiteralCompactionStage::execute(bool& continue_execution)
 {
+	UNUSED_ARGUMENT(continue_execution);
+
 	if(!hasParserContext())
 		return false;
 

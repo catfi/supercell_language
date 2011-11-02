@@ -56,6 +56,8 @@ bool SemanticVerificationStage0::parseOptions(po::variables_map& vm)
 
 bool SemanticVerificationStage0::execute(bool& continue_execution)
 {
+	UNUSED_ARGUMENT(continue_execution);
+
 	if(!hasParserContext())
 		return false;
 

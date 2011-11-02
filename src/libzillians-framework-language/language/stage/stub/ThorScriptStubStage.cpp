@@ -95,6 +95,9 @@ bool ThorScriptStubStage::execute(bool& continue_execution)
 			continue;
 		genStub(tree::cast<tree::Package>(deserialized));
     }
+
+	UNUSED_ARGUMENT(continue_execution);
+
 	return true;
 }
 

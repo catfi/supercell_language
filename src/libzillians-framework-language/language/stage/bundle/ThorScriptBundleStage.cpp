@@ -144,6 +144,8 @@ bool ThorScriptBundleStage::parseOptions(po::variables_map& vm)
 
 bool ThorScriptBundleStage::execute(bool& continue_execution)
 {
+	UNUSED_ARGUMENT(continue_execution);
+
 	// Create bundle
 	Archive ar(output_file, ArchiveMode::ARCHIVE_FILE_COMPRESS);
 

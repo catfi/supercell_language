@@ -114,6 +114,8 @@ bool ThorScriptStripStage::execute(bool& continue_execution)
         stripOneFile(*i);
     }
 
+    UNUSED_ARGUMENT(continue_execution);
+
     return true;
 }
 

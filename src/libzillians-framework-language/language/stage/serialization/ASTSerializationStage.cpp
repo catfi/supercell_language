@@ -71,6 +71,8 @@ bool ASTSerializationStage::execute(bool& continue_execution)
 	if(!ASTSerializationHelper::serialize(ast_file, getParserContext().tangle))
 		return false;
 
+	UNUSED_ARGUMENT(continue_execution);
+
 	return true;
 }
 
