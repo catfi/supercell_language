@@ -69,6 +69,8 @@ bool LLVMDebugInfoGeneratorStage::execute(bool& continue_execution)
 		visitor.visit(*getParserContext().program);
 	}
 
+	UNUSED_ARGUMENT(continue_execution);
+
 	return true;
 }
 

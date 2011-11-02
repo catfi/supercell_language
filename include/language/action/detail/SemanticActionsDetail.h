@@ -47,6 +47,9 @@
 			template<typename ParserAttribute, typename ParserContext> \
 			void operator()(ParserAttribute& parser_attribute, ParserContext& context, bool& passed) const \
 			{ \
+				UNUSED_ARGUMENT(parser_attribute); \
+				UNUSED_ARGUMENT(context); \
+				UNUSED_ARGUMENT(passed); \
 				if(!getParserContext().enable_semantic_action) \
 					return;
 
@@ -57,6 +60,9 @@
 			template<typename ParserAttribute, typename ParserContext> \
 			void operator()(ParserAttribute& parser_attribute, ParserContext& context, bool& passed) const \
 			{ \
+				UNUSED_ARGUMENT(parser_attribute); \
+				UNUSED_ARGUMENT(context); \
+				UNUSED_ARGUMENT(passed); \
 				if(!getParserContext().enable_semantic_action) \
 					return;
 

@@ -30,7 +30,7 @@
 namespace zillians { namespace language { namespace stage {
 
 LLVMGlobalDispatchGeneratorStage::LLVMGlobalDispatchGeneratorStage(llvm::LLVMContext& llvmContext, llvm::Module& module, zillians::language::ParserContext* parserContext)
-    : mEnabled(false), mLLVMContext(llvmContext), mBuilder(llvmContext), mLLVMModule(module), mParserContext(parserContext)
+    : mEnabled(false), mLLVMContext(llvmContext), mLLVMModule(module), mBuilder(llvmContext), mParserContext(parserContext)
 { }
 
 LLVMGlobalDispatchGeneratorStage::~LLVMGlobalDispatchGeneratorStage()
@@ -75,6 +75,7 @@ bool LLVMGlobalDispatchGeneratorStage::execute(bool& continue_execution)
 		this->generateGlobalDispatcher(visitor.mServerFunctions);
 	}
 
+	UNUSED_ARGUMENT(continue_execution);
 
 	return true;
 }
@@ -120,7 +121,7 @@ void LLVMGlobalDispatchGeneratorStage::generateAllServerFunctions(llvm::SwitchIn
 void LLVMGlobalDispatchGeneratorStage::generateOneServerFunction(llvm::SwitchInst* llvmSwitch, llvm::BasicBlock* finalBlock, FunctionDecl& func, const uint64 id)
 {
     using namespace llvm;
-    Value* caseValue = NULL;
+    //Value* caseValue = NULL;
     BasicBlock* caseBlock = BasicBlock::Create(mLLVMContext, "case_block");
     mBuilder.SetInsertPoint(caseBlock);
     Function* llvmDispatchedFunction = zillians::language::stage::SynthesizedFunctionContext::get(&func)->f;

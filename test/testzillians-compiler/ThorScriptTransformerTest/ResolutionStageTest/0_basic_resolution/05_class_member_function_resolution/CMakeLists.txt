@@ -21,7 +21,7 @@
 
 zillians_add_complex_test(
     TARGET thorscript-compiler-transform-test-05-class-member
-    SHELL ${ThorScriptCompiler} ${compile_options_resolution} ${CMAKE_CURRENT_SOURCE_DIR}/05_class_member_function_access_through_declared_variable.t --enable-static-test
+    SHELL ${ThorScriptCompiler} ${compile_options_resolution} ${CMAKE_CURRENT_SOURCE_DIR}/05_class_member_function_access_through_declared_variable.t
     DEPENDS ${ThorScriptCompiler}
     )
     
@@ -29,7 +29,7 @@ zillians_add_test_to_subject(SUBJECT thorscript-transformer-resolution-test-all 
 
 zillians_add_complex_test(
     TARGET thorscript-compiler-transform-test-05-non-static
-    SHELL ${ThorScriptCompiler} ${compile_options_resolution} ${CMAKE_CURRENT_SOURCE_DIR}/05_non_static.t --enable-static-test
+    SHELL ${ThorScriptCompiler} ${compile_options_resolution} ${CMAKE_CURRENT_SOURCE_DIR}/05_non_static.t
     DEPENDS ${ThorScriptCompiler}
     )
     
@@ -37,7 +37,7 @@ zillians_add_test_to_subject(SUBJECT thorscript-transformer-resolution-test-all 
 
 zillians_add_complex_test(
     TARGET thorscript-compiler-transform-test-05-static
-    SHELL ${ThorScriptCompiler} ${compile_options_resolution} ${CMAKE_CURRENT_SOURCE_DIR}/05_static.t --enable-static-test
+    SHELL ${ThorScriptCompiler} ${compile_options_resolution} ${CMAKE_CURRENT_SOURCE_DIR}/05_static.t
     DEPENDS ${ThorScriptCompiler}
     )
     

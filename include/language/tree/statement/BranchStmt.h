@@ -46,10 +46,8 @@ struct BranchStmt : public Statement
 			case BREAK: return L"break";
 			case CONTINUE: return L"continue";
 			case RETURN: return L"return";
-			default: break;
+			default: UNREACHABLE_CODE(); return NULL;
 			}
-			BOOST_ASSERT(false && "reaching unreachable code");
-			return NULL;
 		}
 	};
 
@@ -81,6 +79,8 @@ struct BranchStmt : public Statement
     template<typename Archive>
     void serialize(Archive& ar, const unsigned int version)
     {
+    	UNUSED_ARGUMENT(version);
+
     	ar & boost::serialization::base_object<Statement>(*this);
     	ar & (int&)opcode;
     	ar & result;

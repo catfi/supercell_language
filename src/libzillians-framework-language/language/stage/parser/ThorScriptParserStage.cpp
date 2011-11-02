@@ -109,6 +109,8 @@ bool ThorScriptParserStage::execute(bool& continue_execution)
 				return false;
 	}
 
+	UNUSED_ARGUMENT(continue_execution);
+
 	return true;
 }
 

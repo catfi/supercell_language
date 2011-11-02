@@ -464,6 +464,7 @@ public:
 		cog.outl('BOOST_PARAMETER_MEMBER_FUNCTION( (void), %s, tag, (required (program_node, (tree::Program*))(node, (tree::ASTNode*)) %s )) {' % (id, param_list_string))
 
 		# Variable declaration
+		cog.outl('\tUNUSED_ARGUMENT(args);')
 		cog.outl('\t map<wstring, wstring> parameters;')
 		cog.outl('\t wstring str_level(L"%s");' % attribute_table[id][0])
 		cog.outl('\t wstring str_id(L"%s");' % id)

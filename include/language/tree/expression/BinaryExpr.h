@@ -86,10 +86,8 @@ struct BinaryExpr : public Expression
 			case RANGE_ELLIPSIS: return L"...";
 			case ARRAY_SUBSCRIPT: return L"[]";
 			case INVALID: return L"invalid";
-			default: break;
+			default: UNREACHABLE_CODE(); return NULL;
 			}
-			BOOST_ASSERT(false && "reaching unreachable code");
-			return NULL;
 		}
 
 		static type decomposeAssignment(type t)
@@ -107,9 +105,8 @@ struct BinaryExpr : public Expression
 			case XOR_ASSIGN: return BINARY_XOR;
 			case RSHIFT_ASSIGN: return BINARY_RSHIFT;
 			case LSHIFT_ASSIGN: return BINARY_LSHIFT;
-			default: break;
+			default: return INVALID;
 			}
-			return INVALID;
 		}
 	};
 
@@ -252,10 +249,8 @@ struct BinaryExpr : public Expression
 		case OpCode::RANGE_ELLIPSIS:
 		case OpCode::INVALID:
 			return true;
-		default: break;
+		default: UNREACHABLE_CODE(); return false;
 		}
-		BOOST_ASSERT(false && "reaching unreachable code");
-		return false;
 	}
 
     virtual bool isEqualImpl(const ASTNode& rhs, ASTNodeSet& visited) const
@@ -286,6 +281,8 @@ struct BinaryExpr : public Expression
     template<typename Archive>
     void serialize(Archive& ar, const unsigned int version)
     {
+    	UNUSED_ARGUMENT(version);
+
     	ar & boost::serialization::base_object<Expression>(*this);
     	ar & (int&)opcode;
     	ar & left;

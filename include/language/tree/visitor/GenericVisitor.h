@@ -148,6 +148,7 @@ struct GenericVisitor : Visitor<const ASTNode, void, VisitorImplementation::recu
 
 	void apply(const ASTNode& node)
 	{
+		UNUSED_ARGUMENT(node);
 	}
 
 	void apply(const Annotation& node)
@@ -172,11 +173,13 @@ struct GenericVisitor : Visitor<const ASTNode, void, VisitorImplementation::recu
 
 	void apply(Identifier& node)
 	{
-		BOOST_ASSERT(false && "reaching unreachable code");
+		UNUSED_ARGUMENT(node);
+		UNREACHABLE_CODE();
 	}
 
 	void apply(const SimpleIdentifier& node)
 	{
+		UNUSED_ARGUMENT(node);
 	}
 
 	void apply(const NestedIdentifier& node)
@@ -254,7 +257,8 @@ struct GenericVisitor : Visitor<const ASTNode, void, VisitorImplementation::recu
 	/// Declaration
 	void apply(Declaration& node)
 	{
-		BOOST_ASSERT(false && "reaching unreachable code");
+		UNUSED_ARGUMENT(node);
+		UNREACHABLE_CODE();
 	}
 
 	void apply(const ClassDecl& node)
@@ -321,7 +325,8 @@ struct GenericVisitor : Visitor<const ASTNode, void, VisitorImplementation::recu
 	/// Statement
 	void apply(Statement& node)
 	{
-		BOOST_ASSERT(false && "reaching unreachable code");
+		UNUSED_ARGUMENT(node);
+		UNREACHABLE_CODE();
 	}
 
 	void apply(const DeclarativeStmt& node)
@@ -401,7 +406,8 @@ struct GenericVisitor : Visitor<const ASTNode, void, VisitorImplementation::recu
 	/// Expression
 	void apply(Expression& node)
 	{
-		BOOST_ASSERT(false && "reaching unreachable code");
+		UNUSED_ARGUMENT(node);
+		UNREACHABLE_CODE();
 	}
 
 	void apply(const PrimaryExpr& node)

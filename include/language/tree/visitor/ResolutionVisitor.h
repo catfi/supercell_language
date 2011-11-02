@@ -360,7 +360,7 @@ struct ResolutionVisitor : Visitor<ASTNode, void, VisitorImplementation::recursi
 				{
 					if(isLast())
 					{
-						BOOST_ASSERT(false && "reaching unreachable code");
+						UNREACHABLE_CODE();
 					}
 					else
 					{
@@ -380,7 +380,7 @@ struct ResolutionVisitor : Visitor<ASTNode, void, VisitorImplementation::recursi
 		{
 			if(isSearchForType())
 			{
-				BOOST_ASSERT(false && "reaching unreachable code");
+				UNREACHABLE_CODE();
 			}
 		}
 		else
@@ -491,7 +491,7 @@ struct ResolutionVisitor : Visitor<ASTNode, void, VisitorImplementation::recursi
 	{
 		if(isSearchForSymbol())
 		{
-			BOOST_ASSERT(false && "reaching unreachable code");
+			UNREACHABLE_CODE();
 			// TODO handle the local variable
 		}
 	}

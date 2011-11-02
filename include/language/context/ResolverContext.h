@@ -48,6 +48,8 @@ struct ResolvedType
     template<typename Archive>
     void serialize(Archive& ar, unsigned int version)
     {
+    	UNUSED_ARGUMENT(version);
+
     	ar & ref;
     }
 
@@ -74,6 +76,8 @@ struct AmbiguousResolvedType
     template<typename Archive>
     void serialize(Archive& ar, unsigned int version)
     {
+    	UNUSED_ARGUMENT(version);
+
     	ar & refs;
     }
 
@@ -104,6 +108,8 @@ struct ResolvedSymbol
     template<typename Archive>
     void serialize(Archive& ar, unsigned int version)
     {
+    	UNUSED_ARGUMENT(version);
+
     	ar & ref;
     }
 
@@ -130,6 +136,8 @@ struct AmbiguousResolvedSymbol
     template<typename Archive>
     void serialize(Archive& ar, unsigned int version)
     {
+    	UNUSED_ARGUMENT(version);
+
     	ar & refs;
     }
 
@@ -160,6 +168,8 @@ struct ResolvedPackage
     template<typename Archive>
     void serialize(Archive& ar, unsigned int version)
     {
+    	UNUSED_ARGUMENT(version);
+
     	ar & ref;
     }
 
@@ -186,6 +196,8 @@ struct AmbiguousResolvedPackage
     template<typename Archive>
     void serialize(Archive& ar, unsigned int version)
     {
+    	UNUSED_ARGUMENT(version);
+
     	ar & refs;
     }
 

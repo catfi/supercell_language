@@ -70,7 +70,7 @@ function test():void {
 	else { }
 	*/
 	
-	a = b + c + d;
+	//a = b + c + d;
 	
 }
 
