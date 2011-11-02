@@ -1,63 +1,93 @@
-///[[[signature void generate(std::wstringstream& ss, ASTNode* node)
-
 ///[[[global
+	#include "language/stage/transformer/context/ManglingStageContext.h"
+	#include "language/tree/ASTNodeHelper.h"
+	#include <sstream.h>
+	#include <string>
+	
+	using namespace zillians::language;
+	
+	struct AtClientFuncGeneratorVisitor : GenericDoubleVisitor
+	{
+	    CREATE_INVOKER(generateInvoker, generate)
+	
+	    std::vector<FunctionDecl*>& mFuncList;
+	
+	    AtClientFuncGeneratorVisitor(std::vector<FunctionDecl*>& FuncList) : &mFuncList(FuncList)
+	    {
+	        REGISTER_ALL_VISITABLE_ASTNODE(generateInvoker)
+	    }
+	
+	    void generate(ASTNode& node)
+	    {
+	        revisit(node);
+	    }
+	
+	    void generate(FunctionDecl& node)
+	    {
+	        if(tree::ASTNodeHelper::findAnnotation(&node, L"client"))
+	            mFuncList.push_back(&node);
+	    }
+	};
+	
+	struct AtServerFuncGeneratorVisitor : GenericDoubleVisitor
+	{
+	    CREATE_INVOKER(generateInvoker, generate)
+	
+	    std::vector<FunctionDecl*>& mFuncList;
+	
+	    AtServerFuncGeneratorVisitor(std::vector<FunctionDecl*>& FuncList) : &mFuncList(FuncList)
+	    {
+	        REGISTER_ALL_VISITABLE_ASTNODE(generateInvoker)
+	    }
+	
+	    void generate(ASTNode& node)
+	    {
+	        revisit(node);
+	    }
+	
+	    void generate(FunctionDecl& node)
+	    {
+	        if(tree::ASTNodeHelper::findAnnotation(&node, L"server"))
+	            mFuncList.push_back(&node);
+	    }
+	};
 
-#include "language/stage/transformer/context/ManglingStageContext.h"
-#include "language/tree/ASTNodeHelper.h"
-#include <sstream.h>
-#include <string>
+	//[[[default_entry
+	
+	//[[[entry(auto)
+		//[[[driver]]]
+		
+		//[[[driver
+		//]]]
+		
+		//[[[gen(include:file="hello.h")
+		//]]]
+		//[[[gen(include:file="hello.h")]]]
+		//###gen(include:file="hello.h")
+		//[[[code(include:file="hello.h") 
+			xxx; 
+		//]]]
+	//]]]
 
-using namespace zillians::language;
+	//[[[entry
+	template<typename X, typename Y> void wrapper(std::string filename) {
+		std::ifstream in(filename);
+		ASTNode* node = //.;...
+		//[[[qwe]]]
+		#[[[qwe #]]]
+		#[[[qwe #]]]
+		
+		in.close();
+	}
+	//]]]
 
-struct AtClientFuncGeneratorVisitor : GenericDoubleVisitor
-{
-    CREATE_INVOKER(generateInvoker, generate)
+	void xd2()
+	{
+		wrapper(...);
+	}
+//]]]
 
-    std::vector<FunctionDecl*>& mFuncList;
-
-    AtClientFuncGeneratorVisitor(std::vector<FunctionDecl*>& FuncList) : &mFuncList(FuncList)
-    {
-        REGISTER_ALL_VISITABLE_ASTNODE(generateInvoker)
-    }
-
-    void generate(ASTNode& node)
-    {
-        revisit(node);
-    }
-
-    void generate(FunctionDecl& node)
-    {
-        if(tree::ASTNodeHelper::findAnnotation(&node, L"client"))
-            mFuncList.push_back(&node);
-    }
-};
-
-struct AtServerFuncGeneratorVisitor : GenericDoubleVisitor
-{
-    CREATE_INVOKER(generateInvoker, generate)
-
-    std::vector<FunctionDecl*>& mFuncList;
-
-    AtServerFuncGeneratorVisitor(std::vector<FunctionDecl*>& FuncList) : &mFuncList(FuncList)
-    {
-        REGISTER_ALL_VISITABLE_ASTNODE(generateInvoker)
-    }
-
-    void generate(ASTNode& node)
-    {
-        revisit(node);
-    }
-
-    void generate(FunctionDecl& node)
-    {
-        if(tree::ASTNodeHelper::findAnnotation(&node, L"server"))
-            mFuncList.push_back(&node);
-    }
-};
-
-///]]]
-
-///[[[code
+//[[[code
 std::vector<FunctionDecl*> AtClientFuncList;
 std::vector<FunctionDecl*> AtServerFuncList;
 {
@@ -66,6 +96,7 @@ std::vector<FunctionDecl*> AtServerFuncList;
 {
     AtServerFuncGeneratorVisitor v(AtServerFuncList); v.visit(*node);
 }
+
 std::wstring GameName; // TODO: need spec
 
     ///[[[gen( GAME_NAME=GameName, TRANSLATOR_UUID=TranslatorUUID )
@@ -111,7 +142,7 @@ std::wstring GameName; // TODO: need spec
             foreach(i, AtServerFuncList)
             {
                 std::wstring FuncName = (*i)->name->toString();
-            	///[[[gen( GAME_NAME=GameName, FUNCTION_NAME=FuncName )
+            	///###gen( GAME_NAME=GameName, FUNCTION_NAME=FuncName ) a[b[c[1]]] 
                 mWorldGateway->registerCommandTranslator(${GAME_NAME}_${FUNCTION_NAME}_ClientCommandObject::TYPE, this_translator);
             	///]]]
             }
@@ -126,18 +157,18 @@ std::wstring GameName; // TODO: need spec
             foreach(i, AtClientFuncList)
             {
                 std::wstring FuncName = (*i)->name->toString();
-            	///[[[gen( GAME_NAME=GameName, FUNCTION_NAME=FuncName )
+            	//[[[gen( GAME_NAME=GameName, FUNCTION_NAME=FuncName )
                 mWorldGateway->unregisterCommandTranslator(${GAME_NAME}_${FUNCTION_NAME}_CloudCommandObject::TYPE);
-            	///]]]
+            	//]]]
             }
             foreach(i, AtServerFuncList)
             {
                 std::wstring FuncName = (*i)->name->toString();
-            	///[[[gen( GAME_NAME=GameName, FUNCTION_NAME=FuncName )
+            	//[[[gen( GAME_NAME=GameName, FUNCTION_NAME=FuncName )
                 mWorldGateway->unregisterCommandTranslator(${GAME_NAME}_${FUNCTION_NAME}_ClientCommandObject::TYPE);
-            	///]]]
+            	//]]]
             }
-            ///]]]
+            //]]]
             // GENERATE_END
             mWorldGateway.reset();
         }

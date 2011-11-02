@@ -391,6 +391,8 @@ bool ThorScriptDepStage::parseOptions(po::variables_map& vm)
 
 bool ThorScriptDepStage::execute(bool& continue_execution)
 {
+	UNUSED_ARGUMENT(continue_execution);
+
     // precondition
     if(!boost::filesystem::exists("src"))
     {

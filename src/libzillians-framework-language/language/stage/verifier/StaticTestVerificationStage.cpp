@@ -61,29 +61,25 @@ bool StaticTestVerificationStage::parseOptions(po::variables_map& vm)
 
 bool StaticTestVerificationStage::execute(bool& continue_execution)
 {
+	UNUSED_ARGUMENT(continue_execution);
+
     if(!enabled)
-    {
         return true;
-    }
 
 	if(!hasParserContext())
 		return false;
 
 	ParserContext& parser_context = getParserContext();
 
-	if(parser_context.program)
+	if(parser_context.tangle)
 	{
 		visitor::StaticTestVerificationStageVisitor verifier;
-		verifier.programNode = parser_context.program;
-		verifier.visit(*parser_context.program);
+		verifier.visit(*parser_context.tangle);
+
 		if(verifier.isAllMatch())
-		{
 			return true;
-		}
 		else
-		{
 			return false;
-		}
 	}
 	else
 	{

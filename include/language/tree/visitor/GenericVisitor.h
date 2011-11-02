@@ -46,7 +46,8 @@
 				FunctionType, \
 				/* module */ \
 				Internal, \
-				Program, \
+				Tangle, \
+				Source, \
 				Package, \
 				Import, \
 				/* declaration */ \
@@ -99,7 +100,8 @@
 				FunctionType, \
 				/* module */ \
 				Internal, \
-				Program, \
+				Tangle, \
+				Source, \
 				Package, \
 				Import, \
 				/* declaration */ \
@@ -171,7 +173,7 @@ struct GenericVisitor : Visitor<const ASTNode, void, VisitorImplementation::recu
 		foreach(i, node.objects) visit(**i);
 	}
 
-	void apply(Identifier& node)
+	void apply(const Identifier& node)
 	{
 		UNUSED_ARGUMENT(node);
 		UNREACHABLE_CODE();
@@ -212,7 +214,7 @@ struct GenericVisitor : Visitor<const ASTNode, void, VisitorImplementation::recu
 
 	//////////////////////////////////////////////////////////////////////
 	/// Module
-	void apply(Internal& node)
+	void apply(const Internal& node)
 	{
 		if(node.VoidTy)     visit(*node.VoidTy);
 		if(node.BooleanTy)  visit(*node.BooleanTy);
@@ -229,13 +231,22 @@ struct GenericVisitor : Visitor<const ASTNode, void, VisitorImplementation::recu
 		foreach(i, node.others) visit(**i);
 	}
 
-	void apply(const Program& node)
+	void apply(const Tangle& node)
+	{
+		if(node.internal) visit(*node.internal);
+
+		foreach(i, node.sources)
+		{
+			if(i->first) visit(*(i->first));
+			if(i->second) visit(*(i->second));
+		}
+	}
+
+	void apply(const Source& node)
 	{
 		foreach(i, node.imports) visit(**i);
 
-		if(node.imported_root) visit(*node.imported_root);
 		if(node.root) visit(*node.root);
-		if(node.internal) visit(*node.internal);
 	}
 
 	void apply(const Package& node)

@@ -164,6 +164,8 @@ std::string genCompileCmd(boost::graph_traits<TangleGraphType>::vertex_descripto
 
 bool ThorScriptMakeStage::execute(bool& continue_execution)
 {
+	UNUSED_ARGUMENT(continue_execution);
+
     // restore file dependency
     std::ifstream fin(inputFiles[0]);
     boost::archive::text_iarchive ia(fin);

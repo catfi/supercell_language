@@ -99,6 +99,7 @@ struct ResolutionStageVisitor : GenericDoubleVisitor
 
 	void resolve(Internal& node)
 	{
+		UNUSED_ARGUMENT(node);
 		// since there won't be any unresolved type or symbol in the internal node, just skip it
 	}
 
@@ -139,7 +140,7 @@ struct ResolutionStageVisitor : GenericDoubleVisitor
 
 		// TODO each file should have its own reachable package set
 		// TODO and the set is used for root primary expression translation
-		package_visitor.visit(*getParserContext().program);
+		package_visitor.visit(*getParserContext().active_source);
 
 		if(package_visitor.candidates.size() == 1)
 		{
@@ -796,7 +797,7 @@ private:
 
 	TypeSpecifier* getInternalPrimitiveType(PrimitiveType::type t)
 	{
-		return getParserContext().program->internal->getPrimitiveTy(t);
+		return getParserContext().tangle->internal->getPrimitiveTy(t);
 	}
 
 	void convertDispatch(ASTNode* node_to_debug, ASTNode* lhs, ASTNode* rhs, bool is_assignment, bool is_arithmetic, bool is_logical)
@@ -974,14 +975,14 @@ private:
 
 		if(!isa<TypeSpecifier>(resolved_type))
 		{
-			LOG_MESSAGE(INVALID_CONV, node, _rhs_type = ASTNodeHelper::getNodeName(resolved_type), _lhs_type = ASTNodeHelper::getNodeName(getParserContext().program->internal->BooleanTy));
+			LOG_MESSAGE(INVALID_CONV, node, _rhs_type = ASTNodeHelper::getNodeName(resolved_type), _lhs_type = ASTNodeHelper::getNodeName(getParserContext().tangle->internal->BooleanTy));
 			return;
 		}
 
 		TypeSpecifier* specifier = cast<TypeSpecifier>(resolved_type);
 		if(!specifier->isPrimitiveType()/* || !PrimitiveType::isIntegerType(specifier->referred.primitive)*/)
 		{
-			LOG_MESSAGE(INVALID_CONV, node, _rhs_type = ASTNodeHelper::getNodeName(specifier), _lhs_type = ASTNodeHelper::getNodeName(getParserContext().program->internal->BooleanTy));
+			LOG_MESSAGE(INVALID_CONV, node, _rhs_type = ASTNodeHelper::getNodeName(specifier), _lhs_type = ASTNodeHelper::getNodeName(getParserContext().tangle->internal->BooleanTy));
 			return;
 		}
 

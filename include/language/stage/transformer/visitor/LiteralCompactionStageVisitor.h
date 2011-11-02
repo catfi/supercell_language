@@ -51,7 +51,7 @@ struct LiteralCompactionStageVisitor : GenericDoubleVisitor
 		revisit(node);
 	}
 
-	void compact(Program& node)
+	void compact(Source& node)
 	{
 		program = &node;
 		revisit(node);
@@ -102,7 +102,7 @@ struct LiteralCompactionStageVisitor : GenericDoubleVisitor
 		}
 	}
 
-	Program* program;
+	Source* program;
 };
 
 } } } }

@@ -125,13 +125,22 @@ struct GenericDoubleVisitor : Visitor<ASTNode, void, VisitorImplementation::recu
 			foreach(i, node.others) user_visitor->visit(**i);
 		}
 
-		void apply(Program& node)
+		void apply(Tangle& node)
+		{
+			if(node.internal) user_visitor->visit(*node.internal);
+
+			foreach(i, node.sources)
+			{
+				if(i->first) user_visitor->visit(*(i->first));
+				if(i->second) user_visitor->visit(*(i->second));
+			}
+		}
+
+		void apply(Source& node)
 		{
 			foreach(i, node.imports) user_visitor->visit(**i);
 
-			if(node.imported_root) user_visitor->visit(*node.imported_root);
 			if(node.root) user_visitor->visit(*node.root);
-			if(node.internal) user_visitor->visit(*node.internal);
 		}
 
 		void apply(Package& node)

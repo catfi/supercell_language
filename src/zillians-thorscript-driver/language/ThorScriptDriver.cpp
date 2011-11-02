@@ -42,7 +42,7 @@ static bool isCompileOnly(const std::string argv)
 // public member function
 //////////////////////////////////////////////////////////////////////////////
 
-ThorScriptDriver::ThorScriptDriver()
+ThorScriptDriver::ThorScriptDriver() : stage::StageBuilder(false)
 {
 	addDefaultMode<
 		boost::mpl::vector<

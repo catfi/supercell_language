@@ -111,6 +111,9 @@ private:
 	};
 
 public:
+	StageBuilder(bool require_input = false) : StageConductor(require_input)
+	{ }
+
 	template<typename TypeVector>
 	void addDefaultMode()
 	{

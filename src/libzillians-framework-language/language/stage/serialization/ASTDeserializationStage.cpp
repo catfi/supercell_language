@@ -72,23 +72,21 @@ bool ASTDeserializationStage::execute(bool& continue_execution)
 	if(enabled_load)
 	{
 		tree::ASTNode* deserialized = ASTSerializationHelper::deserialize(ast_file_to_load);
-		if(!deserialized || !tree::isa<tree::Package>(deserialized)) return false;
+		if(!deserialized || !tree::isa<tree::Tangle>(deserialized)) return false;
 
-		getParserContext().program->root = tree::cast<tree::Package>(deserialized);
-	}
-
-	foreach(i, inputs)
-	{
-		boost::filesystem::path p(*i);
-		if(strcmp(p.extension().c_str(), ".ast") == 0)
+		tree::Tangle* t = tree::cast<tree::Tangle>(deserialized);
+		t->markImported(true /*is_imported*/);
+		if(getParserContext().tangle)
 		{
-			tree::ASTNode* deserialized = ASTSerializationHelper::deserialize(*i);
-			if(!deserialized || !tree::isa<tree::Package>(deserialized)) return false;
-
-			// merge with imported root ast
-			getParserContext().program->imported_root->merge(*tree::cast<tree::Package>(deserialized));
+			getParserContext().tangle->merge(t);
+		}
+		else
+		{
+			getParserContext().tangle = t;
 		}
 	}
+
+	UNUSED_ARGUMENT(continue_execution);
 
 	return true;
 }

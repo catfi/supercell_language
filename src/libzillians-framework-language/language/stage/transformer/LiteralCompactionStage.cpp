@@ -54,20 +54,22 @@ bool LiteralCompactionStage::parseOptions(po::variables_map& vm)
 
 bool LiteralCompactionStage::execute(bool& continue_execution)
 {
+	UNUSED_ARGUMENT(continue_execution);
+
 	if(!hasParserContext())
 		return false;
 
 	ParserContext& parser_context = getParserContext();
 
-	if(parser_context.program)
+	if(parser_context.active_source)
 	{
 		visitor::LiteralCompactionStageVisitor compactor;
-		compactor.visit(*parser_context.program);
+		compactor.visit(*parser_context.active_source);
 
 		if(debug)
 		{
 			tree::visitor::PrettyPrintVisitor printer;
-			printer.visit(*parser_context.program);
+			printer.visit(*parser_context.active_source);
 		}
 
 		return true;

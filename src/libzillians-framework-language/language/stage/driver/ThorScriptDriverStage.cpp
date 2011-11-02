@@ -69,6 +69,8 @@ bool ThorScriptDriverStage::parseOptions(po::variables_map& vm)
 
 bool ThorScriptDriverStage::execute(bool& continue_execution)
 {
+	UNUSED_ARGUMENT(continue_execution);
+
     int result = 0;
     if (system("ts-dep")   != 0) return false;
     if (system("ts-make")  != 0) return false;

@@ -96,7 +96,6 @@
 			BOOST_MPL_ASSERT(( boost::is_same<_local_t(0), LOCATION_TYPE&> )); \
 			if(!_local(0)) \
 				_local(0).reset(new stage::SourceInfoContext( \
-						getParserContext().debug.source_index, \
 						getParserContext().debug.line, \
 						getParserContext().debug.column)); \
 		}

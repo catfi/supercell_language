@@ -69,6 +69,8 @@ bool LLVMBitCodeGeneratorStage::parseOptions(po::variables_map& vm)
 
 bool LLVMBitCodeGeneratorStage::execute(bool& continue_execution)
 {
+	UNUSED_ARGUMENT(continue_execution);
+
 	if(dump_llvm)
 	{
 		if(!hasGeneratorContext())
@@ -109,8 +111,6 @@ bool LLVMBitCodeGeneratorStage::execute(bool& continue_execution)
 			llvm::WriteBitcodeToFile(*m, stream);
 		}
 	}
-
-	UNUSED_ARGUMENT(continue_execution);
 
 	return true;
 }

@@ -96,7 +96,7 @@ struct Identifier : qi::grammar<Iterator, typename SA::identifier::attribute_typ
 			L"while", L"do", L"foreach", L"in", L"for",
 			L"break", L"continue", L"return",
 			L"new", L"as", L"instanceof",
-			L"package", L"import",
+			L"module", L"import",
 			L"extends", L"implements";
 		keyword = DISTINCT_IDENTIFIER(keyword_sym);
 
@@ -380,7 +380,7 @@ struct ThorScript : qi::grammar<Iterator, typename SA::start::attribute_type, de
 			DECL_TOKEN(AS, L"as");
 			DECL_TOKEN(INSTANCEOF, L"instanceof");
 
-			DECL_TOKEN(PACKAGE, L"package");
+			DECL_TOKEN(MODULE, L"module");
 			DECL_TOKEN(IMPORT, L"import");
 
 			DECL_TOKEN(EXTENDS, L"extends");
@@ -898,11 +898,9 @@ struct ThorScript : qi::grammar<Iterator, typename SA::start::attribute_type, de
 		///
 
 		program
-			=	-(	(-annotation_list >> location [ typename SA::location::cache_loc() ]
-						>> PACKAGE >> nested_identifier >> SEMICOLON
-					) [ typename SA::program::append_package() ]
-				)
-				> *( (IMPORT > nested_identifier > SEMICOLON) [ typename SA::program::append_import() ] )
+			=	*( ( (IMPORT >> nested_identifier > SEMICOLON) [ typename SA::program::append_import() ] ) |
+				     ( (IMPORT >> IDENTIFIER >> ASSIGN > nested_identifier > SEMICOLON) [ typename SA::program::append_import_alias() ] ) |
+				     ( (IMPORT >> qi::lit('.') >> ASSIGN > nested_identifier > SEMICOLON) [ typename SA::program::append_import_global_alias() ] ) )
 				> *( global_decl                              [ typename SA::program::append_global_decl() ] )
 			;
 
@@ -1043,7 +1041,7 @@ struct ThorScript : qi::grammar<Iterator, typename SA::start::attribute_type, de
 		WHILE, DO, FOREACH, IN, FOR,
 		RETURN, BREAK, CONTINUE,
 		NEW, AS, INSTANCEOF,
-		PACKAGE, IMPORT,
+		MODULE, IMPORT,
 		EXTENDS, IMPLEMENTS;
 
 	// terminals

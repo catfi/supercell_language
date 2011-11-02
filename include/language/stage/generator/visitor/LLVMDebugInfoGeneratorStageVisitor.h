@@ -93,7 +93,7 @@ struct LLVMDebugInfoGeneratorStageVisitor: GenericDoubleVisitor
 		revisit(node);
 	}
 
-	void generate(Program& node)
+	void generate(Source& node)
 	{
 		LOG4CXX_DEBUG(LoggerWrapper::DebugInfoGeneratorStage, __PRETTY_FUNCTION__);
 		ModuleSourceInfoContext* module_info = ModuleSourceInfoContext::get(&node);
@@ -166,7 +166,7 @@ struct LLVMDebugInfoGeneratorStageVisitor: GenericDoubleVisitor
 		int32 source_index = source_info->source_index;
 		LOG4CXX_DEBUG(LoggerWrapper::DebugInfoGeneratorStage,"<Function> mangling name: " << mangling->managled_name);
 
-		DebugInfoProgramContext* program_context = DebugInfoProgramContext::get(getParserContext().program);
+		DebugInfoProgramContext* program_context = DebugInfoProgramContext::get(getParserContext().active_source);
 		LOG4CXX_DEBUG(LoggerWrapper::DebugInfoGeneratorStage, "<Function> file: " << program_context->files[source_index]);
 
 		// Generate return type debug information

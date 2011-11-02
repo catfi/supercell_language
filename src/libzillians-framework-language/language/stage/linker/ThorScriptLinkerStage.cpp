@@ -49,7 +49,6 @@
 #include "llvm/Support/Host.h"
 #include "llvm/Support/Program.h"
 
-
 namespace zillians { namespace language { namespace stage {
 
 #define THORSCRIPT_ASM_EXTENSION		".s"
@@ -142,6 +141,8 @@ bool ThorScriptLinkerStage::parseOptions(po::variables_map& vm)
 
 bool ThorScriptLinkerStage::execute(bool& continue_execution)
 {
+	UNUSED_ARGUMENT(continue_execution);
+
 	// Unzip the bundle file
 	std::string bc_file;
 	std::string ast_file;

@@ -19,7 +19,7 @@
 
 #include "language/stage/transformer/ResolutionStage.h"
 #include "language/stage/transformer/visitor/ResolutionStageVisitor.h"
-#include "language/tree/visitor/NodeTypeNameVisitor.h"
+//#include "language/tree/visitor/NodeTypeNameVisitor.h"
 #include "language/tree/visitor/NodeInfoVisitor.h"
 #include "language/tree/visitor/PrettyPrintVisitor.h"
 #include "language/resolver/Resolver.h"
@@ -69,6 +69,8 @@ bool ResolutionStage::parseOptions(po::variables_map& vm)
 
 bool ResolutionStage::execute(bool& continue_execution)
 {
+	UNUSED_ARGUMENT(continue_execution);
+
 	if(!hasParserContext())
 		return false;
 
@@ -104,7 +106,7 @@ bool ResolutionStage::execute(bool& continue_execution)
 	if(debug)
 	{
 		tree::visitor::PrettyPrintVisitor printer;
-		printer.visit(*getParserContext().program);
+		printer.visit(*getParserContext().active_source);
 	}
 
 	return complete_type_resolution && complete_symbol_resolution;
@@ -114,19 +116,18 @@ bool ResolutionStage::resolveTypes(bool report_error_summary, bool& making_progr
 {
 	ParserContext& parser_context = getParserContext();
 
-	if(!parser_context.program)
+	if(!parser_context.active_source)
 		return false;
 
 	LOG4CXX_DEBUG(LoggerWrapper::TransformerStage, L"trying to resolve types");
 
 	making_progress = false;
-	tree::Program& program = *parser_context.program;
 
 	Resolver resolver;
 	visitor::ResolutionStageVisitor visitor(visitor::ResolutionStageVisitor::Target::TYPE_RESOLUTION, resolver);
 
 	visitor.reset();
-	visitor.visit(program);
+	visitor.visit(*parser_context.tangle);
 
 	if(visitor.hasTransforms())
 	{
@@ -162,19 +163,18 @@ bool ResolutionStage::resolveSymbols(bool report_error_summary, bool& making_pro
 {
 	ParserContext& parser_context = getParserContext();
 
-	if(!parser_context.program)
+	if(!parser_context.active_source)
 		return false;
 
 	LOG4CXX_DEBUG(LoggerWrapper::TransformerStage, "trying to resolve symbols");
 
 	making_progress = false;
-	tree::Program& program = *parser_context.program;
 
 	Resolver resolver;
 	visitor::ResolutionStageVisitor visitor(visitor::ResolutionStageVisitor::Target::SYMBOL_RESOLUTION, resolver);
 
 	visitor.reset();
-	visitor.visit(program);
+	visitor.visit(*parser_context.tangle);
 
 	if(visitor.hasTransforms())
 	{

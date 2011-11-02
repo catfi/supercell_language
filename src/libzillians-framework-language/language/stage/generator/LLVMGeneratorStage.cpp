@@ -75,6 +75,8 @@ bool LLVMGeneratorStage::parseOptions(po::variables_map& vm)
 
 bool LLVMGeneratorStage::execute(bool& continue_execution)
 {
+	UNUSED_ARGUMENT(continue_execution);
+
 	if(!enabled)
 		return true;
 
@@ -85,21 +87,19 @@ bool LLVMGeneratorStage::execute(bool& continue_execution)
 	llvm::Module* module = new llvm::Module(llvm_module_name, *context);
 
 	// create visitor to walk through the entire tree and generate instructions accordingly
-	if(getParserContext().program)
+	if(getParserContext().active_source)
 	{
 		// emit preamble code (declare all LLVM functions)
 		visitor::LLVMGeneratorStagePreambleVisitor preamble_visitor(*context, *module);
-		preamble_visitor.visit(*getParserContext().program);
+		preamble_visitor.visit(*getParserContext().active_source);
 
 		// emit actual code into each function
 		visitor::LLVMGeneratorStageVisitor visitor(*context, *module);
-		visitor.visit(*getParserContext().program);
+		visitor.visit(*getParserContext().active_source);
 	}
 
 	getGeneratorContext().modules.push_back(module);
 	getGeneratorContext().context = context;
-
-	UNUSED_ARGUMENT(continue_execution);
 
 	return true;
 }
