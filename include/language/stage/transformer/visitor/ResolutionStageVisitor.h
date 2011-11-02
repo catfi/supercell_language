@@ -99,6 +99,7 @@ struct ResolutionStageVisitor : GenericDoubleVisitor
 
 	void resolve(Internal& node)
 	{
+		UNUSED_ARGUMENT(node);
 		// since there won't be any unresolved type or symbol in the internal node, just skip it
 	}
 
