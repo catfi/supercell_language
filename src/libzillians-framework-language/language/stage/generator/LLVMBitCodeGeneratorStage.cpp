@@ -110,6 +110,8 @@ bool LLVMBitCodeGeneratorStage::execute(bool& continue_execution)
 		}
 	}
 
+	UNUSED_ARGUMENT(continue_execution);
+
 	return true;
 }
 

@@ -225,7 +225,7 @@ private:
 			{
 				if(!no_action)
 				{
-					BOOST_ASSERT(false && "reaching unreachable code");
+					UNREACHABLE_CODE();
 					// TODO will this happen?
 				}
 			}

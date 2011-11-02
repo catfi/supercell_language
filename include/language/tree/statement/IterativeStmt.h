@@ -53,6 +53,8 @@ struct IterativeStmt : public Statement
     template<typename Archive>
     void serialize(Archive& ar, const unsigned int version)
     {
+    	UNUSED_ARGUMENT(version);
+
     	ar & boost::serialization::base_object<Statement>(*this);
     	ar & block;
     }
@@ -114,6 +116,8 @@ struct ForStmt : public IterativeStmt
     template<typename Archive>
     void serialize(Archive& ar, const unsigned int version)
     {
+    	UNUSED_ARGUMENT(version);
+
     	ar & boost::serialization::base_object<IterativeStmt>(*this);
     	ar & init;
     	ar & cond;
@@ -171,6 +175,8 @@ struct ForeachStmt : public IterativeStmt
     template<typename Archive>
     void serialize(Archive& ar, const unsigned int version)
     {
+    	UNUSED_ARGUMENT(version);
+
     	ar & boost::serialization::base_object<IterativeStmt>(*this);
     	ar & iterator;
     	ar & range;
@@ -240,6 +246,8 @@ struct WhileStmt : public IterativeStmt
     template<typename Archive>
     void serialize(Archive& ar, const unsigned int version)
     {
+    	UNUSED_ARGUMENT(version);
+
     	ar & boost::serialization::base_object<IterativeStmt>(*this);
     	ar & (int&)style;
     	ar & cond;

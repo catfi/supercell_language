@@ -46,19 +46,26 @@ struct Expression : public ASTNode
 
     virtual bool isEqualImpl(const ASTNode& rhs, ASTNodeSet& visited) const
     {
-    	BEGIN_COMPARE()
-		END_COMPARE()
+    	UNUSED_ARGUMENT(rhs);
+    	UNUSED_ARGUMENT(visited);
+
+    	return true;
     }
 
     virtual bool replaceUseWith(const ASTNode& from, const ASTNode& to, bool update_parent = true)
     {
-    	BEGIN_REPLACE()
-    	END_REPLACE()
+    	UNUSED_ARGUMENT(from);
+    	UNUSED_ARGUMENT(to);
+    	UNUSED_ARGUMENT(update_parent);
+
+    	return false;
     }
 
     template<typename Archive>
     void serialize(Archive& ar, const unsigned int version)
     {
+    	UNUSED_ARGUMENT(version);
+
     	ar & boost::serialization::base_object<ASTNode>(*this);
     }
 };

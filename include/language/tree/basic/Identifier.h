@@ -41,16 +41,6 @@ struct Identifier : public ASTNode
 	virtual const std::wstring& toString() const = 0;
 	virtual bool isEmpty() const = 0;
 
-    virtual bool isEqualImpl(const ASTNode& rhs, ASTNodeSet& visited) const
-    {
-        return true;
-    }
-
-    virtual bool replaceUseWith(const ASTNode& from, const ASTNode& to, bool update_parent = true)
-    {
-    	return false;
-    }
-
     template<typename Archive>
     void serialize(Archive& ar, const unsigned int version)
     {
@@ -107,6 +97,8 @@ struct SimpleIdentifier : public Identifier
     template<typename Archive>
     void serialize(Archive& ar, const unsigned int version)
     {
+    	UNUSED_ARGUMENT(version);
+
     	ar & boost::serialization::base_object<Identifier>(*this);
     	ar & name;
     }
@@ -186,6 +178,8 @@ struct NestedIdentifier : public Identifier
     template<typename Archive>
     void serialize(Archive& ar, const unsigned int version)
     {
+    	UNUSED_ARGUMENT(version);
+
     	ar & boost::serialization::base_object<Identifier>(*this);
     	ar & identifier_list;
     }
@@ -309,6 +303,8 @@ struct TemplatedIdentifier : public Identifier
     template<typename Archive>
     void serialize(Archive& ar, const unsigned int version)
     {
+    	UNUSED_ARGUMENT(version);
+
     	ar & boost::serialization::base_object<Identifier>(*this);
     	ar & type;
     	ar & id;

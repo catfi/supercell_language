@@ -45,6 +45,8 @@ struct NameManglingContext
     template<typename Archive>
     void serialize(Archive& ar, unsigned int version)
     {
+    	UNUSED_ARGUMENT(version);
+
     	ar & managled_name;
     }
 
@@ -74,6 +76,8 @@ struct TypeIdManglingContext
     template<typename Archive>
     void serialize(Archive& ar, unsigned int version)
     {
+    	UNUSED_ARGUMENT(version);
+
     	ar & managled_id;
     }
 
@@ -103,6 +107,8 @@ struct SymbolIdManglingContext
     template<typename Archive>
     void serialize(Archive& ar, unsigned int version)
     {
+    	UNUSED_ARGUMENT(version);
+
     	ar & managled_id;
     }
 

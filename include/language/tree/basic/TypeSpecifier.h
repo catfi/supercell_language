@@ -55,10 +55,8 @@ struct TypeSpecifier : public ASTNode
 			case FUNCTION_TYPE:		return L"function_type";
 			case PRIMITIVE:			return L"primitive";
 			case UNSPECIFIED: 		return L"unspecified";
-			default: break;
+			default: UNREACHABLE_CODE(); return NULL;
 			}
-			BOOST_ASSERT(false && "reaching unreachable code");
-			return NULL;
 		}
 	};
 
@@ -84,6 +82,7 @@ struct TypeSpecifier : public ASTNode
 		case TypeSpecifier::ReferredType::FUNCTION_TYPE: return referred.function_type->toString();
 		case TypeSpecifier::ReferredType::PRIMITIVE: return PrimitiveType::toString(referred.primitive);
 		case TypeSpecifier::ReferredType::UNSPECIFIED: return referred.unspecified->toString();
+		default: UNREACHABLE_CODE(); return L"";
 		}
 	}
 
@@ -129,7 +128,7 @@ struct TypeSpecifier : public ASTNode
         case TypeSpecifier::ReferredType::FUNCTION_TYPE  : COMPARE_MEMBER(referred.function_type )             ; break;
         case TypeSpecifier::ReferredType::PRIMITIVE      : if(referred.primitive != __p->referred.primitive) return false; break;
         case TypeSpecifier::ReferredType::UNSPECIFIED    : COMPARE_MEMBER(referred.unspecified   )             ; break;
-        default: break;
+        default: UNREACHABLE_CODE(); break;
         }
         END_COMPARE()
     }
@@ -141,7 +140,7 @@ struct TypeSpecifier : public ASTNode
 		{
 		case TypeSpecifier::ReferredType::FUNCTION_TYPE: REPLACE_USE_WITH(referred.function_type); break;
 		case TypeSpecifier::ReferredType::UNSPECIFIED: REPLACE_USE_WITH(referred.unspecified); break;
-		default: break;
+		default: UNREACHABLE_CODE(); break;
 		}
     	END_REPLACE()
     }
@@ -153,7 +152,7 @@ struct TypeSpecifier : public ASTNode
         case TypeSpecifier::ReferredType::FUNCTION_TYPE  : return new TypeSpecifier(cast<FunctionType>(referred.function_type->clone()));
         case TypeSpecifier::ReferredType::PRIMITIVE      : return new TypeSpecifier(referred.primitive);
         case TypeSpecifier::ReferredType::UNSPECIFIED    : return new TypeSpecifier(cast<Identifier>(referred.unspecified->clone()));
-        default: break;
+        default: UNREACHABLE_CODE(); break;
         }
         return NULL;
     }
@@ -161,6 +160,8 @@ struct TypeSpecifier : public ASTNode
     template<typename Archive>
     void serialize(Archive& ar, const unsigned int version)
     {
+    	UNUSED_ARGUMENT(version);
+
     	ar & boost::serialization::base_object<ASTNode>(*this);
     	ar & (int&)type;
         switch(type)
@@ -168,7 +169,7 @@ struct TypeSpecifier : public ASTNode
         case TypeSpecifier::ReferredType::FUNCTION_TYPE  : ar & referred.function_type; break;
         case TypeSpecifier::ReferredType::PRIMITIVE      : ar & (int&)referred.primitive; break;
         case TypeSpecifier::ReferredType::UNSPECIFIED    : ar & referred.unspecified; break;
-        default: break;
+        default: UNREACHABLE_CODE(); break;
         }
     }
 

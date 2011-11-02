@@ -62,10 +62,8 @@ struct Internal : public ASTNode
 		case PrimitiveType::OBJECT: return ObjectTy;
 		case PrimitiveType::FUNCTION: return FunctionTy;
 		case PrimitiveType::STRING: return StringTy;
-		default: break;
+		default: UNREACHABLE_CODE(); return NULL;
 		}
-		BOOST_ASSERT(false && "reaching unreachable code");
-		return NULL;
 	}
 
     virtual bool isEqualImpl(const ASTNode& rhs, ASTNodeSet& visited) const
@@ -112,6 +110,8 @@ struct Internal : public ASTNode
     template<typename Archive>
     void serialize(Archive& ar, const unsigned int version)
     {
+    	UNUSED_ARGUMENT(version);
+
     	ar & boost::serialization::base_object<ASTNode>(*this);
     	ar & VoidTy;
     	ar & BooleanTy;

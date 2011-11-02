@@ -42,12 +42,6 @@
 #include <boost/mpl/not.hpp>
 #include <boost/type_traits.hpp>
 
-#define UNREACHABLE_CODE() \
-	BOOST_ASSERT(false && "reaching unreachable code")
-
-#define UNIMPLEMENTED_CODE() \
-	BOOST_ASSERT(false && "not yet implemented")
-
 #define DEFINE_HIERARCHY_BASE() \
 	static int stype() \
 	{ \
@@ -352,11 +346,7 @@ typedef boost::mpl::vector<ASTNode, Identifier, Identifier, Declaration,
 #define REPORT_COMPARE_MATCHED()	\
 		return true;
 
-//#define REPORT_COMPARE_MISMATCHED()	\
-//		return false;
-
 #define REPORT_COMPARE_MISMATCHED()	\
-		BOOST_ASSERT(false && "node mismatched"); \
 		return false;
 
 template<typename T>
@@ -518,6 +508,7 @@ inline bool compareDispatchImpl(
 		boost::mpl::false_ /*is_tuple*/,
 		boost::mpl::true_ /*is_other*/)
 {
+	UNUSED_ARGUMENT(visited);
 	return (a == b);
 }
 
@@ -661,6 +652,10 @@ inline bool replaceUseWithDispatchImpl(
 		boost::mpl::false_ /*is_tuple*/,
 		boost::mpl::true_ /*is_other*/)
 {
+	UNUSED_ARGUMENT(a);
+	UNUSED_ARGUMENT(from);
+	UNUSED_ARGUMENT(to);
+	UNUSED_ARGUMENT(update_parent);
 	return false;
 }
 

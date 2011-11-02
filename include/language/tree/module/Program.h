@@ -95,6 +95,8 @@ struct Program : public ASTNode
     template<typename Archive>
     void serialize(Archive& ar, const unsigned int version)
     {
+    	UNUSED_ARGUMENT(version);
+
     	ar & boost::serialization::base_object<ASTNode>(*this);
     	// no serialization since it must be de-serialized from somewhere and we don't want our AST become redundant
     	if(0) ar & imported_root;

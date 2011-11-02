@@ -165,10 +165,8 @@ struct PrimitiveType
 		case FUNCTION: return L"function";
 		case STRING: return L"string";
 		case VARIADIC_ELLIPSIS: return L"...";
-		default: break;
+		default: UNREACHABLE_CODE(); return NULL;
 		}
-		BOOST_ASSERT(false && "reaching unreachable code");
-		return NULL;
 	}
 };
 
