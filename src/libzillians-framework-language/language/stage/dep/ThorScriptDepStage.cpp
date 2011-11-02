@@ -90,6 +90,10 @@ namespace zillians { namespace language { namespace stage {
 static std::set<std::string> globAllTsFiles(const std::string& dirPath)
 {
     std::set<std::string> result;
+    if(!boost::filesystem::exists(dirPath))
+    {
+        return result;
+    }
     namespace fs = boost::filesystem;
     fs::path p(dirPath);
     for (auto i = fs::recursive_directory_iterator(p); i != fs::recursive_directory_iterator(); ++i)
@@ -98,7 +102,14 @@ static std::set<std::string> globAllTsFiles(const std::string& dirPath)
            fs::is_regular_file(i->path()) &&
            i->path().string().substr(i->path().string().size()-2) == ".t")
         {
-            result.insert(i->path().string());
+            if(i->path().string().substr(0, 2) == "./")
+            {
+                result.insert(i->path().string().substr(2));
+            }
+            else
+            {
+                result.insert(i->path().string());
+            }
         }
     }
     return result;
@@ -352,7 +363,9 @@ std::pair<shared_ptr<po::options_description>, shared_ptr<po::options_descriptio
 	shared_ptr<po::options_description> option_desc_public(new po::options_description());
 	shared_ptr<po::options_description> option_desc_private(new po::options_description());
 
-	option_desc_public->add_options() ;
+	option_desc_public->add_options()
+        ("input", po::value<std::vector<std::string>>(), "input file")
+    ;
 
 	foreach(i, option_desc_public->options()) option_desc_private->add(*i);
 
@@ -370,7 +383,7 @@ bool ThorScriptDepStage::parseOptions(po::variables_map& vm)
     }
     else
     {
-        std::set<std::string> inputFileSet = globAllTsFiles(".");
+        std::set<std::string> inputFileSet = globAllTsFiles("src");
         inputFiles.assign(inputFileSet.begin(), inputFileSet.end());
         return true;
     }
@@ -378,6 +391,13 @@ bool ThorScriptDepStage::parseOptions(po::variables_map& vm)
 
 bool ThorScriptDepStage::execute(bool& continue_execution)
 {
+    // precondition
+    if(!boost::filesystem::exists("src"))
+    {
+        std::cerr << "Error: source directory `src` does not exists." << std::endl ;
+        return false;
+    }
+
     // get file dependency
     FileGraphType fileGraph;
     foreach(i, inputFiles)

@@ -9,8 +9,8 @@ bool getImportedPackagesTImpl(Iterator begin, Iterator end, std::vector<std::wst
     return qi::phrase_parse(begin, end,
             // Begin grammar
             (
-                  -( L"module" > *(boost::spirit::unicode::char_ - ';') > L';' )
-                > *( L"import"  >
+                /*  -( L"module" > *(boost::spirit::unicode::char_ - ';') > L';' )
+                >*/ *( L"import"  >
                         (
                             // import . = a.b.c;
                               (*unicode::char_(L".") >> L'=' >> boost::spirit::as_wstring[*unicode::char_(L"0-9a-zA-Z_.")][boost::phoenix::push_back(boost::phoenix::ref(v), boost::spirit::qi::_1)] >> L';')

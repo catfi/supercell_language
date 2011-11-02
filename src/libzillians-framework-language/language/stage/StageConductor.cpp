@@ -33,9 +33,7 @@ StageConductor::StageConductor() : mOptionDescGlobal()
 	// initialize basic program options
 	mOptionDescGlobal.add_options()
 		("help,h", "show this help")
-		("input,i", po::value<std::vector<std::string>>(), "input files");
-
-	mPositionalOptionDesc.add("input", -1);
+    ;
 }
 
 StageConductor::~StageConductor()
@@ -89,7 +87,7 @@ int StageConductor::main(int argc, const char** argv)
 	    }
 
 	    // if help option is specified, print the options and exit
-	    if(vm.count("help") > 0 || argc < 2)
+	    if(vm.count("help") > 0)
 	    {
 	    	std::cout << "command line options: " << std::endl << std::endl;
 	    	std::cout << options_desc_pub << std::endl;

@@ -17,34 +17,29 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef ZILLIANS_LANGUAGE_THORSCRIPTDRIVER_H_
-#define ZILLIANS_LANGUAGE_THORSCRIPTDRIVER_H_
+#ifndef ZILLIANS_LANGUAGE_STAGE_DRIVER_THORSCRIPTDRIVERSTAGE_H_
+#define ZILLIANS_LANGUAGE_STAGE_DRIVER_THORSCRIPTDRIVERSTAGE_H_
 
-#include "core/Prerequisite.h"
-#include "language/tree/ASTNode.h"
-#include "language/stage/StageBuilder.h"
+#include "language/stage/Stage.h"
 
-namespace zillians { namespace language {
+namespace zillians { namespace language { namespace stage {
 
-class ThorScriptDriver : public stage::StageBuilder
+class ThorScriptDriverStage : public Stage
 {
 public:
-	ThorScriptDriver();
-	virtual ~ThorScriptDriver();
+	ThorScriptDriverStage();
+	virtual ~ThorScriptDriverStage();
 
 public:
-	virtual void initialize();
-	virtual void finalize();
+	virtual const char* name();
+	virtual std::pair<shared_ptr<po::options_description>, shared_ptr<po::options_description>> getOptions();
+	virtual bool parseOptions(po::variables_map& vm);
+	virtual bool execute(bool& continue_execution);
 
-private:
-    bool dep(const std::string& argv);
-    bool make(const std::string& argv);
-    bool link(const std::string& argv);
-
-private:
-    std::string argv;
+public:
+    std::vector<std::string> inputFiles;
 };
 
-} }
+} } }
 
-#endif /* ZILLIANS_LANGUAGE_THORSCRIPTDRIVER_H_ */
+#endif /* ZILLIANS_LANGUAGE_STAGE_DRIVER_THORSCRIPTDRIVERSTAGE_H_ */

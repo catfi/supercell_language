@@ -162,7 +162,7 @@ public:
 	    }
 
 	    // if help option is specified, print the options and exit
-	    if(vm.count("help") > 0 || argc < 2)
+	    if(vm.count("help") > 0)
 	    {
 	    	appendAllStages();
 	    	appendOptionsFromAllStages(options_desc, dummy);
