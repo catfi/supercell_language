@@ -124,6 +124,16 @@ struct Annotations : public ASTNode
     	return cloned;
     }
 
+    bool merge(Annotations& rhs)
+    {
+    	foreach(i, rhs.annotation_list)
+		{
+    		annotation_list.push_back(*i);
+		}
+
+    	return true;
+    }
+
     template<typename Archive>
     void serialize(Archive& ar, const unsigned int version)
     {

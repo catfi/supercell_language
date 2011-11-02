@@ -19,7 +19,7 @@ for ARG in "$@"; do
         exit 1
     fi
     if [ $MODE -eq 1 ]; then
-        $EXEC $ARG --mode-parse-syntax-only --debug-parser-ast-with-loc
+        $EXEC $ARG --mode-parse --debug-parser-ast-with-loc --enable-static-test
         ERROR_CODE="$?"
         if [ $ERROR_CODE -ne 0 ]; then
             echo "ERROR: construct/dump ast fail!"
@@ -28,8 +28,7 @@ for ARG in "$@"; do
         continue
     fi
     if [ $MODE -eq 2 ]; then
-        #$EXEC $ARG --mode-xform-stage-only --debug-literal-compaction-stage --debug-restructure-stage
-        $EXEC $ARG --mode-xform-stage-only --debug-restructure-stage
+        $EXEC $ARG --mode-xform --debug-restructure-stage --enable-static-test
         ERROR_CODE="$?"
         if [ $ERROR_CODE -ne 0 ]; then
             echo "ERROR: transform ast fail!"
@@ -37,7 +36,7 @@ for ARG in "$@"; do
         fi
         continue
     fi
-    $EXEC $ARG --mode-parse-syntax-only --debug-parser |& grep -v "[DEBUG]" > $TEMP_FILE_A
+    $EXEC $ARG --mode-parse --debug-parser --enable-static-test |& grep -v "[DEBUG]" > $TEMP_FILE_A
     ERROR_CODE="${PIPESTATUS[0]}" # NOTE: need PIPESTATUS because piped grep always succeeds
     if [ $ERROR_CODE -ne 0 ]; then
         cat $TEMP_FILE_A # NOTE: for convenience of reference
@@ -76,6 +75,6 @@ for ARG in "$@"; do
     echo
 done
 
-echo "success!"
+echo "success! (test.sh)"
 exit 0
 

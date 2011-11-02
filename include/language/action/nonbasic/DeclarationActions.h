@@ -37,8 +37,8 @@ struct global_decl
 		printf("global_decl param(1) type = %s\n", typeid(_param_t(1)).name());
 #endif
 		_result = _param(1);
-		if(_param(0).is_initialized())
-			_result->setAnnotation(*_param(0));
+		if(_result && _param(0).is_initialized())
+			_result->setAnnotations(*_param(0));
 	}
 	END_ACTION
 };
@@ -78,7 +78,7 @@ struct param_decl_with_init
 		printf("param_decl_with_init param(1) type = %s\n", typeid(_param_t(1)).name());
 #endif
 		_result = _param(0);
-		if(_param(1).is_initialized())
+		if(_result && _param(1).is_initialized())
 			_result->setInitializer(*_param(1));
 	}
 	END_ACTION
@@ -102,8 +102,11 @@ struct const_decl
 		printf("const_decl param(1) type = %s\n", typeid(_param_t(1)).name());
 #endif
 		_result = _param(0);
-		cast<VariableDecl>(_result)->is_const = true;
-		cast<VariableDecl>(_result)->setInitializer(_param(1));
+		if(_result)
+		{
+			cast<VariableDecl>(_result)->is_const = true;
+			cast<VariableDecl>(_result)->setInitializer(_param(1));
+		}
 	}
 	END_ACTION
 };
@@ -138,7 +141,7 @@ struct function_decl
 		bool                                   is_member  = false;
 		bool                                   is_static  = false;
 		BIND_CACHED_LOCATION(_result = new FunctionDecl(name, type, is_member, is_static, visibility, block));
-		if(!!parameters)
+		if(parameters)
 			deduced_foreach_value(i, *parameters)
 				cast<FunctionDecl>(_result)->appendParameter(i);
 	}
@@ -177,10 +180,10 @@ struct class_decl
 		Identifier* name = _param(0);
 		Identifier* extends_from_ident = _param(1).is_initialized() ? *_param(1) : NULL;
 		TypeSpecifier* extends_from = NULL;
-		if(!!extends_from_ident)
+		if(extends_from_ident)
 			BIND_CACHED_LOCATION(extends_from = new TypeSpecifier(extends_from_ident));
 		BIND_CACHED_LOCATION(_result = new ClassDecl(name));
-		if(!!extends_from)
+		if(extends_from)
 			cast<ClassDecl>(_result)->setBase(extends_from);
 		if(_param(2).is_initialized())
 			deduced_foreach_value(i, *_param(2))
@@ -221,16 +224,19 @@ struct class_member_decl
 		Declaration::VisibilitySpecifier::type visibility      = _param(1).is_initialized() ? *_param(1) : Declaration::VisibilitySpecifier::DEFAULT;
 		bool                                   is_static       = _param(2).is_initialized();
 		_result = _param(3);
-		_result->setAnnotation(annotation_list);
-		if(isa<VariableDecl>(_result))
+		if(_result)
 		{
-			cast<VariableDecl>(_result)->visibility = visibility;
-			cast<VariableDecl>(_result)->is_static  = is_static;
-		}
-		else if(isa<FunctionDecl>(_result))
-		{
-			cast<FunctionDecl>(_result)->visibility = visibility;
-			cast<FunctionDecl>(_result)->is_static  = is_static;
+			_result->setAnnotations(annotation_list);
+			if(isa<VariableDecl>(_result))
+			{
+				cast<VariableDecl>(_result)->visibility = visibility;
+				cast<VariableDecl>(_result)->is_static  = is_static;
+			}
+			else if(isa<FunctionDecl>(_result))
+			{
+				cast<FunctionDecl>(_result)->visibility = visibility;
+				cast<FunctionDecl>(_result)->is_static  = is_static;
+			}
 		}
 	}
 	END_ACTION
@@ -277,8 +283,8 @@ struct interface_member_function_decl
 		bool                                   is_member       = false;
 		bool                                   is_static       = false;
 		BIND_CACHED_LOCATION(_result = new FunctionDecl(_param(2), _param(4), is_member, is_static, visibility));
-		_result->setAnnotation(annotation_list);
-		if(!!parameters)
+		_result->setAnnotations(annotation_list);
+		if(parameters)
 			deduced_foreach_value(i, *parameters)
 				cast<FunctionDecl>(_result)->appendParameter(i);
 	}
@@ -302,7 +308,11 @@ struct enum_decl
 			SimpleIdentifier*             tag             = boost::fusion::at_c<0>(i);
 			boost::optional<Expression*> &optional_result = boost::fusion::at_c<1>(i);
 			Expression*                   value           = optional_result.is_initialized() ? *optional_result : NULL;
-			cast<EnumDecl>(_result)->addEnumeration(tag, value);
+
+			VariableDecl* decl = new VariableDecl(tag, new TypeSpecifier(PrimitiveType::INT32), true, true, true, Declaration::VisibilitySpecifier::DEFAULT, value);
+			BIND_CACHED_LOCATION(decl);
+
+			cast<EnumDecl>(_result)->addEnumeration(decl);
 		}
 	}
 	END_ACTION

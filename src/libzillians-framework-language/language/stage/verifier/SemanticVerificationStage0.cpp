@@ -19,7 +19,7 @@
 
 #include "language/stage/verifier/SemanticVerificationStage0.h"
 #include "language/stage/verifier/visitor/SemanticVerificationStageVisitor0.h"
-#include "language/tree/visitor/general/PrettyPrintVisitor.h"
+#include "language/tree/visitor/PrettyPrintVisitor.h"
 #include "language/context/ParserContext.h"
 
 namespace zillians { namespace language { namespace stage {
@@ -65,6 +65,7 @@ bool SemanticVerificationStage0::execute(bool& continue_execution)
 	{
 		visitor::SemanticVerificationStageVisitor0 verifier;
 		verifier.visit(*parser_context.program);
+		verifier.applyCleanup();
 		return true;
 	}
 	else

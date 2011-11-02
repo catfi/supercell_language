@@ -20,10 +20,10 @@
 #include "core/Prerequisite.h"
 #include "language/tree/ASTNode.h"
 #include "language/tree/ASTNodeFactory.h"
-#include "language/tree/visitor/general/GenericVisitor.h"
-#include "language/tree/visitor/general/GenericDoubleVisitor.h"
-#include "language/tree/visitor/general/GenericComposableVisitor.h"
-#include "language/tree/visitor/general/ObjectCountVisitor.h"
+#include "language/tree/visitor/GenericVisitor.h"
+#include "language/tree/visitor/GenericDoubleVisitor.h"
+#include "language/tree/visitor/GenericComposableVisitor.h"
+#include "language/tree/visitor/ObjectCountVisitor.h"
 #include "../ASTNodeSamples.h"
 #include <iostream>
 #include <string>
@@ -83,7 +83,7 @@ BOOST_AUTO_TEST_CASE( ThorScriptTreeTest_GenericVisitorTestCase1 )
 	ASTNode* program = createSample1();
 	counter.visit(*program);
 
-	BOOST_CHECK(counter.total_count == 14);
+	BOOST_CHECK(counter.total_count == 17);
 
 	std::cout << "total node count = " << counter.total_count << std::endl;
 }
@@ -101,8 +101,8 @@ BOOST_AUTO_TEST_CASE( ThorScriptTreeTest_GenericVisitorTestCase2 )
 	ASTNode* program = createSample1();
 	composed_counter.visit(*program);
 
-	BOOST_CHECK(counter1.total_count == 14);
-	BOOST_CHECK(counter2.total_count == 14);
+	BOOST_CHECK(counter1.total_count == 17);
+	BOOST_CHECK(counter2.total_count == 17);
 
 	std::cout << "total node count (counter1) = " << counter1.total_count << std::endl;
 	std::cout << "total node count (counter2) = " << counter2.total_count << std::endl;
@@ -121,8 +121,8 @@ BOOST_AUTO_TEST_CASE( ThorScriptTreeTest_GenericVisitorTestCase3 )
 	ASTNode* program = createSample1();
 	composed_counter.visit(*program);
 
-	BOOST_CHECK(counter1.get_count() == 14);
-	BOOST_CHECK(counter2.get_count() == 14);
+	BOOST_CHECK(counter1.get_count() == 17);
+	BOOST_CHECK(counter2.get_count() == 17);
 
 	std::cout << "total node count (counter1) = " << counter1.get_count() << std::endl;
 	std::cout << "total node count (counter2) = " << counter2.get_count() << std::endl;

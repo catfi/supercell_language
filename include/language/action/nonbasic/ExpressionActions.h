@@ -154,7 +154,7 @@ struct primary_expression
 		bool                                   is_static  = false;
 		FunctionDecl* function_decl =
 				new FunctionDecl(NULL, type, is_member, is_static, visibility, _param(2)); BIND_CACHED_LOCATION(function_decl);
-		if(!!parameters)
+		if(parameters)
 			deduced_foreach_value(i, *parameters)
 				function_decl->appendParameter(i);
 		BIND_CACHED_LOCATION(_result = new PrimaryExpr(function_decl));
@@ -229,7 +229,14 @@ struct prefix_expression
 		switch(_param(0).which())
 		{
 		case 0:
-			_result = boost::get<Expression*>(_param(0));
+			{
+				typedef boost::fusion::vector2<boost::optional<UnaryExpr::OpCode::type>, Expression*> fusion_vec_t;
+				fusion_vec_t &vec = boost::get<fusion_vec_t>(_param(0));
+				boost::optional<UnaryExpr::OpCode::type> optional_type = boost::fusion::at_c<0>(vec);
+				_result = boost::fusion::at_c<1>(vec);
+				if(optional_type.is_initialized())
+					BIND_CACHED_LOCATION(_result = new UnaryExpr(UnaryExpr::OpCode::NEW, _result));
+			}
 			break;
 		case 1:
 			{
@@ -240,6 +247,8 @@ struct prefix_expression
 				BIND_CACHED_LOCATION(_result = new UnaryExpr(type, expr));
 			}
 			break;
+		default:
+			_result = NULL;
 		}
 	}
 	END_ACTION

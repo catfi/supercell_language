@@ -109,7 +109,7 @@ struct StringTable
 			zh_TW = '溢位'
 			))
 	LOG_STRING.create('UNDEFINED_TYPE', LOG_LEVEL.LEVEL_ERROR, 0, dict(
-			en_US = 'there are $count(uint32) unresolved symbols',
+			en_US = 'there are $count(uint32) unresolved types',
 			zh_TW = '找到$count(uint32)個未定義的型別'
 			))
 	LOG_STRING.create('UNDEFINED_TYPE_INFO', LOG_LEVEL.LEVEL_ERROR, 0, dict(
@@ -189,6 +189,14 @@ struct StringTable
 			en_US = 'invalid types $primary_type(wstring) and $subscript_type(wstring) for array subscript',
 			zh_TW = 'NOTE: 暫無中文翻譯 ==> SUBSCRIPT_OF_NONARRAY'
 			))
+	LOG_STRING.create('UNEXPECTED_VARIADIC_ARG', LOG_LEVEL.LEVEL_ERROR, 0, dict(
+			en_US = 'NOTE: lacking message ==> UNEXPECTED_VARIADIC_ARG',
+			zh_TW = 'NOTE: 暫無中文翻譯 ==> UNEXPECTED_VARIADIC_ARG'
+			))
+	LOG_STRING.create('UNEXPECTED_VARIADIC_TEMPLATE_ARG', LOG_LEVEL.LEVEL_ERROR, 0, dict(
+			en_US = 'NOTE: lacking message ==> UNEXPECTED_VARIADIC_TEMPLATE_ARG',
+			zh_TW = 'NOTE: 暫無中文翻譯 ==> UNEXPECTED_VARIADIC_TEMPLATE_ARG'
+			))
 	LOG_STRING.create('MISMATCH_CALL_ARGNUM', LOG_LEVEL.LEVEL_ERROR, 0, dict(
 			en_US = 'too many/few arguments to function $func_id(wstring)',
 			zh_TW = 'NOTE: 暫無中文翻譯 ==> MISMATCH_CALL_ARGNUM'
@@ -204,10 +212,6 @@ struct StringTable
 	LOG_STRING.create('MISSING_RETURN_VALUE', LOG_LEVEL.LEVEL_ERROR, 0, dict(
 			en_US = 'return-statement with no value, in function returning $type(wstring)',
 			zh_TW = 'NOTE: 暫無中文翻譯 ==> MISSING_RETURN_VALUE'
-			))
-	LOG_STRING.create('MISSING_CONST_INIT', LOG_LEVEL.LEVEL_ERROR, 0, dict(
-			en_US = 'uninitialized const $var_id(wstring)',
-			zh_TW = 'NOTE: 暫無中文翻譯 ==> MISSING_CONST_INIT'
 			))
 	LOG_STRING.create('WRITE_CONST', LOG_LEVEL.LEVEL_ERROR, 0, dict(
 			en_US = 'assignment of read-only variable $var_id(wstring)',
@@ -241,6 +245,10 @@ struct StringTable
 			en_US = 'continue statement not within a loop',
 			zh_TW = 'NOTE: 暫無中文翻譯 ==> MISSING_CONTINUE_TARGET'
 			))
+	LOG_STRING.create('MULTIPLE_DEFAULT_LABELS', LOG_LEVEL.LEVEL_ERROR, 0, dict(
+			en_US = 'multiple default labels in one switch',
+			zh_TW = 'NOTE: 暫無中文翻譯 ==> MULTIPLE_DEFAULT_LABELS'
+			))
 	LOG_STRING.create('MISSING_PARAM_INIT', LOG_LEVEL.LEVEL_ERROR, 0, dict(
 			en_US = 'default argument missing for parameter $param_index(uint32) of $func_id(wstring)',
 			zh_TW = 'NOTE: 暫無中文翻譯 ==> MISSING_PARAM_INIT'
@@ -252,6 +260,10 @@ struct StringTable
 	LOG_STRING.create('UNEXPECTED_VARIADIC_TEMPLATE_PARAM', LOG_LEVEL.LEVEL_ERROR, 0, dict(
 			en_US = 'NOTE: lacking message ==> UNEXPECTED_VARIADIC_TEMPLATE_PARAM',
 			zh_TW = 'NOTE: 暫無中文翻譯 ==> UNEXPECTED_VARIADIC_TEMPLATE_PARAM'
+			))
+	LOG_STRING.create('PACKAGE_NAME_COLLIDE_PARENT', LOG_LEVEL.LEVEL_ERROR, 0, dict(
+			en_US = '$package_id(wstring) has the same name as the package in which it is declared',
+			zh_TW = 'NOTE: 暫無中文翻譯 ==> PACKAGE_NAME_COLLIDE_PARENT'
 			))
 	LOG_STRING.create('EXCEED_PARAM_LIMIT', LOG_LEVEL.LEVEL_ERROR, 0, dict(
 			en_US = 'NOTE: lacking message ==> EXCEED_PARAM_LIMIT',
@@ -468,7 +480,7 @@ public:
 		cog.outl('\t vector<string>& files = stage::ModuleSourceInfoContext::get(program_node)->source_files;')
 		cog.outl('\t if(node) { ')
 
-		cog.outl('\t\t zillians::language::tree::ASTNode* attach_point = tree::ASTNodeHelper::getAttachPoint(*node);')
+		cog.outl('\t\t zillians::language::tree::ASTNode* attach_point = tree::ASTNodeHelper::getDebugAnnotationAttachPoint(node);')
 		cog.outl('\t\t LogInfoContext::push_back(attach_point, LogInfo(str_level, str_id, parameters));')
 		cog.outl('\t\t stage::SourceInfoContext* source_info = stage::SourceInfoContext::get(attach_point);')
 		cog.outl('\t\t mWrapper->log(StringTable::%s, s_to_ws(files[source_info->source_index]), source_info->line, translated);' % id)

@@ -1,6 +1,6 @@
 #
 # Zillians MMO
-# Copyright (C) 2007-2010 Zillians.com, Inc.
+# Copyright (C) 2007-2012 Zillians.com, Inc.
 # For more information see http:#www.zillians.com
 #
 # Zillians MMO is the library and runtime for massive multiplayer online game
@@ -27,8 +27,6 @@ ADD_SUBDIRECTORY(libzillians-framework-vw-api-mt)
 ADD_SUBDIRECTORY(libzillians-framework-vw-processors-logger)
 
 IF(CUDA_FOUND AND THRUST_FOUND AND ENABLE_FEATURE_CUDA)
-    #ADD_SUBDIRECTORY(libzillians-framework-vw-processors-fermi)
-    #ADD_SUBDIRECTORY(libzillians-framework-vw-services-fermi)
     ADD_SUBDIRECTORY(libzillians-framework-vw-api-fermi)
 ELSE()
     MESSAGE(STATUS "disabling build for libzillians-framework-vw-processors-fermi")
@@ -92,14 +90,17 @@ ADD_SUBDIRECTORY(zillians-stub-gen)
 
 ADD_SUBDIRECTORY(zillians-spirit-log-filter)
 
-ADD_SUBDIRECTORY(libzillians-framework-language)
+IF(COG_FOUND)
+    ADD_SUBDIRECTORY(libzillians-framework-language)
+ENDIF()
 
 ADD_SUBDIRECTORY(zillians-thorscript-bundler)
 ADD_SUBDIRECTORY(zillians-thorscript-compiler)
 ADD_SUBDIRECTORY(zillians-thorscript-driver)
 ADD_SUBDIRECTORY(zillians-thorscript-linker)
 ADD_SUBDIRECTORY(zillians-thorscript-manifest-builder)
-ADD_SUBDIRECTORY(zillians-thorscript-stripper)
+ADD_SUBDIRECTORY(zillians-thorscript-strip)
 ADD_SUBDIRECTORY(zillians-thorscript-stub-generator)
 ADD_SUBDIRECTORY(zillians-thorscript-vm)
 ADD_SUBDIRECTORY(zillians-thorscript-dep)
+ADD_SUBDIRECTORY(zillians-thorscript-make)

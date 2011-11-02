@@ -33,7 +33,6 @@
 #include <boost/archive/text_oarchive.hpp>
 #include <boost/archive/text_iarchive.hpp>
 #include <boost/serialization/base_object.hpp>
-#include <boost/serialization/export.hpp>
 #include <boost/serialization/vector.hpp>
 #include <boost/serialization/list.hpp>
 #include <boost/serialization/utility.hpp>
@@ -42,6 +41,12 @@
 #include <boost/mpl/or.hpp>
 #include <boost/mpl/not.hpp>
 #include <boost/type_traits.hpp>
+
+#define UNREACHABLE_CODE() \
+	BOOST_ASSERT(false && "reaching unreachable code")
+
+#define UNIMPLEMENTED_CODE() \
+	BOOST_ASSERT(false && "not yet implemented")
 
 #define DEFINE_HIERARCHY_BASE() \
 	static int stype() \
@@ -670,40 +675,89 @@ inline bool replaceUseWithDispatchImpl(
 			else \
 				visited.insert(this); \
 		} \
-		const self_type* p = cast<const self_type>(&rhs); \
-		if(p == NULL) \
+		const self_type* __p = cast<const self_type>(&rhs); \
+		if(__p == NULL) \
 			return false;
 
 #define BEGIN_COMPARE_WITH_BASE(base_class_name) \
 		typedef boost::remove_const<boost::remove_reference<decltype(*this)>::type>::type self_type; \
-		const self_type* p = cast<const self_type>(&rhs); \
-		if(p == NULL) \
+		const self_type* __p = cast<const self_type>(&rhs); \
+		if(__p == NULL) \
 			return false; \
-		if(!base_class_name::isEqualImpl(*p, visited)) \
+		if(!base_class_name::isEqualImpl(*__p, visited)) \
 			return false;
 
 #define COMPARE_MEMBER(member) \
-		if(!internal::compareDispatch(member, p->member, visited)) return false;
+		if(!internal::compareDispatch(member, __p->member, visited)) return false;
 
 #define END_COMPARE()	\
 		return true;
 
 #define BEGIN_REPLACE() \
-		bool result = false;
+		bool __result = false;
 
 #define BEGIN_REPLACE_WITH_BASE(base_class_name) \
-		bool result = false; \
-		result |= base_class_name::replaceUseWith(from, to, update_parent);
+		bool __result = false; \
+		__result |= base_class_name::replaceUseWith(from, to, update_parent);
 
 #define REPLACE_USE_WITH(member) \
-		result |= internal::replaceUseWithDispatch(member, from, to, update_parent);
+		__result |= internal::replaceUseWithDispatch(member, from, to, update_parent);
 
 #define END_REPLACE()	\
-		return result;
+		return __result;
 
 typedef GarbageCollector<const ASTNode> ASTNodeGC;
 
 } } }
+
+// export serialization declaration
+// see http://www.boost.org/doc/libs/1_47_0/libs/serialization/doc/special.html#export
+#include <boost/serialization/export.hpp>
+
+BOOST_CLASS_EXPORT_KEY2(zillians::language::tree::ASTNode               , "ASTNode")
+BOOST_CLASS_EXPORT_KEY2(zillians::language::tree::Annotation            , "Annotation")
+BOOST_CLASS_EXPORT_KEY2(zillians::language::tree::Annotations           , "Annotations")
+BOOST_CLASS_EXPORT_KEY2(zillians::language::tree::Internal              , "Internal")
+BOOST_CLASS_EXPORT_KEY2(zillians::language::tree::Program               , "Program")
+BOOST_CLASS_EXPORT_KEY2(zillians::language::tree::Package               , "Package")
+BOOST_CLASS_EXPORT_KEY2(zillians::language::tree::Import                , "Import")
+BOOST_CLASS_EXPORT_KEY2(zillians::language::tree::Block                 , "Block")
+BOOST_CLASS_EXPORT_KEY2(zillians::language::tree::Identifier            , "Identifier")
+BOOST_CLASS_EXPORT_KEY2(zillians::language::tree::SimpleIdentifier      , "SimpleIdentifier")
+BOOST_CLASS_EXPORT_KEY2(zillians::language::tree::NestedIdentifier      , "NestedIdentifier")
+BOOST_CLASS_EXPORT_KEY2(zillians::language::tree::TemplatedIdentifier   , "TemplatedIdent")
+BOOST_CLASS_EXPORT_KEY2(zillians::language::tree::Literal               , "Literal")
+BOOST_CLASS_EXPORT_KEY2(zillians::language::tree::NumericLiteral        , "NumericLiteral")
+BOOST_CLASS_EXPORT_KEY2(zillians::language::tree::StringLiteral         , "StringLiteral")
+BOOST_CLASS_EXPORT_KEY2(zillians::language::tree::ObjectLiteral         , "ObjectLiteral")
+BOOST_CLASS_EXPORT_KEY2(zillians::language::tree::TypeSpecifier         , "TypeSpecifier")
+BOOST_CLASS_EXPORT_KEY2(zillians::language::tree::FunctionType          , "FunctionType")
+BOOST_CLASS_EXPORT_KEY2(zillians::language::tree::Declaration           , "Declaration")
+BOOST_CLASS_EXPORT_KEY2(zillians::language::tree::ClassDecl             , "ClassDecl")
+BOOST_CLASS_EXPORT_KEY2(zillians::language::tree::EnumDecl              , "EnumDecl")
+BOOST_CLASS_EXPORT_KEY2(zillians::language::tree::InterfaceDecl         , "InterfaceDecl")
+BOOST_CLASS_EXPORT_KEY2(zillians::language::tree::TypedefDecl           , "TypedefDecl")
+BOOST_CLASS_EXPORT_KEY2(zillians::language::tree::FunctionDecl          , "FunctionDecl")
+BOOST_CLASS_EXPORT_KEY2(zillians::language::tree::VariableDecl          , "VariableDecl")
+BOOST_CLASS_EXPORT_KEY2(zillians::language::tree::Statement             , "Statement")
+BOOST_CLASS_EXPORT_KEY2(zillians::language::tree::DeclarativeStmt       , "DeclarativeStm")
+BOOST_CLASS_EXPORT_KEY2(zillians::language::tree::ExpressionStmt        , "ExpressionStmt")
+BOOST_CLASS_EXPORT_KEY2(zillians::language::tree::IterativeStmt         , "IterativeStmt")
+BOOST_CLASS_EXPORT_KEY2(zillians::language::tree::ForStmt               , "ForStmt")
+BOOST_CLASS_EXPORT_KEY2(zillians::language::tree::ForeachStmt           , "ForeachStmt")
+BOOST_CLASS_EXPORT_KEY2(zillians::language::tree::WhileStmt             , "WhileStmt")
+BOOST_CLASS_EXPORT_KEY2(zillians::language::tree::SelectionStmt         , "SelectionStmt")
+BOOST_CLASS_EXPORT_KEY2(zillians::language::tree::IfElseStmt            , "IfElseStmt")
+BOOST_CLASS_EXPORT_KEY2(zillians::language::tree::SwitchStmt            , "SwitchStmt")
+BOOST_CLASS_EXPORT_KEY2(zillians::language::tree::BranchStmt            , "BranchStmt")
+BOOST_CLASS_EXPORT_KEY2(zillians::language::tree::Expression            , "Expression")
+BOOST_CLASS_EXPORT_KEY2(zillians::language::tree::PrimaryExpr           , "PrimaryExpr")
+BOOST_CLASS_EXPORT_KEY2(zillians::language::tree::UnaryExpr             , "UnaryExpr")
+BOOST_CLASS_EXPORT_KEY2(zillians::language::tree::BinaryExpr            , "BinaryExpr")
+BOOST_CLASS_EXPORT_KEY2(zillians::language::tree::TernaryExpr           , "TernaryExpr")
+BOOST_CLASS_EXPORT_KEY2(zillians::language::tree::MemberExpr            , "MemberExpr")
+BOOST_CLASS_EXPORT_KEY2(zillians::language::tree::CallExpr              , "CallExpr")
+BOOST_CLASS_EXPORT_KEY2(zillians::language::tree::CastExpr              , "CastExpr")
 
 #endif /* ZILLIANS_LANGUAGE_TREE_ASTNODE_H_ */
 

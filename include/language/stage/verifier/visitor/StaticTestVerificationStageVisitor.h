@@ -28,7 +28,7 @@
 #include "language/logging/StringTable.h"
 #include "core/Visitor.h"
 #include "language/tree/ASTNodeFactory.h"
-#include "language/tree/visitor/general/GenericDoubleVisitor.h"
+#include "language/tree/visitor/GenericDoubleVisitor.h"
 #include "language/stage/parser/context/SourceInfoContext.h"
 #include "language/context/LogInfoContext.h"
 
@@ -59,9 +59,16 @@ struct StaticTestVerificationStageVisitor : public zillians::language::tree::vis
     void check(zillians::language::tree::Statement& node)
     {
         staticTest(node);
+        revisit(node); // NOTE: not sure if needed (lambda???)
     }
 
     void check(zillians::language::tree::Declaration& node)
+    {
+        staticTest(node);
+        revisit(node);
+    }
+
+    void check(zillians::language::tree::Package& node)
     {
         staticTest(node);
         revisit(node);

@@ -105,6 +105,21 @@ struct TypeSpecifier : public ASTNode
 		referred.unspecified = unspecified;
 	}
 
+	bool isFunctionType() const
+	{
+		return (type == ReferredType::FUNCTION_TYPE);
+	}
+
+	bool isPrimitiveType() const
+	{
+		return (type == ReferredType::PRIMITIVE);
+	}
+
+	bool isUnspecified() const
+	{
+		return (type == ReferredType::UNSPECIFIED);
+	}
+
     virtual bool isEqualImpl(const ASTNode& rhs, ASTNodeSet& visited) const
     {
     	BEGIN_COMPARE()
@@ -112,7 +127,7 @@ struct TypeSpecifier : public ASTNode
         switch(type)
         {
         case TypeSpecifier::ReferredType::FUNCTION_TYPE  : COMPARE_MEMBER(referred.function_type )             ; break;
-        case TypeSpecifier::ReferredType::PRIMITIVE      : if(referred.primitive != p->referred.primitive) return false; break;
+        case TypeSpecifier::ReferredType::PRIMITIVE      : if(referred.primitive != __p->referred.primitive) return false; break;
         case TypeSpecifier::ReferredType::UNSPECIFIED    : COMPARE_MEMBER(referred.unspecified   )             ; break;
         default: break;
         }

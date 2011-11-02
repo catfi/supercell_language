@@ -21,7 +21,7 @@
  */
 
 #include "language/logging/LoggerWrapper.h"
-#include "language/ThorScriptDriver.h"
+#include "language/ThorScriptBundler.h"
 
 int main(int argc, const char** argv)
 {

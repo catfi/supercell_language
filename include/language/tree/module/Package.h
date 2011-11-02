@@ -25,6 +25,7 @@
 
 #include "language/tree/ASTNode.h"
 #include "language/tree/basic/Identifier.h"
+#include "language/tree/basic/Annotations.h"
 #include "utility/Foreach.h"
 
 namespace zillians { namespace language { namespace tree {
@@ -40,11 +41,18 @@ struct Package : public ASTNode
 	DEFINE_VISITABLE();
 	DEFINE_HIERARCHY(Package, (Package)(ASTNode));
 
-	explicit Package(SimpleIdentifier* _id) : id(_id)
+	explicit Package(SimpleIdentifier* _id) : id(_id), annotations(NULL)
 	{
 		BOOST_ASSERT(_id && "null identifier for package node is not allowed");
 
 		id->parent = this;
+	}
+
+	void setAnnotations(Annotations* anns)
+	{
+		if(annotations) annotations->parent = NULL;
+		anns->parent = this;
+		annotations = anns;
 	}
 
 	Package* findPackage(const std::wstring& name)
@@ -79,6 +87,7 @@ struct Package : public ASTNode
 		COMPARE_MEMBER(id)
 		COMPARE_MEMBER(children)
 		COMPARE_MEMBER(objects)
+		COMPARE_MEMBER(annotations)
 		END_COMPARE()
     }
 
@@ -88,6 +97,7 @@ struct Package : public ASTNode
 		REPLACE_USE_WITH(id)
 		REPLACE_USE_WITH(children)
 		REPLACE_USE_WITH(objects)
+		REPLACE_USE_WITH(annotations)
     	END_REPLACE()
     }
 
@@ -101,7 +111,43 @@ struct Package : public ASTNode
     	foreach(i, objects)
     		cloned->addObject((*i)->clone());
 
+    	if(annotations)
+    		cloned->setAnnotations(cast<Annotations>(annotations->clone()));
+
     	return cloned;
+    }
+
+    bool merge(Package& rhs)
+    {
+    	if(!id->isEqual(*rhs.id))
+    		return false;
+
+    	foreach(i, rhs.children)
+    	{
+    		bool merged = false;
+    		foreach(j, children)
+			{
+    			if((*i)->id->isEqual(*(*j)->id))
+    			{
+    				(*j)->merge(**i);
+    				merged = true;
+    			}
+			}
+
+    		if(!merged)
+    		{
+    			children.push_back(*i);
+    		}
+    	}
+
+    	foreach(i, rhs.objects)
+    	{
+    		objects.push_back(*i);
+    	}
+
+    	annotations->merge(*rhs.annotations);
+
+    	return true;
     }
 
     template<typename Archive>
@@ -111,11 +157,13 @@ struct Package : public ASTNode
     	ar & id;
     	ar & children;
     	ar & objects;
+    	ar & annotations;
     }
 
 	SimpleIdentifier* id;
 	std::vector<Package*> children;
 	std::vector<ASTNode*> objects;
+	Annotations* annotations;
 
 protected:
 	Package() { }

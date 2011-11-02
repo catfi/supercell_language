@@ -30,6 +30,11 @@ namespace zillians { namespace language { namespace stage {
 template<class T>
 struct ASTNodeContext
 {
+	static bool is_bound(tree::ASTNode* node)
+	{
+		return get(node);
+	}
+
 	static T* get(tree::ASTNode* node)
 	{
 		return node->get<T>();
@@ -39,21 +44,24 @@ struct ASTNodeContext
 	{
 		T* x = get(node);
 		if(!x)
-			_set(node, x = new T());
+			set(node, x = new T());
 		return x;
 	}
 
 	static void unbind(tree::ASTNode* node)
 	{
-		_set(node, NULL);
+		set(node, NULL);
 	}
 
 private:
-	static void _set(tree::ASTNode* node, T* ctx)
+	static void set(tree::ASTNode* node, T* ctx)
 	{
 		node->set<T>(ctx);
 	}
 };
+
+/////////////////////////////////////////////////////////////////////
+/// s0
 
 // DUPE_NAME
 struct SemanticVerificationScopeContext_NameSet : public ASTNodeContext<SemanticVerificationScopeContext_NameSet>
@@ -65,15 +73,13 @@ struct SemanticVerificationScopeContext_NameSet : public ASTNodeContext<Semantic
 struct SemanticVerificationBlockContext_HasVisitedReturn : public ASTNodeContext<SemanticVerificationBlockContext_HasVisitedReturn>
 { };
 
+/////////////////////////////////////////////////////////////////////
+/// s1
+
 // MISSING_RETURN
 // CONTROL_REACHES_END
-struct SemanticVerificationFunctionDeclContext_ReturnCount : public ASTNodeContext<SemanticVerificationFunctionDeclContext_ReturnCount>
-{
-	SemanticVerificationFunctionDeclContext_ReturnCount() : count(0)
-	{ }
-
-	size_t count;
-};
+struct SemanticVerificationFunctionDeclContext_HasReturn : public ASTNodeContext<SemanticVerificationFunctionDeclContext_HasReturn>
+{ };
 
 // UNINIT_REF
 struct SemanticVerificationVariableDeclContext_HasBeenInit : public ASTNodeContext<SemanticVerificationVariableDeclContext_HasBeenInit>
@@ -84,13 +90,8 @@ struct SemanticVerificationEnumKeyContext_HasVisited : public ASTNodeContext<Sem
 { };
 
 // CONTROL_REACHES_END
-struct SemanticVerificationBlockContext_BranchCount : public ASTNodeContext<SemanticVerificationBlockContext_BranchCount>
-{
-	SemanticVerificationBlockContext_BranchCount() : count(0)
-	{ }
-
-	size_t count;
-};
+struct SemanticVerificationBlockContext_AlwaysReturns : public ASTNodeContext<SemanticVerificationBlockContext_AlwaysReturns>
+{ };
 
 } } }
 

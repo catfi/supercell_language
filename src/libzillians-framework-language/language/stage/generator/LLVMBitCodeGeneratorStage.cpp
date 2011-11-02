@@ -97,7 +97,7 @@ bool LLVMBitCodeGeneratorStage::execute(bool& continue_execution)
 			}
 		}
 
-		llvm::raw_fd_ostream stream("test.bc", error_info, llvm::raw_fd_ostream::F_Binary);
+		llvm::raw_fd_ostream stream(llvm_bc_file.c_str(), error_info, llvm::raw_fd_ostream::F_Binary);
 		if(stream.has_error())
 		{
 			LOG4CXX_ERROR(LoggerWrapper::GeneratorStage, "failed to prepare stream for writing LLVM bitcode: " << error_info);

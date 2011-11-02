@@ -9,8 +9,17 @@ bool getImportedPackagesTImpl(Iterator begin, Iterator end, std::vector<std::wst
     return qi::phrase_parse(begin, end,
             // Begin grammar
             (
-                  -( (L"package" > *(boost::spirit::unicode::char_ - ';') > L';') )
-                > *( (L"import"  > boost::spirit::as_wstring[*unicode::char_(L"0-9a-zA-Z_.")][boost::phoenix::push_back(boost::phoenix::ref(v), boost::spirit::qi::_1)] > L';') )                                         
+                  -( L"module" > *(boost::spirit::unicode::char_ - ';') > L';' )
+                > *( L"import"  >
+                        (
+                            // import . = a.b.c;
+                              (*unicode::char_(L".") >> L'=' >> boost::spirit::as_wstring[*unicode::char_(L"0-9a-zA-Z_.")][boost::phoenix::push_back(boost::phoenix::ref(v), boost::spirit::qi::_1)] >> L';')
+                            // import c = a.b.c;
+                            | (*unicode::char_(L"0-9a-zA-Z_") >> L'=' >> boost::spirit::as_wstring[*unicode::char_(L"0-9a-zA-Z_.")][boost::phoenix::push_back(boost::phoenix::ref(v), boost::spirit::qi::_1)] >> L';')
+                            // import a.b.c;
+                            | (boost::spirit::as_wstring[*unicode::char_(L"0-9a-zA-Z_.")][boost::phoenix::push_back(boost::phoenix::ref(v), boost::spirit::qi::_1)] >> L';')
+                        )
+                   )
                 > *( boost::spirit::unicode::char_ )
                 > qi::eoi
             ),

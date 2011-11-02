@@ -21,9 +21,9 @@
 #define ZILLIANS_LANGUAGE_RESOLVER_H_
 
 #include "language/tree/ASTNodeFactory.h"
-#include "language/tree/visitor/general/ResolutionVisitor.h"
-#include "language/tree/visitor/general/PrettyPrintVisitor.h"
-#include "language/tree/visitor/general/NodeInfoVisitor.h"
+#include "language/tree/visitor/ResolutionVisitor.h"
+#include "language/tree/visitor/PrettyPrintVisitor.h"
+#include "language/tree/visitor/NodeInfoVisitor.h"
 #include "utility/Foreach.h"
 #include "language/context/ResolverContext.h"
 
@@ -105,7 +105,7 @@ public:
 		if(!ResolvedSymbol::get(&attach))
 		{
 			resolution_visitor.reset();
-			resolution_visitor.search(&node);
+			resolution_visitor.candidate(&node);
 			resolution_visitor.filter(visitor::ResolutionVisitor::Filter::SYMBOL);
 
 			{
@@ -114,7 +114,7 @@ public:
 				LOG4CXX_DEBUG(LoggerWrapper::Resolver, L"looking at scope: " << node_info_visitor.stream.str());
 			}
 
-			resolution_visitor.visit(scope);
+			resolution_visitor.tryVisit(scope);
 
 			return checkResolvedSymbol(attach, node, no_action);
 		}
@@ -144,7 +144,7 @@ public:
 		{
 			// set the look-for target
 			resolution_visitor.reset();
-			resolution_visitor.search(&node);
+			resolution_visitor.candidate(&node);
 			resolution_visitor.filter(visitor::ResolutionVisitor::Filter::SYMBOL);
 
 			for(__gnu_cxx::hash_set<ASTNode*>::const_iterator scope = current_scopes.begin(); scope != current_scopes.end(); ++scope)
@@ -153,7 +153,7 @@ public:
 				node_info_visitor.visit(**scope);
 				LOG4CXX_DEBUG(LoggerWrapper::Resolver, L"looking at scope: \"" << node_info_visitor.stream.str() << L"\"");
 
-				resolution_visitor.visit(**scope);
+				resolution_visitor.tryVisit(**scope);
 			}
 
 			return checkResolvedSymbol(attach, node, no_action);
@@ -205,6 +205,14 @@ private:
 					ResolvedType::set(&attach, ref);
 				}
 			}
+			else if(isa<EnumDecl>(ref))
+			{
+				if(!no_action)
+				{
+					ResolvedSymbol::set(&attach, ref);
+					ResolvedType::set(&attach, ref);
+				}
+			}
 			else if(isa<ClassDecl>(ref) || isa<InterfaceDecl>(ref)) // declared class/interface
 			{
 				if(!no_action)
@@ -223,7 +231,7 @@ private:
 			}
 			else
 			{
-				LOG4CXX_ERROR(LoggerWrapper::Resolver, L"resolve symbol \"" << node.toString() << L"\" to unkown symbol");
+				LOG4CXX_DEBUG(LoggerWrapper::Resolver, L"resolve symbol \"" << node.toString() << L"\" to unkown symbol");
 				valid = false;
 			}
 
@@ -235,7 +243,7 @@ private:
 			if(resolution_visitor.candidates.size() > 1)
 			{
 				// mode than one candidate
-				LOG4CXX_ERROR(LoggerWrapper::Resolver, L"ambiguous symbol \"" << node.toString() << L"\"");
+				LOG4CXX_DEBUG(LoggerWrapper::Resolver, L"ambiguous symbol \"" << node.toString() << L"\"");
 
 				tree::visitor::NodeInfoVisitor node_info_visitor;
 				foreach(i, resolution_visitor.candidates)
@@ -248,7 +256,7 @@ private:
 			else
 			{
 				// no candidate
-				LOG4CXX_ERROR(LoggerWrapper::Resolver, L"unresolved symbol \"" << node.toString() << L"\"");
+				LOG4CXX_DEBUG(LoggerWrapper::Resolver, L"unresolved symbol \"" << node.toString() << L"\"");
 			}
 
 			resolution_visitor.reset();
@@ -269,10 +277,10 @@ public:
 		if(node.type == TypeSpecifier::ReferredType::UNSPECIFIED)
 		{
 			resolution_visitor.reset();
-			resolution_visitor.search(node.referred.unspecified);
+			resolution_visitor.candidate(node.referred.unspecified);
 			resolution_visitor.filter(visitor::ResolutionVisitor::Filter::TYPE);
 
-			resolution_visitor.visit(scope);
+			resolution_visitor.tryVisit(scope);
 
 			return checkResolvedType(attach, node, no_action);
 		}
@@ -292,12 +300,12 @@ public:
 		{
 			// set the look-for target
 			resolution_visitor.reset();
-			resolution_visitor.search(node.referred.unspecified);
+			resolution_visitor.candidate(node.referred.unspecified);
 			resolution_visitor.filter(visitor::ResolutionVisitor::Filter::TYPE);
 
 			for(__gnu_cxx::hash_set<ASTNode*>::const_iterator scope = current_scopes.begin(); scope != current_scopes.end(); ++scope)
 			{
-				resolution_visitor.visit(**scope);
+				resolution_visitor.tryVisit(**scope);
 			}
 
 			return checkResolvedType(attach, node, no_action);
@@ -358,7 +366,7 @@ private:
 			if(resolution_visitor.candidates.size() > 1)
 			{
 				// mode than one candidate
-				LOG4CXX_ERROR(LoggerWrapper::Resolver, L"ambiguous type \"" << node.referred.unspecified->toString() << L"\"");
+				LOG4CXX_DEBUG(LoggerWrapper::Resolver, L"ambiguous type \"" << node.referred.unspecified->toString() << L"\"");
 
 				tree::visitor::NodeInfoVisitor node_info_visitor;
 				foreach(i, resolution_visitor.candidates)
@@ -371,7 +379,7 @@ private:
 			else
 			{
 				// no candidate
-				LOG4CXX_ERROR(LoggerWrapper::Resolver, L"unresolved type \"" << node.referred.unspecified->toString() << L"\"");
+				LOG4CXX_DEBUG(LoggerWrapper::Resolver, L"unresolved type \"" << node.referred.unspecified->toString() << L"\"");
 			}
 
 			resolution_visitor.reset();
@@ -392,10 +400,10 @@ public:
 		if(!ResolvedPackage::get(&attach))
 		{
 			resolution_visitor.reset();
-			resolution_visitor.search(&node);
+			resolution_visitor.candidate(&node);
 			resolution_visitor.filter(visitor::ResolutionVisitor::Filter::PACKAGE);
 
-			resolution_visitor.visit(scope);
+			resolution_visitor.tryVisit(scope);
 
 			return checkResolvedPackage(attach, node, no_action);
 		}
@@ -414,12 +422,12 @@ public:
 		if(!ResolvedPackage::get(&attach))
 		{
 			resolution_visitor.reset();
-			resolution_visitor.search(&node);
+			resolution_visitor.candidate(&node);
 			resolution_visitor.filter(visitor::ResolutionVisitor::Filter::PACKAGE);
 
 			for(__gnu_cxx::hash_set<ASTNode*>::const_iterator scope = current_scopes.begin(); scope != current_scopes.end(); ++scope)
 			{
-				resolution_visitor.visit(**scope);
+				resolution_visitor.tryVisit(**scope);
 			}
 
 			return checkResolvedPackage(attach, node, no_action);
@@ -463,7 +471,7 @@ private:
 			if(resolution_visitor.candidates.size() > 1)
 			{
 				// mode than one candidate
-				LOG4CXX_ERROR(LoggerWrapper::Resolver, L"ambiguous package \"" << node.toString() << L"\"");
+				LOG4CXX_DEBUG(LoggerWrapper::Resolver, L"ambiguous package \"" << node.toString() << L"\"");
 
 				tree::visitor::NodeInfoVisitor node_info_visitor;
 				foreach(i, resolution_visitor.candidates)
@@ -476,7 +484,7 @@ private:
 			else
 			{
 				// no candidate
-				LOG4CXX_ERROR(LoggerWrapper::Resolver, L"unresolved package \"" << node.toString() << L"\"");
+				LOG4CXX_DEBUG(LoggerWrapper::Resolver, L"unresolved package \"" << node.toString() << L"\"");
 			}
 
 			resolution_visitor.reset();
