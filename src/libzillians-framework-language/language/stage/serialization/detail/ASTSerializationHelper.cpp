@@ -40,6 +40,7 @@ bool ASTSerializationHelper::serialize(const std::string& filename, tree::ASTNod
 	// see ASTSerializationStageVisitor::FullDeserializer, which defines the context object types needed to be serialized
     visitor::ASTSerializationStageVisitor<boost::archive::text_oarchive> serialzer(oa);
     serialzer.visit(*to_serialize);
+    return true;
 }
 
 tree::ASTNode* ASTSerializationHelper::deserialize(const std::string& filename)

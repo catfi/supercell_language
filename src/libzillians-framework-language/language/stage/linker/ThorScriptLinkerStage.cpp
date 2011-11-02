@@ -106,7 +106,7 @@ bool ThorScriptLinkerStage::parseOptions(po::variables_map& vm)
 	{
 		// Separate files with extension name
 		std::vector< std::string > inputs = vm["input"].as< std::vector<std::string> >();
-		for (int i = 0; i < inputs.size(); i++)
+		for (size_t i = 0; i < inputs.size(); i++)
 		{
 			boost::filesystem::path file_path(inputs[i]);
 			std::string extension = file_path.extension().generic_string();
@@ -175,7 +175,7 @@ bool ThorScriptLinkerStage::extractFilesFromBundle(std::string& bc_file, std::st
 	ar.close();
 
 	// Well, return the filename back
-	for (int i = 0; i < items.size(); i++)
+	for (size_t i = 0; i < items.size(); i++)
 	{
 		boost::filesystem::path file_path(items[i].filename);
 		std::string extension = file_path.extension().generic_string();
@@ -272,19 +272,19 @@ bool ThorScriptLinkerStage::buildNativeCode(std::string& asm_file)
 	std::string args = native_compiler.c_str();
 	args += " -shared -fPIC -o " + output_file;
 
-	for (int i = 0; i < link_libraries.size(); i++)
+	for (size_t i = 0; i < link_libraries.size(); i++)
 		args += " -l" + link_libraries[i];
 
 	// search path
-	for (int i = 0; i < link_search_paths.size(); i++)
+	for (size_t i = 0; i < link_search_paths.size(); i++)
 		args += " -L" + link_search_paths[i];
 
-	for (int i = 0; i < runtime_search_paths.size(); i++)
+	for (size_t i = 0; i < runtime_search_paths.size(); i++)
 		args += " -Wl,-rpath=" + runtime_search_paths[i];
 
 	// input files
 	args += " " + asm_file;
-	for (int i = 0; i < native_files.size(); i++)
+	for (size_t i = 0; i < native_files.size(); i++)
 		args += " " + native_files[i];
 
 	// TODO: Remove it. Output the command. I suppose we will play this one for a while.

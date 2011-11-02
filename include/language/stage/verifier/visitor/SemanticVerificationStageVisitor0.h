@@ -222,6 +222,7 @@ struct SemanticVerificationStageVisitor0 : GenericDoubleVisitor
 			{
 			case BranchStmt::OpCode::BREAK:    LOG_MESSAGE(MISSING_BREAK_TARGET, &node); break;
 			case BranchStmt::OpCode::CONTINUE: LOG_MESSAGE(MISSING_CONTINUE_TARGET, &node); break;
+            case BranchStmt::OpCode::RETURN:   UNREACHABLE_CODE(); break;
 			}
 
 		// DEAD_CODE (NOTE: necessary because verify(BranchStmt&) is shadowed by verify(Statement&))

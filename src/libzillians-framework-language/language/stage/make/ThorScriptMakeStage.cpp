@@ -106,7 +106,7 @@ struct Shell
 {
     Shell(const std::string& cmd_) : cmd(cmd_) {}
     int operator()(int) {
-        system(cmd.c_str());
+        return system(cmd.c_str());
     }
     std::string cmd;
 };
@@ -179,7 +179,6 @@ bool ThorScriptMakeStage::execute(bool& continue_execution)
     std::vector<zillians::JoinFunctionModule> moduleVec;
     for(auto vi = boost::vertices(tangleRestored); vi.first != vi.second; ++vi.first)
     {
-        std::set<std::string>& files = tangleRestored[*vi.first];
         std::string cmd = genCompileCmd(*vi.first, tangleRestored);
         int inputNum = boost::out_degree(*vi.first, tangleRestored);
         if(inputNum == 0)

@@ -77,14 +77,14 @@ struct SimpleIdentifier : public Identifier
 
     virtual bool isEqualImpl(const ASTNode& rhs, ASTNodeSet& visited) const
     {
-    	BEGIN_COMPARE_WITH_BASE(Identifier)
+    	BEGIN_COMPARE()
 		COMPARE_MEMBER(name)
 		END_COMPARE()
     }
 
     virtual bool replaceUseWith(const ASTNode& from, const ASTNode& to, bool update_parent = true)
     {
-    	BEGIN_REPLACE_WITH_BASE(Identifier)
+    	BEGIN_REPLACE()
     	REPLACE_USE_WITH(name)
     	END_REPLACE()
     }
@@ -156,14 +156,14 @@ struct NestedIdentifier : public Identifier
 
     virtual bool isEqualImpl(const ASTNode& rhs, ASTNodeSet& visited) const
     {
-    	BEGIN_COMPARE_WITH_BASE(Identifier)
+    	BEGIN_COMPARE()
 		COMPARE_MEMBER(identifier_list)
     	END_COMPARE()
     }
 
     virtual bool replaceUseWith(const ASTNode& from, const ASTNode& to, bool update_parent = true)
     {
-    	BEGIN_REPLACE_WITH_BASE(Identifier)
+    	BEGIN_REPLACE()
     	REPLACE_USE_WITH(identifier_list)
     	END_REPLACE()
     }
@@ -277,7 +277,7 @@ struct TemplatedIdentifier : public Identifier
 
     virtual bool isEqualImpl(const ASTNode& rhs, ASTNodeSet& visited) const
     {
-    	BEGIN_COMPARE_WITH_BASE(Identifier)
+    	BEGIN_COMPARE()
 		COMPARE_MEMBER(type)
 		COMPARE_MEMBER(id)
 		COMPARE_MEMBER(templated_type_list)
@@ -286,7 +286,7 @@ struct TemplatedIdentifier : public Identifier
 
     virtual bool replaceUseWith(const ASTNode& from, const ASTNode& to, bool update_parent = true)
     {
-    	BEGIN_REPLACE_WITH_BASE(Identifier)
+    	BEGIN_REPLACE()
     	REPLACE_USE_WITH(type)
     	REPLACE_USE_WITH(id)
     	REPLACE_USE_WITH(templated_type_list)
