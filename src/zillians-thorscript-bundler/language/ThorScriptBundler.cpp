@@ -24,7 +24,7 @@ using namespace zillians::language::stage;
 
 namespace zillians { namespace language {
 
-ThorScriptBundler::ThorScriptBundler()
+ThorScriptBundler::ThorScriptBundler() : stage::StageBuilder(true)
 {
 	addDefaultMode<
 		boost::mpl::vector<

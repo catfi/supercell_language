@@ -25,15 +25,25 @@
 
 namespace zillians { namespace language { namespace stage {
 
-StageConductor::StageConductor() : mOptionDescGlobal()
+StageConductor::StageConductor(bool require_input) : mOptionDescGlobal()
 {
 	// make sure logger is initialized;
 	LoggerWrapper::instance();
 
 	// initialize basic program options
-	mOptionDescGlobal.add_options()
-		("help,h", "show this help")
-    ;
+	if(!require_input)
+	{
+		mOptionDescGlobal.add_options()
+			("help,h", "show this help");
+	}
+	else
+	{
+		mOptionDescGlobal.add_options()
+			("help,h", "show this help")
+			("input,i", po::value<std::vector<std::string>>(), "input files");
+
+		mPositionalOptionDesc.add("input", -1);
+	}
 }
 
 StageConductor::~StageConductor()
