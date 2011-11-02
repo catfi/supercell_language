@@ -118,13 +118,6 @@ static bool isRegularFile(const std::string& pathString)
     return fs::exists(p) && fs::is_regular_file(p);
 }
 
-static std::string packageNameToPathName(const std::wstring& packageName)
-{
-    std::string result = ws_to_s(packageName);
-    std::replace(result.begin(), result.end(), '.', '/');
-    return result;
-}
-
 static bool parseFileImportedPackages(const std::string& tsFileName, std::set<std::wstring>& packages)
 {
     std::string filename = tsFileName ;

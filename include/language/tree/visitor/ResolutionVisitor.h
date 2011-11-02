@@ -42,7 +42,7 @@ struct ResolutionVisitor : Visitor<ASTNode, void, VisitorImplementation::recursi
 		};
 	};
 
-	ResolutionVisitor(bool allow_template_partial_match = false) : filter_type(0), matched_current(false), allow_template_partial_match(allow_template_partial_match)
+	ResolutionVisitor(bool allow_template_partial_match = false) : matched_current(false), filter_type(0), allow_template_partial_match(allow_template_partial_match)
 	{
 		REGISTER_ALL_VISITABLE_ASTNODE(resolveInvoker)
 		reset();
@@ -487,7 +487,7 @@ struct ResolutionVisitor : Visitor<ASTNode, void, VisitorImplementation::recursi
 		}
 	}
 
-	void resolve(ForeachStmt& node)
+	void resolve(ForeachStmt& /*node*/)
 	{
 		if(isSearchForSymbol())
 		{

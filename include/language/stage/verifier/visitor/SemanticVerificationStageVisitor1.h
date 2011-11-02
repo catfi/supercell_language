@@ -357,6 +357,11 @@ private:
 					if(!ref_point || !ASTNodeHelper::isInheritedFrom(ref_point, decl_point))
 						LOG_MESSAGE(INVALID_ACCESS_PROTECTED, node_ref, _id = node_decl->name->toString());
 					break;
+				case Declaration::VisibilitySpecifier::PUBLIC:
+                    break;
+				case Declaration::VisibilitySpecifier::DEFAULT:
+                    UNREACHABLE_CODE();
+                    break;
 				}
 			}
 		}

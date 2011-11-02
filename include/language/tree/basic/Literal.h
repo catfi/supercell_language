@@ -81,7 +81,7 @@ struct ObjectLiteral : public Literal
 
     virtual bool isEqualImpl(const ASTNode& rhs, ASTNodeSet& visited) const
     {
-    	BEGIN_COMPARE_WITH_BASE(Literal)
+    	BEGIN_COMPARE()
 		COMPARE_MEMBER(type)
 		END_COMPARE()
     }
@@ -150,7 +150,7 @@ struct NumericLiteral : public Literal
 
     virtual bool isEqualImpl(const ASTNode& rhs, ASTNodeSet& visited) const
     {
-    	BEGIN_COMPARE_WITH_BASE(Literal)
+    	BEGIN_COMPARE()
 		COMPARE_MEMBER(type)
         switch(type)
         {
@@ -252,7 +252,7 @@ struct StringLiteral : public Literal
 
     virtual bool isEqualImpl(const ASTNode& rhs, ASTNodeSet& visited) const
     {
-    	BEGIN_COMPARE_WITH_BASE(Literal)
+    	BEGIN_COMPARE()
 		COMPARE_MEMBER(value)
     	END_COMPARE()
     }

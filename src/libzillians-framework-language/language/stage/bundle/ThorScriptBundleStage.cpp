@@ -118,7 +118,7 @@ bool ThorScriptBundleStage::parseOptions(po::variables_map& vm)
 	{
 		// Separate files with extension name
 		std::vector< std::string > inputs = vm["input"].as< std::vector<std::string> >();
-		for (int i = 0; i < inputs.size(); i++)
+		for (size_t i = 0; i < inputs.size(); i++)
 		{
 			boost::filesystem::path file_path(inputs[i]);
 			std::string extension = file_path.extension().generic_string();
@@ -189,7 +189,7 @@ void ThorScriptBundleStage::getMergeBitCodeBuffer(std::vector<unsigned char>& bu
 
 	// Convert to llvm::sys::Path
 	std::vector<llvm::sys::Path> files;
-	for (int i = 0; i < bitcode_files.size(); i++)
+	for (size_t i = 0; i < bitcode_files.size(); i++)
 		files.push_back( llvm::sys::Path(bitcode_files[i]) );
 
 	bool error = linker.LinkInFiles(files);
@@ -207,7 +207,7 @@ void ThorScriptBundleStage::getMergeASTBuffer(std::vector<unsigned char>& buffer
 	using namespace tree;
     Package* package = NULL;
 
-    for (int i = 0; i < ast_files.size(); i++)
+    for (size_t i = 0; i < ast_files.size(); i++)
     {
         ASTNode* deserialized = ASTSerializationHelper::deserialize(ast_files[i]);
 
