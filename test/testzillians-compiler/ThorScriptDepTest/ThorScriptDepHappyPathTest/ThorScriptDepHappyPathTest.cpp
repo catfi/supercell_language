@@ -47,23 +47,23 @@ BOOST_AUTO_TEST_CASE( ThorScriptDepTest_ThorScriptDepHappyPathTestCase1 )
                   import d.d1; \
                   import e.e1;' >> src/a.t");
 
-    system("echo 'module b;' > src/b.t");
+    system("echo ' ' > src/b.t");
 
     system("echo 'import c.c2;' > src/c/c1.t");
     system("echo 'import c.c1;' > src/c/c2.t");
-    system("echo 'module c.c3;' > src/c/c3.t");
+    system("echo ' ' > src/c/c3.t");
 
     system("echo 'import e.e1;' > src/d/d1.t");
 
     system("echo 'import e.e1.e12;' > src/e/e1/e11.t");
     system("echo 'import e.e1.e11;' > src/e/e1/e12.t");
-    system("echo 'module e.e1.e13;' > src/e/e1/e13.t");
+    system("echo ' ' > src/e/e1/e13.t");
 
-    const char* argv[] = {"testbin", "src/a.t"};
+    const char* argv[] = {"testbin"};
 
     // parse and output graph, and unserilaize graph
     zillians::language::ThorScriptDep dep;
-    dep.main(2, argv);
+    dep.main(1, argv);
 
     // remove tmp files
     boost::filesystem::remove_all(boost::filesystem::path("src"));
@@ -76,19 +76,19 @@ BOOST_AUTO_TEST_CASE( ThorScriptDepTest_ThorScriptDepHappyPathTestCase1 )
     fin.close();
 
     // check
-    BOOST_CHECK(boost::num_vertices(g) == 7);
-    BOOST_CHECK(boost::num_edges(g) == 8);
+    BOOST_CHECK_EQUAL(boost::num_vertices(g), 7);
+    BOOST_CHECK_EQUAL(boost::num_edges(g), 8);
     for(auto vp = boost::vertices(g); vp.first != vp.second; ++vp.first)
     {
         if(boost::out_degree(*vp.first, g) == 6)
         {
-            BOOST_CHECK(g[*vp.first].size() == 1);
-            BOOST_CHECK(*(g[*vp.first].begin()) == "src/a.t");
+            BOOST_CHECK_EQUAL(g[*vp.first].size(), 1);
+            BOOST_CHECK_EQUAL(*(g[*vp.first].begin()), "src/a.t");
         }
         if(boost::out_degree(*vp.first, g) == 2)
         {
-            BOOST_CHECK(g[*vp.first].size() == 1);
-            BOOST_CHECK(*(g[*vp.first].begin()) == "src/d/d1.t");
+            BOOST_CHECK_EQUAL(g[*vp.first].size(), 1);
+            BOOST_CHECK_EQUAL(*(g[*vp.first].begin()), "src/d/d1.t");
         }
     }
 
@@ -126,19 +126,18 @@ BOOST_AUTO_TEST_CASE( ThorScriptDepTest_ThorScriptDepHappyPathTestCase2 )
     // Construct file system and file content
 
     boost::filesystem::create_directories(boost::filesystem::path("src"));
-    system("echo 'module a; import b;' > src/a.t");
-    system("echo 'module b; import c;' > src/b.t");
-    system("echo 'module c; import a;' > src/c.t");
+    system("echo 'import b;' > src/a.t");
+    system("echo 'import c;' > src/b.t");
+    system("echo 'import a;' > src/c.t");
 
-    const char* argv[] = {"testbin", "src/a.t"};
+    const char* argv[] = {"testbin"};
 
     // parse and output graph, and unserilaize graph
     zillians::language::ThorScriptDep dep;
-    dep.main(2, argv);
+    dep.main(1, argv);
 
     // remove tmp files
     boost::filesystem::remove_all(boost::filesystem::path("src"));
-
     // unserialize graph
     std::ifstream fin("ts.dep");
     boost::archive::text_iarchive ia(fin);
@@ -147,11 +146,11 @@ BOOST_AUTO_TEST_CASE( ThorScriptDepTest_ThorScriptDepHappyPathTestCase2 )
     fin.close();
 
     // check
-    BOOST_CHECK(boost::num_vertices(g) == 1);
-    BOOST_CHECK(boost::num_edges(g) == 0);
+    BOOST_CHECK_EQUAL(boost::num_vertices(g), 1);
+    BOOST_CHECK_EQUAL(boost::num_edges(g), 0);
     for(auto vp = boost::vertices(g); vp.first != vp.second; ++vp.first)
     {
-        BOOST_CHECK(g[*vp.first].size() == 3);
+        BOOST_CHECK_EQUAL(g[*vp.first].size(), 3);
         std::set<std::string> files = g[*vp.first];
         BOOST_CHECK(files.count("src/a.t"));
         BOOST_CHECK(files.count("src/b.t"));
@@ -167,13 +166,13 @@ BOOST_AUTO_TEST_CASE( ThorScriptDepTest_ThorScriptDepHappyPathTestCase3 )
     // Construct file system and file content
 
     boost::filesystem::create_directories(boost::filesystem::path("src"));
-    system("echo 'module a;' > src/a.t");
+    system("echo ' ' > src/a.t");
 
-    const char* argv[] = {"testbin", "src/a.t"};
+    const char* argv[] = {"testbin"};
 
     // parse and output graph, and unserilaize graph
     zillians::language::ThorScriptDep dep;
-    dep.main(2, argv);
+    dep.main(1, argv);
 
     // remove tmp files
     boost::filesystem::remove_all(boost::filesystem::path("src"));
@@ -186,11 +185,11 @@ BOOST_AUTO_TEST_CASE( ThorScriptDepTest_ThorScriptDepHappyPathTestCase3 )
     fin.close();
 
     // check
-    BOOST_CHECK(boost::num_vertices(g) == 1);
-    BOOST_CHECK(boost::num_edges(g) == 0);
+    BOOST_CHECK_EQUAL(boost::num_vertices(g), 1);
+    BOOST_CHECK_EQUAL(boost::num_edges(g), 0);
     for(auto vp = boost::vertices(g); vp.first != vp.second; ++vp.first)
     {
-        BOOST_CHECK(g[*vp.first].size() == 1);
+        BOOST_CHECK_EQUAL(g[*vp.first].size(), 1);
         std::set<std::string> files = g[*vp.first];
         BOOST_CHECK(files.count("src/a.t"));
     }
@@ -205,15 +204,16 @@ BOOST_AUTO_TEST_CASE( ThorScriptDepTest_ThorScriptDepAmbiguousTestCase1 )
     // Construct file system and file content
 
     boost::filesystem::create_directories(boost::filesystem::path("src"));
-    system("echo 'module a; import b;' > src/a.t");
-    system("echo 'module b; import c;' > src/b.t");
-    system("echo 'module c; import a;' > src/c.t");
+    system("echo 'import b;' > src/a.t");
+    system("echo 'import c;' > src/b.t");
+    system("echo 'import a;' > src/c.t");
 
-    const char* argv[] = {"testbin", "src/a.t"};
+    //const char* argv[] = {"testbin", "src/a.t"};
+    const char* argv[] = {"testbin"};
 
     // parse and output graph, and unserilaize graph
     zillians::language::ThorScriptDep dep;
-    dep.main(2, argv);
+    dep.main(1, argv);
 
     // remove tmp files
     boost::filesystem::remove_all(boost::filesystem::path("src"));
@@ -226,11 +226,11 @@ BOOST_AUTO_TEST_CASE( ThorScriptDepTest_ThorScriptDepAmbiguousTestCase1 )
     fin.close();
 
     // check
-    BOOST_CHECK(boost::num_vertices(g) == 1);
-    BOOST_CHECK(boost::num_edges(g) == 0);
+    BOOST_CHECK_EQUAL(boost::num_vertices(g), 1);
+    BOOST_CHECK_EQUAL(boost::num_edges(g), 0);
     for(auto vp = boost::vertices(g); vp.first != vp.second; ++vp.first)
     {
-        BOOST_CHECK(g[*vp.first].size() == 3);
+        BOOST_CHECK_EQUAL(g[*vp.first].size(), 3);
         std::set<std::string> files = g[*vp.first];
         BOOST_CHECK(files.count("src/a.t"));
         BOOST_CHECK(files.count("src/b.t"));

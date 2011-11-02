@@ -18,13 +18,36 @@
  */
 
 #include "language/ThorScriptDriver.h"
+#include "language/stage/driver/ThorScriptDriverStage.h"
 
 using namespace zillians::language::stage;
 
 namespace zillians { namespace language {
 
+//////////////////////////////////////////////////////////////////////////////
+// Stataic function
+//////////////////////////////////////////////////////////////////////////////
+
+static bool isDepOnly(const std::string argv)
+{
+    return false;
+}
+
+static bool isCompileOnly(const std::string argv)
+{
+    return false;
+}
+
+//////////////////////////////////////////////////////////////////////////////
+// public member function
+//////////////////////////////////////////////////////////////////////////////
+
 ThorScriptDriver::ThorScriptDriver()
-{ }
+{
+	addDefaultMode<
+		boost::mpl::vector<
+			ThorScriptDriverStage>>();
+}
 
 ThorScriptDriver::~ThorScriptDriver()
 { }
@@ -35,6 +58,25 @@ void ThorScriptDriver::initialize()
 
 void ThorScriptDriver::finalize()
 {
+}
+
+//////////////////////////////////////////////////////////////////////////////
+// private member function
+//////////////////////////////////////////////////////////////////////////////
+
+bool ThorScriptDriver::dep(const std::string& argv)
+{
+    system("./ts-dep");
+}
+
+bool ThorScriptDriver::make(const std::string& argv)
+{
+    system("./ts-make");
+}
+
+bool ThorScriptDriver::link(const std::string& argv)
+{
+    system("./ts-link");
 }
 
 } }

@@ -23,65 +23,36 @@
 #include <vector>
 #include <set>
 #include <iterator>
-#include <boost/filesystem.hpp>
-#include <boost/archive/text_oarchive.hpp>
-#include <boost/archive/text_iarchive.hpp>
-#include <boost/serialization/set.hpp>
-#include "language/stage/strip/ThorScriptStripStage.h"
-#include "language/stage/strip/visitor/ThorScriptStripStageVisitor.h"
+#include "language/stage/driver/ThorScriptDriverStage.h"
 #include "utility/UnicodeUtil.h"
-
-namespace zillians { namespace language { namespace stage {
 
 //////////////////////////////////////////////////////////////////////////////
 // static functions
 //////////////////////////////////////////////////////////////////////////////
 
-void stripOneFile(const std::string& astFile)
-{
-    std::ifstream fin(astFile.c_str());
-    if(!fin.is_open())
-    {
-        std::cerr << "Input file '" << fin << "' does not exists." << std::endl;
-        return;
-    }
-
-    boost::archive::text_iarchive ia(fin);
-    zillians::language::tree::ASTNode* program;
-    ia >> program;
-    fin.close();
-
-    visitor::ThorScriptStripStageVisitor stripVisitor;
-    stripVisitor.visit(*program);
-
-    std::ofstream fout(astFile.c_str());
-    boost::archive::text_oarchive oa(fout);
-    oa << program;
-    fout.close();
-}
-
 //////////////////////////////////////////////////////////////////////////////
-// class member function
+// member function
 //////////////////////////////////////////////////////////////////////////////
 
-ThorScriptStripStage::ThorScriptStripStage()
+namespace zillians { namespace language { namespace stage {
+
+ThorScriptDriverStage::ThorScriptDriverStage()
 { }
 
-ThorScriptStripStage::~ThorScriptStripStage()
+ThorScriptDriverStage::~ThorScriptDriverStage()
 { }
 
-const char* ThorScriptStripStage::name()
+const char* ThorScriptDriverStage::name()
 {
-	return "thor_script_strip_stage";
+	return "thor_script_driver_stage";
 }
 
-std::pair<shared_ptr<po::options_description>, shared_ptr<po::options_description>> ThorScriptStripStage::getOptions()
+std::pair<shared_ptr<po::options_description>, shared_ptr<po::options_description>> ThorScriptDriverStage::getOptions()
 {
 	shared_ptr<po::options_description> option_desc_public(new po::options_description());
 	shared_ptr<po::options_description> option_desc_private(new po::options_description());
 
 	option_desc_public->add_options()
-        ("input,i", po::value<std::vector<std::string>>(), "input files")
     ;
 
 	foreach(i, option_desc_public->options()) option_desc_private->add(*i);
@@ -91,28 +62,19 @@ std::pair<shared_ptr<po::options_description>, shared_ptr<po::options_descriptio
 	return std::make_pair(option_desc_public, option_desc_private);
 }
 
-bool ThorScriptStripStage::parseOptions(po::variables_map& vm)
+bool ThorScriptDriverStage::parseOptions(po::variables_map& vm)
 {
-    if(vm.count("input"))
-    {
-        inputFiles = vm["input"].as<std::vector<std::string>>();
-        return true;
-    }
-    else
-    {
-        //std::set<std::string> inputFileSet = globAllTsFiles(".");
-        //inputFiles.assign(inputFileSet.begin(), inputFileSet.end());
-        return true;
-    }
+    return true;
 }
 
-bool ThorScriptStripStage::execute(bool& continue_execution)
+bool ThorScriptDriverStage::execute(bool& continue_execution)
 {
-    // strip function definition in ast
-    foreach(i, inputFiles)
-    {
-        stripOneFile(*i);
-    }
+    int result = 0;
+    if (system("ts-dep")   != 0) return false;
+    if (system("ts-make")  != 0) return false;
+    if (system("ts-strip") != 0) return false;
+    if (system("ts-bundle")!= 0) return false;
+    if (system("ts-link")  != 0) return false;
 
     return true;
 }
