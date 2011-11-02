@@ -283,6 +283,8 @@ public:
     template<typename Archive>
     void serialize(Archive& ar, const unsigned int version)
     {
+    	UNUSED_ARGUMENT(version);
+
     	ar & parent;
     }
 
