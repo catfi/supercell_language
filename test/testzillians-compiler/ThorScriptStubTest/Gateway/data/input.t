@@ -1,9 +1,9 @@
 @client
-function f()
+function f():void
 {
 }
 
 @server
-function g()
+function g():void
 {
 }

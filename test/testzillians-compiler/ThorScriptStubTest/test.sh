@@ -1,17 +1,21 @@
 #!/bin/sh
 
-TCC=$1
-FILE=$2
-GOLD_FILE=$3
+TEMP_FILE_A=`mktemp`
+TEMP_FILE_B=`mktemp`
 
-exit 0
-diff $FILE $GOLD_FILE
+TSCOMPILE=$1
+INPUT=$2
+GOLD_OUTPUT=$3
+
+$TSCOMPILE --input $INPUT --emit-ast $TEMP_FILE_A
+
+diff $TEMP_FILE_A $TEMP_FILE_B
 ERROR_CODE="$?"
 
 if [ $ERROR_CODE -ne 0 ];
 then
-    echo "fail! (test.sh)"
+    echo "fail!"
     exit 1
 fi
-echo "success! (test.sh)"
+echo "success!"
 exit 0
