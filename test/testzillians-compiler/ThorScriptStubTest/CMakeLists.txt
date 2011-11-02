@@ -19,15 +19,4 @@
 # Contact Information: info@zillians.com
 #
 
-zillians_add_complex_test(
-    TARGET thorscript-stub-test-gateway
-    SHELL ${CMAKE_CURRENT_SOURCE_DIR}/../test.sh ${ThorScriptCompiler}
-            ${CMAKE_CURRENT_SOURCE_DIR}/data/input.t
-            ${CMAKE_CURRENT_SOURCE_DIR}/gold/output
-    DEPENDS ${ThorScriptCompiler}
-    )
-
-#zillians_add_simple_test(TARGET ThorScriptStubTest)
-#zillians_add_test_to_subject(SUBJECT thorscript-stub-test-client TARGET ThorScriptStubTest)
-#zillians_add_test_to_subject(SUBJECT thorscript-stub-test-server TARGET ThorScriptStubTest)
-#zillians_add_test_to_subject(SUBJECT thorscript-stub-test-gateway TARGET ThorScriptStubTest)
+ADD_SUBDIRECTORY(Gateway)
