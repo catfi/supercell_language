@@ -71,6 +71,8 @@ struct Selection : ContextHub<ContextOwnership::transfer>
     template<typename Archive>
     void serialize(Archive& ar, const unsigned int version)
     {
+    	UNUSED_ARGUMENT(version);
+
     	ar & cond;
     	ar & block;
     }
@@ -101,6 +103,8 @@ struct SelectionStmt : public Statement
     template<typename Archive>
     void serialize(Archive& ar, const unsigned int version)
     {
+    	UNUSED_ARGUMENT(version);
+
     	ar & boost::serialization::base_object<Statement>(*this);
     }
 };
@@ -172,6 +176,8 @@ struct IfElseStmt : public SelectionStmt
     template<typename Archive>
     void serialize(Archive& ar, const unsigned int version)
     {
+    	UNUSED_ARGUMENT(version);
+
     	ar & boost::serialization::base_object<SelectionStmt>(*this);
     	ar & if_branch;
     	ar & elseif_branches;
@@ -249,6 +255,8 @@ struct SwitchStmt : public SelectionStmt
     template<typename Archive>
     void serialize(Archive& ar, const unsigned int version)
     {
+    	UNUSED_ARGUMENT(version);
+
     	ar & boost::serialization::base_object<SelectionStmt>(*this);
     	ar & node;
     	ar & cases;

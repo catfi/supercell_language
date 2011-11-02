@@ -38,19 +38,11 @@ struct Literal : public ASTNode
 	DEFINE_VISITABLE();
 	DEFINE_HIERARCHY(Literal, (Literal)(ASTNode));
 
-    virtual bool isEqualImpl(const ASTNode& rhs, ASTNodeSet& visited) const
-    {
-        return true;
-    }
-
-    virtual bool replaceUseWith(const ASTNode& from, const ASTNode& to, bool update_parent = true)
-    {
-    	return false;
-    }
-
     template<typename Archive>
     void serialize(Archive& ar, const unsigned int version)
     {
+    	UNUSED_ARGUMENT(version);
+
     	ar & boost::serialization::base_object<ASTNode>(*this);
     }
 };
@@ -96,6 +88,10 @@ struct ObjectLiteral : public Literal
 
     virtual bool replaceUseWith(const ASTNode& from, const ASTNode& to, bool update_parent = true)
     {
+    	UNUSED_ARGUMENT(from);
+    	UNUSED_ARGUMENT(to);
+    	UNUSED_ARGUMENT(update_parent);
+
     	return false;
     }
 
@@ -107,6 +103,8 @@ struct ObjectLiteral : public Literal
     template<typename Archive>
     void serialize(Archive& ar, const unsigned int version)
     {
+    	UNUSED_ARGUMENT(version);
+
     	ar & boost::serialization::base_object<Literal>(*this);
     	ar & type;
     }
@@ -170,6 +168,10 @@ struct NumericLiteral : public Literal
 
     virtual bool replaceUseWith(const ASTNode& from, const ASTNode& to, bool update_parent = true)
     {
+    	UNUSED_ARGUMENT(from);
+    	UNUSED_ARGUMENT(to);
+    	UNUSED_ARGUMENT(update_parent);
+
     	return false;
     }
 
@@ -192,6 +194,8 @@ struct NumericLiteral : public Literal
     template<typename Archive>
     void serialize(Archive& ar, const unsigned int version)
     {
+    	UNUSED_ARGUMENT(version);
+
     	ar & boost::serialization::base_object<Literal>(*this);
     	ar & (int&)type;
     	switch(type)
@@ -255,6 +259,10 @@ struct StringLiteral : public Literal
 
     virtual bool replaceUseWith(const ASTNode& from, const ASTNode& to, bool update_parent = true)
     {
+    	UNUSED_ARGUMENT(from);
+    	UNUSED_ARGUMENT(to);
+    	UNUSED_ARGUMENT(update_parent);
+
     	return false;
     }
 
@@ -266,6 +274,8 @@ struct StringLiteral : public Literal
     template<typename Archive>
     void serialize(Archive& ar, const unsigned int version)
     {
+    	UNUSED_ARGUMENT(version);
+
     	ar & boost::serialization::base_object<Literal>(*this);
     	ar & value;
     }

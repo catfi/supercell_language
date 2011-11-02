@@ -215,6 +215,8 @@ struct Block : public ASTNode
     template<typename Archive>
     void serialize(Archive& ar, const unsigned int version)
     {
+    	UNUSED_ARGUMENT(version);
+
     	ar & boost::serialization::base_object<ASTNode>(*this);
     	ar & is_pipelined_block;
     	ar & is_async_block;

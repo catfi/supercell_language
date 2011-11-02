@@ -596,7 +596,7 @@ struct LLVMGeneratorStageVisitor : GenericDoubleVisitor
 		}
 
 		llvm::Value* result = NULL;
-		llvm::Value* temporary = NULL;
+//		llvm::Value* temporary = NULL;
 
 		switch(node.opcode)
 		{
@@ -842,6 +842,8 @@ struct LLVMGeneratorStageVisitor : GenericDoubleVisitor
 				bool need_truc = (PrimitiveType::bitSize(node.type->referred.primitive) < PrimitiveType::bitSize(node_specifier->referred.primitive));
 				bool bitsize_mismatched = (PrimitiveType::bitSize(node.type->referred.primitive) != PrimitiveType::bitSize(node_specifier->referred.primitive));
 
+				UNUSED_ARGUMENT(bitsize_mismatched);
+
 				const llvm::Type* llvm_cast_type = NULL;
 
 				llvm::Attributes llvm_dummy_modifier = llvm::Attribute::None; // dummy
@@ -1075,6 +1077,8 @@ private:
 
 	bool finishFunction(FunctionDecl& ast_function)
 	{
+		UNUSED_ARGUMENT(ast_function);
+
 		enterBasicBlock(mFunctionContext.return_block);
 
 		if(!mFunctionContext.return_value)

@@ -87,6 +87,8 @@ struct EnumDecl : public Declaration
     template<typename Archive>
     void serialize(Archive& ar, const unsigned int version)
     {
+    	UNUSED_ARGUMENT(version);
+
     	ar & boost::serialization::base_object<Declaration>(*this);
     	ar & values;
     }

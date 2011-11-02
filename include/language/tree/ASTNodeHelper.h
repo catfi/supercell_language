@@ -135,7 +135,7 @@ struct ASTNodeHelper
 				return true;
 			if(!isa<ClassDecl>(current))
 				return false;
-		} while(current = ResolvedType::get(cast<ClassDecl>(current)->base));
+		} while((current = ResolvedType::get(cast<ClassDecl>(current)->base)));
 		return false;
 	}
 

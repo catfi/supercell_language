@@ -99,6 +99,8 @@ bool LLVMGeneratorStage::execute(bool& continue_execution)
 	getGeneratorContext().modules.push_back(module);
 	getGeneratorContext().context = context;
 
+	UNUSED_ARGUMENT(continue_execution);
+
 	return true;
 }
 

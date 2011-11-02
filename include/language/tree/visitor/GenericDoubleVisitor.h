@@ -44,6 +44,7 @@ struct GenericDoubleVisitor : Visitor<ASTNode, void, VisitorImplementation::recu
 
 		void apply(ASTNode& node)
 		{
+			UNUSED_ARGUMENT(node);
 		}
 
 		void apply(Annotation& node)
@@ -68,11 +69,13 @@ struct GenericDoubleVisitor : Visitor<ASTNode, void, VisitorImplementation::recu
 
 		void apply(Identifier& node)
 		{
-			BOOST_ASSERT(false && "reaching unreachable code");
+			UNUSED_ARGUMENT(node);
+			UNREACHABLE_CODE();
 		}
 
 		void apply(SimpleIdentifier& node)
 		{
+			UNUSED_ARGUMENT(node);
 		}
 
 		void apply(NestedIdentifier& node)
@@ -150,7 +153,8 @@ struct GenericDoubleVisitor : Visitor<ASTNode, void, VisitorImplementation::recu
 		/// Declaration
 		void apply(Declaration& node)
 		{
-			BOOST_ASSERT(false && "reaching unreachable code");
+			UNUSED_ARGUMENT(node);
+			UNREACHABLE_CODE();
 		}
 
 		void apply(ClassDecl& node)
@@ -216,7 +220,8 @@ struct GenericDoubleVisitor : Visitor<ASTNode, void, VisitorImplementation::recu
 		/// Statement
 		void apply(Statement& node)
 		{
-			BOOST_ASSERT(false && "reaching unreachable code");
+			UNUSED_ARGUMENT(node);
+			UNREACHABLE_CODE();
 		}
 
 		void apply(DeclarativeStmt& node)
@@ -298,7 +303,8 @@ struct GenericDoubleVisitor : Visitor<ASTNode, void, VisitorImplementation::recu
 		/// Expression
 		void apply(Expression& node)
 		{
-			BOOST_ASSERT(false && "reaching unreachable code");
+			UNUSED_ARGUMENT(node);
+			UNREACHABLE_CODE();
 		}
 
 		void apply(PrimaryExpr& node)

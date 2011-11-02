@@ -62,6 +62,7 @@ struct PrettyPrintVisitor : Visitor<const ASTNode, void>
 
 	void print(const ASTNode& node)
 	{
+		UNUSED_ARGUMENT(node);
 		STREAM << L"<unknown_node/>" << std::endl;
 	}
 
