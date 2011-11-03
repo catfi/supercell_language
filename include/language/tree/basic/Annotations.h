@@ -78,6 +78,7 @@ struct Annotation : public ASTNode
     {
     	UNUSED_ARGUMENT(version);
 
+    	ar & boost::serialization::base_object<ASTNode>(*this);
     	ar & name;
     	ar & attribute_list;
     }
@@ -141,6 +142,7 @@ struct Annotations : public ASTNode
     {
     	UNUSED_ARGUMENT(version);
 
+    	ar & boost::serialization::base_object<ASTNode>(*this);
     	ar & annotation_list;
     }
 
