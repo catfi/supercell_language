@@ -188,6 +188,9 @@ ASTNode* createSample5()
 				ClassDecl* class_decl = new ClassDecl(new SimpleIdentifier(L"some_class"));
 				zillians_package->addObject(class_decl);
 				{
+                    // create annotations
+                    Annotations* annotations = new Annotations(NULL);
+                    annotations->appendAnnotation(new Annotation(SimpleIdentifier(L"server")));
                     // normal function
 					FunctionDecl* some_member_function = new FunctionDecl(
 							new SimpleIdentifier(L"some_member_function"),
@@ -197,6 +200,7 @@ ASTNode* createSample5()
 							Declaration::VisibilitySpecifier::PUBLIC,
 							new Block());
 					class_decl->addFunction(some_member_function);
+                    some_member_function->setAnnotations(annotations);
 
                     // formal function template
 					FunctionDecl* template_function = new FunctionDecl(
