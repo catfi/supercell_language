@@ -48,6 +48,41 @@ static void expand_tabs(const std::wstring& input, std::wstring& output, int num
 	}
 }
 
+// see: http://stackoverflow.com/questions/1746136/how-do-i-normalize-a-pathname-using-boostfilesystem/1750710#1750710
+static boost::filesystem::path resolve(const boost::filesystem::path& p)
+{
+    //p = boost::filesystem::absolute(p);
+    boost::filesystem::path result;
+    for(boost::filesystem::path::iterator it=p.begin();
+        it!=p.end();
+        ++it)
+    {
+        if(*it == "..")
+        {
+            // /a/b/.. is not necessarily /a if b is a symbolic link
+            if(boost::filesystem::is_symlink(result) )
+                result /= *it;
+            // /a/b/../.. is not /a/b/.. under most circumstances
+            // We can end up with ..s in our result because of symbolic links
+            else if(result.filename() == "..")
+                result /= *it;
+            // Otherwise it should be safe to resolve the parent
+            else
+                result = result.parent_path();
+        }
+        else if(*it == ".")
+        {
+            // Ignore
+        }
+        else
+        {
+            // Just cat other path entries
+            result /= *it;
+        }
+    }
+    return result;
+}
+
 static bool enumerate_package(const boost::filesystem::path& root, const boost::filesystem::path& p, std::deque<std::wstring>& sequence)
 {
 	boost::filesystem::path t = p.parent_path();
@@ -71,9 +106,9 @@ static bool enumerate_package(const boost::filesystem::path& root, const boost::
 static boost::filesystem::path normalize_path(boost::filesystem::path p)
 {
 	if(p.is_absolute())
-		return p.normalize();
+		return resolve(p);
 	else
-		return boost::filesystem::absolute(p).normalize();
+		return resolve(boost::filesystem::absolute(p));
 }
 
 }
@@ -152,7 +187,7 @@ bool ThorScriptParserStage::execute(bool& continue_execution)
 bool ThorScriptParserStage::parse(const boost::filesystem::path& p)
 {
 	std::deque<std::wstring> parent_sequence;
-	if (!enumerate_package(root_dir, p, parent_sequence))
+	if (!enumerate_package(root_dir, normalize_path(p), parent_sequence))
 	{
 		LOG4CXX_ERROR(LoggerWrapper::ParserStage, "failed to enumerate package for file: " << p.string());
 		return false;
