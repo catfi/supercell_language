@@ -35,10 +35,10 @@ zillians_add_subject_to_subject(PARENT thorscript-compiler-static-test-all CHILD
 zillians_add_subject_to_subject(PARENT thorscript-compiler-static-test-all CHILD thorscript-compiler-static-test-s1)
 #zillians_add_subject_to_subject(PARENT thorscript-compiler-static-test-all CHILD thorscript-compiler-static-test-future)
 
-SET(compile_options_parse --mode-parse             --enable-static-test)
-SET(compile_options_s0    --mode-semantic-verify-0 --enable-static-test)
-SET(compile_options_xform --mode-xform             --enable-static-test)
-SET(compile_options_s1    --mode-semantic-verify-1 --enable-static-test)
+SET(compile_options_parse --mode-parse             --enable-static-test --root-dir=${CMAKE_CURRENT_SOURCE_DIR})
+SET(compile_options_s0    --mode-semantic-verify-0 --enable-static-test --root-dir=${CMAKE_CURRENT_SOURCE_DIR})
+SET(compile_options_xform --mode-xform             --enable-static-test --root-dir=${CMAKE_CURRENT_SOURCE_DIR})
+SET(compile_options_s1    --mode-semantic-verify-1 --enable-static-test --root-dir=${CMAKE_CURRENT_SOURCE_DIR})
 SET(compile_options_future "")
 
 #################################################
