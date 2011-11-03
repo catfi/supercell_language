@@ -50,6 +50,8 @@ struct SourceInfoContext
     template<typename Archive>
     void serialize(Archive& ar, unsigned int version)
     {
+    	UNUSED_ARGUMENT(version);
+
     	ar & line;
     	ar & column;
     }

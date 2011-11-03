@@ -50,6 +50,30 @@ struct NodeInfoVisitor : Visitor<ASTNode, void, VisitorImplementation::recursive
 		stream << node.toString();
 	}
 
+	void info(Import& node)
+	{
+		if(node.parent) tryVisit(*node.parent);
+
+		if(stream.str().length() > 0)
+			stream << L".";
+
+		if(node.alias)
+		{
+			if(node.alias->isEmpty())
+			{
+				stream << "[alias: . => " << node.ns->toString() << "]";
+			}
+			else
+			{
+				stream << "[alias: " << node.alias->toString() << " => " << node.ns->toString() << "]";
+			}
+		}
+		else
+		{
+			stream << "[import: " << node.ns->toString() << "]";
+		}
+	}
+
 	void info(Package& node)
 	{
 		if(node.parent) tryVisit(*node.parent);

@@ -28,6 +28,7 @@
 #include "language/tree/ASTNodeFactory.h"
 
 #include <boost/mpl/bool.hpp>
+#include <boost/mpl/assert.hpp>
 #include <boost/fusion/container/vector.hpp>
 #include <boost/type_traits/is_base_of.hpp>
 #include <boost/type_traits/add_reference.hpp>

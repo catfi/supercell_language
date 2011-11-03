@@ -21,7 +21,7 @@
 
 zillians_add_complex_test(
     TARGET thorscript-compiler-transform-resolution-test-01
-    SHELL ${ThorScriptCompiler} ${compile_options_resolution} --root-dir=${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/01_caller.t ${CMAKE_CURRENT_SOURCE_DIR}/01_impl.t
+    SHELL ${ThorScriptCompiler} ${compile_options_resolution} --root-dir=${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/01_caller.t ${CMAKE_CURRENT_SOURCE_DIR}/impl/01_impl.t
     DEPENDS ${ThorScriptCompiler}
     )
 

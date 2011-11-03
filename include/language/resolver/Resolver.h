@@ -457,6 +457,10 @@ private:
 			{
 				if(!no_action) ResolvedPackage::set(&attach, ref);
 			}
+			else if(isa<Import>(ref))
+			{
+				if(!no_action) ResolvedPackage::set(&attach, ref);
+			}
 			else
 			{
 				LOG4CXX_FATAL(LoggerWrapper::Resolver, L"resolve package \"" << node.toString() << L"\" to unknown type");

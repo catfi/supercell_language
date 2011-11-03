@@ -24,6 +24,7 @@
 #define ZILLIANS_LANGUAGE_TREE_VISITOR_PRETTYPRINTVISITOR_H_
 
 #include "core/Prerequisite.h"
+#include "utility/UnicodeUtil.h"
 #include "language/tree/visitor/GenericVisitor.h"
 #include "core/Visitor.h"
 #include "language/tree/ASTNodeFactory.h"
@@ -196,23 +197,17 @@ struct PrettyPrintVisitor : Visitor<const ASTNode, void>
 
 	void print(const Source& node)
 	{
-		STREAM << L"<program>" << std::endl;
+		STREAM << L"<source file=\"" << s_to_ws(node.filename) << "\">" << std::endl;
 		{
 			printSourceInfo(node);
 		}
 		if(node.root)
 		{
 			increaseIdent();
-			{
-				STREAM << L"<root>" << std::endl;
-				{
-					visit(*node.root);
-				}
-				STREAM << L"</root>" << std::endl;
-			}
+			visit(*node.root);
 			decreaseIdent();
 		}
-		STREAM << L"</program>" << std::endl;
+		STREAM << L"</source>" << std::endl;
 	}
 
 	void print(const Package& node)
