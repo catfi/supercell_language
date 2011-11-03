@@ -7,7 +7,7 @@ TSCOMPILE=$1
 INPUT=$2
 GOLD_OUTPUT=$3
 
-$TSCOMPILE --input=$INPUT --root-dir=`dirname ${INPUT}` --emit-ast=$TEMP_FILE_A
+$TSCOMPILE $INPUT --root-dir=`dirname ${INPUT}` --emit-ast=$TEMP_FILE_A
 
 diff $TEMP_FILE_A $TEMP_FILE_B
 ERROR_CODE="$?"
