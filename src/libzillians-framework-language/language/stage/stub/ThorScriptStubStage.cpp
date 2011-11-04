@@ -108,6 +108,7 @@ void ThorScriptStubStage::genStub(tree::Package* node)
 //	case CLIENT_STUB:  gen_client_stub(node); break;
 //	case SERVER_STUB:  gen_server_stub(node); break;
 	case GATEWAY_STUB: gen_gateway_stub(node); break;
+	default: BOOST_ASSERT_MSG(0, "Unhandle gen stub case"); break;
 	}
 }
 

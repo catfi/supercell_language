@@ -98,6 +98,8 @@ struct Tangle : public ASTNode
     template<typename Archive>
     void load(Archive& ar, const unsigned int version)
     {
+        UNUSED_ARGUMENT(version);
+
     	ar & boost::serialization::base_object<ASTNode>(*this);
     	ar & internal;
 
@@ -112,23 +114,28 @@ struct Tangle : public ASTNode
     }
 
     template<typename Archive>
-    void save(Archive& ar, const unsigned int version)
+    void save(Archive& ar, const unsigned int version) const
     {
+        UNUSED_ARGUMENT(version);
+
     	ar & boost::serialization::base_object<ASTNode>(*this);
     	ar & internal;
 
-    	int size = 0;
-    	std::count_if(sources.begin(), sources.end(), [&](std::pair<const Identifier*, Source*>& p) -> bool {
-    		if(p.second->is_imported) return false;
-    		else                      return true;
-    	});
-    	ar & size;
-
-    	std::for_each(sources.begin(), sources.end(), [&](std::pair<const Identifier*, Source*>& p) {
-    		ar & p.first;
-    		ar & p.second;
-    	});
+        size_t size = std::count_if(sources.begin(), sources.end(), [&](const std::pair<const Identifier*, Source*>& p) {
+            if(p.second->is_imported) return false;
+            else                      return true;
+        });
+        ar & size;
+        for(std::multimap<Identifier*, Source*, detail::IdentifierCompare>::const_iterator i = sources.begin(); i != sources.end(); ++i)
+        {
+            if(!i->second->is_imported)
+            {
+                ar & i->first;
+                ar & i->second;
+            }
+        }
     }
+    BOOST_SERIALIZATION_SPLIT_MEMBER();
 
 	Internal* internal;
 	std::multimap<Identifier*, Source*, detail::IdentifierCompare> sources;

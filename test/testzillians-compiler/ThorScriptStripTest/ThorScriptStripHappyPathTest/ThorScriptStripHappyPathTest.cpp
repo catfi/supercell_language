@@ -33,15 +33,16 @@ BOOST_AUTO_TEST_SUITE( ThorScriptStripTest_ThorScriptStripHappyPathTestSuite )
 BOOST_AUTO_TEST_CASE( ThorScriptStripTest_ThorScriptStripHappyPathTestCase1 )
 {
     using namespace zillians::language::tree;
-    Source* program = cast<Source>(createSample5());
+    Tangle* tangle = cast<Tangle>(createSample5());
+    Source* source = tangle->sources.begin()->second;
     zillians::language::stage::visitor::ThorScriptStripStageVisitor strip;
 
-    ClassDecl* c = cast<ClassDecl>(program->root->children[0]->children[0]->objects[0]);
+    ClassDecl* c = cast<ClassDecl>(source->root->children[0]->children[0]->objects[0]);
     BOOST_CHECK(c->member_functions[0]->block != NULL);
     BOOST_CHECK(c->member_functions[1]->block != NULL);
     BOOST_CHECK(c->member_functions[2]->block != NULL);
 
-    strip.strip(*program);
+    strip.strip(*tangle);
 
     BOOST_CHECK(c->member_functions[0]->block == NULL);
     BOOST_CHECK(c->member_functions[1]->block != NULL);

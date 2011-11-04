@@ -32,16 +32,20 @@ using namespace zillians::language::tree;
 
 ASTNode* createSample1()
 {
-	Source* program = new Source();
-	return program;
+    Tangle* tangle = new Tangle();
+	Source* source = new Source("test-program-1", false);
+    tangle->addSource(new SimpleIdentifier(L"package-id"), source);
+	return tangle;
 }
 
 ASTNode* createSample2()
 {
-	Source* program = new Source();
+    Tangle* tangle = new Tangle();
+	Source* source = new Source("test-program-2", false);
+    tangle->addSource(new SimpleIdentifier(L"package-id"), source);
 	{
 		Package* com_package = new Package(new SimpleIdentifier(L"com"));
-		program->root->addPackage(com_package);
+		source->root->addPackage(com_package);
 		{
 			Package* supercell_package = new Package(new SimpleIdentifier(L"supercell"));
 			com_package->addPackage(supercell_package);
@@ -50,15 +54,17 @@ ASTNode* createSample2()
 			com_package->addPackage(zillians_package);
 		}
 	}
-	return program;
+	return tangle;
 }
 
 ASTNode* createSample3()
 {
-	Source* program = new Source();
+    Tangle* tangle = new Tangle();
+	Source* source = new Source("test-program-3", false);
+    tangle->addSource(new SimpleIdentifier(L"package-id"), source);
 	{
 		Package* com_package = new Package(new SimpleIdentifier(L"com"));
-		program->root->addPackage(com_package);
+		source->root->addPackage(com_package);
 		{
 			Package* zillians_package = new Package(new SimpleIdentifier(L"zillians"));
 			com_package->addPackage(zillians_package);
@@ -111,15 +117,17 @@ ASTNode* createSample3()
 		}
 	}
 
-	return program;
+    return tangle;
 }
 
 ASTNode* createSample4()
 {
-	Source* program = new Source();
+    Tangle* tangle = new Tangle();
+	Source* source = new Source("test-program-4", false);
+    tangle->addSource(new SimpleIdentifier(L"package-id"), source);
 	{
 		Package* com_package = new Package(new SimpleIdentifier(L"com"));
-		program->root->addPackage(com_package);
+		source->root->addPackage(com_package);
 		{
 			Package* zillians_package = new Package(new SimpleIdentifier(L"zillians"));
 			com_package->addPackage(zillians_package);
@@ -171,16 +179,18 @@ ASTNode* createSample4()
 		}
 	}
 
-	return program;
+	return tangle;
 }
 
 // class with member function template
 ASTNode* createSample5()
 {
-	Source* program = new Source();
+    Tangle* tangle = new Tangle();
+	Source* source = new Source("test-program-5", false);
+    tangle->addSource(new SimpleIdentifier(L"package-id"), source);
 	{
 		Package* com_package = new Package(new SimpleIdentifier(L"com"));
-		program->root->addPackage(com_package);
+		source->root->addPackage(com_package);
 		{
 			Package* zillians_package = new Package(new SimpleIdentifier(L"zillians"));
 			com_package->addPackage(zillians_package);
@@ -189,8 +199,8 @@ ASTNode* createSample5()
 				zillians_package->addObject(class_decl);
 				{
                     // create annotations
-                    Annotations* annotations = new Annotations(NULL);
-                    annotations->appendAnnotation(new Annotation(SimpleIdentifier(L"server")));
+                    Annotations* annotations = new Annotations();
+                    annotations->appendAnnotation(new Annotation(new SimpleIdentifier(L"server")));
                     // normal function
 					FunctionDecl* some_member_function = new FunctionDecl(
 							new SimpleIdentifier(L"some_member_function"),
@@ -226,7 +236,7 @@ ASTNode* createSample5()
 		}
 	}
 
-	return program;
+	return tangle;
 }
 
 #endif /* ASTNODESAMPLES_H_ */
