@@ -40,26 +40,26 @@ using namespace zillians::language::tree::visitor;
 BOOST_AUTO_TEST_SUITE( ThorScriptTreeTest_SerializationTestSuite )
 
 template <typename TreeCreateFunction>
-bool CreateSaveRestoreComare(TreeCreateFunction f)
+void CreateSaveRestoreComare(TreeCreateFunction f)
 {
     // create and save program ast to file
-    ASTNode* origProgram = f();
+    ASTNode* origTangle = f();
     {
         std::ofstream ofs("p1.txt");
         boost::archive::text_oarchive oa(ofs);
-        oa << origProgram;
+        oa << origTangle;
     }
 
     // restore ast from saved file
-    ASTNode* restoredProgram = NULL;
+    ASTNode* restoredTangle = NULL;
     {
         std::ifstream ifs("p1.txt");
         boost::archive::text_iarchive ia(ifs);
-        ia >> restoredProgram;
+        ia >> restoredTangle;
     }
 
     // compare
-    BOOST_CHECK(origProgram->isEqual(*restoredProgram));
+    BOOST_CHECK(origTangle->isEqual(*restoredTangle));
 }
 
 BOOST_AUTO_TEST_CASE( ThorScriptTreeTest_SerializationTestCase1 )
