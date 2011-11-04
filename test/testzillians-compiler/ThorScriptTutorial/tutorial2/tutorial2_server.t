@@ -1,5 +1,3 @@
-package com.zillians.tutorials.tutorial2;
-
 class HelloWorldServer {
 	@server
 	@export

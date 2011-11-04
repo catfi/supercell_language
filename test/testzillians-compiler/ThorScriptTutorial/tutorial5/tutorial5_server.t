@@ -1,5 +1,3 @@
-package com.zillians.tutorials.tutorial5;
-
 @default_domain { domain = "server" }
 
 class PlayerContext {

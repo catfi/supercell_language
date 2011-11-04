@@ -130,7 +130,7 @@ struct ThorScriptTreeAction
 			printf("start::reset param(0) type = %s\n", typeid(_param_t(0)).name());
 #endif
 			BIND_CACHED_LOCATION(getParserContext().active_source);
-			getParserContext().active_package = getParserContext().active_source->root;
+			//getParserContext().active_package = getParserContext().active_source->root;
 		}
 		END_ACTION
 	};

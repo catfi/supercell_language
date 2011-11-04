@@ -38,12 +38,12 @@ struct Source : public ASTNode
 	DEFINE_VISITABLE();
 	DEFINE_HIERARCHY(Source, (Source)(ASTNode));
 
-	Source(const std::string& filename, bool is_imported = false) : is_imported(is_imported), filename(filename), root(new Package(new SimpleIdentifier(L"")))
+	explicit Source(const std::string& filename, bool is_imported = false) : is_imported(is_imported), filename(filename), root(new Package(new SimpleIdentifier(L"")))
 	{
 		root->parent = this;
 	}
 
-	Source(const std::string& filename, Package* root, bool is_imported = false) : is_imported(is_imported), filename(filename), root(root)
+	explicit Source(const std::string& filename, Package* root, bool is_imported = false) : is_imported(is_imported), filename(filename), root(root)
 	{
 		BOOST_ASSERT(root && "null root for Source node is not allowed");
 		root->parent = this;
@@ -99,7 +99,7 @@ struct Source : public ASTNode
 	Package* root;
 
 private:
-	Source(bool is_imported = false) : is_imported(is_imported)
+	Source() : is_imported(false)
 	{ }
 };
 

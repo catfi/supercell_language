@@ -1,5 +1,3 @@
-package com.zillians.compiler_test;
-
 class test_me
 {
 	function f0(x:int64, y:int64):int64

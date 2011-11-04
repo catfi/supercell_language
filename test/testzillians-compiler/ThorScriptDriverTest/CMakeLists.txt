@@ -1,6 +1,6 @@
 # 
 # Zillians MMO
-# Copyright (C) 2007-2011 Zillians.com, Inc.
+# Copyright (C) 2007-2009 Zillians.com, Inc.
 # For more information see http:#www.zillians.com
 #
 # Zillians MMO is the library and runtime for massive multiplayer online game
@@ -19,10 +19,9 @@
 # Contact Information: info@zillians.com
 #
 
-zillians_add_complex_test(
-    TARGET thorscript-compiler-transform-resolution-test-01
-    SHELL ${ThorScriptCompiler} ${compile_options_resolution} --root-dir=${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/01_caller.t ${CMAKE_CURRENT_SOURCE_DIR}/impl/01_impl.t
-    DEPENDS ${ThorScriptCompiler}
-    )
+zillians_create_test_subject(SUBJECT thorscript-driver-test-all)
+zillians_add_subject_to_subject(PARENT framework-compiler-critical CHILD thorscript-driver-test-all)
 
-zillians_add_test_to_subject(SUBJECT thorscript-transformer-resolution-test-all TARGET thorscript-compiler-transform-resolution-test-01)
+get_target_property(ThorScriptDriver tsc LOCATION)
+
+ADD_SUBDIRECTORY(Minimal)

@@ -1,5 +1,3 @@
-package com.zillians.tutorials.tutorial4;
-
 @default_domain { domain = "client" }
 
 // we can have C-style external linkage as native function

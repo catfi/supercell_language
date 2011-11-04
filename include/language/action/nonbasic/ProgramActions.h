@@ -44,11 +44,21 @@ struct program
 
 	BEGIN_ACTION(append_import_alias)
 	{
+		if(getParserContext().active_source)
+		{
+			Import* import = new Import(_param(0), _param(1)); BIND_CACHED_LOCATION(import);
+			getParserContext().active_source->addImport(import);
+		}
 	}
 	END_ACTION
 
 	BEGIN_ACTION(append_import_global_alias)
 	{
+		if(getParserContext().active_source)
+		{
+			Import* import = new Import(new SimpleIdentifier(L""), _param(0)); BIND_CACHED_LOCATION(import);
+			getParserContext().active_source->addImport(import);
+		}
 	}
 	END_ACTION
 

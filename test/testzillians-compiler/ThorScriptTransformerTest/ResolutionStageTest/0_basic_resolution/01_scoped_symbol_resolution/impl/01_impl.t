@@ -1,4 +1,4 @@
-function f0(x:int64, y:int64):int64
+function forz(x:int64, y:int64):int64
 {
 	return x + y;
 }

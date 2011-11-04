@@ -39,30 +39,44 @@ struct Import : public ASTNode
 	DEFINE_VISITABLE();
 	DEFINE_HIERARCHY(Import, (Import)(ASTNode));
 
-	explicit Import(Identifier* _ns) : ns(_ns)
+	explicit Import(Identifier* ns) : alias(NULL), ns(ns)
 	{
-		BOOST_ASSERT(_ns && "null identifier for import node is not allowed");
+		BOOST_ASSERT(ns && "null identifier for import node is not allowed");
 
+		ns->parent = this;
+	}
+
+	explicit Import(Identifier* alias, Identifier* ns) : alias(alias), ns(ns)
+	{
+		BOOST_ASSERT(alias && "null identifier for import node is not allowed");
+		BOOST_ASSERT(ns && "null identifier for import node is not allowed");
+
+		alias->parent = this;
 		ns->parent = this;
 	}
 
     virtual bool isEqualImpl(const ASTNode& rhs, ASTNodeSet& visited) const
     {
     	BEGIN_COMPARE()
-		COMPARE_MEMBER(ns);
+		COMPARE_MEMBER(alias);
+    	COMPARE_MEMBER(ns);
     	END_COMPARE()
     }
 
     virtual bool replaceUseWith(const ASTNode& from, const ASTNode& to, bool update_parent = true)
     {
     	BEGIN_REPLACE()
+		REPLACE_USE_WITH(alias)
 		REPLACE_USE_WITH(ns)
     	END_REPLACE()
     }
 
     virtual ASTNode* clone() const
     {
-    	return new Import((ns) ? cast<Identifier>(ns->clone()) : NULL);
+    	if(alias)
+    		return new Import(cast<Identifier>(alias->clone()), cast<Identifier>(ns->clone()));
+    	else
+    		return new Import(cast<Identifier>(ns->clone()));
     }
 
     template<typename Archive>
@@ -71,9 +85,11 @@ struct Import : public ASTNode
     	UNUSED_ARGUMENT(version);
 
     	ar & boost::serialization::base_object<ASTNode>(*this);
+    	ar & alias;
     	ar & ns;
     }
 
+    Identifier* alias;
 	Identifier* ns;
 
 protected:

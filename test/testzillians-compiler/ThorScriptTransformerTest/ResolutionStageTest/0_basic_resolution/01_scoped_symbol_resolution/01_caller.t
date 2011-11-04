@@ -1,10 +1,8 @@
-module compiler_test;
-
-import impl = impl;
+import . = impl;
 
 function f0(x:int64, y:int64):int64
 {
-	return impl.f0(x, y);
+	return forz(x, y);
 }
 /*
 function f1(x:int64, y:int64):int64
