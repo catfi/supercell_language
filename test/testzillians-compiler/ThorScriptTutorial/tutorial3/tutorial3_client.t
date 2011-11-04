@@ -1,5 +1,3 @@
-package com.zillians.tutorials.tutorial3;
-
 @default_domain { domain = "client" }
  
 class ClientContext {

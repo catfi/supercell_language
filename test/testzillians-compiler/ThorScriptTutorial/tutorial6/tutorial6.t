@@ -1,5 +1,3 @@
-package com.zillians.tutorials.tutorial6;
-
 @default_domain { domain = "generic" }
 
 /**
