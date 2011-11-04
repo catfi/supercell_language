@@ -1,5 +1,3 @@
-package com.zillians.compiler_test;
-
 function f0(x:int64, y:int64):int64
 {
 	var _x:int64 = x;

@@ -1,5 +1,3 @@
-package com.zillians.compiler_test;
-
 @client
 function dummy():void;
 
