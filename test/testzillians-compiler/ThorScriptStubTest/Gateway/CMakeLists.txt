@@ -21,10 +21,11 @@
 
 zillians_add_complex_test(
     TARGET thorscript-stub-test-gateway
-    SHELL ${CMAKE_CURRENT_SOURCE_DIR}/../test.sh ${ThorScriptCompiler}
+    SHELL ${CMAKE_CURRENT_SOURCE_DIR}/../test.sh ${ThorScriptCompiler} ${ThorScriptStubGenerator}
             ${CMAKE_CURRENT_SOURCE_DIR}/data/input.t
+            "gateway-stub"
             ${CMAKE_CURRENT_SOURCE_DIR}/gold/output
-    DEPENDS ${ThorScriptCompiler}
+    DEPENDS ${ThorScriptCompiler} ${ThorScriptStubGenerator}
     )
 
 #zillians_add_simple_test(TARGET ThorScriptStubTest)
