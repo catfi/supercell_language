@@ -30,10 +30,6 @@
 
 using namespace zillians::language::tree;
 
-//extern void gen_client_stub(Package* node);
-//extern void gen_server_stub(Package* node);
-extern void gen_gateway_stub(Package* node);
-
 namespace zillians { namespace language { namespace stage {
 
 ThorScriptStubStage::ThorScriptStubStage() : stub_type(UNKNOWN_STUB)
@@ -79,9 +75,13 @@ bool ThorScriptStubStage::parseOptions(po::variables_map& vm)
 	if(vm.count("stub-type"))
 	{
 		std::string stub_type_name = vm["stub-type"].as<std::string>();
-		if(stub_type_name == CLIENT_STUB_NAME)       stub_type = CLIENT_STUB;
-		else if(stub_type_name == SERVER_STUB_NAME)  stub_type = SERVER_STUB;
-		else if(stub_type_name == GATEWAY_STUB_NAME) stub_type = GATEWAY_STUB;
+		if(stub_type_name == "UNKNOWN_STUB")                            stub_type = UNKNOWN_STUB;
+		else if(stub_type_name == "CLIENTCOMMANDOBJECT_H")              stub_type = CLIENTCOMMANDOBJECT_H;
+		else if(stub_type_name == "CLOUDCOMMANDOBJECT_H")               stub_type = CLOUDCOMMANDOBJECT_H;
+		else if(stub_type_name == "GAMENAME_CLIENTCOMMANDOBJECT_H")     stub_type = GAMENAME_CLIENTCOMMANDOBJECT_H;
+		else if(stub_type_name == "GAMENAME_CLOUDCOMMANDOBJECT_H")      stub_type = GAMENAME_CLOUDCOMMANDOBJECT_H;
+		else if(stub_type_name == "GAMENAME_GAMECOMMANDTRANSLATOR_CPP") stub_type = GAMENAME_GAMECOMMANDTRANSLATOR_CPP;
+		else if(stub_type_name == "GAMENAMEGAMEMODULE_MODULE")          stub_type = GAMENAMEGAMEMODULE_MODULE;
 	}
 	return true;
 }
@@ -91,25 +91,25 @@ bool ThorScriptStubStage::execute(bool& continue_execution)
 	foreach(i, ast_files)
     {
         tree::ASTNode* deserialized = ASTSerializationHelper::deserialize(*i);
-		if(!deserialized || !tree::isa<tree::Package>(deserialized))
-			continue;
-		genStub(tree::cast<tree::Package>(deserialized));
+		if(deserialized || tree::isa<tree::Package>(deserialized))
+		{
+			tree::Package* package = tree::cast<tree::Package>(deserialized);
+			switch(stub_type)
+			{
+			case CLIENTCOMMANDOBJECT_H:              genStub<CLIENTCOMMANDOBJECT_H>(package);
+			case CLOUDCOMMANDOBJECT_H:               genStub<CLOUDCOMMANDOBJECT_H>(package);
+			case GAMENAME_CLIENTCOMMANDOBJECT_H:     genStub<GAMENAME_CLIENTCOMMANDOBJECT_H>(package);
+			case GAMENAME_CLOUDCOMMANDOBJECT_H:      genStub<GAMENAME_CLOUDCOMMANDOBJECT_H>(package);
+			case GAMENAME_GAMECOMMANDTRANSLATOR_CPP: genStub<GAMENAME_GAMECOMMANDTRANSLATOR_CPP>(package);
+			case GAMENAMEGAMEMODULE_MODULE:          genStub<GAMENAMEGAMEMODULE_MODULE>(package);
+			default: BOOST_ASSERT(false && "reaching unreachable code"); break;
+			}
+		}
     }
 
 	UNUSED_ARGUMENT(continue_execution);
 
 	return true;
-}
-
-void ThorScriptStubStage::genStub(tree::Package* node)
-{
-	switch(stub_type)
-	{
-//	case CLIENT_STUB:  gen_client_stub(node); break;
-//	case SERVER_STUB:  gen_server_stub(node); break;
-	case GATEWAY_STUB: gen_gateway_stub(node); break;
-	default: BOOST_ASSERT_MSG(0, "Unhandle gen stub case"); break;
-	}
 }
 
 } } }

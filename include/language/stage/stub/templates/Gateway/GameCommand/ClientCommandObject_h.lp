@@ -1,8 +1,13 @@
 //[[[global
+#include "language/stage/stub/ThorScriptStubStage.h"
 #include <iostream>
 
+using namespace zillians::language;
+using namespace zillians::language::tree;
+
 //[[[entry
-void gen_gateway_stub()
+template<>
+void genStub<stage::ThorScriptStubStage::CLIENTCOMMANDOBJECT_H>(Package* node)
 {
 //[[[driver
 //]]]

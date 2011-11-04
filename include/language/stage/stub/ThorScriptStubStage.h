@@ -49,20 +49,26 @@ public:
 
     std::string output_file;
 
-private:
+public:
 	typedef enum
 	{
 		UNKNOWN_STUB,
-		CLIENT_STUB,
-		SERVER_STUB,
-		GATEWAY_STUB
+		CLIENTCOMMANDOBJECT_H,
+		CLOUDCOMMANDOBJECT_H,
+		GAMENAME_CLIENTCOMMANDOBJECT_H,
+		GAMENAME_CLOUDCOMMANDOBJECT_H,
+		GAMENAME_GAMECOMMANDTRANSLATOR_CPP,
+		GAMENAMEGAMEMODULE_MODULE
 	} stub_type_t;
 
+private:
 	stub_type_t stub_type;
-
-	void genStub(tree::Package* package);
 };
 
 } } }
+
+template<zillians::language::stage::ThorScriptStubStage::stub_type_t ENUM>
+void genStub(zillians::language::tree::Package* package)
+{ }
 
 #endif /* ZILLIANS_LANGUAGE_STAGE_MAKE_THORSCRIPTSTUBSTAGE_H_ */

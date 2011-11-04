@@ -1,4 +1,5 @@
 //[[[global
+#include "language/stage/stub/ThorScriptStubStage.h"
 #include "language/stage/transformer/context/ManglingStageContext.h"
 #include "language/tree/ASTNodeHelper.h"
 #include "language/tree/ASTNode.h"
@@ -37,7 +38,8 @@ struct AtFuncGeneratorVisitor : public visitor::GenericDoubleVisitor
 };
 
 //[[[entry
-void gen_gateway_stub(Package* node)
+template<>
+void genStub<stage::ThorScriptStubStage::GAMENAME_CLOUDCOMMANDOBJECT_H>(Package* node)
 {
 //[[[driver
 //]]]

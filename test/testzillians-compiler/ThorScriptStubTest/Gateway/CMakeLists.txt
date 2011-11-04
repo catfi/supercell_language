@@ -19,16 +19,22 @@
 # Contact Information: info@zillians.com
 #
 
+zillians_create_test_subject(SUBJECT thorscript-stub-test-all)
+
+#zillians_create_test_subject(SUBJECT thorscript-stub-test-client)
+#zillians_create_test_subject(SUBJECT thorscript-stub-test-server)
+zillians_create_test_subject(SUBJECT thorscript-stub-test-gateway)
+
+#zillians_add_subject_to_subject(PARENT thorscript-stub-test-all CHILD thorscript-stub-test-client)
+#zillians_add_subject_to_subject(PARENT thorscript-stub-test-all CHILD thorscript-stub-test-server)
+zillians_add_subject_to_subject(PARENT thorscript-stub-test-all CHILD thorscript-stub-test-gateway)
+
 zillians_add_complex_test(
-    TARGET thorscript-stub-test-gateway
+    TARGET thorscript-stub-test-gateway-GAMENAME_CLIENTCOMMANDOBJECT_H
     SHELL ${CMAKE_CURRENT_SOURCE_DIR}/../test.sh ${ThorScriptCompiler} ${ThorScriptStubGenerator}
             ${CMAKE_CURRENT_SOURCE_DIR}/data/input.t
-            "gateway-stub"
-            ${CMAKE_CURRENT_SOURCE_DIR}/gold/output
+            "GAMENAME_CLIENTCOMMANDOBJECT_H"
+            ${CMAKE_CURRENT_SOURCE_DIR}/gold/GAMENAME_CLIENTCOMMANDOBJECT_H_output
     DEPENDS ${ThorScriptCompiler} ${ThorScriptStubGenerator}
     )
-
-#zillians_add_simple_test(TARGET ThorScriptStubTest)
-#zillians_add_test_to_subject(SUBJECT thorscript-stub-test-client TARGET ThorScriptStubTest)
-#zillians_add_test_to_subject(SUBJECT thorscript-stub-test-server TARGET ThorScriptStubTest)
-#zillians_add_test_to_subject(SUBJECT thorscript-stub-test-gateway TARGET ThorScriptStubTest)
+zillians_add_test_to_subject(SUBJECT thorscript-stub-test-gateway TARGET thorscript-stub-test-gateway-GAMENAME_CLIENTCOMMANDOBJECT_H)
