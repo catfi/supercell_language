@@ -1,5 +1,4 @@
 //[[[global
-
 #include "language/stage/transformer/context/ManglingStageContext.h"
 #include "language/tree/ASTNodeHelper.h"
 #include "language/tree/ASTNode.h"
@@ -37,8 +36,6 @@ struct AtFuncGeneratorVisitor : public visitor::GenericDoubleVisitor
     }
 };
 
-//]]]
-
 //[[[entry
 void gen_gateway_stub(Package* node)
 {
@@ -47,20 +44,20 @@ void gen_gateway_stub(Package* node)
 }
 //]]]
 
+//]]]
+
 #include "vw/services/api/ApiTypes.h"
 #include "objects/ClientCommandObject.h"
-namespace zillians{
+
+namespace zillians {
 
 //[[[code
-std::wstring GameName = L"Dummy";
+std::wstring GameName = L"DummyGameName";
+
 std::vector<FunctionDecl*> AtClientFuncList;
 std::vector<FunctionDecl*> AtServerFuncList;
-{
-    AtFuncGeneratorVisitor v(AtClientFuncList, L"client"); v.visit(*node);
-}
-{
-    AtFuncGeneratorVisitor v(AtServerFuncList, L"server"); v.visit(*node);
-}
+{ AtFuncGeneratorVisitor v(AtClientFuncList, L"client"); v.visit(*node); }
+{ AtFuncGeneratorVisitor v(AtServerFuncList, L"server"); v.visit(*node); }
 
 auto f = [&](FunctionDecl* node){
     std::wstring FuncName = node->name->toString();

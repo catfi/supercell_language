@@ -1,3 +1,16 @@
+//[[[global
+#include <iostream>
+
+//[[[entry
+void gen_gateway_stub()
+{
+//[[[driver
+//]]]
+}
+//]]]
+
+//]]]
+
 class CloudCommandObject
 {
 public:

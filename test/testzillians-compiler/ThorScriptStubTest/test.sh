@@ -11,7 +11,7 @@ STUB_TYPE=$4
 GOLD_OUTPUT=$5
 
 $TS_COMPILE $INPUT --root-dir=`dirname $INPUT` --emit-ast=$TEMP_FILE_A
-$TS_STUB --stub-type=$STUB_TYPE --input=$TEMP_FILE_A --output=$TEMP_FILE_B
+$TS_STUB $TEMP_FILE_A --stub-type=$STUB_TYPE --output=$TEMP_FILE_B
 
 cat $GOLD_OUTPUT > $TEMP_FILE_C
 diff $TEMP_FILE_B $TEMP_FILE_C
