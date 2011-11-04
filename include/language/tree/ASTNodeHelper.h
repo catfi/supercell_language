@@ -239,6 +239,11 @@ struct ASTNodeHelper
 		return v.stream.str();
 	}
 
+	static bool isUUID(TypeSpecifier* node)
+	{
+		return false;
+	}
+
 private:
 	static bool isNamedScope(ASTNode* node)
 	{

@@ -13,13 +13,14 @@
 using namespace zillians::language;
 using namespace zillians::language::tree; // needed by CREATE_INVOKER
 
-struct AtClientFuncGeneratorVisitor : public visitor::GenericDoubleVisitor
+struct AtFuncGeneratorVisitor : public visitor::GenericDoubleVisitor
 {
     CREATE_INVOKER(generateInvoker, generate)
 
     std::vector<FunctionDecl*>& mFuncList;
+    std::wstring mTag;
 
-    AtClientFuncGeneratorVisitor(std::vector<FunctionDecl*>& FuncList) : mFuncList(FuncList)
+    AtFuncGeneratorVisitor(std::vector<FunctionDecl*>& FuncList, std::wstring tag) : mFuncList(FuncList), mTag(tag)
     {
         REGISTER_ALL_VISITABLE_ASTNODE(generateInvoker)
     }
@@ -31,30 +32,7 @@ struct AtClientFuncGeneratorVisitor : public visitor::GenericDoubleVisitor
 
     void generate(FunctionDecl& node)
     {
-        if(ASTNodeHelper::findAnnotation(&node, L"client"))
-            mFuncList.push_back(&node);
-    }
-};
-
-struct AtServerFuncGeneratorVisitor : public visitor::GenericDoubleVisitor
-{
-    CREATE_INVOKER(generateInvoker, generate)
-
-    std::vector<FunctionDecl*>& mFuncList;
-
-    AtServerFuncGeneratorVisitor(std::vector<FunctionDecl*>& FuncList) : mFuncList(FuncList)
-    {
-        REGISTER_ALL_VISITABLE_ASTNODE(generateInvoker)
-    }
-
-    void generate(ASTNode& node)
-    {
-        revisit(node);
-    }
-
-    void generate(FunctionDecl& node)
-    {
-        if(ASTNodeHelper::findAnnotation(&node, L"server"))
+        if(ASTNodeHelper::findAnnotation(&node, mTag))
             mFuncList.push_back(&node);
     }
 };
@@ -78,10 +56,10 @@ std::wstring GameName = L"Dummy";
 std::vector<FunctionDecl*> AtClientFuncList;
 std::vector<FunctionDecl*> AtServerFuncList;
 {
-    AtClientFuncGeneratorVisitor v(AtClientFuncList); v.visit(*node);
+    AtFuncGeneratorVisitor v(AtClientFuncList, L"client"); v.visit(*node);
 }
 {
-    AtServerFuncGeneratorVisitor v(AtServerFuncList); v.visit(*node);
+    AtFuncGeneratorVisitor v(AtServerFuncList, L"server"); v.visit(*node);
 }
 
 auto f = [&](FunctionDecl* node){
@@ -100,8 +78,8 @@ auto f = [&](FunctionDecl* node){
         ~${GAME_NAME}_${FUNCTION_NAME}_ClientCommandObject()
         { }
 
-        enum 
-        { 
+        enum
+        {
             // GENERATE_BEGIN
             TYPE = ${FUNCTION_ID} // the type need to be unique globally (across all RPC command types)
             // GENERATE_END
@@ -130,14 +108,8 @@ auto f = [&](FunctionDecl* node){
     };
     //]]]
 };
-foreach(i, AtClientFuncList)
-{
-    f(*i);
-}
-foreach(i, AtServerFuncList)
-{
-    f(*i);
-}
+foreach(i, AtClientFuncList) f(*i);
+foreach(i, AtServerFuncList) f(*i);
 //]]]
 
 } // namespace zillians

@@ -1,26 +1,26 @@
-///[[[signature void generate(std::wstringstream& ss, ASTNode* node)
-
-///[[[global
+//[[[global
 
 #include "language/stage/transformer/context/ManglingStageContext.h"
 #include "language/tree/ASTNodeHelper.h"
-#include <sstream.h>
+#include "language/tree/ASTNode.h"
+#include "language/tree/visitor/GenericDoubleVisitor.h"
+#include "utility/Foreach.h"
+#include <sstream>
+#include <iostream>
 #include <string>
+#include <vector>
 
 using namespace zillians::language;
+using namespace zillians::language::tree; // needed by CREATE_INVOKER
 
-struct GeneratorVisitor : GenericDoubleVisitor
+struct AtFuncGeneratorVisitor : public visitor::GenericDoubleVisitor
 {
     CREATE_INVOKER(generateInvoker, generate)
 
-    enum
-    {
-        MAX_BYTE_COUNT = 128
-    };
+    std::vector<FunctionDecl*>& mFuncList;
+    std::wstring mTag;
 
-    std::wstring GameName;
-
-    GeneratorVisitor() : GameName(L"0") // TODO: need spec
+    AtFuncGeneratorVisitor(std::vector<FunctionDecl*>& FuncList, std::wstring tag) : mFuncList(FuncList), mTag(tag)
     {
         REGISTER_ALL_VISITABLE_ASTNODE(generateInvoker)
     }
@@ -32,160 +32,108 @@ struct GeneratorVisitor : GenericDoubleVisitor
 
     void generate(FunctionDecl& node)
     {
-        if(tree::ASTNodeHelper::findAnnotation(&node, L"client") || tree::ASTNodeHelper::findAnnotation(&node, L"server"))
+        if(ASTNodeHelper::findAnnotation(&node, mTag))
+            mFuncList.push_back(&node);
+    }
+};
+
+//]]]
+
+//[[[entry
+void gen_gateway_stub(Package* node)
+{
+//[[[driver
+//]]]
+}
+//]]]
+
+#include "vw/services/api/ApiTypes.h"
+#include "objects/ClientCommandObject.h"
+namespace zillians{
+
+//[[[codeenum
+{
+    MAX_BYTE_COUNT = 128
+};
+std::wstring GameName = L"Dummy";
+std::vector<FunctionDecl*> AtClientFuncList;
+std::vector<FunctionDecl*> AtServerFuncList;
+{
+    AtFuncGeneratorVisitor v(AtClientFuncList, L"client"); v.visit(*node);
+}
+{
+    AtFuncGeneratorVisitor v(AtServerFuncList, L"server"); v.visit(*node);
+}
+
+auto f = [&](FunctionDecl* node){
+    std::wstring FuncName = node->name->toString();
+    std::wstringstream ss;
+    ss << std::hex << stage::SymbolIdManglingContext::get(node)->managled_id;
+    std::wstring FuncID = ss.str();
+
+    //[[[gen(replace:GAME_NAME=GameName, FUNCTION_NAME=FuncName, FUNCTION_ID=FuncID)
+    class ${GAME_NAME}_${FUNCTION_NAME}_CloudCommandObject : public CloudCommandObject
+    {
+    public:
+        ${GAME_NAME}_${FUNCTION_NAME}_CloudCommandObject()
+        { }
+
+        ~${GAME_NAME}_${FUNCTION_NAME}_CloudCommandObject()
+        { }
+
+        enum
         {
-            std::wstring FuncName = node.name->toString();
-            std::wstringstream ss;
-            ss << std::hex << stage::SymbolIdManglingContext::get(&node)->managled_id;
-            std::string FuncID = ss.str();
+            // GENERATE_BEGIN
+            TYPE = ${FUNCTION_ID} // the type need to be unique globally (across all RPC command types)
+            // GENERATE_END
+        };
 
-            ///[[[gen( GAME_NAME=GameName, FUNCTION_NAME=FuncName, FUNCTION_ID=FuncID )
-            class ${GAME_NAME}_${FUNCTION_NAME}_CloudCommandObject : public CloudCommandObject
+    public:
+        // GENERATE_BEGIN
+        //[[[code
+        {
+            size_t ByteCount = 0;
+            foreach(i, node->parameters)
             {
-            public:
-                ${GAME_NAME}_${FUNCTION_NAME}_CloudCommandObject()
-                { }
+                std::wstring TypeName;
+                if(ASTNodeHelper::isUUID((*i)->type))
+                    TypeName = L"api_types::api_uint32";
+                else
+                    TypeName = ASTNodeHelper::getNodeName((*i)->type);
+                std::wcout << TypeName << L" " << (*i)->name->toString() << L";" << std::endl;
+                ByteCount += 0;
+            }
+            if(ByteCount < MAX_BYTE_COUNT)
+                std::wcout << L"ar.skip(" << (MAX_BYTE_COUNT-ByteCount) << L");" << std::endl;
+        }
+        //]]]
+        // GENERATE_END
 
-                ~${GAME_NAME}_${FUNCTION_NAME}_CloudCommandObject()
-                { }
-
-                enum 
-                { 
-                    // GENERATE_BEGIN
-                    TYPE = ${FUNCTION_ID} // the type need to be unique globally (across all RPC command types)
-                    // GENERATE_END
-                };
-
-            public:
-                // GENERATE_BEGIN
-                ///[[[code
+    public:
+        template<typename Archive>
+        void serialize(Archive& ar, const unsigned int version)
+        {
+            //CloudCommandObject::serialize(ar, version); // 16 bytes
+            // GENERATE_BEGIN
+            //[[[code
+            {
                 size_t ByteCount = 0;
-                foreach(i, node.parameters)
+                foreach(i, node->parameters)
                 {
-                    std::wstring TypeName;
-                    if(tree::ASTNodeHelper::isUUID((*i)->type))
-                        TypeName = L"api_types::api_uint32";
-                    else
-                        TypeName = tree::getNodeName((*i)->type);
-                    std::wcout << TypeName << L" " << (*i)->name->toString() << L";" << std::endl;
+                    std::wcout << L"ar & " << (*i)->name->toString() << L";" << std::endl;
                     ByteCount += 0;
                 }
                 if(ByteCount < MAX_BYTE_COUNT)
                     std::wcout << L"ar.skip(" << (MAX_BYTE_COUNT-ByteCount) << L");" << std::endl;
-                ///]]]
-                // GENERATE_END
-
-            public:
-                template<typename Archive>
-                void serialize(Archive& ar, const unsigned int version)
-                {
-                    //CloudCommandObject::serialize(ar, version); // 16 bytes
-                    // GENERATE_BEGIN
-                    ///[[[code
-                    size_t ByteCount = 0;
-                    foreach(i, node.parameters)
-                    {
-                        std::wcout << L"ar & " << (*i)->name->toString() << L";" << std::endl;
-                        ByteCount += 0;
-                    }
-                    if(ByteCount < MAX_BYTE_COUNT)
-                        std::wcout << L"ar.skip(" << (MAX_BYTE_COUNT-ByteCount) << L");" << std::endl;
-                    ///]]]
-                    // GENERATE_END
-                }
-            };
-            ///]]]
+            }
+            //]]]
+            // GENERATE_END
         }
-    }
+    };
+    //]]]
 };
-
-///]]]
-
-#include "vw/services/api/ApiTypes.h"
-namespace zillians{
-
-///[[[code
-GeneratorVisitor v; v.visit(*node);
-///]]]
+foreach(i, AtClientFuncList) f(*i);
+foreach(i, AtServerFuncList) f(*i);
+//]]]
 
 } // namespace zillians
-
-/*
-#include "vw/services/api/ApiTypes.h" 
-namespace zillians {
-
-class ${GAME_NAME}_${CLIENT_FUNCTION_NAME}_CloudCommandObject 
-{
-public:
-    ${GAME_NAME}_${CLIENT_FUNCTION_NAME}_CloudCommandObject()
-    { }
-
-    ~${GAME_NAME}_${CLIENT_FUNCTION_NAME}_CloudCommandObject()
-    { }
-
-    enum 
-    { 
-        // GENERATE_BEGIN
-        TYPE = 0x01 // the type need to be unique globally (across all RPC command types)
-        // GENERATE_END
-    };
-
-public:
-    // GENERATE_BEGIN
-    api_types::api_float32 x; // api_types::api_only for float32 and float64
-    api_types::api_float32 y;
-    uint32 other; // NOTE HERE: UUID <--> uint32 translation is mandatory in the client-cloud conversion to avoid easy-hacking
-    // GENERATE_END
-
-public:
-    template<typename Archive>
-    void serialize(Archive& ar, const unsigned int version)
-    {
-        //CloudCommandObject::serialize(ar, version); // 0 bytes
-        // GENERATE_BEGIN
-        ar & x;     // 4 bytes
-        ar & y;     // 4 bytes
-        ar & other; // 16 bytes
-        ar.skip(8); // append to 112 bytes aligned
-        // GENERATE_END
-    }
-};
-
-class ${GAME_NAME}_${SERVER_FUNCTION_NAME}_CloudCommandObject 
-{
-public:
-    ${GAME_NAME}_${SERVER_FUNCTION_NAME}_CloudCommandObject()
-    { }
-
-    ~${GAME_NAME}_${SERVER_FUNCTION_NAME}_CloudCommandObject()
-    { }
-
-    enum 
-    { 
-        // GENERATE_BEGIN
-        TYPE = 0x01 // the type need to be unique globally (across all RPC command types)
-        // GENERATE_END
-    };
-
-public:
-    // GENERATE_BEGIN
-    float x;
-    float y;
-    uint32 other; // NOTE HERE: UUID <--> uint32 translation is mandatory in the client-cloud conversion to avoid easy-hacking
-    // GENERATE_END
-
-public:
-    template<typename Archive>
-    void serialize(Archive& ar, const unsigned int version)
-    {
-        //CloudCommandObject::serialize(ar, version); // 0 bytes
-        // GENERATE_BEGIN
-        ar & x;     // 4 bytes
-        ar & y;     // 4 bytes
-        ar & other; // 16 bytes
-        ar.skip(8); // append to 112 bytes aligned
-        // GENERATE_END
-    }
-};
-} // namespace zillians
-*/
