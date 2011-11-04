@@ -1,5 +1,3 @@
-package com.zillians.tutorials.tutorial5;
-
 @native
 function wait_for_input():int; 
 

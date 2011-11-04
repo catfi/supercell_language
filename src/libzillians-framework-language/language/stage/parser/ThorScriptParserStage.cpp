@@ -181,6 +181,13 @@ bool ThorScriptParserStage::execute(bool& continue_execution)
 				return false;
 	}
 
+
+	if(getParserContext().tangle && (debug_ast || debug_ast_with_loc))
+	{
+		tree::visitor::PrettyPrintVisitor printer(debug_ast_with_loc);
+		printer.visit(*getParserContext().tangle);
+	}
+
 	return true;
 }
 
@@ -197,15 +204,24 @@ bool ThorScriptParserStage::parse(const boost::filesystem::path& p)
 	getParserContext().active_package = getParserContext().active_source->root;
 
 	// create identifier for later use
-	NestedIdentifier* containing_package_id = new NestedIdentifier();
+	Identifier* containing_package_id = NULL;
 
-	foreach(i, parent_sequence)
+	if(parent_sequence.size() > 0)
 	{
-		containing_package_id->appendIdentifier(new SimpleIdentifier(*i));
+		NestedIdentifier* id = new NestedIdentifier();
+		foreach(i, parent_sequence)
+		{
+			id->appendIdentifier(new SimpleIdentifier(*i));
 
-		Package* new_package = new Package(new SimpleIdentifier(*i));
-		getParserContext().active_package->addPackage(new_package);
-		getParserContext().active_package = new_package;
+			Package* new_package = new Package(new SimpleIdentifier(*i));
+			getParserContext().active_package->addPackage(new_package);
+			getParserContext().active_package = new_package;
+		}
+		containing_package_id = id;
+	}
+	else
+	{
+		containing_package_id = new SimpleIdentifier(L"");
 	}
 
 	// map the created program by the nested identifier as its key
@@ -280,12 +296,6 @@ bool ThorScriptParserStage::parse(const boost::filesystem::path& p)
 				<< std::setw(pos.column) << L" " << L"^- here" << std::endl;
 
 		return false;
-	}
-
-	if(getParserContext().active_source && (debug_ast || debug_ast_with_loc))
-	{
-		tree::visitor::PrettyPrintVisitor printer(debug_ast_with_loc);
-		printer.visit(*getParserContext().active_source);
 	}
 
 	return true;

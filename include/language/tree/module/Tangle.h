@@ -51,6 +51,9 @@ struct Tangle : public ASTNode
 
 	void addSource(Identifier* id, Source* src)
 	{
+		id->parent = this;
+		src->parent = this;
+
 		sources.insert(std::make_pair(id, src));
 	}
 
@@ -62,7 +65,10 @@ struct Tangle : public ASTNode
 
 	void merge(Tangle* t)
 	{
-		sources.insert(t->sources.begin(), t->sources.end());
+		foreach(i, t->sources)
+		{
+			addSource(i->first, i->second);
+		}
 		t->sources.clear();
 	}
 

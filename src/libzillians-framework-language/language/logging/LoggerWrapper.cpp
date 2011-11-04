@@ -90,11 +90,11 @@ void LoggerWrapper::initialize()
 	root->setLevel(log4cxx::Level::getDebug());
 
 	// configure each logger independently
-	Compiler->setLevel(log4cxx::Level::getError());
-	Resolver->setLevel(log4cxx::Level::getError());
-	TransformerStage->setLevel(log4cxx::Level::getError());
-	GeneratorStage->setLevel(log4cxx::Level::getError());
-	CompilerLogger->setLevel(log4cxx::Level::getError());
+//	Compiler->setLevel(log4cxx::Level::getError());
+//	Resolver->setLevel(log4cxx::Level::getError());
+//	TransformerStage->setLevel(log4cxx::Level::getError());
+//	GeneratorStage->setLevel(log4cxx::Level::getError());
+//	CompilerLogger->setLevel(log4cxx::Level::getError());
 
 }
 

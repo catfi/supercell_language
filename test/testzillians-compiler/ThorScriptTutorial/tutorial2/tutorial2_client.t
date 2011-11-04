@@ -1,5 +1,3 @@
-package com.zillians.tutorials.tutorial2;
-
 class HelloWorldClient {
 	@client
 	public static function ack(x:float, y:float, z:float) {

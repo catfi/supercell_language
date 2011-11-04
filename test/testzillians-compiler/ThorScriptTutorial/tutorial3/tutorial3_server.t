@@ -1,5 +1,3 @@
-package com.zillians.tutorials.tutorial3;
-
 // as we have default_domain specified above, there's no need to write @server for every function below
 @default_domain { domain = "server" }
 

@@ -84,7 +84,6 @@ struct ResolutionVisitor : Visitor<ASTNode, void, VisitorImplementation::recursi
 			if(resolved_package)
 				tryFollow(*resolved_package);
 		}
-
 	}
 
 	void resolve(TypeSpecifier& node)
@@ -130,9 +129,113 @@ struct ResolutionVisitor : Visitor<ASTNode, void, VisitorImplementation::recursi
 		}
 	}
 
+	void resolve(Tangle& node)
+	{
+		foreach(i, node.sources)
+			tryVisit(*(i->second));
+	}
+
 	void resolve(Source& node)
 	{
 		tryVisit(*node.root);
+	}
+
+	void resolve(Import& node)
+	{
+		// find the corresponding source node
+		Tangle* tangle = ASTNodeHelper::getOwner<Tangle>(&node);
+		auto corresponding_sources = tangle->sources.equal_range(node.ns);
+
+		if(isSearchForType() || isSearchForSymbol())
+		{
+			if(node.alias)
+			{
+				if(node.alias->isEmpty() || isMatched())
+				{
+					// if it's a global alias, all symbols or types of the imported package should be directly visible to the current scope
+					// so we visit the corresponding package directly
+					for(auto i = corresponding_sources.first; i != corresponding_sources.second; ++i)
+					{
+						// find corresponding package for each matched sources
+						Package* corresponding_package = i->second->root;
+						while(true)
+						{
+							if(corresponding_package->children.size() == 0) break;
+
+							BOOST_ASSERT(corresponding_package->children.size() == 1 && "package should have exactly one sub-package in the new package system");
+							corresponding_package = corresponding_package->children[0];
+						}
+
+						tryVisit(*corresponding_package);
+					}
+
+				}
+				else
+				{
+					// if it's a named alias and is not matched, we should first match the alias and then dig into the imported package
+					bool is_template_partial_match = false;
+					if(compare(current, node.alias, is_template_partial_match) && !is_template_partial_match)
+					{
+						if(!isLast())
+						{
+							next();
+							for(auto i = corresponding_sources.first; i != corresponding_sources.second; ++i)
+							{
+								// find corresponding package for each matched sources
+								Package* corresponding_package = i->second->root;
+								while(true)
+								{
+									if(corresponding_package->children.size() == 0) break;
+
+									BOOST_ASSERT(corresponding_package->children.size() == 1 && "package should have exactly one sub-package in the new package system");
+									corresponding_package = corresponding_package->children[0];
+								}
+
+								tryVisit(*corresponding_package);
+							}
+							prev();
+						}
+					}
+				}
+			}
+			else
+			{
+				// if it's an unnamed import, try to visit the root package of the corresponding source node
+				for(auto i = corresponding_sources.first; i != corresponding_sources.second; ++i)
+				{
+					tryVisit(*i->second->root);
+				}
+
+			}
+		}
+
+		if(isSearchForPackage())
+		{
+			if(node.alias)
+			{
+				// package can only be matched when it's a named alias
+				// note that there can't be any package within the corresponding package due to the new package system design
+				if(!node.alias->isEmpty())
+				{
+					bool is_template_partial_match = false;
+					if(compare(current, node.alias, is_template_partial_match) && !is_template_partial_match)
+					{
+						if(isLast())
+						{
+							enlist(&node, is_template_partial_match);
+						}
+					}
+				}
+			}
+			else
+			{
+				// if it's an unnamed import, try to visit the root package of the corresponding source node
+				for(auto i = corresponding_sources.first; i != corresponding_sources.second; ++i)
+				{
+					tryVisit(*i->second->root);
+				}
+			}
+		}
 	}
 
 	void resolve(Package& node)

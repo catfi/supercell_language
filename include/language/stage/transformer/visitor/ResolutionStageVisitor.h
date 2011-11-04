@@ -131,23 +131,15 @@ struct ResolutionStageVisitor : GenericDoubleVisitor
 		resolver.leaveScope(node);
 	}
 
-	void resolve(Import& node)
+	void resolve(Source& node)
 	{
-		// search for package
-		package_visitor.reset();
-		package_visitor.candidate(node.ns);
-		package_visitor.filter(ResolutionVisitor::Filter::PACKAGE);
+		foreach(i, node.imports)
+			resolver.enterScope(**i);
 
-		// TODO each file should have its own reachable package set
-		// TODO and the set is used for root primary expression translation
-		package_visitor.visit(*getParserContext().active_source);
+		visit(*node.root);
 
-		if(package_visitor.candidates.size() == 1)
-		{
-			resolver.enterScope(*package_visitor.candidates[0]);
-		}
-
-		package_visitor.reset();
+		foreach(i, node.imports)
+			resolver.leaveScope(**i);
 	}
 
 	void resolve(TypeSpecifier& node)
