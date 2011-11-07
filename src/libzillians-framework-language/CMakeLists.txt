@@ -94,7 +94,6 @@ if(LLVM_FOUND)
         zillians-common-utility
         zillians-common-core
         zillians-common-utility-archive
-        zillians-thorpp-stubs
         zillians-framework-language-llvm
         )
 else()
@@ -103,7 +102,6 @@ else()
         zillians-common-utility
         zillians-common-core
         zillians-common-utility-archive
-        zillians-thorpp-stubs
         )
 endif()
 

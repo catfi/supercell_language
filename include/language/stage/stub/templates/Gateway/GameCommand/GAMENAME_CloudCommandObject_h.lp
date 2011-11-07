@@ -39,7 +39,7 @@ struct AtFuncGeneratorVisitor : public visitor::GenericDoubleVisitor
 
 //[[[entry
 template<>
-void genStub<stage::ThorScriptStubStage::GAMENAME_CLOUDCOMMANDOBJECT_H>(Package* node)
+void genStub<stage::ThorScriptStubStage::GAMENAME_CLOUDCOMMANDOBJECT_H>(Tangle* node)
 {
 //[[[driver
 //]]]
@@ -49,7 +49,6 @@ void genStub<stage::ThorScriptStubStage::GAMENAME_CLOUDCOMMANDOBJECT_H>(Package*
 //]]]
 
 #include "vw/services/api/ApiTypes.h"
-#include "objects/ClientCommandObject.h"
 
 namespace zillians {
 
@@ -88,21 +87,8 @@ auto f = [&](FunctionDecl* node){
     public:
         // GENERATE_BEGIN
         //[[[code
-        {
-            size_t ByteCount = 0;
-            foreach(i, node->parameters)
-            {
-                std::wstring TypeName;
-                if(ASTNodeHelper::isUUID((*i)->type))
-                    TypeName = L"api_types::api_uint32";
-                else
-                    TypeName = ASTNodeHelper::getNodeName((*i)->type);
-                std::wcout << TypeName << L" " << (*i)->name->toString() << L";" << std::endl;
-                ByteCount += 0;
-            }
-            if(ByteCount < MAX_BYTE_COUNT)
-                std::wcout << L"ar.skip(" << (MAX_BYTE_COUNT-ByteCount) << L");" << std::endl;
-        }
+        foreach(i, node->parameters)
+            std::wcout << ASTNodeHelper::getNodeName((*i)->type) << L" " << (*i)->name->toString() << L";" << std::endl;
         //]]]
         // GENERATE_END
 

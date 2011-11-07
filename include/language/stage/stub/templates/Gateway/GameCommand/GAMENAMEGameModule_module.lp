@@ -7,7 +7,7 @@ using namespace zillians::language::tree;
 
 //[[[entry
 template<>
-void genStub<stage::ThorScriptStubStage::GAMENAMEGAMEMODULE_MODULE>(Package* node)
+void genStub<stage::ThorScriptStubStage::GAMENAMEGAMEMODULE_MODULE>(Tangle* node)
 {
 //[[[driver
 //]]]
@@ -19,8 +19,9 @@ void genStub<stage::ThorScriptStubStage::GAMENAMEGAMEMODULE_MODULE>(Package* nod
 //[[[code
 std::wstring GameName = L"DummyGameName";
 std::wstring TranslatorUUID = L"DummyTranslatorUUID";
+std::wstring ModuleUUID = L"DummyModuleUUID";
 
-//[[[gen(replace:GAME_NAME=GameName, TRANSLATOR_UUID=TranslatorUUID)
+//[[[gen(replace:GAME_NAME=GameName, MODULE_UUID=ModuleUUID, TRANSLATOR_UUID=TranslatorUUID)
 <?xml version="1.0" encoding="UTF-8"?>
 
 <module id="com.zillians.module.${GAME_NAME}GameModule"

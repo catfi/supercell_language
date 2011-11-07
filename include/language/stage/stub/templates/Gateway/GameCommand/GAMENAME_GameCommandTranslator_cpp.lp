@@ -39,7 +39,7 @@ struct AtFuncGeneratorVisitor : public visitor::GenericDoubleVisitor
 
 //[[[entry
 template<>
-void genStub<stage::ThorScriptStubStage::GAMENAME_GAMECOMMANDTRANSLATOR_CPP>(Package* node)
+void genStub<stage::ThorScriptStubStage::GAMENAME_GAMECOMMANDTRANSLATOR_CPP>(Tangle* node)
 {
 //[[[driver
 //]]]
@@ -100,7 +100,7 @@ public:
         foreach(i, AtServerFuncList)
         {
             std::wstring FuncName = (*i)->name->toString();
-        	//[[[gen(replace:GAME_NAME=GameName, FUNCTION_NAME=FuncName) a[b[c[1]]] 
+        	//[[[gen(replace:GAME_NAME=GameName, FUNCTION_NAME=FuncName)
             mWorldGateway->registerCommandTranslator(${GAME_NAME}_${FUNCTION_NAME}_ClientCommandObject::TYPE, this_translator);
         	//]]]
         }

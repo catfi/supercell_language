@@ -39,7 +39,7 @@ struct AtFuncGeneratorVisitor : public visitor::GenericDoubleVisitor
 
 //[[[entry
 template<>
-void genStub<stage::ThorScriptStubStage::GAMENAME_CLIENTCOMMANDOBJECT_H>(Package* node)
+void genStub<stage::ThorScriptStubStage::GAMENAME_CLIENTCOMMANDOBJECT_H>(Tangle* node)
 {
 //[[[driver
 //]]]
@@ -87,8 +87,8 @@ auto f = [&](FunctionDecl* node){
     public:
         // GENERATE_BEGIN
         //[[[code
-        foreach(j, node->parameters)
-            std::wcout << ASTNodeHelper::getNodeName((*j)->type) << L" " << (*j)->name->toString() << L";" << std::endl;
+        foreach(i, node->parameters)
+            std::wcout << ASTNodeHelper::getNodeName((*i)->type) << L" " << (*i)->name->toString() << L";" << std::endl;
         //]]]
         // GENERATE_END
 
@@ -99,8 +99,8 @@ auto f = [&](FunctionDecl* node){
             ClientCommandObject::serialize(ar, version); // 16 bytes
             // GENERATE_BEGIN
             //[[[code
-            foreach(j, node->parameters)
-                std::wcout << L"ar & " << (*j)->name->toString() << L";" << std::endl;
+            foreach(i, node->parameters)
+                std::wcout << L"ar & " << (*i)->name->toString() << L";" << std::endl;
             //]]]
             // GENERATE_END
         }

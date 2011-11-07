@@ -1,12 +1,11 @@
 #include "vw/services/api/ApiTypes.h"
-#include "objects/ClientCommandObject.h"
 namespace zillians {
-	class DummyGameName_f_ClientCommandObject : public ClientCommandObject
+	class DummyGameName_f_CloudCommandObject : public CloudCommandObject
 	{
 		public:
-			DummyGameName_f_ClientCommandObject()
+			DummyGameName_f_CloudCommandObject()
 			{ }
-			~DummyGameName_f_ClientCommandObject()
+			~DummyGameName_f_CloudCommandObject()
 			{ }
 			enum
 			{
@@ -24,20 +23,21 @@ namespace zillians {
 			template<typename Archive>
 				void serialize(Archive& ar, const unsigned int version)
 				{
-					ClientCommandObject::serialize(ar, version); // 16 bytes
+					//CloudCommandObject::serialize(ar, version); // 16 bytes
 					// GENERATE_BEGIN
 					ar & x;
 					ar & y;
 					ar & other;
+					ar.skip(128);
 					// GENERATE_END
 				}
 	};
-	class DummyGameName_g_ClientCommandObject : public ClientCommandObject
+	class DummyGameName_g_CloudCommandObject : public CloudCommandObject
 	{
 		public:
-			DummyGameName_g_ClientCommandObject()
+			DummyGameName_g_CloudCommandObject()
 			{ }
-			~DummyGameName_g_ClientCommandObject()
+			~DummyGameName_g_CloudCommandObject()
 			{ }
 			enum
 			{
@@ -55,11 +55,12 @@ namespace zillians {
 			template<typename Archive>
 				void serialize(Archive& ar, const unsigned int version)
 				{
-					ClientCommandObject::serialize(ar, version); // 16 bytes
+					//CloudCommandObject::serialize(ar, version); // 16 bytes
 					// GENERATE_BEGIN
 					ar & x;
 					ar & y;
 					ar & other;
+					ar.skip(128);
 					// GENERATE_END
 				}
 	};

@@ -68,7 +68,7 @@ private:
 } } }
 
 template<zillians::language::stage::ThorScriptStubStage::stub_type_t ENUM>
-void genStub(zillians::language::tree::Package* package)
+void genStub(zillians::language::tree::Tangle* node)
 { }
 
 #endif /* ZILLIANS_LANGUAGE_STAGE_MAKE_THORSCRIPTSTUBSTAGE_H_ */

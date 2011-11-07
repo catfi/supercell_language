@@ -7,7 +7,7 @@ using namespace zillians::language::tree;
 
 //[[[entry
 template<>
-void genStub<stage::ThorScriptStubStage::CLOUDCOMMANDOBJECT_H>(Package* node)
+void genStub<stage::ThorScriptStubStage::CLOUDCOMMANDOBJECT_H>(Tangle* node)
 {
 //[[[driver
 //]]]
