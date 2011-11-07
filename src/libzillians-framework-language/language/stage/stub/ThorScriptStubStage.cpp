@@ -99,8 +99,9 @@ bool ThorScriptStubStage::execute(bool& continue_execution)
 	std::wstreambuf *prev_rdbuf;
 	if(!output_file.empty())
 	{
+		prev_rdbuf = std::wcout.rdbuf();
 		file.open(output_file);
-		std::wcout.rdbuf(prev_rdbuf = file.rdbuf());
+		std::wcout.rdbuf(file.rdbuf());
 	}
     foreach(i, ast_files)
     {
