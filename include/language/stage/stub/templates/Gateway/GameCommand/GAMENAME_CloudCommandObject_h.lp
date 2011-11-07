@@ -64,7 +64,7 @@ std::vector<FunctionDecl*> AtServerFuncList;
 auto f = [&](FunctionDecl* node){
     std::wstring FuncName = node->name->toString();
     std::wstringstream ss;
-    ss << std::hex << stage::SymbolIdManglingContext::get(node)->managled_id;
+    ss << L"0x" << std::hex << stage::SymbolIdManglingContext::get(node)->managled_id;
     std::wstring FuncID = ss.str();
 
     //[[[gen(replace:GAME_NAME=GameName, FUNCTION_NAME=FuncName, FUNCTION_ID=FuncID)

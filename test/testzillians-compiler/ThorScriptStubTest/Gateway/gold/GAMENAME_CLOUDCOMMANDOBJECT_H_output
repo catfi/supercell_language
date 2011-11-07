@@ -10,7 +10,7 @@ namespace zillians {
 			enum
 			{
 				// GENERATE_BEGIN
-				TYPE = 1 // the type need to be unique globally (across all RPC command types)
+				TYPE = 0x1 // the type need to be unique globally (across all RPC command types)
 					// GENERATE_END
 			};
 		public:
@@ -42,7 +42,7 @@ namespace zillians {
 			enum
 			{
 				// GENERATE_BEGIN
-				TYPE = 2 // the type need to be unique globally (across all RPC command types)
+				TYPE = 0x2 // the type need to be unique globally (across all RPC command types)
 					// GENERATE_END
 			};
 		public:
