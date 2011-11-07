@@ -20,10 +20,11 @@
 #ifndef ZILLIANS_LANGUAGE_STAGE_MAKE_THORSCRIPTSTUBSTAGE_H_
 #define ZILLIANS_LANGUAGE_STAGE_MAKE_THORSCRIPTSTUBSTAGE_H_
 
-#include <vector>
-#include <string>
 #include "language/stage/Stage.h"
 #include "language/tree/ASTNode.h"
+#include <vector>
+#include <map>
+#include <string>
 
 namespace zillians { namespace language { namespace stage {
 
@@ -48,6 +49,8 @@ public:
     std::vector<std::string> ast_files;
 
     std::string output_file;
+    typedef std::map<std::wstring, std::wstring> env_vars_t;
+    env_vars_t env_vars;
 
 public:
 	typedef enum
@@ -68,7 +71,7 @@ private:
 } } }
 
 template<zillians::language::stage::ThorScriptStubStage::stub_type_t ENUM>
-void genStub(zillians::language::tree::Tangle* node)
+void genStub(zillians::language::tree::Tangle* node, zillians::language::stage::ThorScriptStubStage::env_vars_t& env_vars)
 { }
 
 #endif /* ZILLIANS_LANGUAGE_STAGE_MAKE_THORSCRIPTSTUBSTAGE_H_ */

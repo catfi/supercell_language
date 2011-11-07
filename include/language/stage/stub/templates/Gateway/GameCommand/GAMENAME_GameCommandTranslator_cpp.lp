@@ -39,7 +39,7 @@ struct AtFuncGeneratorVisitor : public visitor::GenericDoubleVisitor
 
 //[[[entry
 template<>
-void genStub<stage::ThorScriptStubStage::GAMENAME_GAMECOMMANDTRANSLATOR_CPP>(Tangle* node)
+void genStub<stage::ThorScriptStubStage::GAMENAME_GAMECOMMANDTRANSLATOR_CPP>(Tangle* node, stage::ThorScriptStubStage::env_vars_t& env_vars)
 {
 //[[[driver
 //]]]
@@ -49,13 +49,13 @@ void genStub<stage::ThorScriptStubStage::GAMENAME_GAMECOMMANDTRANSLATOR_CPP>(Tan
 //]]]
 
 //[[[code
-std::wstring GameName = L"DummyGameName";
-std::wstring TranslatorUUID = L"DummyTranslatorUUID";
-
 std::vector<FunctionDecl*> AtClientFuncList;
 std::vector<FunctionDecl*> AtServerFuncList;
 { AtFuncGeneratorVisitor v(AtClientFuncList, L"client"); v.visit(*node); }
 { AtFuncGeneratorVisitor v(AtServerFuncList, L"server"); v.visit(*node); }
+
+std::wstring GameName = env_vars[L"game-name"];
+std::wstring TranslatorUUID = env_vars[L"translator-uuid"];
 
 //[[[gen(replace:GAME_NAME=GameName, TRANSLATOR_UUID=TranslatorUUID)
 #include "plugin/PluginComponent.h"

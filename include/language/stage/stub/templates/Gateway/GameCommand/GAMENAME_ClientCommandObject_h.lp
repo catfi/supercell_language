@@ -39,7 +39,7 @@ struct AtFuncGeneratorVisitor : public visitor::GenericDoubleVisitor
 
 //[[[entry
 template<>
-void genStub<stage::ThorScriptStubStage::GAMENAME_CLIENTCOMMANDOBJECT_H>(Tangle* node)
+void genStub<stage::ThorScriptStubStage::GAMENAME_CLIENTCOMMANDOBJECT_H>(Tangle* node, stage::ThorScriptStubStage::env_vars_t& env_vars)
 {
 //[[[driver
 //]]]
@@ -54,14 +54,13 @@ void genStub<stage::ThorScriptStubStage::GAMENAME_CLIENTCOMMANDOBJECT_H>(Tangle*
 namespace zillians {
 
 //[[[code
-std::wstring GameName = L"DummyGameName";
-
 std::vector<FunctionDecl*> AtClientFuncList;
 std::vector<FunctionDecl*> AtServerFuncList;
 { AtFuncGeneratorVisitor v(AtClientFuncList, L"client"); v.visit(*node); }
 { AtFuncGeneratorVisitor v(AtServerFuncList, L"server"); v.visit(*node); }
 
 auto f = [&](FunctionDecl* node){
+    std::wstring GameName = env_vars[L"game-name"];
     std::wstring FuncName = node->name->toString();
     std::wstringstream ss;
     ss << L"0x" << std::hex << stage::SymbolIdManglingContext::get(node)->managled_id;

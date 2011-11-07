@@ -17,11 +17,12 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#include <boost/filesystem.hpp>
-#include "utility/Foreach.h"
 #include "language/stage/stub/ThorScriptStubStage.h"
 #include "language/stage/serialization/detail/ASTSerializationHelper.h"
 #include "language/tree/ASTNode.h"
+#include "utility/Foreach.h"
+#include "utility/UnicodeUtil.h"
+#include <boost/filesystem.hpp>
 #include <iostream>
 #include <fstream>
 
@@ -50,8 +51,11 @@ std::pair<shared_ptr<po::options_description>, shared_ptr<po::options_descriptio
     shared_ptr<po::options_description> option_desc_public(new po::options_description());
     shared_ptr<po::options_description> option_desc_private(new po::options_description());
     option_desc_public->add_options()
-        ("output,o",    po::value<std::string>(), "output stub file name")
-        ("stub-type,s", po::value<std::string>(), "output stub file type");
+        ("output,o",          po::value<std::string>(), "output stub file name")
+        ("stub-type,s",       po::value<std::string>(), "output stub file type")
+    	("game-name,g",       po::value<std::string>(), "game name")
+    	("translator-uuid,t", po::value<std::string>(), "translator UUID")
+		("module-uuid,m",     po::value<std::string>(), "module UUID");
     foreach(i, option_desc_public->options()) option_desc_private->add(*i);
     option_desc_private->add_options();
     return std::make_pair(option_desc_public, option_desc_private);
@@ -74,8 +78,17 @@ bool ThorScriptStubStage::parseOptions(po::variables_map& vm)
     }
     else
         BOOST_ASSERT(false && "must specify input");
-    if (vm.count("output"))
+    if(vm.count("output"))
         output_file = vm["output"].as<std::string>();
+    if(vm.count("game-name"))
+    {
+        env_vars[L"game-name"] = s_to_ws(vm["game-name"].as<std::string>());
+        std::wcout << "GAME_NAME: " << env_vars[L"game-name"] << std::endl;
+    }
+    if(vm.count("translator-uuid"))
+    	env_vars[L"translator-uuid"] = s_to_ws(vm["translator-uuid"].as<std::string>());
+    if(vm.count("module-uuid"))
+    	env_vars[L"module-uuid"] = s_to_ws(vm["module-uuid"].as<std::string>());
     stub_type = UNKNOWN_STUB;
     if(vm.count("stub-type"))
     {
@@ -111,12 +124,12 @@ bool ThorScriptStubStage::execute(bool& continue_execution)
             tree::Tangle* tangle = tree::cast<tree::Tangle>(node);
             switch(stub_type)
             {
-            case CLIENTCOMMANDOBJECT_H:              genStub<CLIENTCOMMANDOBJECT_H>(tangle); break;
-            case CLOUDCOMMANDOBJECT_H:               genStub<CLOUDCOMMANDOBJECT_H>(tangle); break;
-            case GAMENAME_CLIENTCOMMANDOBJECT_H:     genStub<GAMENAME_CLIENTCOMMANDOBJECT_H>(tangle); break;
-            case GAMENAME_CLOUDCOMMANDOBJECT_H:      genStub<GAMENAME_CLOUDCOMMANDOBJECT_H>(tangle); break;
-            case GAMENAME_GAMECOMMANDTRANSLATOR_CPP: genStub<GAMENAME_GAMECOMMANDTRANSLATOR_CPP>(tangle); break;
-            case GAMENAMEGAMEMODULE_MODULE:          genStub<GAMENAMEGAMEMODULE_MODULE>(tangle); break;
+            case CLIENTCOMMANDOBJECT_H:              genStub<CLIENTCOMMANDOBJECT_H>(tangle, env_vars); break;
+            case CLOUDCOMMANDOBJECT_H:               genStub<CLOUDCOMMANDOBJECT_H>(tangle, env_vars); break;
+            case GAMENAME_CLIENTCOMMANDOBJECT_H:     genStub<GAMENAME_CLIENTCOMMANDOBJECT_H>(tangle, env_vars); break;
+            case GAMENAME_CLOUDCOMMANDOBJECT_H:      genStub<GAMENAME_CLOUDCOMMANDOBJECT_H>(tangle, env_vars); break;
+            case GAMENAME_GAMECOMMANDTRANSLATOR_CPP: genStub<GAMENAME_GAMECOMMANDTRANSLATOR_CPP>(tangle, env_vars); break;
+            case GAMENAMEGAMEMODULE_MODULE:          genStub<GAMENAMEGAMEMODULE_MODULE>(tangle, env_vars); break;
             default:
                 UNUSED_ARGUMENT(continue_execution);
                 BOOST_ASSERT(false && "reaching unreachable code");
