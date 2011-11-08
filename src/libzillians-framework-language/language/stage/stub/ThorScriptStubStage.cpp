@@ -94,8 +94,6 @@ bool ThorScriptStubStage::parseOptions(po::variables_map& vm)
     {
         std::string stub_type_name = vm["stub-type"].as<std::string>();
         if(stub_type_name == "UNKNOWN_STUB")                            stub_type = UNKNOWN_STUB;
-        else if(stub_type_name == "CLIENTCOMMANDOBJECT_H")              stub_type = CLIENTCOMMANDOBJECT_H;
-        else if(stub_type_name == "CLOUDCOMMANDOBJECT_H")               stub_type = CLOUDCOMMANDOBJECT_H;
         else if(stub_type_name == "GAMENAME_CLIENTCOMMANDOBJECT_H")     stub_type = GAMENAME_CLIENTCOMMANDOBJECT_H;
         else if(stub_type_name == "GAMENAME_CLOUDCOMMANDOBJECT_H")      stub_type = GAMENAME_CLOUDCOMMANDOBJECT_H;
         else if(stub_type_name == "GAMENAME_GAMECOMMANDTRANSLATOR_CPP") stub_type = GAMENAME_GAMECOMMANDTRANSLATOR_CPP;
@@ -124,8 +122,6 @@ bool ThorScriptStubStage::execute(bool& continue_execution)
             tree::Tangle* tangle = tree::cast<tree::Tangle>(node);
             switch(stub_type)
             {
-            case CLIENTCOMMANDOBJECT_H:              genStub<CLIENTCOMMANDOBJECT_H>(tangle, var_map); break;
-            case CLOUDCOMMANDOBJECT_H:               genStub<CLOUDCOMMANDOBJECT_H>(tangle, var_map); break;
             case GAMENAME_CLIENTCOMMANDOBJECT_H:     genStub<GAMENAME_CLIENTCOMMANDOBJECT_H>(tangle, var_map); break;
             case GAMENAME_CLOUDCOMMANDOBJECT_H:      genStub<GAMENAME_CLOUDCOMMANDOBJECT_H>(tangle, var_map); break;
             case GAMENAME_GAMECOMMANDTRANSLATOR_CPP: genStub<GAMENAME_GAMECOMMANDTRANSLATOR_CPP>(tangle, var_map); break;

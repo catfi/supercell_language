@@ -54,10 +54,10 @@ std::vector<FunctionDecl*> AtServerFuncList;
 { AtFuncGeneratorVisitor v(AtClientFuncList, L"client"); v.visit(*node); }
 { AtFuncGeneratorVisitor v(AtServerFuncList, L"server"); v.visit(*node); }
 
-std::wstring GameName = var_map[L"game-name"];
-std::wstring TranslatorUUID = var_map[L"translator-uuid"];
+std::wstring game_name       = var_map[L"game-name"];
+std::wstring translator_uuid = var_map[L"translator-uuid"];
 
-//[[[gen(replace:GAME_NAME=GameName, TRANSLATOR_UUID=TranslatorUUID)
+//[[[gen(replace:GAME_NAME=game_name, TRANSLATOR_UUID=translator_uuid)
 #include "plugin/PluginComponent.h"
 #include "plugin/PluginManager.h"
 #include "extension-point/NetworkTranslator.h"
@@ -92,15 +92,15 @@ public:
         //[[[code
         foreach(i, AtClientFuncList)
         {
-            std::wstring FuncName = (*i)->name->toString();
-        	//[[[gen(replace:GAME_NAME=GameName, FUNCTION_NAME=FuncName)
+            std::wstring function_name = (*i)->name->toString();
+        	//[[[gen(replace:GAME_NAME=game_name, FUNCTION_NAME=function_name)
             mWorldGateway->registerCommandTranslator(${GAME_NAME}_${FUNCTION_NAME}_CloudCommandObject::TYPE, this_translator);
         	//]]]
         }
         foreach(i, AtServerFuncList)
         {
-            std::wstring FuncName = (*i)->name->toString();
-        	//[[[gen(replace:GAME_NAME=GameName, FUNCTION_NAME=FuncName)
+            std::wstring function_name = (*i)->name->toString();
+        	//[[[gen(replace:GAME_NAME=game_name, FUNCTION_NAME=function_name)
             mWorldGateway->registerCommandTranslator(${GAME_NAME}_${FUNCTION_NAME}_ClientCommandObject::TYPE, this_translator);
         	//]]]
         }
@@ -114,15 +114,15 @@ public:
         //[[[code
         foreach(i, AtClientFuncList)
         {
-            std::wstring FuncName = (*i)->name->toString();
-        	//[[[gen(replace:GAME_NAME=GameName, FUNCTION_NAME=FuncName)
+            std::wstring function_name = (*i)->name->toString();
+        	//[[[gen(replace:GAME_NAME=game_name, FUNCTION_NAME=function_name)
             mWorldGateway->unregisterCommandTranslator(${GAME_NAME}_${FUNCTION_NAME}_CloudCommandObject::TYPE);
         	//]]]
         }
         foreach(i, AtServerFuncList)
         {
-            std::wstring FuncName = (*i)->name->toString();
-        	//[[[gen(replace:GAME_NAME=GameName, FUNCTION_NAME=FuncName)
+            std::wstring function_name = (*i)->name->toString();
+        	//[[[gen(replace:GAME_NAME=game_name, FUNCTION_NAME=function_name)
             mWorldGateway->unregisterCommandTranslator(${GAME_NAME}_${FUNCTION_NAME}_ClientCommandObject::TYPE);
         	//]]]
         }
@@ -158,8 +158,8 @@ private:
     //[[[code
     foreach(i, AtClientFuncList)
     {
-        std::wstring FuncName = (*i)->name->toString();
-    	//[[[gen(replace:GAME_NAME=GameName, FUNCTION_NAME=FuncName)
+        std::wstring function_name = (*i)->name->toString();
+    	//[[[gen(replace:GAME_NAME=game_name, FUNCTION_NAME=function_name)
         inline bool assign(${GAME_NAME}_${FUNCTION_NAME}_CloudCommandObject& src, ${GAME_NAME}_${FUNCTION_NAME}_ClientCommandObject& dest)
         {
             // GENERATE_BEGIN
@@ -181,8 +181,8 @@ private:
     }
     foreach(i, AtServerFuncList)
     {
-        std::wstring FuncName = (*i)->name->toString();
-    	//[[[gen(replace:GAME_NAME=GameName, FUNCTION_NAME=FuncName)
+        std::wstring function_name = (*i)->name->toString();
+    	//[[[gen(replace:GAME_NAME=game_name, FUNCTION_NAME=function_name)
         inline bool assign(${GAME_NAME}_${FUNCTION_NAME}_ClientCommandObject& src, ${GAME_NAME}_${FUNCTION_NAME}_CloudCommandObject& dest)
         {
             // GENERATE_BEGIN
@@ -235,8 +235,8 @@ public:
         //[[[code
         foreach(i, AtClientFuncList)
         {
-            std::wstring FuncName = (*i)->name->toString();
-            //[[[gen(replace:GAME_NAME=GameName, FUNCTION_NAME=FuncName)
+            std::wstring function_name = (*i)->name->toString();
+            //[[[gen(replace:GAME_NAME=game_name, FUNCTION_NAME=function_name)
 			case ${GAME_NAME}_${FUNCTION_NAME}_CloudCommandObject::TYPE:
 			{
 				${GAME_NAME}_${FUNCTION_NAME}_CloudCommandObject src;
@@ -255,8 +255,8 @@ public:
         }
         foreach(i, AtServerFuncList)
         {
-            std::wstring FuncName = (*i)->name->toString();
-            //[[[gen(replace:GAME_NAME=GameName, FUNCTION_NAME=FuncName)
+            std::wstring function_name = (*i)->name->toString();
+            //[[[gen(replace:GAME_NAME=game_name, FUNCTION_NAME=function_name)
 			case ${GAME_NAME}_${FUNCTION_NAME}_ClientCommandObject::TYPE:
 			{
 				${GAME_NAME}_${FUNCTION_NAME}_ClientCommandObject src;

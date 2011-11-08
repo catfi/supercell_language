@@ -60,13 +60,13 @@ std::vector<FunctionDecl*> AtServerFuncList;
 { AtFuncGeneratorVisitor v(AtServerFuncList, L"server"); v.visit(*node); }
 
 auto f = [&](FunctionDecl* node){
-    std::wstring GameName = var_map[L"game-name"];
-    std::wstring FuncName = node->name->toString();
+    std::wstring game_name     = var_map[L"game-name"];
+    std::wstring function_name = node->name->toString();
     std::wstringstream ss;
     ss << L"0x" << std::hex << stage::SymbolIdManglingContext::get(node)->managled_id;
-    std::wstring FuncID = ss.str();
+    std::wstring function_id = ss.str();
 
-    //[[[gen(replace:GAME_NAME=GameName, FUNCTION_NAME=FuncName, FUNCTION_ID=FuncID)
+    //[[[gen(replace:GAME_NAME=game_name, FUNCTION_NAME=function_name, FUNCTION_ID=function_id)
     class ${GAME_NAME}_${FUNCTION_NAME}_ClientCommandObject : public ClientCommandObject
     {
     public:

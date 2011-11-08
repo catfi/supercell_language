@@ -17,11 +17,11 @@ void genStub<stage::ThorScriptStubStage::GAMENAMEGAMEMODULE_MODULE>(Tangle* node
 //]]]
 
 //[[[code
-std::wstring GameName = var_map[L"game-name"];
-std::wstring TranslatorUUID = var_map[L"translator-uuid"];
-std::wstring ModuleUUID = var_map[L"module-uuid"];
+std::wstring game_name       = var_map[L"game-name"];
+std::wstring translator_uuid = var_map[L"translator-uuid"];
+std::wstring module_uuid     = var_map[L"module-uuid"];
 
-//[[[gen(replace:GAME_NAME=GameName, TRANSLATOR_UUID=TranslatorUUID, MODULE_UUID=ModuleUUID)
+//[[[gen(replace:GAME_NAME=game_name, TRANSLATOR_UUID=translator_uuid, MODULE_UUID=module_uuid)
 <?xml version="1.0" encoding="UTF-8"?>
 
 <module id="com.zillians.module.${GAME_NAME}GameModule"
