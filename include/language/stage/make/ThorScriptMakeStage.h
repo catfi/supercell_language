@@ -20,8 +20,9 @@
 #ifndef ZILLIANS_LANGUAGE_STAGE_MAKE_THORSCRIPTMAKESTAGE_H_
 #define ZILLIANS_LANGUAGE_STAGE_MAKE_THORSCRIPTMAKESTAGE_H_
 
-#include <vector>
-#include <string>
+#include <utility>
+#include <boost/filesystem.hpp>
+#include <log4cxx/logger.h>
 #include "language/stage/Stage.h"
 
 namespace zillians { namespace language { namespace stage {
@@ -42,7 +43,8 @@ public:
 	virtual bool execute(bool& continue_execution);
 
 public:
-    std::vector<std::string> inputFiles;
+    boost::filesystem::path rootDir;
+    log4cxx::LoggerPtr logger;
 };
 
 } } }

@@ -24,6 +24,7 @@
 #include <set>
 #include <iterator>
 #include "language/stage/driver/ThorScriptDriverStage.h"
+#include "language/ThorScriptManifest.h"
 #include "utility/UnicodeUtil.h"
 
 //////////////////////////////////////////////////////////////////////////////
@@ -53,6 +54,7 @@ std::pair<shared_ptr<po::options_description>, shared_ptr<po::options_descriptio
 	shared_ptr<po::options_description> option_desc_private(new po::options_description());
 
 	option_desc_public->add_options()
+        ("-strip,s", "strip function definition")
     ;
 
 	foreach(i, option_desc_public->options()) option_desc_private->add(*i);
@@ -64,6 +66,10 @@ std::pair<shared_ptr<po::options_description>, shared_ptr<po::options_descriptio
 
 bool ThorScriptDriverStage::parseOptions(po::variables_map& vm)
 {
+    if(vm.count("strip"))
+    {
+        strip = true;
+    }
     return true;
 }
 
@@ -71,10 +77,29 @@ bool ThorScriptDriverStage::execute(bool& continue_execution)
 {
 	UNUSED_ARGUMENT(continue_execution);
 
+    zillians::language::ProjectManifest projectManifest;
+    projectManifest.load("manifest.xml");
+
+    foreach(i, projectManifest.dep.bundles)
+    {
+        std::string cmd = "ts-bundle -d " + *i;
+        if(system(cmd.c_str()) != 0)
+        {
+            return false;
+        }
+    }
+
     if (system("ts-dep")   != 0) return false;
+
     if (system("ts-make")  != 0) return false;
-    if (system("ts-strip") != 0) return false;
+
+    if(strip)
+    {
+        if (system("ts-strip") != 0) return false;
+    }
+
     if (system("ts-bundle")!= 0) return false;
+
     if (system("ts-link")  != 0) return false;
 
     return true;

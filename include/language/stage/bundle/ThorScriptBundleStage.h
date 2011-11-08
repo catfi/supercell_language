@@ -49,6 +49,8 @@ private:
 	void getMergeBitCodeBuffer(std::vector<unsigned char>& buffer);
 	void getMergeASTBuffer(std::vector<unsigned char>& buffer);
 	void getManifestBuffer(std::vector<unsigned char>& buffer);
+    bool extract(bool& continue_execution);
+    bool compress(bool& continue_execution);
 
 public:
     std::vector<std::string> bitcode_files;
@@ -56,6 +58,7 @@ public:
     std::string manifest_file;
 
     std::string output_file;
+    std::vector<std::string> bundleDependency;
 };
 
 } } }

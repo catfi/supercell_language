@@ -38,6 +38,7 @@ public:
 
 public:
     std::vector<std::string> inputFiles;
+    bool strip;
 };
 
 } } }

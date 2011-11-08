@@ -64,15 +64,18 @@ VertexSet findFirstBuildTargets(const TangleGraphType& g)
 // class member function
 //////////////////////////////////////////////////////////////////////////////
 
-ThorScriptMakeStage::ThorScriptMakeStage()
-{ }
+ThorScriptMakeStage::ThorScriptMakeStage() : rootDir("./"), logger(log4cxx::Logger::getLogger("ts-make"))
+{
+    log4cxx::BasicConfigurator::configure();
+    logger->setLevel(log4cxx::Level::getAll());
+}
 
 ThorScriptMakeStage::~ThorScriptMakeStage()
 { }
 
 const char* ThorScriptMakeStage::name()
 {
-	return "thor_script_dep_stage";
+	return "thor_script_make_stage";
 }
 
 std::pair<shared_ptr<po::options_description>, shared_ptr<po::options_description>> ThorScriptMakeStage::getOptions()
@@ -80,7 +83,9 @@ std::pair<shared_ptr<po::options_description>, shared_ptr<po::options_descriptio
 	shared_ptr<po::options_description> option_desc_public(new po::options_description());
 	shared_ptr<po::options_description> option_desc_private(new po::options_description());
 
-	option_desc_public->add_options() ;
+	option_desc_public->add_options()
+        ("root-dir", po::value<std::string>())
+    ;
 
 	foreach(i, option_desc_public->options()) option_desc_private->add(*i);
 
@@ -91,15 +96,11 @@ std::pair<shared_ptr<po::options_description>, shared_ptr<po::options_descriptio
 
 bool ThorScriptMakeStage::parseOptions(po::variables_map& vm)
 {
-    if(vm.count("input"))
+    if(vm.count("root-dir"))
     {
-        inputFiles = vm["input"].as<std::vector<std::string>>();
-        return true;
+        rootDir = boost::filesystem::path(vm["root-dir"].as<std::string>());
     }
-    else
-    {
-        return false;
-    }
+    return true;
 }
 
 struct Shell
@@ -156,8 +157,8 @@ std::string genCompileCmd(boost::graph_traits<TangleGraphType>::vertex_descripto
 
     // output files
     std::string outputFileName = tangleFileName(v, g);
-    cmd += "--emit-ast=" + outputFileName + ".ast ";
-    cmd += "--emit-llvm=" + outputFileName + ".bc ";
+    cmd += "--emit-ast=build/" + outputFileName + ".ast ";
+    cmd += "--emit-llvm=build/" + outputFileName + ".bc ";
 
     return cmd;
 }
@@ -166,8 +167,29 @@ bool ThorScriptMakeStage::execute(bool& continue_execution)
 {
 	UNUSED_ARGUMENT(continue_execution);
 
+    // precondition
+    if(!boost::filesystem3::exists(rootDir))
+    {
+        LOG4CXX_ERROR(logger, "Root directory `" << rootDir.string() << "` does not exists.");
+        return false;
+    }
+
+    boost::filesystem3::current_path(rootDir);
+
     // restore file dependency
-    std::ifstream fin(inputFiles[0]);
+    boost::filesystem3::path depFilePath("build/ts.dep");
+    if(!boost::filesystem::exists(depFilePath))
+    {
+        LOG4CXX_ERROR(logger, "Dependency file `" << depFilePath.string() << "` does not exists.");
+        return false;
+    }
+
+    std::ifstream fin(depFilePath.string().c_str());
+    if(!fin.is_open())
+    {
+        LOG4CXX_ERROR(logger, "Can not open dependency file: `" << depFilePath.string() << "`.");
+        return false;
+    }
     boost::archive::text_iarchive ia(fin);
     TangleGraphType tangleRestored;
     ia >> tangleRestored;

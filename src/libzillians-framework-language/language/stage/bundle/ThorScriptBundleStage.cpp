@@ -98,7 +98,8 @@ std::pair<shared_ptr<po::options_description>, shared_ptr<po::options_descriptio
 
 	option_desc_public->add_options()
 		("manifest,m", po::value<std::string>(), "specify manifest file")
-		("output,o", po::value<std::string>(), "output bundle file name");
+		("output,o", po::value<std::string>(), "output bundle file name")
+		("extract,d", po::value<std::vector<std::string>>(), "extract bundle to build directory");
 
 	foreach(i, option_desc_public->options()) option_desc_private->add(*i);
 
@@ -139,10 +140,36 @@ bool ThorScriptBundleStage::parseOptions(po::variables_map& vm)
 		output_file = vm["output"].as<std::string>();
 	}
 
+    if (vm.count("extract"))
+    {
+        bundleDependency = vm["extract"].as<std::vector<std::string>>();
+    }
+
 	return true;
 }
 
-bool ThorScriptBundleStage::execute(bool& continue_execution)
+bool ThorScriptBundleStage::extract(bool& continue_execution)
+{
+	UNUSED_ARGUMENT(continue_execution);
+
+    foreach(i, bundleDependency)
+    {
+        if(!boost::filesystem3::exists(*i))
+        {
+            std::cerr << boost::filesystem3::current_path() << std::endl;
+            std::cerr << "Missing bundle file `" << *i << "`" << std::endl;
+            return false;
+        }
+        Archive ar(*i, ArchiveMode::ARCHIVE_FILE_DECOMPRESS);
+        ar.open();
+        std::vector<ArchiveItem_t> archiveItems;
+        ar.extractAllToFolder(archiveItems, "build");
+        ar.close();
+    }
+    return true;
+}
+
+bool ThorScriptBundleStage::compress(bool& continue_execution)
 {
 	UNUSED_ARGUMENT(continue_execution);
 
@@ -176,6 +203,18 @@ bool ThorScriptBundleStage::execute(bool& continue_execution)
 	ar.close();
 
 	return true;
+}
+
+bool ThorScriptBundleStage::execute(bool& continue_execution)
+{
+    if(!bundleDependency.empty())
+    {
+        return extract(continue_execution);
+    }
+    else
+    {
+        return compress(continue_execution);
+    }
 }
 
 void ThorScriptBundleStage::getMergeBitCodeBuffer(std::vector<unsigned char>& buffer)

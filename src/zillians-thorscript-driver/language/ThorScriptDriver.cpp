@@ -28,15 +28,15 @@ namespace zillians { namespace language {
 // Stataic function
 //////////////////////////////////////////////////////////////////////////////
 
-static bool isDepOnly(const std::string argv)
-{
-    return false;
-}
+//static bool isDepOnly(const std::string argv)
+//{
+//    return false;
+//}
 
-static bool isCompileOnly(const std::string argv)
-{
-    return false;
-}
+//static bool isCompileOnly(const std::string argv)
+//{
+//    return false;
+//}
 
 //////////////////////////////////////////////////////////////////////////////
 // public member function
@@ -66,17 +66,23 @@ void ThorScriptDriver::finalize()
 
 bool ThorScriptDriver::dep(const std::string& argv)
 {
-    system("./ts-dep");
+    UNUSED_ARGUMENT(argv);
+    if (system("./ts-dep") == 0) return true;
+    return false;
 }
 
 bool ThorScriptDriver::make(const std::string& argv)
 {
-    system("./ts-make");
+    UNUSED_ARGUMENT(argv);
+    if (system("./ts-make") == 0) return true;
+    return false;
 }
 
 bool ThorScriptDriver::link(const std::string& argv)
 {
-    system("./ts-link");
+    UNUSED_ARGUMENT(argv);
+    if (system("./ts-link") == 0) return true;
+    return false;
 }
 
 } }

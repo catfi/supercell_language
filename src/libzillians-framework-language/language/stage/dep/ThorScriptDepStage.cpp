@@ -322,21 +322,28 @@ static bool analyzeTangle(FileGraphType& g)
         }
     }
 
+    // create and change to build folder, if not exists.
+    if(!boost::filesystem3::exists("build"))
+    {
+        boost::filesystem3::create_directory("build");
+        assert(boost::filesystem3::exists("build"));
+    }
+
     // serialization
-    std::ofstream fout("ts.dep");
+    std::ofstream fout("build/ts.dep");
     boost::archive::text_oarchive oa(fout);
     oa << tangleG ;
     fout.close();
 
     // and restore
-    std::ifstream fin("ts.dep");
+    std::ifstream fin("build/ts.dep");
     boost::archive::text_iarchive ia(fin);
     TangleGraphType tangleRestored;
     ia >> tangleRestored;
     fin.close();
 
     // write graphviz
-    fout.open("ts.graphviz");
+    fout.open("build/ts.graphviz");
     boost::write_graphviz(fout, tangleRestored, VertexWriter<TangleGraphType>(tangleRestored));
     fout.close();
 
@@ -347,8 +354,11 @@ static bool analyzeTangle(FileGraphType& g)
 // class member function
 //////////////////////////////////////////////////////////////////////////////
 
-ThorScriptDepStage::ThorScriptDepStage()
-{ }
+ThorScriptDepStage::ThorScriptDepStage() : rootDir("./"), logger(log4cxx::Logger::getLogger("ts-dep"))
+{
+    log4cxx::BasicConfigurator::configure();
+    logger->setLevel(log4cxx::Level::getAll());
+}
 
 ThorScriptDepStage::~ThorScriptDepStage()
 { }
@@ -364,6 +374,7 @@ std::pair<shared_ptr<po::options_description>, shared_ptr<po::options_descriptio
 	shared_ptr<po::options_description> option_desc_private(new po::options_description());
 
 	option_desc_public->add_options()
+        ("root-dir", po::value<std::string>())
         ("input", po::value<std::vector<std::string>>(), "input file")
     ;
 
@@ -376,6 +387,10 @@ std::pair<shared_ptr<po::options_description>, shared_ptr<po::options_descriptio
 
 bool ThorScriptDepStage::parseOptions(po::variables_map& vm)
 {
+    if(vm.count("root-dir"))
+    {
+        rootDir = vm["root-dir"].as<std::string>();
+    }
     if(vm.count("input"))
     {
         inputFiles = vm["input"].as<std::vector<std::string>>();
@@ -394,9 +409,17 @@ bool ThorScriptDepStage::execute(bool& continue_execution)
 	UNUSED_ARGUMENT(continue_execution);
 
     // precondition
+    if(!boost::filesystem3::exists(rootDir))
+    {
+        LOG4CXX_ERROR(logger, "Root directory `" << rootDir.string() << "` does not exists.");
+        return false;
+    }
+
+    boost::filesystem3::current_path(rootDir);
+
     if(!boost::filesystem::exists("src"))
     {
-        std::cerr << "Error: source directory `src` does not exists." << std::endl ;
+        LOG4CXX_ERROR(logger, "source directory `src` does not exists.");
         return false;
     }
 
