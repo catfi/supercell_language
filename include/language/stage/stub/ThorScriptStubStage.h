@@ -48,7 +48,8 @@ public:
 public:
     std::vector<std::string> ast_files;
 
-    std::string output_file;
+    bool use_stdout;
+    std::string output_path;
     typedef std::map<std::wstring, std::wstring> var_map_t;
     var_map_t var_map;
 
@@ -56,10 +57,10 @@ public:
 	typedef enum
 	{
 		UNKNOWN_STUB,
-		GAMENAME_CLIENTCOMMANDOBJECT_H,
-		GAMENAME_CLOUDCOMMANDOBJECT_H,
-		GAMENAME_GAMECOMMANDTRANSLATOR_CPP,
-		GAMENAMEGAMEMODULE_MODULE
+		CLIENTCOMMANDOBJECT_H,
+		CLOUDCOMMANDOBJECT_H,
+		GAMECOMMANDTRANSLATOR_CPP,
+		GAMEMODULE_MODULE
 	} stub_type_t;
 
 private:
@@ -67,6 +68,10 @@ private:
 };
 
 } } }
+
+template<zillians::language::stage::ThorScriptStubStage::stub_type_t ENUM>
+std::string genStubFilename(zillians::language::stage::ThorScriptStubStage::var_map_t& var_map)
+{ }
 
 template<zillians::language::stage::ThorScriptStubStage::stub_type_t ENUM>
 void genStub(zillians::language::tree::Tangle* node, zillians::language::stage::ThorScriptStubStage::var_map_t& var_map)

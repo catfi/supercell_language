@@ -13,14 +13,12 @@ FORMAT_SH=$6
 
 TEMP_FILE_A="${TEMP_FILE_A}.ast"
 $TS_COMPILE $INPUT --root-dir=`dirname $INPUT` --emit-ast=$TEMP_FILE_A
-$TS_STUB $TEMP_FILE_A --stub-type=$STUB_TYPE --output=$TEMP_FILE_B --game-name=DummyGameName --translator-uuid=DummyTranslatorUUID --module-uuid=DummyModuleUUID
+$TS_STUB $TEMP_FILE_A --stub-type=$STUB_TYPE --game-name=DummyGameName --translator-uuid=DummyTranslatorUUID --module-uuid=DummyModuleUUID --stdout > $TEMP_FILE_B
 $FORMAT_SH $TEMP_FILE_B
 
 cat $GOLD_OUTPUT > $TEMP_FILE_C
 diff $TEMP_FILE_B $TEMP_FILE_C
 ERROR_CODE="$?"
-
-echo $TEMP_FILE_B
 
 if [ $ERROR_CODE -ne 0 ];
 then

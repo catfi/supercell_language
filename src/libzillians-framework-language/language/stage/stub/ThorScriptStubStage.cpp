@@ -35,7 +35,7 @@ using namespace zillians::language::tree;
 
 namespace zillians { namespace language { namespace stage {
 
-ThorScriptStubStage::ThorScriptStubStage() : stub_type(UNKNOWN_STUB)
+ThorScriptStubStage::ThorScriptStubStage() : use_stdout(false), stub_type(UNKNOWN_STUB)
 { }
 
 ThorScriptStubStage::~ThorScriptStubStage()
@@ -51,8 +51,9 @@ std::pair<shared_ptr<po::options_description>, shared_ptr<po::options_descriptio
     shared_ptr<po::options_description> option_desc_public(new po::options_description());
     shared_ptr<po::options_description> option_desc_private(new po::options_description());
     option_desc_public->add_options()
-        ("output,o",          po::value<std::string>(), "output stub file name")
-        ("stub-type,s",       po::value<std::string>(), "output stub file type")
+        ("stdout,s",                                    "output to stdout")
+        ("output-path,p",     po::value<std::string>(), "stub path")
+        ("stub-type,s",       po::value<std::string>(), "stub type")
     	("game-name,g",       po::value<std::string>(), "game name")
     	("translator-uuid,t", po::value<std::string>(), "translator UUID")
 		("module-uuid,m",     po::value<std::string>(), "module UUID");
@@ -78,13 +79,11 @@ bool ThorScriptStubStage::parseOptions(po::variables_map& vm)
     }
     else
         BOOST_ASSERT(false && "must specify input");
-    if(vm.count("output"))
-        output_file = vm["output"].as<std::string>();
+    use_stdout = vm.count("stdout");
+    if(vm.count("output-path"))
+        output_path = vm["output-path"].as<std::string>();
     if(vm.count("game-name"))
-    {
         var_map[L"game-name"] = s_to_ws(vm["game-name"].as<std::string>());
-        std::wcout << "GAME_NAME: " << var_map[L"game-name"] << std::endl;
-    }
     if(vm.count("translator-uuid"))
     	var_map[L"translator-uuid"] = s_to_ws(vm["translator-uuid"].as<std::string>());
     if(vm.count("module-uuid"))
@@ -93,11 +92,11 @@ bool ThorScriptStubStage::parseOptions(po::variables_map& vm)
     if(vm.count("stub-type"))
     {
         std::string stub_type_name = vm["stub-type"].as<std::string>();
-        if(stub_type_name == "UNKNOWN_STUB")                            stub_type = UNKNOWN_STUB;
-        else if(stub_type_name == "GAMENAME_CLIENTCOMMANDOBJECT_H")     stub_type = GAMENAME_CLIENTCOMMANDOBJECT_H;
-        else if(stub_type_name == "GAMENAME_CLOUDCOMMANDOBJECT_H")      stub_type = GAMENAME_CLOUDCOMMANDOBJECT_H;
-        else if(stub_type_name == "GAMENAME_GAMECOMMANDTRANSLATOR_CPP") stub_type = GAMENAME_GAMECOMMANDTRANSLATOR_CPP;
-        else if(stub_type_name == "GAMENAMEGAMEMODULE_MODULE")          stub_type = GAMENAMEGAMEMODULE_MODULE;
+        if(stub_type_name == "UNKNOWN_STUB")                   stub_type = UNKNOWN_STUB;
+        else if(stub_type_name == "CLIENTCOMMANDOBJECT_H")     stub_type = CLIENTCOMMANDOBJECT_H;
+        else if(stub_type_name == "CLOUDCOMMANDOBJECT_H")      stub_type = CLOUDCOMMANDOBJECT_H;
+        else if(stub_type_name == "GAMECOMMANDTRANSLATOR_CPP") stub_type = GAMECOMMANDTRANSLATOR_CPP;
+        else if(stub_type_name == "GAMEMODULE_MODULE")         stub_type = GAMEMODULE_MODULE;
         else
             BOOST_ASSERT(false && "reaching unreachable code");
     }
@@ -108,10 +107,28 @@ bool ThorScriptStubStage::execute(bool& continue_execution)
 {
 	std::wofstream file;
 	std::wstreambuf *prev_rdbuf;
-	if(!output_file.empty())
+	if(!use_stdout)
 	{
 		prev_rdbuf = std::wcout.rdbuf();
-		file.open(output_file);
+		std::string filename;
+        switch(stub_type)
+        {
+        case CLIENTCOMMANDOBJECT_H:     filename = genStubFilename<CLIENTCOMMANDOBJECT_H>(var_map); break;
+        case CLOUDCOMMANDOBJECT_H:      filename = genStubFilename<CLOUDCOMMANDOBJECT_H>(var_map); break;
+        case GAMECOMMANDTRANSLATOR_CPP: filename = genStubFilename<GAMECOMMANDTRANSLATOR_CPP>(var_map); break;
+        case GAMEMODULE_MODULE:         filename = genStubFilename<GAMEMODULE_MODULE>(var_map); break;
+        default:
+            UNUSED_ARGUMENT(continue_execution);
+            BOOST_ASSERT(false && "reaching unreachable code");
+        }
+        if(filename.empty())
+        	filename = "unnamed";
+        auto concat_path = [&](std::string path, std::string filename) -> std::string {
+				if(!path.empty() && path[path.length()-1] != '/')
+					return path + '/' + filename;
+				return "";
+        	};
+		file.open(concat_path(output_path, filename));
 		std::wcout.rdbuf(file.rdbuf());
 	}
     foreach(i, ast_files)
@@ -122,18 +139,17 @@ bool ThorScriptStubStage::execute(bool& continue_execution)
             tree::Tangle* tangle = tree::cast<tree::Tangle>(node);
             switch(stub_type)
             {
-            case GAMENAME_CLIENTCOMMANDOBJECT_H:     genStub<GAMENAME_CLIENTCOMMANDOBJECT_H>(tangle, var_map); break;
-            case GAMENAME_CLOUDCOMMANDOBJECT_H:      genStub<GAMENAME_CLOUDCOMMANDOBJECT_H>(tangle, var_map); break;
-            case GAMENAME_GAMECOMMANDTRANSLATOR_CPP: genStub<GAMENAME_GAMECOMMANDTRANSLATOR_CPP>(tangle, var_map); break;
-            case GAMENAMEGAMEMODULE_MODULE:          genStub<GAMENAMEGAMEMODULE_MODULE>(tangle, var_map); break;
+            case CLIENTCOMMANDOBJECT_H:     genStub<CLIENTCOMMANDOBJECT_H>(tangle, var_map); break;
+            case CLOUDCOMMANDOBJECT_H:      genStub<CLOUDCOMMANDOBJECT_H>(tangle, var_map); break;
+            case GAMECOMMANDTRANSLATOR_CPP: genStub<GAMECOMMANDTRANSLATOR_CPP>(tangle, var_map); break;
+            case GAMEMODULE_MODULE:         genStub<GAMEMODULE_MODULE>(tangle, var_map); break;
             default:
                 UNUSED_ARGUMENT(continue_execution);
                 BOOST_ASSERT(false && "reaching unreachable code");
-                return false;
             }
         }
     }
-	if(!output_file.empty())
+	if(!use_stdout)
 	{
 		std::wcout.rdbuf(prev_rdbuf);
 		file.close();

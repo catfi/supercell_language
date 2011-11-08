@@ -30,43 +30,43 @@ zillians_add_subject_to_subject(PARENT thorscript-stub-test-all CHILD thorscript
 #zillians_add_subject_to_subject(PARENT thorscript-stub-test-all CHILD thorscript-stub-test-server)
 
 zillians_add_complex_test(
-    TARGET thorscript-stub-test-gateway-GAMENAME_CLIENTCOMMANDOBJECT_H
+    TARGET thorscript-stub-test-gateway-CLIENTCOMMANDOBJECT_H
     SHELL ${CMAKE_CURRENT_SOURCE_DIR}/../test.sh ${ThorScriptCompiler} ${ThorScriptStubGenerator}
             ${CMAKE_CURRENT_SOURCE_DIR}/data/input.t
-            "GAMENAME_CLIENTCOMMANDOBJECT_H"
-            ${CMAKE_CURRENT_SOURCE_DIR}/gold/GAMENAME_CLIENTCOMMANDOBJECT_H_output
+            "CLIENTCOMMANDOBJECT_H"
+            ${CMAKE_CURRENT_SOURCE_DIR}/gold/DummyGameName_CLIENTCOMMANDOBJECT_H_output
             ${ZILLIANS_SCRIPT_PATH}/format_source.sh
     DEPENDS ${ThorScriptCompiler} ${ThorScriptStubGenerator}
     )
 zillians_add_complex_test(
-    TARGET thorscript-stub-test-gateway-GAMENAME_CLOUDCOMMANDOBJECT_H
+    TARGET thorscript-stub-test-gateway-CLOUDCOMMANDOBJECT_H
     SHELL ${CMAKE_CURRENT_SOURCE_DIR}/../test.sh ${ThorScriptCompiler} ${ThorScriptStubGenerator}
             ${CMAKE_CURRENT_SOURCE_DIR}/data/input.t
-            "GAMENAME_CLOUDCOMMANDOBJECT_H"
-            ${CMAKE_CURRENT_SOURCE_DIR}/gold/GAMENAME_CLOUDCOMMANDOBJECT_H_output
+            "CLOUDCOMMANDOBJECT_H"
+            ${CMAKE_CURRENT_SOURCE_DIR}/gold/DummyGameName_CLOUDCOMMANDOBJECT_H_output
             ${ZILLIANS_SCRIPT_PATH}/format_source.sh
     DEPENDS ${ThorScriptCompiler} ${ThorScriptStubGenerator}
     )
 zillians_add_complex_test(
-    TARGET thorscript-stub-test-gateway-GAMENAME_GAMECOMMANDTRANSLATOR_CPP
+    TARGET thorscript-stub-test-gateway-GAMECOMMANDTRANSLATOR_CPP
     SHELL ${CMAKE_CURRENT_SOURCE_DIR}/../test.sh ${ThorScriptCompiler} ${ThorScriptStubGenerator}
             ${CMAKE_CURRENT_SOURCE_DIR}/data/input.t
-            "GAMENAME_GAMECOMMANDTRANSLATOR_CPP"
-            ${CMAKE_CURRENT_SOURCE_DIR}/gold/GAMENAME_GAMECOMMANDTRANSLATOR_CPP_output
+            "GAMECOMMANDTRANSLATOR_CPP"
+            ${CMAKE_CURRENT_SOURCE_DIR}/gold/DummyGameName_GAMECOMMANDTRANSLATOR_CPP_output
             ${ZILLIANS_SCRIPT_PATH}/format_source.sh
     DEPENDS ${ThorScriptCompiler} ${ThorScriptStubGenerator}
     )
 zillians_add_complex_test(
-    TARGET thorscript-stub-test-gateway-GAMENAMEGAMEMODULE_MODULE
+    TARGET thorscript-stub-test-gateway-GAMEMODULE_MODULE
     SHELL ${CMAKE_CURRENT_SOURCE_DIR}/../test.sh ${ThorScriptCompiler} ${ThorScriptStubGenerator}
             ${CMAKE_CURRENT_SOURCE_DIR}/data/input.t
-            "GAMENAMEGAMEMODULE_MODULE"
-            ${CMAKE_CURRENT_SOURCE_DIR}/gold/GAMENAMEGAMEMODULE_MODULE_output
+            "GAMEMODULE_MODULE"
+            ${CMAKE_CURRENT_SOURCE_DIR}/gold/DummyGameNameGAMEMODULE_MODULE_output
             ${ZILLIANS_SCRIPT_PATH}/format_source.sh
     DEPENDS ${ThorScriptCompiler} ${ThorScriptStubGenerator}
     )
 
-zillians_add_test_to_subject(SUBJECT thorscript-stub-test-gateway TARGET thorscript-stub-test-gateway-GAMENAME_CLIENTCOMMANDOBJECT_H)
-zillians_add_test_to_subject(SUBJECT thorscript-stub-test-gateway TARGET thorscript-stub-test-gateway-GAMENAME_CLOUDCOMMANDOBJECT_H)
-zillians_add_test_to_subject(SUBJECT thorscript-stub-test-gateway TARGET thorscript-stub-test-gateway-GAMENAME_GAMECOMMANDTRANSLATOR_CPP)
-zillians_add_test_to_subject(SUBJECT thorscript-stub-test-gateway TARGET thorscript-stub-test-gateway-GAMENAMEGAMEMODULE_MODULE)
+zillians_add_test_to_subject(SUBJECT thorscript-stub-test-gateway TARGET thorscript-stub-test-gateway-CLIENTCOMMANDOBJECT_H)
+zillians_add_test_to_subject(SUBJECT thorscript-stub-test-gateway TARGET thorscript-stub-test-gateway-CLOUDCOMMANDOBJECT_H)
+zillians_add_test_to_subject(SUBJECT thorscript-stub-test-gateway TARGET thorscript-stub-test-gateway-GAMECOMMANDTRANSLATOR_CPP)
+zillians_add_test_to_subject(SUBJECT thorscript-stub-test-gateway TARGET thorscript-stub-test-gateway-GAMEMODULE_MODULE)
