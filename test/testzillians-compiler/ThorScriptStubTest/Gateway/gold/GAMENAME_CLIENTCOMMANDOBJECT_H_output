@@ -1,5 +1,5 @@
 #include "vw/services/api/ApiTypes.h"
-#include "objects/ClientCommandObject.h"
+#include "ClientCommandObject.h"
 namespace zillians {
 	class DummyGameName_f_ClientCommandObject : public ClientCommandObject
 	{

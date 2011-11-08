@@ -49,8 +49,8 @@ public:
     std::vector<std::string> ast_files;
 
     std::string output_file;
-    typedef std::map<std::wstring, std::wstring> env_vars_t;
-    env_vars_t env_vars;
+    typedef std::map<std::wstring, std::wstring> var_map_t;
+    var_map_t var_map;
 
 public:
 	typedef enum
@@ -71,7 +71,7 @@ private:
 } } }
 
 template<zillians::language::stage::ThorScriptStubStage::stub_type_t ENUM>
-void genStub(zillians::language::tree::Tangle* node, zillians::language::stage::ThorScriptStubStage::env_vars_t& env_vars)
+void genStub(zillians::language::tree::Tangle* node, zillians::language::stage::ThorScriptStubStage::var_map_t& var_map)
 { }
 
 #endif /* ZILLIANS_LANGUAGE_STAGE_MAKE_THORSCRIPTSTUBSTAGE_H_ */

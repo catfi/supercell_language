@@ -39,7 +39,7 @@ struct AtFuncGeneratorVisitor : public visitor::GenericDoubleVisitor
 
 //[[[entry
 template<>
-void genStub<stage::ThorScriptStubStage::GAMENAME_CLOUDCOMMANDOBJECT_H>(Tangle* node, stage::ThorScriptStubStage::env_vars_t& env_vars)
+void genStub<stage::ThorScriptStubStage::GAMENAME_CLOUDCOMMANDOBJECT_H>(Tangle* node, stage::ThorScriptStubStage::var_map_t& var_map)
 {
 //[[[driver
 //]]]
@@ -49,6 +49,7 @@ void genStub<stage::ThorScriptStubStage::GAMENAME_CLOUDCOMMANDOBJECT_H>(Tangle* 
 //]]]
 
 #include "vw/services/api/ApiTypes.h"
+#include "CloudCommandObject.h"
 
 namespace zillians {
 
@@ -61,7 +62,7 @@ std::vector<FunctionDecl*> AtServerFuncList;
 { AtFuncGeneratorVisitor v(AtServerFuncList, L"server"); v.visit(*node); }
 
 auto f = [&](FunctionDecl* node){
-    std::wstring GameName = env_vars[L"game-name"];
+    std::wstring GameName = var_map[L"game-name"];
     std::wstring FuncName = node->name->toString();
     std::wstringstream ss;
     ss << L"0x" << std::hex << stage::SymbolIdManglingContext::get(node)->managled_id;
