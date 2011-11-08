@@ -8,10 +8,10 @@ using namespace zillians::language::tree;
 
 //[[[entry
 template<>
-std::string genStubFilename<stage::ThorScriptStubStage::GAMEMODULE_MODULE>(stage::ThorScriptStubStage::var_map_t& var_map)
+std::string get_stub_filename<stage::ThorScriptStubStage::GATEWAY_GAMECOMMAND_GAMEMODULE_MODULE>(stage::ThorScriptStubStage::var_map_t& var_map)
 {
     auto f = [&](std::wstring &s, std::wstring search_string, std::wstring replace_string){
-            for(std::wstring::size_type p = 0; (p = s.find(search_string, p)) != std::string::npos; p++)
+            for(std::wstring::size_type p = 0; (p = s.find(search_string, p)) != std::wstring::npos; p++)
                 s.replace(p, search_string.size(), replace_string);
         };
     std::wstring s = L"${GAME_NAME}GAMEMODULE.module";
@@ -19,7 +19,7 @@ std::string genStubFilename<stage::ThorScriptStubStage::GAMEMODULE_MODULE>(stage
     return zillians::ws_to_s(s);
 }
 template<>
-void genStub<stage::ThorScriptStubStage::GAMEMODULE_MODULE>(Tangle* node, stage::ThorScriptStubStage::var_map_t& var_map)
+void print_stub<stage::ThorScriptStubStage::GATEWAY_GAMECOMMAND_GAMEMODULE_MODULE>(Tangle* node, stage::ThorScriptStubStage::var_map_t& var_map)
 {
 //[[[driver
 //]]]

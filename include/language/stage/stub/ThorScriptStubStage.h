@@ -57,10 +57,14 @@ public:
 	typedef enum
 	{
 		UNKNOWN_STUB,
-		CLIENTCOMMANDOBJECT_H,
-		CLOUDCOMMANDOBJECT_H,
-		GAMECOMMANDTRANSLATOR_CPP,
-		GAMEMODULE_MODULE
+		GATEWAY_GAMECOMMAND_CLIENTCOMMANDOBJECT_H,
+		GATEWAY_GAMECOMMAND_CLOUDCOMMANDOBJECT_H,
+		GATEWAY_GAMECOMMAND_GAMECOMMANDTRANSLATOR_CPP,
+		GATEWAY_GAMECOMMAND_GAMEMODULE_MODULE,
+		CLIENT_CLIENTSTUB_H,
+		CLIENT_GAMEOBJECTS_H,
+		CLIENT_GAMESERVICE_CPP,
+		CLIENT_GAMESERVICE_H
 	} stub_type_t;
 
 private:
@@ -70,11 +74,11 @@ private:
 } } }
 
 template<zillians::language::stage::ThorScriptStubStage::stub_type_t ENUM>
-std::string genStubFilename(zillians::language::stage::ThorScriptStubStage::var_map_t& var_map)
+std::string get_stub_filename(zillians::language::stage::ThorScriptStubStage::var_map_t& var_map)
 { }
 
 template<zillians::language::stage::ThorScriptStubStage::stub_type_t ENUM>
-void genStub(zillians::language::tree::Tangle* node, zillians::language::stage::ThorScriptStubStage::var_map_t& var_map)
+void print_stub(zillians::language::tree::Tangle* node, zillians::language::stage::ThorScriptStubStage::var_map_t& var_map)
 { }
 
 #endif /* ZILLIANS_LANGUAGE_STAGE_MAKE_THORSCRIPTSTUBSTAGE_H_ */

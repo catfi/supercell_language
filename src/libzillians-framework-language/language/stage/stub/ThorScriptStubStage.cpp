@@ -27,9 +27,6 @@
 #include <fstream>
 
 #define THORSCRIPT_AST_EXTENSION ".ast"
-#define CLIENT_STUB_NAME  "client_stub"
-#define SERVER_STUB_NAME  "server_stub"
-#define GATEWAY_STUB_NAME "gateway_stub"
 
 using namespace zillians::language::tree;
 
@@ -92,11 +89,14 @@ bool ThorScriptStubStage::parseOptions(po::variables_map& vm)
     if(vm.count("stub-type"))
     {
         std::string stub_type_name = vm["stub-type"].as<std::string>();
-        if(stub_type_name == "UNKNOWN_STUB")                   stub_type = UNKNOWN_STUB;
-        else if(stub_type_name == "CLIENTCOMMANDOBJECT_H")     stub_type = CLIENTCOMMANDOBJECT_H;
-        else if(stub_type_name == "CLOUDCOMMANDOBJECT_H")      stub_type = CLOUDCOMMANDOBJECT_H;
-        else if(stub_type_name == "GAMECOMMANDTRANSLATOR_CPP") stub_type = GAMECOMMANDTRANSLATOR_CPP;
-        else if(stub_type_name == "GAMEMODULE_MODULE")         stub_type = GAMEMODULE_MODULE;
+        if(stub_type_name == "GATEWAY_GAMECOMMAND_CLIENTCOMMANDOBJECT_H")          stub_type = GATEWAY_GAMECOMMAND_CLIENTCOMMANDOBJECT_H;
+        else if(stub_type_name == "GATEWAY_GAMECOMMAND_CLOUDCOMMANDOBJECT_H")      stub_type = GATEWAY_GAMECOMMAND_CLOUDCOMMANDOBJECT_H;
+        else if(stub_type_name == "GATEWAY_GAMECOMMAND_GAMECOMMANDTRANSLATOR_CPP") stub_type = GATEWAY_GAMECOMMAND_GAMECOMMANDTRANSLATOR_CPP;
+        else if(stub_type_name == "GATEWAY_GAMECOMMAND_GAMEMODULE_MODULE")         stub_type = GATEWAY_GAMECOMMAND_GAMEMODULE_MODULE;
+        else if(stub_type_name == "CLIENT_CLIENTSTUB_H")                           stub_type = CLIENT_CLIENTSTUB_H;
+        else if(stub_type_name == "CLIENT_GAMEOBJECTS_H")                          stub_type = CLIENT_GAMEOBJECTS_H;
+        else if(stub_type_name == "CLIENT_GAMESERVICE_CPP")                        stub_type = CLIENT_GAMESERVICE_CPP;
+        else if(stub_type_name == "CLIENT_GAMESERVICE_H")                          stub_type = CLIENT_GAMESERVICE_H;
         else
             BOOST_ASSERT(false && "reaching unreachable code");
     }
@@ -109,14 +109,17 @@ bool ThorScriptStubStage::execute(bool& continue_execution)
 	std::wstreambuf *prev_rdbuf;
 	if(!use_stdout)
 	{
-		prev_rdbuf = std::wcout.rdbuf();
 		std::string filename;
         switch(stub_type)
         {
-        case CLIENTCOMMANDOBJECT_H:     filename = genStubFilename<CLIENTCOMMANDOBJECT_H>(var_map); break;
-        case CLOUDCOMMANDOBJECT_H:      filename = genStubFilename<CLOUDCOMMANDOBJECT_H>(var_map); break;
-        case GAMECOMMANDTRANSLATOR_CPP: filename = genStubFilename<GAMECOMMANDTRANSLATOR_CPP>(var_map); break;
-        case GAMEMODULE_MODULE:         filename = genStubFilename<GAMEMODULE_MODULE>(var_map); break;
+        case GATEWAY_GAMECOMMAND_CLIENTCOMMANDOBJECT_H:     filename = get_stub_filename<GATEWAY_GAMECOMMAND_CLIENTCOMMANDOBJECT_H>(var_map); break;
+        case GATEWAY_GAMECOMMAND_CLOUDCOMMANDOBJECT_H:      filename = get_stub_filename<GATEWAY_GAMECOMMAND_CLOUDCOMMANDOBJECT_H>(var_map); break;
+        case GATEWAY_GAMECOMMAND_GAMECOMMANDTRANSLATOR_CPP: filename = get_stub_filename<GATEWAY_GAMECOMMAND_GAMECOMMANDTRANSLATOR_CPP>(var_map); break;
+        case GATEWAY_GAMECOMMAND_GAMEMODULE_MODULE:         filename = get_stub_filename<GATEWAY_GAMECOMMAND_GAMEMODULE_MODULE>(var_map); break;
+        case CLIENT_CLIENTSTUB_H:                           filename = get_stub_filename<CLIENT_CLIENTSTUB_H>(var_map); break;
+        case CLIENT_GAMEOBJECTS_H:                          filename = get_stub_filename<CLIENT_GAMEOBJECTS_H>(var_map); break;
+        case CLIENT_GAMESERVICE_CPP:                        filename = get_stub_filename<CLIENT_GAMESERVICE_CPP>(var_map); break;
+        case CLIENT_GAMESERVICE_H:                          filename = get_stub_filename<CLIENT_GAMESERVICE_H>(var_map); break;
         default:
             UNUSED_ARGUMENT(continue_execution);
             BOOST_ASSERT(false && "reaching unreachable code");
@@ -129,6 +132,7 @@ bool ThorScriptStubStage::execute(bool& continue_execution)
 				return "";
         	};
 		file.open(concat_path(output_path, filename));
+		prev_rdbuf = std::wcout.rdbuf();
 		std::wcout.rdbuf(file.rdbuf());
 	}
     foreach(i, ast_files)
@@ -139,10 +143,14 @@ bool ThorScriptStubStage::execute(bool& continue_execution)
             tree::Tangle* tangle = tree::cast<tree::Tangle>(node);
             switch(stub_type)
             {
-            case CLIENTCOMMANDOBJECT_H:     genStub<CLIENTCOMMANDOBJECT_H>(tangle, var_map); break;
-            case CLOUDCOMMANDOBJECT_H:      genStub<CLOUDCOMMANDOBJECT_H>(tangle, var_map); break;
-            case GAMECOMMANDTRANSLATOR_CPP: genStub<GAMECOMMANDTRANSLATOR_CPP>(tangle, var_map); break;
-            case GAMEMODULE_MODULE:         genStub<GAMEMODULE_MODULE>(tangle, var_map); break;
+            case GATEWAY_GAMECOMMAND_CLIENTCOMMANDOBJECT_H:     print_stub<GATEWAY_GAMECOMMAND_CLIENTCOMMANDOBJECT_H>(tangle, var_map); break;
+            case GATEWAY_GAMECOMMAND_CLOUDCOMMANDOBJECT_H:      print_stub<GATEWAY_GAMECOMMAND_CLOUDCOMMANDOBJECT_H>(tangle, var_map); break;
+            case GATEWAY_GAMECOMMAND_GAMECOMMANDTRANSLATOR_CPP: print_stub<GATEWAY_GAMECOMMAND_GAMECOMMANDTRANSLATOR_CPP>(tangle, var_map); break;
+            case GATEWAY_GAMECOMMAND_GAMEMODULE_MODULE:         print_stub<GATEWAY_GAMECOMMAND_GAMEMODULE_MODULE>(tangle, var_map); break;
+            case CLIENT_CLIENTSTUB_H:                           print_stub<CLIENT_CLIENTSTUB_H>(tangle, var_map); break;
+            case CLIENT_GAMEOBJECTS_H:                          print_stub<CLIENT_GAMEOBJECTS_H>(tangle, var_map); break;
+            case CLIENT_GAMESERVICE_CPP:                        print_stub<CLIENT_GAMESERVICE_CPP>(tangle, var_map); break;
+            case CLIENT_GAMESERVICE_H:                          print_stub<CLIENT_GAMESERVICE_H>(tangle, var_map); break;
             default:
                 UNUSED_ARGUMENT(continue_execution);
                 BOOST_ASSERT(false && "reaching unreachable code");

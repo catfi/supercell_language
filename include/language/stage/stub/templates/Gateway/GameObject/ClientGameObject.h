@@ -1,3 +1,6 @@
+#ifndef CLIENTGAMEOBJECT_H_
+#define CLIENTGAMEOBJECT_H_
+
 class ClientGameObject
 {
 public:
@@ -15,3 +18,5 @@ public:
         ar & id;
     }
 };
+
+#endif

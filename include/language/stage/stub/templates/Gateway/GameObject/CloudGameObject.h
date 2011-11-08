@@ -1,3 +1,6 @@
+#ifndef CLOUDGAMEOBJECT_H_
+#define CLOUDGAMEOBJECT_H_
+
 class CloudGameObject
 {
 public:
@@ -15,3 +18,5 @@ public:
         ar & id;
     }
 };
+
+#endif

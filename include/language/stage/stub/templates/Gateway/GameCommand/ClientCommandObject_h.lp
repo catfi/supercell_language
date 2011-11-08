@@ -40,10 +40,10 @@ struct AtFuncGeneratorVisitor : public visitor::GenericDoubleVisitor
 
 //[[[entry
 template<>
-std::string genStubFilename<stage::ThorScriptStubStage::CLIENTCOMMANDOBJECT_H>(stage::ThorScriptStubStage::var_map_t& var_map)
+std::string get_stub_filename<stage::ThorScriptStubStage::GATEWAY_GAMECOMMAND_CLIENTCOMMANDOBJECT_H>(stage::ThorScriptStubStage::var_map_t& var_map)
 {
     auto f = [&](std::wstring &s, std::wstring search_string, std::wstring replace_string){
-            for(std::wstring::size_type p = 0; (p = s.find(search_string, p)) != std::string::npos; p++)
+            for(std::wstring::size_type p = 0; (p = s.find(search_string, p)) != std::wstring::npos; p++)
                 s.replace(p, search_string.size(), replace_string);
         };
     std::wstring s = L"${GAME_NAME}_CLIENTCOMMANDOBJECT.h";
@@ -51,7 +51,7 @@ std::string genStubFilename<stage::ThorScriptStubStage::CLIENTCOMMANDOBJECT_H>(s
     return zillians::ws_to_s(s);
 }
 template<>
-void genStub<stage::ThorScriptStubStage::CLIENTCOMMANDOBJECT_H>(Tangle* node, stage::ThorScriptStubStage::var_map_t& var_map)
+void print_stub<stage::ThorScriptStubStage::GATEWAY_GAMECOMMAND_CLIENTCOMMANDOBJECT_H>(Tangle* node, stage::ThorScriptStubStage::var_map_t& var_map)
 {
 //[[[driver
 //]]]

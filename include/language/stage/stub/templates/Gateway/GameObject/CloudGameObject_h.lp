@@ -41,4 +41,4 @@ public:
         ar.skip(x);  
         // GENERATE_END
     }
-}
+};
