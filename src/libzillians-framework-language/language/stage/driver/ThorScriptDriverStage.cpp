@@ -54,7 +54,7 @@ std::pair<shared_ptr<po::options_description>, shared_ptr<po::options_descriptio
 	shared_ptr<po::options_description> option_desc_private(new po::options_description());
 
 	option_desc_public->add_options()
-        ("-strip,s", "strip function definition")
+        ("strip,s", "strip function definition")
     ;
 
 	foreach(i, option_desc_public->options()) option_desc_private->add(*i);
