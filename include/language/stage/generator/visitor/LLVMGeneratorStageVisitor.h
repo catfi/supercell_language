@@ -838,9 +838,9 @@ struct LLVMGeneratorStageVisitor : GenericDoubleVisitor
 			TypeSpecifier* node_specifier = cast<TypeSpecifier>(ResolvedType::get(node.node));
 			if(node_specifier && node_specifier->type == TypeSpecifier::ReferredType::PRIMITIVE)
 			{
-				bool need_ext = (PrimitiveType::bitSize(node.type->referred.primitive) > PrimitiveType::bitSize(node_specifier->referred.primitive));
-				bool need_truc = (PrimitiveType::bitSize(node.type->referred.primitive) < PrimitiveType::bitSize(node_specifier->referred.primitive));
-				bool bitsize_mismatched = (PrimitiveType::bitSize(node.type->referred.primitive) != PrimitiveType::bitSize(node_specifier->referred.primitive));
+				bool need_ext = (PrimitiveType::byteSize(node.type->referred.primitive) > PrimitiveType::byteSize(node_specifier->referred.primitive));
+				bool need_truc = (PrimitiveType::byteSize(node.type->referred.primitive) < PrimitiveType::byteSize(node_specifier->referred.primitive));
+				bool bitsize_mismatched = (PrimitiveType::byteSize(node.type->referred.primitive) != PrimitiveType::byteSize(node_specifier->referred.primitive));
 
 				UNUSED_ARGUMENT(bitsize_mismatched);
 
