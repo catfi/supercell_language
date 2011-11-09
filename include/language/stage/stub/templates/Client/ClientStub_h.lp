@@ -47,12 +47,15 @@ std::string get_stub_filename<stage::ThorScriptStubStage::CLIENT_CLIENTSTUB_H>(s
 template<>
 void print_stub<stage::ThorScriptStubStage::CLIENT_CLIENTSTUB_H>(Tangle* node, stage::ThorScriptStubStage::var_map_t& var_map)
 {
-//[[[driver
-//]]]
+    //[[[driver
+    //]]]
 }
 //]]]
 
 //]]]
+
+#ifndef CLIENTSTUB_H_
+#define CLIENTSTUB_H_
 
 #include "zillians/Base.h"
 #include "GameObjects.h"
@@ -98,3 +101,5 @@ foreach(i, AtClientFuncList) f(*i);
 //]]]
 
 };
+
+#endif

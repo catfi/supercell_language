@@ -1,3 +1,6 @@
+#ifndef GATEWAY_GAMEOBJECT_GAMEOBJECTTRANSLATOR_H_
+#define GATEWAY_GAMEOBJECT_GAMEOBJECTTRANSLATOR_H_
+
 #include "plugin/PluginComponent.h" 
 #include "extension-point/NetworkTranslator.h" 
 #include "core-api/Prerequisite.h" 
@@ -85,3 +88,5 @@ public:
 private:
     SharedPtr<WorldGatewayComponent> mWorldGateway;
 };
+
+#endif

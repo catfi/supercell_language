@@ -1,3 +1,5 @@
+#ifndef GATEWAY_GAMECOMMAND_CLIENTCOMMANDOBJECT_H_
+#define GATEWAY_GAMECOMMAND_CLIENTCOMMANDOBJECT_H_
 #include "vw/services/api/ApiTypes.h"
 #include "ClientCommandObject.h"
 namespace zillians {
@@ -64,3 +66,4 @@ namespace zillians {
 				}
 	};
 } // namespace zillians
+#endif

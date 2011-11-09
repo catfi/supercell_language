@@ -53,8 +53,8 @@ std::string get_stub_filename<stage::ThorScriptStubStage::GATEWAY_GAMECOMMAND_GA
 template<>
 void print_stub<stage::ThorScriptStubStage::GATEWAY_GAMECOMMAND_GAMECOMMANDTRANSLATOR_CPP>(Tangle* node, stage::ThorScriptStubStage::var_map_t& var_map)
 {
-//[[[driver
-//]]]
+    //[[[driver
+    //]]]
 }
 //]]]
 

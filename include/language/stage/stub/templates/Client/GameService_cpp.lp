@@ -47,8 +47,8 @@ std::string get_stub_filename<stage::ThorScriptStubStage::CLIENT_GAMESERVICE_CPP
 template<>
 void print_stub<stage::ThorScriptStubStage::CLIENT_GAMESERVICE_CPP>(Tangle* node, stage::ThorScriptStubStage::var_map_t& var_map)
 {
-//[[[driver
-//]]]
+    //[[[driver
+    //]]]
 }
 //]]]
 

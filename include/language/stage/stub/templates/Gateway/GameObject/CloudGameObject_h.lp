@@ -1,3 +1,6 @@
+#ifndef GATEWAY_GAMEOBJECT_CLOUDGAMEOBJECT_H_
+#define GATEWAY_GAMEOBJECT_CLOUDGAMEOBJECT_H_
+
 class ${GAME_NAME}_${OBJECT_NAME}_CloudGameObject : public CloudGameObject
 {
 public:
@@ -42,3 +45,5 @@ public:
         // GENERATE_END
     }
 };
+
+#endif

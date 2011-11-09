@@ -1,3 +1,6 @@
+#ifndef GATEWAY_GAMEOBJECT_CLIENTGAMEOBJECT_H_
+#define GATEWAY_GAMEOBJECT_CLIENTGAMEOBJECT_H_
+
 class ${GAME_NAME}_${OBJECT_NAME}_ClientGameObject : public ClientGameObject
 {
 public:
@@ -42,3 +45,5 @@ public:
         // GENERATE_END
     }
 };
+
+#endif

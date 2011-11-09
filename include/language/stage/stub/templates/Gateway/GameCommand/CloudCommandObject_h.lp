@@ -53,12 +53,15 @@ std::string get_stub_filename<stage::ThorScriptStubStage::GATEWAY_GAMECOMMAND_CL
 template<>
 void print_stub<stage::ThorScriptStubStage::GATEWAY_GAMECOMMAND_CLOUDCOMMANDOBJECT_H>(Tangle* node, stage::ThorScriptStubStage::var_map_t& var_map)
 {
-//[[[driver
-//]]]
+    //[[[driver
+    //]]]
 }
 //]]]
 
 //]]]
+
+#ifndef GATEWAY_GAMECOMMAND_CLOUDCOMMANDOBJECT_H_
+#define GATEWAY_GAMECOMMAND_CLOUDCOMMANDOBJECT_H_
 
 #include "vw/services/api/ApiTypes.h"
 #include "CloudCommandObject.h"
@@ -156,3 +159,5 @@ foreach(i, AtServerFuncList) f(*i);
 //]]]
 
 } // namespace zillians
+
+#endif

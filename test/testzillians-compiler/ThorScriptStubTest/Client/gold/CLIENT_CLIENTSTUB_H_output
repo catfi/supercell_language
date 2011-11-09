@@ -1,3 +1,5 @@
+#ifndef CLIENTSTUB_H_
+#define CLIENTSTUB_H_
 #include "zillians/Base.h"
 #include "GameObjects.h"
 class xx_ClientStub
@@ -9,3 +11,4 @@ class xx_ClientStub
 				// GENERATE_END
 				) = 0;
 };
+#endif
