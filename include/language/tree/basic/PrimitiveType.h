@@ -111,22 +111,22 @@ struct PrimitiveType
 		return result;
 	}
 
-	static int bitSize(type t)
+	static int byteSize(type t)
 	{
 		switch(t)
 		{
 		case VOID: return 0;
 		case BOOL: return 1;
-		case INT8: return 8;
-		case INT16: return 16;
-		case INT32: return 32;
-		case FLOAT32: return 32;
-		case INT64: return 64;
-		case FLOAT64: return 64;
-		case INT128: return 128;
-		case OBJECT: return 32;
-		case FUNCTION: return 32;
-		case STRING: return 32;
+		case INT8: return 1;
+		case INT16: return 2;
+		case INT32: return 4;
+		case FLOAT32: return 4;
+		case INT64: return 8;
+		case FLOAT64: return 8;
+		case INT128: return 16;
+		case OBJECT: return 4;
+		case FUNCTION: return 4;
+		case STRING: return 4;
 		case VARIADIC_ELLIPSIS: return -1;
 		default: break;
 		}
@@ -137,7 +137,7 @@ struct PrimitiveType
 	{
 		if(isArithmeticCapable(from) && isArithmeticCapable(to))
 		{
-			precision_loss = (bitSize(from) > bitSize(to));
+			precision_loss = (byteSize(from) > byteSize(to));
 			return true;
 		}
 		else if( (from == OBJECT && to == OBJECT) || (from == FUNCTION && to  == FUNCTION) || (from == STRING && to == STRING) )
