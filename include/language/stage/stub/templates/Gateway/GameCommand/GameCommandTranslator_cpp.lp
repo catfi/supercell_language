@@ -179,10 +179,17 @@ private:
         	foreach(j, (*i)->parameters)
 			{
         		std::wstring name = (*j)->name->toString();
-                if((*j)->type->type == TypeSpecifier::ReferredType::UNSPECIFIED)
+                TypeSpecifier* type_specifier = (*j)->type;
+                if(ASTNodeHelper::isUnspecifiedType(type_specifier))
+                {
+                    ASTNode* resolved_type = ResolvedType::get(*j);
+                    if(resolved_type && isa<TypeSpecifier>(resolved_type))
+                        type_specifier = cast<TypeSpecifier>(resolved_type);
+                }
+                if(ASTNodeHelper::isPrimitiveType(type_specifier))
+                    std::wcout << L"dest." << name << L" = src." << name << L";" << std::endl;
+                else
                 	std::wcout << L"if(!translateInternalId(src." << name << L", dest." << name << L")) return false;" << std::endl;
-				else
-					std::wcout << L"dest." << name << L" = src." << name << L";" << std::endl;
 			}
         	//]]]
             // GENERATE_END
@@ -202,10 +209,17 @@ private:
         	foreach(j, (*i)->parameters)
 			{
         		std::wstring name = (*j)->name->toString();
-                if((*j)->type->type == TypeSpecifier::ReferredType::UNSPECIFIED)
+                TypeSpecifier* type_specifier = (*j)->type;
+                if(ASTNodeHelper::isUnspecifiedType(type_specifier))
+                {
+                    ASTNode* resolved_type = ResolvedType::get(*j);
+                    if(resolved_type && isa<TypeSpecifier>(resolved_type))
+                        type_specifier = cast<TypeSpecifier>(resolved_type);
+                }
+                if(ASTNodeHelper::isPrimitiveType(type_specifier))
+                    std::wcout << L"dest." << name << L" = src." << name << L";" << std::endl;
+                else
                 	std::wcout << L"if(!translateExternalId(src." << name << L", dest." << name << L")) return false;" << std::endl;
-				else
-					std::wcout << L"dest." << name << L" = src." << name << L";" << std::endl;
 			}
         	//]]]
             // GENERATE_END

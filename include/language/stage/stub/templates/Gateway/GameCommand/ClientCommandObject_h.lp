@@ -77,32 +77,44 @@ auto f = [&](FunctionDecl* node){
         std::wstringstream ss;
         ss << L"0x" << std::hex << stage::SymbolIdManglingContext::get(node)->managled_id;
         std::wstring function_id = ss.str();
-    
+
         //[[[gen(replace:GAME_NAME=game_name, FUNCTION_NAME=function_name, FUNCTION_ID=function_id)
         class ${GAME_NAME}_${FUNCTION_NAME}_ClientCommandObject : public ClientCommandObject
         {
         public:
             ${GAME_NAME}_${FUNCTION_NAME}_ClientCommandObject()
             { }
-    
+
             ~${GAME_NAME}_${FUNCTION_NAME}_ClientCommandObject()
             { }
-    
+
             enum
             {
                 // GENERATE_BEGIN
                 TYPE = ${FUNCTION_ID} // the type need to be unique globally (across all RPC command types)
                 // GENERATE_END
             };
-    
+
         public:
             // GENERATE_BEGIN
             //[[[code
             foreach(i, node->parameters)
-                std::wcout << ASTNodeHelper::getNodeName((*i)->type) << L" " << (*i)->name->toString() << L";" << std::endl;
+            {
+                TypeSpecifier* type_specifier = (*i)->type;
+                if(ASTNodeHelper::isUnspecifiedType(type_specifier))
+                {
+                    ASTNode* resolved_type = ResolvedType::get(*i);
+                    if(resolved_type && isa<TypeSpecifier>(resolved_type))
+                        type_specifier = cast<TypeSpecifier>(resolved_type);
+                }
+                if(ASTNodeHelper::isPrimitiveType(type_specifier))
+                    std::wcout << L"api_types::api_" << ASTNodeHelper::getNodeName(type_specifier) << L" " << (*i)->name->toString() << L";" << std::endl;
+                else
+                    std::wcout << L"UUID " << (*i)->name->toString() << L";" << std::endl;
+            }
             //]]]
             // GENERATE_END
-    
+
         public:
             template<typename Archive>
             void serialize(Archive& ar, const unsigned int version)

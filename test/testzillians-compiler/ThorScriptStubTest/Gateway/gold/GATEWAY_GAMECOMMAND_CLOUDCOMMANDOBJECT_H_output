@@ -16,9 +16,9 @@ namespace zillians {
 			};
 		public:
 			// GENERATE_BEGIN
-			int32 x;
-			float32 y;
-			QWE other;
+			api_types::api_int32 x;
+			api_types::api_float32 y;
+			uint32 other;
 			// GENERATE_END
 		public:
 			template<typename Archive>
@@ -29,7 +29,7 @@ namespace zillians {
 					ar & x;
 					ar & y;
 					ar & other;
-					ar.skip(128);
+					ar.skip(104);
 					// GENERATE_END
 				}
 	};
@@ -48,9 +48,9 @@ namespace zillians {
 			};
 		public:
 			// GENERATE_BEGIN
-			int32 x;
-			float32 y;
-			QWE other;
+			api_types::api_int32 x;
+			api_types::api_float32 y;
+			uint32 other;
 			// GENERATE_END
 		public:
 			template<typename Archive>
@@ -61,7 +61,7 @@ namespace zillians {
 					ar & x;
 					ar & y;
 					ar & other;
-					ar.skip(128);
+					ar.skip(104);
 					// GENERATE_END
 				}
 	};

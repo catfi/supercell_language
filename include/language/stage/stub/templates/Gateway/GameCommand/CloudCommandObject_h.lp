@@ -67,6 +67,7 @@ namespace zillians {
 
 //[[[code
 enum { MAX_BYTE_COUNT = 128 };
+enum { OBJECT_BYTE_SIZE = 16 };
 
 std::vector<FunctionDecl*> AtClientFuncList;
 std::vector<FunctionDecl*> AtServerFuncList;
@@ -74,60 +75,82 @@ std::vector<FunctionDecl*> AtServerFuncList;
 { AtFuncGeneratorVisitor v(AtServerFuncList, L"server"); v.visit(*node); }
 
 auto f = [&](FunctionDecl* node){
-    std::wstring game_name     = var_map[L"game-name"];
-    std::wstring function_name = node->name->toString();
-    std::wstringstream ss;
-    ss << L"0x" << std::hex << stage::SymbolIdManglingContext::get(node)->managled_id;
-    std::wstring function_id = ss.str();
-
-    //[[[gen(replace:GAME_NAME=game_name, FUNCTION_NAME=function_name, FUNCTION_ID=function_id)
-    class ${GAME_NAME}_${FUNCTION_NAME}_CloudCommandObject : public CloudCommandObject
-    {
-    public:
-        ${GAME_NAME}_${FUNCTION_NAME}_CloudCommandObject()
-        { }
-
-        ~${GAME_NAME}_${FUNCTION_NAME}_CloudCommandObject()
-        { }
-
-        enum
+        std::wstring game_name     = var_map[L"game-name"];
+        std::wstring function_name = node->name->toString();
+        std::wstringstream ss;
+        ss << L"0x" << std::hex << stage::SymbolIdManglingContext::get(node)->managled_id;
+        std::wstring function_id = ss.str();
+    
+        //[[[gen(replace:GAME_NAME=game_name, FUNCTION_NAME=function_name, FUNCTION_ID=function_id)
+        class ${GAME_NAME}_${FUNCTION_NAME}_CloudCommandObject : public CloudCommandObject
         {
-            // GENERATE_BEGIN
-            TYPE = ${FUNCTION_ID} // the type need to be unique globally (across all RPC command types)
-            // GENERATE_END
-        };
-
-    public:
-        // GENERATE_BEGIN
-        //[[[code
-        foreach(i, node->parameters)
-            std::wcout << ASTNodeHelper::getNodeName((*i)->type) << L" " << (*i)->name->toString() << L";" << std::endl;
-        //]]]
-        // GENERATE_END
-
-    public:
-        template<typename Archive>
-        void serialize(Archive& ar, const unsigned int version)
-        {
-            //CloudCommandObject::serialize(ar, version); // 16 bytes
+        public:
+            ${GAME_NAME}_${FUNCTION_NAME}_CloudCommandObject()
+            { }
+    
+            ~${GAME_NAME}_${FUNCTION_NAME}_CloudCommandObject()
+            { }
+    
+            enum
+            {
+                // GENERATE_BEGIN
+                TYPE = ${FUNCTION_ID} // the type need to be unique globally (across all RPC command types)
+                // GENERATE_END
+            };
+    
+        public:
             // GENERATE_BEGIN
             //[[[code
+            foreach(i, node->parameters)
             {
-                size_t ByteCount = 0;
-                foreach(i, node->parameters)
+                TypeSpecifier* type_specifier = (*i)->type;
+                if(ASTNodeHelper::isUnspecifiedType(type_specifier))
                 {
-                    std::wcout << L"ar & " << (*i)->name->toString() << L";" << std::endl;
-                    ByteCount += 0;
+                    ASTNode* resolved_type = ResolvedType::get(*i);
+                    if(resolved_type && isa<TypeSpecifier>(resolved_type))
+                        type_specifier = cast<TypeSpecifier>(resolved_type);
                 }
-                if(ByteCount < MAX_BYTE_COUNT)
-                    std::wcout << L"ar.skip(" << (MAX_BYTE_COUNT-ByteCount) << L");" << std::endl;
+                if(ASTNodeHelper::isPrimitiveType(type_specifier))
+                    std::wcout << L"api_types::api_" << ASTNodeHelper::getNodeName(type_specifier) << L" " << (*i)->name->toString() << L";" << std::endl;
+                else
+                    std::wcout << L"uint32 " << (*i)->name->toString() << L";" << std::endl;
             }
             //]]]
             // GENERATE_END
-        }
+    
+        public:
+            template<typename Archive>
+            void serialize(Archive& ar, const unsigned int version)
+            {
+                //CloudCommandObject::serialize(ar, version); // 16 bytes
+                // GENERATE_BEGIN
+                //[[[code
+                {
+                    size_t ByteCount = 0;
+                    foreach(i, node->parameters)
+                    {
+                        std::wcout << L"ar & " << (*i)->name->toString() << L";" << std::endl;
+                        TypeSpecifier* type_specifier = (*i)->type;
+                        if(ASTNodeHelper::isUnspecifiedType(type_specifier))
+                        {
+                            ASTNode* resolved_type = ResolvedType::get(*i);
+                            if(resolved_type && isa<TypeSpecifier>(resolved_type))
+                                type_specifier = cast<TypeSpecifier>(resolved_type);
+                        }
+                        if(ASTNodeHelper::isPrimitiveType(type_specifier))
+                            ByteCount += ASTNodeHelper::getPrimitiveTypeSize(type_specifier);
+                        else
+                            ByteCount += OBJECT_BYTE_SIZE;
+                    }
+                    if(ByteCount < MAX_BYTE_COUNT)
+                        std::wcout << L"ar.skip(" << (MAX_BYTE_COUNT-ByteCount) << L");" << std::endl;
+                }
+                //]]]
+                // GENERATE_END
+            }
+        };
+        //]]]
     };
-    //]]]
-};
 foreach(i, AtClientFuncList) f(*i);
 foreach(i, AtServerFuncList) f(*i);
 //]]]

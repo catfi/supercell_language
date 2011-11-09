@@ -76,10 +76,17 @@ auto f = [&](FunctionDecl* node){
                 //[[[code
                 foreach(i, node->parameters)
                 {
-                    if((*i)->type->type == TypeSpecifier::ReferredType::UNSPECIFIED)
-                        std::wcout << ASTNodeHelper::getNodeName((*i)->type) << L" " << (*i)->name->toString() << L";" << std::endl;
+                    TypeSpecifier* type_specifier = (*i)->type;
+                    if(ASTNodeHelper::isUnspecifiedType(type_specifier))
+                    {
+                        ASTNode* resolved_type = ResolvedType::get(*i);
+                        if(resolved_type && isa<TypeSpecifier>(resolved_type))
+                            type_specifier = cast<TypeSpecifier>(resolved_type);
+                    }
+                    if(ASTNodeHelper::isPrimitiveType(type_specifier))
+                        std::wcout << L"zillians::" << ASTNodeHelper::getNodeName(type_specifier) << L" " << (*i)->name->toString() << L";" << std::endl;
                     else
-                        std::wcout << L"zillians::" << ASTNodeHelper::getNodeName((*i)->type) << L" " << (*i)->name->toString() << L";" << std::endl;
+                        std::wcout << ASTNodeHelper::getNodeName(type_specifier) << L" " << (*i)->name->toString() << L";" << std::endl;
                     std::wcout << L"buf >> " << (*i)->name->toString() << L";" << std::endl;
                 }
                 //]]]
@@ -116,10 +123,17 @@ auto g = [&](FunctionDecl* node){
             //[[[code
             foreach(i, node->parameters)
             {
-                if((*i)->type->type == TypeSpecifier::ReferredType::UNSPECIFIED)
-                    std::wcout << ASTNodeHelper::getNodeName((*i)->type) << L"& " << (*i)->name->toString() << L"," << std::endl;
+                TypeSpecifier* type_specifier = (*i)->type;
+                if(ASTNodeHelper::isUnspecifiedType(type_specifier))
+                {
+                    ASTNode* resolved_type = ResolvedType::get(*i);
+                    if(resolved_type && isa<TypeSpecifier>(resolved_type))
+                        type_specifier = cast<TypeSpecifier>(resolved_type);
+                }
+                if(ASTNodeHelper::isPrimitiveType(type_specifier))
+                    std::wcout << L"zillians::" << ASTNodeHelper::getNodeName(type_specifier) << L" " << (*i)->name->toString() << L"," << std::endl;
                 else
-                    std::wcout << L"zillians::" << ASTNodeHelper::getNodeName((*i)->type) << L" " << (*i)->name->toString() << L"," << std::endl;
+                    std::wcout << ASTNodeHelper::getNodeName(type_specifier) << L"& " << (*i)->name->toString() << L"," << std::endl;
             }
             //]]]
             // GENERATE_END
@@ -132,10 +146,17 @@ auto g = [&](FunctionDecl* node){
             //[[[code
             foreach(i, node->parameters)
             {
-                if((*i)->type->type == TypeSpecifier::ReferredType::UNSPECIFIED)
-                    std::wcout << L"buf << " << (*i)->name->toString() << L".getUUID();" << std::endl;
-                else
+                TypeSpecifier* type_specifier = (*i)->type;
+                if(ASTNodeHelper::isUnspecifiedType(type_specifier))
+                {
+                    ASTNode* resolved_type = ResolvedType::get(*i);
+                    if(resolved_type && isa<TypeSpecifier>(resolved_type))
+                        type_specifier = cast<TypeSpecifier>(resolved_type);
+                }
+                if(ASTNodeHelper::isPrimitiveType(type_specifier))
                     std::wcout << L"buf << " << (*i)->name->toString() << L";" << std::endl;
+                else
+                    std::wcout << L"buf << " << (*i)->name->toString() << L".getUUID();" << std::endl;
             }
             //]]]
             // GENERATE_END

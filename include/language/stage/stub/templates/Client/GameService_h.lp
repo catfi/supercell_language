@@ -62,10 +62,10 @@ class GameService : public zillians::BaseService
 public:
     virtual void onClientCallReceived(zillians::uint32 fid, zillians::Buffer& buf);
     void setxx_ClientStub(xx_ClientStub* stub) { mxxStub = stub; }
-    zillians::uint64 getServiceId() {return 0/*TODO This value should be generated*/;}
+    zillians::uint64 getServiceId() { return 0; }
 protected:
     xx_ClientStub* mxxStub;
-};//GameService
+};
 
 //[[[code
 std::vector<FunctionDecl*> AtServerFuncList;
