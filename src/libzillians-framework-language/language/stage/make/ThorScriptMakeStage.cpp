@@ -168,16 +168,16 @@ bool ThorScriptMakeStage::execute(bool& continue_execution)
 	UNUSED_ARGUMENT(continue_execution);
 
     // precondition
-    if(!boost::filesystem3::exists(rootDir))
+    if(!boost::filesystem::exists(rootDir))
     {
         LOG4CXX_ERROR(logger, "Root directory `" << rootDir.string() << "` does not exists.");
         return false;
     }
 
-    boost::filesystem3::current_path(rootDir);
+    boost::filesystem::current_path(rootDir);
 
     // restore file dependency
-    boost::filesystem3::path depFilePath("build/ts.dep");
+    boost::filesystem::path depFilePath("build/ts.dep");
     if(!boost::filesystem::exists(depFilePath))
     {
         LOG4CXX_ERROR(logger, "Dependency file `" << depFilePath.string() << "` does not exists.");

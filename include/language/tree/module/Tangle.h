@@ -63,13 +63,13 @@ struct Tangle : public ASTNode
 			(i->second)->is_imported = is_imported;
 	}
 
-	void merge(Tangle* t)
+	void merge(Tangle& t)
 	{
-		foreach(i, t->sources)
+		foreach(i, t.sources)
 		{
 			addSource(i->first, i->second);
 		}
-		t->sources.clear();
+		t.sources.clear();
 	}
 
     virtual bool isEqualImpl(const ASTNode& rhs, ASTNodeSet& visited) const

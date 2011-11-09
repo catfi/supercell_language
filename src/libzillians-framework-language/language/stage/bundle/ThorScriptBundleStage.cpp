@@ -37,6 +37,8 @@
 #include "llvm/Bitcode/BitstreamWriter.h"
 #include "llvm/Bitcode/ReaderWriter.h"
 
+#include "utility/sha1.h"
+
 
 namespace zillians { namespace language { namespace stage {
 
@@ -154,16 +156,16 @@ bool ThorScriptBundleStage::extract(bool& continue_execution)
 
     foreach(i, bundleDependency)
     {
-        if(!boost::filesystem3::exists(*i))
+        if(!boost::filesystem::exists(*i))
         {
-            std::cerr << boost::filesystem3::current_path() << std::endl;
             std::cerr << "Missing bundle file `" << *i << "`" << std::endl;
             return false;
         }
         Archive ar(*i, ArchiveMode::ARCHIVE_FILE_DECOMPRESS);
         ar.open();
         std::vector<ArchiveItem_t> archiveItems;
-        ar.extractAllToFolder(archiveItems, "build");
+        std::string bundleSha1Name = sha1::sha1(*i);
+        ar.extractAllToFolder(archiveItems, "build/" + bundleSha1Name);
         ar.close();
     }
     return true;
@@ -246,30 +248,30 @@ void ThorScriptBundleStage::getMergeBitCodeBuffer(std::vector<unsigned char>& bu
 void ThorScriptBundleStage::getMergeASTBuffer(std::vector<unsigned char>& buffer)
 {
 	using namespace tree;
-    Package* package = NULL;
+    Tangle* tangle = NULL;
 
     for (size_t i = 0; i < ast_files.size(); i++)
     {
         ASTNode* deserialized = ASTSerializationHelper::deserialize(ast_files[i]);
 
-		if(!deserialized || !isa<Package>(deserialized)) continue;
-       	Package* current_package = cast<Package>(deserialized);
-        if (package == NULL)
+		if(!deserialized || !isa<Tangle>(deserialized)) continue;
+       	Tangle* current_package = cast<Tangle>(deserialized);
+        if (tangle == NULL)
         {
-        	package = current_package;
+        	tangle = current_package;
         }
         else
         {
         	// Merge with the previous program
-        	package->merge(*current_package);
+        	tangle->merge(*current_package);
         }
     }
 
     // TODO: No write to disk
-    if (package)
+    if (tangle)
     {
     	std::string temp_filename = THORSCRIPT_AST_TEMP_MERGED_FILE;
-		ASTSerializationHelper::serialize(temp_filename, package);
+		ASTSerializationHelper::serialize(temp_filename, tangle);
 
 		// Read the source buffer
 		getBufferFromFile(temp_filename, buffer);

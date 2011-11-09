@@ -78,7 +78,7 @@ bool ASTDeserializationStage::execute(bool& continue_execution)
 		t->markImported(true /*is_imported*/);
 		if(getParserContext().tangle)
 		{
-			getParserContext().tangle->merge(t);
+			getParserContext().tangle->merge(*t);
 		}
 		else
 		{

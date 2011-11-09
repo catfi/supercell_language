@@ -33,8 +33,10 @@
 #include <boost/graph/strong_components.hpp>
 #include <boost/graph/topological_sort.hpp>
 #include "language/stage/dep/ThorScriptDepStage.h"
+#include "utility/sha1.h"
 #include "language/stage/dep/ThorScriptSourceTangleGraph.h"
 #include "language/grammar/ThorScriptPackageDependencyGrammar.h"
+#include "language/ThorScriptManifest.h"
 #include "utility/UnicodeUtil.h"
 
 //////////////////////////////////////////////////////////////////////////////
@@ -183,12 +185,20 @@ static bool parseFileImportedPackages(const std::string& tsFileName, std::set<st
     return true;
 }
 
+static std::string packageNameToPathName(const std::wstring& packageName)
+{
+    std::string result = ws_to_s(packageName);
+    std::replace(result.begin(), result.end(), '.', '/');
+    result = "src/" + result;
+    return result;
+}
+
 /**
  * @brief Add dependency of a ThorScript source file @p tsFileName to @p fileGraph.
  * @param[in] pathString Package path to add.
  * @param[in,out] fileGraph Data structure to store dependency.
  */
-static void addFileDependency(std::string tsFileName, FileGraphType& fileGraph)
+void addFileDependency(std::string tsFileName, const std::map<std::wstring, std::string>& packagesInAsts, FileGraphType& fileGraph, log4cxx::LoggerPtr logger)
 {
     //tsFileName = "src/" + tsFileName;
     boost::optional<boost::graph_traits<FileGraphType>::vertex_descriptor> currentVertexOpt = boost::graph::find_vertex(tsFileName, fileGraph);
@@ -226,21 +236,34 @@ static void addFileDependency(std::string tsFileName, FileGraphType& fileGraph)
                         return result;
                    });
     // for each dep packages, collect dependent .t files.
-    foreach(i, pathNameOfImportedPackages)
+    foreach(i, fileImportedPackages)
     {
-        // if is regular .t file, directly add to fileGraph
-        if(isRegularFile(*i + ".t"))
+        std::string pathName = packageNameToPathName(*i);
+        // if is in imported bundle(.ast), add the .ast to fileGraph
+        auto ast = packagesInAsts.find(*i);
+        if(ast != packagesInAsts.end())
         {
-            boost::graph::add_edge(tsFileName, *i + ".t", fileGraph);
+            boost::graph::add_edge(tsFileName, ast->second, fileGraph);
+        }
+        // if is regular .t file, directly add to fileGraph
+        else if (isRegularFile(pathName + ".t"))
+        {
+            boost::graph::add_edge(tsFileName, pathName + ".t", fileGraph);
         }
         // if is package directory, recusively add all files under the dir.
-        else if(isDirectory(*i))
+        else if(isDirectory(pathName))
         {
-            std::set<std::string> allFilesUnderDir = globAllTsFiles(*i);
+            std::set<std::string> allFilesUnderDir = globAllTsFiles(pathName);
             for(auto f = allFilesUnderDir.begin(); f != allFilesUnderDir.end(); ++f)
             {
                 boost::graph::add_edge(tsFileName, *f, fileGraph);
             }
+        }
+        // can not find package in folder and imported ast
+        else
+        {
+            // TODO: print *i in uniocde?
+            LOG4CXX_ERROR(logger, "Can not find package `" << ws_to_s(*i) << "` in all imported ast.");
         }
     }
 
@@ -252,7 +275,8 @@ static void addFileDependency(std::string tsFileName, FileGraphType& fileGraph)
     for(boost::tie(ei, ei_end) = boost::out_edges(sourceVertexD, fileGraph); ei != ei_end; ++ei)
     {
         const std::string& targetFileName = fileGraph[index[boost::target(*ei, fileGraph)]].name;
-        addFileDependency(targetFileName, fileGraph);
+        if(boost::filesystem::path(targetFileName).extension() == ".ast") continue;
+        addFileDependency(targetFileName, packagesInAsts, fileGraph, logger);
     }
 }
 
@@ -323,10 +347,10 @@ static bool analyzeTangle(FileGraphType& g)
     }
 
     // create and change to build folder, if not exists.
-    if(!boost::filesystem3::exists("build"))
+    if(!boost::filesystem::exists("build"))
     {
-        boost::filesystem3::create_directory("build");
-        assert(boost::filesystem3::exists("build"));
+        boost::filesystem::create_directory("build");
+        assert(boost::filesystem::exists("build"));
     }
 
     // serialization
@@ -348,6 +372,51 @@ static bool analyzeTangle(FileGraphType& g)
     fout.close();
 
     return true;
+}
+
+static void scanBundlePackage(const boost::filesystem::path& astPath, std::multimap<std::string, std::wstring>& allBundlePackage)
+{
+    std::ifstream fin(astPath.string().c_str());
+    boost::archive::text_iarchive ia(fin);
+    zillians::language::tree::ASTNode* node = NULL;
+    ia >> node;
+    zillians::language::tree::Tangle* tangle = zillians::language::tree::cast<zillians::language::tree::Tangle>(node);
+    BOOST_ASSERT(tangle != NULL);
+
+    foreach(i, tangle->sources)
+    {
+        allBundlePackage.insert(std::make_pair(astPath.string(), i->first->toString()));
+    }
+}
+
+static boost::filesystem::path getAstPath(const boost::filesystem::path& bundleFolder)
+{
+    namespace fs = boost::filesystem;
+    for(auto i = fs::directory_iterator(bundleFolder); i != fs::directory_iterator(); ++i)
+    {
+        if(i->path().extension().string() == ".ast")
+        {
+            return i->path();
+        }
+    }
+    UNREACHABLE_CODE();
+}
+
+static std::multimap<std::string, std::wstring> scanAllBundlePackage()
+{
+    std::multimap<std::string, std::wstring> allBundlePackage;
+    namespace fs = boost::filesystem;
+    zillians::language::ProjectManifest pm;
+    pm.load("manifest.xml");
+    foreach(i, pm.dep.bundles)
+    {
+        fs::path bundleFolder = "build";
+        bundleFolder /= sha1::sha1(*i);
+        fs::path astPath = getAstPath(bundleFolder);
+        BOOST_ASSERT(fs::exists(astPath));
+        scanBundlePackage(astPath, allBundlePackage);
+    }
+    return allBundlePackage;
 }
 
 //////////////////////////////////////////////////////////////////////////////
@@ -409,13 +478,13 @@ bool ThorScriptDepStage::execute(bool& continue_execution)
 	UNUSED_ARGUMENT(continue_execution);
 
     // precondition
-    if(!boost::filesystem3::exists(rootDir))
+    if(!boost::filesystem::exists(rootDir))
     {
         LOG4CXX_ERROR(logger, "Root directory `" << rootDir.string() << "` does not exists.");
         return false;
     }
 
-    boost::filesystem3::current_path(rootDir);
+    boost::filesystem::current_path(rootDir);
 
     if(!boost::filesystem::exists("src"))
     {
@@ -423,11 +492,18 @@ bool ThorScriptDepStage::execute(bool& continue_execution)
         return false;
     }
 
+    std::multimap<std::string, std::wstring> bundlePackages = scanAllBundlePackage();
+    std::map<std::wstring, std::string> packagesInAsts;
+    foreach(i, bundlePackages)
+    {
+        packagesInAsts.insert(std::make_pair(i->second, i->first));
+    }
+
     // get file dependency
     FileGraphType fileGraph;
     foreach(i, inputFiles)
     {
-        addFileDependency(*i, fileGraph);
+        addFileDependency(*i, packagesInAsts, fileGraph, logger);
     }
 
     // analyze source file tangles (strong connected components)
