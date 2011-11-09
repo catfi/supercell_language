@@ -1,0 +1,71 @@
+#ifndef GATEWAY_GAMECOMMAND_CLOUDCOMMANDOBJECT_H_
+#define GATEWAY_GAMECOMMAND_CLOUDCOMMANDOBJECT_H_
+#include "vw/services/api/ApiTypes.h"
+#include "CloudCommandObject.h"
+namespace zillians {
+	class DummyGameName_f_CloudCommandObject : public CloudCommandObject
+	{
+		public:
+			DummyGameName_f_CloudCommandObject()
+			{ }
+			~DummyGameName_f_CloudCommandObject()
+			{ }
+			enum
+			{
+				// GENERATE_BEGIN
+				TYPE = 0x1 // the type need to be unique globally (across all RPC command types)
+					// GENERATE_END
+			};
+		public:
+			// GENERATE_BEGIN
+			api_types::api_int32 x;
+			api_types::api_float32 y;
+			uint32 other;
+			// GENERATE_END
+		public:
+			template<typename Archive>
+				void serialize(Archive& ar, const unsigned int version)
+				{
+					//CloudCommandObject::serialize(ar, version); // 16 bytes
+					// GENERATE_BEGIN
+					ar & x;
+					ar & y;
+					ar & other;
+					ar.skip(104);
+					// GENERATE_END
+				}
+	};
+	class DummyGameName_g_CloudCommandObject : public CloudCommandObject
+	{
+		public:
+			DummyGameName_g_CloudCommandObject()
+			{ }
+			~DummyGameName_g_CloudCommandObject()
+			{ }
+			enum
+			{
+				// GENERATE_BEGIN
+				TYPE = 0x2 // the type need to be unique globally (across all RPC command types)
+					// GENERATE_END
+			};
+		public:
+			// GENERATE_BEGIN
+			api_types::api_int32 x;
+			api_types::api_float32 y;
+			uint32 other;
+			// GENERATE_END
+		public:
+			template<typename Archive>
+				void serialize(Archive& ar, const unsigned int version)
+				{
+					//CloudCommandObject::serialize(ar, version); // 16 bytes
+					// GENERATE_BEGIN
+					ar & x;
+					ar & y;
+					ar & other;
+					ar.skip(104);
+					// GENERATE_END
+				}
+	};
+} // namespace zillians
+#endif

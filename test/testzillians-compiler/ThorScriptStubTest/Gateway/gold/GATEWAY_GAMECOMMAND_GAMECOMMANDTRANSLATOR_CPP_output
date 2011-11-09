@@ -1,0 +1,141 @@
+#include "plugin/PluginComponent.h"
+#include "plugin/PluginManager.h"
+#include "extension-point/NetworkTranslator.h"
+#include "core-api/Prerequisite.h"
+#include "modules/WorldGatewayComponent.h"
+// GENERATE_BEGIN
+#include "DummyGameName_CloudCommandObject.h"
+#include "DummyGameName_ClientCommandObject.h"
+// GENERATE_END
+using namespace zillians::modules::world_gateway;
+using namespace zillians::plugin;
+class DummyGameName_GameCommandTranslator : public PluginComponent, public NetworkTranslator
+{
+	public:
+		DummyGameName_GameCommandTranslator()
+		{ }
+		~DummyGameName_GameCommandTranslator()
+		{ }
+	public:
+		virtual void start()
+		{
+			SharedPtr<PluginComponent> component = PluginManager::instance()->getRegistry()->queryComponent("com.zillians.module.world-gateway.main");
+			mWorldGateway = boost::static_pointer_cast<WorldGatewayComponent>(component);
+			SharedPtr<NetworkTranslator> this_translator = boost::dynamic_pointer_cast<NetworkTranslator>(shared_from_this());
+			// GENERATE_BEGIN
+			mWorldGateway->registerCommandTranslator(DummyGameName_f_CloudCommandObject::TYPE, this_translator);
+			mWorldGateway->registerCommandTranslator(DummyGameName_g_ClientCommandObject::TYPE, this_translator);
+			// GENERATE_END
+		}
+		virtual void stop()
+		{
+			// GENERATE_BEGIN
+			mWorldGateway->unregisterCommandTranslator(DummyGameName_f_CloudCommandObject::TYPE);
+			mWorldGateway->unregisterCommandTranslator(DummyGameName_g_ClientCommandObject::TYPE);
+			// GENERATE_END
+			mWorldGateway.reset();
+		}
+	private:
+		inline bool translateExternalId(const UUID& external, uint32& internal)
+		{
+			bool result = false;
+			boost::tie(internal, result) = mWorldGateway->findInternalId(external);
+			if(!result)
+			{
+				return false;
+			}
+			return true;
+		}
+		inline bool translateInternalId(const uint32& internal, UUID& external)
+		{
+			bool result = false;
+			boost::tie(external, result) = mWorldGateway->findExternalId(internal);
+			if(!result)
+			{
+				return false;
+			}
+			return true;
+		}
+		// GENERATE_BEGIN
+		inline bool assign(DummyGameName_f_CloudCommandObject& src, DummyGameName_f_ClientCommandObject& dest)
+		{
+			// GENERATE_BEGIN
+			dest.x = src.x;
+			dest.y = src.y;
+			if(!translateInternalId(src.other, dest.other)) return false;
+			// GENERATE_END
+			return true;
+		}
+		inline bool assign(DummyGameName_g_ClientCommandObject& src, DummyGameName_g_CloudCommandObject& dest)
+		{
+			// GENERATE_BEGIN
+			dest.x = src.x;
+			dest.y = src.y;
+			if(!translateExternalId(src.other, dest.other)) return false;
+			// GENERATE_END
+			return true;
+		}
+		// GENERATE_END
+	public:
+		bool translate(uint32 type_in, Buffer& data_in, uint32& type_out, Buffer& data_out)
+		{
+			return translate_t(type_in, data_in, type_out, data_out);
+		}
+		bool translate(uint32 type_in, Buffer& data_in, uint32& type_out, SpscCircularBuffer& data_out)
+		{
+			return translate_t(type_in, data_in, type_out, data_out);
+		}
+		bool translate(uint32 type_in, SpscCircularBuffer& data_in, uint32& type_out, Buffer& data_out)
+		{
+			return translate_t(type_in, data_in, type_out, data_out);
+		}
+		bool translate(uint32 type_in, SpscCircularBuffer& data_in, uint32& type_out, SpscCircularBuffer& data_out)
+		{
+			return translate_t(type_in, data_in, type_out, data_out);
+		}
+		template<typename inputBuffer, typename outputBuffer>
+			bool translate_t(uint32 type_in, inputBuffer& data_in, uint32& type_out, outputBuffer& data_out)
+			{
+				switch(type_in)
+				{
+					// GENERATE_BEGIN
+					case DummyGameName_f_CloudCommandObject::TYPE:
+						{
+							DummyGameName_f_CloudCommandObject src;
+							DummyGameName_f_ClientCommandObject dest;
+							type_out = DummyGameName_f_ClientCommandObject::TYPE;
+							data_in >> src;
+							if(!assign(src, dest))
+							{
+								// TODO: log here
+								return false;
+							}
+							data_out << dest;
+							return true;
+						}
+					case DummyGameName_g_ClientCommandObject::TYPE:
+						{
+							DummyGameName_g_ClientCommandObject src;
+							DummyGameName_g_CloudCommandObject dest;
+							type_out = DummyGameName_g_CloudCommandObject::TYPE;
+							data_in >> src;
+							if(!assign(src, dest))
+							{
+								// TODO: log here
+								return false;
+							}
+							data_out << dest;
+							return true;
+						}
+						// GENERATE_END
+					default:
+						{
+							throw "the function Id is wrong";
+							return false;
+						}
+				}
+			}
+	private:
+		SharedPtr<WorldGatewayComponent> mWorldGateway;
+};
+DECLARE_COMPONENT_IMPL(DummyGameName_GameCommandTranslator, DummyTranslatorUUID);

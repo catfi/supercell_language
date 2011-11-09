@@ -20,10 +20,11 @@
 #ifndef ZILLIANS_LANGUAGE_STAGE_MAKE_THORSCRIPTSTUBSTAGE_H_
 #define ZILLIANS_LANGUAGE_STAGE_MAKE_THORSCRIPTSTUBSTAGE_H_
 
-#include <vector>
-#include <string>
 #include "language/stage/Stage.h"
 #include "language/tree/ASTNode.h"
+#include <vector>
+#include <map>
+#include <string>
 
 namespace zillians { namespace language { namespace stage {
 
@@ -47,22 +48,37 @@ public:
 public:
     std::vector<std::string> ast_files;
 
-    std::string output_file;
+    bool use_stdout;
+    std::string output_path;
+    typedef std::map<std::wstring, std::wstring> var_map_t;
+    var_map_t var_map;
 
-private:
+public:
 	typedef enum
 	{
 		UNKNOWN_STUB,
-		CLIENT_STUB,
-		SERVER_STUB,
-		GATEWAY_STUB
+		GATEWAY_GAMECOMMAND_CLIENTCOMMANDOBJECT_H,
+		GATEWAY_GAMECOMMAND_CLOUDCOMMANDOBJECT_H,
+		GATEWAY_GAMECOMMAND_GAMECOMMANDTRANSLATOR_CPP,
+		GATEWAY_GAMECOMMAND_GAMEMODULE_MODULE,
+		CLIENT_CLIENTSTUB_H,
+		CLIENT_GAMEOBJECTS_H,
+		CLIENT_GAMESERVICE_CPP,
+		CLIENT_GAMESERVICE_H
 	} stub_type_t;
 
+private:
 	stub_type_t stub_type;
-
-	void genStub(tree::Package* package);
 };
 
 } } }
+
+template<zillians::language::stage::ThorScriptStubStage::stub_type_t ENUM>
+std::string get_stub_filename(zillians::language::stage::ThorScriptStubStage::var_map_t& var_map)
+{ }
+
+template<zillians::language::stage::ThorScriptStubStage::stub_type_t ENUM>
+void print_stub(zillians::language::tree::Tangle* node, zillians::language::stage::ThorScriptStubStage::var_map_t& var_map)
+{ }
 
 #endif /* ZILLIANS_LANGUAGE_STAGE_MAKE_THORSCRIPTSTUBSTAGE_H_ */

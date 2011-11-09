@@ -1,0 +1,14 @@
+#ifndef CLIENTSTUB_H_
+#define CLIENTSTUB_H_
+#include "zillians/Base.h"
+#include "GameObjects.h"
+class xx_ClientStub
+{
+	public:
+		virtual void doSomethingOnClient(
+				// GENERATE_BEGIN
+				zillians::int32 x,
+				// GENERATE_END
+				) = 0;
+};
+#endif

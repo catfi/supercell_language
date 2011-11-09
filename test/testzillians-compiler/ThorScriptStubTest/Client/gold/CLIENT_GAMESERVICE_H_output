@@ -1,0 +1,26 @@
+#ifndef GAMESERVICE_H_
+#define GAMESERVICE_H_
+#include "zillians/BaseService.h" 
+#include "ClientStub.h" 
+class GameService : public zillians::BaseService
+{
+	public:
+		virtual void onClientCallReceived(zillians::uint32 fid, zillians::Buffer& buf);
+		void setxx_ClientStub(xx_ClientStub* stub) { mxxStub = stub; }
+		zillians::uint64 getServiceId() { return 0; }
+	protected:
+		xx_ClientStub* mxxStub;
+};
+class GameService : public BaseService
+{
+	public:
+		void SomeRemoteCall(
+				// GENERATE_BEGIN
+				zillians::int32 v,
+				zillians::float32 t,
+				Tank& tank,
+				// GENERATE_END
+				);
+		GameService() : BaseService() {}
+};
+#endif

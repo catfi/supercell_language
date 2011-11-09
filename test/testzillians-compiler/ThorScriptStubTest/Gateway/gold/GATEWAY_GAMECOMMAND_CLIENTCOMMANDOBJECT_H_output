@@ -1,0 +1,69 @@
+#ifndef GATEWAY_GAMECOMMAND_CLIENTCOMMANDOBJECT_H_
+#define GATEWAY_GAMECOMMAND_CLIENTCOMMANDOBJECT_H_
+#include "vw/services/api/ApiTypes.h"
+#include "ClientCommandObject.h"
+namespace zillians {
+	class DummyGameName_f_ClientCommandObject : public ClientCommandObject
+	{
+		public:
+			DummyGameName_f_ClientCommandObject()
+			{ }
+			~DummyGameName_f_ClientCommandObject()
+			{ }
+			enum
+			{
+				// GENERATE_BEGIN
+				TYPE = 0x1 // the type need to be unique globally (across all RPC command types)
+					// GENERATE_END
+			};
+		public:
+			// GENERATE_BEGIN
+			api_types::api_int32 x;
+			api_types::api_float32 y;
+			UUID other;
+			// GENERATE_END
+		public:
+			template<typename Archive>
+				void serialize(Archive& ar, const unsigned int version)
+				{
+					ClientCommandObject::serialize(ar, version); // 16 bytes
+					// GENERATE_BEGIN
+					ar & x;
+					ar & y;
+					ar & other;
+					// GENERATE_END
+				}
+	};
+	class DummyGameName_g_ClientCommandObject : public ClientCommandObject
+	{
+		public:
+			DummyGameName_g_ClientCommandObject()
+			{ }
+			~DummyGameName_g_ClientCommandObject()
+			{ }
+			enum
+			{
+				// GENERATE_BEGIN
+				TYPE = 0x2 // the type need to be unique globally (across all RPC command types)
+					// GENERATE_END
+			};
+		public:
+			// GENERATE_BEGIN
+			api_types::api_int32 x;
+			api_types::api_float32 y;
+			UUID other;
+			// GENERATE_END
+		public:
+			template<typename Archive>
+				void serialize(Archive& ar, const unsigned int version)
+				{
+					ClientCommandObject::serialize(ar, version); // 16 bytes
+					// GENERATE_BEGIN
+					ar & x;
+					ar & y;
+					ar & other;
+					// GENERATE_END
+				}
+	};
+} // namespace zillians
+#endif

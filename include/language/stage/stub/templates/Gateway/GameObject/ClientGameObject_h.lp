@@ -1,10 +1,13 @@
-class ${GAME_NAME}_${OBJECT_NAME}_CloudGameObject : public CloudGameObject
+#ifndef GATEWAY_GAMEOBJECT_CLIENTGAMEOBJECT_H_
+#define GATEWAY_GAMEOBJECT_CLIENTGAMEOBJECT_H_
+
+class ${GAME_NAME}_${OBJECT_NAME}_ClientGameObject : public ClientGameObject
 {
 public:
-    ${GAME_NAME}_${OBJECT_NAME}_CloudGameObject()
+    ${GAME_NAME}_${OBJECT_NAME}_ClientGameObject()
     { }
 
-    ~${GAME_NAME}_${OBJECT_NAME}_CloudGameObject()
+    ~${GAME_NAME}_${OBJECT_NAME}_ClientGameObject()
     { }
 
     enum 
@@ -15,6 +18,7 @@ public:
     };
 
 public:
+
     // GENERATE_BEGIN
     float x;
     float y;
@@ -22,14 +26,14 @@ public:
     float dx;
     float dy;
     float dr;
-    uint32 pet; // NOTE HERE: UUID <--> uint32 translation is mandatory in the client-cloud conversion
+    UUID pet;
     // GENERATE_END
 
 public:
     template<typename Archive>
     void serialize(Archive& ar, const unsigned int version)
     {
-        CloudGameObject::serialize(ar, version); // 4 bytes
+        ClientGameObject::serialize(ar, version); // 16 bytes
         // GENERATE_BEGIN
         ar & x;
         ar & y;
@@ -38,7 +42,8 @@ public:
         ar & dy;
         ar & dr;
         ar & pet;
-        ar.skip(x);  
         // GENERATE_END
     }
-}
+};
+
+#endif
