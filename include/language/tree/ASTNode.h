@@ -58,6 +58,10 @@
 	(type == (int)ASTNodeType::elem)
 
 #define DEFINE_HIERARCHY(self, hierarchy)	\
+	virtual const char* instanceName() const \
+	{ \
+		return #self; \
+	} \
 	static int stype() \
 	{ \
 		return (int)ASTNodeType::self; \
@@ -278,6 +282,12 @@ public:
 	 * @return the cloned ASTNode
 	 */
 	virtual ASTNode* clone() const = 0;
+
+	/**
+	 * Print the actual instance name, primary used for debugging
+	 * @return the actual instance name
+	 */
+	virtual const char* instanceName() const = 0;
 
 public:
     template<typename Archive>
