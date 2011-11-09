@@ -43,6 +43,7 @@ public:
 	virtual bool execute(bool& continue_execution);
 
 public:
+    bool dumpCompileCommand;
     boost::filesystem::path rootDir;
     log4cxx::LoggerPtr logger;
 };
