@@ -28,6 +28,9 @@
 #include "utility/Foreach.h"
 #include "language/ThorScriptManifest.h"
 #include "language/ThorScriptDriver.h"
+#include "language/tree/ASTNodeFactory.h"
+#include "language/stage/bundle/ThorScriptBundleStage.h"
+#include "language/stage/serialization/detail/ASTSerializationHelper.h"
 
 namespace zillians { namespace language {
 
@@ -62,7 +65,7 @@ static std::string joinArgs(const std::vector<std::string>& argv)
     std::string result;
     for (size_t i = 1; i != argv.size(); ++i)
     {
-        if(i != 0) result += " ";
+        if(i != 1) result += " ";
         result += argv[i];
     }
     return result;
@@ -120,15 +123,15 @@ bool ThorScriptDriver::main(const std::vector<std::string>& argv)
     }
     else if(arg == "generate client-stub java")
     {
-        return generateClientStub(ThorScriptDriver::STUB_LANG::JAVA);
+        return generateClientStub(pm.name, ThorScriptDriver::STUB_LANG::JAVA);
     }
     else if(arg == "generate client-stub c++")
     {
-        return generateClientStub(ThorScriptDriver::STUB_LANG::CPP);
+        return generateClientStub(pm.name, ThorScriptDriver::STUB_LANG::CPP);
     }
     else if(arg == "generate server-stub")
     {
-        return generateServerStub();
+        return generateServerStub(pm.name);
     }
     else
     {
@@ -238,20 +241,31 @@ bool ThorScriptDriver::build(const std::string& projectName)
     return true;
 }
 
-bool ThorScriptDriver::generateBundle(const std::string& projectName, const ThorScriptDriver::STRIP_TYPE isStrip)
+static std::vector<std::string> getAstUnderBuild()
 {
-    UNUSED_ARGUMENT(isStrip);
+    std::vector<std::string> result;
     namespace fs = boost::filesystem;
-
-    std::string cmd("ts-bundle -m manifest.xml");
-    cmd += " -o " + projectName + ".bundle";
     for(auto i = fs::directory_iterator("build/"); i != fs::directory_iterator(); ++i)
     {
         if(i->path().extension() == ".ast")
         {
-            cmd += " ";
-            cmd += i->path().string();
+            result.push_back(i->path().string());
         }
+    }
+    return result;
+}
+
+bool ThorScriptDriver::generateBundle(const std::string& projectName, const ThorScriptDriver::STRIP_TYPE isStrip)
+{
+    UNUSED_ARGUMENT(isStrip);
+
+    std::string cmd("ts-bundle -m manifest.xml");
+    cmd += " -o " + projectName + ".bundle";
+    std::vector<std::string> astFiles = getAstUnderBuild();
+    foreach(i, astFiles)
+    {
+        cmd += " ";
+        cmd += *i;
     }
 
     if(isStrip == ThorScriptDriver::STRIP_TYPE::STRIP)
@@ -263,14 +277,50 @@ bool ThorScriptDriver::generateBundle(const std::string& projectName, const Thor
     else                         return false;
 }
 
-bool ThorScriptDriver::generateClientStub(const ThorScriptDriver::STUB_LANG lang)
+bool ThorScriptDriver::generateClientStub(const std::string& projectName, const ThorScriptDriver::STUB_LANG lang)
 {
     UNUSED_ARGUMENT(lang);
+
+    boost::filesystem3::create_directories("stub");
+    zillians::language::stage::ThorScriptBundleStage bundler;
+    zillians::language::tree::Tangle* tangle = bundler.getMergedAST(getAstUnderBuild());
+    std::string stubAstName = "build/stub-" + projectName + ".ast";
+    zillians::language::stage::ASTSerializationHelper::serialize(stubAstName, tangle);
+
+    std::vector<std::string> clientStubTypes = {"CLIENT_CLIENTSTUB_H",
+                                                "CLIENT_GAMESERVICE_CPP",
+                                                "CLIENT_GAMESERVICE_H"};
+    foreach(i, clientStubTypes)
+    {
+        std::string cmd = "ts-stub --output-path=stub " + stubAstName + " --stub-type=" + *i + " --game-name=" + projectName;
+        if(system(cmd.c_str()))
+        {
+            return false;
+        }
+    }
     return true;
 }
 
-bool ThorScriptDriver::generateServerStub()
+bool ThorScriptDriver::generateServerStub(const std::string& projectName)
 {
+    boost::filesystem3::create_directories("stub");
+    zillians::language::stage::ThorScriptBundleStage bundler;
+    zillians::language::tree::Tangle* tangle = bundler.getMergedAST(getAstUnderBuild());
+    std::string stubAstName = "build/stub-" + projectName + ".ast";
+    zillians::language::stage::ASTSerializationHelper::serialize(stubAstName, tangle);
+
+    std::vector<std::string> serverStubTypes = {"GATEWAY_GAMECOMMAND_CLIENTCOMMANDOBJECT_H",
+                                                "GATEWAY_GAMECOMMAND_CLOUDCOMMANDOBJECT_H",
+                                                "GATEWAY_GAMECOMMAND_GAMECOMMANDTRANSLATOR_CPP",
+                                                "GATEWAY_GAMECOMMAND_GAMEMODULE_MODULE"};
+    foreach(i, serverStubTypes)
+    {
+        std::string cmd = "ts-stub --output-path=stub " + stubAstName + " --stub-type=" + *i + " --game-name=" + projectName;
+        if(system(cmd.c_str()))
+        {
+            return false;
+        }
+    }
     return true;
 }
 

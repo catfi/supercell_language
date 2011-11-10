@@ -51,8 +51,8 @@ private:
     bool buildRelease(const std::string& projectName);
     bool build(const std::string& projectName);
     bool generateBundle(const std::string& projectName, const STRIP_TYPE isStrip);
-    bool generateClientStub(const STUB_LANG);
-    bool generateServerStub();
+    bool generateClientStub(const std::string& projectName, const STUB_LANG);
+    bool generateServerStub(const std::string& projectName);
 
 private:
     bool unbundle();

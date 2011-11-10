@@ -45,6 +45,9 @@ public:
 	virtual bool parseOptions(po::variables_map& vm);
 	virtual bool execute(bool& continue_execution);
 
+public:
+    zillians::language::tree::Tangle* getMergedAST(const std::vector<std::string>& ast_files);
+
 private:
 	void getMergeBitCodeBuffer(std::vector<unsigned char>& buffer);
 	void getMergeASTBuffer(std::vector<unsigned char>& buffer);

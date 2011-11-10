@@ -251,7 +251,7 @@ void ThorScriptBundleStage::getMergeBitCodeBuffer(std::vector<unsigned char>& bu
 	llvm::WriteBitcodeToStream(composite.get(), stream);
 }
 
-void ThorScriptBundleStage::getMergeASTBuffer(std::vector<unsigned char>& buffer)
+Tangle* ThorScriptBundleStage::getMergedAST(const std::vector<std::string>& ast_files)
 {
 	using namespace tree;
     Tangle* tangle = NULL;
@@ -272,6 +272,13 @@ void ThorScriptBundleStage::getMergeASTBuffer(std::vector<unsigned char>& buffer
         	tangle->merge(*current_package);
         }
     }
+    return tangle;
+}
+
+void ThorScriptBundleStage::getMergeASTBuffer(std::vector<unsigned char>& buffer)
+{
+	using namespace tree;
+    Tangle* tangle = getMergedAST(ast_files);
 
     // TODO: No write to disk
     if (tangle)
