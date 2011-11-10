@@ -64,7 +64,7 @@ struct block
 	END_ACTION
 };
 
-struct statement_block
+struct optional_brace_block
 {
 	DEFINE_ATTRIBUTES(ASTNode*)
 	DEFINE_LOCALS(LOCATION_TYPE)
@@ -72,7 +72,7 @@ struct statement_block
 	BEGIN_ACTION(init)
 	{
 #ifdef DEBUG
-		printf("statement_block param(0) type = %s\n", typeid(_param_t(0)).name());
+		printf("optional_brace_block param(0) type = %s\n", typeid(_param_t(0)).name());
 #endif
 		if(isa<Block>(_param(0)))
 			_result = _param(0);
