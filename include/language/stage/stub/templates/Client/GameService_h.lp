@@ -54,8 +54,8 @@ void print_stub<stage::ThorScriptStubStage::CLIENT_GAMESERVICE_H>(Tangle* node, 
 
 //]]]
 
-#ifndef GAMESERVICE_H_
-#define GAMESERVICE_H_
+#ifndef CLIENT_GAMESERVICE_H_
+#define CLIENT_GAMESERVICE_H_
 
 #include "zillians/BaseService.h" 
 #include "ClientStub.h" 

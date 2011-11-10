@@ -54,8 +54,8 @@ void print_stub<stage::ThorScriptStubStage::CLIENT_CLIENTSTUB_H>(Tangle* node, s
 
 //]]]
 
-#ifndef CLIENTSTUB_H_
-#define CLIENTSTUB_H_
+#ifndef CLIENT_CLIENTSTUB_H_
+#define CLIENT_CLIENTSTUB_H_
 
 #include "zillians/Base.h"
 #include "GameObjects.h"
