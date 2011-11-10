@@ -131,9 +131,9 @@ struct selection_statement
 			case 0:
 				{
 					typedef boost::fusion::vector2<Expression*, Block*> fusion_vec_t;
-					fusion_vec_t &vec = boost::get<fusion_vec_t>(i);
-					Expression* cond  = boost::fusion::at_c<0>(vec);
-					Block*      block = boost::fusion::at_c<1>(vec);
+					fusion_vec_t& vec   = boost::get<fusion_vec_t>(i);
+					Expression*   cond  = boost::fusion::at_c<0>(vec);
+					Block*        block = boost::fusion::at_c<1>(vec);
 					cast<SwitchStmt>(_result)->addCase(Selection(cond, block));
 				}
 				break;
