@@ -70,7 +70,6 @@ add_library(zillians-framework-language SHARED
     language/stage/strip/ThorScriptStripStage.cpp
     language/stage/stub/ThorScriptStubStage.cpp
     language/stage/linker/ThorScriptLinkerStage.cpp
-    language/stage/driver/ThorScriptDriverStage.cpp
 	)
 
 if(LLVM_FOUND)

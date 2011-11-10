@@ -20,26 +20,46 @@
 #ifndef ZILLIANS_LANGUAGE_THORSCRIPTDRIVER_H_
 #define ZILLIANS_LANGUAGE_THORSCRIPTDRIVER_H_
 
-#include "core/Prerequisite.h"
-#include "language/tree/ASTNode.h"
-#include "language/stage/StageBuilder.h"
+#include <string>
+#include <vector>
 
 namespace zillians { namespace language {
 
-class ThorScriptDriver : public stage::StageBuilder
+class ThorScriptDriver
 {
 public:
-	ThorScriptDriver();
-	virtual ~ThorScriptDriver();
-
-public:
-	virtual void initialize();
-	virtual void finalize();
+    ThorScriptDriver();
+    bool main(const std::vector<std::string>& argv) ;
 
 private:
-    bool dep(const std::string& argv);
-    bool make(const std::string& argv);
-    bool link(const std::string& argv);
+    enum class BUILD_TYPE {
+        DEBUG,
+        RELEASE
+    } ;
+    enum class STRIP_TYPE {
+        STRIP,
+        NO_STRIP
+    } ;
+    enum class STUB_LANG {
+        CPP,
+        JAVA
+    } ;
+
+private:
+    bool buildDebug();
+    bool buildRelease();
+    bool build();
+    bool generateBundle(const std::string& projectName, const STRIP_TYPE isStrip);
+    bool generateClientStub(const STUB_LANG);
+    bool generateServerStub();
+
+private:
+    bool unbundle();
+    bool dep();
+    bool make(const BUILD_TYPE type);
+    bool bundle();
+    bool strip();
+    bool link();
 
 private:
     std::string argv;

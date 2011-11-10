@@ -20,7 +20,6 @@
  * @date Jul 18, 2011 sdk - Initial version created.
  */
 
-#include "language/logging/LoggerWrapper.h"
 #include "language/ThorScriptDriver.h"
 
 int main(int argc, const char** argv)
@@ -30,5 +29,6 @@ int main(int argc, const char** argv)
 	setlocale(LC_ALL, "");
 
 	zillians::language::ThorScriptDriver driver;
-	return driver.main(argc, argv);
+    std::vector<std::string> av(argv, argv + argc);
+	return driver.main(av);
 }
