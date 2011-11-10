@@ -1,5 +1,5 @@
-#ifndef GAMEOBJECTS_H_
-#define GAMEOBJECTS_H_
+#ifndef CLIENT_GAMEOBJECTS_H_
+#define CLIENT_GAMEOBJECTS_H_
 
 #include "zillians/GameObject.h" 
 
