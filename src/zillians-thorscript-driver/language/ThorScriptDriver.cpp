@@ -62,8 +62,8 @@ static std::string joinArgs(const std::vector<std::string>& argv)
     std::string result;
     for (size_t i = 1; i != argv.size(); ++i)
     {
+        if(i != 0) result += " ";
         result += argv[i];
-        if(i != argv.size() - 1) result += " ";
     }
     return result;
 }
@@ -96,19 +96,19 @@ bool ThorScriptDriver::main(const std::vector<std::string>& argv)
 
     if(arg == "")
     {
-        return build();
+        return build(pm.name);
     }
     else if(arg == "build")
     {
-        return build();
+        return build(pm.name);
     }
     else if(arg == "build debug")
     {
-        return buildDebug();
+        return buildDebug(pm.name);
     }
     else if(arg == "build release")
     {
-        return buildRelease();
+        return buildRelease(pm.name);
     }
     else if(arg == "generate bundle")
     {
@@ -200,40 +200,40 @@ bool ThorScriptDriver::createProjectSkeleton(const std::string& projectName)
     return true;
 }
 
-bool ThorScriptDriver::buildDebug()
+bool ThorScriptDriver::buildDebug(const std::string& projectName)
 {
     saveCache("debug");
 
     unbundle();
     dep();
     make(ThorScriptDriver::BUILD_TYPE::DEBUG);
-    link();
+    link(projectName);
 
     return true;
 }
 
-bool ThorScriptDriver::buildRelease()
+bool ThorScriptDriver::buildRelease(const std::string& projectName)
 {
     saveCache("release");
 
     unbundle();
     dep();
     make(ThorScriptDriver::BUILD_TYPE::RELEASE);
-    link();
+    link(projectName);
 
     return true;
 }
 
-bool ThorScriptDriver::build()
+bool ThorScriptDriver::build(const std::string& projectName)
 {
     std::string s = readCache();
     if (s == "release")
     {
-        buildRelease();
+        buildRelease(projectName);
     }
     else
     {
-        buildDebug();
+        buildDebug(projectName);
     }
     return true;
 }
@@ -243,20 +243,20 @@ bool ThorScriptDriver::generateBundle(const std::string& projectName, const Thor
     UNUSED_ARGUMENT(isStrip);
     namespace fs = boost::filesystem;
 
-    std::string cmd("ts-bundle -m manifest.xml ");
-    cmd += "-o " + projectName + ".bundle ";
+    std::string cmd("ts-bundle -m manifest.xml");
+    cmd += " -o " + projectName + ".bundle";
     for(auto i = fs::directory_iterator("build/"); i != fs::directory_iterator(); ++i)
     {
         if(i->path().extension() == ".ast")
         {
-            cmd += i->path().string();
             cmd += " ";
+            cmd += i->path().string();
         }
     }
 
     if(isStrip == ThorScriptDriver::STRIP_TYPE::STRIP)
     {
-        cmd += "--strip ";
+        cmd += " --strip";
     }
 
     if(system(cmd.c_str()) == 0) return true;
@@ -335,17 +335,18 @@ bool ThorScriptDriver::strip()
     return false;
 }
 
-bool ThorScriptDriver::link()
+bool ThorScriptDriver::link(const std::string& projectName)
 {
     namespace fs = boost::filesystem;
 
-    std::string cmd("ts-link ");
+    std::string cmd("ts-link");
+    cmd += " -o " + projectName + ".so";
     for(auto i = fs::directory_iterator("build/"); i != fs::directory_iterator(); ++i)
     {
         if(i->path().extension() == ".bc")
         {
-            cmd += i->path().string();
             cmd += " ";
+            cmd += i->path().string();
         }
     }
     if(system(cmd.c_str()) == 0) return true;

@@ -47,9 +47,9 @@ private:
 
 private:
     bool createProjectSkeleton(const std::string& projectName);
-    bool buildDebug();
-    bool buildRelease();
-    bool build();
+    bool buildDebug(const std::string& projectName);
+    bool buildRelease(const std::string& projectName);
+    bool build(const std::string& projectName);
     bool generateBundle(const std::string& projectName, const STRIP_TYPE isStrip);
     bool generateClientStub(const STUB_LANG);
     bool generateServerStub();
@@ -60,7 +60,7 @@ private:
     bool make(const BUILD_TYPE type);
     bool bundle();
     bool strip();
-    bool link();
+    bool link(const std::string& projectName);
 
 private:
     std::string argv;
