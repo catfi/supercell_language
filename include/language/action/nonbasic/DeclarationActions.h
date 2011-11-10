@@ -142,8 +142,10 @@ struct function_decl
 		bool                                   is_static  = false;
 		BIND_CACHED_LOCATION(_result = new FunctionDecl(name, type, is_member, is_static, visibility, block));
 		if(parameters)
+		{
 			deduced_foreach_value(i, *parameters)
 				cast<FunctionDecl>(_result)->appendParameter(i);
+		}
 	}
 	END_ACTION
 };
@@ -186,13 +188,17 @@ struct class_decl
 		if(extends_from)
 			cast<ClassDecl>(_result)->setBase(extends_from);
 		if(_param(2).is_initialized())
+		{
 			deduced_foreach_value(i, *_param(2))
 			{
 				TypeSpecifier* type = new TypeSpecifier(i); BIND_CACHED_LOCATION(type);
 				cast<ClassDecl>(_result)->addInterface(type);
 			}
+		}
 		if(_param(3).is_initialized())
+		{
 			deduced_foreach_value(i, *_param(3))
+			{
 				if(isa<VariableDecl>(i))
 				{
 					cast<ClassDecl>(_result)->addVariable(cast<VariableDecl>(i));
@@ -203,6 +209,8 @@ struct class_decl
 					cast<ClassDecl>(_result)->addFunction(cast<FunctionDecl>(i));
 					cast<FunctionDecl>(i)->is_member = true;
 				}
+			}
+		}
 	}
 	END_ACTION
 };
@@ -285,8 +293,10 @@ struct interface_member_function_decl
 		BIND_CACHED_LOCATION(_result = new FunctionDecl(_param(2), _param(4), is_member, is_static, visibility));
 		_result->setAnnotations(annotation_list);
 		if(parameters)
+		{
 			deduced_foreach_value(i, *parameters)
 				cast<FunctionDecl>(_result)->appendParameter(i);
+		}
 	}
 	END_ACTION
 };
@@ -306,12 +316,10 @@ struct enum_decl
 		deduced_foreach_value(i, _param(1))
 		{
 			SimpleIdentifier*             tag             = boost::fusion::at_c<0>(i);
-			boost::optional<Expression*> &optional_result = boost::fusion::at_c<1>(i);
+			boost::optional<Expression*>& optional_result = boost::fusion::at_c<1>(i);
 			Expression*                   value           = optional_result.is_initialized() ? *optional_result : NULL;
-
 			VariableDecl* decl = new VariableDecl(tag, new TypeSpecifier(PrimitiveType::INT32), true, true, true, Declaration::VisibilitySpecifier::DEFAULT, value);
 			BIND_CACHED_LOCATION(decl);
-
 			cast<EnumDecl>(_result)->addEnumeration(decl);
 		}
 	}

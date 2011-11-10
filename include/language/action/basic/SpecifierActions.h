@@ -77,8 +77,10 @@ struct thor_type
 		TypeSpecifier* type          = _param(1).is_initialized() ? *_param(1) : NULL;
 		FunctionType*  function_type = new FunctionType(); BIND_CACHED_LOCATION(function_type);
 		if(parameters)
+		{
 			deduced_foreach_value(i, *parameters)
 				function_type->appendParameterType(i);
+		}
 		function_type->setReturnType(type);
 		BIND_CACHED_LOCATION(_result = new TypeSpecifier(function_type));
 	}

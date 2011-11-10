@@ -155,8 +155,10 @@ struct primary_expression
 		FunctionDecl* function_decl =
 				new FunctionDecl(NULL, type, is_member, is_static, visibility, _param(2)); BIND_CACHED_LOCATION(function_decl);
 		if(parameters)
+		{
 			deduced_foreach_value(i, *parameters)
 				function_decl->appendParameter(i);
+		}
 		BIND_CACHED_LOCATION(_result = new PrimaryExpr(function_decl));
 	}
 	END_ACTION
@@ -192,8 +194,10 @@ struct postfix_expression
 #endif
 		BIND_CACHED_LOCATION(_result = new CallExpr(_result));
 		if(_param(0).is_initialized())
+		{
 			deduced_foreach_value(i, *_param(0))
 				cast<CallExpr>(_result)->appendParameter(i);
+		}
 	}
 	END_ACTION
 
@@ -231,7 +235,7 @@ struct prefix_expression
 		case 0:
 			{
 				typedef boost::fusion::vector2<boost::optional<UnaryExpr::OpCode::type>, Expression*> fusion_vec_t;
-				fusion_vec_t &vec = boost::get<fusion_vec_t>(_param(0));
+				fusion_vec_t& vec = boost::get<fusion_vec_t>(_param(0));
 				boost::optional<UnaryExpr::OpCode::type> optional_type = boost::fusion::at_c<0>(vec);
 				_result = boost::fusion::at_c<1>(vec);
 				if(optional_type.is_initialized())
@@ -241,7 +245,7 @@ struct prefix_expression
 		case 1:
 			{
 				typedef boost::fusion::vector2<UnaryExpr::OpCode::type, Expression*> fusion_vec_t;
-				fusion_vec_t &vec = boost::get<fusion_vec_t>(_param(0));
+				fusion_vec_t& vec = boost::get<fusion_vec_t>(_param(0));
 				UnaryExpr::OpCode::type type = boost::fusion::at_c<0>(vec);
 				Expression*             expr = boost::fusion::at_c<1>(vec);
 				BIND_CACHED_LOCATION(_result = new UnaryExpr(type, expr));
