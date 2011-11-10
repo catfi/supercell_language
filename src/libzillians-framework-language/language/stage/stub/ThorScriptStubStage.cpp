@@ -48,12 +48,12 @@ std::pair<shared_ptr<po::options_description>, shared_ptr<po::options_descriptio
     shared_ptr<po::options_description> option_desc_public(new po::options_description());
     shared_ptr<po::options_description> option_desc_private(new po::options_description());
     option_desc_public->add_options()
-        ("stdout,s",                                    "output to stdout")
-        ("output-path,p",     po::value<std::string>(), "stub path")
-        ("stub-type,s",       po::value<std::string>(), "stub type")
-    	("game-name,g",       po::value<std::string>(), "game name")
-    	("translator-uuid,t", po::value<std::string>(), "translator UUID")
-		("module-uuid,m",     po::value<std::string>(), "module UUID");
+        ("stdout,s",                                                                              "output to stdout")
+        ("output-path,p",     po::value<std::string>(),                                           "stub path")
+        ("stub-type,s",       po::value<std::string>(),                                           "stub type")
+    	("game-name,g",       po::value<std::string>(),                                           "game name")
+    	("translator-uuid,t", po::value<std::string>()->default_value("DEFAULT_TRANSLATOR_UUID"), "translator UUID")
+		("module-uuid,m",     po::value<std::string>()->default_value("DEFAULT_MODULE_UUID"),     "module UUID");
     foreach(i, option_desc_public->options()) option_desc_private->add(*i);
     option_desc_private->add_options();
     return std::make_pair(option_desc_public, option_desc_private);
