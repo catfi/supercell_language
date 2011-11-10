@@ -1,0 +1,38 @@
+#include "GameService.h"
+void GameService::onClientCallReceived(zillians::uint32 fid, zillians::Buffer& buf)
+{
+	switch(fid)
+	{
+		case 0x0:
+			{
+				// GENERATE_BEGIN
+				zillians::int32 x;
+				buf >> x;
+				// GENERATE_END
+				mxxStub->doSomethingOnClient(
+						// GENERATE_BEGIN
+						x,
+						// GENERATE_END
+						);
+				break;
+			}
+	}
+}
+void GameService::SomeRemoteCall(
+		// GENERATE_BEGIN
+		zillians::int32 v,
+		zillians::float32 t,
+		Tank& tank,
+		// GENERATE_END
+		)
+{
+	const zillians::uint32 idx = 0x2;
+	zillians::Buffer buf;
+	buf << idx;
+	// GENERATE_BEGIN
+	buf << v;
+	buf << t;
+	buf << tank.getUUID();
+	// GENERATE_END
+	mGS->sendRemoteCall(buf);
+}

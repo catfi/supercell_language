@@ -32,6 +32,7 @@ ADD_SUBDIRECTORY(SemanticCheckTest)
 ADD_SUBDIRECTORY(StubCodeGenTest)
 
 get_target_property(ThorScriptCompiler ts-compile LOCATION)
+get_target_property(ThorScriptStubGenerator ts-stub LOCATION)
 
 ADD_SUBDIRECTORY(ThorScriptCompilerStaticTest)
 ADD_SUBDIRECTORY(ThorScriptParserTest)

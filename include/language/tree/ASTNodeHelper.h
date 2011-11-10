@@ -230,13 +230,29 @@ struct ASTNodeHelper
 		return false;
 	}
 
-	static std::wstring getNodeName(ASTNode* node)
+	static std::wstring getNodeName(ASTNode* node, bool FQN = false)
 	{
 		BOOST_ASSERT(node && "null pointer exception");
-		static tree::visitor::NodeInfoVisitor v(1);
+		const int32 max_depth = 20;
+		static tree::visitor::NodeInfoVisitor v(FQN ? max_depth : 1);
 		v.reset();
 		v.visit(*node);
 		return v.stream.str();
+	}
+
+	static bool isUnspecifiedType(TypeSpecifier* node)
+	{
+		return node->type == TypeSpecifier::ReferredType::UNSPECIFIED;
+	}
+
+	static bool isPrimitiveType(TypeSpecifier* node)
+	{
+		return node->type == TypeSpecifier::ReferredType::PRIMITIVE;
+	}
+
+	static int32 getPrimitiveTypeSize(TypeSpecifier* node)
+	{
+		return PrimitiveType::byteSize(node->referred.primitive);
 	}
 
 private:
