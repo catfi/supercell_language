@@ -18,10 +18,12 @@
  */
 
 #include <iostream>
+#include <fstream>
 
 #define BOOST_MPL_CFG_NO_PREPROCESSED_HEADERS
 
 #include <boost/filesystem.hpp>
+#include <boost/filesystem/fstream.hpp>
 #include "core/Types.h"
 #include "utility/Foreach.h"
 #include "language/ThorScriptManifest.h"
@@ -55,6 +57,17 @@ static std::string readCache()
     }
 }
 
+static std::string joinArgs(const std::vector<std::string>& argv)
+{
+    std::string result;
+    for (size_t i = 1; i != argv.size(); ++i)
+    {
+        result += argv[i];
+        if(i != argv.size() - 1) result += " ";
+    }
+    return result;
+}
+
 //////////////////////////////////////////////////////////////////////////////
 // public member function
 //////////////////////////////////////////////////////////////////////////////
@@ -69,42 +82,51 @@ ThorScriptDriver::ThorScriptDriver()
 
 bool ThorScriptDriver::main(const std::vector<std::string>& argv)
 {
+    std::string arg = joinArgs(argv);
+
+    if(argv.size() == 4 &&
+       argv[1] == "project" &&
+       argv[2] == "create")
+    {
+        return createProjectSkeleton(argv[3]);
+    }
+
     zillians::language::ProjectManifest pm;
     pm.load("manifest.xml");
 
-    if(argv.size() == 1)
+    if(arg == "")
     {
         return build();
     }
-    else if(argv.size() == 2 && argv[1] == "build")
+    else if(arg == "build")
     {
         return build();
     }
-    else if(argv.size() == 3 && argv[1] == "build" && argv[2] == "debug")
+    else if(arg == "build debug")
     {
         return buildDebug();
     }
-    else if(argv.size() == 3 && argv[1] == "build" && argv[2] == "release")
+    else if(arg == "build release")
     {
         return buildRelease();
     }
-    else if(argv.size() == 3 && argv[1] == "generate" && argv[2] == "bundle")
+    else if(arg == "generate bundle")
     {
         return generateBundle(pm.name, ThorScriptDriver::STRIP_TYPE::NO_STRIP);
     }
-    else if(argv.size() == 4 && argv[1] == "generate" && argv[2] == "bundle" && argv[3] == "--strip")
+    else if(arg == "generate bundle --strip")
     {
         return generateBundle(pm.name, ThorScriptDriver::STRIP_TYPE::STRIP);
     }
-    else if(argv.size() == 4 && argv[1] == "generate" && argv[2] == "client-stub" && argv[3] == "java")
+    else if(arg == "generate client-stub java")
     {
         return generateClientStub(ThorScriptDriver::STUB_LANG::JAVA);
     }
-    else if(argv.size() == 4 && argv[1] == "generate" && argv[2] == "client-stub" && argv[3] == "c++")
+    else if(arg == "generate client-stub c++")
     {
         return generateClientStub(ThorScriptDriver::STUB_LANG::CPP);
     }
-    else if(argv.size() == 3 && argv[1] == "generate" && argv[2] == "server-stub")
+    else if(arg == "generate server-stub")
     {
         return generateServerStub();
     }
@@ -145,6 +167,37 @@ bool ThorScriptDriver::main(const std::vector<std::string>& argv)
         ;
         return false;
     }
+}
+
+bool ThorScriptDriver::createProjectSkeleton(const std::string& projectName)
+{
+    // check if current dir is a project dir already
+    if(boost::filesystem::exists(projectName))
+    {
+        std::cerr << "directory `" << projectName << "` already exists" << std::endl;
+        return false;
+    }
+
+    boost::filesystem::path projectPath = projectName;
+    boost::filesystem::create_directory(projectPath);
+
+    boost::filesystem::path manifestPath = projectPath / "manifest.xml";
+    boost::filesystem::ofstream fout(manifestPath);
+
+    if(!fout.is_open())
+    {
+        std::cerr << "Can not open file `" << manifestPath.string() << "` to write" << std::endl;
+        return false;
+    }
+
+    fout << "<project name=\"" << projectName << "\" author=\"author\" version=\"0.0.0.1\">\n"
+         << "    <dependency>\n"
+         << "    </dependency>\n"
+         << "</project>\n" ;
+
+    fout.close();
+
+    return true;
 }
 
 bool ThorScriptDriver::buildDebug()

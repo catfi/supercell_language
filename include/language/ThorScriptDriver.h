@@ -46,6 +46,7 @@ private:
     } ;
 
 private:
+    bool createProjectSkeleton(const std::string& projectName);
     bool buildDebug();
     bool buildRelease();
     bool build();

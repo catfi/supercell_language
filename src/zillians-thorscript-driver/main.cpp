@@ -30,5 +30,6 @@ int main(int argc, const char** argv)
 
 	zillians::language::ThorScriptDriver driver;
     std::vector<std::string> av(argv, argv + argc);
-	return driver.main(av);
+	if (!driver.main(av)) return 1;
+    else                  return 0;
 }
