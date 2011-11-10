@@ -30,6 +30,7 @@
 #include "language/tree/ASTNode.h"
 #include "language/tree/ASTNodeFactory.h"
 #include "language/tree/ASTNodeSerialization.h"
+#include "language/stage/strip/visitor/ThorScriptStripStageVisitor.h"
 
 #include "llvm/LLVMContext.h"
 #include "llvm/Linker.h"
@@ -82,7 +83,7 @@ bool getBufferFromFile(const std::string& file_name, std::vector<unsigned char>&
 // class member function
 //////////////////////////////////////////////////////////////////////////////
 
-ThorScriptBundleStage::ThorScriptBundleStage() : Stage(), output_file(THORSCRIPT_DEFAULT_BUNDLE_NAME)
+ThorScriptBundleStage::ThorScriptBundleStage() : Stage(), output_file(THORSCRIPT_DEFAULT_BUNDLE_NAME), stripped(false)
 { }
 
 ThorScriptBundleStage::~ThorScriptBundleStage()
@@ -101,7 +102,9 @@ std::pair<shared_ptr<po::options_description>, shared_ptr<po::options_descriptio
 	option_desc_public->add_options()
 		("manifest,m", po::value<std::string>(), "specify manifest file")
 		("output,o", po::value<std::string>(), "output bundle file name")
-		("extract,d", po::value<std::vector<std::string>>(), "extract bundle to build directory");
+		("extract,d", po::value<std::vector<std::string>>(), "extract bundle to build directory")
+		("strip", "build stripped bundle")
+    ;
 
 	foreach(i, option_desc_public->options()) option_desc_private->add(*i);
 
@@ -145,6 +148,11 @@ bool ThorScriptBundleStage::parseOptions(po::variables_map& vm)
     if (vm.count("extract"))
     {
         bundleDependency = vm["extract"].as<std::vector<std::string>>();
+    }
+
+    if (vm.count("strip"))
+    {
+        stripped = true;
     }
 
 	return true;
@@ -198,11 +206,9 @@ bool ThorScriptBundleStage::compress(bool& continue_execution)
 	getManifestBuffer(manifest_item.buffer);
 
 	// Add to archive
-	ar.open();
 	if (bc_item.buffer.size() > 0) ar.add(bc_item);
 	if (ast_item.buffer.size() > 0) ar.add(ast_item);
 	if (manifest_item.buffer.size() > 0) ar.add(manifest_item);
-	ar.close();
 
 	return true;
 }
@@ -270,6 +276,12 @@ void ThorScriptBundleStage::getMergeASTBuffer(std::vector<unsigned char>& buffer
     // TODO: No write to disk
     if (tangle)
     {
+        if (stripped)
+        {
+            zillians::language::stage::visitor::ThorScriptStripStageVisitor stripVisitor;
+            stripVisitor.strip(*tangle);
+        }
+
     	std::string temp_filename = THORSCRIPT_AST_TEMP_MERGED_FILE;
 		ASTSerializationHelper::serialize(temp_filename, tangle);
 

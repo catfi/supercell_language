@@ -59,6 +59,7 @@ public:
 
     std::string output_file;
     std::vector<std::string> bundleDependency;
+    bool stripped;
 };
 
 } } }
