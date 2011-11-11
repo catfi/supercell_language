@@ -196,6 +196,8 @@ bool ThorScriptDriver::createProjectSkeleton(const std::string& projectName)
 
     boost::filesystem::path projectPath = projectName;
     boost::filesystem::create_directory(projectPath);
+    boost::filesystem::path projectSrcPath = projectPath / "src";
+    boost::filesystem::create_directory(projectSrcPath);
 
     boost::filesystem::path manifestPath = projectPath / "manifest.xml";
     boost::filesystem::ofstream fout(manifestPath);
@@ -220,10 +222,10 @@ bool ThorScriptDriver::buildDebug()
 {
     saveCache("debug");
 
-    unbundle();
-    dep();
-    make(ThorScriptDriver::BUILD_TYPE::DEBUG);
-    link();
+    if (!unbundle()                               ) return false;
+    if (!dep()                                    ) return false;
+    if (!make(ThorScriptDriver::BUILD_TYPE::DEBUG)) return false;
+    if (!link()                                   ) return false;
 
     return true;
 }
@@ -232,10 +234,10 @@ bool ThorScriptDriver::buildRelease()
 {
     saveCache("release");
 
-    unbundle();
-    dep();
-    make(ThorScriptDriver::BUILD_TYPE::RELEASE);
-    link();
+    if (!unbundle()                                 ) return false;
+    if (!dep()                                      ) return false;
+    if (!make(ThorScriptDriver::BUILD_TYPE::RELEASE)) return false;
+    if (!link()                                     ) return false;
 
     return true;
 }
@@ -329,6 +331,7 @@ bool ThorScriptDriver::unbundle()
         std::string cmd = "ts-bundle -d " + *i;
         if(system(cmd.c_str()) != 0)
         {
+            std::cerr << "ERROR unbundle step fail: " << cmd << std::endl;
             return false;
         }
     }
@@ -338,44 +341,52 @@ bool ThorScriptDriver::unbundle()
 
 bool ThorScriptDriver::dep()
 {
-    if(system("ts-dep") == 0)
+    if(system("ts-dep") != 0)
     {
-        return true;
+        std::cerr << "ERROR dep step fail: " << "ts-dep" << std::endl;
+        return false;
     }
-    return false;
+    return true;
 }
 
 bool ThorScriptDriver::make(const ThorScriptDriver::BUILD_TYPE type)
 {
     // TODO ts-make should take option --debug --release
-    int result = 0;
+    std::string cmd = "ts-make";
     if(type == ThorScriptDriver::BUILD_TYPE::DEBUG)
     {
-        result = system("ts-make");
+        cmd += " --debug";
     }
     else
     {
-        result = system("ts-make");
+        cmd += " --release";
     }
-    return result == 0;
+    if(system(cmd.c_str()) != 0)
+    {
+        std::cerr << "ERROR make step fail: " << cmd << std::endl;
+        return false;
+    }
+    return true;
 }
 
 bool ThorScriptDriver::bundle()
 {
-    if(system("ts-bundle -m manifest") == 0)
+    if(system("ts-bundle -m manifest") != 0)
     {
-        return true;
+        std::cerr << "ERROR bundle step fail: " << "ts-bundle" << std::endl;
+        return false;
     }
-    return false;
+    return true;
 }
 
 bool ThorScriptDriver::strip()
 {
-    if(system("ts-strip") == 0)
+    if(system("ts-strip") != 0)
     {
-        return true;
+        std::cerr << "ERROR strip step fail: " << "ts-strip" << std::endl;
+        return false;
     }
-    return false;
+    return true;
 }
 
 bool ThorScriptDriver::link()
@@ -402,8 +413,11 @@ bool ThorScriptDriver::link()
         cmd += " ";
         cmd += *i;
     }
-    if(system(cmd.c_str()) == 0) return true;
-    else                         return false;
+    if(system(cmd.c_str()) != 0)
+    {
+        return false;
+    }
+    return true;
 }
 
 } }

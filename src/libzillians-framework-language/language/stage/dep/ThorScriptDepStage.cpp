@@ -198,13 +198,16 @@ static std::string packageNameToPathName(const std::wstring& packageName)
  * @param[in] pathString Package path to add.
  * @param[in,out] fileGraph Data structure to store dependency.
  */
-void addFileDependency(std::string tsFileName, const std::map<std::wstring, std::string>& packagesInAsts, FileGraphType& fileGraph, log4cxx::LoggerPtr logger)
+static bool addFileDependency(std::string tsFileName, const std::map<std::wstring, std::string>& packagesInAsts, FileGraphType& fileGraph, log4cxx::LoggerPtr logger)
 {
-    //tsFileName = "src/" + tsFileName;
+    // precondition
+    BOOST_ASSERT(boost::filesystem::exists(tsFileName));
+
+    // if tsFileName is processed already, skip it.
     boost::optional<boost::graph_traits<FileGraphType>::vertex_descriptor> currentVertexOpt = boost::graph::find_vertex(tsFileName, fileGraph);
     if(currentVertexOpt && boost::out_degree(*currentVertexOpt, fileGraph) > 0)
     {
-        return;
+        return true;
     }
 
     /**
@@ -264,6 +267,7 @@ void addFileDependency(std::string tsFileName, const std::map<std::wstring, std:
         {
             // TODO: print *i in uniocde?
             LOG4CXX_ERROR(logger, "Can not find package `" << ws_to_s(*i) << "` in all imported ast.");
+            return false;
         }
     }
 
@@ -278,6 +282,7 @@ void addFileDependency(std::string tsFileName, const std::map<std::wstring, std:
         if(boost::filesystem::path(targetFileName).extension() == ".ast") continue;
         addFileDependency(targetFileName, packagesInAsts, fileGraph, logger);
     }
+    return true;
 }
 
 // Customize boost::graph write graphviz vertex.
@@ -492,6 +497,15 @@ bool ThorScriptDepStage::execute(bool& continue_execution)
         return false;
     }
 
+    foreach(i, inputFiles)
+    {
+        if(!boost::filesystem::exists(*i))
+        {
+            LOG4CXX_ERROR(logger, "input file `" << *i << "` does not exists.");
+            return false;
+        }
+    }
+
     std::multimap<std::string, std::wstring> bundlePackages = scanAllBundlePackage();
     std::map<std::wstring, std::string> packagesInAsts;
     foreach(i, bundlePackages)
@@ -500,6 +514,11 @@ bool ThorScriptDepStage::execute(bool& continue_execution)
     }
 
     // get file dependency
+    if(inputFiles.empty())
+    {
+        LOG4CXX_ERROR(logger, "source directory is empty.");
+        return false;
+    }
     FileGraphType fileGraph;
     foreach(i, inputFiles)
     {

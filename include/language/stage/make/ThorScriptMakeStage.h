@@ -42,10 +42,20 @@ public:
 	virtual bool parseOptions(po::variables_map& vm);
 	virtual bool execute(bool& continue_execution);
 
+private:
+    enum class BUILD_TYPE
+    {
+        DEBUG,
+        RELEASE
+    };
+
 public:
     bool dumpCompileCommand;
     boost::filesystem::path rootDir;
     log4cxx::LoggerPtr logger;
+
+private:
+    BUILD_TYPE buildType;
 };
 
 } } }

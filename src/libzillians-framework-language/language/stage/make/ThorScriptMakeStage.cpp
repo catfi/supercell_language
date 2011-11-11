@@ -99,6 +99,16 @@ static std::string genCompileCmd(boost::graph_traits<TangleGraphType>::vertex_de
 {
     std::string cmd = "ts-compile ";
 
+    // TODO pass the buildType to ts-compile
+    //if(buildType == BUILD_TYPE::DEBUG)
+    //{
+    //    cmd += "--debug ";
+    //}
+    //else
+    //{
+    //    cmd += "--release ";
+    //}
+
     // source files
     std::set<std::string>& sourceFiles = g[v];
     if(allSourceAreAst(sourceFiles))
@@ -154,6 +164,8 @@ std::pair<shared_ptr<po::options_description>, shared_ptr<po::options_descriptio
 	option_desc_public->add_options()
         ("dump-compile-command", "dump compile command")
         ("root-dir", po::value<std::string>())
+        ("debug", "debug build")
+        ("release", "release build")
     ;
 
 	foreach(i, option_desc_public->options()) option_desc_private->add(*i);
@@ -172,6 +184,19 @@ bool ThorScriptMakeStage::parseOptions(po::variables_map& vm)
     if(vm.count("root-dir"))
     {
         rootDir = boost::filesystem::path(vm["root-dir"].as<std::string>());
+    }
+    if(vm.count("debug") && vm.count("release"))
+    {
+        LOG4CXX_ERROR(logger, "Can not specify `--debug` and `--release` at the same time");
+        return false;
+    }
+    if(vm.count("debug"))
+    {
+        buildType = BUILD_TYPE::DEBUG;
+    }
+    else if(vm.count("release"))
+    {
+        buildType = BUILD_TYPE::RELEASE;
     }
     return true;
 }
