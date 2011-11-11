@@ -22,6 +22,8 @@
 
 #include <string>
 #include <vector>
+#define BOOST_MPL_CFG_NO_PREPROCESSED_HEADERS
+#include "language/ThorScriptManifest.h"
 
 namespace zillians { namespace language {
 
@@ -47,12 +49,13 @@ private:
 
 private:
     bool createProjectSkeleton(const std::string& projectName);
-    bool buildDebug(const std::string& projectName);
-    bool buildRelease(const std::string& projectName);
-    bool build(const std::string& projectName);
-    bool generateBundle(const std::string& projectName, const STRIP_TYPE isStrip);
-    bool generateClientStub(const std::string& projectName, const STUB_LANG);
-    bool generateServerStub(const std::string& projectName);
+    bool buildDebug();
+    bool buildRelease();
+    bool build();
+    bool generateBundle(const STRIP_TYPE isStrip);
+    bool generateStub(const std::vector<std::string>& stubTypes);
+    bool generateClientStub(const STUB_LANG);
+    bool generateServerStub();
 
 private:
     bool unbundle();
@@ -60,9 +63,10 @@ private:
     bool make(const BUILD_TYPE type);
     bool bundle();
     bool strip();
-    bool link(const std::string& projectName);
+    bool link();
 
 private:
+    zillians::language::ProjectManifest pm;
     std::string argv;
 };
 

@@ -71,6 +71,20 @@ static std::string joinArgs(const std::vector<std::string>& argv)
     return result;
 }
 
+static std::vector<std::string> getAstUnderBuild()
+{
+    std::vector<std::string> result;
+    namespace fs = boost::filesystem;
+    for(auto i = fs::directory_iterator("build/"); i != fs::directory_iterator(); ++i)
+    {
+        if(i->path().extension() == ".ast")
+        {
+            result.push_back(i->path().string());
+        }
+    }
+    return result;
+}
+
 //////////////////////////////////////////////////////////////////////////////
 // public member function
 //////////////////////////////////////////////////////////////////////////////
@@ -94,44 +108,43 @@ bool ThorScriptDriver::main(const std::vector<std::string>& argv)
         return createProjectSkeleton(argv[3]);
     }
 
-    zillians::language::ProjectManifest pm;
     pm.load("manifest.xml");
 
     if(arg == "")
     {
-        return build(pm.name);
+        return build();
     }
     else if(arg == "build")
     {
-        return build(pm.name);
+        return build();
     }
     else if(arg == "build debug")
     {
-        return buildDebug(pm.name);
+        return buildDebug();
     }
     else if(arg == "build release")
     {
-        return buildRelease(pm.name);
+        return buildRelease();
     }
     else if(arg == "generate bundle")
     {
-        return generateBundle(pm.name, ThorScriptDriver::STRIP_TYPE::NO_STRIP);
+        return generateBundle(ThorScriptDriver::STRIP_TYPE::NO_STRIP);
     }
     else if(arg == "generate bundle --strip")
     {
-        return generateBundle(pm.name, ThorScriptDriver::STRIP_TYPE::STRIP);
+        return generateBundle(ThorScriptDriver::STRIP_TYPE::STRIP);
     }
     else if(arg == "generate client-stub java")
     {
-        return generateClientStub(pm.name, ThorScriptDriver::STUB_LANG::JAVA);
+        return generateClientStub(ThorScriptDriver::STUB_LANG::JAVA);
     }
     else if(arg == "generate client-stub c++")
     {
-        return generateClientStub(pm.name, ThorScriptDriver::STUB_LANG::CPP);
+        return generateClientStub(ThorScriptDriver::STUB_LANG::CPP);
     }
     else if(arg == "generate server-stub")
     {
-        return generateServerStub(pm.name);
+        return generateServerStub();
     }
     else
     {
@@ -203,64 +216,50 @@ bool ThorScriptDriver::createProjectSkeleton(const std::string& projectName)
     return true;
 }
 
-bool ThorScriptDriver::buildDebug(const std::string& projectName)
+bool ThorScriptDriver::buildDebug()
 {
     saveCache("debug");
 
     unbundle();
     dep();
     make(ThorScriptDriver::BUILD_TYPE::DEBUG);
-    link(projectName);
+    link();
 
     return true;
 }
 
-bool ThorScriptDriver::buildRelease(const std::string& projectName)
+bool ThorScriptDriver::buildRelease()
 {
     saveCache("release");
 
     unbundle();
     dep();
     make(ThorScriptDriver::BUILD_TYPE::RELEASE);
-    link(projectName);
+    link();
 
     return true;
 }
 
-bool ThorScriptDriver::build(const std::string& projectName)
+bool ThorScriptDriver::build()
 {
     std::string s = readCache();
     if (s == "release")
     {
-        buildRelease(projectName);
+        buildRelease();
     }
     else
     {
-        buildDebug(projectName);
+        buildDebug();
     }
     return true;
 }
 
-static std::vector<std::string> getAstUnderBuild()
-{
-    std::vector<std::string> result;
-    namespace fs = boost::filesystem;
-    for(auto i = fs::directory_iterator("build/"); i != fs::directory_iterator(); ++i)
-    {
-        if(i->path().extension() == ".ast")
-        {
-            result.push_back(i->path().string());
-        }
-    }
-    return result;
-}
-
-bool ThorScriptDriver::generateBundle(const std::string& projectName, const ThorScriptDriver::STRIP_TYPE isStrip)
+bool ThorScriptDriver::generateBundle(const ThorScriptDriver::STRIP_TYPE isStrip)
 {
     UNUSED_ARGUMENT(isStrip);
 
     std::string cmd("ts-bundle -m manifest.xml");
-    cmd += " -o " + projectName + ".bundle";
+    cmd += " -o " + pm.name + ".bundle";
     std::vector<std::string> astFiles = getAstUnderBuild();
     foreach(i, astFiles)
     {
@@ -277,22 +276,21 @@ bool ThorScriptDriver::generateBundle(const std::string& projectName, const Thor
     else                         return false;
 }
 
-bool ThorScriptDriver::generateClientStub(const std::string& projectName, const ThorScriptDriver::STUB_LANG lang)
+bool ThorScriptDriver::generateStub(const std::vector<std::string>& stubTypes)
 {
-    UNUSED_ARGUMENT(lang);
+    boost::filesystem::create_directories("stub");
+    stage::ThorScriptBundleStage bundler;
+    tree::Tangle* tangle = bundler.getMergedAST(getAstUnderBuild());
+    std::string stubAstName = "build/stub-" + pm.name + ".ast";
+    stage::ASTSerializationHelper::serialize(stubAstName, tangle);
 
-    boost::filesystem3::create_directories("stub");
-    zillians::language::stage::ThorScriptBundleStage bundler;
-    zillians::language::tree::Tangle* tangle = bundler.getMergedAST(getAstUnderBuild());
-    std::string stubAstName = "build/stub-" + projectName + ".ast";
-    zillians::language::stage::ASTSerializationHelper::serialize(stubAstName, tangle);
-
-    std::vector<std::string> clientStubTypes = {"CLIENT_CLIENTSTUB_H",
-                                                "CLIENT_GAMESERVICE_CPP",
-                                                "CLIENT_GAMESERVICE_H"};
-    foreach(i, clientStubTypes)
+    foreach(i, stubTypes)
     {
-        std::string cmd = "ts-stub --output-path=stub " + stubAstName + " --stub-type=" + *i + " --game-name=" + projectName;
+        std::string cmd = "ts-stub " +
+                          stubAstName +
+                          " --output-path=stub " +
+                          " --stub-type=" + *i +
+                          " --game-name=" + pm.name;
         if(system(cmd.c_str()))
         {
             return false;
@@ -301,26 +299,21 @@ bool ThorScriptDriver::generateClientStub(const std::string& projectName, const 
     return true;
 }
 
-bool ThorScriptDriver::generateServerStub(const std::string& projectName)
+bool ThorScriptDriver::generateClientStub(const ThorScriptDriver::STUB_LANG lang)
 {
-    boost::filesystem3::create_directories("stub");
-    zillians::language::stage::ThorScriptBundleStage bundler;
-    zillians::language::tree::Tangle* tangle = bundler.getMergedAST(getAstUnderBuild());
-    std::string stubAstName = "build/stub-" + projectName + ".ast";
-    zillians::language::stage::ASTSerializationHelper::serialize(stubAstName, tangle);
+    UNUSED_ARGUMENT(lang);
 
-    std::vector<std::string> serverStubTypes = {"GATEWAY_GAMECOMMAND_CLIENTCOMMANDOBJECT_H",
-                                                "GATEWAY_GAMECOMMAND_CLOUDCOMMANDOBJECT_H",
-                                                "GATEWAY_GAMECOMMAND_GAMECOMMANDTRANSLATOR_CPP",
-                                                "GATEWAY_GAMECOMMAND_GAMEMODULE_MODULE"};
-    foreach(i, serverStubTypes)
-    {
-        std::string cmd = "ts-stub --output-path=stub " + stubAstName + " --stub-type=" + *i + " --game-name=" + projectName;
-        if(system(cmd.c_str()))
-        {
-            return false;
-        }
-    }
+    return generateStub({"CLIENT_CLIENTSTUB_H",
+                         "CLIENT_GAMESERVICE_CPP",
+                         "CLIENT_GAMESERVICE_H"});
+}
+
+bool ThorScriptDriver::generateServerStub()
+{
+    return generateStub({"GATEWAY_GAMECOMMAND_CLIENTCOMMANDOBJECT_H",
+                         "GATEWAY_GAMECOMMAND_CLOUDCOMMANDOBJECT_H",
+                         "GATEWAY_GAMECOMMAND_GAMECOMMANDTRANSLATOR_CPP",
+                         "GATEWAY_GAMECOMMAND_GAMEMODULE_MODULE"});
     return true;
 }
 
@@ -385,12 +378,12 @@ bool ThorScriptDriver::strip()
     return false;
 }
 
-bool ThorScriptDriver::link(const std::string& projectName)
+bool ThorScriptDriver::link()
 {
     namespace fs = boost::filesystem;
 
     std::string cmd("ts-link");
-    cmd += " -o " + projectName + ".so";
+    cmd += " -o " + pm.name + ".so";
     for(auto i = fs::directory_iterator("build/"); i != fs::directory_iterator(); ++i)
     {
         if(i->path().extension() == ".bc")
@@ -398,6 +391,16 @@ bool ThorScriptDriver::link(const std::string& projectName)
             cmd += " ";
             cmd += i->path().string();
         }
+    }
+    foreach(i, this->pm.dep.native_objects)
+    {
+        cmd += " ";
+        cmd += *i;
+    }
+    foreach(i, this->pm.dep.native_libraries)
+    {
+        cmd += " ";
+        cmd += *i;
     }
     if(system(cmd.c_str()) == 0) return true;
     else                         return false;
