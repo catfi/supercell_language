@@ -45,10 +45,15 @@ public:
 	virtual bool parseOptions(po::variables_map& vm);
 	virtual bool execute(bool& continue_execution);
 
+public:
+    zillians::language::tree::Tangle* getMergedAST(const std::vector<std::string>& ast_files);
+
 private:
 	void getMergeBitCodeBuffer(std::vector<unsigned char>& buffer);
 	void getMergeASTBuffer(std::vector<unsigned char>& buffer);
 	void getManifestBuffer(std::vector<unsigned char>& buffer);
+    bool extract(bool& continue_execution);
+    bool compress(bool& continue_execution);
 
 public:
     std::vector<std::string> bitcode_files;
@@ -56,6 +61,8 @@ public:
     std::string manifest_file;
 
     std::string output_file;
+    std::vector<std::string> bundleDependency;
+    bool stripped;
 };
 
 } } }

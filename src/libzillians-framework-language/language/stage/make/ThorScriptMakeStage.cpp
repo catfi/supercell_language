@@ -46,7 +46,7 @@ namespace zillians { namespace language { namespace stage {
 
 typedef std::set<boost::graph_traits<TangleGraphType>::vertex_descriptor> VertexSet;
 
-VertexSet findFirstBuildTargets(const TangleGraphType& g)
+static VertexSet findFirstBuildTargets(const TangleGraphType& g)
 {
     VertexSet result;
     for(auto vi = boost::vertices(g); vi.first != vi.second; ++vi.first)
@@ -60,58 +60,7 @@ VertexSet findFirstBuildTargets(const TangleGraphType& g)
     return result;
 }
 
-//////////////////////////////////////////////////////////////////////////////
-// class member function
-//////////////////////////////////////////////////////////////////////////////
-
-ThorScriptMakeStage::ThorScriptMakeStage()
-{ }
-
-ThorScriptMakeStage::~ThorScriptMakeStage()
-{ }
-
-const char* ThorScriptMakeStage::name()
-{
-	return "thor_script_dep_stage";
-}
-
-std::pair<shared_ptr<po::options_description>, shared_ptr<po::options_description>> ThorScriptMakeStage::getOptions()
-{
-	shared_ptr<po::options_description> option_desc_public(new po::options_description());
-	shared_ptr<po::options_description> option_desc_private(new po::options_description());
-
-	option_desc_public->add_options() ;
-
-	foreach(i, option_desc_public->options()) option_desc_private->add(*i);
-
-	option_desc_private->add_options() ;
-
-	return std::make_pair(option_desc_public, option_desc_private);
-}
-
-bool ThorScriptMakeStage::parseOptions(po::variables_map& vm)
-{
-    if(vm.count("input"))
-    {
-        inputFiles = vm["input"].as<std::vector<std::string>>();
-        return true;
-    }
-    else
-    {
-        return false;
-    }
-}
-
-struct Shell
-{
-    Shell(const std::string& cmd_) : cmd(cmd_) {}
-    int operator()(int) {
-        return system(cmd.c_str());
-    }
-    std::string cmd;
-};
-
-std::string tangleFilesConcate(boost::graph_traits<TangleGraphType>::vertex_descriptor v, TangleGraphType& g)
+static std::string tangleFilesConcate(boost::graph_traits<TangleGraphType>::vertex_descriptor v, TangleGraphType& g)
 {
     std::string result;
     const std::set<std::string>& files = g[v];
@@ -122,7 +71,7 @@ std::string tangleFilesConcate(boost::graph_traits<TangleGraphType>::vertex_desc
     return result;
 }
 
-std::string tangleFileName(boost::graph_traits<TangleGraphType>::vertex_descriptor v, TangleGraphType& g)
+static std::string tangleFileName(boost::graph_traits<TangleGraphType>::vertex_descriptor v, TangleGraphType& g)
 {
     std::string result = sha1::sha1(tangleFilesConcate(v, g));
     std::set<std::string>& files = g[v];
@@ -134,12 +83,29 @@ std::string tangleFileName(boost::graph_traits<TangleGraphType>::vertex_descript
     return result;
 }
 
-std::string genCompileCmd(boost::graph_traits<TangleGraphType>::vertex_descriptor v, TangleGraphType& g)
+static bool allSourceAreAst(const std::set<std::string>& sourceFiles)
+{
+    foreach(i, sourceFiles)
+    {
+        if (boost::filesystem::path(*i).extension() != ".ast")
+        {
+            return false;
+        }
+    }
+    return true;
+}
+
+static std::string genCompileCmd(boost::graph_traits<TangleGraphType>::vertex_descriptor v, TangleGraphType& g)
 {
     std::string cmd = "ts-compile ";
 
     // source files
     std::set<std::string>& sourceFiles = g[v];
+    if(allSourceAreAst(sourceFiles))
+    {
+        return "";
+    }
+
     foreach(i, sourceFiles)
     {
         cmd += "'" + *i + "' ";
@@ -156,18 +122,96 @@ std::string genCompileCmd(boost::graph_traits<TangleGraphType>::vertex_descripto
 
     // output files
     std::string outputFileName = tangleFileName(v, g);
-    cmd += "--emit-ast=" + outputFileName + ".ast ";
-    cmd += "--emit-llvm=" + outputFileName + ".bc ";
+    cmd += "--emit-ast=build/" + outputFileName + ".ast ";
+    cmd += "--emit-llvm=build/" + outputFileName + ".bc ";
 
     return cmd;
 }
+
+//////////////////////////////////////////////////////////////////////////////
+// class member function
+//////////////////////////////////////////////////////////////////////////////
+
+ThorScriptMakeStage::ThorScriptMakeStage() : dumpCompileCommand(false), rootDir("./"), logger(log4cxx::Logger::getLogger("ts-make"))
+{
+    log4cxx::BasicConfigurator::configure();
+    logger->setLevel(log4cxx::Level::getAll());
+}
+
+ThorScriptMakeStage::~ThorScriptMakeStage()
+{ }
+
+const char* ThorScriptMakeStage::name()
+{
+	return "thor_script_make_stage";
+}
+
+std::pair<shared_ptr<po::options_description>, shared_ptr<po::options_description>> ThorScriptMakeStage::getOptions()
+{
+	shared_ptr<po::options_description> option_desc_public(new po::options_description());
+	shared_ptr<po::options_description> option_desc_private(new po::options_description());
+
+	option_desc_public->add_options()
+        ("dump-compile-command", "dump compile command")
+        ("root-dir", po::value<std::string>())
+    ;
+
+	foreach(i, option_desc_public->options()) option_desc_private->add(*i);
+
+	option_desc_private->add_options() ;
+
+	return std::make_pair(option_desc_public, option_desc_private);
+}
+
+bool ThorScriptMakeStage::parseOptions(po::variables_map& vm)
+{
+    if(vm.count("dump-compile-command"))
+    {
+        dumpCompileCommand = true;
+    }
+    if(vm.count("root-dir"))
+    {
+        rootDir = boost::filesystem::path(vm["root-dir"].as<std::string>());
+    }
+    return true;
+}
+
+struct Shell
+{
+    Shell(const std::string& cmd_) : cmd(cmd_) {}
+    int operator()(int) {
+        return system(cmd.c_str());
+    }
+    std::string cmd;
+};
 
 bool ThorScriptMakeStage::execute(bool& continue_execution)
 {
 	UNUSED_ARGUMENT(continue_execution);
 
+    // precondition
+    if(!boost::filesystem::exists(rootDir))
+    {
+        LOG4CXX_ERROR(logger, "Root directory `" << rootDir.string() << "` does not exists.");
+        return false;
+    }
+
+    boost::filesystem::current_path(rootDir);
+
     // restore file dependency
-    std::ifstream fin(inputFiles[0]);
+    boost::filesystem::path depFilePath("build/ts.dep");
+    if(!boost::filesystem::exists(depFilePath))
+    {
+        LOG4CXX_ERROR(logger, "Dependency file `" << depFilePath.string() << "` does not exists.");
+        return false;
+    }
+
+    std::ifstream fin(depFilePath.string().c_str());
+    if(!fin.is_open())
+    {
+        LOG4CXX_ERROR(logger, "Can not open dependency file: `" << depFilePath.string() << "`.");
+        return false;
+    }
     boost::archive::text_iarchive ia(fin);
     TangleGraphType tangleRestored;
     ia >> tangleRestored;
@@ -182,6 +226,10 @@ bool ThorScriptMakeStage::execute(bool& continue_execution)
     for(auto vi = boost::vertices(tangleRestored); vi.first != vi.second; ++vi.first)
     {
         std::string cmd = genCompileCmd(*vi.first, tangleRestored);
+        if(dumpCompileCommand)
+        {
+            std::cout << "compile-command: " << cmd << std::endl ;
+        }
         int inputNum = boost::out_degree(*vi.first, tangleRestored);
         if(inputNum == 0)
         {

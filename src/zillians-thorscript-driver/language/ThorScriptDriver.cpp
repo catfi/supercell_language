@@ -17,46 +17,79 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#include "language/ThorScriptDriver.h"
-#include "language/stage/driver/ThorScriptDriverStage.h"
+#include <iostream>
+#include <fstream>
 
-using namespace zillians::language::stage;
+#define BOOST_MPL_CFG_NO_PREPROCESSED_HEADERS
+
+#include <boost/filesystem.hpp>
+#include <boost/filesystem/fstream.hpp>
+#include "core/Types.h"
+#include "utility/Foreach.h"
+#include "language/ThorScriptManifest.h"
+#include "language/ThorScriptDriver.h"
+#include "language/tree/ASTNodeFactory.h"
+#include "language/stage/bundle/ThorScriptBundleStage.h"
+#include "language/stage/serialization/detail/ASTSerializationHelper.h"
 
 namespace zillians { namespace language {
 
 //////////////////////////////////////////////////////////////////////////////
-// Stataic function
+// static function
 //////////////////////////////////////////////////////////////////////////////
 
-static bool isDepOnly(const std::string argv)
+static void saveCache(const std::string& s)
 {
-    return false;
+    std::ofstream fout("cache");
+    fout << s ;
+    fout.close();
 }
 
-static bool isCompileOnly(const std::string argv)
+static std::string readCache()
 {
-    return false;
+    std::ifstream fin("cache");
+    if (fin.is_open()) {
+        std::string s;
+        fin >> s ;
+        fin.close();
+        return s;
+    }
+    else
+    {
+        return "debug";
+    }
+}
+
+static std::string joinArgs(const std::vector<std::string>& argv)
+{
+    std::string result;
+    for (size_t i = 1; i != argv.size(); ++i)
+    {
+        if(i != 1) result += " ";
+        result += argv[i];
+    }
+    return result;
+}
+
+static std::vector<std::string> getAstUnderBuild()
+{
+    std::vector<std::string> result;
+    namespace fs = boost::filesystem;
+    for(auto i = fs::directory_iterator("build/"); i != fs::directory_iterator(); ++i)
+    {
+        if(i->path().extension() == ".ast")
+        {
+            result.push_back(i->path().string());
+        }
+    }
+    return result;
 }
 
 //////////////////////////////////////////////////////////////////////////////
 // public member function
 //////////////////////////////////////////////////////////////////////////////
 
-ThorScriptDriver::ThorScriptDriver() : stage::StageBuilder(false)
-{
-	addDefaultMode<
-		boost::mpl::vector<
-			ThorScriptDriverStage>>();
-}
-
-ThorScriptDriver::~ThorScriptDriver()
-{ }
-
-void ThorScriptDriver::initialize()
-{
-}
-
-void ThorScriptDriver::finalize()
+ThorScriptDriver::ThorScriptDriver()
 {
 }
 
@@ -64,19 +97,313 @@ void ThorScriptDriver::finalize()
 // private member function
 //////////////////////////////////////////////////////////////////////////////
 
-bool ThorScriptDriver::dep(const std::string& argv)
+bool ThorScriptDriver::main(const std::vector<std::string>& argv)
 {
-    system("./ts-dep");
+    std::string arg = joinArgs(argv);
+
+    if(argv.size() == 4 &&
+       argv[1] == "project" &&
+       argv[2] == "create")
+    {
+        return createProjectSkeleton(argv[3]);
+    }
+
+    pm.load("manifest.xml");
+
+    if(arg == "")
+    {
+        return build();
+    }
+    else if(arg == "build")
+    {
+        return build();
+    }
+    else if(arg == "build debug")
+    {
+        return buildDebug();
+    }
+    else if(arg == "build release")
+    {
+        return buildRelease();
+    }
+    else if(arg == "generate bundle")
+    {
+        return generateBundle(ThorScriptDriver::STRIP_TYPE::NO_STRIP);
+    }
+    else if(arg == "generate bundle --strip")
+    {
+        return generateBundle(ThorScriptDriver::STRIP_TYPE::STRIP);
+    }
+    else if(arg == "generate client-stub java")
+    {
+        return generateClientStub(ThorScriptDriver::STUB_LANG::JAVA);
+    }
+    else if(arg == "generate client-stub c++")
+    {
+        return generateClientStub(ThorScriptDriver::STUB_LANG::CPP);
+    }
+    else if(arg == "generate server-stub")
+    {
+        return generateServerStub();
+    }
+    else
+    {
+        std::cout << "tsc project create app_name     create a folder named \"app_name\" and also\n"
+                     "                                the basic structure for it.\n"
+                     "                                build, src/, manifest.xml, README\n"
+                     "                                future work, init git repo\n"
+                     "\n"
+                     "tsc build release               by defalut tsc will read manifest, invoke\n"
+                     "                                ts-dep, ts-make, ts-compile, and ts-link to\n"
+                     "                                generate the final shared object\n"
+                     "                                (in release mode)\n"
+                     "\n"
+                     "tsc build debug                 by defalut tsc will read manifest, invoke\n"
+                     "                                ts-dep, ts-make, ts-compile, and ts-link to\n"
+                     "                                generate the final shared object\n"
+                     "                                (in debug mode)\n"
+                     "\n"
+                     "ts build                        by default will build the last configuration;\n"
+                     "                                if there's no last build, it build debug\n"
+                     "                                version; so if we issue tsc build release and\n"
+                     "                                the issue tsc build, it will equal to tsc build\n"
+                     "                                release\n"
+                     "\n"
+                     "tsc                             by default will invoke tsc build\n"
+                     "\n"
+                     "tsc generate bundle [--strip]  create bundle file\n"
+                     "\n"
+                     "tsc generate client-stub [java|c++|...]\n"
+                     "\n"
+                     "tsc generate server-stub\n"
+                     "\n"
+                     "The result of deployment is managed by a git server; for each instance, we\n"
+                     "will create a git url got it so that user can set remote and push to that\n"
+                     "remote to deploy his code.\n"
+        ;
+        return false;
+    }
 }
 
-bool ThorScriptDriver::make(const std::string& argv)
+bool ThorScriptDriver::createProjectSkeleton(const std::string& projectName)
 {
-    system("./ts-make");
+    // check if current dir is a project dir already
+    if(boost::filesystem::exists(projectName))
+    {
+        std::cerr << "directory `" << projectName << "` already exists" << std::endl;
+        return false;
+    }
+
+    boost::filesystem::path projectPath = projectName;
+    boost::filesystem::create_directory(projectPath);
+
+    boost::filesystem::path manifestPath = projectPath / "manifest.xml";
+    boost::filesystem::ofstream fout(manifestPath);
+
+    if(!fout.is_open())
+    {
+        std::cerr << "Can not open file `" << manifestPath.string() << "` to write" << std::endl;
+        return false;
+    }
+
+    fout << "<project name=\"" << projectName << "\" author=\"author\" version=\"0.0.0.1\">\n"
+         << "    <dependency>\n"
+         << "    </dependency>\n"
+         << "</project>\n" ;
+
+    fout.close();
+
+    return true;
 }
 
-bool ThorScriptDriver::link(const std::string& argv)
+bool ThorScriptDriver::buildDebug()
 {
-    system("./ts-link");
+    saveCache("debug");
+
+    unbundle();
+    dep();
+    make(ThorScriptDriver::BUILD_TYPE::DEBUG);
+    link();
+
+    return true;
+}
+
+bool ThorScriptDriver::buildRelease()
+{
+    saveCache("release");
+
+    unbundle();
+    dep();
+    make(ThorScriptDriver::BUILD_TYPE::RELEASE);
+    link();
+
+    return true;
+}
+
+bool ThorScriptDriver::build()
+{
+    std::string s = readCache();
+    if (s == "release")
+    {
+        buildRelease();
+    }
+    else
+    {
+        buildDebug();
+    }
+    return true;
+}
+
+bool ThorScriptDriver::generateBundle(const ThorScriptDriver::STRIP_TYPE isStrip)
+{
+    UNUSED_ARGUMENT(isStrip);
+
+    std::string cmd("ts-bundle -m manifest.xml");
+    cmd += " -o " + pm.name + ".bundle";
+    std::vector<std::string> astFiles = getAstUnderBuild();
+    foreach(i, astFiles)
+    {
+        cmd += " ";
+        cmd += *i;
+    }
+
+    if(isStrip == ThorScriptDriver::STRIP_TYPE::STRIP)
+    {
+        cmd += " --strip";
+    }
+
+    if(system(cmd.c_str()) == 0) return true;
+    else                         return false;
+}
+
+bool ThorScriptDriver::generateStub(const std::vector<std::string>& stubTypes)
+{
+    boost::filesystem::create_directories("stub");
+    stage::ThorScriptBundleStage bundler;
+    tree::Tangle* tangle = bundler.getMergedAST(getAstUnderBuild());
+    std::string stubAstName = "build/stub-" + pm.name + ".ast";
+    stage::ASTSerializationHelper::serialize(stubAstName, tangle);
+
+    foreach(i, stubTypes)
+    {
+        std::string cmd = "ts-stub " +
+                          stubAstName +
+                          " --output-path=stub " +
+                          " --stub-type=" + *i +
+                          " --game-name=" + pm.name;
+        if(system(cmd.c_str()))
+        {
+            return false;
+        }
+    }
+    return true;
+}
+
+bool ThorScriptDriver::generateClientStub(const ThorScriptDriver::STUB_LANG lang)
+{
+    UNUSED_ARGUMENT(lang);
+
+    return generateStub({"CLIENT_CLIENTSTUB_H",
+                         "CLIENT_GAMESERVICE_CPP",
+                         "CLIENT_GAMESERVICE_H"});
+}
+
+bool ThorScriptDriver::generateServerStub()
+{
+    return generateStub({"GATEWAY_GAMECOMMAND_CLIENTCOMMANDOBJECT_H",
+                         "GATEWAY_GAMECOMMAND_CLOUDCOMMANDOBJECT_H",
+                         "GATEWAY_GAMECOMMAND_GAMECOMMANDTRANSLATOR_CPP",
+                         "GATEWAY_GAMECOMMAND_GAMEMODULE_MODULE"});
+    return true;
+}
+
+//////////////////////////////////////////////////////////////////////////////
+
+bool ThorScriptDriver::unbundle()
+{
+    zillians::language::ProjectManifest projectManifest;
+    projectManifest.load("manifest.xml");
+
+    foreach(i, projectManifest.dep.bundles)
+    {
+        std::string cmd = "ts-bundle -d " + *i;
+        if(system(cmd.c_str()) != 0)
+        {
+            return false;
+        }
+    }
+
+    return true;
+}
+
+bool ThorScriptDriver::dep()
+{
+    if(system("ts-dep") == 0)
+    {
+        return true;
+    }
+    return false;
+}
+
+bool ThorScriptDriver::make(const ThorScriptDriver::BUILD_TYPE type)
+{
+    // TODO ts-make should take option --debug --release
+    int result = 0;
+    if(type == ThorScriptDriver::BUILD_TYPE::DEBUG)
+    {
+        result = system("ts-make");
+    }
+    else
+    {
+        result = system("ts-make");
+    }
+    return result == 0;
+}
+
+bool ThorScriptDriver::bundle()
+{
+    if(system("ts-bundle -m manifest") == 0)
+    {
+        return true;
+    }
+    return false;
+}
+
+bool ThorScriptDriver::strip()
+{
+    if(system("ts-strip") == 0)
+    {
+        return true;
+    }
+    return false;
+}
+
+bool ThorScriptDriver::link()
+{
+    namespace fs = boost::filesystem;
+
+    std::string cmd("ts-link");
+    cmd += " -o " + pm.name + ".so";
+    for(auto i = fs::directory_iterator("build/"); i != fs::directory_iterator(); ++i)
+    {
+        if(i->path().extension() == ".bc")
+        {
+            cmd += " ";
+            cmd += i->path().string();
+        }
+    }
+    foreach(i, this->pm.dep.native_objects)
+    {
+        cmd += " ";
+        cmd += *i;
+    }
+    foreach(i, this->pm.dep.native_libraries)
+    {
+        cmd += " ";
+        cmd += *i;
+    }
+    if(system(cmd.c_str()) == 0) return true;
+    else                         return false;
 }
 
 } }

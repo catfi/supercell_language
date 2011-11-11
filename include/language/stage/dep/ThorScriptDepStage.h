@@ -20,6 +20,9 @@
 #ifndef ZILLIANS_LANGUAGE_STAGE_DEP_THORSCRIPTDEPSTAGE_H_
 #define ZILLIANS_LANGUAGE_STAGE_DEP_THORSCRIPTDEPSTAGE_H_
 
+#include <utility>
+#include <boost/filesystem.hpp>
+#include <log4cxx/logger.h>
 #include "language/stage/Stage.h"
 
 namespace zillians { namespace language { namespace stage {
@@ -43,6 +46,8 @@ public:
 
 public:
     std::vector<std::string> inputFiles;
+    boost::filesystem::path rootDir;
+    log4cxx::LoggerPtr logger;
 };
 
 } } }

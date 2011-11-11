@@ -52,7 +52,6 @@
 namespace zillians { namespace language { namespace stage {
 
 #define THORSCRIPT_ASM_EXTENSION		".s"
-#define THORSCRIPT_BUNDLE_EXTENSION		".bundle"
 #define THORSCRIPT_BITCODE_EXTENSION	".bc"
 #define THORSCRIPT_AST_EXTENSION		".ast"
 #define THORSCRIPT_MANIFEST_EXTENSION	".xml"
@@ -110,9 +109,11 @@ bool ThorScriptLinkerStage::parseOptions(po::variables_map& vm)
 			boost::filesystem::path file_path(inputs[i]);
 			std::string extension = file_path.extension().generic_string();
 
-			if (extension == THORSCRIPT_BUNDLE_EXTENSION)
+            // TODO current support only .bc input files.
+            // need to support .o .a .so
+			if (extension == THORSCRIPT_BITCODE_EXTENSION)
 			{
-				bundle_file = inputs[i];
+				bc_files.push_back(inputs[i]);
 			}
 			else
 			{
@@ -143,52 +144,17 @@ bool ThorScriptLinkerStage::execute(bool& continue_execution)
 {
 	UNUSED_ARGUMENT(continue_execution);
 
-	// Unzip the bundle file
-	std::string bc_file;
-	std::string ast_file;
-	std::string manifest_file;
-	extractFilesFromBundle(bc_file, ast_file, manifest_file);
-
 	// Compile to assembly file
-	std::string asm_file;
-	buildAssemblyCode(bc_file, asm_file);
+	std::vector<std::string> asm_files;
+    foreach(i, bc_files)
+    {
+        std::string asm_file;
+        buildAssemblyCode(*i, asm_file);
+        asm_files.push_back(asm_file);
+    }
 
 	// Use native compiler to generate native code
-	buildNativeCode(asm_file);
-
-	// Delete the temporarily files
-	std::remove(bc_file.c_str());
-	std::remove(ast_file.c_str());
-	std::remove(manifest_file.c_str());
-	std::remove(asm_file.c_str());
-
-	return true;
-}
-
-bool ThorScriptLinkerStage::extractFilesFromBundle(std::string& bc_file, std::string& ast_file, std::string& manifest_file)
-{
-	// Extract all archive items into memory
-	Archive ar(bundle_file, ArchiveMode::ARCHIVE_FILE_DECOMPRESS);
-
-	std::vector<ArchiveItem_t> items;
-	ar.open();
-	ar.extractAllToFolder(items);
-	ar.close();
-
-	// Well, return the filename back
-	for (size_t i = 0; i < items.size(); i++)
-	{
-		boost::filesystem::path file_path(items[i].filename);
-		std::string extension = file_path.extension().generic_string();
-
-		if (extension == THORSCRIPT_BITCODE_EXTENSION) bc_file = items[i].filename;
-		if (extension == THORSCRIPT_AST_EXTENSION)	ast_file = items[i].filename;
-		if (extension == THORSCRIPT_MANIFEST_EXTENSION) manifest_file = items[i].filename;
-	}
-
-	std::cout << "bc: " << bc_file << std::endl;
-	std::cout << "ast: " << ast_file << std::endl;
-	std::cout << "manifest: " << manifest_file << std::endl;
+	buildNativeCode(asm_files);
 
 	return true;
 }
@@ -259,7 +225,7 @@ bool ThorScriptLinkerStage::buildAssemblyCode(const std::string& bc_file, std::s
 	return true;
 }
 
-bool ThorScriptLinkerStage::buildNativeCode(std::string& asm_file)
+bool ThorScriptLinkerStage::buildNativeCode(const std::vector<std::string>& asm_files)
 {
 	// TODO: How about windows!?
 	llvm::sys::Path native_compiler = llvm::sys::Program::FindProgramByName(NATIVE_COMPILER);
@@ -284,7 +250,8 @@ bool ThorScriptLinkerStage::buildNativeCode(std::string& asm_file)
 		args += " -Wl,-rpath=" + runtime_search_paths[i];
 
 	// input files
-	args += " " + asm_file;
+	for (size_t i = 0; i < asm_files.size(); i++)
+        args += " " + asm_files[i];
 	for (size_t i = 0; i < native_files.size(); i++)
 		args += " " + native_files[i];
 

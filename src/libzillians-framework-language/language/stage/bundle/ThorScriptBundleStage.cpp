@@ -30,12 +30,15 @@
 #include "language/tree/ASTNode.h"
 #include "language/tree/ASTNodeFactory.h"
 #include "language/tree/ASTNodeSerialization.h"
+#include "language/stage/strip/visitor/ThorScriptStripStageVisitor.h"
 
 #include "llvm/LLVMContext.h"
 #include "llvm/Linker.h"
 #include "llvm/Support/PathV1.h"
 #include "llvm/Bitcode/BitstreamWriter.h"
 #include "llvm/Bitcode/ReaderWriter.h"
+
+#include "utility/sha1.h"
 
 
 namespace zillians { namespace language { namespace stage {
@@ -80,7 +83,7 @@ bool getBufferFromFile(const std::string& file_name, std::vector<unsigned char>&
 // class member function
 //////////////////////////////////////////////////////////////////////////////
 
-ThorScriptBundleStage::ThorScriptBundleStage() : Stage(), output_file(THORSCRIPT_DEFAULT_BUNDLE_NAME)
+ThorScriptBundleStage::ThorScriptBundleStage() : Stage(), output_file(THORSCRIPT_DEFAULT_BUNDLE_NAME), stripped(false)
 { }
 
 ThorScriptBundleStage::~ThorScriptBundleStage()
@@ -98,7 +101,10 @@ std::pair<shared_ptr<po::options_description>, shared_ptr<po::options_descriptio
 
 	option_desc_public->add_options()
 		("manifest,m", po::value<std::string>(), "specify manifest file")
-		("output,o", po::value<std::string>(), "output bundle file name");
+		("output,o", po::value<std::string>(), "output bundle file name")
+		("extract,d", po::value<std::vector<std::string>>(), "extract bundle to build directory")
+		("strip", "build stripped bundle")
+    ;
 
 	foreach(i, option_desc_public->options()) option_desc_private->add(*i);
 
@@ -139,10 +145,41 @@ bool ThorScriptBundleStage::parseOptions(po::variables_map& vm)
 		output_file = vm["output"].as<std::string>();
 	}
 
+    if (vm.count("extract"))
+    {
+        bundleDependency = vm["extract"].as<std::vector<std::string>>();
+    }
+
+    if (vm.count("strip"))
+    {
+        stripped = true;
+    }
+
 	return true;
 }
 
-bool ThorScriptBundleStage::execute(bool& continue_execution)
+bool ThorScriptBundleStage::extract(bool& continue_execution)
+{
+	UNUSED_ARGUMENT(continue_execution);
+
+    foreach(i, bundleDependency)
+    {
+        if(!boost::filesystem::exists(*i))
+        {
+            std::cerr << "Missing bundle file `" << *i << "`" << std::endl;
+            return false;
+        }
+        Archive ar(*i, ArchiveMode::ARCHIVE_FILE_DECOMPRESS);
+        ar.open();
+        std::vector<ArchiveItem_t> archiveItems;
+        std::string bundleSha1Name = sha1::sha1(*i);
+        ar.extractAllToFolder(archiveItems, "build/" + bundleSha1Name);
+        ar.close();
+    }
+    return true;
+}
+
+bool ThorScriptBundleStage::compress(bool& continue_execution)
 {
 	UNUSED_ARGUMENT(continue_execution);
 
@@ -169,13 +206,23 @@ bool ThorScriptBundleStage::execute(bool& continue_execution)
 	getManifestBuffer(manifest_item.buffer);
 
 	// Add to archive
-	ar.open();
 	if (bc_item.buffer.size() > 0) ar.add(bc_item);
 	if (ast_item.buffer.size() > 0) ar.add(ast_item);
 	if (manifest_item.buffer.size() > 0) ar.add(manifest_item);
-	ar.close();
 
 	return true;
+}
+
+bool ThorScriptBundleStage::execute(bool& continue_execution)
+{
+    if(!bundleDependency.empty())
+    {
+        return extract(continue_execution);
+    }
+    else
+    {
+        return compress(continue_execution);
+    }
 }
 
 void ThorScriptBundleStage::getMergeBitCodeBuffer(std::vector<unsigned char>& buffer)
@@ -204,33 +251,46 @@ void ThorScriptBundleStage::getMergeBitCodeBuffer(std::vector<unsigned char>& bu
 	llvm::WriteBitcodeToStream(composite.get(), stream);
 }
 
-void ThorScriptBundleStage::getMergeASTBuffer(std::vector<unsigned char>& buffer)
+Tangle* ThorScriptBundleStage::getMergedAST(const std::vector<std::string>& ast_files)
 {
 	using namespace tree;
-    Package* package = NULL;
+    Tangle* tangle = NULL;
 
     for (size_t i = 0; i < ast_files.size(); i++)
     {
         ASTNode* deserialized = ASTSerializationHelper::deserialize(ast_files[i]);
 
-		if(!deserialized || !isa<Package>(deserialized)) continue;
-       	Package* current_package = cast<Package>(deserialized);
-        if (package == NULL)
+		if(!deserialized || !isa<Tangle>(deserialized)) continue;
+       	Tangle* current_package = cast<Tangle>(deserialized);
+        if (tangle == NULL)
         {
-        	package = current_package;
+        	tangle = current_package;
         }
         else
         {
         	// Merge with the previous program
-        	package->merge(*current_package);
+        	tangle->merge(*current_package);
         }
     }
+    return tangle;
+}
+
+void ThorScriptBundleStage::getMergeASTBuffer(std::vector<unsigned char>& buffer)
+{
+	using namespace tree;
+    Tangle* tangle = getMergedAST(ast_files);
 
     // TODO: No write to disk
-    if (package)
+    if (tangle)
     {
+        if (stripped)
+        {
+            zillians::language::stage::visitor::ThorScriptStripStageVisitor stripVisitor;
+            stripVisitor.strip(*tangle);
+        }
+
     	std::string temp_filename = THORSCRIPT_AST_TEMP_MERGED_FILE;
-		ASTSerializationHelper::serialize(temp_filename, package);
+		ASTSerializationHelper::serialize(temp_filename, tangle);
 
 		// Read the source buffer
 		getBufferFromFile(temp_filename, buffer);
