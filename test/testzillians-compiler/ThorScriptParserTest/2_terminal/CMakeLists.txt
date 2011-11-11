@@ -20,6 +20,14 @@
 #
 
 zillians_add_complex_test(
+    TARGET thorscript-parser-test-auto-terminal
+    SHELL ${CMAKE_CURRENT_SOURCE_DIR}/../test.sh ${ThorScriptCompiler} ${ThorScriptLogFilter} 3
+            ${CMAKE_CURRENT_SOURCE_DIR}/0_datatype.t
+            ${CMAKE_CURRENT_SOURCE_DIR}/1_name.t
+    DEPENDS ${ThorScriptCompiler} ${ThorScriptLogFilter}
+    )
+
+zillians_add_complex_test(
     TARGET thorscript-parser-test-terminal
     SHELL ${CMAKE_CURRENT_SOURCE_DIR}/../test.sh ${ThorScriptCompiler} ${ThorScriptLogFilter} 0
             ${CMAKE_CURRENT_SOURCE_DIR}/0_datatype.t
@@ -43,5 +51,6 @@ zillians_add_complex_test(
     DEPENDS ${ThorScriptCompiler} ${ThorScriptLogFilter}
     )
 
+zillians_add_test_to_subject(SUBJECT thorscript-parser-test-auto-all TARGET thorscript-parser-test-auto-terminal)
 zillians_add_test_to_subject(SUBJECT thorscript-parser-test-all TARGET thorscript-parser-test-terminal)
 zillians_add_test_to_subject(SUBJECT thorscript-parser-test-ast-all TARGET thorscript-parser-test-ast-terminal)

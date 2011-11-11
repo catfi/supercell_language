@@ -36,6 +36,15 @@ for ARG in "$@"; do
         fi
         continue
     fi
+    if [ $MODE -eq 3 ]; then
+        $TS_COMPILE $ARG --root-dir=`dirname $ARG` --mode-parse
+        ERROR_CODE="$?"
+        if [ $ERROR_CODE -ne 0 ]; then
+            echo "ERROR: parse fail!"
+            exit 1
+        fi
+        continue
+    fi
     $TS_COMPILE $ARG --root-dir=`dirname $ARG` --mode-parse --debug-parser |& grep -v "[DEBUG]" > $TEMP_FILE_A
     ERROR_CODE="${PIPESTATUS[0]}" # NOTE: need PIPESTATUS because piped grep always succeeds
     if [ $ERROR_CODE -ne 0 ]; then
