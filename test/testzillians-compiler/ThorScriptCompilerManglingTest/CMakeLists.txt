@@ -19,45 +19,12 @@
 # Contact Information: info@zillians.com
 #
 
-include_directories(
-    ${PROJECT_COMMON_SOURCE_DIR}/include/
-    ${PROJECT_FRAMEWORK_SOURCE_DIR}/include/
+zillians_add_complex_test(
+    TARGET thorscript-mangling-test
+    SHELL ${CMAKE_CURRENT_SOURCE_DIR}/test.sh ${ThorScriptDriver} ${CMAKE_CURRENT_BINARY_DIR}
+            ${CMAKE_CURRENT_SOURCE_DIR}/data/input.t
+            "qwe"
+            "_func_"
+            ${CMAKE_CURRENT_SOURCE_DIR}/gold/output
+    DEPENDS tsc
     )
-
-add_executable(tsc
-    main.cpp
-    language/ThorScriptDriver.cpp
-    )
-    
-target_link_libraries(tsc
-    zillians-common-core
-    zillians-common-utility
-    zillians-framework-language
-    )
-    
-get_target_property(ThorScriptDriver tsc LOCATION)
-message(STATUS "Using ThorScript Driver: \"${ThorScriptDriver}\"")
-
-IF(
-    TARGET ts-bundle AND
-    TARGET ts-compile AND
-    TARGET ts-dep AND
-    TARGET ts-link AND
-    TARGET ts-make AND
-    TARGET ts-manifest AND
-    TARGET ts-strip AND
-    TARGET ts-stub AND
-    TARGET ts-vm
-    )
-    ADD_DEPENDENCIES(tsc
-        ts-bundle
-        ts-compile
-        ts-dep
-        ts-link
-        ts-make
-#        ts-manifest
-        ts-strip
-        ts-stub
-#        ts-vm
-        )
-ENDIF()
