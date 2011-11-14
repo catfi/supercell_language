@@ -17,6 +17,7 @@ class void_
 // no-param vs params vs return-value
 function _func_00_():void { }
 function _func_01_(x:int8, y:int8):void { }
+//function _func_02_():int8 { }
 
 // primitive-type
 function _func_10_(x:int8):void { }
@@ -28,6 +29,7 @@ function _func_14_(x:int64):void { }
 // non-primitive-type
 class QWE { }
 function _func_20_(x:QWE):void { }
+//function _func_20_(x:QWE):QWE { }
 
 // pointer vs reference
 function _func_30_(x:ptr_<void_>):void { }
@@ -47,5 +49,6 @@ function _func_44_(x:ptr_<ptr_<void_> >):void { }
 class ASD
 {
     function _func_45_():void { }
+//    static function _func_46_():void { }
 }
 
