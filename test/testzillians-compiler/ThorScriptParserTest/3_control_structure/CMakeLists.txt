@@ -20,6 +20,17 @@
 #
 
 zillians_add_complex_test(
+    TARGET thorscript-parser-test-auto-control-structure
+    SHELL ${CMAKE_CURRENT_SOURCE_DIR}/../test.sh ${ThorScriptCompiler} ${ThorScriptLogFilter} 3
+            ${CMAKE_CURRENT_SOURCE_DIR}/0_if_elif_else.t
+            ${CMAKE_CURRENT_SOURCE_DIR}/1_switch_case_default.t
+            ${CMAKE_CURRENT_SOURCE_DIR}/2_while_dowhile.t
+            ${CMAKE_CURRENT_SOURCE_DIR}/3_foreach.t
+            ${CMAKE_CURRENT_SOURCE_DIR}/4_for.t
+    DEPENDS ${ThorScriptCompiler} ${ThorScriptLogFilter}
+    )
+
+zillians_add_complex_test(
     TARGET thorscript-parser-test-control-structure
     SHELL ${CMAKE_CURRENT_SOURCE_DIR}/../test.sh ${ThorScriptCompiler} ${ThorScriptLogFilter} 0
             ${CMAKE_CURRENT_SOURCE_DIR}/0_if_elif_else.t
@@ -52,5 +63,6 @@ zillians_add_complex_test(
     DEPENDS ${ThorScriptCompiler} ${ThorScriptLogFilter}
     )
 
+zillians_add_test_to_subject(SUBJECT thorscript-parser-test-auto-all TARGET thorscript-parser-test-auto-control-structure)
 zillians_add_test_to_subject(SUBJECT thorscript-parser-test-all TARGET thorscript-parser-test-control-structure)
 zillians_add_test_to_subject(SUBJECT thorscript-parser-test-ast-all TARGET thorscript-parser-test-ast-control-structure)
