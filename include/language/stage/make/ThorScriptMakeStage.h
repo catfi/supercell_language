@@ -23,6 +23,7 @@
 #include <utility>
 #include <boost/filesystem.hpp>
 #include <log4cxx/logger.h>
+#include "language/stage/dep/ThorScriptSourceTangleGraph.h"
 #include "language/stage/Stage.h"
 
 namespace zillians { namespace language { namespace stage {
@@ -49,9 +50,13 @@ private:
         RELEASE
     };
 
+private:
+    std::string genCompileCmd(boost::graph_traits<TangleGraphType>::vertex_descriptor v, TangleGraphType& g);
+
 public:
     bool dumpCompileCommand;
-    boost::filesystem::path rootDir;
+    boost::filesystem::path projectPath;
+    boost::filesystem::path buildPath;
     log4cxx::LoggerPtr logger;
 
 private:

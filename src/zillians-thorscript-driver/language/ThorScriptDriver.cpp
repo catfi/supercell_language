@@ -71,11 +71,92 @@ static std::string joinArgs(const std::vector<std::string>& argv)
     return result;
 }
 
-static std::vector<std::string> getAstUnderBuild()
+static boost::filesystem::path upToManifestDir()
+{
+    boost::filesystem::path p(".");
+    p = boost::filesystem::absolute(p);
+    while(!p.empty())
+    {
+        if(boost::filesystem::exists(p / "manifest.xml"))
+        {
+            return p;
+        }
+        else
+        {
+            p = p.parent_path();
+        }
+    }
+    return "";
+}
+
+static void printHelpPage()
+{
+    std::cout << "tsc project create app_name     create a folder named \"app_name\" and also\n"
+                 "                                the basic structure for it.\n"
+                 "                                build, src/, manifest.xml, README\n"
+                 "                                future work, init git repo\n"
+                 "\n"
+                 "tsc build release               by defalut tsc will read manifest, invoke\n"
+                 "                                ts-dep, ts-make, ts-compile, and ts-link to\n"
+                 "                                generate the final shared object\n"
+                 "                                (in release mode)\n"
+                 "\n"
+                 "tsc build debug                 by defalut tsc will read manifest, invoke\n"
+                 "                                ts-dep, ts-make, ts-compile, and ts-link to\n"
+                 "                                generate the final shared object\n"
+                 "                                (in debug mode)\n"
+                 "\n"
+                 "ts build                        by default will build the last configuration;\n"
+                 "                                if there's no last build, it build debug\n"
+                 "                                version; so if we issue tsc build release and\n"
+                 "                                the issue tsc build, it will equal to tsc build\n"
+                 "                                release\n"
+                 "\n"
+                 "tsc                             by default will invoke tsc build\n"
+                 "\n"
+                 "tsc generate bundle [--strip]  create bundle file\n"
+                 "\n"
+                 "tsc generate client-stub [java|c++|...]\n"
+                 "\n"
+                 "tsc generate server-stub\n"
+                 "\n"
+                 "The result of deployment is managed by a git server; for each instance, we\n"
+                 "will create a git url got it so that user can set remote and push to that\n"
+                 "remote to deploy his code.\n"
+    ;
+}
+
+//////////////////////////////////////////////////////////////////////////////
+// public member function
+//////////////////////////////////////////////////////////////////////////////
+
+ThorScriptDriver::ThorScriptDriver() : dumpCommand(false)
+{
+}
+
+//////////////////////////////////////////////////////////////////////////////
+// protected member function
+//////////////////////////////////////////////////////////////////////////////
+
+int ThorScriptDriver::shell(const std::string& cmd)
+{
+    if(dumpCommand)
+    {
+        std::cerr << "tsc call shell: `" << cmd << "`" << std::endl ;
+    }
+
+    return system(cmd.c_str());
+}
+
+//////////////////////////////////////////////////////////////////////////////
+// private member function
+//////////////////////////////////////////////////////////////////////////////
+
+std::vector<std::string> ThorScriptDriver::getAstUnderBuild()
 {
     std::vector<std::string> result;
     namespace fs = boost::filesystem;
-    for(auto i = fs::directory_iterator("build/"); i != fs::directory_iterator(); ++i)
+    for(auto i = fs::directory_iterator(buildPath); i != fs::directory_iterator(); ++i)
     {
         if(i->path().extension() == ".ast")
         {
@@ -85,21 +166,65 @@ static std::vector<std::string> getAstUnderBuild()
     return result;
 }
 
-//////////////////////////////////////////////////////////////////////////////
-// public member function
-//////////////////////////////////////////////////////////////////////////////
-
-ThorScriptDriver::ThorScriptDriver()
+bool ThorScriptDriver::setProjectPathAndBuildPath(std::vector<std::string>& argv)
 {
+    const std::string dStr = "--dump-command";
+    projectPath = upToManifestDir();
+    foreach(i, argv)
+    {
+        if(i->find(dStr) == 0)
+        {
+            dumpCommand = true;
+            argv.erase(i);
+            break;
+        }
+    }
+
+    const std::string pStr = "--project-path=";
+    projectPath = upToManifestDir();
+    foreach(i, argv)
+    {
+        if(i->find(pStr) == 0)
+        {
+            projectPath = i->substr(pStr.size());
+            argv.erase(i);
+            break;
+        }
+    }
+
+    if(projectPath == "")
+    {
+        std::cerr << "Not under a project directory" << std::endl;
+        return false;
+    }
+
+    buildPath = "./build";
+    const std::string bStr = "--build-path=";
+    foreach(i, argv)
+    {
+        if(i->find(bStr) == 0)
+        {
+            buildPath = i->substr(bStr.size());
+            buildPath = boost::filesystem::absolute(buildPath);
+            argv.erase(i);
+            break;
+        }
+    }
+
+    boost::filesystem::create_directories(buildPath);
+    std::cout << "Project director: " << this->projectPath << std::endl ;
+    std::cout << "Build   director: " << this->buildPath << std::endl ;
+    boost::filesystem::current_path(projectPath);
+    return true;
 }
 
-//////////////////////////////////////////////////////////////////////////////
-// private member function
-//////////////////////////////////////////////////////////////////////////////
-
-bool ThorScriptDriver::main(const std::vector<std::string>& argv)
+bool ThorScriptDriver::main(std::vector<std::string> argv)
 {
-    std::string arg = joinArgs(argv);
+    if(argv[1] == "--help")
+    {
+        printHelpPage();
+        return true;
+    }
 
     if(argv.size() == 4 &&
        argv[1] == "project" &&
@@ -108,7 +233,14 @@ bool ThorScriptDriver::main(const std::vector<std::string>& argv)
         return createProjectSkeleton(argv[3]);
     }
 
+    if(!setProjectPathAndBuildPath(argv))
+    {
+        return false;
+    }
+
     pm.load("manifest.xml");
+
+    std::string arg = joinArgs(argv);
 
     if(arg == "")
     {
@@ -148,39 +280,7 @@ bool ThorScriptDriver::main(const std::vector<std::string>& argv)
     }
     else
     {
-        std::cout << "tsc project create app_name     create a folder named \"app_name\" and also\n"
-                     "                                the basic structure for it.\n"
-                     "                                build, src/, manifest.xml, README\n"
-                     "                                future work, init git repo\n"
-                     "\n"
-                     "tsc build release               by defalut tsc will read manifest, invoke\n"
-                     "                                ts-dep, ts-make, ts-compile, and ts-link to\n"
-                     "                                generate the final shared object\n"
-                     "                                (in release mode)\n"
-                     "\n"
-                     "tsc build debug                 by defalut tsc will read manifest, invoke\n"
-                     "                                ts-dep, ts-make, ts-compile, and ts-link to\n"
-                     "                                generate the final shared object\n"
-                     "                                (in debug mode)\n"
-                     "\n"
-                     "ts build                        by default will build the last configuration;\n"
-                     "                                if there's no last build, it build debug\n"
-                     "                                version; so if we issue tsc build release and\n"
-                     "                                the issue tsc build, it will equal to tsc build\n"
-                     "                                release\n"
-                     "\n"
-                     "tsc                             by default will invoke tsc build\n"
-                     "\n"
-                     "tsc generate bundle [--strip]  create bundle file\n"
-                     "\n"
-                     "tsc generate client-stub [java|c++|...]\n"
-                     "\n"
-                     "tsc generate server-stub\n"
-                     "\n"
-                     "The result of deployment is managed by a git server; for each instance, we\n"
-                     "will create a git url got it so that user can set remote and push to that\n"
-                     "remote to deploy his code.\n"
-        ;
+        printHelpPage();
         return false;
     }
 }
@@ -210,6 +310,9 @@ bool ThorScriptDriver::createProjectSkeleton(const std::string& projectName)
 
     fout << "<project name=\"" << projectName << "\" author=\"author\" version=\"0.0.0.1\">\n"
          << "    <dependency>\n"
+         << "        <!-- bundle         path=\"./in_bundle/a.bundle\" -->\n"
+         << "        <!-- native_object  path=\"./native/b.o\"         -->\n"
+         << "        <!-- native_library path=\"./native/c.a\"         -->\n"
          << "    </dependency>\n"
          << "</project>\n" ;
 
@@ -261,7 +364,7 @@ bool ThorScriptDriver::generateBundle(const ThorScriptDriver::STRIP_TYPE isStrip
     UNUSED_ARGUMENT(isStrip);
 
     std::string cmd("ts-bundle -m manifest.xml");
-    cmd += " -o " + pm.name + ".bundle";
+    cmd += " -o " + (buildPath / "bin" / (pm.name + ".bundle")).string();
     std::vector<std::string> astFiles = getAstUnderBuild();
     foreach(i, astFiles)
     {
@@ -274,26 +377,27 @@ bool ThorScriptDriver::generateBundle(const ThorScriptDriver::STRIP_TYPE isStrip
         cmd += " --strip";
     }
 
-    if(system(cmd.c_str()) == 0) return true;
+    if(shell(cmd) == 0) return true;
     else                         return false;
 }
 
 bool ThorScriptDriver::generateStub(const std::vector<std::string>& stubTypes)
 {
-    boost::filesystem::create_directories("stub");
+    boost::filesystem::path stubPath = buildPath / "stub";
+    boost::filesystem::create_directories(stubPath);
     stage::ThorScriptBundleStage bundler;
     tree::Tangle* tangle = bundler.getMergedAST(getAstUnderBuild());
-    std::string stubAstName = "build/stub-" + pm.name + ".ast";
-    stage::ASTSerializationHelper::serialize(stubAstName, tangle);
+    boost::filesystem::path stubAstPath = buildPath / ("stub-" + pm.name + ".ast");
+    stage::ASTSerializationHelper::serialize(stubAstPath.string(), tangle);
 
     foreach(i, stubTypes)
     {
         std::string cmd = "ts-stub " +
-                          stubAstName +
-                          " --output-path=stub " +
+                          stubAstPath.string() +
+                          " --output-path=" + stubPath.string() +
                           " --stub-type=" + *i +
                           " --game-name=" + pm.name;
-        if(system(cmd.c_str()))
+        if(shell(cmd))
         {
             return false;
         }
@@ -328,8 +432,8 @@ bool ThorScriptDriver::unbundle()
 
     foreach(i, projectManifest.dep.bundles)
     {
-        std::string cmd = "ts-bundle -d " + *i;
-        if(system(cmd.c_str()) != 0)
+        std::string cmd = "ts-bundle -d " + *i + " --build-path=" + buildPath.string();
+        if(shell(cmd) != 0)
         {
             std::cerr << "ERROR unbundle step fail: " << cmd << std::endl;
             return false;
@@ -341,7 +445,7 @@ bool ThorScriptDriver::unbundle()
 
 bool ThorScriptDriver::dep()
 {
-    if(system("ts-dep") != 0)
+    if(shell("ts-dep --build-path=" + buildPath.string()) != 0)
     {
         std::cerr << "ERROR dep step fail: " << "ts-dep" << std::endl;
         return false;
@@ -352,7 +456,11 @@ bool ThorScriptDriver::dep()
 bool ThorScriptDriver::make(const ThorScriptDriver::BUILD_TYPE type)
 {
     // TODO ts-make should take option --debug --release
-    std::string cmd = "ts-make";
+    std::string cmd = "ts-make --build-path=" + buildPath.string();
+    if(dumpCommand)
+    {
+        cmd += " --dump-command";
+    }
     if(type == ThorScriptDriver::BUILD_TYPE::DEBUG)
     {
         cmd += " --debug";
@@ -361,7 +469,7 @@ bool ThorScriptDriver::make(const ThorScriptDriver::BUILD_TYPE type)
     {
         cmd += " --release";
     }
-    if(system(cmd.c_str()) != 0)
+    if(shell(cmd) != 0)
     {
         std::cerr << "ERROR make step fail: " << cmd << std::endl;
         return false;
@@ -371,7 +479,10 @@ bool ThorScriptDriver::make(const ThorScriptDriver::BUILD_TYPE type)
 
 bool ThorScriptDriver::bundle()
 {
-    if(system("ts-bundle -m manifest") != 0)
+    boost::filesystem::create_directories(buildPath / "bin");
+    boost::filesystem::path bundlePath = buildPath / "bin" / (pm.name + ".bundle");
+    std::string cmd = "ts-bundle -m manifest -o " + bundlePath.string();;
+    if(shell(cmd) != 0)
     {
         std::cerr << "ERROR bundle step fail: " << "ts-bundle" << std::endl;
         return false;
@@ -381,7 +492,7 @@ bool ThorScriptDriver::bundle()
 
 bool ThorScriptDriver::strip()
 {
-    if(system("ts-strip") != 0)
+    if(shell("ts-strip") != 0)
     {
         std::cerr << "ERROR strip step fail: " << "ts-strip" << std::endl;
         return false;
@@ -393,9 +504,10 @@ bool ThorScriptDriver::link()
 {
     namespace fs = boost::filesystem;
 
-    std::string cmd("ts-link");
-    cmd += " -o " + pm.name + ".so";
-    for(auto i = fs::directory_iterator("build/"); i != fs::directory_iterator(); ++i)
+    fs::create_directories(buildPath / "bin");
+    fs::path soPath = buildPath / "bin" / (pm.name + ".so");
+    std::string cmd = "ts-link -o " + soPath.string();
+    for(auto i = fs::directory_iterator(buildPath); i != fs::directory_iterator(); ++i)
     {
         if(i->path().extension() == ".bc")
         {
@@ -413,7 +525,7 @@ bool ThorScriptDriver::link()
         cmd += " ";
         cmd += *i;
     }
-    if(system(cmd.c_str()) != 0)
+    if(shell(cmd) != 0)
     {
         return false;
     }

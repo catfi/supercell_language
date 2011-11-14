@@ -43,46 +43,6 @@
 // declaration for boost graph 'named_graph'
 //////////////////////////////////////////////////////////////////////////////
 
-namespace zillians { namespace language { namespace stage { namespace detail {
-
-/**
- * About boost::graph named_graph:
- * see:
- * - http://stackoverflow.com/questions/7315687/boost-graph-library-named-graph-and-remove-vertex
- * - BOOST_SOURCE_DIR/libs/graph/test/named_vertices_test.cpp
- */
-struct vertex_info
-{
-    std::string name;
-    vertex_info(const std::string& name_) : name(name_) { }
-    vertex_info() : name("uninitialized-name") { }
-};
-
-} } } }
-
-namespace boost { namespace graph {
-    template<typename Type>
-    struct vertex_name_extractor {
-        typedef Type type;
-        typedef const std::string& result_type;
-        result_type operator()(const Type& v) const {
-            return v.name;
-        }
-    } ;
-
-    template<>
-    struct internal_vertex_name<zillians::language::stage::detail::vertex_info> {
-        typedef vertex_name_extractor<zillians::language::stage::detail::vertex_info> type;
-    } ;
-
-    template<>
-    struct internal_vertex_constructor<zillians::language::stage::detail::vertex_info> {
-        typedef vertex_from_name<zillians::language::stage::detail::vertex_info> type;
-    } ;
-} }
-
-typedef boost::adjacency_list<boost::vecS, boost::vecS, boost::directedS, zillians::language::stage::detail::vertex_info> FileGraphType;
-
 namespace zillians { namespace language { namespace stage {
 
 //////////////////////////////////////////////////////////////////////////////
@@ -131,7 +91,67 @@ static bool isRegularFile(const std::string& pathString)
     return fs::exists(p) && fs::is_regular_file(p);
 }
 
-static bool parseFileImportedPackages(const std::string& tsFileName, std::set<std::wstring>& packages)
+static std::string packageNameToPathName(const std::wstring& packageName)
+{
+    std::string result = ws_to_s(packageName);
+    std::replace(result.begin(), result.end(), '.', '/');
+    result = "src/" + result;
+    return result;
+}
+
+// Customize boost::graph write graphviz vertex.
+
+/**
+ * @brief Customize boost::graph write graphviz vertex.
+ *
+ * @see http://www.boost.org/doc/libs/release/libs/graph/doc/adjacency_list.html#serialization
+ */
+template<typename GraphType>
+class VertexWriter
+{
+public:
+
+     /**
+      * @brief Initialize the VertexWrite with the graph. hold the graph as a reference.
+      * @param g Graph to write out.
+      */
+    VertexWriter(const GraphType& g) : _g(g) {}
+    template<typename Vertex>
+    void operator()(std::ostream& out, const Vertex& v)
+    {
+        out << "[fontname=\"monospace\", shape=\"rectangle\", style=\"filled\", color=\"lightsteelblue1\", label=\"";
+        for(auto i = _g[v].begin(); i != _g[v].end(); ++i)
+        {
+            if(i != _g[v].begin())
+            {
+                out << "\\n";
+            }
+            out << *i;
+        }
+        out << "\"]";
+    }
+private:
+    const GraphType& _g;
+};
+
+static boost::filesystem::path getAstPath(const boost::filesystem::path& bundleFolder)
+{
+    namespace fs = boost::filesystem;
+    for(auto i = fs::directory_iterator(bundleFolder); i != fs::directory_iterator(); ++i)
+    {
+        if(i->path().extension().string() == ".ast")
+        {
+            return i->path();
+        }
+    }
+    UNREACHABLE_CODE();
+}
+
+//////////////////////////////////////////////////////////////////////////////
+// private member function
+//////////////////////////////////////////////////////////////////////////////
+
+bool ThorScriptDepStage::parseFileImportedPackages(const std::string& tsFileName, std::set<std::wstring>& packages)
 {
     std::string filename = tsFileName ;
     std::ifstream in(filename, std::ios_base::in);
@@ -185,20 +205,12 @@ static bool parseFileImportedPackages(const std::string& tsFileName, std::set<st
     return true;
 }
 
-static std::string packageNameToPathName(const std::wstring& packageName)
-{
-    std::string result = ws_to_s(packageName);
-    std::replace(result.begin(), result.end(), '.', '/');
-    result = "src/" + result;
-    return result;
-}
-
 /**
  * @brief Add dependency of a ThorScript source file @p tsFileName to @p fileGraph.
  * @param[in] pathString Package path to add.
  * @param[in,out] fileGraph Data structure to store dependency.
  */
-static bool addFileDependency(std::string tsFileName, const std::map<std::wstring, std::string>& packagesInAsts, FileGraphType& fileGraph, log4cxx::LoggerPtr logger)
+bool ThorScriptDepStage::addFileDependency(std::string tsFileName, const std::map<std::wstring, std::string>& packagesInAsts, FileGraphType& fileGraph, log4cxx::LoggerPtr logger)
 {
     // precondition
     BOOST_ASSERT(boost::filesystem::exists(tsFileName));
@@ -285,42 +297,33 @@ static bool addFileDependency(std::string tsFileName, const std::map<std::wstrin
     return true;
 }
 
-// Customize boost::graph write graphviz vertex.
-
-/**
- * @brief Customize boost::graph write graphviz vertex.
- *
- * @see http://www.boost.org/doc/libs/release/libs/graph/doc/adjacency_list.html#serialization
- */
-template<typename GraphType>
-class VertexWriter
+bool ThorScriptDepStage::scanBundlePackage(const boost::filesystem::path& astPath, std::multimap<std::string, std::wstring>& allBundlePackage)
 {
-public:
-
-     /**
-      * @brief Initialize the VertexWrite with the graph. hold the graph as a reference.
-      * @param g Graph to write out.
-      */
-    VertexWriter(const GraphType& g) : _g(g) {}
-    template<typename Vertex>
-    void operator()(std::ostream& out, const Vertex& v)
+    if(!boost::filesystem::exists(astPath))
     {
-        out << "[fontname=\"monospace\", shape=\"rectangle\", style=\"filled\", color=\"lightsteelblue1\", label=\"";
-        for(auto i = _g[v].begin(); i != _g[v].end(); ++i)
-        {
-            if(i != _g[v].begin())
-            {
-                out << "\\n";
-            }
-            out << *i;
-        }
-        out << "\"]";
+        LOG4CXX_ERROR(logger, "Input file `" << astPath.string() << "` does not exists.");
+        return false;
     }
-private:
-    const GraphType& _g;
-};
+    std::ifstream fin(astPath.string().c_str());
+    if(!fin.is_open())
+    {
+        LOG4CXX_ERROR(logger, "Can not open file `" << astPath.string() << "` to read.");
+        return false;
+    }
+    boost::archive::text_iarchive ia(fin);
+    zillians::language::tree::ASTNode* node = NULL;
+    ia >> node;
+    zillians::language::tree::Tangle* tangle = zillians::language::tree::cast<zillians::language::tree::Tangle>(node);
+    BOOST_ASSERT(tangle != NULL);
 
-static bool analyzeTangle(FileGraphType& g)
+    foreach(i, tangle->sources)
+    {
+        allBundlePackage.insert(std::make_pair(astPath.string(), i->first->toString()));
+    }
+    return true;
+}
+
+bool ThorScriptDepStage::analyzeTangle(const boost::filesystem::path& buildPath, FileGraphType& g)
 {
     // calculate strong connected components
     std::vector<int> component(boost::num_vertices(g));
@@ -352,83 +355,56 @@ static bool analyzeTangle(FileGraphType& g)
     }
 
     // create and change to build folder, if not exists.
-    if(!boost::filesystem::exists("build"))
+    if(!boost::filesystem::exists(buildPath))
     {
-        boost::filesystem::create_directory("build");
-        assert(boost::filesystem::exists("build"));
+        boost::filesystem::create_directory(buildPath);
+        assert(boost::filesystem::exists(buildPath));
     }
 
     // serialization
-    std::ofstream fout("build/ts.dep");
+    std::ofstream fout((buildPath / "ts.dep").string().c_str());
     boost::archive::text_oarchive oa(fout);
     oa << tangleG ;
     fout.close();
 
     // and restore
-    std::ifstream fin("build/ts.dep");
+    std::ifstream fin((buildPath / "ts.dep").string().c_str());
     boost::archive::text_iarchive ia(fin);
     TangleGraphType tangleRestored;
     ia >> tangleRestored;
     fin.close();
 
     // write graphviz
-    fout.open("build/ts.graphviz");
+    fout.open((buildPath / "ts.graphviz").string().c_str());
     boost::write_graphviz(fout, tangleRestored, VertexWriter<TangleGraphType>(tangleRestored));
     fout.close();
 
     return true;
 }
 
-static void scanBundlePackage(const boost::filesystem::path& astPath, std::multimap<std::string, std::wstring>& allBundlePackage)
+bool ThorScriptDepStage::scanAllBundlePackage(const boost::filesystem::path& buildPath, std::multimap<std::string, std::wstring>& allBundlePackage)
 {
-    std::ifstream fin(astPath.string().c_str());
-    boost::archive::text_iarchive ia(fin);
-    zillians::language::tree::ASTNode* node = NULL;
-    ia >> node;
-    zillians::language::tree::Tangle* tangle = zillians::language::tree::cast<zillians::language::tree::Tangle>(node);
-    BOOST_ASSERT(tangle != NULL);
-
-    foreach(i, tangle->sources)
-    {
-        allBundlePackage.insert(std::make_pair(astPath.string(), i->first->toString()));
-    }
-}
-
-static boost::filesystem::path getAstPath(const boost::filesystem::path& bundleFolder)
-{
-    namespace fs = boost::filesystem;
-    for(auto i = fs::directory_iterator(bundleFolder); i != fs::directory_iterator(); ++i)
-    {
-        if(i->path().extension().string() == ".ast")
-        {
-            return i->path();
-        }
-    }
-    UNREACHABLE_CODE();
-}
-
-static std::multimap<std::string, std::wstring> scanAllBundlePackage()
-{
-    std::multimap<std::string, std::wstring> allBundlePackage;
     namespace fs = boost::filesystem;
     zillians::language::ProjectManifest pm;
     pm.load("manifest.xml");
     foreach(i, pm.dep.bundles)
     {
-        fs::path bundleFolder = "build";
-        bundleFolder /= sha1::sha1(*i);
+        fs::path bundleFolder = buildPath / sha1::sha1(*i);
         fs::path astPath = getAstPath(bundleFolder);
         BOOST_ASSERT(fs::exists(astPath));
-        scanBundlePackage(astPath, allBundlePackage);
+        if(!scanBundlePackage(astPath, allBundlePackage))
+        {
+            return false;
+        }
     }
-    return allBundlePackage;
+    return true;
 }
 
 //////////////////////////////////////////////////////////////////////////////
 // class member function
 //////////////////////////////////////////////////////////////////////////////
 
-ThorScriptDepStage::ThorScriptDepStage() : rootDir("./"), logger(log4cxx::Logger::getLogger("ts-dep"))
+ThorScriptDepStage::ThorScriptDepStage() : rootDir("./"), buildPath("./build"), logger(log4cxx::Logger::getLogger("ts-dep"))
 {
     log4cxx::BasicConfigurator::configure();
     logger->setLevel(log4cxx::Level::getAll());
@@ -449,6 +425,7 @@ std::pair<shared_ptr<po::options_description>, shared_ptr<po::options_descriptio
 
 	option_desc_public->add_options()
         ("root-dir", po::value<std::string>())
+        ("build-path", po::value<std::string>())
         ("input", po::value<std::vector<std::string>>(), "input file")
     ;
 
@@ -464,6 +441,10 @@ bool ThorScriptDepStage::parseOptions(po::variables_map& vm)
     if(vm.count("root-dir"))
     {
         rootDir = vm["root-dir"].as<std::string>();
+    }
+    if(vm.count("build-path"))
+    {
+        buildPath = vm["build-path"].as<std::string>();
     }
     if(vm.count("input"))
     {
@@ -506,7 +487,12 @@ bool ThorScriptDepStage::execute(bool& continue_execution)
         }
     }
 
-    std::multimap<std::string, std::wstring> bundlePackages = scanAllBundlePackage();
+    std::multimap<std::string, std::wstring> bundlePackages;
+    if(!scanAllBundlePackage(buildPath, bundlePackages))
+    {
+        return false;
+    }
+
     std::map<std::wstring, std::string> packagesInAsts;
     foreach(i, bundlePackages)
     {
@@ -526,7 +512,7 @@ bool ThorScriptDepStage::execute(bool& continue_execution)
     }
 
     // analyze source file tangles (strong connected components)
-    analyzeTangle(fileGraph);
+    analyzeTangle(buildPath, fileGraph);
 
     return true;
 }

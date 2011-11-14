@@ -95,9 +95,13 @@ static bool allSourceAreAst(const std::set<std::string>& sourceFiles)
     return true;
 }
 
-static std::string genCompileCmd(boost::graph_traits<TangleGraphType>::vertex_descriptor v, TangleGraphType& g)
+//////////////////////////////////////////////////////////////////////////////
+// private member function
+//////////////////////////////////////////////////////////////////////////////
+
+std::string ThorScriptMakeStage::genCompileCmd(boost::graph_traits<TangleGraphType>::vertex_descriptor v, TangleGraphType& g)
 {
-    std::string cmd = "ts-compile ";
+    std::string cmd = "ts-compile";
 
     // TODO pass the buildType to ts-compile
     //if(buildType == BUILD_TYPE::DEBUG)
@@ -118,7 +122,7 @@ static std::string genCompileCmd(boost::graph_traits<TangleGraphType>::vertex_de
 
     foreach(i, sourceFiles)
     {
-        cmd += "'" + *i + "' ";
+        cmd += " '" + *i + "'";
     }
 
     // ast files
@@ -127,13 +131,15 @@ static std::string genCompileCmd(boost::graph_traits<TangleGraphType>::vertex_de
     {
         boost::graph_traits<TangleGraphType>::vertex_descriptor target = boost::target(*ei, g);
         const std::string& astfile = tangleFileName(target, g);
-        cmd += "'" + astfile + ".ast' ";
+        cmd += " '" + astfile + ".ast'";
     }
 
     // output files
     std::string outputFileName = tangleFileName(v, g);
-    cmd += "--emit-ast=build/" + outputFileName + ".ast ";
-    cmd += "--emit-llvm=build/" + outputFileName + ".bc ";
+    boost::filesystem::path astPath = buildPath / (outputFileName + ".ast");
+    boost::filesystem::path llvmPath = buildPath / (outputFileName + ".bc");
+    cmd += " '--emit-ast=" + astPath.string() + "'";
+    cmd += " '--emit-llvm=" + llvmPath.string() + "'";
 
     return cmd;
 }
@@ -142,7 +148,7 @@ static std::string genCompileCmd(boost::graph_traits<TangleGraphType>::vertex_de
 // class member function
 //////////////////////////////////////////////////////////////////////////////
 
-ThorScriptMakeStage::ThorScriptMakeStage() : dumpCompileCommand(false), rootDir("./"), logger(log4cxx::Logger::getLogger("ts-make"))
+ThorScriptMakeStage::ThorScriptMakeStage() : dumpCompileCommand(false), projectPath("./"), buildPath("./build/"), logger(log4cxx::Logger::getLogger("ts-make"))
 {
     log4cxx::BasicConfigurator::configure();
     logger->setLevel(log4cxx::Level::getAll());
@@ -162,8 +168,9 @@ std::pair<shared_ptr<po::options_description>, shared_ptr<po::options_descriptio
 	shared_ptr<po::options_description> option_desc_private(new po::options_description());
 
 	option_desc_public->add_options()
-        ("dump-compile-command", "dump compile command")
-        ("root-dir", po::value<std::string>())
+        ("dump-command", "dump compile command")
+        ("project-path", po::value<std::string>())
+        ("build-path", po::value<std::string>())
         ("debug", "debug build")
         ("release", "release build")
     ;
@@ -177,13 +184,17 @@ std::pair<shared_ptr<po::options_description>, shared_ptr<po::options_descriptio
 
 bool ThorScriptMakeStage::parseOptions(po::variables_map& vm)
 {
-    if(vm.count("dump-compile-command"))
+    if(vm.count("dump-command"))
     {
         dumpCompileCommand = true;
     }
-    if(vm.count("root-dir"))
+    if(vm.count("project-path"))
     {
-        rootDir = boost::filesystem::path(vm["root-dir"].as<std::string>());
+        projectPath = boost::filesystem::path(vm["project-path"].as<std::string>());
+    }
+    if(vm.count("build-path"))
+    {
+        buildPath = boost::filesystem::path(vm["build-path"].as<std::string>());
     }
     if(vm.count("debug") && vm.count("release"))
     {
@@ -215,16 +226,16 @@ bool ThorScriptMakeStage::execute(bool& continue_execution)
 	UNUSED_ARGUMENT(continue_execution);
 
     // precondition
-    if(!boost::filesystem::exists(rootDir))
+    if(!boost::filesystem::exists(projectPath))
     {
-        LOG4CXX_ERROR(logger, "Root directory `" << rootDir.string() << "` does not exists.");
+        LOG4CXX_ERROR(logger, "Root directory `" << projectPath.string() << "` does not exists.");
         return false;
     }
 
-    boost::filesystem::current_path(rootDir);
+    boost::filesystem::current_path(projectPath);
 
     // restore file dependency
-    boost::filesystem::path depFilePath("build/ts.dep");
+    boost::filesystem::path depFilePath = buildPath / "ts.dep";
     if(!boost::filesystem::exists(depFilePath))
     {
         LOG4CXX_ERROR(logger, "Dependency file `" << depFilePath.string() << "` does not exists.");

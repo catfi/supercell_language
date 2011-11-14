@@ -62,8 +62,10 @@ struct ProjectManifest {
                 dep.native_objects.push_back(v.second.get<std::string>("<xmlattr>.path"));
             } else if (v.first == "native_library") {
                 dep.native_libraries.push_back(v.second.get<std::string>("<xmlattr>.path"));
+            } else if (v.first == "<xmlcomment>") {
+                // comment, do nothing
             } else {
-                assert(!"no!!!!!!!!!!!");
+                std::cerr << "Unrecognized xml tag `" << v.first << "` ignored" << std::endl;
             }
         }
     }
