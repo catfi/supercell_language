@@ -31,30 +31,54 @@ BOOST_AUTO_TEST_SUITE( ThorScriptDriverTest_HappyPathTest )
 
 class MockDriver : public zillians::language::ThorScriptDriver
 {
+public:
+    enum class RunSystem { RUN, DONT_RUN } ;
+
+public:
+
+    /**
+     * @brief             Register an expected @p system() call event
+     * @param cmd         The command string to expected to be called
+     * @param returnValue The return value of the @p system() call.
+     * @param run         Actually apply the @p system() call or not.
+     */
+    void expectCallShell(const std::string& cmd, const int returnValue, const RunSystem run)
+    {
+        ExpectCallRecord e(cmd, returnValue, run);
+        expectedCalls.push(e);
+    }
+
+    std::vector<std::string> cmds;
+
 protected:
     virtual int shell(const std::string& cmd)
     {
-        BOOST_ASSERT(!shellReturns_.empty());
+        BOOST_ASSERT(!expectedCalls.empty());
         cmds.push_back(cmd);
 
-        auto expect = shellReturns_.front();
-        shellReturns_.pop();
-        if(expect.second)
+        ExpectCallRecord expectRecord = expectedCalls.front();
+        expectedCalls.pop();
+
+        BOOST_CHECK_EQUAL(cmd.find(expectRecord.cmd), 0);
+
+        if(expectRecord.run == RunSystem::RUN)
         {
             system(cmd.c_str());
         }
-        return expect.first;
+
+        return expectRecord.returnValue;
     }
 
 private:
-    std::queue<std::pair<int, bool>> shellReturns_;
-
-public:
-    void expectCallShell(const int v, const bool callSystem)
+    struct ExpectCallRecord
     {
-        shellReturns_.push({v, callSystem});
-    }
-    std::vector<std::string> cmds;
+        ExpectCallRecord(const std::string& cmd_, const int returnValue_, const RunSystem run_) : cmd(cmd_), returnValue(returnValue_), run(run_) {}
+        const std::string  cmd;
+        const int          returnValue;
+        const RunSystem    run;
+    } ;
+
+    std::queue<ExpectCallRecord> expectedCalls;
 };
 
 using boost::unit_test::framework::master_test_suite;
@@ -62,23 +86,18 @@ using boost::unit_test::framework::master_test_suite;
 BOOST_AUTO_TEST_CASE( ThorScriptDriverTest_HappyPathTestCase1 )
 {
     std::vector<std::string> argv(master_test_suite().argv, master_test_suite().argv + master_test_suite().argc);
-
-	MockDriver driver;
-    driver.expectCallShell(0, true);
-    driver.expectCallShell(0, true);
-    driver.expectCallShell(0, true);
-    driver.expectCallShell(0, false);
-
     argv[1] += "happy1";
     argv[2] += "happy1/build";
+
+	MockDriver driver;
+    driver.expectCallShell("ts-bundle -d inbundle/lib1.bundle", 0, MockDriver::RunSystem::RUN);
+    driver.expectCallShell("ts-dep"                           , 0, MockDriver::RunSystem::RUN);
+    driver.expectCallShell("ts-make"                          , 0, MockDriver::RunSystem::RUN);
+    driver.expectCallShell("ts-link"                          , 0, MockDriver::RunSystem::DONT_RUN);
+
 	driver.main(argv);
 
     BOOST_CHECK_EQUAL(driver.cmds.size(), 4);
-
-    BOOST_CHECK_EQUAL(driver.cmds[0].find("ts-bundle -d inbundle/lib1.bundle"), 0);
-    BOOST_CHECK_EQUAL(driver.cmds[1].find("ts-dep")                           , 0);
-    BOOST_CHECK_EQUAL(driver.cmds[2].find("ts-make")                          , 0);
-    BOOST_CHECK_EQUAL(driver.cmds[3].find("ts-link")                          , 0);
 
     BOOST_CHECK_NE(driver.cmds[3].find("_a.bc"            ), std::string::npos);
     BOOST_CHECK_NE(driver.cmds[3].find("_b.bc"            ), std::string::npos);
@@ -87,8 +106,7 @@ BOOST_AUTO_TEST_CASE( ThorScriptDriverTest_HappyPathTestCase1 )
     BOOST_CHECK_NE(driver.cmds[3].find("_d1.bc"           ), std::string::npos);
     BOOST_CHECK_NE(driver.cmds[3].find("_e11_e12.bc"      ), std::string::npos);
     BOOST_CHECK_NE(driver.cmds[3].find("_e13.bc"          ), std::string::npos);
-    BOOST_CHECK_NE(driver.cmds[3].find("happ1.so"         ), std::string::npos);
-
+    BOOST_CHECK_NE(driver.cmds[3].find("happy1.so"        ), std::string::npos);
     BOOST_CHECK_NE(driver.cmds[3].find("native/native1.o" ), std::string::npos);
     BOOST_CHECK_NE(driver.cmds[3].find("native/native2.so"), std::string::npos);
 }
@@ -98,12 +116,13 @@ BOOST_AUTO_TEST_CASE( ThorScriptDriverTest_NoSourceFiles )
     std::vector<std::string> argv(master_test_suite().argv, master_test_suite().argv + master_test_suite().argc);
     argv[1] += "no_source_file";
     argv[2] += "no_source_file/build";
+
 	MockDriver driver;
-    driver.expectCallShell(3, false);
+    driver.expectCallShell("ts-dep", 3, MockDriver::RunSystem::DONT_RUN);
+
 	driver.main(argv);
 
     BOOST_CHECK_EQUAL(driver.cmds.size(), 1);
-    BOOST_CHECK_EQUAL(driver.cmds[0].find("ts-dep"), 0);
 }
 
 BOOST_AUTO_TEST_SUITE_END()
