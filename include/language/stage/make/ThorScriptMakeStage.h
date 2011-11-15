@@ -23,6 +23,7 @@
 #include <utility>
 #include <boost/filesystem.hpp>
 #include <log4cxx/logger.h>
+#include "language/stage/dep/ThorScriptSourceTangleGraph.h"
 #include "language/stage/Stage.h"
 
 namespace zillians { namespace language { namespace stage {
@@ -42,10 +43,24 @@ public:
 	virtual bool parseOptions(po::variables_map& vm);
 	virtual bool execute(bool& continue_execution);
 
+private:
+    enum class BUILD_TYPE
+    {
+        DEBUG,
+        RELEASE
+    };
+
+private:
+    std::string genCompileCmd(boost::graph_traits<TangleGraphType>::vertex_descriptor v, TangleGraphType& g);
+
 public:
     bool dumpCompileCommand;
-    boost::filesystem::path rootDir;
+    boost::filesystem::path projectPath;
+    boost::filesystem::path buildPath;
     log4cxx::LoggerPtr logger;
+
+private:
+    BUILD_TYPE buildType;
 };
 
 } } }

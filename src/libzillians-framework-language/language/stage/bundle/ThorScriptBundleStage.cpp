@@ -103,6 +103,7 @@ std::pair<shared_ptr<po::options_description>, shared_ptr<po::options_descriptio
 		("manifest,m", po::value<std::string>(), "specify manifest file")
 		("output,o", po::value<std::string>(), "output bundle file name")
 		("extract,d", po::value<std::vector<std::string>>(), "extract bundle to build directory")
+		("build-path", po::value<std::string>(), "build directory")
 		("strip", "build stripped bundle")
     ;
 
@@ -150,6 +151,11 @@ bool ThorScriptBundleStage::parseOptions(po::variables_map& vm)
         bundleDependency = vm["extract"].as<std::vector<std::string>>();
     }
 
+    if (vm.count("build-path"))
+    {
+        buildPath = vm["build-path"].as<std::string>();
+    }
+
     if (vm.count("strip"))
     {
         stripped = true;
@@ -173,7 +179,8 @@ bool ThorScriptBundleStage::extract(bool& continue_execution)
         ar.open();
         std::vector<ArchiveItem_t> archiveItems;
         std::string bundleSha1Name = sha1::sha1(*i);
-        ar.extractAllToFolder(archiveItems, "build/" + bundleSha1Name);
+        boost::filesystem::path bundlePath = buildPath / bundleSha1Name;
+        ar.extractAllToFolder(archiveItems, bundlePath.string());
         ar.close();
     }
     return true;
