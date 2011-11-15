@@ -225,6 +225,7 @@ struct TemplatedIdentifier : public Identifier
 		}
 		else
 		{
+			t += id->toString();
 			// TODO how to dump type specifier without having its header?
 		}
 

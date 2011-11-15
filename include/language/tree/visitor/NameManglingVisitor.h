@@ -24,6 +24,9 @@
 #include "utility/UnicodeUtil.h"
 #include "core/Visitor.h"
 #include "language/tree/visitor/GenericVisitor.h"
+#include "language/tree/basic/PrimitiveType.h"
+#include "language/tree/ASTNodeHelper.h"
+#include <ctype.h>
 
 namespace zillians { namespace language { namespace tree { namespace visitor {
 
@@ -31,7 +34,7 @@ struct NameManglingVisitor : Visitor<ASTNode, void, VisitorImplementation::recur
 {
 	CREATE_INVOKER(mangleInvoker, mangle)
 
-	NameManglingVisitor()
+	NameManglingVisitor() : scoped(false)
 	{
 		REGISTER_ALL_VISITABLE_ASTNODE(mangleInvoker)
 	}
@@ -45,42 +48,35 @@ struct NameManglingVisitor : Visitor<ASTNode, void, VisitorImplementation::recur
 	{
 		if(node.parent) visit(*node.parent);
 
-		if(stream.str().length() > 0)
-			stream << "_";
-
 		stream << encode(node.toString());
 	}
 
 	void mangle(Package& node)
 	{
+		if(!ASTNodeHelper::isRootPackage(&node))
+			scoped = true;
 		if(node.parent) visit(*node.parent);
 
-		if(stream.str().length() > 0)
-			stream << "_";
-
-		if(node.id->isEmpty())
-			//stream << "root";
-			stream << "_";
+		if(ASTNodeHelper::isRootPackage(&node))
+		{
+			stream << "_Z"; // always begin with "_Z"
+			if(scoped)
+				stream << "N"; // name involves a named scope
+		}
 		else
-			stream << encode(node.id->toString());
+			stream << node.id->toString().length() << encode(node.id->toString());
 	}
 
 	void mangle(Block& node)
 	{
 		if(node.parent) visit(*node.parent);
 
-		if(stream.str().length() > 0)
-			stream << "_";
-
 		stream << "_B_";
 	}
 
 	void mangle(TypeSpecifier& node)
 	{
-		if(node.parent) visit(*node.parent);
-
-		if(stream.str().length() > 0)
-			stream << "_";
+//		if(node.parent) visit(*node.parent);
 
 		switch(node.type)
 		{
@@ -88,30 +84,53 @@ struct NameManglingVisitor : Visitor<ASTNode, void, VisitorImplementation::recur
 			visit(*node.referred.function_type);
 			break;
 		case TypeSpecifier::ReferredType::PRIMITIVE:
-			stream << PrimitiveType::toString(node.referred.primitive);
+			switch(node.referred.primitive)
+			{
+			case PrimitiveType::VOID:	stream << "v"; break;
+			case PrimitiveType::BOOL:	stream << "b"; break;
+			case PrimitiveType::INT8:	stream << "c"; break;
+			case PrimitiveType::INT16:   stream << "s"; break;
+			case PrimitiveType::INT32:   stream << "l"; /* or 'i' ? */ break;
+			case PrimitiveType::INT64:   stream << "x"; break;
+			case PrimitiveType::FLOAT32: stream << "f"; break;
+			case PrimitiveType::FLOAT64: stream << "d"; break;
+			default: UNREACHABLE_CODE();
+			}
 			break;
 		case TypeSpecifier::ReferredType::UNSPECIFIED:
-			stream << encode(node.referred.unspecified->toString());
+			stream << node.referred.unspecified->toString().length() << encode(node.referred.unspecified->toString());
 			break;
 		}
 	}
 
 	void mangle(ClassDecl& node)
 	{
+		scoped = true;
 		if(node.parent) visit(*node.parent);
 
-		if(stream.str().length() > 0)
-			stream << "_";
-
-		stream << encode(node.name->toString());
+		if(isa<TemplatedIdentifier>(node.name))
+		{
+			TemplatedIdentifier* tempalted_identifier = cast<TemplatedIdentifier>(node.name);
+			if(node.name->toString() == L"ptr_")
+			{
+				stream << "P";
+			}
+			else if(node.name->toString() == L"ref_")
+			{
+				stream << "R";
+			}
+			else if(node.name->toString() == L"const_")
+			{
+				stream << "C";
+			}
+		}
+		else
+			stream << node.name->toString().length() << encode(node.name->toString());
 	}
 
 	void mangle(InterfaceDecl& node)
 	{
 		if(node.parent) visit(*node.parent);
-
-		if(stream.str().length() > 0)
-			stream << "_";
 
 		stream << encode(node.name->toString());
 	}
@@ -120,9 +139,6 @@ struct NameManglingVisitor : Visitor<ASTNode, void, VisitorImplementation::recur
 	{
 		if(node.parent) visit(*node.parent);
 
-		if(stream.str().length() > 0)
-			stream << "_";
-
 		stream << encode(node.name->toString());
 	}
 
@@ -130,15 +146,56 @@ struct NameManglingVisitor : Visitor<ASTNode, void, VisitorImplementation::recur
 	{
 		if(node.parent) visit(*node.parent);
 
-		if(stream.str().length() > 0)
-			stream << "_";
+		stream << node.name->toString().length() << encode(node.name->toString());
+		std::vector<VariableDecl*>::iterator p = node.parameters.begin();
+		if(ASTNodeHelper::hasOwnerNamedScope(&node))
+		{
+			stream << "E"; // if mangled name begins with "N", end with "E"
+			if(isa<ClassDecl>(node.parent))
+			{
+				BOOST_ASSERT(node.parameters.size() >= 1 && "methods must have 1st parameter \"this\"");
+				p++; // skip "this" parameter for methods
+			}
+		}
+		if(p == node.parameters.end())
+			stream << "v"; // empty param list equivalent to "void" param type
+		else
+		{
+			for(; p != node.parameters.end(); p++)
+			{
+				// NOTE: this works
+                TypeSpecifier* type_specifier = (*p)->type;
+                visit(*type_specifier);
 
-		stream << encode(node.name->toString());
+				// NOTE: segfault
+//				TypeSpecifier* type_specifier = (*p)->type;
+//				if(ASTNodeHelper::isUnspecifiedType(type_specifier))
+//					visit(*ResolvedType::get(*p));
+//				else
+//					visit(*type_specifier);
+
+				// NOTE: segfault
+//                TypeSpecifier* type_specifier = (*p)->type;
+//                if(ASTNodeHelper::isUnspecifiedType(type_specifier))
+//                {
+//                    ASTNode* resolved_type = ResolvedType::get(*p);
+//                    if(resolved_type && isa<TypeSpecifier>(resolved_type))
+//                        type_specifier = cast<TypeSpecifier>(resolved_type);
+//                    else
+//                    {
+//                        visit(*resolved_type);
+//                        continue;
+//                    }
+//                }
+//                visit(*type_specifier);
+			}
+		}
 	}
 
 	void reset()
 	{
 		stream.str("");
+		scoped = false;
 	}
 
 	const std::string& encode(const std::wstring& ucs4)
@@ -156,7 +213,7 @@ struct NameManglingVisitor : Visitor<ASTNode, void, VisitorImplementation::recur
 			char c = *i;
 			if(i == ucs4_to_utf8_temp.begin())
 			{
-				if( (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || (c == '_') || (c == '.') )
+				if( isalpha(c) || (c == '_') || (c == '.') )
 				{
 					utf8_to_llvm_temp.push_back(c);
 				}
@@ -169,7 +226,7 @@ struct NameManglingVisitor : Visitor<ASTNode, void, VisitorImplementation::recur
 			}
 			else
 			{
-				if( (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || (c >= '0' && c <= '9') || (c == '_') || (c == '.') )
+				if( isalpha(c) || isdigit(c) || (c == '_') || (c == '.') )
 				{
 					utf8_to_llvm_temp.push_back(c);
 				}
@@ -196,6 +253,8 @@ struct NameManglingVisitor : Visitor<ASTNode, void, VisitorImplementation::recur
 	std::string utf8_to_llvm_temp;
 
 	std::stringstream stream;
+
+	bool scoped;
 };
 
 } } } }

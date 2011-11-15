@@ -325,7 +325,7 @@ private:
 		else
 			BOOST_ASSERT(false && "reaching unreachable code");
 		ASTNode* owner = ASTNodeHelper::getOwnerNamedScope(node);
-		if(owner && !name.empty())
+		if(owner)
 		{
 			SemanticVerificationScopeContext_NameSet* context =
 					SemanticVerificationScopeContext_NameSet::bind(owner);

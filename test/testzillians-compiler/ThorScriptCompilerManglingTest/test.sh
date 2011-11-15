@@ -23,6 +23,8 @@ diff $TEMP_FILE_A $TEMP_FILE_B
 ERROR_CODE="$?"
 if [ $ERROR_CODE -ne 0 ];
 then
+    #echo `pwd` # for debugging
+    #nm $PROJECT_NAME.so | xargs -I{} sh -c "echo {} | cut -d\" \" -f3 | c++filt -t" # for debugging
     echo "fail! (test.sh)"
     exit 1
 fi
