@@ -17,22 +17,31 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#include "language/ThorScriptVM.h"
-#include "language/stage/vm/ThorScriptVMStage.h"
+#ifndef ZILLIANS_LANGUAGE_STAGE_MAKE_THORSCRIPTVMSTAGE_H_
+#define ZILLIANS_LANGUAGE_STAGE_MAKE_THORSCRIPTVMSTAGE_H_
 
-using namespace zillians::language::stage;
+#include <vector>
+#include <string>
+#include "language/stage/Stage.h"
 
-namespace zillians { namespace language {
+namespace zillians { namespace language { namespace stage {
 
-ThorScriptVM::ThorScriptVM() : stage::StageBuilder(true)
+/**
+ * ThorScriptVMStage
+ */
+class ThorScriptVMStage : public Stage
 {
-	addDefaultMode<
-		boost::mpl::vector<
-			ThorScriptVMStage>>();
-}
+public:
+	ThorScriptVMStage();
+	virtual ~ThorScriptVMStage();
 
-ThorScriptVM::~ThorScriptVM()
-{
-}
+public:
+	virtual const char* name();
+	virtual std::pair<shared_ptr<po::options_description>, shared_ptr<po::options_description>> getOptions();
+	virtual bool parseOptions(po::variables_map& vm);
+	virtual bool execute(bool& continue_execution);
+};
 
-} }
+} } }
+
+#endif /* ZILLIANS_LANGUAGE_STAGE_MAKE_THORSCRIPTVMSTAGE_H_ */
