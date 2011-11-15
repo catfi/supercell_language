@@ -22,6 +22,7 @@
 
 #include <vector>
 #include <string>
+#include <boost/filesystem.hpp>
 #include "language/stage/Stage.h"
 
 namespace zillians { namespace language { namespace stage {
@@ -62,6 +63,7 @@ public:
 
     std::string output_file;
     std::vector<std::string> bundleDependency;
+    boost::filesystem::path buildPath;
     bool stripped;
 };
 
