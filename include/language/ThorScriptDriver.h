@@ -22,6 +22,7 @@
 
 #include <string>
 #include <vector>
+#include <boost/filesystem.hpp>
 #define BOOST_MPL_CFG_NO_PREPROCESSED_HEADERS
 #include "language/ThorScriptManifest.h"
 
@@ -31,7 +32,8 @@ class ThorScriptDriver
 {
 public:
     ThorScriptDriver();
-    bool main(const std::vector<std::string>& argv) ;
+    ~ThorScriptDriver();
+    bool main(std::vector<std::string> argv) ;
 
 private:
     enum class BUILD_TYPE {
@@ -66,8 +68,21 @@ private:
     bool link();
 
 private:
+    void saveCache(const std::string& s);
+    std::string readCache();
+    std::vector<std::string> getAstUnderBuild();
+    bool setProjectPathAndBuildPath(std::vector<std::string>& argv);
+
+protected:
+    virtual int shell(const std::string& cmd);
+
+private:
+    boost::filesystem::path originalPath;
     zillians::language::ProjectManifest pm;
+    boost::filesystem::path projectPath;
+    boost::filesystem::path buildPath;
     std::string argv;
+    bool dumpCommand;
 };
 
 } }
