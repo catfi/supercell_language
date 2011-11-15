@@ -97,6 +97,15 @@ struct ResolutionStageVisitor : GenericDoubleVisitor
 		}
 	}
 
+	void resolve(TemplatedIdentifier& node)
+	{
+		if(node.type == TemplatedIdentifier::Usage::ACTUAL_ARGUMENT)
+		{
+			foreach(i, node.templated_type_list)
+				visit(**i);
+		}
+	}
+
 	void resolve(Internal& node)
 	{
 		UNUSED_ARGUMENT(node);

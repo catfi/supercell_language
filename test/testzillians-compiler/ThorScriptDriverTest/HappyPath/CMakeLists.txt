@@ -1,6 +1,6 @@
 # 
 # Zillians MMO
-# Copyright (C) 2007-2009 Zillians.com, Inc.
+# Copyright (C) 2007-2011 Zillians.com, Inc.
 # For more information see http:#www.zillians.com
 #
 # Zillians MMO is the library and runtime for massive multiplayer online game
@@ -19,10 +19,26 @@
 # Contact Information: info@zillians.com
 #
 
-zillians_create_test_subject(SUBJECT thorscript-driver-test-all)
-zillians_add_subject_to_subject(PARENT framework-compiler-critical CHILD thorscript-driver-test-all)
+INCLUDE_DIRECTORIES(
+    ${PROJECT_COMMON_SOURCE_DIR}/include/
+    ${PROJECT_FRAMEWORK_SOURCE_DIR}/include/
+)
 
-get_target_property(ThorScriptDriver tsc LOCATION)
+ADD_EXECUTABLE( ThorScriptDriverTest_HappyPathTest
+    DriverHappyPathTest.cpp
+    ${PROJECT_FRAMEWORK_SOURCE_DIR}/src/zillians-thorscript-driver/language/ThorScriptDriver.cpp
+)
 
-ADD_SUBDIRECTORY(Minimal)
-ADD_SUBDIRECTORY(HappyPath)
+TARGET_LINK_LIBRARIES(ThorScriptDriverTest_HappyPathTest
+    zillians-common-core
+    zillians-common-utility
+    zillians-framework-language
+)
+
+zillians_add_complex_test(
+    TARGET thorscript-driver-test-happypath
+    DEPENDS ThorScriptDriverTest_HappyPathTest
+    SHELL ThorScriptDriverTest_HappyPathTest --project-path=${CMAKE_CURRENT_SOURCE_DIR}/ --build-path=./
+)
+
+zillians_add_test_to_subject(SUBJECT thorscript-driver-test-all TARGET thorscript-driver-test-happypath)
