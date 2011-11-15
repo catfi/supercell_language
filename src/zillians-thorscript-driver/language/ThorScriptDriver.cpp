@@ -38,16 +38,18 @@ namespace zillians { namespace language {
 // static function
 //////////////////////////////////////////////////////////////////////////////
 
-static void saveCache(const std::string& s)
+void ThorScriptDriver::saveCache(const std::string& s)
 {
-    std::ofstream fout("cache");
+    boost::filesystem::path cachePath = buildPath / "cache";
+    boost::filesystem::ofstream fout(cachePath);
     fout << s ;
     fout.close();
 }
 
-static std::string readCache()
+std::string ThorScriptDriver::readCache()
 {
-    std::ifstream fin("cache");
+    boost::filesystem::path cachePath = buildPath / "cache";
+    boost::filesystem::ifstream fin(cachePath);
     if (fin.is_open()) {
         std::string s;
         fin >> s ;
@@ -130,8 +132,13 @@ static void printHelpPage()
 // public member function
 //////////////////////////////////////////////////////////////////////////////
 
-ThorScriptDriver::ThorScriptDriver() : dumpCommand(false)
+ThorScriptDriver::ThorScriptDriver() : originalPath(boost::filesystem::current_path()), dumpCommand(false)
 {
+}
+
+ThorScriptDriver::~ThorScriptDriver()
+{
+    boost::filesystem::current_path(originalPath);
 }
 
 //////////////////////////////////////////////////////////////////////////////
@@ -212,8 +219,11 @@ bool ThorScriptDriver::setProjectPathAndBuildPath(std::vector<std::string>& argv
     }
 
     boost::filesystem::create_directories(buildPath);
-    std::cout << "Project director: " << this->projectPath << std::endl ;
-    std::cout << "Build   director: " << this->buildPath << std::endl ;
+    if(dumpCommand)
+    {
+        std::cout << "Project director: " << this->projectPath << std::endl ;
+        std::cout << "Build   director: " << this->buildPath << std::endl ;
+    }
     boost::filesystem::current_path(projectPath);
     return true;
 }
