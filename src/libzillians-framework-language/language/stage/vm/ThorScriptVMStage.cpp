@@ -17,15 +17,11 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
+
 #include "language/stage/vm/ThorScriptVMStage.h"
+#include "utility/StringUtil.h"
 
 namespace zillians { namespace language { namespace stage {
-
-
-//////////////////////////////////////////////////////////////////////////////
-// static functions
-//////////////////////////////////////////////////////////////////////////////
-
 
 //////////////////////////////////////////////////////////////////////////////
 // class member function
@@ -47,8 +43,8 @@ std::pair<shared_ptr<po::options_description>, shared_ptr<po::options_descriptio
 	shared_ptr<po::options_description> option_desc_public(new po::options_description());
 	shared_ptr<po::options_description> option_desc_private(new po::options_description());
 
+	// TODO: Well, not exactly know the input options
 	option_desc_public->add_options()
-		("entry,e", po::value<std::string>(), "Specify the entry function")
     ;
 
 	foreach(i, option_desc_public->options()) option_desc_private->add(*i);
@@ -60,9 +56,16 @@ std::pair<shared_ptr<po::options_description>, shared_ptr<po::options_descriptio
 
 bool ThorScriptVMStage::parseOptions(po::variables_map& vm)
 {
-
 	if (vm.count("input"))
 	{
+		std::vector< std::string > inputs = vm["input"].as< std::vector<std::string> >();
+		BOOST_ASSERT(inputs.size() >= 2 && "The input parameters are wrong");
+
+		module_name = inputs[0];
+		entry_symbol = getManglingName(inputs[1]);
+
+		std::cout << "module name = " << module_name << std::endl;
+		std::cout << "entry symbol = " << entry_symbol << std::endl;
 	}
 
 	return true;
@@ -70,8 +73,81 @@ bool ThorScriptVMStage::parseOptions(po::variables_map& vm)
 
 bool ThorScriptVMStage::execute(bool& continue_execution)
 {
+	typedef void (*function_handle_t)();
+
+	apr_dso_handle_t* module_handle = NULL;
+	apr_pool_t* pool = NULL;
+	function_handle_t function = NULL;
+
+	// Initialize
+	apr_initialize();
+	apr_pool_create(&pool, NULL);
+
+	bool success = false;
+	do
+	{
+		if (apr_dso_load(&module_handle, module_name.c_str(), pool) != APR_SUCCESS)
+			break;
+
+		// Retrieve function symbol
+		if (apr_dso_sym((apr_dso_handle_sym_t*)&function, module_handle, entry_symbol.c_str()) != APR_SUCCESS)
+			break;
+
+		if (function)
+			function();
+
+		success = true;
+	} while (false);
+
+	if (!success)
+	{
+		char error[256];
+		apr_dso_error(module_handle, error, sizeof(error));
+		std::cerr << error << std::endl;
+	}
+
+	// Deinitialize
+	apr_dso_unload(module_handle);
+	apr_pool_destroy(pool);
+	apr_terminate();
+
 	return true;
 }
 
+std::string ThorScriptVMStage::getManglingName(std::string& name)
+{
+	/*
+	 * Well, we assume the entry function is void xxxx(void)
+	 */
+
+	std::vector<std::string> tokens = StringUtil::tokenize(name, ".");
+	BOOST_ASSERT(tokens.size() != 0);
+
+	std::string mangling;
+	std::string prefix;
+	std::string postfix;
+
+	if (tokens.size() == 1)
+	{
+		// Well, this should be global function
+		prefix = "_Z";
+		postfix = "v";
+	}
+	else
+	{
+		// Well, the function resides in namespace or is a class static function, or both.
+		prefix = "_ZN";
+		postfix = "Ev";
+	}
+
+	mangling = prefix;
+	for (int i = 0; i < tokens.size(); i++)
+	{
+		mangling += StringUtil::itoa(tokens[i].size(), 10) + tokens[i] ;
+	}
+	mangling += postfix;
+
+	return mangling;
+}
 
 } } }
