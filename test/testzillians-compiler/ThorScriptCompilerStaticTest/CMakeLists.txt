@@ -198,6 +198,9 @@ zillians_add_test_to_subject(SUBJECT thorscript-compiler-static-test-xform TARGE
 #zillians_add_test_to_subject(SUBJECT thorscript-compiler-static-test-s1 TARGET thorscript-compiler-static-test-UNEXPECTED_VARIADIC_ARG)
 zillians_add_test_to_subject(SUBJECT thorscript-compiler-static-test-s0 TARGET thorscript-compiler-static-test-UNEXPECTED_VARIADIC_TEMPLATE_ARG)
 
+# NOTE: MISSING_RETURN_VALUE disabled because it is already reported in resolution stage
+# NOTE: UNEXPECTED_VARIADIC_ARG disabled bacause unresolved template functions (resolution stage) break this test
+
 #####################################################################
 # 2_modifier
 #####################################################################
@@ -290,8 +293,9 @@ zillians_add_complex_test(
     )
 zillians_add_complex_test(
     TARGET thorscript-compiler-static-test-PACKAGE_NAME_COLLIDE_PARENT
-    SHELL ${ThorScriptCompiler} ${compile_options_s0} ${CMAKE_CURRENT_SOURCE_DIR}/error/4_parameter/PACKAGE_NAME_COLLIDE_PARENT.t
+    SHELL ${ThorScriptCompiler} ${compile_options_s0} ${CMAKE_CURRENT_SOURCE_DIR}/error/4_parameter/qwe/qwe/PACKAGE_NAME_COLLIDE_PARENT.t
     DEPENDS ${ThorScriptCompiler}
+    EXPECT_FAIL "TRUE"
     )
 
 zillians_add_test_to_subject(SUBJECT thorscript-compiler-static-test-s0 TARGET thorscript-compiler-static-test-MISSING_PARAM_INIT)
@@ -350,6 +354,8 @@ zillians_add_test_to_subject(SUBJECT thorscript-compiler-static-test-s1     TARG
 zillians_add_test_to_subject(SUBJECT thorscript-compiler-static-test-s0     TARGET thorscript-compiler-static-test-DEAD_CODE)
 zillians_add_test_to_subject(SUBJECT thorscript-compiler-static-test-future TARGET thorscript-compiler-static-test-INFINITE_RECURSION)
 #zillians_add_test_to_subject(SUBJECT thorscript-compiler-static-test-s1     TARGET thorscript-compiler-static-test-MISSING_CASE)
+
+# NOTE: MISSING_CASE disabled because "a" in "switch(a)" resolves to type "TypeSpecifier", not "EnumDecl"
 
 #####################################################################
 # [.]

@@ -202,7 +202,7 @@ struct SemanticVerificationStageVisitor1 : GenericDoubleVisitor
 			if(resolved_type)
 				arg_is_void = isa<TypeSpecifier>(resolved_type) ?
 						isVoid(cast<TypeSpecifier>(resolved_type)) : false; // NOTE: only need to handle void case
-#if 0
+#if 0 // NOTE: already reported in resolution stage, enabling this would be redundant
 			if(!isVoid(param_type) && arg_is_void)
 				LOG_MESSAGE(MISSING_RETURN_VALUE, &node, _type = param_type->toString());
 #endif

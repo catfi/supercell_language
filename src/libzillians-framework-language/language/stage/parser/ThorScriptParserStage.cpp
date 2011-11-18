@@ -201,6 +201,7 @@ bool ThorScriptParserStage::parse(const boost::filesystem::path& p)
 	}
 
 	getParserContext().active_source = new Source(p.string());
+	SourceInfoContext::set(getParserContext().active_source, new SourceInfoContext(0, 0)); // for logger, just in case
 	getParserContext().active_package = getParserContext().active_source->root;
 
 	// create identifier for later use
@@ -214,6 +215,7 @@ bool ThorScriptParserStage::parse(const boost::filesystem::path& p)
 			id->appendIdentifier(new SimpleIdentifier(*i));
 
 			Package* new_package = new Package(new SimpleIdentifier(*i));
+			SourceInfoContext::set(new_package, new SourceInfoContext(0, 0)); // for logger, just in case
 			getParserContext().active_package->addPackage(new_package);
 			getParserContext().active_package = new_package;
 		}

@@ -27,14 +27,13 @@
 #include "core/Visitor.h"
 #include "core/Singleton.h"
 #include "utility/Foreach.h"
-#include <tr1/unordered_set>
 
 namespace zillians { namespace language { namespace tree {
 
 template<typename Base>
 struct GarbageCollectorWrapper
 {
-	GarbageCollectorWrapper(std::tr1::unordered_set<Base*>& reachable_set) : reachable_set(reachable_set)
+	GarbageCollectorWrapper(std::unordered_set<Base*>& reachable_set) : reachable_set(reachable_set)
 	{ }
 
 	inline void mark(Base* object)
@@ -42,7 +41,7 @@ struct GarbageCollectorWrapper
 		reachable_set.erase(object);
 	}
 
-	std::tr1::unordered_set<Base*>& reachable_set;
+	std::unordered_set<Base*>& reachable_set;
 };
 
 template<typename Base>
@@ -58,7 +57,7 @@ struct GarbageCollector : Singleton<GarbageCollector<Base>, SingletonInitializat
 
 	bool find(Base* object)
 	{
-		typename std::tr1::unordered_set<Base*>::iterator it = objects.find(object);
+		auto it = objects.find(object);
 		return (it == objects.end());
 	}
 
@@ -69,7 +68,7 @@ struct GarbageCollector : Singleton<GarbageCollector<Base>, SingletonInitializat
 
 	void remove(Base* object)
 	{
-		typename std::tr1::unordered_set<Base*>::iterator it = objects.find(object);
+		auto it = objects.find(object);
 		if(it != objects.end())
 		{
 			objects.erase(it);
@@ -80,7 +79,7 @@ struct GarbageCollector : Singleton<GarbageCollector<Base>, SingletonInitializat
 //	template<typename MarkVisitor>
 //	void gc(Base* root)
 //	{
-//		std::tr1::unordered_set<Base*> temporary(objects);
+//		std::unordered_set<Base*> temporary(objects);
 //
 //		MarkVisitor visitor_impl(GarbageCollectorWrapper<Base>(temporary));
 //		//visitor_impl;
@@ -89,18 +88,18 @@ struct GarbageCollector : Singleton<GarbageCollector<Base>, SingletonInitializat
 //
 //		printf("objects to remove = %ld\n", temporary.size());
 //		//foreach(i, temporary)
-//		for(typename std::tr1::unordered_set<Base*>::iterator i = temporary.begin(); i != temporary.end(); ++i)
+//		for(auto i = temporary.begin(); i != temporary.end(); ++i)
 //		{
 //			remove(*i);
 //			delete *i;
 //		}
 //	}
 
-	void sweep(std::tr1::unordered_set<Base*>& nonreachable_set)
+	void sweep(std::unordered_set<Base*>& nonreachable_set)
 	{
 		//printf("objects to remove = %ld\n", nonreachable_set.size());
 		//foreach(i, nonreachable_set)
-		for(typename std::tr1::unordered_set<Base*>::iterator i = nonreachable_set.begin(); i != nonreachable_set.end(); ++i)
+		for(auto i = nonreachable_set.begin(); i != nonreachable_set.end(); ++i)
 		{
 			remove(*i);
 			delete *i;
@@ -112,7 +111,7 @@ struct GarbageCollector : Singleton<GarbageCollector<Base>, SingletonInitializat
 		std::size_t object_count_to_remove = objects.size();
 		// TODO somehow this is not supported by GCC 4.4, so we have to explicit specify the iterator types
 		//foreach(i, objects)
-		for(typename std::tr1::unordered_set<Base*>::iterator i = objects.begin(); i != objects.end(); ++i)
+		for(auto i = objects.begin(); i != objects.end(); ++i)
 		{
 			delete *i;
 		}
@@ -120,7 +119,7 @@ struct GarbageCollector : Singleton<GarbageCollector<Base>, SingletonInitializat
 		return object_count_to_remove;
 	}
 
-	std::tr1::unordered_set<Base*> objects;
+	std::unordered_set<Base*> objects;
 };
 
 } } }
