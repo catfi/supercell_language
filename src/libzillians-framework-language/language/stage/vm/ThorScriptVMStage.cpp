@@ -20,6 +20,7 @@
 
 #include "language/stage/vm/ThorScriptVMStage.h"
 #include "utility/StringUtil.h"
+#include "llvm/Support/DynamicLibrary.h"
 
 namespace zillians { namespace language { namespace stage {
 
@@ -74,42 +75,25 @@ bool ThorScriptVMStage::parseOptions(po::variables_map& vm)
 bool ThorScriptVMStage::execute(bool& continue_execution)
 {
 	typedef void (*function_handle_t)();
+	bool fail = false;
 
-	apr_dso_handle_t* module_handle = NULL;
-	apr_pool_t* pool = NULL;
-	function_handle_t function = NULL;
+	std::string error;
+	fail = llvm::sys::DynamicLibrary::LoadLibraryPermanently(module_name.c_str(), &error);
 
-	// Initialize
-	apr_initialize();
-	apr_pool_create(&pool, NULL);
-
-	bool success = false;
-	do
+	if (fail)
 	{
-		if (apr_dso_load(&module_handle, module_name.c_str(), pool) != APR_SUCCESS)
-			break;
-
-		// Retrieve function symbol
-		if (apr_dso_sym((apr_dso_handle_sym_t*)&function, module_handle, entry_symbol.c_str()) != APR_SUCCESS)
-			break;
-
-		if (function)
-			function();
-
-		success = true;
-	} while (false);
-
-	if (!success)
-	{
-		char error[256];
-		apr_dso_error(module_handle, error, sizeof(error));
 		std::cerr << error << std::endl;
+		return false;
 	}
 
-	// Deinitialize
-	apr_dso_unload(module_handle);
-	apr_pool_destroy(pool);
-	apr_terminate();
+	function_handle_t entry_function = llvm::sys::DynamicLibrary::SearchForAddressOfSymbol(entry_symbol);
+	if (entry_function)
+		entry_function();
+	else
+	{
+		std::cerr << "Fail to locate symbol: " << entry_symbol << std::endl;
+		return false;
+	}
 
 	return true;
 }
