@@ -51,8 +51,8 @@ struct thor_type
 		if(_param(1).is_initialized())
 		{
 			BIND_CACHED_LOCATION(ident = new TemplatedIdentifier(TemplatedIdentifier::Usage::ACTUAL_ARGUMENT, _param(0)));
-			deduced_foreach_value(i, *_param(1))
-				cast<TemplatedIdentifier>(ident)->appendArgument(i);
+//			deduced_foreach_value(i, *_param(1))
+//				cast<TemplatedIdentifier>(ident)->appendArgument(i);
 		}
 		else
 			ident = _param(0);

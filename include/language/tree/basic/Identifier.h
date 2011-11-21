@@ -178,6 +178,79 @@ struct NestedIdentifier : public Identifier
 	std::vector<Identifier*> identifier_list;
 };
 
+struct TemplateType
+{
+	friend class boost::serialization::access;
+
+	TemplateType(SimpleIdentifier* id, Identifier* specialized_type = NULL, ASTNode* default_type = NULL) : id(id), specialized_type(specialized_type), default_type(default_type)
+	{
+		BOOST_ASSERT(id != NULL);
+	}
+
+	TemplateType& operator= (const TemplateType& s)
+	{
+		id = s.id;
+		specialized_type = s.specialized_type;
+		default_type = s.default_type;
+		return *this;
+	}
+
+	bool isEqualImpl(const TemplateType& rhs, ASTNodeSet& visited) const
+	{
+		const TemplateType* __p = &rhs;
+		COMPARE_MEMBER(id)
+		COMPARE_MEMBER(specialized_type)
+		COMPARE_MEMBER(default_type)
+		return true;
+	}
+
+    bool replaceUseWith(const ASTNode& from, const ASTNode& to, bool update_parent = true)
+    {
+    	BEGIN_REPLACE()
+		REPLACE_USE_WITH(id)
+		REPLACE_USE_WITH(specialized_type)
+		REPLACE_USE_WITH(default_type)
+    	END_REPLACE()
+    }
+
+    std::wstring toString() const
+    {
+    	std::wstring t;
+
+    	t += id->toString();
+    	if(specialized_type)
+    	{
+    		t += L":";
+    		t += specialized_type->toString();
+    	}
+
+    	return t;
+    }
+
+    TemplateType clone() const
+    {
+    	TemplateType s((id) ? cast<SimpleIdentifier>(id->clone()) : NULL, (specialized_type) ? cast<Identifier>(specialized_type->clone()) : NULL, (default_type) ? default_type->clone() : NULL);
+    	return s;
+    }
+
+    template<typename Archive>
+    void serialize(Archive& ar, const unsigned int version)
+    {
+    	UNUSED_ARGUMENT(version);
+
+    	ar & id;
+    	ar & specialized_type;
+    	ar & default_type;
+    }
+
+	SimpleIdentifier* id;
+	Identifier* specialized_type;
+	ASTNode* default_type;
+
+protected:
+	TemplateType() { }
+};
+
 struct TemplatedIdentifier : public Identifier
 {
 	friend class boost::serialization::access;
@@ -217,7 +290,7 @@ struct TemplatedIdentifier : public Identifier
 			t += L"<";
 			foreach(i, templated_type_list)
 			{
-				t += cast<Identifier>((*i))->toString();
+				t += i->toString();
 				if(!is_end_of_foreach(i, templated_type_list))
 					t += L",";
 			}
@@ -246,21 +319,30 @@ struct TemplatedIdentifier : public Identifier
 		id->parent = this;
 	}
 
-	void appendParameter(ASTNode* parameter)
+	void append(TemplateType type)
 	{
-		BOOST_ASSERT(type == Usage::FORMAL_PARAMETER);
+		type.id->parent = this;
+		if(type.specialized_type) type.specialized_type->parent = this;
+		if(type.default_type) type.default_type = this;
 
-		parameter->parent = this;
-		templated_type_list.push_back(parameter);
+		templated_type_list.push_back(type);
 	}
 
-	void appendArgument(ASTNode* argument)
-	{
-		BOOST_ASSERT(type == Usage::ACTUAL_ARGUMENT);
-
-		argument->parent = this;
-		templated_type_list.push_back(argument);
-	}
+//	void appendParameter(ASTNode* parameter)
+//	{
+//		BOOST_ASSERT(type == Usage::FORMAL_PARAMETER);
+//
+//		parameter->parent = this;
+//		templated_type_list.push_back(parameter);
+//	}
+//
+//	void appendArgument(ASTNode* argument)
+//	{
+//		BOOST_ASSERT(type == Usage::ACTUAL_ARGUMENT);
+//
+//		argument->parent = this;
+//		templated_type_list.push_back(argument);
+//	}
 
     virtual bool isEqualImpl(const ASTNode& rhs, ASTNodeSet& visited) const
     {
@@ -283,7 +365,7 @@ struct TemplatedIdentifier : public Identifier
 	virtual ASTNode* clone() const
 	{
 		TemplatedIdentifier* cloned = new TemplatedIdentifier(type, (id) ? cast<Identifier>(id->clone()) : NULL);
-		foreach(i, templated_type_list) cloned->templated_type_list.push_back((*i) ? (*i)->clone() : NULL);
+		foreach(i, templated_type_list) cloned->append(i->clone());
 		return cloned;
 	}
 
@@ -300,7 +382,7 @@ struct TemplatedIdentifier : public Identifier
 
 	Usage::type type;
 	Identifier* id;
-	std::vector<ASTNode*> templated_type_list;
+	std::vector<TemplateType> templated_type_list;
 
 protected:
 	TemplatedIdentifier() { }

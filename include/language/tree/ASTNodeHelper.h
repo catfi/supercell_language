@@ -54,8 +54,8 @@ struct ASTNodeHelper
 			TemplatedIdentifier* templated_name = cast<TemplatedIdentifier>(node->name);
 			foreach(i, templated_name->templated_type_list)
 			{
-				Identifier* templated_parameter = cast<Identifier>(*i);
-				function_type->appendTemplateParameter(templated_parameter);
+				// TODO is this correct?
+				function_type->appendTemplateParameter(i->id);
 			}
 		}
 

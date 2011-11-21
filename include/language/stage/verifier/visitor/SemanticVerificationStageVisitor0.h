@@ -160,31 +160,31 @@ struct SemanticVerificationStageVisitor0 : GenericDoubleVisitor
 		size_t n = 0;
 		foreach(i, node.templated_type_list)
 		{
-			switch(node.type)
-			{
-			case TemplatedIdentifier::Usage::FORMAL_PARAMETER:
-				{
-					std::wstring name = cast<Identifier>(*i)->toString();
-
-					// DUPE_NAME
-					if(name_set.find(name) == name_set.end())
-						name_set.insert(name);
-					else
-						LOG_MESSAGE(DUPE_NAME, &node, _id = name);
-
-					// UNEXPECTED_VARIADIC_TEMPLATE_PARAM
-					if(name == L"..." && !is_end_of_foreach(i, node.templated_type_list))
-						LOG_MESSAGE(UNEXPECTED_VARIADIC_TEMPLATE_PARAM, &node);
-				}
-				break;
-			case TemplatedIdentifier::Usage::ACTUAL_ARGUMENT:
-
-				// UNEXPECTED_VARIADIC_TEMPLATE_ARG
-				if(isEllipsis(cast<TypeSpecifier>(*i)) && !is_end_of_foreach(i, node.templated_type_list))
-					LOG_MESSAGE(UNEXPECTED_VARIADIC_TEMPLATE_ARG, &node);
-
-				break;
-			}
+//			switch(node.type)
+//			{
+//			case TemplatedIdentifier::Usage::FORMAL_PARAMETER:
+//				{
+//					std::wstring name = cast<Identifier>(*i)->toString();
+//
+//					// DUPE_NAME
+//					if(name_set.find(name) == name_set.end())
+//						name_set.insert(name);
+//					else
+//						LOG_MESSAGE(DUPE_NAME, &node, _id = name);
+//
+//					// UNEXPECTED_VARIADIC_TEMPLATE_PARAM
+//					if(name == L"..." && !is_end_of_foreach(i, node.templated_type_list))
+//						LOG_MESSAGE(UNEXPECTED_VARIADIC_TEMPLATE_PARAM, &node);
+//				}
+//				break;
+//			case TemplatedIdentifier::Usage::ACTUAL_ARGUMENT:
+//
+//				// UNEXPECTED_VARIADIC_TEMPLATE_ARG
+//				if(isEllipsis(cast<TypeSpecifier>(*i)) && !is_end_of_foreach(i, node.templated_type_list))
+//					LOG_MESSAGE(UNEXPECTED_VARIADIC_TEMPLATE_ARG, &node);
+//
+//				break;
+//			}
 
 			n++;
 		}

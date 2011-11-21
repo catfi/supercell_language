@@ -87,7 +87,12 @@ struct GenericDoubleVisitor : Visitor<ASTNode, void, VisitorImplementation::recu
 		{
 			if(node.id) user_visitor->visit(*node.id);
 
-			foreach(i, node.templated_type_list)	user_visitor->visit(**i);
+			foreach(i, node.templated_type_list)
+			{
+				if(i->id) user_visitor->visit(*(i->id));
+				if(i->specialized_type) user_visitor->visit(*(i->specialized_type));
+				if(i->default_type) user_visitor->visit(*(i->default_type));
+			}
 		}
 
 		void apply(TypeSpecifier& node)

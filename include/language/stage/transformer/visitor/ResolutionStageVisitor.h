@@ -101,8 +101,7 @@ struct ResolutionStageVisitor : GenericDoubleVisitor
 	{
 		if(node.type == TemplatedIdentifier::Usage::ACTUAL_ARGUMENT)
 		{
-			foreach(i, node.templated_type_list)
-				visit(**i);
+			revisit(node);
 		}
 	}
 

@@ -193,7 +193,12 @@ struct GenericVisitor : Visitor<const ASTNode, void, VisitorImplementation::recu
 	{
 		if(node.id) visit(*node.id);
 
-		foreach(i, node.templated_type_list) visit(**i);
+		foreach(i, node.templated_type_list)
+		{
+			if(i->id) visit(*(i->id));
+			if(i->specialized_type) visit(*(i->specialized_type));
+			if(i->default_type) visit(*(i->default_type));
+		}
 	}
 
 	void apply(const TypeSpecifier& node)

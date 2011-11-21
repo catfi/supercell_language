@@ -432,7 +432,8 @@ struct ThorScript : qi::grammar<Iterator, typename SA::start::attribute_type, de
 
 		template_param_identifier
 			= qi::eps [ typename SA::location::cache_loc() ]
-				>>	(IDENTIFIER > -(COMPARE_LT >> ((IDENTIFIER | EMIT_BOOL(ELLIPSIS)) % COMMA) >> COMPARE_GT)
+//				>>	(IDENTIFIER > -(COMPARE_LT >> ((IDENTIFIER | EMIT_BOOL(ELLIPSIS)) % COMMA) >> COMPARE_GT)
+			    >>	(IDENTIFIER > -(COMPARE_LT >> (( (IDENTIFIER > -(type_specifier | init_specifier)) | EMIT_BOOL(ELLIPSIS)) % COMMA) >> COMPARE_GT)
 					) [ typename SA::template_param_identifier::init() ]
 			;
 
