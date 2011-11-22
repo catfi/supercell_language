@@ -22,6 +22,7 @@
 
 #include "core/Prerequisite.h"
 #include "core/Visitor.h"
+#include "utility/LambdaUtil.h"
 #include "language/tree/visitor/GenericVisitor.h"
 #include "language/tree/visitor/NodeInfoVisitor.h"
 #include "language/tree/ASTNodeFactory.h"
@@ -29,6 +30,33 @@
 
 namespace zillians { namespace language { namespace tree { namespace visitor {
 
+/**
+ * @brief ResolutionVisitor tried to search for a simple or nested identifier against a single scope in a recursive manner
+ *
+ * ResolutionVisitor is used by Resolver, which keeps track of all current scopes, to resolve given identifiers.
+ *
+ * In addition, There's an important concept called matched state. As ResolutionVisitor can handle nested identifier, it keep track of
+ * current "state", which is either "matched" or "not-matched".
+ *
+ * For each resolve call, matched state indicates whether the current node (the one in the parameter list) is matched previously or not.
+ *
+ * For example, when we call ResolutionVisitor::resolve(ClassDecl), the caller can be inside ResolutionVisitor::resolve(Package), which iterates
+ * over all it's child objects and look for possible match, so we need to match the name of the class declaration against current identifier,
+ * so the current state should be "not-matched".
+ *
+ * However if the caller is Resolver, which means the ClassDecl is one of the current scope, every member
+ * of the class declaration should be directly visible and accessible, and we don't need to match current identifier against the name of the class
+ * declaration, so the current state should be "matched".
+ *
+ * We use ResolutionVisitor::tryMatch(node) and ResolutionVisitor::tryVisit(node) to seperate the two cases and maintain correct matched state.
+ *
+ * When calling ResolutionVisitor::tryMatch(node), that means we haven't matched the given node (so we need to "try"), and the tryMatch would store the current
+ * matched flag to a temporary local variable and call visit on the given node and restore the state when return.
+ *
+ * On the contrary, when calling ResolutionVisitor::tryVisit(node), that means we have matched the given node, and we just need to visit the child nodes beneath it.
+ *
+ * As for ResolutionVisitor::tryFollow(node), it will re-use the current matched state.
+ */
 struct ResolutionVisitor : Visitor<ASTNode, void, VisitorImplementation::recursive_dfs>
 {
 	CREATE_INVOKER(resolveInvoker, resolve)
@@ -83,6 +111,24 @@ struct ResolutionVisitor : Visitor<ASTNode, void, VisitorImplementation::recursi
 			ASTNode* resolved_package = ResolvedPackage::get(&node);
 			if(resolved_package)
 				tryFollow(*resolved_package);
+		}
+	}
+
+	void resolve(TemplatedIdentifier& node)
+	{
+		if(isMatched())
+		{
+			if(isSearchForType())
+			{
+				foreach(i, node.templated_type_list)
+				{
+					tryMatch(**i);
+				}
+			}
+		}
+		else
+		{
+			UNREACHABLE_CODE();
 		}
 	}
 
@@ -582,6 +628,29 @@ struct ResolutionVisitor : Visitor<ASTNode, void, VisitorImplementation::recursi
 		}
 	}
 
+	void resolve(TypenameDecl& node)
+	{
+		if(!isMatched())
+		{
+			bool is_template_partial_match = false;
+			if(compare(current, node.name, is_template_partial_match))
+			{
+				if(isLast())
+				{
+					enlist(&node, is_template_partial_match);
+				}
+				else
+				{
+					UNREACHABLE_CODE();
+				}
+			}
+		}
+		else
+		{
+			UNREACHABLE_CODE();
+		}
+	}
+
 	void resolve(DeclarativeStmt& node)
 	{
 		if(isSearchForSymbol())
@@ -598,91 +667,6 @@ struct ResolutionVisitor : Visitor<ASTNode, void, VisitorImplementation::recursi
 			// TODO handle the local variable
 		}
 	}
-
-//	void resolve(Expression& node)
-//	{
-//		if(isSearchForType())
-//		{
-//			// for PrimaryExpr, the expression can be resolved to some package declaration
-//			ASTNode* package = ResolvedPackage::get(&node);
-//			if(package)
-//				visit(*package);
-//
-//			// TODO handle lambda case
-//		}
-//
-//		if(isSearchForSymbol())
-//		{
-//			// there can be symbol within package or another symbol or another type
-//			ASTNode* type = ResolvedType::get(&node);
-//			ASTNode* symbol = ResolvedSymbol::get(&node);
-//			ASTNode* package = ResolvedPackage::get(&node);
-//
-//			// the only reason we reach here is we are visiting member expression and we want to find the member of the LHS, which can be a PrimaryExpr
-//
-//			// note that because whenever we resolved a symbol, we store the related type information using ResolvedType to that ASTNode
-//			// and for most cases, these two are the same, but for resolution to VariableDecl, for example,
-//			// the resolved type is the TypeSpecifier of that VariableDecl (not the VariableDecl itself),
-//			// then we should visit the type as well as the resolved symbol
-//			// that's why we put a condition here "type != symbol"
-//			if(symbol)
-//			{
-//				tryFollow(*symbol);
-////				if(isa<VariableDecl>(symbol))
-////				{
-////					// there can be member variable or member function in a non-primitive variable
-////					// for example:
-////					//
-////					// class MyClass { function f() { } }
-////					// ...
-////					// var v:MyClass;
-////					// v.f();
-////					//
-////					visit(*type);
-////				}
-////				else if(isa<ClassDecl>(symbol))
-////				{
-////					// there can be static member variable or static member function inside the resolved ClassDecl
-////					// for example:
-////					//
-////					// class MyClass { static function f() { } }
-////					// ...
-////					// MyClass.f();
-////					//
-////					visit(*symbol);
-////				}
-////				else if(isa<EnumDecl>(symbol))
-////				{
-////					// there can be enumeration value inside the resolved EnumDecl
-////					// for example:
-////					//
-////					// enum MyEnum { ABC, DEF }
-////					// var v = MyEnum.ABC;
-////					//
-////					visit(*symbol);
-////				}
-////				else
-////				{
-////					// the rest of types are not qualified for symbol resolution
-////					// (i.e. there can't be any symbol defined in a primary expression that is resolved to a FunctionDecl, InterfaceDecl,
-////				}
-//			}
-//			else
-//			{
-//				visit(*package);
-//			}
-//			// TODO handle lambda case
-//		}
-//
-//		if(isSearchForPackage())
-//		{
-//			// for PrimaryExpr, the expression can be resolved to some package declaration
-//			ASTNode* package = ResolvedPackage::get(&node);
-//			if(package)
-//				visit(*package);
-//			// TODO handle lambda case
-//		}
-//	}
 
 public:
 	void candidate(Identifier* id)
@@ -736,59 +720,166 @@ public:
 		matched_current = false;
 	}
 
-	bool compare(Identifier* a, Identifier* b, bool& is_template_partial_match)
+	bool compare(Identifier* use, Identifier* decl, bool& is_template_partial_match)
 	{
-		BOOST_ASSERT(!isa<NestedIdentifier>(a) && "there shouldn't be any nested identifier within nested identifier");
-		BOOST_ASSERT(!isa<NestedIdentifier>(b) && "there shouldn't be any nested identifier within nested identifier");
+		BOOST_ASSERT(!isa<NestedIdentifier>(use) && "there shouldn't be any nested identifier within nested identifier");
+		BOOST_ASSERT(!isa<NestedIdentifier>(decl) && "there shouldn't be any nested identifier within nested identifier");
 
 		is_template_partial_match = false;
 
-		if(isa<TemplatedIdentifier>(a) && isa<TemplatedIdentifier>(b))
+		if(isa<TemplatedIdentifier>(use) && isa<TemplatedIdentifier>(decl))
 		{
-			TemplatedIdentifier* ta = cast<TemplatedIdentifier>(a);
-			TemplatedIdentifier* tb = cast<TemplatedIdentifier>(b);
-			if(ta->id->toString() == tb->id->toString())
+			// if both use and decl are templated identifier, we need to make sure it's compatible
+			TemplatedIdentifier* use_template = cast<TemplatedIdentifier>(use);
+			TemplatedIdentifier* decl_template = cast<TemplatedIdentifier>(decl);
+			if(use_template->id->toString() == decl_template->id->toString())
 			{
-				if(ta->templated_type_list.size() == tb->templated_type_list.size())
+				if(decl_template->isVariadic())
 				{
-					return true;
+					// TODO handle variadic template here
 				}
 				else
 				{
+					// prepare the use type and decl type vectors
+					std::vector<TypenameDecl*> use_types;
+					std::vector<TypenameDecl*> decl_types;
+
+					if(decl_template->templated_type_list.size() < use_template->templated_type_list.size())
+					{
+						return false;
+					}
+					else if(decl_template->templated_type_list.size() > use_template->templated_type_list.size())
+					{
+						for(int i=use_template->templated_type_list.size(); i < decl_template->templated_type_list.size(); ++i)
+						{
+							if(!decl_template->templated_type_list[i]->default_type)
+								return false;
+						}
+
+						decl_types = decl_template->templated_type_list;
+						use_types = use_template->templated_type_list;
+
+						for(int i=use_template->templated_type_list.size(); i < decl_template->templated_type_list.size(); ++i)
+						{
+							use_types.push_back(decl_template->templated_type_list[i]);
+						}
+					}
+					else
+					{
+						decl_types = decl_template->templated_type_list;
+						use_types = use_template->templated_type_list;
+					}
+
+					// check if all specialized type and also the default type have ResolvedType associated
+					for(int i=0;i<use_types.size();++i)
+					{
+						BOOST_ASSERT(use_types[i]->specialized_type && "typename declaration in use type vector does not have specialized type");
+
+						if(use_types[i]->specialized_type)
+							if(!ResolvedType::get(use_types[i]->specialized_type))  return false;
+
+						if(decl_types[i]->specialized_type)
+							if(!ResolvedType::get(decl_types[i]->specialized_type)) return false;
+					}
+
+					// as we have reject many illegal cases when we reach here
+					// now we have a "use" vector of TypenameDecl and every TypenameDecl has ResolvedType associated
+					// and we also have a "decl" vector of TypenameDecl, and every specialized_type of TypenameDecl has ResolvedType associated
+					// so we have two comparable vectors of types, then we perform the compatible test for these two vectors
+					// rule: foreach pair of elements in the two type vectors. the decl should be more wider than the use
+					// rule: to define which is wider, an unspecified TypenameDecl is wider than a specified TypenameDecl
+					// we just need to rule out all narrower cases
+
+					// note that every TypenameDecl might be associated with ResolvedType later
+					// so we need to clean it up
+					ScopedDtor cleanup_decl_types([&](){
+						for(int i=0;i<decl_types.size(); ++i)
+							ResolvedType::set(decl_types[i], NULL);
+					});
+
+					for(int i=0;i<use_types.size();++i)
+					{
+						if(!decl_types[i]->specialized_type)
+						{
+							// bind a temporary resolved type to the TypenameDecl so that we can enforce the template constraint
+							ResolvedType::set(decl_types[i], ResolvedType::get(use_types[i]->specialized_type));
+							continue;
+						}
+						else
+						{
+							if(use_types[i]->specialized_type->type == TypeSpecifier::ReferredType::UNSPECIFIED &&
+							   decl_types[i]->specialized_type->type == TypeSpecifier::ReferredType::UNSPECIFIED)
+							{
+								if(isa<TemplatedIdentifier>(use_types[i]->specialized_type->referred.unspecified) &&
+								   isa<TemplatedIdentifier>(decl_types[i]->specialized_type->referred.unspecified) )
+								{
+									bool partial_match = false;
+									if(!compare(use_types[i]->specialized_type->referred.unspecified, decl_types[i]->specialized_type->referred.unspecified, partial_match))
+										return false;
+									// TODO consider to change to is_template_match? or set the flag only when "partial" template match, which requires template instantiation
+									is_template_partial_match |= partial_match;
+								}
+								else if(isa<SimpleIdentifier>(use_types[i]->specialized_type->referred.unspecified) &&
+									    isa<SimpleIdentifier>(decl_types[i]->specialized_type->referred.unspecified) )
+
+								{
+									ASTNode* resolved_use = ResolvedType::get(use_types[i]->specialized_type);
+									ASTNode* resolved_decl = ResolvedType::get(decl_types[i]->specialized_type);
+
+									// the resolved type of decl type can be referring to a TypenameDecl, which creates some sort of constraint
+									// the way we enforce the constraint is to bind a temporary resolved type to the TypenameDecl, which will be cleaned up at exit
+									// and make sure the temporary resolved type equals to the use type
+									if(isa<TypenameDecl>(resolved_decl))
+										resolved_decl = ResolvedType::get(resolved_decl);
+
+									if(!resolved_use || !resolved_decl || !resolved_use->isEqual(*resolved_decl))
+										return false;
+								}
+								else
+								{
+									return false;
+								}
+							}
+							else
+							{
+								ASTNode* resolved_use;
+								if(use_types[i]->specialized_type->type == TypeSpecifier::ReferredType::UNSPECIFIED)
+									resolved_use = ResolvedType::get(use_types[i]->specialized_type);
+								else
+									resolved_use = use_types[i]->specialized_type;
+
+								ASTNode* resolved_decl;
+								if(decl_types[i]->specialized_type->type == TypeSpecifier::ReferredType::UNSPECIFIED)
+									resolved_decl = ResolvedType::get(decl_types[i]->specialized_type);
+								else
+									resolved_decl = decl_types[i]->specialized_type;
+
+								if(!resolved_use->isEqual(*resolved_decl))
+									return false;
+							}
+						}
+					}
+
 					is_template_partial_match = true;
-					return allow_template_partial_match;
+					return true;
 				}
 			}
-			else
-			{
-				return false;
-			}
 		}
-		else if(!isa<TemplatedIdentifier>(a) && !isa<TemplatedIdentifier>(b))
+		else if(!isa<TemplatedIdentifier>(use) && !isa<TemplatedIdentifier>(decl))
 		{
-			BOOST_ASSERT(isa<SimpleIdentifier>(a));
-			BOOST_ASSERT(isa<SimpleIdentifier>(b));
-			return (a->toString() == b->toString());
+			BOOST_ASSERT(isa<SimpleIdentifier>(use));
+			BOOST_ASSERT(isa<SimpleIdentifier>(decl));
+			return (use->toString() == decl->toString());
 		}
 		else
 		{
-			if(isa<TemplatedIdentifier>(a)) a = cast<TemplatedIdentifier>(a)->id;
-			if(isa<TemplatedIdentifier>(b)) b = cast<TemplatedIdentifier>(b)->id;
-			if(a->toString() == b->toString())
-			{
-				is_template_partial_match = true;
-				return allow_template_partial_match;
-			}
-			else
-			{
-				return false;
-			}
+			return false;
 		}
 	}
 
 public:
 	/**
-	 * Try to match the current identifier against the given node by comparing the current identifer with node's identifier
+	 * Try to match the current identifier against the given node by comparing the current identifier with node's identifier
 	 *
 	 * @param node the node to match
 	 */

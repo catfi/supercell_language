@@ -77,8 +77,8 @@ struct template_arg_identifier
 		if(_param(1).is_initialized())
 		{
 			BIND_CACHED_LOCATION(_result = new TemplatedIdentifier(TemplatedIdentifier::Usage::ACTUAL_ARGUMENT, _param(0)));
-//			deduced_foreach_value(i, *_param(1))
-//				cast<TemplatedIdentifier>(_result)->appendArgument(i);
+			deduced_foreach_value(i, *_param(1))
+				cast<TemplatedIdentifier>(_result)->append(new TypenameDecl(new SimpleIdentifier(L"_"), i, NULL));
 		}
 		else
 			_result = _param(0);
@@ -93,10 +93,10 @@ struct template_param_identifier
 
 	BEGIN_ACTION(init)
 	{
-//#ifdef DEBUG
+#ifdef DEBUG
 		printf("template_param_identifier param(0) type = %s\n", typeid(_param_t(0)).name());
 		printf("template_param_identifier param(1) type = %s\n", typeid(_param_t(1)).name());
-//#endif
+#endif
 		if(_param(1).is_initialized())
 		{
 			BIND_CACHED_LOCATION(_result = new TemplatedIdentifier(TemplatedIdentifier::Usage::FORMAL_PARAMETER, _param(0)));
@@ -132,13 +132,13 @@ struct template_param_identifier
 							}
 						}
 
-						cast<TemplatedIdentifier>(_result)->append(TemplateType(id, specialized_type, default_type));
+						cast<TemplatedIdentifier>(_result)->append(new TypenameDecl(id, specialized_type, default_type));
 						break;
 					}
 					case 1: // bool
 					{
 						SimpleIdentifier* ident = new SimpleIdentifier(L"..."); BIND_CACHED_LOCATION(ident);
-						cast<TemplatedIdentifier>(_result)->append(TemplateType(ident, NULL, NULL));
+						cast<TemplatedIdentifier>(_result)->append(new TypenameDecl(ident, NULL, NULL));
 						break;
 					}
 				}

@@ -58,6 +58,7 @@
 					InterfaceDecl, \
 					VariableDecl, \
 					TypedefDecl, \
+					TypenameDecl, \
 				/* statement */ \
 				Statement, \
 					DeclarativeStmt, \
@@ -112,6 +113,7 @@
 					InterfaceDecl, \
 					VariableDecl, \
 					TypedefDecl, \
+					TypenameDecl, \
 				/* statement */ \
 				Statement, \
 					DeclarativeStmt, \
@@ -195,9 +197,7 @@ struct GenericVisitor : Visitor<const ASTNode, void, VisitorImplementation::recu
 
 		foreach(i, node.templated_type_list)
 		{
-			if(i->id) visit(*(i->id));
-			if(i->specialized_type) visit(*(i->specialized_type));
-			if(i->default_type) visit(*(i->default_type));
+			visit(**i);
 		}
 	}
 
@@ -280,8 +280,8 @@ struct GenericVisitor : Visitor<const ASTNode, void, VisitorImplementation::recu
 	void apply(const ClassDecl& node)
 	{
 		if(node.annotations) visit(*node.annotations);
-
 		if(node.name) visit(*node.name);
+
 		if(node.base) visit(*node.base);
 		foreach(i, node.implements)       visit(**i);
 		foreach(i, node.member_functions) visit(**i);
@@ -291,8 +291,8 @@ struct GenericVisitor : Visitor<const ASTNode, void, VisitorImplementation::recu
 	void apply(const EnumDecl& node)
 	{
 		if(node.annotations) visit(*node.annotations);
-
 		if(node.name) visit(*node.name);
+
 		foreach(i, node.values)
 		{
 			visit(**i);
@@ -302,8 +302,8 @@ struct GenericVisitor : Visitor<const ASTNode, void, VisitorImplementation::recu
 	void apply(const FunctionDecl& node)
 	{
 		if(node.annotations) visit(*node.annotations);
-
 		if(node.name) visit(*node.name);
+
 		foreach(i, node.parameters)
 		{
 			visit(**i);
@@ -315,26 +315,35 @@ struct GenericVisitor : Visitor<const ASTNode, void, VisitorImplementation::recu
 	void apply(const InterfaceDecl& node)
 	{
 		if(node.annotations) visit(*node.annotations);
-
 		if(node.name) visit(*node.name);
+
 		foreach(i, node.member_functions) visit(**i);
 	}
 
 	void apply(const TypedefDecl& node)
 	{
 		if(node.annotations) visit(*node.annotations);
+		if(node.name) visit(*node.name);
 
 		if(node.type) visit(*node.type);
-		if(node.name) visit(*node.name);
 	}
 
 	void apply(const VariableDecl& node)
 	{
 		if(node.annotations) visit(*node.annotations);
+		if(node.name)        visit(*node.name);
 
 		if(node.initializer) visit(*node.initializer);
-		if(node.name)        visit(*node.name);
 		if(node.type)        visit(*node.type);
+	}
+
+	void apply(const TypenameDecl& node)
+	{
+		if(node.annotations) visit(*node.annotations);
+		if(node.name)        visit(*node.name);
+
+		if(node.specialized_type) visit(*node.specialized_type);
+		if(node.default_type)     visit(*node.default_type);
 	}
 
 	//////////////////////////////////////////////////////////////////////

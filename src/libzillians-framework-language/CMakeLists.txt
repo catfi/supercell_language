@@ -108,11 +108,11 @@ endif()
 
 add_dependencies(zillians-framework-language generate-string-table)
 
-get_target_property(__lib_location zillians-framework-language-spirit LOCATION)
-add_custom_command(TARGET zillians-framework-language-spirit POST_BUILD
-    COMMAND /usr/bin/strip --strip-debug ${__lib_location}
-    COMMENT "Stripping boost spirit debug symbols"
-    )
+#get_target_property(__lib_location zillians-framework-language-spirit LOCATION)
+#add_custom_command(TARGET zillians-framework-language-spirit POST_BUILD
+#    COMMAND /usr/bin/strip --strip-debug ${__lib_location}
+#    COMMENT "Stripping boost spirit debug symbols"
+#    )
 
 #ADD_PRECOMPILED_HEADER(zillians-framework-language-spirit
 #    ${PROJECT_FRAMEWORK_SOURCE_DIR}/include/language/_PreCompiledHeaders.h

@@ -47,6 +47,7 @@
 #include "language/tree/declaration/TypedefDecl.h"
 #include "language/tree/declaration/FunctionDecl.h"
 #include "language/tree/declaration/VariableDecl.h"
+#include "language/tree/declaration/TypenameDecl.h"
 
 #include "language/tree/statement/Statement.h"
 #include "language/tree/statement/DeclarativeStmt.h"

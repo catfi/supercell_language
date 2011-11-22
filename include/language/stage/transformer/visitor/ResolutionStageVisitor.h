@@ -99,10 +99,9 @@ struct ResolutionStageVisitor : GenericDoubleVisitor
 
 	void resolve(TemplatedIdentifier& node)
 	{
-		if(node.type == TemplatedIdentifier::Usage::ACTUAL_ARGUMENT)
-		{
-			revisit(node);
-		}
+		resolver.enterScope(node);
+		revisit(node);
+		resolver.leaveScope(node);
 	}
 
 	void resolve(Internal& node)
@@ -154,30 +153,88 @@ struct ResolutionStageVisitor : GenericDoubleVisitor
 	{
 		// this can be reached from visiting type specifier of a variable declaration
 		// or visiting type specifier of the return type of function declaration
-		// or visiting
-		tryResolveType(&node, &node);
+		if(node.isUnspecified())
+		{
+			// if the the type specifier is specifying a template type, we have to visit the template identifier
+			if(isa<TemplatedIdentifier>(node.referred.unspecified))
+				visit(*node.referred.unspecified);
+
+			// try to resolve the type
+			tryResolveType(&node, &node);
+		}
 	}
 
 	void resolve(ClassDecl& node)
 	{
-		resolver.enterScope(node);
-		revisit(node);
-		resolver.leaveScope(node);
+		visit(*node.name);
+
+		if(isa<TemplatedIdentifier>(node.name))
+		{
+			// if the class itself is a class template, which has non-specialized version in its templated identifier
+			// we don't try to resolve types for class template
+			if(!cast<TemplatedIdentifier>(node.name)->isFullySpecialized())
+				return;
+
+			resolver.enterScope(*node.name);
+			resolver.enterScope(node);
+			revisit(node);
+			resolver.leaveScope(node);
+			resolver.leaveScope(*node.name);
+		}
+		else
+		{
+			resolver.enterScope(node);
+			revisit(node);
+			resolver.leaveScope(*node.name);
+		}
 	}
 
 	void resolve(InterfaceDecl& node)
 	{
-		resolver.enterScope(node);
-		revisit(node);
-		resolver.leaveScope(node);
+		visit(*node.name);
+
+		// if the interface itself is a class template, which has non-specialized version in its templated identifier
+		// we don't try to resolve types for interface template
+		if(isa<TemplatedIdentifier>(node.name))
+		{
+			if(!cast<TemplatedIdentifier>(node.name)->isFullySpecialized())
+				return;
+
+			resolver.enterScope(*node.name);
+			resolver.enterScope(node);
+			revisit(node);
+			resolver.leaveScope(node);
+			resolver.leaveScope(*node.name);
+		}
+		else
+		{
+			resolver.enterScope(node);
+			revisit(node);
+			resolver.leaveScope(node);
+		}
 	}
 
 	void resolve(FunctionDecl& node)
 	{
-		// when entering FunctionDecl scope
-		// all parameters can be seen by the resolver
-		// see ResolutionVisitor.h
-		resolver.enterScope(node);
+		visit(*node.name);
+
+		// if the function itself is a class template, which has non-specialized version in its templated identifier
+		// we don't try to resolve types for function template
+		if(isa<TemplatedIdentifier>(node.name))
+		{
+			if(!cast<TemplatedIdentifier>(node.name)->isFullySpecialized())
+				return;
+
+			resolver.enterScope(*node.name);
+			resolver.enterScope(node);
+		}
+		else
+		{
+			// when entering FunctionDecl scope
+			// all parameters can be seen by the resolver
+			// see ResolutionVisitor.h
+			resolver.enterScope(node);
+		}
 
 		LOG4CXX_DEBUG(LoggerWrapper::TransformerStage, L"trying to resolve function: " << node.name->toString());
 
@@ -203,7 +260,16 @@ struct ResolutionStageVisitor : GenericDoubleVisitor
 			visit(*node.block);
 
 		// leaving FunctionDecl scope
-		resolver.leaveScope(node);
+		if(isa<TemplatedIdentifier>(node.name))
+		{
+			resolver.leaveScope(node);
+			resolver.leaveScope(*node.name);
+		}
+		else
+		{
+			resolver.leaveScope(node);
+		}
+
 	}
 
 	void resolve(EnumDecl& node)
