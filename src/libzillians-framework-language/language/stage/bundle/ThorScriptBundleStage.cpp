@@ -125,18 +125,22 @@ bool ThorScriptBundleStage::parseOptions(po::variables_map& vm)
 	{
 		// Separate files with extension name
 		std::vector< std::string > inputs = vm["input"].as< std::vector<std::string> >();
-		for (size_t i = 0; i < inputs.size(); i++)
+		foreach(i, inputs)
 		{
-			boost::filesystem::path file_path(inputs[i]);
+			boost::filesystem::path file_path(*i);
 			std::string extension = file_path.extension().generic_string();
 
 			if (extension == THORSCRIPT_BITCODE_EXTENSION)
 			{
-				bitcode_files.push_back(inputs[i]);
+				bitcode_files.push_back(*i);
 			}
 			else if (extension == THORSCRIPT_AST_EXTENSION)
 			{
-				ast_files.push_back(inputs[i]);
+				ast_files.push_back(*i);
+			}
+			else
+			{
+				other_files.push_back(*i);
 			}
 		}
 	}
@@ -210,12 +214,26 @@ bool ThorScriptBundleStage::compress(bool& continue_execution)
 	// Get buffers from input files
 	getMergeBitCodeBuffer(bc_item.buffer);
 	getMergeASTBuffer(ast_item.buffer);
-	getManifestBuffer(manifest_item.buffer);
+	getFileBuffer(manifest_file, manifest_item.buffer);
 
 	// Add to archive
 	if (bc_item.buffer.size() > 0) ar.add(bc_item);
 	if (ast_item.buffer.size() > 0) ar.add(ast_item);
 	if (manifest_item.buffer.size() > 0) ar.add(manifest_item);
+
+	// Archive the rest files
+	foreach(i, other_files)
+	{
+		ArchiveItem_t other_item;
+
+		other_item.filename = *i;
+		initializeZipInfo(other_item.zip_info);
+		getFileBuffer(*i, other_item.buffer);
+		if (other_item.buffer.size() > 0)
+		{
+			ar.add(other_item);
+		}
+	}
 
 	return true;
 }
@@ -305,13 +323,16 @@ void ThorScriptBundleStage::getMergeASTBuffer(std::vector<unsigned char>& buffer
     }
 }
 
-void ThorScriptBundleStage::getManifestBuffer(std::vector<unsigned char>& buffer)
+void ThorScriptBundleStage::getFileBuffer(const std::string& path, std::vector<unsigned char>& buffer)
 {
-	std::ifstream file(manifest_file.c_str(), std::ios::in | std::ios::binary | std::ios::ate);
-	buffer.resize(file.tellg());
-	file.seekg(0, std::ios::beg);
-	file.read((char*)&buffer[0], buffer.size());
-	file.close();
+	std::ifstream file(path.c_str(), std::ios::in | std::ios::binary | std::ios::ate);
+	if (file.is_open())
+	{
+		buffer.resize(file.tellg());
+		file.seekg(0, std::ios::beg);
+		file.read((char*)&buffer[0], buffer.size());
+		file.close();
+	}
 }
 
 } } }

@@ -52,11 +52,12 @@ public:
 private:
 	void getMergeBitCodeBuffer(std::vector<unsigned char>& buffer);
 	void getMergeASTBuffer(std::vector<unsigned char>& buffer);
-	void getManifestBuffer(std::vector<unsigned char>& buffer);
+	void getFileBuffer(const std::string& path, std::vector<unsigned char>& buffer);
     bool extract(bool& continue_execution);
     bool compress(bool& continue_execution);
 
 public:
+    std::vector<std::string> other_files;
     std::vector<std::string> bitcode_files;
     std::vector<std::string> ast_files;
     std::string manifest_file;
