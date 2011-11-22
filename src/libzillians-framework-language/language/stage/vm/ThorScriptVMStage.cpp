@@ -19,8 +19,6 @@
 
 
 #include "language/stage/vm/ThorScriptVMStage.h"
-#include "utility/StringUtil.h"
-#include "llvm/Support/DynamicLibrary.h"
 
 namespace zillians { namespace language { namespace stage {
 
@@ -28,11 +26,13 @@ namespace zillians { namespace language { namespace stage {
 // class member function
 //////////////////////////////////////////////////////////////////////////////
 
-ThorScriptVMStage::ThorScriptVMStage() : Stage()
+ThorScriptVMStage::ThorScriptVMStage() : Stage(), tsvm(NULL)
 { }
 
 ThorScriptVMStage::~ThorScriptVMStage()
-{ }
+{
+	SAFE_DELETE(tsvm);
+}
 
 const char* ThorScriptVMStage::name()
 {
@@ -46,6 +46,10 @@ std::pair<shared_ptr<po::options_description>, shared_ptr<po::options_descriptio
 
 	// TODO: Well, not exactly know the input options
 	option_desc_public->add_options()
+		("client,c", "run ts-vm as client mode. e.g: ts-vm --client ./game.bundle entry_function")
+		("server,s", "run ts-vm as server. Need to specify shared/standalone.")
+		("shared", "specify the server as shared mode. e.g: ts-vm --server --shared ./game1.bundle ./game2.bundle")
+		("standalone", "specify the server as standalone mode. e.g: ts-vm --server --standalone ./game.bundle")
     ;
 
 	foreach(i, option_desc_public->options()) option_desc_private->add(*i);
@@ -57,81 +61,35 @@ std::pair<shared_ptr<po::options_description>, shared_ptr<po::options_descriptio
 
 bool ThorScriptVMStage::parseOptions(po::variables_map& vm)
 {
-	if (vm.count("input"))
+	// decide the running mode
+	if (vm.count("client"))
 	{
-		std::vector< std::string > inputs = vm["input"].as< std::vector<std::string> >();
-		BOOST_ASSERT(inputs.size() >= 2 && "The input parameters are wrong");
-
-		module_name = inputs[0];
-		entry_symbol = getManglingName(inputs[1]);
-
-		std::cout << "module name = " << module_name << std::endl;
-		std::cout << "entry symbol = " << entry_symbol << std::endl;
+		tsvm = new ThorScriptClientVM();
 	}
+	else if (vm.count("server"))
+	{
+		if (vm.count("standalone"))
+		{
+			tsvm = new ThorScriptServerStandaloneVM();
+		}
+		else if (vm.count("shared"))
+		{
+			tsvm = new ThorScriptServerSharedVM();
+		}
+	}
+	if (!tsvm)
+		return false;
+
+	// parse the input files
+	if (!tsvm->parseOptions(vm))
+		return false;
 
 	return true;
 }
 
 bool ThorScriptVMStage::execute(bool& continue_execution)
 {
-	typedef void (*function_handle_t)();
-	bool fail = false;
-
-	std::string error;
-	fail = llvm::sys::DynamicLibrary::LoadLibraryPermanently(module_name.c_str(), &error);
-
-	if (fail)
-	{
-		std::cerr << error << std::endl;
-		return false;
-	}
-
-	function_handle_t entry_function = llvm::sys::DynamicLibrary::SearchForAddressOfSymbol(entry_symbol);
-	if (entry_function)
-		entry_function();
-	else
-	{
-		std::cerr << "Fail to locate symbol: " << entry_symbol << std::endl;
-		return false;
-	}
-
-	return true;
-}
-
-std::string ThorScriptVMStage::getManglingName(std::string& name)
-{
-	/*
-	 * Well, we assume the entry function is void xxxx(void)
-	 */
-
-	std::vector<std::string> tokens = StringUtil::tokenize(name, ".");
-	BOOST_ASSERT(tokens.size() != 0);
-
-	std::string mangling;
-	std::string prefix;
-	std::string postfix;
-
-	if (tokens.size() == 1)
-	{
-		// Well, this should be global function
-		prefix = "_Z";
-		postfix = "v";
-	}
-	else
-	{
-		// Well, the function resides in namespace or is a class static function, or both.
-		prefix = "_ZN";
-		postfix = "Ev";
-	}
-
-	mangling = prefix;
-	for (int i = 0; i < tokens.size(); i++)
-	{
-		mangling += StringUtil::itoa(tokens[i].size(), 10) + tokens[i] ;
-	}
-	mangling += postfix;
-
-	return mangling;
+	return tsvm->execute();
 }
 
 } } }

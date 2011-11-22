@@ -22,10 +22,8 @@
 
 #include <vector>
 #include <string>
-#include <apr_pools.h>
-#include <apr_general.h>
-#include <apr_dso.h>
 #include "language/stage/Stage.h"
+#include "language/stage/vm/ThorScriptVMMode.h"
 
 namespace zillians { namespace language { namespace stage {
 
@@ -44,12 +42,9 @@ public:
 	virtual bool parseOptions(po::variables_map& vm);
 	virtual bool execute(bool& continue_execution);
 
-private:
-	std::string getManglingName(std::string& name);
 
 private:
-	std::string module_name;
-	std::string entry_symbol;
+	ThorScriptBaseVM* tsvm;
 };
 
 } } }
