@@ -303,6 +303,7 @@ public:
 			resolution_visitor.candidate(node.referred.unspecified);
 			resolution_visitor.filter(visitor::ResolutionVisitor::Filter::TYPE);
 
+            // TODO FIX search candidate in scopes by inner-outer order
 			for(__gnu_cxx::hash_set<ASTNode*>::const_iterator scope = current_scopes.begin(); scope != current_scopes.end(); ++scope)
 			{
 				resolution_visitor.tryVisit(**scope);
@@ -316,75 +317,186 @@ public:
 		}
 	}
 
+    bool isAllCandidatesAreClassTemplate()
+    {
+        foreach(i, resolution_visitor.candidates)
+        {
+            if(!tree::isa<tree::ClassDecl>(*i)) return false;
+            if(!tree::isa<tree::TemplatedIdentifier>(tree::cast<tree::ClassDecl>(*i)->name)) return false;
+        }
+        return true;
+    }
+
+    bool templateArgumentTypeListIsEqual(const std::vector<tree::ASTNode*>& a, const std::vector<tree::ASTNode*>& b)
+    {
+        if(a.size() != b.size())
+        {
+            return false;
+        }
+
+        for(size_t i = 0; i != a.size(); ++i)
+        {
+            tree::ASTNode* na = a[i];
+            tree::ASTNode* nb = b[i];
+            if (!na->isEqual(*nb))
+            {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    std::vector<size_t> findInstanciatedVersion(tree::TemplatedIdenfifier* id)
+    {
+        std::vector<std::pair<size, tree::ClassDecl*>> matched;
+
+        foreach(i, resolution_visitor.candidates)
+        {
+            tree::ClassDecl* class_decl = tree::cast<tree::ClassDecl>(*i);
+            BOOST_ASSERT_MSG(class_decl != nullptr, "Declaraion is not class");
+            tree::TemplatedIdentifier* templated_id = tree::cast<tree::TemplatedIdentifier>(class_decl->name);
+            BOOST_ASSERT_MSG(templated_id != nullptr, "Declaration is not class template");
+
+            if(id->templated_type_list.size() == templated_id->template_type_list.size())
+            {
+                size_t score = 0L;
+                for(auto i = id->templated_type_list.begin(), j = templated_id->template_type_list.begin(); i != id->template_type_list.end(); ++i, ++j)
+                {
+                    if(j->specialized_type == nullptr)
+                    {
+                    }
+                }
+                matched.push_back(class_decl);
+            }
+        }
+        return nullptr;
+    }
+
+    bool findBestClassTemplate(const std::vector<tree::ASTNode*>& candidates,
+                               const std::vector<tree::ASTNode*>& templateArgs,
+                               tree::ClassDecl*& bestMatchClassTemplate)
+    {
+        std::vector<size_t> scores;
+        foreach(i, candidates)
+        {
+            tree::ClassDecl* classDecl = tree::cast<tree::ClassDecl>(*i);
+            BOOST_ASSERT_MSG(classDecl != nullptr, "Declaraion is not class");
+            tree::TemplatedIdentifier* templatedId = tree::cast<tree::TemplatedIdentifier>(classDecl->name);
+            BOOST_ASSERT_MSG(templatedId != nullptr, "Declaration is not class template");
+
+            //scores.push_back(classTemplateMatchScore(templatedId->templated_type_list, templateArgs));
+        }
+        return false;
+    }
+
+    bool tryInstantiateClassTemplate(tree::ASTNode& attach, zillians::language::tree::TypeSpecifier& node, bool no_action)
+    {
+        if(!isAllCandidatesAreClassTemplate())
+            return false;
+        }
+
+        // get template type argument list
+        const std::vector<tree::ASTNode*>& templateArgsList = tree::cast<tree::TemplatedIdentifier>(node.referred.unspecified)->templated_type_list;
+
+        // if instanciated version exists, use that version
+        tree::ClassDecl* instantiatedClass = findInstanciatedVersion(tree::cast<tree::TemplatedIdentifier>(node.referred.unspecified));
+        if (instantiatedClass)
+        {
+            ResolvedType::set(&attach, instantiatedClass);
+            return true;
+        }
+        // else, push a instanciation command to queue
+        else
+        {
+            //tree::ClassDecl* bestMatchClassDecl = nullptr;
+            //bool onlyOneBest = findBestClassTemplate(candidates, templateArgsList, bestMatchClassDecl);
+            //transforms.push_back([=](){
+                
+            //});
+        }
+
+
+
+        return true;
+    }
+
 private:
 	bool checkResolvedType(tree::ASTNode& attach, tree::TypeSpecifier& node, bool no_action)
 	{
 		using namespace zillians::language::tree;
 
-		if(resolution_visitor.candidates.size() == 1)
-		{
-			ASTNode* ref = resolution_visitor.candidates[0];
+        // class template
+        if(tryInstantiateClassTemplate(attach, node, no_action))
+        {
+            return true;
+        }
+        else
+        {
+            if(resolution_visitor.candidates.size() == 1)
+            {
+                ASTNode* ref = resolution_visitor.candidates[0];
 
-			tree::visitor::NodeInfoVisitor node_info_visitor;
-			node_info_visitor.visit(*ref);
-			LOG4CXX_DEBUG(LoggerWrapper::Resolver, L"type \"" << node.referred.unspecified->toString() << L"\" is resolved to: \"" << node_info_visitor.stream.str() << L"\"");
-			node_info_visitor.reset();
+                tree::visitor::NodeInfoVisitor node_info_visitor;
+                node_info_visitor.visit(*ref);
+                LOG4CXX_DEBUG(LoggerWrapper::Resolver, L"type \"" << node.referred.unspecified->toString() << L"\" is resolved to: \"" << node_info_visitor.stream.str() << L"\"");
+                node_info_visitor.reset();
 
-			bool valid = true;
-			if(isa<ClassDecl>(ref))
-			{
-				LOG4CXX_DEBUG(LoggerWrapper::Resolver, L"resolve type \"" << node.referred.unspecified->toString() << L"\" to \"" << cast<ClassDecl>(ref)->name->toString() << L"\"");
-				if(!no_action) ResolvedType::set(&attach, ref);
-			}
-			else if(isa<InterfaceDecl>(ref))
-			{
-				if(!no_action) ResolvedType::set(&attach, ref);
-			}
-			else if(isa<FunctionDecl>(ref))
-			{
-				if(!no_action) ResolvedType::set(&attach, ref);
-			}
-			else if(isa<EnumDecl>(ref))
-			{
-				if(!no_action) ResolvedType::set(&attach, ref);
-			}
-			else if(isa<TypedefDecl>(ref))
-			{
-				if(!no_action) ResolvedType::set(&attach, ref);
-			}
-			else
-			{
-				LOG4CXX_FATAL(LoggerWrapper::Resolver, L"resolve type \"" << node.referred.unspecified->toString() << L"\" to unknown type");
-				valid = false;
-			}
+                bool valid = true;
+                if(isa<ClassDecl>(ref))
+                {
+                    LOG4CXX_DEBUG(LoggerWrapper::Resolver, L"resolve type \"" << node.referred.unspecified->toString() << L"\" to \"" << cast<ClassDecl>(ref)->name->toString() << L"\"");
+                    if(!no_action) ResolvedType::set(&attach, ref);
+                }
+                else if(isa<InterfaceDecl>(ref))
+                {
+                    if(!no_action) ResolvedType::set(&attach, ref);
+                }
+                else if(isa<FunctionDecl>(ref))
+                {
+                    if(!no_action) ResolvedType::set(&attach, ref);
+                }
+                else if(isa<EnumDecl>(ref))
+                {
+                    if(!no_action) ResolvedType::set(&attach, ref);
+                }
+                else if(isa<TypedefDecl>(ref))
+                {
+                    if(!no_action) ResolvedType::set(&attach, ref);
+                }
+                else
+                {
+                    LOG4CXX_FATAL(LoggerWrapper::Resolver, L"resolve type \"" << node.referred.unspecified->toString() << L"\" to unknown type");
+                    valid = false;
+                }
 
-			resolution_visitor.reset();
-			return valid;
-		}
-		else
-		{
-			if(resolution_visitor.candidates.size() > 1)
-			{
-				// mode than one candidate
-				LOG4CXX_DEBUG(LoggerWrapper::Resolver, L"ambiguous type \"" << node.referred.unspecified->toString() << L"\"");
+                resolution_visitor.reset();
+                return valid;
+            }
+            else
+            {
+                if(resolution_visitor.candidates.size() > 1)
+                {
+                    // mode than one candidate
+                    LOG4CXX_DEBUG(LoggerWrapper::Resolver, L"ambiguous type \"" << node.referred.unspecified->toString() << L"\"");
 
-				tree::visitor::NodeInfoVisitor node_info_visitor;
-				foreach(i, resolution_visitor.candidates)
-				{
-					node_info_visitor.visit(**i);
-					LOG4CXX_DEBUG(LoggerWrapper::Resolver, L"type can be resolved to: \"" << node_info_visitor.stream.str() << L"\"");
-					node_info_visitor.reset();
-				}
-			}
-			else
-			{
-				// no candidate
-				LOG4CXX_DEBUG(LoggerWrapper::Resolver, L"unresolved type \"" << node.referred.unspecified->toString() << L"\"");
-			}
+                    tree::visitor::NodeInfoVisitor node_info_visitor;
+                    foreach(i, resolution_visitor.candidates)
+                    {
+                        node_info_visitor.visit(**i);
+                        LOG4CXX_DEBUG(LoggerWrapper::Resolver, L"type can be resolved to: \"" << node_info_visitor.stream.str() << L"\"");
+                        node_info_visitor.reset();
+                    }
+                }
+                else
+                {
+                    // no candidate
+                    LOG4CXX_DEBUG(LoggerWrapper::Resolver, L"unresolved type \"" << node.referred.unspecified->toString() << L"\"");
+                }
 
-			resolution_visitor.reset();
-			return false;
-		}
+                resolution_visitor.reset();
+                return false;
+            }
+        }
 	}
 
 public:
@@ -500,6 +612,7 @@ private:
 private:
 	__gnu_cxx::hash_set<tree::ASTNode*> current_scopes;
 	tree::visitor::ResolutionVisitor resolution_visitor;
+	std::vector<std::function<void()>> transforms;
 };
 
 } }

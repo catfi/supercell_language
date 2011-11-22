@@ -566,7 +566,8 @@ private:
 
 		if(node->isUnspecified())
 		{
-			if(resolver.resolveType(*attach, *node, no_action))
+			//if(resolver.resolveType(*attach, *node, no_action))
+			if(resolver.resolveType/*OnlyWithId*/(*attach, *node, no_action))
 			{
 				++resolved_count;
 				return true;
