@@ -736,7 +736,9 @@ public:
 			{
 				if(decl_template->isVariadic())
 				{
-					// TODO handle variadic template here
+					// TODO handle variadic template here?
+					is_template_partial_match = true;
+					return true;
 				}
 				else
 				{
@@ -863,6 +865,10 @@ public:
 					is_template_partial_match = true;
 					return true;
 				}
+			}
+			else
+			{
+				return false;
 			}
 		}
 		else if(!isa<TemplatedIdentifier>(use) && !isa<TemplatedIdentifier>(decl))
