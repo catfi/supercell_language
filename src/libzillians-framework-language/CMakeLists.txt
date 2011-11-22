@@ -61,7 +61,9 @@ add_library(zillians-framework-language SHARED
 	language/stage/serialization/ASTSerializationStage.cpp
 	language/stage/serialization/ASTDeserializationStage.cpp    
 	language/stage/serialization/detail/ASTSerializationHelper.cpp
-	language/tree/basic/FunctionType.cpp  
+	language/tree/basic/FunctionType.cpp
+	language/tree/basic/Identifier.cpp    
+	language/tree/basic/TypeSpecifier.cpp
 	language/tree/ASTNodeSerialization.cpp
 	language/stage/dep/ThorScriptDepStage.cpp
     language/stage/dep/ThorScriptPackageDependencyGrammar.cpp

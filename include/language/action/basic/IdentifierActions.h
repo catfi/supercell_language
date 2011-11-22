@@ -102,22 +102,52 @@ struct template_param_identifier
 			BIND_CACHED_LOCATION(_result = new TemplatedIdentifier(TemplatedIdentifier::Usage::FORMAL_PARAMETER, _param(0)));
 			deduced_foreach_value(i, *(_param(1)))
 			{
-//				switch(i.which())
-//				{
-//				case 0:
-//					cast<TemplatedIdentifier>(_result)->appendParameter(boost::get<SimpleIdentifier*>(i));
-//					break;
-//				case 1:
-//					{
-//						Identifier* ident = new SimpleIdentifier(L"..."); BIND_CACHED_LOCATION(ident);
-//						cast<TemplatedIdentifier>(_result)->appendParameter(ident);
-//					}
-//					break;
-//				}
+				typedef boost::fusion::vector2<
+					SimpleIdentifier*,
+					boost::optional<boost::variant<
+						TypeSpecifier*,
+						Expression*> >
+					> fusion_vec_t;
+
+				switch(i.which())
+				{
+					case 0: // fusion_vec_t
+					{
+						fusion_vec_t& vec = boost::get<fusion_vec_t>(i);
+						SimpleIdentifier* id = boost::fusion::at_c<0>(vec);
+						TypeSpecifier* specialized_type = NULL;
+						Expression* default_type = NULL;
+
+						if(boost::fusion::at_c<1>(vec).is_initialized())
+						{
+							auto& optional_variant = *boost::fusion::at_c<1>(vec);
+							switch(optional_variant.which())
+							{
+							case 0:
+								specialized_type = boost::get<TypeSpecifier*>(optional_variant); break;
+							case 1:
+								default_type = boost::get<Expression*>(optional_variant); break;
+							default:
+								break;
+							}
+						}
+
+						cast<TemplatedIdentifier>(_result)->append(TemplateType(id, specialized_type, default_type));
+						break;
+					}
+					case 1: // bool
+					{
+						SimpleIdentifier* ident = new SimpleIdentifier(L"..."); BIND_CACHED_LOCATION(ident);
+						cast<TemplatedIdentifier>(_result)->append(TemplateType(ident, NULL, NULL));
+						break;
+					}
+				}
 			}
 		}
 		else
+		{
 			_result = _param(0);
+		}
 	}
 	END_ACTION
 };
