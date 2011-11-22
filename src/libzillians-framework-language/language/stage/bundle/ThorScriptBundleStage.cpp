@@ -53,21 +53,21 @@ namespace zillians { namespace language { namespace stage {
 // static functions
 //////////////////////////////////////////////////////////////////////////////
 
-void initializeZipInfo(zip_fileinfo& zip_info)
+static void initializeZipInfo(zip_fileinfo& zip_info)
 {
 	std::memset(&zip_info, 0, sizeof(zip_fileinfo));
 
 	// TODO: Fill the dates
 }
 
-std::string getRandomFileName(const std::string extension)
+static std::string getRandomFileName(const std::string extension)
 {
 	UUID filename;
 	filename.random();
 	return (std::string)filename + extension;
 }
 
-bool getBufferFromFile(const std::string& file_name, std::vector<unsigned char>& buffer)
+static bool getBufferFromFile(const std::string& file_name, std::vector<unsigned char>& buffer)
 {
 	std::ifstream file(file_name.c_str(), std::ios::in | std::ios::binary | std::ios::ate);
 	buffer.resize( file.tellg() );
