@@ -91,7 +91,7 @@ private:
 	std::string getManglingName(std::string& name);
 
 private:
-	std::string module_name;
+	std::string bundle_name;
 	std::string entry_symbol;
 };
 
