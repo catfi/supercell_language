@@ -316,118 +316,183 @@ public:
 			return true;
 		}
 	}
-//
-//    bool isAllCandidatesAreClassTemplate()
-//    {
-//        foreach(i, resolution_visitor.candidates)
-//        {
-//            if(!tree::isa<tree::ClassDecl>(*i)) return false;
-//            if(!tree::isa<tree::TemplatedIdentifier>(tree::cast<tree::ClassDecl>(*i)->name)) return false;
-//        }
-//        return true;
-//    }
 
-//    bool templateArgumentTypeListIsEqual(const std::vector<tree::ASTNode*>& a, const std::vector<tree::ASTNode*>& b)
-//    {
-//        if(a.size() != b.size())
-//        {
-//            return false;
-//        }
-//
-//        for(size_t i = 0; i != a.size(); ++i)
-//        {
-//            tree::ASTNode* na = a[i];
-//            tree::ASTNode* nb = b[i];
-//            if (!na->isEqual(*nb))
-//            {
-//                return false;
-//            }
-//        }
-//        return true;
-//    }
-//
-//    void findInstanciatedVersion(tree::TemplatedIdentifier* id, std::vector<std::pair<size_t, tree::ClassDecl*>>& matched_candidates)
-//    {
-//        foreach(i, resolution_visitor.candidates)
-//        {
-//            tree::ClassDecl* class_decl = tree::cast<tree::ClassDecl>(*i);
-//            BOOST_ASSERT_MSG(class_decl, "Declaraion is not class");
-//            tree::TemplatedIdentifier* templated_id = tree::cast<tree::TemplatedIdentifier>(class_decl->name);
-//            BOOST_ASSERT_MSG(templated_id, "Declaration is not class template");
-//
-//            if(id->templated_type_list.size() == templated_id->templated_type_list.size())
-//            {
-//                size_t score = 0L;
-//                bool matched = true;
-//                for(auto i = id->templated_type_list.begin(), j = templated_id->templated_type_list.begin(); i != id->templated_type_list.end(); ++i, ++j)
-//                {
-//                    if(j->specialized_type && j->specialized_type->type == tree::TypeSpecifier::ReferredType::UNSPECIFIED)
-//                    {
-//                    	if(i->id->isEqual(*j->specialized_type->referred.unspecified))
-//                    		score += 0; // exact match to a specialized version, score zero
-//                    	else
-//                    	{
-//                    		matched = false;
-//                    		break;
-//                    	}
-//                    }
-//                    else
-//                    {
-//                    	score += 1; // match non-specialized version, score one
-//                    }
-//                }
-//                matched_candidates.push_back(std::make_pair(score, class_decl));
-//            }
-//        }
-//    }
-//
-//    bool findBestClassTemplate(const std::vector<tree::ASTNode*>& candidates,
-//                               const std::vector<tree::ASTNode*>& templateArgs,
-//                               tree::ClassDecl*& bestMatchClassTemplate)
-//    {
-//        std::vector<size_t> scores;
-//        foreach(i, candidates)
-//        {
-//            tree::ClassDecl* classDecl = tree::cast<tree::ClassDecl>(*i);
-//            BOOST_ASSERT_MSG(classDecl, "Declaraion is not class");
-//            tree::TemplatedIdentifier* templatedId = tree::cast<tree::TemplatedIdentifier>(classDecl->name);
-//            BOOST_ASSERT_MSG(templatedId, "Declaration is not class template");
-//
-//            //scores.push_back(classTemplateMatchScore(templatedId->templated_type_list, templateArgs));
-//        }
-//        return false;
-//    }
-//
-//    bool tryInstantiateClassTemplate(tree::ASTNode& attach, zillians::language::tree::TypeSpecifier& node, bool no_action)
-//    {
-//        if(!isAllCandidatesAreClassTemplate())
-//            return false;
-//        }
-//
-//        // get template type argument list
-//        const std::vector<tree::ASTNode*>& templateArgsList = tree::cast<tree::TemplatedIdentifier>(node.referred.unspecified)->templated_type_list;
-//
-//        // if instanciated version exists, use that version
-//        tree::ClassDecl* instantiatedClass = findInstanciatedVersion(tree::cast<tree::TemplatedIdentifier>(node.referred.unspecified));
-//        if (instantiatedClass)
-//        {
-//            ResolvedType::set(&attach, instantiatedClass);
-//            return true;
-//        }
-//        // else, push a instanciation command to queue
-//        else
-//        {
-//            //tree::ClassDecl* bestMatchClassDecl = nullptr;
-//            //bool onlyOneBest = findBestClassTemplate(candidates, templateArgsList, bestMatchClassDecl);
-//            //transforms.push_back([=](){
-//
-//            //});
-//        }
-//
-//
-//
-//        return true;
-//    }
+    bool isAllCandidatesAreClassTemplate()
+    {
+        foreach(i, resolution_visitor.candidates)
+        {
+            if(!tree::isa<tree::ClassDecl>(*i)) return false;
+            if(!tree::isa<tree::TemplatedIdentifier>(tree::cast<tree::ClassDecl>(*i)->name)) return false;
+        }
+        return true;
+    }
+
+    bool templateArgumentTypeListIsEqual(const std::vector<tree::ASTNode*>& a, const std::vector<tree::ASTNode*>& b)
+    {
+        if(a.size() != b.size())
+        {
+            return false;
+        }
+
+        for(size_t i = 0; i != a.size(); ++i)
+        {
+            tree::ASTNode* na = a[i];
+            tree::ASTNode* nb = b[i];
+            if (!na->isEqual(*nb))
+            {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    void findInstanciatedVersion(tree::TemplatedIdentifier* id, std::vector<std::pair<size_t, tree::ClassDecl*>>& matched_candidates)
+    {
+        foreach(i, resolution_visitor.candidates)
+        {
+            tree::ClassDecl* class_decl = tree::cast<tree::ClassDecl>(*i);
+            BOOST_ASSERT_MSG(class_decl, "Declaraion is not class");
+            tree::TemplatedIdentifier* templated_id = tree::cast<tree::TemplatedIdentifier>(class_decl->name);
+            BOOST_ASSERT_MSG(templated_id, "Declaration is not class template");
+
+            if(id->templated_type_list.size() == templated_id->templated_type_list.size())
+            {
+                size_t score = 0L;
+                bool matched = true;
+                for(auto i = id->templated_type_list.begin(), j = templated_id->templated_type_list.begin(); i != id->templated_type_list.end(); ++i, ++j)
+                {
+                    if(j->specialized_type && j->specialized_type->type == tree::TypeSpecifier::ReferredType::UNSPECIFIED)
+                    {
+                    	if(i->id->isEqual(*j->specialized_type->referred.unspecified))
+                    		score += 0; // exact match to a specialized version, score zero
+                    	else
+                    	{
+                    		matched = false;
+                    		break;
+                    	}
+                    }
+                    else
+                    {
+                    	score += 1; // match non-specialized version, score one
+                    }
+                }
+                matched_candidates.push_back(std::make_pair(score, class_decl));
+            }
+        }
+    }
+
+    bool findBestClassTemplate(const std::vector<tree::ASTNode*>& candidates,
+                               const std::vector<tree::ASTNode*>& templateArgs,
+                               tree::ClassDecl*& bestMatchClassTemplate)
+    {
+        std::vector<size_t> scores;
+        foreach(i, candidates)
+        {
+            tree::ClassDecl* classDecl = tree::cast<tree::ClassDecl>(*i);
+            BOOST_ASSERT_MSG(classDecl, "Declaraion is not class");
+            tree::TemplatedIdentifier* templatedId = tree::cast<tree::TemplatedIdentifier>(classDecl->name);
+            BOOST_ASSERT_MSG(templatedId, "Declaration is not class template");
+
+            //scores.push_back(classTemplateMatchScore(templatedId->templated_type_list, templateArgs));
+        }
+        return false;
+    }
+
+    bool isMoreSpecific(tree::TypenameDecl* a, tree::TypenameDecl* b)
+    {
+    	// is a not specialized, it is impossible a is more specific than b
+        if(a->specialized_type == NULL)
+        {
+        	return false;
+        }
+
+        // a is specialized, b not, a is more specific than b
+        if(a->specialized_type != NULL && b->specialized_type == NULL)
+        {
+        	return true;
+        }
+
+        // if a and b are both specialized, compare the content of the specialized type recursively.
+        //return isMoreSpecific(language::ResolvedType::get(a), language::ResolvedType::get(b));
+        // sdk go!!
+    }
+
+    bool isMoreSpecific(tree::ClassDecl* a, tree::ClassDecl* b)
+    {
+    	tree::TemplatedIdentifier* aArgs = tree::cast<tree::TemplatedIdentifier>(a->name);
+    	tree::TemplatedIdentifier* bArgs = tree::cast<tree::TemplatedIdentifier>(b->name);
+    	// foreach template argument,
+		bool hasAnyBetter = false;
+    	for(size_t i = 0; i < aArgs->template_type_list.size(); ++i){
+    		// TODO check a b is class template
+    		//if b's template argument is better(more specific) than a's, return false
+
+    		if(isMoreSpecific(bArgs->template_type_list[i], aArgs->template_type_list[i]))
+    		{
+    			return false;
+    		}
+    		else if(isMoreSpecific(aArgs->template_type_list[i], bArgs->template_type_list[i]))
+    		{
+    			hasAnyBetter = true;
+    		}
+    	}
+    	return hasAnyBetter;
+    }
+
+    // TODO optimize performance
+    tree::ClassDecl* selectBestCandidate()
+    {
+        std::vector<ASTNode*> candidates = resolution_visitor.candidates;
+        foreach(i, candidates)
+        {
+        	bool isMoreSpecificThanOthers = true;
+        	foreach(j, candidates)
+			{
+        		if(!isMoreSpecific(i, j))
+        		{
+        			isMoreSpecificThanOthers = false;
+        			break;
+        		}
+			}
+        	if(isMoreSpecificThanOthers)
+        	{
+        		return &*i; // get the address of the dereferrenced object of the iterator i
+        	}
+        }
+        return NULL;
+    }
+
+    bool tryInstantiateClassTemplate(tree::ASTNode& attach, zillians::language::tree::TypeSpecifier& node, bool no_action)
+    {
+        if(!isAllCandidatesAreClassTemplate())
+            return false;
+        }
+
+        // get template type argument list
+        //const std::vector<tree::TypenameDecl*>& templateArgsList = tree::cast<tree::TemplatedIdentifier>(node.referred.unspecified)->templated_type_list;
+
+        // if instanciated version exists, use that version
+        tree::ClassDecl* instantiatedClass = findInstanciatedVersion(tree::cast<tree::TemplatedIdentifier>(node.referred.unspecified));
+        if (instantiatedClass)
+        {
+            ResolvedType::set(&attach, instantiatedClass);
+            return true;
+        }
+        // else, select the best candidate
+        else
+        {
+            tree::ClassDecl* best = selectBestCandidate();
+            //tree::ClassDecl* bestMatchClassDecl = nullptr;
+            //bool onlyOneBest = findBestClassTemplate(candidates, templateArgsList, bestMatchClassDecl);
+            //transforms.push_back([=](){
+
+            //});
+        }
+
+
+
+        return true;
+    }
 
 private:
 	bool checkResolvedType(tree::ASTNode& attach, tree::TypeSpecifier& node, bool no_action)
@@ -435,8 +500,7 @@ private:
 		using namespace zillians::language::tree;
 
         // class template
-//        if(tryInstantiateClassTemplate(attach, node, no_action))
-		if(false)
+        if(tryInstantiateClassTemplate(attach, node, no_action))
         {
             return true;
         }
