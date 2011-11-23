@@ -293,7 +293,7 @@ void ThorScriptBundleStage::getMergeASTBuffer(std::vector<unsigned char>& buffer
         if (stripped)
         {
             zillians::language::stage::visitor::ThorScriptStripStageVisitor stripVisitor;
-            stripVisitor.strip(*tangle);
+            stripVisitor.apply(*tangle);
         }
 
     	std::string temp_filename = THORSCRIPT_AST_TEMP_MERGED_FILE;

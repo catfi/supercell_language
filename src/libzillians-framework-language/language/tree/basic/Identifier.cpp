@@ -45,7 +45,7 @@ bool SimpleIdentifier::isEqualImpl(const ASTNode& rhs, ASTNodeSet& visited) cons
 	END_COMPARE()
 }
 
-bool SimpleIdentifier::replaceUseWith(const ASTNode& from, const ASTNode& to, bool update_parent = true)
+bool SimpleIdentifier::replaceUseWith(const ASTNode& from, const ASTNode& to, bool update_parent)
 {
 	BEGIN_REPLACE()
 	REPLACE_USE_WITH(name)
@@ -101,7 +101,7 @@ bool NestedIdentifier::isEqualImpl(const ASTNode& rhs, ASTNodeSet& visited) cons
 	END_COMPARE()
 }
 
-bool NestedIdentifier::replaceUseWith(const ASTNode& from, const ASTNode& to, bool update_parent = true)
+bool NestedIdentifier::replaceUseWith(const ASTNode& from, const ASTNode& to, bool update_parent)
 {
 	BEGIN_REPLACE()
 	REPLACE_USE_WITH(identifier_list)
@@ -117,7 +117,7 @@ ASTNode* NestedIdentifier::clone() const
 
 
 
-TemplateType::TemplateType(SimpleIdentifier* id, TypeSpecifier* specialized_type = NULL, ASTNode* default_type = NULL) : id(id), specialized_type(specialized_type), default_type(default_type)
+TemplateType::TemplateType(SimpleIdentifier* id, TypeSpecifier* specialized_type, ASTNode* default_type) : id(id), specialized_type(specialized_type), default_type(default_type)
 {
 	BOOST_ASSERT(id != NULL);
 }
@@ -139,7 +139,7 @@ bool TemplateType::isEqualImpl(const TemplateType& rhs, ASTNodeSet& visited) con
 	return true;
 }
 
-bool TemplateType::replaceUseWith(const ASTNode& from, const ASTNode& to, bool update_parent = true)
+bool TemplateType::replaceUseWith(const ASTNode& from, const ASTNode& to, bool update_parent)
 {
 	BEGIN_REPLACE()
 	REPLACE_USE_WITH(id)
@@ -235,7 +235,7 @@ bool TemplatedIdentifier::isEqualImpl(const ASTNode& rhs, ASTNodeSet& visited) c
 	END_COMPARE()
 }
 
-bool TemplatedIdentifier::replaceUseWith(const ASTNode& from, const ASTNode& to, bool update_parent = true)
+bool TemplatedIdentifier::replaceUseWith(const ASTNode& from, const ASTNode& to, bool update_parent)
 {
 	BEGIN_REPLACE()
 	REPLACE_USE_WITH(type)

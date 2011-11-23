@@ -42,7 +42,7 @@ BOOST_AUTO_TEST_CASE( ThorScriptStripTest_ThorScriptStripHappyPathTestCase1 )
     BOOST_CHECK(c->member_functions[1]->block != NULL);
     BOOST_CHECK(c->member_functions[2]->block != NULL);
 
-    strip.strip(*tangle);
+    strip.apply(*tangle);
 
     BOOST_CHECK(c->member_functions[0]->block == NULL);
     BOOST_CHECK(c->member_functions[1]->block != NULL);
