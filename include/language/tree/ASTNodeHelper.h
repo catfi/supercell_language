@@ -191,7 +191,7 @@ struct ASTNodeHelper
 	static T* getOwner(ASTNode* node)
 	{
 		BOOST_ASSERT(node && "null pointer exception");
-		for(ASTNode* p = node->parent; p && !isa<Package>(p); p = p->parent)
+		for(ASTNode* p = node->parent; !!p ; p = p->parent)
 			if(isa<T>(p))
 				return cast<T>(p);
 		return NULL;
