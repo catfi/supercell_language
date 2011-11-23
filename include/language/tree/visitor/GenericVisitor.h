@@ -137,7 +137,7 @@
 
 namespace zillians { namespace language { namespace tree { namespace visitor {
 
-struct GenericVisitor : Visitor<const ASTNode, void, VisitorImplementation::recursive_dfs>
+struct GenericVisitor : Visitor<ASTNode, void, VisitorImplementation::recursive_dfs>
 {
 	template<typename Impl, typename Invoker>
 	void registerInvoker(Impl* impl)
@@ -148,12 +148,12 @@ struct GenericVisitor : Visitor<const ASTNode, void, VisitorImplementation::recu
 	//////////////////////////////////////////////////////////////////////
 	/// Basic
 
-	void apply(const ASTNode& node)
+	void apply(ASTNode& node)
 	{
 		UNUSED_ARGUMENT(node);
 	}
 
-	void apply(const Annotation& node)
+	void apply(Annotation& node)
 	{
 		if(node.name) visit(*node.name);
 		foreach(i, node.attribute_list)
@@ -163,33 +163,33 @@ struct GenericVisitor : Visitor<const ASTNode, void, VisitorImplementation::recu
 		}
 	}
 
-	void apply(const Annotations& node)
+	void apply(Annotations& node)
 	{
 		foreach(i, node.annotation_list) visit(**i);
 	}
 
-	void apply(const Block& node)
+	void apply(Block& node)
 	{
 		foreach(i, node.objects) visit(**i);
 	}
 
-	void apply(const Identifier& node)
+	void apply(Identifier& node)
 	{
 		UNUSED_ARGUMENT(node);
 		UNREACHABLE_CODE();
 	}
 
-	void apply(const SimpleIdentifier& node)
+	void apply(SimpleIdentifier& node)
 	{
 		UNUSED_ARGUMENT(node);
 	}
 
-	void apply(const NestedIdentifier& node)
+	void apply(NestedIdentifier& node)
 	{
 		foreach(i, node.identifier_list) visit(**i);
 	}
 
-	void apply(const TemplatedIdentifier& node)
+	void apply(TemplatedIdentifier& node)
 	{
 		if(node.id) visit(*node.id);
 
@@ -201,7 +201,7 @@ struct GenericVisitor : Visitor<const ASTNode, void, VisitorImplementation::recu
 		}
 	}
 
-	void apply(const TypeSpecifier& node)
+	void apply(TypeSpecifier& node)
 	{
 		switch(node.type)
 		{
@@ -211,7 +211,7 @@ struct GenericVisitor : Visitor<const ASTNode, void, VisitorImplementation::recu
 		}
 	}
 
-	void apply(const FunctionType& node)
+	void apply(FunctionType& node)
 	{
 		foreach(i, node.templated_parameters) visit(**i);
 		foreach(i, node.argument_types)       visit(**i);
@@ -219,7 +219,7 @@ struct GenericVisitor : Visitor<const ASTNode, void, VisitorImplementation::recu
 
 	//////////////////////////////////////////////////////////////////////
 	/// Module
-	void apply(const Internal& node)
+	void apply(Internal& node)
 	{
 		if(node.VoidTy)     visit(*node.VoidTy);
 		if(node.BooleanTy)  visit(*node.BooleanTy);
@@ -236,7 +236,7 @@ struct GenericVisitor : Visitor<const ASTNode, void, VisitorImplementation::recu
 		foreach(i, node.others) visit(**i);
 	}
 
-	void apply(const Tangle& node)
+	void apply(Tangle& node)
 	{
 		if(node.internal) visit(*node.internal);
 
@@ -247,14 +247,14 @@ struct GenericVisitor : Visitor<const ASTNode, void, VisitorImplementation::recu
 		}
 	}
 
-	void apply(const Source& node)
+	void apply(Source& node)
 	{
 		foreach(i, node.imports) visit(**i);
 
 		if(node.root) visit(*node.root);
 	}
 
-	void apply(const Package& node)
+	void apply(Package& node)
 	{
 		if(node.annotations) visit(*node.annotations);
 
@@ -264,7 +264,7 @@ struct GenericVisitor : Visitor<const ASTNode, void, VisitorImplementation::recu
 		if(node.annotations) visit(*node.annotations);
 	}
 
-	void apply(const Import& node)
+	void apply(Import& node)
 	{
 		if(node.ns) visit(*node.ns);
 	}
@@ -277,7 +277,7 @@ struct GenericVisitor : Visitor<const ASTNode, void, VisitorImplementation::recu
 		UNREACHABLE_CODE();
 	}
 
-	void apply(const ClassDecl& node)
+	void apply(ClassDecl& node)
 	{
 		if(node.annotations) visit(*node.annotations);
 
@@ -288,7 +288,7 @@ struct GenericVisitor : Visitor<const ASTNode, void, VisitorImplementation::recu
 		foreach(i, node.member_variables) visit(**i);
 	}
 
-	void apply(const EnumDecl& node)
+	void apply(EnumDecl& node)
 	{
 		if(node.annotations) visit(*node.annotations);
 
@@ -299,7 +299,7 @@ struct GenericVisitor : Visitor<const ASTNode, void, VisitorImplementation::recu
 		}
 	}
 
-	void apply(const FunctionDecl& node)
+	void apply(FunctionDecl& node)
 	{
 		if(node.annotations) visit(*node.annotations);
 
@@ -312,7 +312,7 @@ struct GenericVisitor : Visitor<const ASTNode, void, VisitorImplementation::recu
 		if(node.block) visit(*node.block);
 	}
 
-	void apply(const InterfaceDecl& node)
+	void apply(InterfaceDecl& node)
 	{
 		if(node.annotations) visit(*node.annotations);
 
@@ -320,7 +320,7 @@ struct GenericVisitor : Visitor<const ASTNode, void, VisitorImplementation::recu
 		foreach(i, node.member_functions) visit(**i);
 	}
 
-	void apply(const TypedefDecl& node)
+	void apply(TypedefDecl& node)
 	{
 		if(node.annotations) visit(*node.annotations);
 
@@ -328,7 +328,7 @@ struct GenericVisitor : Visitor<const ASTNode, void, VisitorImplementation::recu
 		if(node.name) visit(*node.name);
 	}
 
-	void apply(const VariableDecl& node)
+	void apply(VariableDecl& node)
 	{
 		if(node.annotations) visit(*node.annotations);
 
@@ -345,21 +345,21 @@ struct GenericVisitor : Visitor<const ASTNode, void, VisitorImplementation::recu
 		UNREACHABLE_CODE();
 	}
 
-	void apply(const DeclarativeStmt& node)
+	void apply(DeclarativeStmt& node)
 	{
 		if(node.annotations) visit(*node.annotations);
 
 		if(node.declaration) visit(*node.declaration);
 	}
 
-	void apply(const ExpressionStmt& node)
+	void apply(ExpressionStmt& node)
 	{
 		if(node.annotations) visit(*node.annotations);
 
 		if(node.expr) visit(*node.expr);
 	}
 
-	void apply(const ForeachStmt& node)
+	void apply(ForeachStmt& node)
 	{
 		if(node.annotations) visit(*node.annotations);
 
@@ -368,7 +368,7 @@ struct GenericVisitor : Visitor<const ASTNode, void, VisitorImplementation::recu
 		if(node.block)    visit(*node.block);
 	}
 
-	void apply(const ForStmt& node)
+	void apply(ForStmt& node)
 	{
 		if(node.annotations) visit(*node.annotations);
 
@@ -378,7 +378,7 @@ struct GenericVisitor : Visitor<const ASTNode, void, VisitorImplementation::recu
 		if(node.step)  visit(*node.step);
 	}
 
-	void apply(const WhileStmt& node)
+	void apply(WhileStmt& node)
 	{
 		if(node.annotations) visit(*node.annotations);
 
@@ -386,7 +386,7 @@ struct GenericVisitor : Visitor<const ASTNode, void, VisitorImplementation::recu
 		if(node.block) visit(*node.block);
 	}
 
-	void apply(const IfElseStmt& node)
+	void apply(IfElseStmt& node)
 	{
 		if(node.annotations) visit(*node.annotations);
 
@@ -400,7 +400,7 @@ struct GenericVisitor : Visitor<const ASTNode, void, VisitorImplementation::recu
 		if(node.else_block) visit(*node.else_block);
 	}
 
-	void apply(const SwitchStmt& node)
+	void apply(SwitchStmt& node)
 	{
 		if(node.annotations) visit(*node.annotations);
 
@@ -413,7 +413,7 @@ struct GenericVisitor : Visitor<const ASTNode, void, VisitorImplementation::recu
 		if(node.default_block) visit(*node.default_block);
 	}
 
-	void apply(const BranchStmt& node)
+	void apply(BranchStmt& node)
 	{
 		if(node.annotations) visit(*node.annotations);
 	}
@@ -426,7 +426,7 @@ struct GenericVisitor : Visitor<const ASTNode, void, VisitorImplementation::recu
 		UNREACHABLE_CODE();
 	}
 
-	void apply(const PrimaryExpr& node)
+	void apply(PrimaryExpr& node)
 	{
 		switch(node.catagory)
 		{
@@ -436,12 +436,12 @@ struct GenericVisitor : Visitor<const ASTNode, void, VisitorImplementation::recu
 		}
 	}
 
-	void apply(const UnaryExpr& node)
+	void apply(UnaryExpr& node)
 	{
 		if(node.node) visit(*node.node);
 	}
 
-	void apply(const BinaryExpr& node)
+	void apply(BinaryExpr& node)
 	{
 		if(node.isRighAssociative())
 		{
@@ -455,26 +455,26 @@ struct GenericVisitor : Visitor<const ASTNode, void, VisitorImplementation::recu
 		}
 	}
 
-	void apply(const TernaryExpr& node)
+	void apply(TernaryExpr& node)
 	{
 		if(node.cond)       visit(*node.cond);
 		if(node.true_node)  visit(*node.true_node);
 		if(node.false_node) visit(*node.false_node);
 	}
 
-	void apply(const MemberExpr& node)
+	void apply(MemberExpr& node)
 	{
 		if(node.node)   visit(*node.node);
 		if(node.member) visit(*node.member);
 	}
 
-	void apply(const CallExpr& node)
+	void apply(CallExpr& node)
 	{
 		if(node.node) visit(*node.node);
 		foreach(i, node.parameters) visit(**i);
 	}
 
-	void apply(const CastExpr& node)
+	void apply(CastExpr& node)
 	{
 		if(node.node) visit(*node.node);
 		if(node.type) visit(*node.type);
