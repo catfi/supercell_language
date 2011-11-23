@@ -821,8 +821,8 @@ public:
 									// TODO consider to change to is_template_match? or set the flag only when "partial" template match, which requires template instantiation
 									is_template_partial_match |= partial_match;
 								}
-								else if(isa<SimpleIdentifier>(use_types[i]->specialized_type->referred.unspecified) &&
-									    isa<SimpleIdentifier>(decl_types[i]->specialized_type->referred.unspecified) )
+								else if(!isa<TemplatedIdentifier>(use_types[i]->specialized_type->referred.unspecified) &&
+									    !isa<TemplatedIdentifier>(decl_types[i]->specialized_type->referred.unspecified) )
 
 								{
 									ASTNode* resolved_use = ResolvedType::get(use_types[i]->specialized_type);

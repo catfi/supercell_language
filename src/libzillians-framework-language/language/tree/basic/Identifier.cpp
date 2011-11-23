@@ -164,7 +164,22 @@ bool TemplatedIdentifier::isFullySpecialized() const
 	foreach(i, templated_type_list)
 	{
 		if(!(*i)->specialized_type)
+		{
 			return false;
+		}
+		else
+		{
+			if((*i)->specialized_type->type == TypeSpecifier::ReferredType::UNSPECIFIED)
+			{
+				if(isa<TemplatedIdentifier>((*i)->specialized_type->referred.unspecified))
+				{
+					if(!cast<TemplatedIdentifier>((*i)->specialized_type->referred.unspecified)->isFullySpecialized())
+					{
+						return false;
+					}
+				}
+			}
+		}
 	}
 	return true;
 }
