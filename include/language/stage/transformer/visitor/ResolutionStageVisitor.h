@@ -632,8 +632,7 @@ private:
 
 		if(node->isUnspecified())
 		{
-			//if(resolver.resolveType(*attach, *node, no_action))
-			if(resolver.resolveType/*OnlyWithId*/(*attach, *node, no_action))
+			if(resolver.resolveType(*attach, *node, transforms, no_action))
 			{
 				++resolved_count;
 				return true;
@@ -659,7 +658,7 @@ private:
 		if(ResolvedSymbol::get(attach))
 			return true;
 
-		if(resolver.resolveSymbol(*attach, *scope, *node, no_action))
+		if(resolver.resolveSymbol(*attach, *scope, *node, transforms, no_action))
 		{
 			++resolved_count;
 			return true;
@@ -680,7 +679,7 @@ private:
 		if(ResolvedSymbol::get(attach))
 			return true;
 
-		if(resolver.resolveSymbol(*attach, *node, no_action))
+		if(resolver.resolveSymbol(*attach, *node, transforms, no_action))
 		{
 			++resolved_count;
 			return true;
@@ -743,7 +742,7 @@ private:
 		if(ResolvedSymbol::get(attach) || ResolvedPackage::get(attach))
 			return true;
 
-		if(resolver.resolveSymbol(*attach, *scope, *node, no_action))
+		if(resolver.resolveSymbol(*attach, *scope, *node, transforms, no_action))
 		{
 			++resolved_count;
 			return true;
@@ -772,7 +771,7 @@ private:
 		if(ResolvedSymbol::get(attach) || ResolvedPackage::get(attach))
 			return true;
 
-		if(resolver.resolveSymbol(*attach, *node, no_action))
+		if(resolver.resolveSymbol(*attach, *node, transforms, no_action))
 		{
 			++resolved_count;
 			return true;

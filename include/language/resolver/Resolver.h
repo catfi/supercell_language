@@ -93,7 +93,7 @@ public:
 	 *
 	 * @see ResolvedSymbol
 	 */
-	bool resolveSymbol(tree::ASTNode& attach, tree::ASTNode& scope, tree::Identifier& node, bool no_action = false)
+	bool resolveSymbol(tree::ASTNode& attach, tree::ASTNode& scope, tree::Identifier& node, std::vector<std::function<void()>>& transform, bool no_action = false)
 	{
 		using namespace zillians::language::tree;
 
@@ -116,7 +116,7 @@ public:
 
 			resolution_visitor.tryVisit(scope);
 
-			return checkResolvedSymbol(attach, node, no_action);
+			return checkResolvedSymbol(attach, node, transform, no_action);
 		}
 		else
 		{
@@ -134,7 +134,7 @@ public:
 	 *
 	 * @see ResolvedSymbol
 	 */
-	bool resolveSymbol(tree::ASTNode& attach, tree::Identifier& node, bool no_action = false)
+	bool resolveSymbol(tree::ASTNode& attach, tree::Identifier& node, std::vector<std::function<void()>>& transform, bool no_action = false)
 	{
 		using namespace zillians::language::tree;
 
@@ -156,7 +156,7 @@ public:
 				resolution_visitor.tryVisit(**scope);
 			}
 
-			return checkResolvedSymbol(attach, node, no_action);
+			return checkResolvedSymbol(attach, node, transform, no_action);
 		}
 		else
 		{
@@ -175,7 +175,7 @@ private:
 	 * @param no_action
 	 * @return true on successful resolution, false otherwise
 	 */
-	bool checkResolvedSymbol(tree::ASTNode& attach, tree::Identifier& node, bool no_action)
+	bool checkResolvedSymbol(tree::ASTNode& attach, tree::Identifier& node, std::vector<std::function<void()>>& transform, bool no_action)
 	{
 		using namespace zillians::language::tree;
 
@@ -265,7 +265,7 @@ private:
 	}
 
 public:
-	bool resolveType(tree::ASTNode& attach, tree::ASTNode& scope, tree::TypeSpecifier& node, bool no_action = false)
+	bool resolveType(tree::ASTNode& attach, tree::ASTNode& scope, tree::TypeSpecifier& node, std::vector<std::function<void()>>& transform, bool no_action = false)
 	{
 		using namespace zillians::language::tree;
 
@@ -282,7 +282,7 @@ public:
 
 			resolution_visitor.tryVisit(scope);
 
-			return checkResolvedType(attach, node, no_action);
+			return checkResolvedType(attach, node, transform, no_action);
 		}
 		else
 		{
@@ -290,7 +290,7 @@ public:
 		}
 	}
 
-	bool resolveType(tree::ASTNode& attach, tree::TypeSpecifier& node, bool no_action = false)
+	bool resolveType(tree::ASTNode& attach, tree::TypeSpecifier& node, std::vector<std::function<void()>>& transform, bool no_action = false)
 	{
 		using namespace zillians::language::tree;
 
@@ -309,7 +309,7 @@ public:
 				resolution_visitor.tryVisit(**scope);
 			}
 
-			return checkResolvedType(attach, node, no_action);
+			return checkResolvedType(attach, node, transform, no_action);
 		}
 		else
 		{
@@ -317,87 +317,7 @@ public:
 		}
 	}
 
-//    bool isAllCandidatesAreClassTemplate()
-//    {
-//        foreach(i, resolution_visitor.candidates)
-//        {
-//            if(!tree::isa<tree::ClassDecl>(*i)) return false;
-//            if(!tree::isa<tree::TemplatedIdentifier>(tree::cast<tree::ClassDecl>(*i)->name)) return false;
-//        }
-//        return true;
-//    }
-//
-//    bool templateArgumentTypeListIsEqual(const std::vector<tree::ASTNode*>& a, const std::vector<tree::ASTNode*>& b)
-//    {
-//        if(a.size() != b.size())
-//        {
-//            return false;
-//        }
-//
-//        for(size_t i = 0; i != a.size(); ++i)
-//        {
-//            tree::ASTNode* na = a[i];
-//            tree::ASTNode* nb = b[i];
-//            if (!na->isEqual(*nb))
-//            {
-//                return false;
-//            }
-//        }
-//        return true;
-//    }
-
-//    void findInstanciatedVersion(tree::TemplatedIdentifier* id, std::vector<std::pair<size_t, tree::ClassDecl*>>& matched_candidates)
-//    {
-//        foreach(i, resolution_visitor.candidates)
-//        {
-//            tree::ClassDecl* class_decl = tree::cast<tree::ClassDecl>(*i);
-//            BOOST_ASSERT_MSG(class_decl, "Declaraion is not class");
-//            tree::TemplatedIdentifier* templated_id = tree::cast<tree::TemplatedIdentifier>(class_decl->name);
-//            BOOST_ASSERT_MSG(templated_id, "Declaration is not class template");
-//
-//            if(id->templated_type_list.size() == templated_id->templated_type_list.size())
-//            {
-//                size_t score = 0L;
-//                bool matched = true;
-//                for(auto i = id->templated_type_list.begin(), j = templated_id->templated_type_list.begin(); i != id->templated_type_list.end(); ++i, ++j)
-//                {
-//                    if(j->specialized_type && j->specialized_type->type == tree::TypeSpecifier::ReferredType::UNSPECIFIED)
-//                    {
-//                    	if(i->id->isEqual(*j->specialized_type->referred.unspecified))
-//                    		score += 0; // exact match to a specialized version, score zero
-//                    	else
-//                    	{
-//                    		matched = false;
-//                    		break;
-//                    	}
-//                    }
-//                    else
-//                    {
-//                    	score += 1; // match non-specialized version, score one
-//                    }
-//                }
-//                matched_candidates.push_back(std::make_pair(score, class_decl));
-//            }
-//        }
-//    }
-
-//    bool findBestClassTemplate(const std::vector<tree::ASTNode*>& candidates,
-//                               const std::vector<tree::ASTNode*>& templateArgs,
-//                               tree::ClassDecl*& bestMatchClassTemplate)
-//    {
-//        std::vector<size_t> scores;
-//        foreach(i, candidates)
-//        {
-//            tree::ClassDecl* classDecl = tree::cast<tree::ClassDecl>(*i);
-//            BOOST_ASSERT_MSG(classDecl, "Declaraion is not class");
-//            tree::TemplatedIdentifier* templatedId = tree::cast<tree::TemplatedIdentifier>(classDecl->name);
-//            BOOST_ASSERT_MSG(templatedId, "Declaration is not class template");
-//
-//            //scores.push_back(classTemplateMatchScore(templatedId->templated_type_list, templateArgs));
-//        }
-//        return false;
-//    }
-
+private:
     static bool isFullySpecializedTemplatedIdentifier(tree::Identifier* id)
     {
     	using namespace zillians::language::tree;
@@ -565,6 +485,68 @@ public:
     	}
     }
 
+    tree::ClassDecl* instantiateClassTemplate(zillians::language::tree::TypeSpecifier& node, tree::ClassDecl* from)
+    {
+    	using namespace zillians::language::tree;
+    	Package* owner_package = ASTNodeHelper::getOwner<Package>(from);
+
+    	BOOST_ASSERT(owner_package != NULL && "can't find owner package for class template");
+
+    	// make a clone from class template
+    	ClassDecl* to = from->clone();
+    	owner_package->addObject(to);
+
+    	// update the templated identifier to make it a class instantiation
+    	TemplatedIdentifier* use_id = cast<TemplatedIdentifier>(node.referred.unspecified);
+    	TemplatedIdentifier* decl_id = cast<TemplatedIdentifier>(to->name);
+
+    	for(int i=0;i<decl_id->templated_type_list.size();++i)
+    	{
+    		TypenameDecl* decl_typename = decl_id->templated_type_list[i];
+
+    		TypeSpecifier* specialized_type_to_replace = NULL;
+    		if(i < use_id->templated_type_list.size())
+    		{
+    			TypenameDecl* use_typename = use_id->templated_type_list[i];
+
+    			// make the use type as the specialized type in decl id
+				specialized_type_to_replace = cast<TypeSpecifier>(use_typename->specialized_type->clone());
+				ResolvedType::set(specialized_type_to_replace, ResolvedType::get(use_typename->specialized_type));
+
+    		}
+    		else
+    		{
+    			// make the default type as the specialized type in decl id
+    			ASTNode* resolved_default_type = ResolvedType::get(decl_typename->default_type);
+    			if(isa<ClassDecl>(resolved_default_type))
+    			{
+    				// create a TypeSpecifier which resolve to the class
+    				specialized_type_to_replace = new TypeSpecifier(cast<Identifier>(cast<ClassDecl>(resolved_default_type)->name->clone()));
+    				ResolvedType::set(specialized_type_to_replace, resolved_default_type);
+    			}
+    			else
+    			{
+    				UNREACHABLE_CODE();
+    			}
+    		}
+
+    		// replace the current specialized type to the desired specialized type
+			if(!decl_typename->specialized_type)
+			{
+				decl_typename->specialized_type = specialized_type_to_replace;
+			}
+			else if(isPartiallySpecializedTemplatedIdentifier(decl_id->templated_type_list[i]->specialized_type->referred.unspecified))
+			{
+				decl_typename->replaceUseWith(*decl_typename->specialized_type, *specialized_type_to_replace);
+			}
+
+    		// remove all default types
+			decl_typename->default_type = NULL;
+    	}
+
+    	return to;
+    }
+
     /**
      * try to find and instantiate (if needed) the best class template candidates among all
      * @param attach
@@ -572,27 +554,42 @@ public:
      * @param no_action
      * @return
      */
-    bool tryInstantiateClassTemplate(tree::ASTNode& attach, zillians::language::tree::TypeSpecifier& node, bool no_action)
+    bool tryInstantiateClassTemplate(tree::ASTNode& attach, zillians::language::tree::TypeSpecifier& node, std::vector<std::function<void()>>& transform, bool no_action)
     {
     	using namespace zillians::language::tree;
+
+    	// if the current identifier is not a fully specialized templated identifier, it's not suitable for class template instantiation
+    	if(node.type != TypeSpecifier::ReferredType::UNSPECIFIED && !isFullySpecializedTemplatedIdentifier(node.referred.unspecified))
+    		return false;
 
     	// if there's no candidates, of course we cannot find class template to instantiate
     	if(resolution_visitor.candidates.size() == 0)
     		return false;
 
-    	// make sure all candidates are class with templated identifier as its name
-    	// so that it does not lead ambiguous types in the end
-    	foreach(i, resolution_visitor.candidates)
+		// make sure all candidates are class with templated identifier as its name
+		// so that it does not lead ambiguous types in the end
+		foreach(i, resolution_visitor.candidates)
 		{
-    		if(!isa<ClassDecl>(*i) || !isa<TemplatedIdentifier>(cast<ClassDecl>(*i)->name))
-      			return false;
+			if(!isa<ClassDecl>(*i) || !isa<TemplatedIdentifier>(cast<ClassDecl>(*i)->name))
+				return false;
 		}
 
-    	// try to find the most specialized version of class templates
-    	// note that as we have filtered out all incompatible class templates, all candidates should be able to fit the current identifier
-    	// so we just need to find the most specialized version of class templates among all candidates,
-    	// and this version is the one we are looking for
-    	ClassDecl* most_specialized_class_template = findMostSpecializedClassTemplate();
+    	ClassDecl* most_specialized_class_template = NULL;
+
+    	if(resolution_visitor.candidates.size() == 1)
+    	{
+    		// if there's exactly one class template candidates, then that's the closest we can get
+    		most_specialized_class_template = cast<ClassDecl>(resolution_visitor.candidates[0]);
+    	}
+    	else
+    	{
+    		// if there's more than one class template candidates
+			// try to find the most specialized version of class templates
+			// note that as we have filtered out all incompatible class templates, all candidates should be able to fit the current identifier
+			// so we just need to find the most specialized version of class templates among all candidates,
+			// and this version is the one we are looking for
+			most_specialized_class_template = findMostSpecializedClassTemplate();
+    	}
 
     	// if we can't find the most specialized class template due to ambiguous instantiation, return false
     	if(!most_specialized_class_template)
@@ -603,23 +600,44 @@ public:
     	if(id->isFullySpecialized())
     	{
     		// we got the fully specialized version, so just set the resolve type
-    		ResolvedType::set(&attach, most_specialized_class_template);
+    		if(!no_action)
+    		{
+                visitor::NodeInfoVisitor node_info_visitor;
+                node_info_visitor.visit(*most_specialized_class_template);
+                LOG4CXX_DEBUG(LoggerWrapper::Resolver, L"type \"" << node.referred.unspecified->toString() << L"\" is resolved to: \"" << node_info_visitor.stream.str() << L"\"");
+                node_info_visitor.reset();
+
+    			ResolvedType::set(&attach, most_specialized_class_template);
+    		}
     		return true;
     	}
     	else
     	{
-    		// TODO the most specialized class template is not fully specialized, we need to create new instantiation using lambda expression for it
+    		if(!no_action)
+    		{
+        		// the most specialized class template is not fully specialized, we need to create new instantiation using lambda expression for it
+    			transform.push_back([&, most_specialized_class_template](){
+    				ClassDecl* instantiated = instantiateClassTemplate(node, most_specialized_class_template);
+    				ResolvedType::set(&attach, instantiated);
+
+                    visitor::NodeInfoVisitor node_info_visitor;
+                    node_info_visitor.visit(*instantiated);
+                    LOG4CXX_DEBUG(LoggerWrapper::Resolver, L"type \"" << node.referred.unspecified->toString() << L"\" is resolved to: \"" << node_info_visitor.stream.str() << L"\"");
+                    node_info_visitor.reset();
+
+    			});
+    		}
     		return true;
     	}
     }
 
 private:
-	bool checkResolvedType(tree::ASTNode& attach, tree::TypeSpecifier& node, bool no_action)
+	bool checkResolvedType(tree::ASTNode& attach, tree::TypeSpecifier& node, std::vector<std::function<void()>>& transform, bool no_action)
 	{
 		using namespace zillians::language::tree;
 
         // class template
-        if(tryInstantiateClassTemplate(attach, node, no_action))
+        if(tryInstantiateClassTemplate(attach, node, transform, no_action))
         {
             return true;
         }
