@@ -17,28 +17,24 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef ZILLIANS_LANGUAGE_STAGE_MAKE_THORSCRIPTBUNDLESTAGE_H_
-#define ZILLIANS_LANGUAGE_STAGE_MAKE_THORSCRIPTBUNDLESTAGE_H_
+#ifndef ZILLIANS_LANGUAGE_STAGE_MAKE_THORSCRIPTVMSTAGE_H_
+#define ZILLIANS_LANGUAGE_STAGE_MAKE_THORSCRIPTVMSTAGE_H_
 
 #include <vector>
 #include <string>
-#include <boost/filesystem.hpp>
 #include "language/stage/Stage.h"
+#include "language/stage/vm/ThorScriptVMMode.h"
 
 namespace zillians { namespace language { namespace stage {
 
 /**
- * The ThorScriptBundleStage is responsible for:
- *
- * 1. Merge llvm bc files
- * 2. Merge ast trees into one
- * 3. Archive merged bc, ast file and a manifest as a bundle
+ * ThorScriptVMStage
  */
-class ThorScriptBundleStage : public Stage
+class ThorScriptVMStage : public Stage
 {
 public:
-	ThorScriptBundleStage();
-	virtual ~ThorScriptBundleStage();
+	ThorScriptVMStage();
+	virtual ~ThorScriptVMStage();
 
 public:
 	virtual const char* name();
@@ -46,28 +42,11 @@ public:
 	virtual bool parseOptions(po::variables_map& vm);
 	virtual bool execute(bool& continue_execution);
 
-public:
-    zillians::language::tree::Tangle* getMergedAST(const std::vector<std::string>& ast_files);
 
 private:
-	void getMergeBitCodeBuffer(std::vector<unsigned char>& buffer);
-	void getMergeASTBuffer(std::vector<unsigned char>& buffer);
-	void getFileBuffer(const std::string& path, std::vector<unsigned char>& buffer);
-    bool extract(bool& continue_execution);
-    bool compress(bool& continue_execution);
-
-public:
-    std::vector<std::string> other_files;
-    std::vector<std::string> bitcode_files;
-    std::vector<std::string> ast_files;
-    std::string manifest_file;
-
-    std::string output_file;
-    std::vector<std::string> bundleDependency;
-    boost::filesystem::path buildPath;
-    bool stripped;
+	ThorScriptBaseVM* tsvm;
 };
 
 } } }
 
-#endif /* ZILLIANS_LANGUAGE_STAGE_MAKE_THORSCRIPTBUNDLESTAGE_H_ */
+#endif /* ZILLIANS_LANGUAGE_STAGE_MAKE_THORSCRIPTVMSTAGE_H_ */

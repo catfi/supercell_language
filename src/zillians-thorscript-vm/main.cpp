@@ -20,7 +20,7 @@
 #include "language/logging/LoggerWrapper.h"
 #include "language/ThorScriptVM.h"
 
-int main(int argc, char** argv)
+int main(int argc, const char** argv)
 {
 	zillians::language::ThorScriptVM vm;
 	return vm.main(argc, argv);

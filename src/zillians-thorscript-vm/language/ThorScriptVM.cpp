@@ -18,24 +18,20 @@
  */
 
 #include "language/ThorScriptVM.h"
+#include "language/stage/vm/ThorScriptVMStage.h"
 
 using namespace zillians::language::stage;
 
 namespace zillians { namespace language {
 
-ThorScriptVM::ThorScriptVM()
+ThorScriptVM::ThorScriptVM() : stage::StageBuilder(true)
 {
+	addDefaultMode<
+		boost::mpl::vector<
+			ThorScriptVMStage>>();
 }
 
 ThorScriptVM::~ThorScriptVM()
-{
-}
-
-void ThorScriptVM::initialize()
-{
-}
-
-void ThorScriptVM::finalize()
 {
 }
 
