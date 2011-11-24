@@ -23,7 +23,7 @@
 #include "core/Prerequisite.h"
 #include "language/context/TransformerContext.h"
 #include "language/tree/visitor/GenericVisitor.h"
-#include "language/tree/visitor/GenericDoubleVisitor.h"
+#include "language/tree/visitor/GenericVisitor.h"
 #include "language/tree/visitor/NameManglingVisitor.h"
 #include "language/stage/transformer/context/ManglingStageContext.h"
 #include "language/logging/StringTable.h"
@@ -34,7 +34,7 @@
 #include "language/resolver/Resolver.h"
 
 using namespace zillians::language::tree;
-using zillians::language::tree::visitor::GenericDoubleVisitor;
+using zillians::language::tree::visitor::GenericVisitor;
 using zillians::language::tree::visitor::NameManglingVisitor;
 
 // CHECKS IN SEMANTIC VERIFICATION STAGE 1
@@ -59,21 +59,22 @@ using zillians::language::tree::visitor::NameManglingVisitor;
 
 namespace zillians { namespace language { namespace stage { namespace visitor {
 
-struct SemanticVerificationStageVisitor1 : GenericDoubleVisitor
+struct SemanticVerificationStageVisitor1 : GenericVisitor
 {
-	CREATE_INVOKER(verifyInvoker, verify)
+	using GenericVisitor::apply;
+    CREATE_GENERIC_INVOKER(verifyInvoker)
 
 	SemanticVerificationStageVisitor1()
 	{
 		REGISTER_ALL_VISITABLE_ASTNODE(verifyInvoker)
 	}
 
-	void verify(ASTNode& node)
+	void apply(ASTNode& node)
 	{
-		revisit(node);
+		GenericVisitor::apply(node);
 	}
 
-	void verify(MemberExpr& node)
+	void apply(MemberExpr& node)
 	{
 		ASTNode* resolved_symbol = ResolvedSymbol::get(&node);
 		if(resolved_symbol) // NOTE: NULL if package
@@ -86,10 +87,10 @@ struct SemanticVerificationStageVisitor1 : GenericDoubleVisitor
 				verifyVisibilityAccessViolation(&node, cast<FunctionDecl>(resolved_symbol));
 		}
 
-		revisit(node);
+		GenericVisitor::apply(node);
 	}
 
-	void verify(PrimaryExpr& node)
+	void apply(PrimaryExpr& node)
 	{
 		if(node.catagory == PrimaryExpr::Catagory::IDENTIFIER)
 		{
@@ -125,10 +126,10 @@ struct SemanticVerificationStageVisitor1 : GenericDoubleVisitor
 			}
 		}
 
-		revisit(node);
+		GenericVisitor::apply(node);
 	}
 
-	void verify(CallExpr& node)
+	void apply(CallExpr& node)
 	{
 		// INVALID_NONSTATIC_CALL
 		ASTNode* resolved_symbol = ResolvedSymbol::get(node.node);
@@ -149,10 +150,10 @@ struct SemanticVerificationStageVisitor1 : GenericDoubleVisitor
 			}
 		}
 
-		revisit(node);
+		GenericVisitor::apply(node);
 	}
 
-	void verify(BinaryExpr& node)
+	void apply(BinaryExpr& node)
 	{
 		if(node.isAssignment())
 		{
@@ -178,10 +179,10 @@ struct SemanticVerificationStageVisitor1 : GenericDoubleVisitor
 			}
 		}
 
-		revisit(node);
+		GenericVisitor::apply(node);
 	}
 
-	void verify(BranchStmt& node)
+	void apply(BranchStmt& node)
 	{
 		if(node.opcode == BranchStmt::OpCode::RETURN)
 		{
@@ -210,25 +211,25 @@ struct SemanticVerificationStageVisitor1 : GenericDoubleVisitor
 				LOG_MESSAGE(UNEXPECTED_RETURN_VALUE, &node);
 		}
 
-		revisit(node);
+		GenericVisitor::apply(node);
 	}
 
-	void verify(VariableDecl& node)
+	void apply(VariableDecl& node)
 	{
 		cleanup.push_back([&](){
 			SemanticVerificationVariableDeclContext_HasBeenInit::unbind(&node);
 		});
 
-		revisit(node);
+		GenericVisitor::apply(node);
 	}
 
-	void verify(FunctionDecl& node)
+	void apply(FunctionDecl& node)
 	{
 		// UNINIT_REF
 		foreach(i, node.parameters)
 			SemanticVerificationVariableDeclContext_HasBeenInit::bind(*i);
 
-		revisit(node);
+		GenericVisitor::apply(node);
 
 		if(!isVoid(node.type))
 		{
@@ -246,21 +247,21 @@ struct SemanticVerificationStageVisitor1 : GenericDoubleVisitor
 		SemanticVerificationFunctionDeclContext_HasReturn::unbind(&node); // NOTE: manual cleanup
 	}
 
-	void verify(Block& node)
+	void apply(Block& node)
 	{
 		cleanup.push_back([&](){
 			SemanticVerificationBlockContext_AlwaysReturns::unbind(&node);
 		});
 
-		revisit(node);
+		GenericVisitor::apply(node);
 
 		if(isa<Block>(node.parent) && SemanticVerificationBlockContext_AlwaysReturns::get(&node))
 			SemanticVerificationBlockContext_AlwaysReturns::bind(node.parent);
 	}
 
-	void verify(IfElseStmt& node)
+	void apply(IfElseStmt& node)
 	{
-		revisit(node);
+		GenericVisitor::apply(node);
 
 		// CONTROL_REACHES_END
 		bool always_returns = true;
@@ -273,7 +274,7 @@ struct SemanticVerificationStageVisitor1 : GenericDoubleVisitor
 			SemanticVerificationBlockContext_AlwaysReturns::bind(node.parent);
 	}
 
-	void verify(SwitchStmt& node)
+	void apply(SwitchStmt& node)
 	{
 		// MISSING_CASE
 		ASTNode* resolved_type = ResolvedType::get(node.node);
@@ -299,7 +300,7 @@ struct SemanticVerificationStageVisitor1 : GenericDoubleVisitor
 			}
 		}
 
-		revisit(node);
+		GenericVisitor::apply(node);
 
 		// CONTROL_REACHES_END
 		bool always_returns = true;
@@ -311,9 +312,9 @@ struct SemanticVerificationStageVisitor1 : GenericDoubleVisitor
 			SemanticVerificationBlockContext_AlwaysReturns::bind(node.parent);
 	}
 
-	void verify(IterativeStmt& node)
+	void apply(IterativeStmt& node)
 	{
-		revisit(node);
+		GenericVisitor::apply(node);
 
 		if(isa<Block>(node.parent) && SemanticVerificationBlockContext_AlwaysReturns::get(node.block))
 			SemanticVerificationBlockContext_AlwaysReturns::bind(node.parent);

@@ -25,24 +25,20 @@
 
 #include <string>
 #include "core/Prerequisite.h"
-//#include "language/logging/StringTable.h"
 #include "core/Visitor.h"
 #include "language/tree/ASTNodeFactory.h"
 #include "language/tree/visitor/GenericVisitor.h"
-#include "language/tree/visitor/GenericDoubleVisitor.h"
-//#include "language/stage/parser/context/SourceInfoContext.h"
-//#include "language/context/LogInfoContext.h"
 
 using namespace zillians::language::tree;
-using zillians::language::tree::visitor::GenericDoubleVisitor;
+using zillians::language::tree::visitor::GenericVisitor;
 
 namespace zillians { namespace language { namespace stage { namespace visitor {
 
-struct ThorScriptStripStageVisitor : public zillians::language::tree::visitor::GenericVisitor
+struct ThorScriptStripStageVisitor : public GenericVisitor
 {
 	CREATE_GENERIC_INVOKER(mStripeVisitorInvoker);
 
-    using zillians::language::tree::visitor::GenericVisitor::apply;
+    using GenericVisitor::apply;
 
 	ThorScriptStripStageVisitor()
 	{

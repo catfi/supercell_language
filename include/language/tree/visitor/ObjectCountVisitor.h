@@ -21,25 +21,26 @@
 #define ZILLIANS_LANGUAGE_TREE_VISITOR_OBJECTCOUNTVISITOR_H_
 
 #include "core/Prerequisite.h"
-#include "language/tree/visitor/GenericDoubleVisitor.h"
+#include "language/tree/visitor/GenericVisitor.h"
 
 namespace zillians { namespace language { namespace tree { namespace visitor {
 
 template<bool Composed = false>
-struct ObjectCountVisitor : GenericDoubleVisitor
+struct ObjectCountVisitor : GenericVisitor
 {
-	CREATE_INVOKER(countInvoker, count);
+	using GenericVisitor::apply;
+    CREATE_GENERIC_INVOKER(countInvoker);
 
 	ObjectCountVisitor() : total_count(0L)
 	{
 		REGISTER_ALL_VISITABLE_ASTNODE(countInvoker)
 	}
 
-	void count(ASTNode& node)
+	void apply(ASTNode& node)
 	{
 		++total_count;
 		if(!Composed)
-			revisit(node);
+			GenericVisitor::apply(node);
 	}
 
 	std::size_t get_count()

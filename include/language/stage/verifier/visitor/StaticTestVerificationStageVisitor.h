@@ -28,18 +28,19 @@
 #include "language/logging/StringTable.h"
 #include "core/Visitor.h"
 #include "language/tree/ASTNodeFactory.h"
-#include "language/tree/visitor/GenericDoubleVisitor.h"
+#include "language/tree/visitor/GenericVisitor.h"
 #include "language/stage/parser/context/SourceInfoContext.h"
 #include "language/context/LogInfoContext.h"
 
 using namespace zillians::language::tree;
-using zillians::language::tree::visitor::GenericDoubleVisitor;
+using zillians::language::tree::visitor::GenericVisitor;
 
 namespace zillians { namespace language { namespace stage { namespace visitor {
 
-struct StaticTestVerificationStageVisitor : public zillians::language::tree::visitor::GenericDoubleVisitor
+struct StaticTestVerificationStageVisitor : public zillians::language::tree::visitor::GenericVisitor
 {
-	CREATE_INVOKER(errorMessageAnnotationCheckInvoker, check);
+	using GenericVisitor::apply;
+    CREATE_GENERIC_INVOKER(errorMessageAnnotationCheckInvoker);
 
 	StaticTestVerificationStageVisitor() : mAllMatch(true)
 	{
@@ -51,27 +52,27 @@ struct StaticTestVerificationStageVisitor : public zillians::language::tree::vis
 		return mAllMatch;
 	}
 
-	void check(zillians::language::tree::ASTNode& node)
+	void apply(zillians::language::tree::ASTNode& node)
 	{
-		revisit(node);
+		GenericVisitor::apply(node);
 	}
 
-    void check(zillians::language::tree::Statement& node)
+    void apply(zillians::language::tree::Statement& node)
     {
         staticTest(node);
-        revisit(node); // NOTE: not sure if needed (lambda???)
+        GenericVisitor::apply(node); // NOTE: not sure if needed (lambda???)
     }
 
-    void check(zillians::language::tree::Declaration& node)
+    void apply(zillians::language::tree::Declaration& node)
     {
         staticTest(node);
-        revisit(node);
+        GenericVisitor::apply(node);
     }
 
-    void check(zillians::language::tree::Package& node)
+    void apply(zillians::language::tree::Package& node)
     {
         staticTest(node);
-        revisit(node);
+        GenericVisitor::apply(node);
     }
 
 private:

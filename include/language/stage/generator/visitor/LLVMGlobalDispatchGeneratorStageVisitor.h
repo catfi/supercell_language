@@ -23,7 +23,7 @@
 #include "core/Prerequisite.h"
 
 #include "language/tree/ASTNodeFactory.h"
-#include "language/tree/visitor/GenericDoubleVisitor.h"
+#include "language/tree/visitor/GenericVisitor.h"
 #include "language/context/ParserContext.h"
 #include "language/stage/generator/context/SynthesizedFunctionContext.h"
 #include "language/stage/parser/context/SourceInfoContext.h"
@@ -36,32 +36,33 @@
 #include "llvm/LLVMContext.h"
 
 using namespace zillians::language::tree;
-using zillians::language::tree::visitor::GenericDoubleVisitor;
+using zillians::language::tree::visitor::GenericVisitor;
 
 namespace zillians { namespace language { namespace stage { namespace visitor {
 
-struct LLVMGlobalDispatchGeneratorStageVisitor : GenericDoubleVisitor
+struct LLVMGlobalDispatchGeneratorStageVisitor : GenericVisitor
 {
-    CREATE_INVOKER(generateInvoker, collect)
+    using GenericVisitor::apply;
+    CREATE_GENERIC_INVOKER(generateInvoker)
 
     LLVMGlobalDispatchGeneratorStageVisitor()
     {
         REGISTER_ALL_VISITABLE_ASTNODE(generateInvoker)
     }
 
-    void collect(ASTNode& node)
+    void apply(ASTNode& node)
     {
-        revisit(node);
+        GenericVisitor::apply(node);
     }
 
-    void collect(Annotation& node)
+    void apply(Annotation& node)
     {
         if(isServerFunctionAnnotaion(node))
         {
             BOOST_ASSERT(cast<FunctionDecl>(node.parent->parent) != NULL);
             mServerFunctions.push_back(cast<FunctionDecl>(node.parent->parent));
         }
-        revisit(node);
+        GenericVisitor::apply(node);
     }
 
 private:
