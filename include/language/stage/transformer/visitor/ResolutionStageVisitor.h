@@ -175,17 +175,33 @@ struct ResolutionStageVisitor : GenericDoubleVisitor
 			if(!cast<TemplatedIdentifier>(node.name)->isFullySpecialized())
 				return;
 
+			if(node.annotations) visit(*node.annotations);
+			if(node.name) visit(*node.name);
+
 			resolver.enterScope(*node.name);
 			resolver.enterScope(node);
-			revisit(node);
+			{
+				if(node.base) visit(*node.base);
+				foreach(i, node.implements)			visit(**i);
+				foreach(i, node.member_functions)	visit(**i);
+				foreach(i, node.member_variables)	visit(**i);
+			}
 			resolver.leaveScope(node);
 			resolver.leaveScope(*node.name);
 		}
 		else
 		{
+			if(node.annotations) visit(*node.annotations);
+			if(node.name) visit(*node.name);
+
 			resolver.enterScope(node);
-			revisit(node);
-			resolver.leaveScope(*node.name);
+			{
+				if(node.base) visit(*node.base);
+				foreach(i, node.implements)			visit(**i);
+				foreach(i, node.member_functions)	visit(**i);
+				foreach(i, node.member_variables)	visit(**i);
+			}
+			resolver.leaveScope(node);
 		}
 	}
 
@@ -200,16 +216,28 @@ struct ResolutionStageVisitor : GenericDoubleVisitor
 			if(!cast<TemplatedIdentifier>(node.name)->isFullySpecialized())
 				return;
 
+			if(node.annotations) visit(*node.annotations);
+			if(node.name) visit(*node.name);
+
 			resolver.enterScope(*node.name);
 			resolver.enterScope(node);
-			revisit(node);
+			{
+				foreach(i, node.member_functions)
+					visit(**i);
+			}
 			resolver.leaveScope(node);
 			resolver.leaveScope(*node.name);
 		}
 		else
 		{
+			if(node.annotations) visit(*node.annotations);
+			if(node.name) visit(*node.name);
+
 			resolver.enterScope(node);
-			revisit(node);
+			{
+				foreach(i, node.member_functions)
+					visit(**i);
+			}
 			resolver.leaveScope(node);
 		}
 	}
@@ -235,8 +263,6 @@ struct ResolutionStageVisitor : GenericDoubleVisitor
 			// see ResolutionVisitor.h
 			resolver.enterScope(node);
 		}
-
-		LOG4CXX_DEBUG(LoggerWrapper::TransformerStage, L"trying to resolve function: " << node.name->toString());
 
 		if(type == Target::TYPE_RESOLUTION)
 		{
@@ -632,7 +658,7 @@ private:
 
 		if(node->isUnspecified())
 		{
-			if(resolver.resolveType(*attach, *node, transforms, no_action))
+			if(resolver.resolveType(*attach, *node, no_action))
 			{
 				++resolved_count;
 				return true;
@@ -658,7 +684,7 @@ private:
 		if(ResolvedSymbol::get(attach))
 			return true;
 
-		if(resolver.resolveSymbol(*attach, *scope, *node, transforms, no_action))
+		if(resolver.resolveSymbol(*attach, *scope, *node, no_action))
 		{
 			++resolved_count;
 			return true;
@@ -679,7 +705,7 @@ private:
 		if(ResolvedSymbol::get(attach))
 			return true;
 
-		if(resolver.resolveSymbol(*attach, *node, transforms, no_action))
+		if(resolver.resolveSymbol(*attach, *node, no_action))
 		{
 			++resolved_count;
 			return true;
@@ -742,7 +768,7 @@ private:
 		if(ResolvedSymbol::get(attach) || ResolvedPackage::get(attach))
 			return true;
 
-		if(resolver.resolveSymbol(*attach, *scope, *node, transforms, no_action))
+		if(resolver.resolveSymbol(*attach, *scope, *node, no_action))
 		{
 			++resolved_count;
 			return true;
@@ -771,7 +797,7 @@ private:
 		if(ResolvedSymbol::get(attach) || ResolvedPackage::get(attach))
 			return true;
 
-		if(resolver.resolveSymbol(*attach, *node, transforms, no_action))
+		if(resolver.resolveSymbol(*attach, *node, no_action))
 		{
 			++resolved_count;
 			return true;

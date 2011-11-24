@@ -58,7 +58,15 @@ public:
 		node_info_visitor.visit(node);
 		LOG4CXX_DEBUG(LoggerWrapper::Resolver, L"entering scope: \"" << node_info_visitor.stream.str() << L"\"");
 
-		current_scopes.insert(&node);
+		__gnu_cxx::hash_set<tree::ASTNode*>::iterator scope = current_scopes.find(&node);
+		if(scope == current_scopes.end())
+		{
+			current_scopes.insert(&node);
+		}
+		else
+		{
+			LOG4CXX_ERROR(LoggerWrapper::Resolver, L"enter duplicated scope: \"" << node_info_visitor.stream.str() << L"\"");
+		}
 	}
 
 	/**
@@ -93,7 +101,7 @@ public:
 	 *
 	 * @see ResolvedSymbol
 	 */
-	bool resolveSymbol(tree::ASTNode& attach, tree::ASTNode& scope, tree::Identifier& node, std::vector<std::function<void()>>& transform, bool no_action = false)
+	bool resolveSymbol(tree::ASTNode& attach, tree::ASTNode& scope, tree::Identifier& node, bool no_action = false)
 	{
 		using namespace zillians::language::tree;
 
@@ -116,7 +124,7 @@ public:
 
 			resolution_visitor.tryVisit(scope);
 
-			return checkResolvedSymbol(attach, node, transform, no_action);
+			return checkResolvedSymbol(attach, node, no_action);
 		}
 		else
 		{
@@ -134,7 +142,7 @@ public:
 	 *
 	 * @see ResolvedSymbol
 	 */
-	bool resolveSymbol(tree::ASTNode& attach, tree::Identifier& node, std::vector<std::function<void()>>& transform, bool no_action = false)
+	bool resolveSymbol(tree::ASTNode& attach, tree::Identifier& node, bool no_action = false)
 	{
 		using namespace zillians::language::tree;
 
@@ -156,7 +164,7 @@ public:
 				resolution_visitor.tryVisit(**scope);
 			}
 
-			return checkResolvedSymbol(attach, node, transform, no_action);
+			return checkResolvedSymbol(attach, node, no_action);
 		}
 		else
 		{
@@ -175,7 +183,7 @@ private:
 	 * @param no_action
 	 * @return true on successful resolution, false otherwise
 	 */
-	bool checkResolvedSymbol(tree::ASTNode& attach, tree::Identifier& node, std::vector<std::function<void()>>& transform, bool no_action)
+	bool checkResolvedSymbol(tree::ASTNode& attach, tree::Identifier& node, bool no_action)
 	{
 		using namespace zillians::language::tree;
 
@@ -265,7 +273,7 @@ private:
 	}
 
 public:
-	bool resolveType(tree::ASTNode& attach, tree::ASTNode& scope, tree::TypeSpecifier& node, std::vector<std::function<void()>>& transform, bool no_action = false)
+	bool resolveType(tree::ASTNode& attach, tree::ASTNode& scope, tree::TypeSpecifier& node, bool no_action = false)
 	{
 		using namespace zillians::language::tree;
 
@@ -282,7 +290,7 @@ public:
 
 			resolution_visitor.tryVisit(scope);
 
-			return checkResolvedType(attach, node, transform, no_action);
+			return checkResolvedType(attach, node, no_action);
 		}
 		else
 		{
@@ -290,7 +298,7 @@ public:
 		}
 	}
 
-	bool resolveType(tree::ASTNode& attach, tree::TypeSpecifier& node, std::vector<std::function<void()>>& transform, bool no_action = false)
+	bool resolveType(tree::ASTNode& attach, tree::TypeSpecifier& node, bool no_action = false)
 	{
 		using namespace zillians::language::tree;
 
@@ -309,7 +317,7 @@ public:
 				resolution_visitor.tryVisit(**scope);
 			}
 
-			return checkResolvedType(attach, node, transform, no_action);
+			return checkResolvedType(attach, node, no_action);
 		}
 		else
 		{
@@ -340,6 +348,13 @@ private:
     	return false;
     }
 
+    /**
+     * Compare two TypenameDecl object to determine if "a" is a equally or more specialized than "b"
+     *
+     * @param a the "a" TypenameDecl object
+     * @param b the "b" TypenameDecl object
+     * @return true if a is equally or more specialized than b
+     */
     static bool isEquallyOrMoreSpecialized(tree::TypenameDecl* a, tree::TypenameDecl* b)
     {
     	using namespace zillians::language::tree;
@@ -415,6 +430,17 @@ private:
     	}
     }
 
+    /**
+     * Compare two template identifier to determine if "a" is a equally or more specialized template identifier than "b"
+     *
+     * We try to compare the template identifier by comparing every corresponding TypenameDecl pair,
+     * and if any one of these pair, the TypenameDecl object from a is not more specialized than the one from b,
+     * then b must be more specialized than a, so we return false
+     *
+     * @param a the "a" template identifier
+     * @param b the "b" template identifier
+     * @return true if a is equally or more specialized than b
+     */
     static bool isEquallyOrMoreSpecialized(tree::TemplatedIdentifier* a, tree::TemplatedIdentifier* b)
     {
     	for(size_t i = 0; i < a->templated_type_list.size(); ++i)
@@ -425,6 +451,13 @@ private:
     	return true;
     }
 
+    /**
+     * Compare two class template objects to determine if "a" is equally or more specialized than "b"
+     *
+     * @param a the "a" class template
+     * @param b the "b" class template
+     * @return true if a is equally or more specialized than b
+     */
     static bool isEquallyOrMoreSpecialized(tree::ClassDecl* a, tree::ClassDecl* b)
     {
     	using namespace zillians::language::tree;
@@ -441,8 +474,9 @@ private:
     }
 
     /**
-     * try to find the most specific class template and report error if there's ambiguous resolution
-     * @return
+     * try to find the most specialized class template and report error if there's ambiguous resolution
+     *
+     * @return the most specialized class template, which can be fully or partially specialized or with no specialization at all
      */
     tree::ClassDecl* findMostSpecializedClassTemplate()
     {
@@ -485,7 +519,14 @@ private:
     	}
     }
 
-    tree::ClassDecl* instantiateClassTemplate(zillians::language::tree::TypeSpecifier& node, tree::ClassDecl* from)
+    /**
+     * Create/Instantiate specialized class template
+     *
+     * @param node the type specifier we are trying to resolve
+     * @param from the most specified class template (but not fully specialized)
+     * @return the fully specialized class template instantiation
+     */
+    tree::ClassDecl* instantiateClassTemplate(zillians::language::tree::TypeSpecifier* node, tree::ClassDecl* from)
     {
     	using namespace zillians::language::tree;
     	Package* owner_package = ASTNodeHelper::getOwner<Package>(from);
@@ -497,7 +538,7 @@ private:
     	owner_package->addObject(to);
 
     	// update the templated identifier to make it a class instantiation
-    	TemplatedIdentifier* use_id = cast<TemplatedIdentifier>(node.referred.unspecified);
+    	TemplatedIdentifier* use_id = cast<TemplatedIdentifier>(node->referred.unspecified);
     	TemplatedIdentifier* decl_id = cast<TemplatedIdentifier>(to->name);
 
     	for(int i=0;i<decl_id->templated_type_list.size();++i)
@@ -549,12 +590,13 @@ private:
 
     /**
      * try to find and instantiate (if needed) the best class template candidates among all
-     * @param attach
-     * @param node
-     * @param no_action
-     * @return
+     *
+     * @param attach the node where we can attach ResolvedType context on
+     * @param node the type specifier we are trying to resolve
+     * @param no_action if no_action is enabled, the function will make no change to the AST
+     * @return true if either class template is instantiated or specialized class template is found and bind to the attach node; false otherwise
      */
-    bool tryInstantiateClassTemplate(tree::ASTNode& attach, zillians::language::tree::TypeSpecifier& node, std::vector<std::function<void()>>& transform, bool no_action)
+    bool tryInstantiateClassTemplate(tree::ASTNode& attach, zillians::language::tree::TypeSpecifier& node, bool no_action)
     {
     	using namespace zillians::language::tree;
 
@@ -615,32 +657,78 @@ private:
     	{
     		if(!no_action)
     		{
-        		// the most specialized class template is not fully specialized, we need to create new instantiation using lambda expression for it
-    			transform.push_back([&, most_specialized_class_template](){
-    				ClassDecl* instantiated = instantiateClassTemplate(node, most_specialized_class_template);
-    				ResolvedType::set(&attach, instantiated);
+        		// the most specialized class template is not fully specialized, we need to create new instantiation
+    			// (which is delayed to later applyTrasnform() because we don't want to change the tree while traversing it)
+    			auto ranges = class_instantiations.equal_range(most_specialized_class_template);
+    			bool found = false;
+    			for(auto i = ranges.first;i != ranges.second; ++i)
+    			{
+    				// if there's already class instantiation requested
+    				if(i->second.specifier->isEqual(node))
+    				{
+    					// just append the attach node to the attach list
+    					i->second.to_attach.push_back(&attach);
+    					return true;
+    				}
+    			}
 
-                    visitor::NodeInfoVisitor node_info_visitor;
-                    node_info_visitor.visit(*instantiated);
-                    LOG4CXX_DEBUG(LoggerWrapper::Resolver, L"type \"" << node.referred.unspecified->toString() << L"\" is resolved to: \"" << node_info_visitor.stream.str() << L"\"");
-                    node_info_visitor.reset();
-
-    			});
+    			// if there's no class instantiation requested, create one
+    			if(!found)
+    			{
+    				class_instantiations.insert(std::make_pair(most_specialized_class_template, InstantiationInfo(&node, &attach)));
+    			}
     		}
     		return true;
     	}
     }
 
+    void applyClassInstantiation()
+    {
+    	using namespace zillians::language::tree;
+
+    	for(auto i = class_instantiations.begin(); i != class_instantiations.end(); ++i)
+    	{
+    		ClassDecl* class_template = i->first;
+    		TypeSpecifier* specifier = i->second.specifier;
+
+    		if(true)
+    		{
+    			visitor::NodeInfoVisitor node_info_visitor;
+    			node_info_visitor.visit(*class_template);
+    			LOG4CXX_DEBUG(LoggerWrapper::Resolver, L"try to instantiate type \"" << node_info_visitor.stream.str() << L"\"");
+    			node_info_visitor.reset();
+    		}
+
+    		ClassDecl* instantiated = instantiateClassTemplate(specifier, class_template);
+
+    		foreach(j, i->second.to_attach)
+    		{
+    			ResolvedType::set(*j, instantiated);
+    		}
+
+    		if(true)
+    		{
+				visitor::NodeInfoVisitor node_info_visitor;
+				node_info_visitor.visit(*instantiated);
+				LOG4CXX_DEBUG(LoggerWrapper::Resolver, L"type \"" << specifier->referred.unspecified->toString() << L"\" is resolved to: \"" << node_info_visitor.stream.str() << L"\"");
+				node_info_visitor.reset();
+    		}
+    	}
+
+		class_instantiations.clear();
+    }
+
 private:
-	bool checkResolvedType(tree::ASTNode& attach, tree::TypeSpecifier& node, std::vector<std::function<void()>>& transform, bool no_action)
+	bool checkResolvedType(tree::ASTNode& attach, tree::TypeSpecifier& node, bool no_action)
 	{
 		using namespace zillians::language::tree;
 
-        // class template
-        if(tryInstantiateClassTemplate(attach, node, transform, no_action))
+        // check if it's class template and need instantiation first
+        if(tryInstantiateClassTemplate(attach, node, no_action))
         {
             return true;
         }
+        // otherwise, we go for standard resolution
         else
         {
             if(resolution_visitor.candidates.size() == 1)
@@ -824,10 +912,34 @@ private:
 		}
 	}
 
+public:
+	bool hasTransforms()
+	{
+		return (class_instantiations.size() > 0);
+	}
+
+	void applyTransforms()
+	{
+		applyClassInstantiation();
+	}
+
 private:
 	__gnu_cxx::hash_set<tree::ASTNode*> current_scopes;
 	tree::visitor::ResolutionVisitor resolution_visitor;
-	std::vector<std::function<void()>> transforms;
+
+private:
+	struct InstantiationInfo
+	{
+		InstantiationInfo(tree::TypeSpecifier* _specifier, tree::ASTNode* _attach) {
+			specifier = _specifier;
+			to_attach.push_back(_attach);
+		}
+
+		tree::TypeSpecifier* specifier;
+		std::vector<tree::ASTNode*> to_attach;
+	};
+
+	std::multimap<tree::ClassDecl*, InstantiationInfo> class_instantiations;
 };
 
 } }

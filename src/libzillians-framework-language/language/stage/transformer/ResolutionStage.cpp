@@ -129,6 +129,12 @@ bool ResolutionStage::resolveTypes(bool report_error_summary, bool& making_progr
 	visitor.reset();
 	visitor.visit(*parser_context.tangle);
 
+	if(resolver.hasTransforms())
+	{
+		resolver.applyTransforms();
+		making_progress = true;
+	}
+
 	if(visitor.hasTransforms())
 	{
 		visitor.applyTransforms();
@@ -175,6 +181,12 @@ bool ResolutionStage::resolveSymbols(bool report_error_summary, bool& making_pro
 
 	visitor.reset();
 	visitor.visit(*parser_context.tangle);
+
+	if(resolver.hasTransforms())
+	{
+		resolver.applyTransforms();
+		making_progress = true;
+	}
 
 	if(visitor.hasTransforms())
 	{

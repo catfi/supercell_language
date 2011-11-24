@@ -777,10 +777,10 @@ public:
 					{
 						BOOST_ASSERT(use_types[i]->specialized_type && "typename declaration in use type vector does not have specialized type");
 
-						if(use_types[i]->specialized_type)
+						if(use_types[i]->specialized_type && use_types[i]->specialized_type->type == TypeSpecifier::ReferredType::UNSPECIFIED)
 							if(!ResolvedType::get(use_types[i]->specialized_type))  return false;
 
-						if(decl_types[i]->specialized_type)
+						if(decl_types[i]->specialized_type && decl_types[i]->specialized_type->type == TypeSpecifier::ReferredType::UNSPECIFIED)
 							if(!ResolvedType::get(decl_types[i]->specialized_type)) return false;
 					}
 
@@ -804,7 +804,11 @@ public:
 						if(!decl_types[i]->specialized_type)
 						{
 							// bind a temporary resolved type to the TypenameDecl so that we can enforce the template constraint
-							ResolvedType::set(decl_types[i], ResolvedType::get(use_types[i]->specialized_type));
+							if(use_types[i]->specialized_type->type == TypeSpecifier::ReferredType::UNSPECIFIED)
+								ResolvedType::set(decl_types[i], ResolvedType::get(use_types[i]->specialized_type));
+							else
+								ResolvedType::set(decl_types[i], use_types[i]->specialized_type);
+
 							continue;
 						}
 						else
