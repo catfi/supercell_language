@@ -119,7 +119,7 @@ bool ResolutionStage::resolveTypes(bool report_error_summary, bool& making_progr
 	if(!parser_context.active_source)
 		return false;
 
-	LOG4CXX_DEBUG(LoggerWrapper::TransformerStage, L"trying to resolve types");
+	LOG4CXX_DEBUG(LoggerWrapper::TransformerStage, L"resolution stage trying to resolve types");
 
 	making_progress = false;
 
@@ -172,7 +172,7 @@ bool ResolutionStage::resolveSymbols(bool report_error_summary, bool& making_pro
 	if(!parser_context.active_source)
 		return false;
 
-	LOG4CXX_DEBUG(LoggerWrapper::TransformerStage, "trying to resolve symbols");
+	LOG4CXX_DEBUG(LoggerWrapper::TransformerStage, "resolution stage trying to resolve symbols");
 
 	making_progress = false;
 

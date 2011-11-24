@@ -56,7 +56,7 @@ public:
 	{
 		tree::visitor::NodeInfoVisitor node_info_visitor;
 		node_info_visitor.visit(node);
-		LOG4CXX_DEBUG(LoggerWrapper::Resolver, L"entering scope: \"" << node_info_visitor.stream.str() << L"\"");
+		//LOG4CXX_DEBUG(LoggerWrapper::Resolver, L"entering scope: \"" << node_info_visitor.stream.str() << L"\"");
 
 		__gnu_cxx::hash_set<tree::ASTNode*>::iterator scope = current_scopes.find(&node);
 		if(scope == current_scopes.end())
@@ -76,7 +76,7 @@ public:
 	{
 		tree::visitor::NodeInfoVisitor node_info_visitor;
 		node_info_visitor.visit(node);
-		LOG4CXX_DEBUG(LoggerWrapper::Resolver, L"leaving scope: \"" << node_info_visitor.stream.str() << L"\"");
+		//LOG4CXX_DEBUG(LoggerWrapper::Resolver, L"leaving scope: \"" << node_info_visitor.stream.str() << L"\"");
 
 		__gnu_cxx::hash_set<tree::ASTNode*>::iterator scope = current_scopes.find(&node);
 		if(scope != current_scopes.end())
