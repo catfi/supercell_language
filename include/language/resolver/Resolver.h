@@ -502,19 +502,28 @@ private:
     			most_specialized_class_templates.push_back(cast<ClassDecl>(*i));
 		}
 
-    	if(most_specialized_class_templates.size() == 1)
+    	if(most_specialized_class_templates.size() == 0)
+    	{
+    		// we got no suitable class template
+    		LOG4CXX_DEBUG(LoggerWrapper::Resolver, L"no suitable class template to instantiate");
+    		return NULL;
+    	}
+    	else if(most_specialized_class_templates.size() == 1)
     	{
     		// we got the only one, most specific class template, that's all we need
     		return most_specialized_class_templates[0];
     	}
     	else if(most_specialized_class_templates.size() > 1)
     	{
-    		// TODO log ambiguous template resolution with all class templates in most_specific_class_templates
-    		return NULL;
-    	}
-    	else // no matched
-    	{
-    		// TODO log ambiguous template resolution with all candidates
+    		// log ambiguous template resolution with all class templates in most_specific_class_templates
+    		LOG4CXX_DEBUG(LoggerWrapper::Resolver, L"ambiguous class template resolution");
+    		foreach(i, most_specialized_class_templates)
+    		{
+                visitor::NodeInfoVisitor node_info_visitor;
+                node_info_visitor.visit(**i);
+                LOG4CXX_DEBUG(LoggerWrapper::Resolver, L"\tcandidates are: \"" << node_info_visitor.stream.str() << L"\"");
+                node_info_visitor.reset();
+    		}
     		return NULL;
     	}
     }
