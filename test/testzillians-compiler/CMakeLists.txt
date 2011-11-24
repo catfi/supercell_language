@@ -36,7 +36,6 @@ get_target_property(ThorScriptStubGenerator ts-stub LOCATION)
 
 ADD_SUBDIRECTORY(ThorScriptCompilerStaticTest)
 ADD_SUBDIRECTORY(ThorScriptDepTest)
-ADD_SUBDIRECTORY(ThorScriptDocTest)
 ADD_SUBDIRECTORY(ThorScriptDriverTest)
 ADD_SUBDIRECTORY(ThorScriptLoggerTest)
 ADD_SUBDIRECTORY(ThorScriptMakeTest)
