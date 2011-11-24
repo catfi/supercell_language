@@ -127,6 +127,27 @@ struct LLVMGeneratorStageVisitor : GenericDoubleVisitor
 		revisit(node);
 	}
 
+	void generate(InterfaceDecl& node)
+	{
+		// we don't generate code for interface
+	}
+
+	void generate(ClassDecl& node)
+	{
+		visit(*node.name);
+
+		// we don't generate code for non-fully-specialized classes
+		if(isa<TemplatedIdentifier>(node.name))
+		{
+			// if the class itself is a class template, which has non-specialized version in its templated identifier
+			// we don't try to resolve types for class template
+			if(!cast<TemplatedIdentifier>(node.name)->isFullySpecialized())
+				return;
+		}
+
+		revisit(node);
+	}
+
 	void generate(FunctionDecl& node)
 	{
 		if(isFunctionVisited(node))
