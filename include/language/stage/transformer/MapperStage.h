@@ -1,6 +1,6 @@
 /**
  * Zillians MMO
- * Copyright (C) 2007-2010 Zillians.com, Inc.
+ * Copyright (C) 2007-2011 Zillians.com, Inc.
  * For more information see http://www.zillians.com
  *
  * Zillians MMO is the library and runtime for massive multiplayer online game
@@ -15,24 +15,33 @@
  * COPYRIGHT HOLDER(S) BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN
  * AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
- *
- * @date Oct 26, 2011 yoco - Initial version created.
  */
 
-#include <iostream>
-#include <vector>
+#ifndef ZILLIANS_LANGUAGE_STAGE_TRANSFORMER_MAPPERSTAGE_H_
+#define ZILLIANS_LANGUAGE_STAGE_TRANSFORMER_MAPPERSTAGE_H_
+
+#include "language/stage/Stage.h"
 #include "language/tree/ASTNodeFactory.h"
-#include "language/stage/strip/visitor/ThorScriptStripStageVisitor.h"
-#include "language/context/LogInfoContext.h"
+#include "language/stage/transformer/visitor/MapperStageVisitor.h"
 
-namespace zillians { namespace language { namespace stage { namespace visitor {
+namespace zillians { namespace language { namespace stage {
 
-//////////////////////////////////////////////////////////////////////////////
-// Static function implementation
+class MapperStage : public Stage
+{
+public:
+	MapperStage();
+	virtual ~MapperStage();
 
+public:
+	virtual const char* name();
+	virtual std::pair<shared_ptr<po::options_description>, shared_ptr<po::options_description>> getOptions();
+	virtual bool parseOptions(po::variables_map& vm);
+	virtual bool execute(bool& continue_execution);
 
-//////////////////////////////////////////////////////////////////////////////
-// Member function implement
+public:
+	visitor::MapperStageVisitor visitor;
+};
 
+} } }
 
-} } } } // namespace zillians::language::tree::visitor
+#endif /* ZILLIANS_LANGUAGE_STAGE_TRANSFORMER_MAPPERSTAGE_H_ */

@@ -22,17 +22,21 @@
 include_directories(
     ${PROJECT_COMMON_SOURCE_DIR}/include/
     ${PROJECT_FRAMEWORK_SOURCE_DIR}/include/
+    ${ZILLIANS_DEP_PATH}/linux
     )
+
+add_definitions( ${LLVM_CPPFLAGS} )
 
 add_executable(ts-link
     main.cpp
+    language/stage/linker/ThorScriptLinkerStage.cpp
     language/ThorScriptLinker.cpp
     )
     
 target_link_libraries(ts-link
-    zillians-common-core
-    zillians-common-utility
-    zillians-framework-language
+	${LLVM_LDFLAGS}
+    ${LLVM_ALL_LIBS}
+    zillians-framework-language-general
     )
     
 get_target_property(ThorScriptLinker ts-link LOCATION)

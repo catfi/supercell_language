@@ -29,7 +29,7 @@
 #include "language/ThorScriptManifest.h"
 #include "language/ThorScriptDriver.h"
 #include "language/tree/ASTNodeFactory.h"
-#include "language/stage/bundle/ThorScriptBundleStage.h"
+#include "language/tree/ASTNodeSerialization.h"
 #include "language/stage/serialization/detail/ASTSerializationHelper.h"
 
 namespace zillians { namespace language {
@@ -331,6 +331,30 @@ bool ThorScriptDriver::createProjectSkeleton(const std::string& projectName)
     return true;
 }
 
+tree::Tangle* ThorScriptDriver::getMergedAST(const std::vector<std::string>& ast_files)
+{
+	using namespace tree;
+    Tangle* tangle = NULL;
+
+    for (size_t i = 0; i < ast_files.size(); i++)
+    {
+        ASTNode* deserialized = stage::ASTSerializationHelper::deserialize(ast_files[i]);
+
+		if(!deserialized || !isa<Tangle>(deserialized)) continue;
+       	Tangle* current_package = cast<Tangle>(deserialized);
+        if (tangle == NULL)
+        {
+        	tangle = current_package;
+        }
+        else
+        {
+        	// Merge with the previous program
+        	tangle->merge(*current_package);
+        }
+    }
+    return tangle;
+}
+
 bool ThorScriptDriver::buildDebug()
 {
     saveCache("debug");
@@ -395,8 +419,7 @@ bool ThorScriptDriver::generateStub(const std::vector<std::string>& stubTypes)
 {
     boost::filesystem::path stubPath = buildPath / "stub";
     boost::filesystem::create_directories(stubPath);
-    stage::ThorScriptBundleStage bundler;
-    tree::Tangle* tangle = bundler.getMergedAST(getAstUnderBuild());
+    tree::Tangle* tangle = getMergedAST(getAstUnderBuild());
     boost::filesystem::path stubAstPath = buildPath / ("stub-" + pm.name + ".ast");
     stage::ASTSerializationHelper::serialize(stubAstPath.string(), tangle);
 

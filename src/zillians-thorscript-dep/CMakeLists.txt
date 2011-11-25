@@ -26,13 +26,13 @@ include_directories(
 
 add_executable(ts-dep
     main.cpp
+	language/stage/dep/ThorScriptDepStage.cpp
+    language/stage/dep/ThorScriptPackageDependencyGrammar.cpp
     language/ThorScriptDep.cpp
     )
     
 target_link_libraries(ts-dep
-    zillians-common-core
-    zillians-common-utility
-    zillians-framework-language
+    zillians-framework-language-general
     )
     
 get_target_property(ThorScriptDep ts-dep LOCATION)

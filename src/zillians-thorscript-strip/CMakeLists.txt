@@ -26,13 +26,12 @@ include_directories(
 
 add_executable(ts-strip
     main.cpp
+    language/stage/strip/ThorScriptStripStage.cpp
     language/ThorScriptStrip.cpp
     )
     
 target_link_libraries(ts-strip
-    zillians-common-core
-    zillians-common-utility
-    zillians-framework-language
+    zillians-framework-language-general
     )
     
 get_target_property(ThorScriptStrip ts-strip LOCATION)

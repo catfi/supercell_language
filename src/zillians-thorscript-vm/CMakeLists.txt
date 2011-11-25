@@ -22,17 +22,18 @@
 include_directories(
     ${PROJECT_COMMON_SOURCE_DIR}/include/
     ${PROJECT_FRAMEWORK_SOURCE_DIR}/include/
+    ${ZILLIANS_DEP_PATH}/linux
     )
 
 add_executable(ts-vm
     main.cpp
+    language/stage/vm/ThorScriptVMStage.cpp
+	language/stage/vm/ThorScriptVMMode.cpp
     language/ThorScriptVM.cpp
     )
     
 target_link_libraries(ts-vm
-    zillians-common-core
-    zillians-common-utility
-    zillians-framework-language
+    zillians-framework-language-general
     )
 
 get_target_property(ThorScriptVM ts-vm LOCATION)

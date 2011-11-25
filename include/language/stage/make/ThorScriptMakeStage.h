@@ -23,6 +23,8 @@
 #include "language/stage/Stage.h"
 #include "language/stage/dep/ThorScriptSourceTangleGraph.h"
 
+#include <boost/filesystem.hpp>
+
 namespace zillians { namespace language { namespace stage {
 
 /**

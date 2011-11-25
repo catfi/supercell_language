@@ -23,7 +23,6 @@ INCLUDE(UsingCog)
 
 include_directories( ${PROJECT_COMMON_SOURCE_DIR}/include/
     ${PROJECT_FRAMEWORK_SOURCE_DIR}/include/
-    ${ZILLIANS_DEP_PATH}/linux
     )
 
 set(out_files "")
@@ -39,17 +38,29 @@ add_custom_target(generate-string-table
 add_library(zillians-framework-language-spirit
     language/stage/parser/ThorScriptParserStage.cpp
     )
+    
 target_link_libraries(zillians-framework-language-spirit
     zillians-common-utility
     zillians-common-core
     )
+    
 add_dependencies(zillians-framework-language-spirit generate-string-table)
 
-add_library(zillians-framework-language SHARED
+add_library(zillians-framework-language-tree SHARED
+	language/tree/basic/FunctionType.cpp
+	language/tree/basic/Identifier.cpp    
+	language/tree/basic/TypeSpecifier.cpp
+	language/tree/ASTNodeSerialization.cpp
+    )
+
+add_library(zillians-framework-language-general
     language/context/ConfigurationContext.cpp
     language/context/ParserContext.cpp
     language/logging/LoggerWrapper.cpp
     language/stage/StageConductor.cpp
+    )
+        
+add_library(zillians-framework-language-general-stages
     language/stage/transformer/LiteralCompactionStage.cpp
     language/stage/transformer/ResolutionStage.cpp
     language/stage/transformer/ManglingStage.cpp
@@ -61,26 +72,12 @@ add_library(zillians-framework-language SHARED
 	language/stage/serialization/ASTSerializationStage.cpp
 	language/stage/serialization/ASTDeserializationStage.cpp    
 	language/stage/serialization/detail/ASTSerializationHelper.cpp
-	language/tree/basic/FunctionType.cpp
-	language/tree/basic/Identifier.cpp    
-	language/tree/basic/TypeSpecifier.cpp
-	language/tree/ASTNodeSerialization.cpp
-	language/stage/dep/ThorScriptDepStage.cpp
-    language/stage/dep/ThorScriptPackageDependencyGrammar.cpp
-    language/stage/make/ThorScriptMakeStage.cpp
-    language/stage/bundle/ThorScriptBundleStage.cpp
-    language/stage/strip/ThorScriptStripStage.cpp
-    language/stage/stub/ThorScriptStubStage.cpp
-    language/stage/linker/ThorScriptLinkerStage.cpp
-    language/stage/vm/ThorScriptVMStage.cpp
-	)
-	
-add_library(zillians-framework-language-vm
-	language/stage/vm/ThorScriptVMMode.cpp
-	)
+    )
 
 if(LLVM_FOUND)
+
     add_definitions( ${LLVM_CPPFLAGS} )
+    
     add_library(zillians-framework-language-llvm
         language/context/GeneratorContext.cpp
         language/stage/generator/LLVMGeneratorStage.cpp
@@ -95,25 +92,31 @@ if(LLVM_FOUND)
         zillians-common-core
         )
 
-    target_link_libraries(zillians-framework-language
+    target_link_libraries(zillians-framework-language-tree
         zillians-framework-language-spirit
         zillians-common-utility
         zillians-common-core
         zillians-common-utility-archive
         zillians-framework-language-llvm
-        zillians-framework-language-vm
         )
 else()
-    target_link_libraries(zillians-framework-language
+    target_link_libraries(zillians-framework-language-tree
         zillians-framework-language-spirit
         zillians-common-utility
         zillians-common-core
         zillians-common-utility-archive
-        zillians-framework-language-vm
         )
 endif()
 
-add_dependencies(zillians-framework-language generate-string-table)
+target_link_libraries(zillians-framework-language-general
+    zillians-framework-language-tree
+    )
+
+target_link_libraries(zillians-framework-language-general-stages
+    zillians-framework-language-general
+    )
+    
+add_dependencies(zillians-framework-language-general generate-string-table)
 
 get_target_property(__lib_location zillians-framework-language-spirit LOCATION)
 add_custom_command(TARGET zillians-framework-language-spirit POST_BUILD
