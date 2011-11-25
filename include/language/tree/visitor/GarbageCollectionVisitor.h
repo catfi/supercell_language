@@ -31,7 +31,6 @@ namespace zillians { namespace language { namespace tree { namespace visitor {
 template<bool Composed = false>
 struct GarbageCollectionVisitor : GenericVisitor
 {
-	using GenericVisitor::apply;
     CREATE_GENERIC_INVOKER(markInvoker);
 
 	GarbageCollectionVisitor() : nonreachable_set(ASTNodeGC::instance()->objects)

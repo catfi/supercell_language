@@ -61,9 +61,8 @@ using zillians::language::tree::visitor::NameManglingVisitor;
 
 namespace zillians { namespace language { namespace stage { namespace visitor {
 
-struct SemanticVerificationStageVisitor0 : GenericVisitor
+struct SemanticVerificationStageVisitor0 : public GenericVisitor
 {
-	using GenericVisitor::apply;
     CREATE_GENERIC_INVOKER(verifyInvoker)
 
 	SemanticVerificationStageVisitor0()

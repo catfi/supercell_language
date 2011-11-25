@@ -38,8 +38,6 @@ struct ThorScriptStripStageVisitor : public GenericVisitor
 {
 	CREATE_GENERIC_INVOKER(mStripeVisitorInvoker);
 
-    using GenericVisitor::apply;
-
 	ThorScriptStripStageVisitor()
 	{
 		REGISTER_ALL_VISITABLE_ASTNODE(mStripeVisitorInvoker)

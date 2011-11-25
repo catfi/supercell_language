@@ -37,9 +37,8 @@ using zillians::language::tree::visitor::GenericVisitor;
 
 namespace zillians { namespace language { namespace stage { namespace visitor {
 
-struct StaticTestVerificationStageVisitor : public zillians::language::tree::visitor::GenericVisitor
+struct StaticTestVerificationStageVisitor : public GenericVisitor
 {
-	using GenericVisitor::apply;
     CREATE_GENERIC_INVOKER(errorMessageAnnotationCheckInvoker);
 
 	StaticTestVerificationStageVisitor() : mAllMatch(true)
@@ -52,24 +51,24 @@ struct StaticTestVerificationStageVisitor : public zillians::language::tree::vis
 		return mAllMatch;
 	}
 
-	void apply(zillians::language::tree::ASTNode& node)
+	void apply(ASTNode& node)
 	{
 		GenericVisitor::apply(node);
 	}
 
-    void apply(zillians::language::tree::Statement& node)
+    void apply(Statement& node)
     {
         staticTest(node);
         GenericVisitor::apply(node); // NOTE: not sure if needed (lambda???)
     }
 
-    void apply(zillians::language::tree::Declaration& node)
+    void apply(Declaration& node)
     {
         staticTest(node);
         GenericVisitor::apply(node);
     }
 
-    void apply(zillians::language::tree::Package& node)
+    void apply(Package& node)
     {
         staticTest(node);
         GenericVisitor::apply(node);

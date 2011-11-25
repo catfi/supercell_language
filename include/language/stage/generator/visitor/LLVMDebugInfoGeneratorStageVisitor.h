@@ -34,17 +34,12 @@
 using namespace zillians::language::tree;
 using zillians::language::tree::visitor::GenericVisitor;
 
-namespace zillians {
-namespace language {
-namespace stage {
-namespace visitor {
+namespace zillians { namespace language { namespace stage { namespace visitor {
 
-#define COMPANY_INFORMATION "1.0 ThorScript Compiler (Zillians Corp.)"
+#define COMPANY_INFORMATION "1.0 ThorScript Compiler (Zillians Inc)"
 
-
-struct LLVMDebugInfoGeneratorStageVisitor: GenericVisitor
+struct LLVMDebugInfoGeneratorStageVisitor: public GenericVisitor
 {
-	using GenericVisitor::apply;
     CREATE_GENERIC_INVOKER(generateInvoker)
 
 	typedef std::map<PrimitiveType::type, llvm::DIType> type_cache_t;

@@ -37,9 +37,8 @@ namespace zillians { namespace language { namespace stage { namespace visitor {
  *
  * @see LiteralCompactionStage
  */
-struct LiteralCompactionStageVisitor : GenericVisitor
+struct LiteralCompactionStageVisitor : public GenericVisitor
 {
-	using GenericVisitor::apply;
     CREATE_GENERIC_INVOKER(compactInvoker)
 
 	LiteralCompactionStageVisitor() : program(NULL)

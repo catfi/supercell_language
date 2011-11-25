@@ -20,8 +20,6 @@
 #ifndef ZILLIANS_LANGUAGE_STAGE_MAKE_THORSCRIPTVMSTAGE_H_
 #define ZILLIANS_LANGUAGE_STAGE_MAKE_THORSCRIPTVMSTAGE_H_
 
-#include <vector>
-#include <string>
 #include "language/stage/Stage.h"
 #include "language/stage/vm/ThorScriptVMMode.h"
 
@@ -41,7 +39,6 @@ public:
 	virtual std::pair<shared_ptr<po::options_description>, shared_ptr<po::options_description>> getOptions();
 	virtual bool parseOptions(po::variables_map& vm);
 	virtual bool execute(bool& continue_execution);
-
 
 private:
 	ThorScriptBaseVM* tsvm;

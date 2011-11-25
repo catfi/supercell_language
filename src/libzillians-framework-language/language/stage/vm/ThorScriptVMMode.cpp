@@ -99,20 +99,20 @@ static std::string getSharedLibraryFromBundle(const std::string& cache_folder, c
 // ThorScriptBaseVM
 //////////////////////////////////////////////////////////////////////////////
 ThorScriptBaseVM::ThorScriptBaseVM()
-{}
+{ }
 
 ThorScriptBaseVM::~ThorScriptBaseVM()
-{}
+{ }
 
 
 //////////////////////////////////////////////////////////////////////////////
 // ThorScriptServerStandaloneVM
 //////////////////////////////////////////////////////////////////////////////
 ThorScriptServerStandaloneVM::ThorScriptServerStandaloneVM()
-{}
+{ }
 
 ThorScriptServerStandaloneVM::~ThorScriptServerStandaloneVM()
-{}
+{ }
 
 bool ThorScriptServerStandaloneVM::parseOptions(boost::program_options::variables_map& vm)
 {
@@ -128,10 +128,10 @@ bool ThorScriptServerStandaloneVM::execute()
 // ThorScriptServerSharedVM
 //////////////////////////////////////////////////////////////////////////////
 ThorScriptServerSharedVM::ThorScriptServerSharedVM()
-{}
+{ }
 
 ThorScriptServerSharedVM::~ThorScriptServerSharedVM()
-{}
+{ }
 
 bool ThorScriptServerSharedVM::parseOptions(boost::program_options::variables_map& vm)
 {

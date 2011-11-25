@@ -24,7 +24,6 @@
 #include "language/context/TransformerContext.h"
 #include "language/tree/visitor/GenericVisitor.h"
 #include "language/tree/visitor/GenericVisitor.h"
-#include "language/tree/visitor/NameManglingVisitor.h"
 #include "language/stage/transformer/context/ManglingStageContext.h"
 #include "language/logging/StringTable.h"
 #include "language/logging/LoggerWrapper.h"
@@ -35,7 +34,6 @@
 
 using namespace zillians::language::tree;
 using zillians::language::tree::visitor::GenericVisitor;
-using zillians::language::tree::visitor::NameManglingVisitor;
 
 // CHECKS IN SEMANTIC VERIFICATION STAGE 1
 
@@ -59,9 +57,8 @@ using zillians::language::tree::visitor::NameManglingVisitor;
 
 namespace zillians { namespace language { namespace stage { namespace visitor {
 
-struct SemanticVerificationStageVisitor1 : GenericVisitor
+struct SemanticVerificationStageVisitor1 : public GenericVisitor
 {
-	using GenericVisitor::apply;
     CREATE_GENERIC_INVOKER(verifyInvoker)
 
 	SemanticVerificationStageVisitor1()

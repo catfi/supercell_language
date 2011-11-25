@@ -26,9 +26,8 @@
 namespace zillians { namespace language { namespace tree { namespace visitor {
 
 template<bool Composed = false>
-struct ObjectCountVisitor : GenericVisitor
+struct ObjectCountVisitor : public GenericVisitor
 {
-	using GenericVisitor::apply;
     CREATE_GENERIC_INVOKER(countInvoker);
 
 	ObjectCountVisitor() : total_count(0L)
