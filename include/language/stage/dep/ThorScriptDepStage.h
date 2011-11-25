@@ -20,6 +20,7 @@
 #ifndef ZILLIANS_LANGUAGE_STAGE_DEP_THORSCRIPTDEPSTAGE_H_
 #define ZILLIANS_LANGUAGE_STAGE_DEP_THORSCRIPTDEPSTAGE_H_
 
+#include "language/stage/Stage.h"
 #include <utility>
 #include <boost/filesystem.hpp>
 #include <boost/graph/adjacency_list.hpp>
@@ -28,7 +29,6 @@
 #include <boost/graph/strong_components.hpp>
 #include <boost/graph/topological_sort.hpp>
 #include <log4cxx/logger.h>
-#include "language/stage/Stage.h"
 
 namespace zillians { namespace language { namespace stage { namespace detail {
 

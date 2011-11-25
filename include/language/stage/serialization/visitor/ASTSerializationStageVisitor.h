@@ -31,12 +31,11 @@ using zillians::language::tree::visitor::GenericVisitor;
 namespace zillians { namespace language { namespace stage { namespace visitor {
 
 /**
- * ASTSerializationStageVisitor is a helper to apply all context object stored in ContextHub of AST
+ * ASTSerializationStageVisitor is a helper to serialize all context object stored in ContextHub of AST
  */
 template<typename Archive>
-struct ASTSerializationStageVisitor : GenericVisitor
+struct ASTSerializationStageVisitor : public GenericVisitor
 {
-	using GenericVisitor::apply;
     CREATE_GENERIC_INVOKER(serializeInvoker)
 
 	ASTSerializationStageVisitor(Archive& oa) : archive(oa)

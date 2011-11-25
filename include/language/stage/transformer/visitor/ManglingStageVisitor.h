@@ -36,9 +36,8 @@ namespace zillians { namespace language { namespace stage { namespace visitor {
  *
  * @see ManglingStage
  */
-struct ManglingStageVisitor : GenericVisitor
+struct ManglingStageVisitor : public GenericVisitor
 {
-	using GenericVisitor::apply;
     CREATE_GENERIC_INVOKER(mangleInvoker)
 
 	ManglingStageVisitor() : next_type_id(1024), next_symbol_id(0)

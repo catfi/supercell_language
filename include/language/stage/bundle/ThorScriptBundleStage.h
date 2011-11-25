@@ -20,10 +20,8 @@
 #ifndef ZILLIANS_LANGUAGE_STAGE_MAKE_THORSCRIPTBUNDLESTAGE_H_
 #define ZILLIANS_LANGUAGE_STAGE_MAKE_THORSCRIPTBUNDLESTAGE_H_
 
-#include <vector>
-#include <string>
-#include <boost/filesystem.hpp>
 #include "language/stage/Stage.h"
+#include <boost/filesystem.hpp>
 
 namespace zillians { namespace language { namespace stage {
 

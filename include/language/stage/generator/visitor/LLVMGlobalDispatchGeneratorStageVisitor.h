@@ -40,9 +40,8 @@ using zillians::language::tree::visitor::GenericVisitor;
 
 namespace zillians { namespace language { namespace stage { namespace visitor {
 
-struct LLVMGlobalDispatchGeneratorStageVisitor : GenericVisitor
+struct LLVMGlobalDispatchGeneratorStageVisitor : public GenericVisitor
 {
-    using GenericVisitor::apply;
     CREATE_GENERIC_INVOKER(generateInvoker)
 
     LLVMGlobalDispatchGeneratorStageVisitor()

@@ -20,7 +20,6 @@
 #ifndef ZILLIANS_LANGUAGE_STAGE_THORSCRIPTVMMODE_H_
 #define ZILLIANS_LANGUAGE_STAGE_THORSCRIPTVMMODE_H_
 
-
 #include "core/Prerequisite.h"
 #include <boost/program_options/options_description.hpp>
 #include <boost/program_options/variables_map.hpp>
@@ -28,7 +27,6 @@
 #include <boost/program_options/value_semantic.hpp>
 
 namespace zillians { namespace language { namespace stage {
-
 
 /**
  * ThorScriptBaseVM

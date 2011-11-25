@@ -20,11 +20,8 @@
 #ifndef ZILLIANS_LANGUAGE_STAGE_MAKE_THORSCRIPTMAKESTAGE_H_
 #define ZILLIANS_LANGUAGE_STAGE_MAKE_THORSCRIPTMAKESTAGE_H_
 
-#include <utility>
-#include <boost/filesystem.hpp>
-#include <log4cxx/logger.h>
-#include "language/stage/dep/ThorScriptSourceTangleGraph.h"
 #include "language/stage/Stage.h"
+#include "language/stage/dep/ThorScriptSourceTangleGraph.h"
 
 namespace zillians { namespace language { namespace stage {
 

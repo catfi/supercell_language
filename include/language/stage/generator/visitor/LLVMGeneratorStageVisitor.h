@@ -45,9 +45,8 @@ namespace zillians { namespace language { namespace stage { namespace visitor {
  *
  * @see LLVMGeneratorPreambleVisitor
  */
-struct LLVMGeneratorStageVisitor : GenericVisitor
+struct LLVMGeneratorStageVisitor : public GenericVisitor
 {
-	using GenericVisitor::apply;
     CREATE_GENERIC_INVOKER(generateInvoker)
 
 	LLVMGeneratorStageVisitor(llvm::LLVMContext& context, llvm::Module& module) :
