@@ -21,12 +21,12 @@
 #define ZILLIANS_LANGUAGE_STAGE_VISITOR_MANGLINGSTAGEVISITOR_H_
 
 #include "core/Prerequisite.h"
-#include "language/tree/visitor/GenericDoubleVisitor.h"
+#include "language/tree/visitor/GenericVisitor.h"
 #include "language/tree/visitor/NameManglingVisitor.h"
 #include "language/stage/transformer/context/ManglingStageContext.h"
 
 using namespace zillians::language::tree;
-using zillians::language::tree::visitor::GenericDoubleVisitor;
+using zillians::language::tree::visitor::GenericVisitor;
 using zillians::language::tree::visitor::NameManglingVisitor;
 
 namespace zillians { namespace language { namespace stage { namespace visitor {
@@ -36,26 +36,27 @@ namespace zillians { namespace language { namespace stage { namespace visitor {
  *
  * @see ManglingStage
  */
-struct ManglingStageVisitor : GenericDoubleVisitor
+struct ManglingStageVisitor : GenericVisitor
 {
-	CREATE_INVOKER(mangleInvoker, mangle)
+	using GenericVisitor::apply;
+    CREATE_GENERIC_INVOKER(mangleInvoker)
 
 	ManglingStageVisitor() : next_type_id(1024), next_symbol_id(0)
 	{
 		REGISTER_ALL_VISITABLE_ASTNODE(mangleInvoker)
 	}
 
-	void mangle(ASTNode& node)
+	void apply(ASTNode& node)
 	{
-		revisit(node);
+		GenericVisitor::apply(node);
 	}
 
-	void mangle(Identifier& node)
+	void apply(Identifier& node)
 	{
 		NameManglingContext::set(&node, new NameManglingContext(mangler.encode(node.toString())));
 	}
 
-	void mangle(ClassDecl& node)
+	void apply(ClassDecl& node)
 	{
 		mangler.visit(node);
 		NameManglingContext::set(&node, new NameManglingContext(mangler.stream.str()));
@@ -63,10 +64,10 @@ struct ManglingStageVisitor : GenericDoubleVisitor
 
 		TypeIdManglingContext::set(&node, new TypeIdManglingContext(next_type_id++));
 
-		revisit(node);
+		GenericVisitor::apply(node);
 	}
 
-	void mangle(InterfaceDecl& node)
+	void apply(InterfaceDecl& node)
 	{
 		mangler.visit(node);
 		NameManglingContext::set(&node, new NameManglingContext(mangler.stream.str()));
@@ -74,10 +75,10 @@ struct ManglingStageVisitor : GenericDoubleVisitor
 
 		TypeIdManglingContext::set(&node, new TypeIdManglingContext(next_type_id++));
 
-		revisit(node);
+		GenericVisitor::apply(node);
 	}
 
-	void mangle(EnumDecl& node)
+	void apply(EnumDecl& node)
 	{
 		mangler.visit(node);
 		NameManglingContext::set(&node, new NameManglingContext(mangler.stream.str()));
@@ -85,10 +86,10 @@ struct ManglingStageVisitor : GenericDoubleVisitor
 
 		TypeIdManglingContext::set(&node, new TypeIdManglingContext(next_type_id++));
 
-		revisit(node);
+		GenericVisitor::apply(node);
 	}
 
-	void mangle(FunctionDecl& node)
+	void apply(FunctionDecl& node)
 	{
 		mangler.visit(node);
 		NameManglingContext::set(&node, new NameManglingContext(mangler.stream.str()));
@@ -96,10 +97,10 @@ struct ManglingStageVisitor : GenericDoubleVisitor
 
 		SymbolIdManglingContext::set(&node, new SymbolIdManglingContext(next_symbol_id++));
 
-		revisit(node);
+		GenericVisitor::apply(node);
 	}
 
-	void mangle(VariableDecl& node)
+	void apply(VariableDecl& node)
 	{
 		NameManglingContext::set(&node, new NameManglingContext(mangler.encode(node.name->toString())));
 		mangler.reset();
