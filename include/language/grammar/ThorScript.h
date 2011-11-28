@@ -431,7 +431,7 @@ struct ThorScript : qi::grammar<Iterator, typename SA::start::attribute_type, de
 
 		thor_param_type
 			= qi::eps [ typename SA::location::cache_loc() ]
-				>>	( qi::lit(L"void")                                                     [ typename SA::thor_type::template init_primitive_type<tree::PrimitiveType::VOID>() ]
+				>>	( DISTINCT_IDENTIFIER(qi::lit(L"void"))                                [ typename SA::thor_type::template init_primitive_type<tree::PrimitiveType::VOID>() ]
 					| qi::lit(L"int8")                                                     [ typename SA::thor_type::template init_primitive_type<tree::PrimitiveType::INT8>() ]
 					| qi::lit(L"int16")                                                    [ typename SA::thor_type::template init_primitive_type<tree::PrimitiveType::INT16>() ]
 					| qi::lit(L"int32")                                                    [ typename SA::thor_type::template init_primitive_type<tree::PrimitiveType::INT32>() ]
