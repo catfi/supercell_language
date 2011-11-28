@@ -33,9 +33,24 @@
 
 BOOST_AUTO_TEST_SUITE( ThorScriptDepTest_ThorScriptDepHappyPathTestSuite )
 
+static void createManifest()
+{
+    std::ofstream fout("manifest.xml");
+    fout << "<project name=\"" << "test-dep-project" << "\" author=\"author\" version=\"0.0.0.1\">\n"
+         << "    <dependency>\n"
+         << "        <!-- bundle         path=\"./in_bundle/a.bundle\" -->\n"
+         << "        <!-- native_object  path=\"./native/b.o\"         -->\n"
+         << "        <!-- native_library path=\"./native/c.a\"         -->\n"
+         << "    </dependency>\n"
+         << "</project>\n" ;
+    fout.close();
+}
+
 BOOST_AUTO_TEST_CASE( ThorScriptDepTest_ThorScriptDepHappyPathTestCase1 )
 {
     // Construct file system and file content
+    createManifest();
+
     boost::filesystem::create_directories(boost::filesystem::path("src"));
     boost::filesystem::create_directories(boost::filesystem::path("src/c"));
     boost::filesystem::create_directories(boost::filesystem::path("src/d"));
@@ -59,7 +74,8 @@ BOOST_AUTO_TEST_CASE( ThorScriptDepTest_ThorScriptDepHappyPathTestCase1 )
     system("echo 'import e.e1.e11;' > src/e/e1/e12.t");
     system("echo ' ' > src/e/e1/e13.t");
 
-    const char* argv[] = {"testbin"};
+    //const char* argv[] = {"testbin"};
+    const char* argv[] = {};
 
     // parse and output graph, and unserilaize graph
     zillians::language::ThorScriptDep dep;
@@ -69,7 +85,7 @@ BOOST_AUTO_TEST_CASE( ThorScriptDepTest_ThorScriptDepHappyPathTestCase1 )
     boost::filesystem::remove_all(boost::filesystem::path("src"));
 
     // unserialize graph
-    std::ifstream fin("ts.dep");
+    std::ifstream fin("build/ts.dep");
     boost::archive::text_iarchive ia(fin);
     zillians::language::stage::TangleGraphType g;
     ia >> g;
@@ -124,6 +140,7 @@ BOOST_AUTO_TEST_CASE( ThorScriptDepTest_ThorScriptDepHappyPathTestCase1 )
 BOOST_AUTO_TEST_CASE( ThorScriptDepTest_ThorScriptDepHappyPathTestCase2 )
 {
     // Construct file system and file content
+    createManifest();
 
     boost::filesystem::create_directories(boost::filesystem::path("src"));
     system("echo 'import b;' > src/a.t");
@@ -139,7 +156,7 @@ BOOST_AUTO_TEST_CASE( ThorScriptDepTest_ThorScriptDepHappyPathTestCase2 )
     // remove tmp files
     boost::filesystem::remove_all(boost::filesystem::path("src"));
     // unserialize graph
-    std::ifstream fin("ts.dep");
+    std::ifstream fin("build/ts.dep");
     boost::archive::text_iarchive ia(fin);
     zillians::language::stage::TangleGraphType g;
     ia >> g;
@@ -164,6 +181,7 @@ BOOST_AUTO_TEST_CASE( ThorScriptDepTest_ThorScriptDepHappyPathTestCase2 )
 BOOST_AUTO_TEST_CASE( ThorScriptDepTest_ThorScriptDepHappyPathTestCase3 )
 {
     // Construct file system and file content
+    createManifest();
 
     boost::filesystem::create_directories(boost::filesystem::path("src"));
     system("echo ' ' > src/a.t");
@@ -178,7 +196,7 @@ BOOST_AUTO_TEST_CASE( ThorScriptDepTest_ThorScriptDepHappyPathTestCase3 )
     boost::filesystem::remove_all(boost::filesystem::path("src"));
 
     // unserialize graph
-    std::ifstream fin("ts.dep");
+    std::ifstream fin("build/ts.dep");
     boost::archive::text_iarchive ia(fin);
     zillians::language::stage::TangleGraphType g;
     ia >> g;
@@ -202,6 +220,7 @@ BOOST_AUTO_TEST_CASE( ThorScriptDepTest_ThorScriptDepHappyPathTestCase3 )
 BOOST_AUTO_TEST_CASE( ThorScriptDepTest_ThorScriptDepAmbiguousTestCase1 )
 {
     // Construct file system and file content
+    createManifest();
 
     boost::filesystem::create_directories(boost::filesystem::path("src"));
     system("echo 'import b;' > src/a.t");
@@ -219,7 +238,7 @@ BOOST_AUTO_TEST_CASE( ThorScriptDepTest_ThorScriptDepAmbiguousTestCase1 )
     boost::filesystem::remove_all(boost::filesystem::path("src"));
 
     // unserialize graph
-    std::ifstream fin("ts.dep");
+    std::ifstream fin("build/ts.dep");
     boost::archive::text_iarchive ia(fin);
     zillians::language::stage::TangleGraphType g;
     ia >> g;

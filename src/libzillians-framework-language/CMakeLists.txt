@@ -61,7 +61,9 @@ add_library(zillians-framework-language SHARED
 	language/stage/serialization/ASTSerializationStage.cpp
 	language/stage/serialization/ASTDeserializationStage.cpp    
 	language/stage/serialization/detail/ASTSerializationHelper.cpp
-	language/tree/basic/FunctionType.cpp  
+	language/tree/basic/FunctionType.cpp
+	language/tree/basic/Identifier.cpp    
+	language/tree/basic/TypeSpecifier.cpp
 	language/tree/ASTNodeSerialization.cpp
 	language/stage/dep/ThorScriptDepStage.cpp
     language/stage/dep/ThorScriptPackageDependencyGrammar.cpp
@@ -70,6 +72,11 @@ add_library(zillians-framework-language SHARED
     language/stage/strip/ThorScriptStripStage.cpp
     language/stage/stub/ThorScriptStubStage.cpp
     language/stage/linker/ThorScriptLinkerStage.cpp
+    language/stage/vm/ThorScriptVMStage.cpp
+	)
+	
+add_library(zillians-framework-language-vm
+	language/stage/vm/ThorScriptVMMode.cpp
 	)
 
 if(LLVM_FOUND)
@@ -94,6 +101,7 @@ if(LLVM_FOUND)
         zillians-common-core
         zillians-common-utility-archive
         zillians-framework-language-llvm
+        zillians-framework-language-vm
         )
 else()
     target_link_libraries(zillians-framework-language
@@ -101,6 +109,7 @@ else()
         zillians-common-utility
         zillians-common-core
         zillians-common-utility-archive
+        zillians-framework-language-vm
         )
 endif()
 

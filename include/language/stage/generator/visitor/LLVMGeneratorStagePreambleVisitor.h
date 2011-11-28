@@ -21,27 +21,27 @@
 #define ZILLIANS_LANGUAGE_STAGE_VISITOR_LLVMGENERATORPREAMBLESTAGEVISITOR_H_
 
 #include "core/Prerequisite.h"
-#include "language/tree/visitor/GenericDoubleVisitor.h"
+#include "language/tree/visitor/GenericVisitor.h"
 #include "language/stage/generator/detail/LLVMHelper.h"
 #include "language/stage/transformer/context/ManglingStageContext.h"
 #include "language/stage/generator/context/SynthesizedFunctionContext.h"
 
 using namespace zillians::language::tree;
-using zillians::language::tree::visitor::GenericDoubleVisitor;
+using zillians::language::tree::visitor::GenericVisitor;
 
 namespace zillians { namespace language { namespace stage { namespace visitor {
 
 /**
  * LLVMGeneratorStagePreambleVisitor is used to generate llvm::Function object for all functions prior to actual code generation
  *
- * We have to generate llvm::Function object prior to actual code generation because the LLVMGeneratorVisitor visits the tree in a top-down approach,
+ * We have to apply llvm::Function object prior to actual code generation because the LLVMGeneratorVisitor visits the tree in a top-down approach,
  * so it's common case that the callee is visited after the caller, which requires llvm::Function object to create llvm::CallInst
  *
  * @see LLVMGeneratorStageVisitor
  */
-struct LLVMGeneratorStagePreambleVisitor : GenericDoubleVisitor
+struct LLVMGeneratorStagePreambleVisitor : public GenericVisitor
 {
-	CREATE_INVOKER(generateInvoker, generate)
+    CREATE_GENERIC_INVOKER(generateInvoker)
 
 	LLVMGeneratorStagePreambleVisitor(llvm::LLVMContext& context, llvm::Module& module) :
 		mContext(context), mModule(module), mBuilder(context), mHelper(context)
@@ -49,12 +49,12 @@ struct LLVMGeneratorStagePreambleVisitor : GenericDoubleVisitor
 		REGISTER_ALL_VISITABLE_ASTNODE(generateInvoker)
 	}
 
-	void generate(ASTNode& node)
+	void apply(ASTNode& node)
 	{
-		revisit(node);
+		GenericVisitor::apply(node);
 	}
 
-	void generate(FunctionDecl& node)
+	void apply(FunctionDecl& node)
 	{
 		if(!GET_SYNTHESIZED_LLVM_FUNCTION(&node))
 		{
@@ -67,8 +67,8 @@ struct LLVMGeneratorStagePreambleVisitor : GenericDoubleVisitor
 			// try to resolve function type
 			if(!mHelper.getFunctionType(node, llvm_function_type, llvm_function_parameter_type_attributes, llvm_function_return_type_attribute))
 			{
-				BOOST_ASSERT(false && "failed to generate LLVM function object");
-				terminateRevisit();
+				BOOST_ASSERT(false && "failed to apply LLVM function object");
+				terminate();
 				return;
 			}
 
@@ -77,8 +77,8 @@ struct LLVMGeneratorStagePreambleVisitor : GenericDoubleVisitor
 
 			if(!llvm_function)
 			{
-				BOOST_ASSERT(false && "failed to generate LLVM function object");
-				terminateRevisit();
+				BOOST_ASSERT(false && "failed to apply LLVM function object");
+				terminate();
 				return;
 			}
 

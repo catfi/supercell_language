@@ -29,9 +29,9 @@
 namespace zillians { namespace language { namespace tree { namespace visitor {
 
 template<bool Composed = false>
-struct GarbageCollectionVisitor : GenericDoubleVisitor
+struct GarbageCollectionVisitor : GenericVisitor
 {
-	CREATE_INVOKER(markInvoker, mark);
+    CREATE_GENERIC_INVOKER(markInvoker);
 
 	GarbageCollectionVisitor() : nonreachable_set(ASTNodeGC::instance()->objects)
 	{
@@ -48,11 +48,11 @@ struct GarbageCollectionVisitor : GenericDoubleVisitor
 		return nonreachable_set.size();
 	}
 
-	void mark(ASTNode& node)
+	void apply(ASTNode& node)
 	{
 		nonreachable_set.erase(&node);
 		if(!Composed)
-			revisit(node);
+			GenericVisitor::apply(node);
 	}
 
 	std::tr1::unordered_set<const ASTNode*> nonreachable_set;

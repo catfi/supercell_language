@@ -22,14 +22,14 @@
 
 #include "core/Prerequisite.h"
 #include "language/tree/ASTNodeHelper.h"
-#include "language/tree/visitor/GenericDoubleVisitor.h"
+#include "language/tree/visitor/GenericVisitor.h"
 #include "language/tree/visitor/ResolutionVisitor.h"
 #include "language/logging/LoggerWrapper.h"
 #include "language/logging/StringTable.h"
 #include "language/resolver/Resolver.h"
 
 using namespace zillians::language::tree;
-using zillians::language::tree::visitor::GenericDoubleVisitor;
+using zillians::language::tree::visitor::GenericVisitor;
 using zillians::language::tree::visitor::ResolutionVisitor;
 
 namespace zillians { namespace language { namespace stage { namespace visitor {
@@ -42,9 +42,9 @@ namespace zillians { namespace language { namespace stage { namespace visitor {
  * @see ResolutionStage, Resolver
  * @todo implement resolution cache
  */
-struct ResolutionStageVisitor : GenericDoubleVisitor
+struct ResolutionStageVisitor : public GenericVisitor
 {
-	CREATE_INVOKER(resolveInvoker, resolve)
+    CREATE_GENERIC_INVOKER(resolveInvoker)
 
 	struct Target
 	{
@@ -59,14 +59,14 @@ struct ResolutionStageVisitor : GenericDoubleVisitor
 		REGISTER_ALL_VISITABLE_ASTNODE(resolveInvoker)
 	}
 
-	void resolve(ASTNode& node)
+	void apply(ASTNode& node)
 	{
-		revisit(node);
+		GenericVisitor::apply(node);
 	}
 
-	void resolve(NumericLiteral& node)
+	void apply(NumericLiteral& node)
 	{
-		revisit(node);
+		GenericVisitor::apply(node);
 
 		if(!ResolvedType::get(&node))
 		{
@@ -75,9 +75,9 @@ struct ResolutionStageVisitor : GenericDoubleVisitor
 		}
 	}
 
-	void resolve(ObjectLiteral& node)
+	void apply(ObjectLiteral& node)
 	{
-		revisit(node);
+		GenericVisitor::apply(node);
 
 		if(!ResolvedType::get(&node))
 		{
@@ -86,9 +86,9 @@ struct ResolutionStageVisitor : GenericDoubleVisitor
 		}
 	}
 
-	void resolve(StringLiteral& node)
+	void apply(StringLiteral& node)
 	{
-		revisit(node);
+		GenericVisitor::apply(node);
 
 		if(!ResolvedType::get(&node))
 		{
@@ -97,35 +97,34 @@ struct ResolutionStageVisitor : GenericDoubleVisitor
 		}
 	}
 
-	void resolve(TemplatedIdentifier& node)
+	void apply(TemplatedIdentifier& node)
 	{
 		if(node.type == TemplatedIdentifier::Usage::ACTUAL_ARGUMENT)
 		{
-			foreach(i, node.templated_type_list)
-				visit(**i);
+			GenericVisitor::apply(node);
 		}
 	}
 
-	void resolve(Internal& node)
+	void apply(Internal& node)
 	{
 		UNUSED_ARGUMENT(node);
 		// since there won't be any unresolved type or symbol in the internal node, just skip it
 	}
 
-	void resolve(Package& node)
+	void apply(Package& node)
 	{
 		// tell resolver that we're entering this package scope
 		resolver.enterScope(node);
 
 		// and then visit the sub-elements of this package
 		// (note that this visitor is actually a DFS visitor)
-		revisit(node);
+		GenericVisitor::apply(node);
 
 		// tell resolver that we're leaving this package scope
 		resolver.leaveScope(node);
 	}
 
-	void resolve(Block& node)
+	void apply(Block& node)
 	{
 		// tell resolver that we're entering this block scope
 		resolver.enterScope(node);
@@ -134,13 +133,13 @@ struct ResolutionStageVisitor : GenericDoubleVisitor
 		// note that there can be unresolved type specifier in those statements,
 		// for example, for type resolution, DecarlativeStmt pointing to a VariableDecl, so the type of that VariableDecl should be properly resolved
 		// another example, for symbol resolution, PrimaryExpr must be resolved to a symbol, which can be pointing to a VariableDecl
-		revisit(node);
+		GenericVisitor::apply(node);
 
 		// tell resolver that we're leaving this block scope
 		resolver.leaveScope(node);
 	}
 
-	void resolve(Source& node)
+	void apply(Source& node)
 	{
 		foreach(i, node.imports)
 			resolver.enterScope(**i);
@@ -151,7 +150,7 @@ struct ResolutionStageVisitor : GenericDoubleVisitor
 			resolver.leaveScope(**i);
 	}
 
-	void resolve(TypeSpecifier& node)
+	void apply(TypeSpecifier& node)
 	{
 		// this can be reached from visiting type specifier of a variable declaration
 		// or visiting type specifier of the return type of function declaration
@@ -159,36 +158,36 @@ struct ResolutionStageVisitor : GenericDoubleVisitor
 		tryResolveType(&node, &node);
 	}
 
-	void resolve(ClassDecl& node)
+	void apply(ClassDecl& node)
 	{
 		resolver.enterScope(node);
-		revisit(node);
+		GenericVisitor::apply(node);
 		resolver.leaveScope(node);
 	}
 
-	void resolve(InterfaceDecl& node)
+	void apply(InterfaceDecl& node)
 	{
 		resolver.enterScope(node);
-		revisit(node);
+		GenericVisitor::apply(node);
 		resolver.leaveScope(node);
 	}
 
-	void resolve(FunctionDecl& node)
+	void apply(FunctionDecl& node)
 	{
 		// when entering FunctionDecl scope
 		// all parameters can be seen by the resolver
 		// see ResolutionVisitor.h
 		resolver.enterScope(node);
 
-		LOG4CXX_DEBUG(LoggerWrapper::TransformerStage, L"trying to resolve function: " << node.name->toString());
+		LOG4CXX_DEBUG(LoggerWrapper::TransformerStage, L"trying to apply function: " << node.name->toString());
 
 		if(type == Target::TYPE_RESOLUTION)
 		{
-			// try to resolve return type of the function
+			// try to apply return type of the function
 			if(node.type)
 				visit(*node.type);
 
-			// try to resolve parameters, which contains type specifier needed to be resolved
+			// try to apply parameters, which contains type specifier needed to be resolved
 			foreach(i, node.parameters)
 				visit(**i);
 
@@ -207,7 +206,7 @@ struct ResolutionStageVisitor : GenericDoubleVisitor
 		resolver.leaveScope(node);
 	}
 
-	void resolve(EnumDecl& node)
+	void apply(EnumDecl& node)
 	{
 		if(type == Target::TYPE_RESOLUTION)
 		{
@@ -224,7 +223,7 @@ struct ResolutionStageVisitor : GenericDoubleVisitor
 		}
 	}
 
-	void resolve(TypedefDecl& node)
+	void apply(TypedefDecl& node)
 	{
 		if(type == Target::TYPE_RESOLUTION)
 		{
@@ -238,7 +237,7 @@ struct ResolutionStageVisitor : GenericDoubleVisitor
 		}
 	}
 
-	void resolve(VariableDecl& node)
+	void apply(VariableDecl& node)
 	{
 		if(type == Target::TYPE_RESOLUTION)
 		{
@@ -252,11 +251,11 @@ struct ResolutionStageVisitor : GenericDoubleVisitor
 		}
 	}
 
-	void resolve(BranchStmt& node)
+	void apply(BranchStmt& node)
 	{
-		revisit(node);
+		GenericVisitor::apply(node);
 
-		// for all branch statement of return type, we should resolve the type of it
+		// for all branch statement of return type, we should apply the type of it
 		if(node.opcode == BranchStmt::OpCode::RETURN)
 		{
 			// get owner function's return type
@@ -283,53 +282,53 @@ struct ResolutionStageVisitor : GenericDoubleVisitor
 		}
 	}
 
-	void resolve(DeclarativeStmt& node)
+	void apply(DeclarativeStmt& node)
 	{
-		revisit(node);
+		GenericVisitor::apply(node);
 	}
 
-	void resolve(ExpressionStmt& node)
+	void apply(ExpressionStmt& node)
 	{
-		revisit(node);
+		GenericVisitor::apply(node);
 	}
 
-	void resolve(ForStmt& node)
+	void apply(ForStmt& node)
 	{
-		revisit(node);
+		GenericVisitor::apply(node);
 		convertLogical(node.cond);
 	}
 
-	void resolve(ForeachStmt& node)
+	void apply(ForeachStmt& node)
 	{
 		// we have to enter scope for ForeachStmt because variable can be declared in the iterator
 		resolver.enterScope(node);
-		revisit(node);
+		GenericVisitor::apply(node);
 		resolver.leaveScope(node);
 	}
 
-	void resolve(WhileStmt& node)
+	void apply(WhileStmt& node)
 	{
-		revisit(node);
+		GenericVisitor::apply(node);
 		convertLogical(node.cond);
 	}
 
-	void resolve(IfElseStmt& node)
+	void apply(IfElseStmt& node)
 	{
-		revisit(node);
+		GenericVisitor::apply(node);
 
 		convertLogical(node.if_branch.cond);
 		foreach(i, node.elseif_branches)
 			convertLogical(i->cond);
 	}
 
-	void resolve(SwitchStmt& node)
+	void apply(SwitchStmt& node)
 	{
-		revisit(node);
+		GenericVisitor::apply(node);
 	}
 
-	void resolve(UnaryExpr& node)
+	void apply(UnaryExpr& node)
 	{
-		revisit(node);
+		GenericVisitor::apply(node);
 
 		if(node.opcode == UnaryExpr::OpCode::NEW)
 		{
@@ -349,9 +348,9 @@ struct ResolutionStageVisitor : GenericDoubleVisitor
 		}
 	}
 
-	void resolve(BinaryExpr& node)
+	void apply(BinaryExpr& node)
 	{
-		revisit(node);
+		GenericVisitor::apply(node);
 		// TODO insert necessary cast expression here? or we left it for other phase but only check for compatibility
 		if(node.isArithmetic() || node.isBinary())
 		{
@@ -409,15 +408,15 @@ struct ResolutionStageVisitor : GenericDoubleVisitor
 		convertDispatch(&node, node.left, node.right, node.isAssignment(), node.isArithmetic() || node.isBinary() || node.isComparison(), node.isLogical());
 	}
 
-	void resolve(TernaryExpr& node)
+	void apply(TernaryExpr& node)
 	{
-		revisit(node);
+		GenericVisitor::apply(node);
 		// TODO get synthesized type from true node and false node (which should be compatible and casted to the same type)
 	}
 
-	void resolve(CallExpr& node)
+	void apply(CallExpr& node)
 	{
-		revisit(node);
+		GenericVisitor::apply(node);
 
 		if(!ResolvedType::get(&node))
 		{
@@ -458,7 +457,7 @@ struct ResolutionStageVisitor : GenericDoubleVisitor
 		}
 	}
 
-	void resolve(MemberExpr& node)
+	void apply(MemberExpr& node)
 	{
 		if(type == Target::TYPE_RESOLUTION)
 		{
@@ -472,7 +471,7 @@ struct ResolutionStageVisitor : GenericDoubleVisitor
 		}
 	}
 
-	void resolve(PrimaryExpr& node)
+	void apply(PrimaryExpr& node)
 	{
 		if(type == Target::TYPE_RESOLUTION)
 		{
@@ -484,7 +483,7 @@ struct ResolutionStageVisitor : GenericDoubleVisitor
 			if(node.catagory == PrimaryExpr::Catagory::IDENTIFIER)
 			{
 				// for general primary expression which is specified by an identifier
-				// we should resolve its type to a symbol or package
+				// we should apply its type to a symbol or package
 				tryResolveSymbolOrPackage(&node, node.value.identifier);
 			}
 			else if(node.catagory == PrimaryExpr::Catagory::LAMBDA)
@@ -507,11 +506,11 @@ struct ResolutionStageVisitor : GenericDoubleVisitor
 		}
 	}
 
-	void resolve(CastExpr& node)
+	void apply(CastExpr& node)
 	{
 		if(type == Target::TYPE_RESOLUTION)
 		{
-			// the type we are casting to is a type specifier, so we have to resolve its type
+			// the type we are casting to is a type specifier, so we have to apply its type
 			if(node.type)
 				visit(*node.type);
 		}

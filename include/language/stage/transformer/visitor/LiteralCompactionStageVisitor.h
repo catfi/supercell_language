@@ -21,13 +21,13 @@
 #define ZILLIANS_LANGUAGE_STAGE_VISITOR_LITERALCOMPACTIONSTAGEVISITOR_H_
 
 #include "core/Prerequisite.h"
-#include "language/tree/visitor/GenericDoubleVisitor.h"
+#include "language/tree/visitor/GenericVisitor.h"
 #include "language/tree/visitor/NameManglingVisitor.h"
 #include "language/stage/transformer/context/ManglingStageContext.h"
 #include "language/logging/StringTable.h"
 
 using namespace zillians::language::tree;
-using zillians::language::tree::visitor::GenericDoubleVisitor;
+using zillians::language::tree::visitor::GenericVisitor;
 using zillians::language::tree::visitor::NameManglingVisitor;
 
 namespace zillians { namespace language { namespace stage { namespace visitor {
@@ -37,27 +37,27 @@ namespace zillians { namespace language { namespace stage { namespace visitor {
  *
  * @see LiteralCompactionStage
  */
-struct LiteralCompactionStageVisitor : GenericDoubleVisitor
+struct LiteralCompactionStageVisitor : public GenericVisitor
 {
-	CREATE_INVOKER(compactInvoker, compact)
+    CREATE_GENERIC_INVOKER(compactInvoker)
 
 	LiteralCompactionStageVisitor() : program(NULL)
 	{
 		REGISTER_ALL_VISITABLE_ASTNODE(compactInvoker)
 	}
 
-	void compact(ASTNode& node)
+	void apply(ASTNode& node)
 	{
-		revisit(node);
+		GenericVisitor::apply(node);
 	}
 
-	void compact(Source& node)
+	void apply(Source& node)
 	{
 		program = &node;
-		revisit(node);
+		GenericVisitor::apply(node);
 	}
 
-	void compact(NumericLiteral& node)
+	void apply(NumericLiteral& node)
 	{
 		if(PrimitiveType::isIntegerType(node.type))
 		{

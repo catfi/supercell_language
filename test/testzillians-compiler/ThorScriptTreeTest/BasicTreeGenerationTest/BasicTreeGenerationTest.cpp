@@ -17,7 +17,10 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
+#include <iostream>
+#include <string>
 #include "core/Prerequisite.h"
+#include "utility/UnicodeUtil.h"
 #include "language/tree/ASTNode.h"
 #include "language/tree/ASTNodeFactory.h"
 #include "language/tree/visitor/GarbageCollectionVisitor.h"
@@ -25,6 +28,14 @@
 #include <iostream>
 #include <string>
 #include <limits>
+
+// boost test don't support wstring
+// see https://svn.boost.org/trac/boost/ticket/1136
+namespace std {
+    inline std::ostream& operator<<(std::ostream& os, const std::wstring& s) {
+        return os << zillians::ws_to_s(s) ;
+    }
+}
 
 #define BOOST_TEST_MODULE ThorScriptTreeTest_BasicTreeGenerationTest
 #define BOOST_TEST_MAIN
@@ -39,7 +50,7 @@ BOOST_AUTO_TEST_SUITE( ThorScriptTreeTest_BasicTreeGenerationTestSuite )
 BOOST_AUTO_TEST_CASE( ThorScriptTreeTest_BasicTreeGenerationTestCase1_IsA )
 {
 	{
-		ASTNode *node = new Source(new Package(new SimpleIdentifier(L"")));
+		ASTNode *node = new Source("test-source.t", new Package(new SimpleIdentifier(L"")));
 		BOOST_CHECK(isa<Source>(node));
 		BOOST_CHECK(!isa<Literal>(node));
 	}
@@ -65,13 +76,13 @@ BOOST_AUTO_TEST_CASE( ThorScriptTreeTest_BasicTreeGenerationTestCase1_IsA )
 BOOST_AUTO_TEST_CASE( ThorScriptTreeTest_BasicTreeGenerationTestCase2 )
 {
 	{
-		Source* program = new Source(new Package(new SimpleIdentifier(L"")));
-		BOOST_CHECK(program->root->id->toString() == L"<empty>");
+		Source* program = new Source("test-source.t", new Package(new SimpleIdentifier(L"")));
+		BOOST_CHECK_EQUAL(program->root->id->toString(), L"");
 	}
 
 	{
-		Source* program = new Source();
-		BOOST_CHECK(program->root->id->toString() == L"<empty>"); // the default package name is "<empty>"
+		Source* program = new Source("test-source.t");
+		BOOST_CHECK_EQUAL(program->root->id->toString(), L""); // the default package name is ""
 	}
 }
 

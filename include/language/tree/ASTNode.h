@@ -201,6 +201,7 @@ struct Block;
 struct Identifier;
 struct SimpleIdentifier;
 struct NestedIdentifier;
+struct TemplateType;
 struct TemplatedIdentifier;
 struct Literal;
 struct NumericLiteral;
@@ -354,7 +355,7 @@ struct is_std_pair<std::pair<T0, T1>> : boost::mpl::true_
 
 typedef boost::mpl::vector<ASTNode, Annotation, Annotations, Internal, Tangle, Source,
 		Package, Import, Block, Identifier, SimpleIdentifier, NestedIdentifier,
-		TemplatedIdentifier, Literal, NumericLiteral, StringLiteral,
+		TemplateType, TemplatedIdentifier, Literal, NumericLiteral, StringLiteral,
 		ObjectLiteral, TypeSpecifier, FunctionType, Declaration, ClassDecl,
 		EnumDecl, InterfaceDecl, TypedefDecl, FunctionDecl, VariableDecl,
 		Statement, DeclarativeStmt, ExpressionStmt, IterativeStmt, ForStmt,
@@ -773,6 +774,7 @@ BOOST_CLASS_EXPORT_KEY2(zillians::language::tree::Block                 , "Block
 BOOST_CLASS_EXPORT_KEY2(zillians::language::tree::Identifier            , "Identifier")
 BOOST_CLASS_EXPORT_KEY2(zillians::language::tree::SimpleIdentifier      , "SimpleIdentifier")
 BOOST_CLASS_EXPORT_KEY2(zillians::language::tree::NestedIdentifier      , "NestedIdentifier")
+BOOST_CLASS_EXPORT_KEY2(zillians::language::tree::TemplateType          , "TemplateType")
 BOOST_CLASS_EXPORT_KEY2(zillians::language::tree::TemplatedIdentifier   , "TemplatedIdent")
 BOOST_CLASS_EXPORT_KEY2(zillians::language::tree::Literal               , "Literal")
 BOOST_CLASS_EXPORT_KEY2(zillians::language::tree::NumericLiteral        , "NumericLiteral")
@@ -794,6 +796,7 @@ BOOST_CLASS_EXPORT_KEY2(zillians::language::tree::IterativeStmt         , "Itera
 BOOST_CLASS_EXPORT_KEY2(zillians::language::tree::ForStmt               , "ForStmt")
 BOOST_CLASS_EXPORT_KEY2(zillians::language::tree::ForeachStmt           , "ForeachStmt")
 BOOST_CLASS_EXPORT_KEY2(zillians::language::tree::WhileStmt             , "WhileStmt")
+BOOST_CLASS_EXPORT_KEY2(zillians::language::tree::Selection             , "Selection")
 BOOST_CLASS_EXPORT_KEY2(zillians::language::tree::SelectionStmt         , "SelectionStmt")
 BOOST_CLASS_EXPORT_KEY2(zillians::language::tree::IfElseStmt            , "IfElseStmt")
 BOOST_CLASS_EXPORT_KEY2(zillians::language::tree::SwitchStmt            , "SwitchStmt")

@@ -23,12 +23,12 @@
 #include "core/Prerequisite.h"
 #include "language/tree/ASTNodeHelper.h"
 #include "language/context/TransformerContext.h"
-#include "language/tree/visitor/GenericDoubleVisitor.h"
+#include "language/tree/visitor/GenericVisitor.h"
 #include "language/tree/visitor/NameManglingVisitor.h"
 #include "language/stage/transformer/context/ManglingStageContext.h"
 
 using namespace zillians::language::tree;
-using zillians::language::tree::visitor::GenericDoubleVisitor;
+using zillians::language::tree::visitor::GenericVisitor;
 using zillians::language::tree::visitor::NameManglingVisitor;
 
 namespace zillians { namespace language { namespace stage { namespace visitor {
@@ -38,23 +38,23 @@ namespace zillians { namespace language { namespace stage { namespace visitor {
  *
  * @see RestructureStage
  */
-struct RestructureStageVisitor : GenericDoubleVisitor
+struct RestructureStageVisitor : public GenericVisitor
 {
-	CREATE_INVOKER(restructInvoker, restruct)
+    CREATE_GENERIC_INVOKER(restructInvoker)
 
 	RestructureStageVisitor()
 	{
 		REGISTER_ALL_VISITABLE_ASTNODE(restructInvoker)
 	}
 
-	void restruct(ASTNode& node)
+	void apply(ASTNode& node)
 	{
-		revisit(node);
+		GenericVisitor::apply(node);
 	}
 
-	void restruct(ClassDecl& node)
+	void apply(ClassDecl& node)
 	{
-		revisit(node);
+		GenericVisitor::apply(node);
 
 		// check if there's no default constructor,
 		bool has_default_constructor = false;
@@ -94,9 +94,9 @@ struct RestructureStageVisitor : GenericDoubleVisitor
 		}
 	}
 
-	void restruct(FunctionDecl& node)
+	void apply(FunctionDecl& node)
 	{
-		revisit(node);
+		GenericVisitor::apply(node);
 
 		// for all class member function
 		bool need_to_prepend_this_argument = false;
@@ -142,9 +142,9 @@ struct RestructureStageVisitor : GenericDoubleVisitor
 		}
 	}
 
-	void restruct(VariableDecl& node)
+	void apply(VariableDecl& node)
 	{
-		revisit(node);
+		GenericVisitor::apply(node);
 
 		if(node.initializer)
 		{
@@ -236,9 +236,9 @@ struct RestructureStageVisitor : GenericDoubleVisitor
 		}
 	}
 
-	void restruct(UnaryExpr& node)
+	void apply(UnaryExpr& node)
 	{
-		revisit(node);
+		GenericVisitor::apply(node);
 
         /*
 		   transform simple new operator to new function call
@@ -298,9 +298,9 @@ struct RestructureStageVisitor : GenericDoubleVisitor
 
 	}
 
-	void restruct(BinaryExpr& node)
+	void apply(BinaryExpr& node)
 	{
-		revisit(node);
+		GenericVisitor::apply(node);
 
         /*
 		   transform all arithmetic assignment into separate arithmetic expression and assignment expression

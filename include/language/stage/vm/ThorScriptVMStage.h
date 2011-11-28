@@ -17,45 +17,33 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef ZILLIANS_LANGUAGE_TREE_VISITOR_OBJECTCOUNTVISITOR_H_
-#define ZILLIANS_LANGUAGE_TREE_VISITOR_OBJECTCOUNTVISITOR_H_
+#ifndef ZILLIANS_LANGUAGE_STAGE_MAKE_THORSCRIPTVMSTAGE_H_
+#define ZILLIANS_LANGUAGE_STAGE_MAKE_THORSCRIPTVMSTAGE_H_
 
-#include "core/Prerequisite.h"
-#include "language/tree/visitor/GenericVisitor.h"
+#include "language/stage/Stage.h"
+#include "language/stage/vm/ThorScriptVMMode.h"
 
-namespace zillians { namespace language { namespace tree { namespace visitor {
+namespace zillians { namespace language { namespace stage {
 
-template<bool Composed = false>
-struct ObjectCountVisitor : public GenericVisitor
+/**
+ * ThorScriptVMStage
+ */
+class ThorScriptVMStage : public Stage
 {
-    CREATE_GENERIC_INVOKER(countInvoker);
+public:
+	ThorScriptVMStage();
+	virtual ~ThorScriptVMStage();
 
-	ObjectCountVisitor() : total_count(0L)
-	{
-		REGISTER_ALL_VISITABLE_ASTNODE(countInvoker)
-	}
+public:
+	virtual const char* name();
+	virtual std::pair<shared_ptr<po::options_description>, shared_ptr<po::options_description>> getOptions();
+	virtual bool parseOptions(po::variables_map& vm);
+	virtual bool execute(bool& continue_execution);
 
-	void apply(ASTNode& node)
-	{
-		++total_count;
-		if(!Composed)
-			GenericVisitor::apply(node);
-	}
-
-	std::size_t get_count()
-	{
-		return total_count;
-	}
-
-	void reset()
-	{
-		total_count = 0;
-	}
-
-protected:
-	std::size_t total_count;
+private:
+	ThorScriptBaseVM* tsvm;
 };
 
-} } } }
+} } }
 
-#endif /* ZILLIANS_LANGUAGE_TREE_VISITOR_OBJECTCOUNTVISITOR_H_ */
+#endif /* ZILLIANS_LANGUAGE_STAGE_MAKE_THORSCRIPTVMSTAGE_H_ */

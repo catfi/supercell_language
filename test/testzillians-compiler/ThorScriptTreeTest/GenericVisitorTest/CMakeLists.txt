@@ -28,6 +28,7 @@ ADD_EXECUTABLE(ThorScriptTreeTest_GenericVisitorTest GenericVisitorTest.cpp)
 
 TARGET_LINK_LIBRARIES(ThorScriptTreeTest_GenericVisitorTest
     zillians-common-core
+    zillians-framework-language
     )
 
 zillians_add_simple_test(TARGET ThorScriptTreeTest_GenericVisitorTest)
