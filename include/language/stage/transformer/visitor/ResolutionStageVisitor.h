@@ -157,10 +157,16 @@ struct ResolutionStageVisitor : GenericDoubleVisitor
 		{
 			// if the the type specifier is specifying a template type, we have to visit the template identifier
 			if(isa<TemplatedIdentifier>(node.referred.unspecified))
+            {
 				visit(*node.referred.unspecified);
+            }
 
 			// try to resolve the type
-			tryResolveType(&node, &node);
+			if(isa<TemplatedIdentifier>(node.referred.unspecified) &&
+               cast<TemplatedIdentifier>(node.referred.unspecified)->isFullySpecialized())
+            {
+                tryResolveType(&node, &node);
+            }
 		}
 	}
 

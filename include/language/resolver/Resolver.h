@@ -585,9 +585,13 @@ private:
 			{
 				decl_typename->specialized_type = specialized_type_to_replace;
 			}
-			else if(isPartiallySpecializedTemplatedIdentifier(decl_id->templated_type_list[i]->specialized_type->referred.unspecified))
-			{
-				decl_typename->replaceUseWith(*decl_typename->specialized_type, *specialized_type_to_replace);
+			else
+            {
+                if(decl_id->templated_type_list[i]->specialized_type->type == TypeSpecifier::ReferredType::UNSPECIFIED &&
+                   isPartiallySpecializedTemplatedIdentifier(decl_id->templated_type_list[i]->specialized_type->referred.unspecified))
+                {
+                    decl_typename->replaceUseWith(*decl_typename->specialized_type, *specialized_type_to_replace);
+                }
 			}
 
     		// remove all default types
