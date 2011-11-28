@@ -51,8 +51,8 @@ struct thor_type
 		if(_param(1).is_initialized())
 		{
 			BIND_CACHED_LOCATION(ident = new TemplatedIdentifier(TemplatedIdentifier::Usage::ACTUAL_ARGUMENT, _param(0)));
-//			deduced_foreach_value(i, *_param(1))
-//				cast<TemplatedIdentifier>(ident)->appendArgument(i);
+			deduced_foreach_value(i, *_param(1))
+				cast<TemplatedIdentifier>(ident)->append(new TypenameDecl(new SimpleIdentifier(L"_"), i, NULL));
 		}
 		else
 			ident = _param(0);
@@ -85,13 +85,19 @@ struct thor_type
 		BIND_CACHED_LOCATION(_result = new TypeSpecifier(function_type));
 	}
 	END_ACTION
+};
 
-	BEGIN_ACTION(init_ellipsis)
+struct thor_param_type
+{
+	DEFINE_ATTRIBUTES(TypeSpecifier*)
+	DEFINE_LOCALS(LOCATION_TYPE)
+
+	BEGIN_ACTION(init_type)
 	{
 #ifdef DEBUG
-		printf("thor_type::init_ellipsis param(0) type = %s\n", typeid(_param_t(0)).name());
+		printf("thor_param_type::init_type param(0) type = %s\n", typeid(_param_t(0)).name());
 #endif
-		BIND_CACHED_LOCATION(_result = new TypeSpecifier(PrimitiveType::VARIADIC_ELLIPSIS));
+		BIND_CACHED_LOCATION(_result = new TypeSpecifier(_param(0)));
 	}
 	END_ACTION
 };
@@ -142,14 +148,14 @@ struct annotation
 		printf("annotation::init param(0) type = %s\n", typeid(_param_t(0)).name());
 		printf("annotation::init param(1) type = %s\n", typeid(_param_t(1)).name());
 #endif
-		SimpleIdentifier* name = _param(0);
+		SimpleIdentifier* ident = _param(0);
 		if(_param(1).is_initialized())
 		{
 			_result = *_param(1);
-			_result->name = name;
+			_result->name = ident;
 		}
 		else
-			BIND_CACHED_LOCATION(_result = new Annotation(name));
+			BIND_CACHED_LOCATION(_result = new Annotation(ident));
 	}
 	END_ACTION
 };

@@ -54,6 +54,27 @@ struct LLVMGeneratorStagePreambleVisitor : public GenericVisitor
 		GenericVisitor::apply(node);
 	}
 
+	void apply(InterfaceDecl& node)
+	{
+		// we don't generate code for interface
+	}
+
+	void apply(ClassDecl& node)
+	{
+		visit(*node.name);
+
+		// we don't generate code for non-fully-specialized classes
+		if(isa<TemplatedIdentifier>(node.name))
+		{
+			// if the class itself is a class template, which has non-specialized version in its templated identifier
+			// we don't try to resolve types for class template
+			if(!cast<TemplatedIdentifier>(node.name)->isFullySpecialized())
+				return;
+		}
+
+		GenericVisitor::apply(node);
+	}
+
 	void apply(FunctionDecl& node)
 	{
 		if(!GET_SYNTHESIZED_LLVM_FUNCTION(&node))

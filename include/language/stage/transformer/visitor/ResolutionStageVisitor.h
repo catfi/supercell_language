@@ -99,10 +99,9 @@ struct ResolutionStageVisitor : public GenericVisitor
 
 	void apply(TemplatedIdentifier& node)
 	{
-		if(node.type == TemplatedIdentifier::Usage::ACTUAL_ARGUMENT)
-		{
-			GenericVisitor::apply(node);
-		}
+		resolver.enterScope(node);
+		GenericVisitor::apply(node);
+		resolver.leaveScope(node);
 	}
 
 	void apply(Internal& node)
@@ -154,32 +153,116 @@ struct ResolutionStageVisitor : public GenericVisitor
 	{
 		// this can be reached from visiting type specifier of a variable declaration
 		// or visiting type specifier of the return type of function declaration
-		// or visiting
-		tryResolveType(&node, &node);
+		if(node.isUnspecified())
+		{
+			// if the the type specifier is specifying a template type, we have to visit the template identifier
+			if(isa<TemplatedIdentifier>(node.referred.unspecified))
+				visit(*node.referred.unspecified);
+
+			// try to resolve the type
+			tryResolveType(&node, &node);
+		}
 	}
 
 	void apply(ClassDecl& node)
 	{
-		resolver.enterScope(node);
-		GenericVisitor::apply(node);
-		resolver.leaveScope(node);
+		visit(*node.name);
+
+		if(isa<TemplatedIdentifier>(node.name))
+		{
+			// if the class itself is a class template, which has non-specialized version in its templated identifier
+			// we don't try to resolve types for class template
+			if(!cast<TemplatedIdentifier>(node.name)->isFullySpecialized())
+				return;
+
+			if(node.annotations) visit(*node.annotations);
+			if(node.name) visit(*node.name);
+
+			resolver.enterScope(*node.name);
+			resolver.enterScope(node);
+			{
+				if(node.base) visit(*node.base);
+				foreach(i, node.implements)			visit(**i);
+				foreach(i, node.member_functions)	visit(**i);
+				foreach(i, node.member_variables)	visit(**i);
+			}
+			resolver.leaveScope(node);
+			resolver.leaveScope(*node.name);
+		}
+		else
+		{
+			if(node.annotations) visit(*node.annotations);
+			if(node.name) visit(*node.name);
+
+			resolver.enterScope(node);
+			{
+				if(node.base) visit(*node.base);
+				foreach(i, node.implements)			visit(**i);
+				foreach(i, node.member_functions)	visit(**i);
+				foreach(i, node.member_variables)	visit(**i);
+			}
+			resolver.leaveScope(node);
+		}
 	}
 
 	void apply(InterfaceDecl& node)
 	{
-		resolver.enterScope(node);
-		GenericVisitor::apply(node);
-		resolver.leaveScope(node);
+		visit(*node.name);
+
+		// if the interface itself is a class template, which has non-specialized version in its templated identifier
+		// we don't try to resolve types for interface template
+		if(isa<TemplatedIdentifier>(node.name))
+		{
+			if(!cast<TemplatedIdentifier>(node.name)->isFullySpecialized())
+				return;
+
+			if(node.annotations) visit(*node.annotations);
+			if(node.name) visit(*node.name);
+
+			resolver.enterScope(*node.name);
+			resolver.enterScope(node);
+			{
+				foreach(i, node.member_functions)
+					visit(**i);
+			}
+			resolver.leaveScope(node);
+			resolver.leaveScope(*node.name);
+		}
+		else
+		{
+			if(node.annotations) visit(*node.annotations);
+			if(node.name) visit(*node.name);
+
+			resolver.enterScope(node);
+			{
+				foreach(i, node.member_functions)
+					visit(**i);
+			}
+			resolver.leaveScope(node);
+		}
 	}
 
 	void apply(FunctionDecl& node)
 	{
-		// when entering FunctionDecl scope
-		// all parameters can be seen by the resolver
-		// see ResolutionVisitor.h
-		resolver.enterScope(node);
+		visit(*node.name);
 
-		LOG4CXX_DEBUG(LoggerWrapper::TransformerStage, L"trying to apply function: " << node.name->toString());
+		// if the function itself is a class template, which has non-specialized version in its templated identifier
+		// we don't try to resolve types for function template
+		if(isa<TemplatedIdentifier>(node.name))
+		{
+			if(!cast<TemplatedIdentifier>(node.name)->isFullySpecialized())
+				return;
+
+			resolver.enterScope(*node.name);
+			resolver.enterScope(node);
+		}
+		else
+		{
+			// when entering FunctionDecl scope
+			// all parameters can be seen by the resolver
+			// see ResolutionVisitor.h
+			resolver.enterScope(node);
+		}
 
 		if(type == Target::TYPE_RESOLUTION)
 		{
@@ -203,7 +286,16 @@ struct ResolutionStageVisitor : public GenericVisitor
 			visit(*node.block);
 
 		// leaving FunctionDecl scope
-		resolver.leaveScope(node);
+		if(isa<TemplatedIdentifier>(node.name))
+		{
+			resolver.leaveScope(node);
+			resolver.leaveScope(*node.name);
+		}
+		else
+		{
+			resolver.leaveScope(node);
+		}
+
 	}
 
 	void apply(EnumDecl& node)

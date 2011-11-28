@@ -112,38 +112,6 @@ struct NestedIdentifier : public Identifier
 	std::vector<Identifier*> identifier_list;
 };
 
-struct TemplateType
-{
-	friend class boost::serialization::access;
-
-	TemplateType(SimpleIdentifier* id, TypeSpecifier* specialized_type = NULL, ASTNode* default_type = NULL);
-
-	TemplateType& operator= (const TemplateType& s);
-
-	bool isEqualImpl(const TemplateType& rhs, ASTNodeSet& visited) const;
-    bool replaceUseWith(const ASTNode& from, const ASTNode& to, bool update_parent = true);
-    std::wstring toString() const;
-
-    TemplateType clone() const;
-
-    template<typename Archive>
-    void serialize(Archive& ar, const unsigned int version)
-    {
-    	UNUSED_ARGUMENT(version);
-
-    	ar & id;
-    	ar & specialized_type;
-    	ar & default_type;
-    }
-
-	SimpleIdentifier* id;
-	TypeSpecifier* specialized_type;
-	ASTNode* default_type;
-
-protected:
-	TemplateType() { }
-};
-
 struct TemplatedIdentifier : public Identifier
 {
 	friend class boost::serialization::access;
@@ -171,10 +139,13 @@ struct TemplatedIdentifier : public Identifier
 	explicit TemplatedIdentifier(Usage::type type, Identifier* id);
 	virtual std::wstring toString() const;
 
+	bool isVariadic() const;
+	bool isFullySpecialized() const;
+
 	virtual bool isEmpty() const;
 	void setIdentifier(Identifier* identifier);
 
-	void append(TemplateType type);
+	void append(TypenameDecl* type);
     virtual bool isEqualImpl(const ASTNode& rhs, ASTNodeSet& visited) const;
     virtual bool replaceUseWith(const ASTNode& from, const ASTNode& to, bool update_parent = true);
 	virtual ASTNode* clone() const;
@@ -192,11 +163,12 @@ struct TemplatedIdentifier : public Identifier
 
 	Usage::type type;
 	Identifier* id;
-	std::vector<TemplateType> templated_type_list;
+	std::vector<TypenameDecl*> templated_type_list;
 
 protected:
 	TemplatedIdentifier();
 };
+
 
 } } }
 

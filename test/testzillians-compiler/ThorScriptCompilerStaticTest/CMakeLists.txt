@@ -196,10 +196,11 @@ zillians_add_test_to_subject(SUBJECT thorscript-compiler-static-test-xform TARGE
 zillians_add_test_to_subject(SUBJECT thorscript-compiler-static-test-xform TARGET thorscript-compiler-static-test-NO_SUCH_MEMBER)
 zillians_add_test_to_subject(SUBJECT thorscript-compiler-static-test-xform TARGET thorscript-compiler-static-test-SUBSCRIPT_OF_NONARRAY)
 #zillians_add_test_to_subject(SUBJECT thorscript-compiler-static-test-s1 TARGET thorscript-compiler-static-test-UNEXPECTED_VARIADIC_ARG)
-zillians_add_test_to_subject(SUBJECT thorscript-compiler-static-test-s0 TARGET thorscript-compiler-static-test-UNEXPECTED_VARIADIC_TEMPLATE_ARG)
+#zillians_add_test_to_subject(SUBJECT thorscript-compiler-static-test-s0 TARGET thorscript-compiler-static-test-UNEXPECTED_VARIADIC_TEMPLATE_ARG)
 
 # NOTE: MISSING_RETURN_VALUE disabled because it is already reported in resolution stage
-# NOTE: UNEXPECTED_VARIADIC_ARG disabled bacause unresolved template functions (resolution stage) break this test
+# NOTE: UNEXPECTED_VARIADIC_ARG          [DEPRECATED]
+# NOTE: UNEXPECTED_VARIADIC_TEMPLATE_ARG [DEPRECATED]
 
 #####################################################################
 # 2_modifier
@@ -295,13 +296,16 @@ zillians_add_complex_test(
     TARGET thorscript-compiler-static-test-PACKAGE_NAME_COLLIDE_PARENT
     SHELL ${ThorScriptCompiler} ${compile_options_s0} ${CMAKE_CURRENT_SOURCE_DIR}/error/4_parameter/qwe/qwe/PACKAGE_NAME_COLLIDE_PARENT.t
     DEPENDS ${ThorScriptCompiler}
-    EXPECT_FAIL "TRUE"
+    EXPECT_FAIL "TRUE" # should fail -- no way to annotate log message (no "package" keyword)
     )
 
 zillians_add_test_to_subject(SUBJECT thorscript-compiler-static-test-s0 TARGET thorscript-compiler-static-test-MISSING_PARAM_INIT)
-zillians_add_test_to_subject(SUBJECT thorscript-compiler-static-test-s0 TARGET thorscript-compiler-static-test-UNEXPECTED_VARIADIC_PARAM)
-zillians_add_test_to_subject(SUBJECT thorscript-compiler-static-test-s0 TARGET thorscript-compiler-static-test-UNEXPECTED_VARIADIC_TEMPLATE_PARAM)
+#zillians_add_test_to_subject(SUBJECT thorscript-compiler-static-test-s0 TARGET thorscript-compiler-static-test-UNEXPECTED_VARIADIC_PARAM)
+#zillians_add_test_to_subject(SUBJECT thorscript-compiler-static-test-s0 TARGET thorscript-compiler-static-test-UNEXPECTED_VARIADIC_TEMPLATE_PARAM)
 zillians_add_test_to_subject(SUBJECT thorscript-compiler-static-test-s0 TARGET thorscript-compiler-static-test-PACKAGE_NAME_COLLIDE_PARENT)
+
+# NOTE: UNEXPECTED_VARIADIC_PARAM          [DEPRECATED]
+# NOTE: UNEXPECTED_VARIADIC_TEMPLATE_PARAM [DEPRECATED]
 
 #####################################################################
 # 5_limit

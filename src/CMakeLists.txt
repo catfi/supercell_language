@@ -105,4 +105,4 @@ ADD_SUBDIRECTORY(zillians-thorscript-strip)
 ADD_SUBDIRECTORY(zillians-thorscript-stub-generator)
 ADD_SUBDIRECTORY(zillians-thorscript-vm)
 
-ADD_SUBDIRECTORY(zillians-thorscript-tsc) # add last to collect targets
+ADD_SUBDIRECTORY(zillians-thorscript-driver) # add last to collect targets

@@ -119,7 +119,7 @@ bool ResolutionStage::resolveTypes(bool report_error_summary, bool& making_progr
 	if(!parser_context.active_source)
 		return false;
 
-	LOG4CXX_DEBUG(LoggerWrapper::TransformerStage, L"trying to resolve types");
+	LOG4CXX_DEBUG(LoggerWrapper::TransformerStage, L"resolution stage trying to resolve types");
 
 	making_progress = false;
 
@@ -128,6 +128,12 @@ bool ResolutionStage::resolveTypes(bool report_error_summary, bool& making_progr
 
 	visitor.reset();
 	visitor.visit(*parser_context.tangle);
+
+	if(resolver.hasTransforms())
+	{
+		resolver.applyTransforms();
+		making_progress = true;
+	}
 
 	if(visitor.hasTransforms())
 	{
@@ -166,7 +172,7 @@ bool ResolutionStage::resolveSymbols(bool report_error_summary, bool& making_pro
 	if(!parser_context.active_source)
 		return false;
 
-	LOG4CXX_DEBUG(LoggerWrapper::TransformerStage, "trying to resolve symbols");
+	LOG4CXX_DEBUG(LoggerWrapper::TransformerStage, "resolution stage trying to resolve symbols");
 
 	making_progress = false;
 
@@ -175,6 +181,12 @@ bool ResolutionStage::resolveSymbols(bool report_error_summary, bool& making_pro
 
 	visitor.reset();
 	visitor.visit(*parser_context.tangle);
+
+	if(resolver.hasTransforms())
+	{
+		resolver.applyTransforms();
+		making_progress = true;
+	}
 
 	if(visitor.hasTransforms())
 	{
