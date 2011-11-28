@@ -426,14 +426,26 @@ struct ThorScript : qi::grammar<Iterator, typename SA::start::attribute_type, de
 					| qi::lit(L"float64")                                                  [ typename SA::thor_type::template init_primitive_type<tree::PrimitiveType::FLOAT64>() ]
 					| (nested_identifier > -type_specialize_specifier)                     [ typename SA::thor_type::init_type() ]
 					| (FUNCTION > LEFT_PAREN > -type_list > RIGHT_PAREN > -type_specifier) [ typename SA::thor_type::init_function_type() ]
-					| ELLIPSIS                                                             [ typename SA::thor_type::init_ellipsis() ]
+					)
+			;
+
+		thor_param_type
+			= qi::eps [ typename SA::location::cache_loc() ]
+				>>	( qi::lit(L"void")                                                     [ typename SA::thor_type::template init_primitive_type<tree::PrimitiveType::VOID>() ]
+					| qi::lit(L"int8")                                                     [ typename SA::thor_type::template init_primitive_type<tree::PrimitiveType::INT8>() ]
+					| qi::lit(L"int16")                                                    [ typename SA::thor_type::template init_primitive_type<tree::PrimitiveType::INT16>() ]
+					| qi::lit(L"int32")                                                    [ typename SA::thor_type::template init_primitive_type<tree::PrimitiveType::INT32>() ]
+					| qi::lit(L"int64")                                                    [ typename SA::thor_type::template init_primitive_type<tree::PrimitiveType::INT64>() ]
+					| qi::lit(L"float32")                                                  [ typename SA::thor_type::template init_primitive_type<tree::PrimitiveType::FLOAT32>() ]
+					| qi::lit(L"float64")                                                  [ typename SA::thor_type::template init_primitive_type<tree::PrimitiveType::FLOAT64>() ]
+					| template_param_identifier                                            [ typename SA::thor_param_type::init_type() ]
+					| (FUNCTION > LEFT_PAREN > -type_list > RIGHT_PAREN > -type_specifier) [ typename SA::thor_type::init_function_type() ]
 					)
 			;
 
 		template_param_identifier
 			= qi::eps [ typename SA::location::cache_loc() ]
-//				>>	(IDENTIFIER > -(COMPARE_LT >> ((IDENTIFIER | EMIT_BOOL(ELLIPSIS)) % COMMA) >> COMPARE_GT)
-			    >>	(IDENTIFIER > -(COMPARE_LT >> (( (IDENTIFIER > -(type_specifier | init_specifier)) | EMIT_BOOL(ELLIPSIS)) % COMMA) >> COMPARE_GT)
+			    >>	(IDENTIFIER > -(COMPARE_LT >> ((IDENTIFIER > -((COLON > thor_param_type) | init_specifier)) % COMMA) >> COMPARE_GT)
 					) [ typename SA::template_param_identifier::init() ]
 			;
 
@@ -1060,6 +1072,7 @@ struct ThorScript : qi::grammar<Iterator, typename SA::start::attribute_type, de
 	DECL_RULE(           init_specifier);
 	DECL_RULE(           type_specifier);
 	DECL_RULE(           thor_type);
+	DECL_RULE(           thor_param_type);
 	DECL_RULE(           template_param_identifier);
 	DECL_RULE(           template_arg_identifier);
 	DECL_RULE_CUSTOM_SA( type_specialize_specifier, type_list);
