@@ -41,6 +41,30 @@ struct ASTNodeHelper
 		to.set<stage::SourceInfoContext>(new stage::SourceInfoContext(*from_src_info));
 	}
 
+	static ASTNode* findUniqueResolution(ASTNode* node)
+	{
+		if(!node)
+			return NULL;
+
+		if(isa<TypenameDecl>(node))
+			return findUniqueResolution(cast<TypenameDecl>(node)->specialized_type);
+
+		if(isa<TypeSpecifier>(node))
+		{
+			TypeSpecifier* specifier = cast<TypeSpecifier>(node);
+			if(specifier->type == TypeSpecifier::ReferredType::UNSPECIFIED)
+			{
+				return findUniqueResolution(ResolvedType::get(specifier));
+			}
+			else
+			{
+				return specifier;
+			}
+		}
+
+		return node;
+	}
+
 	static FunctionType* createFunctionTypeFromFunctionDecl(FunctionDecl* node)
 	{
 		BOOST_ASSERT(node && "null pointer exception");

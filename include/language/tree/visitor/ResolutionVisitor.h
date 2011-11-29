@@ -778,10 +778,10 @@ public:
 						BOOST_ASSERT(use_types[i]->specialized_type && "typename declaration in use type vector does not have specialized type");
 
 						if(use_types[i]->specialized_type && use_types[i]->specialized_type->type == TypeSpecifier::ReferredType::UNSPECIFIED)
-							if(!ResolvedType::get(use_types[i]->specialized_type))  return false;
+							if(!ASTNodeHelper::findUniqueResolution(use_types[i]->specialized_type))  return false;
 
 						if(decl_types[i]->specialized_type && decl_types[i]->specialized_type->type == TypeSpecifier::ReferredType::UNSPECIFIED)
-							if(!ResolvedType::get(decl_types[i]->specialized_type)) return false;
+							if(!ASTNodeHelper::findUniqueResolution(decl_types[i]->specialized_type)) return false;
 					}
 
 					// as we have reject many illegal cases when we reach here
@@ -805,7 +805,7 @@ public:
 						{
 							// bind a temporary resolved type to the TypenameDecl so that we can enforce the template constraint
 							if(use_types[i]->specialized_type->type == TypeSpecifier::ReferredType::UNSPECIFIED)
-								ResolvedType::set(decl_types[i], ResolvedType::get(use_types[i]->specialized_type));
+								ResolvedType::set(decl_types[i], ASTNodeHelper::findUniqueResolution(use_types[i]->specialized_type));
 							else
 								ResolvedType::set(decl_types[i], use_types[i]->specialized_type);
 
@@ -814,59 +814,23 @@ public:
 						else
 						{
 							if(use_types[i]->specialized_type->type == TypeSpecifier::ReferredType::UNSPECIFIED &&
-							   decl_types[i]->specialized_type->type == TypeSpecifier::ReferredType::UNSPECIFIED)
+							   decl_types[i]->specialized_type->type == TypeSpecifier::ReferredType::UNSPECIFIED &&
+							   isa<TemplatedIdentifier>(use_types[i]->specialized_type->referred.unspecified) &&
+							   isa<TemplatedIdentifier>(decl_types[i]->specialized_type->referred.unspecified) )
 							{
-								if(isa<TemplatedIdentifier>(use_types[i]->specialized_type->referred.unspecified) &&
-								   isa<TemplatedIdentifier>(decl_types[i]->specialized_type->referred.unspecified) )
-								{
-									bool partial_match = false;
-									if(!compare(use_types[i]->specialized_type->referred.unspecified, decl_types[i]->specialized_type->referred.unspecified, partial_match))
-										return false;
-									// TODO consider to change to is_template_match? or set the flag only when "partial" template match, which requires template instantiation
-									is_template_partial_match |= partial_match;
-								}
-								else if(!isa<TemplatedIdentifier>(use_types[i]->specialized_type->referred.unspecified) &&
-									    !isa<TemplatedIdentifier>(decl_types[i]->specialized_type->referred.unspecified) )
-
-								{
-									ASTNode* resolved_use = ResolvedType::get(use_types[i]->specialized_type);
-									ASTNode* resolved_decl = ResolvedType::get(decl_types[i]->specialized_type);
-
-									// the resolved type of decl type can be referring to a TypenameDecl, which creates some sort of constraint
-									// the way we enforce the constraint is to bind a temporary resolved type to the TypenameDecl, which will be cleaned up at exit
-									// and make sure the temporary resolved type equals to the use type
-									if(isa<TypenameDecl>(resolved_decl))
-										resolved_decl = ResolvedType::get(resolved_decl);
-
-									if(!resolved_use || !resolved_decl || !resolved_use->isEqual(*resolved_decl))
-										return false;
-								}
-								else
-								{
+								bool partial_match = false;
+								if(!compare(use_types[i]->specialized_type->referred.unspecified, decl_types[i]->specialized_type->referred.unspecified, partial_match))
 									return false;
-								}
+
+								// TODO consider to change to is_template_match? or set the flag only when "partial" template match, which requires template instantiation
+								is_template_partial_match |= partial_match;
 							}
 							else
 							{
-								ASTNode* resolved_use;
-								if(use_types[i]->specialized_type->type == TypeSpecifier::ReferredType::UNSPECIFIED)
-									resolved_use = ResolvedType::get(use_types[i]->specialized_type);
-								else
-									resolved_use = use_types[i]->specialized_type;
+								ASTNode* resolved_use = ASTNodeHelper::findUniqueResolution(use_types[i]->specialized_type);
+								ASTNode* resolved_decl = ASTNodeHelper::findUniqueResolution(decl_types[i]->specialized_type);
 
-								if(isa<TypenameDecl>(resolved_use))
-								{
-									resolved_use = cast<TypenameDecl>(resolved_use)->specialized_type;
-									BOOST_ASSERT(resolved_use && "invalid specialized type of TypenameDecl");
-								}
-
-								ASTNode* resolved_decl;
-								if(decl_types[i]->specialized_type->type == TypeSpecifier::ReferredType::UNSPECIFIED)
-									resolved_decl = ResolvedType::get(decl_types[i]->specialized_type);
-								else
-									resolved_decl = decl_types[i]->specialized_type;
-
-								if(!resolved_use->isEqual(*resolved_decl))
+								if(!resolved_use || !resolved_decl || !resolved_use->isEqual(*resolved_decl))
 									return false;
 							}
 						}
