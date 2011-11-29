@@ -625,7 +625,7 @@ private:
 		// so that it does not lead ambiguous types in the end
 		foreach(i, resolution_visitor.candidates)
 		{
-			if(!isa<ClassDecl>(*i) || !isa<TemplatedIdentifier>(cast<ClassDecl>(*i)->name))
+			if(!(isa<ClassDecl>(*i) && isa<TemplatedIdentifier>(cast<ClassDecl>(*i)->name)))
 				return false;
 		}
 

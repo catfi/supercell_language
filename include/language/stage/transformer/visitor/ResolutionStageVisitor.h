@@ -99,9 +99,16 @@ struct ResolutionStageVisitor : GenericDoubleVisitor
 
 	void resolve(TemplatedIdentifier& node)
 	{
-		resolver.enterScope(node);
-		revisit(node);
-		resolver.leaveScope(node);
+		if(!node.isFullySpecialized())
+		{
+			resolver.enterScope(node);
+			revisit(node);
+			resolver.leaveScope(node);
+		}
+		else
+		{
+			revisit(node);
+		}
 	}
 
 	void resolve(Internal& node)
@@ -159,14 +166,18 @@ struct ResolutionStageVisitor : GenericDoubleVisitor
 			if(isa<TemplatedIdentifier>(node.referred.unspecified))
             {
 				visit(*node.referred.unspecified);
-            }
 
-			// try to resolve the type
-			if(isa<TemplatedIdentifier>(node.referred.unspecified) &&
-               cast<TemplatedIdentifier>(node.referred.unspecified)->isFullySpecialized())
-            {
-                tryResolveType(&node, &node);
+				// we only try to resolve fully-specialized templated identifier
+				if(cast<TemplatedIdentifier>(node.referred.unspecified)->isFullySpecialized())
+				{
+					tryResolveType(&node, &node);
+				}
             }
+			else
+			{
+				// non-templated identifier is always fully-specialized
+				tryResolveType(&node, &node);
+			}
 		}
 	}
 

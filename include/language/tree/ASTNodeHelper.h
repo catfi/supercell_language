@@ -125,53 +125,6 @@ struct ASTNodeHelper
 		return false;
 	}
 
-//	static bool isCompatibleTemplateIdentifier(TemplatedIdentifier* template_id, TemplatedIdentifier* instantiate_id)
-//	{
-//		bool matched = true;
-//		if(template_id->templated_type_list.size() == specialized_id->templated_type_list.size())
-//		{
-//			for(auto j = template_id->templated_type_list.begin(), i = specialized_id->templated_type_list.begin(); matched && i != template_id->templated_type_list.end(); ++i, ++j)
-//			{
-//                if(j->specialized_type && j->specialized_type->type == tree::TypeSpecifier::ReferredType::UNSPECIFIED)
-//                {
-//                	if(!i->id->isEqual(*j->specialized_type->referred.unspecified))
-//                		matched = false;
-//                }
-//                else
-//                {
-//                	if(isa<TemplatedIdentifier>(i->id) && isa<TemplatedIdentifier>(j->id))
-//                	{
-//                		matched = isCompatibleTemplateIdentifier(cast<TemplatedIdentifier>(i->id), cast<TemplatedIdentifier>(j->id));
-//                	}
-//                	else
-//                	{
-//                		/*
-//                		 * class Allocator<T>
-//                		 * { }
-//                		 *
-//                		 * class C<X, Y>
-//                		 * {
-//                		 * }
-//                		 *
-//                		 * class C<X, Y:X>
-//                		 * { }
-//                		 *
-//                		 * class C<X, Y:Allocator<T:X>>
-//                		 * {
-//                		 * }
-//                		 *
-//                		 * function f()
-//                		 * {
-//                		 * 		var xxxx:C<D<T0>,Y:Allocator<D<T0>>>;
-//                		 * }
-//                		 */
-//                	}
-//                }
-//			}
-//		}
-//		return matched;
-//	}
-
 	static bool isInheritedFrom(ClassDecl* node_derived, ClassDecl* node_base)
 	{
 		BOOST_ASSERT(node_derived && node_base && "null pointer exception");

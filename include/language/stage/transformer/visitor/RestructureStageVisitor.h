@@ -123,7 +123,20 @@ struct RestructureStageVisitor : GenericDoubleVisitor
 		{
 			transforms.push_back([&, owner_class](){
 				SimpleIdentifier* name = new SimpleIdentifier(L"this");
-				Identifier* type_name = cast<Identifier>(owner_class->name->clone());
+
+				Identifier* type_name = NULL;
+				if(isa<TemplatedIdentifier>(owner_class->name))
+				{
+					// create a specialization from the general form
+					TemplatedIdentifier* templated_type_name = cast<TemplatedIdentifier>(owner_class->name->clone());
+					templated_type_name->specialize();
+					type_name = templated_type_name;
+				}
+				else
+				{
+					type_name = cast<Identifier>(owner_class->name->clone());
+				}
+
 				TypeSpecifier* type_specifier = new TypeSpecifier(type_name);
 
 				VariableDecl* this_parameter = new VariableDecl(

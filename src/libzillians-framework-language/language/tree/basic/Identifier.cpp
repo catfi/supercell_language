@@ -184,6 +184,34 @@ bool TemplatedIdentifier::isFullySpecialized() const
 	return true;
 }
 
+void TemplatedIdentifier::specialize()
+{
+	if(type == Usage::FORMAL_PARAMETER)
+	{
+		foreach(i, templated_type_list)
+		{
+			if(!(*i)->specialized_type)
+			{
+				TypeSpecifier* specialized_type = NULL;
+				if(isa<TemplatedIdentifier>((*i)->name))
+				{
+					TemplatedIdentifier* duplicated_id = cast<TemplatedIdentifier>((*i)->name->clone());
+					duplicated_id->specialize();
+					specialized_type = new TypeSpecifier(duplicated_id);
+				}
+				else
+				{
+					specialized_type = new TypeSpecifier((*i)->name->clone());
+				}
+
+				SimpleIdentifier* dummy_identifier = new SimpleIdentifier(L"_");
+				(*i)->replaceUseWith(*((*i)->name), *dummy_identifier);
+				(*i)->specialized_type = specialized_type;
+			}
+		}
+	}
+}
+
 bool TemplatedIdentifier::isEmpty() const
 {
 	if(id->isEmpty() && templated_type_list.size() == 0)
