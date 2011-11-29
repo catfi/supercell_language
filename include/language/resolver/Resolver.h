@@ -526,6 +526,10 @@ private:
     		}
     		return NULL;
     	}
+
+    	UNREACHABLE_CODE();
+
+    	return NULL;
     }
 
     /**
@@ -543,14 +547,14 @@ private:
     	BOOST_ASSERT(owner_package != NULL && "can't find owner package for class template");
 
     	// make a clone from class template
-    	ClassDecl* to = from->clone();
+    	ClassDecl* to = cast<ClassDecl>(from->clone());
     	owner_package->addObject(to);
 
     	// update the templated identifier to make it a class instantiation
     	TemplatedIdentifier* use_id = cast<TemplatedIdentifier>(node->referred.unspecified);
     	TemplatedIdentifier* decl_id = cast<TemplatedIdentifier>(to->name);
 
-    	for(int i=0;i<decl_id->templated_type_list.size();++i)
+    	for(std::size_t i=0;i<decl_id->templated_type_list.size();++i)
     	{
     		TypenameDecl* decl_typename = decl_id->templated_type_list[i];
 
