@@ -752,7 +752,7 @@ public:
 					}
 					else if(decl_template->templated_type_list.size() > use_template->templated_type_list.size())
 					{
-						for(int i=use_template->templated_type_list.size(); i < decl_template->templated_type_list.size(); ++i)
+						for(std::size_t i=use_template->templated_type_list.size(); i < decl_template->templated_type_list.size(); ++i)
 						{
 							if(!decl_template->templated_type_list[i]->default_type)
 								return false;
@@ -761,7 +761,7 @@ public:
 						decl_types = decl_template->templated_type_list;
 						use_types = use_template->templated_type_list;
 
-						for(int i=use_template->templated_type_list.size(); i < decl_template->templated_type_list.size(); ++i)
+						for(std::size_t i=use_template->templated_type_list.size(); i < decl_template->templated_type_list.size(); ++i)
 						{
 							use_types.push_back(decl_template->templated_type_list[i]);
 						}
@@ -773,15 +773,15 @@ public:
 					}
 
 					// check if all specialized type and also the default type have ResolvedType associated
-					for(int i=0;i<use_types.size();++i)
+					for(std::size_t i=0;i<use_types.size();++i)
 					{
 						BOOST_ASSERT(use_types[i]->specialized_type && "typename declaration in use type vector does not have specialized type");
 
 						if(use_types[i]->specialized_type && use_types[i]->specialized_type->type == TypeSpecifier::ReferredType::UNSPECIFIED)
-							if(!ASTNodeHelper::findUniqueResolution(use_types[i]->specialized_type))  return false;
+							if(!ASTNodeHelper::findUniqueTypeResolution(use_types[i]->specialized_type))  return false;
 
 						if(decl_types[i]->specialized_type && decl_types[i]->specialized_type->type == TypeSpecifier::ReferredType::UNSPECIFIED)
-							if(!ASTNodeHelper::findUniqueResolution(decl_types[i]->specialized_type)) return false;
+							if(!ASTNodeHelper::findUniqueTypeResolution(decl_types[i]->specialized_type)) return false;
 					}
 
 					// as we have reject many illegal cases when we reach here
@@ -795,17 +795,17 @@ public:
 					// note that every TypenameDecl might be associated with ResolvedType later
 					// so we need to clean it up
 					ScopedDtor cleanup_decl_types([&](){
-						for(int i=0;i<decl_types.size(); ++i)
+						for(std::size_t i=0;i<decl_types.size(); ++i)
 							ResolvedType::set(decl_types[i], NULL);
 					});
 
-					for(int i=0;i<use_types.size();++i)
+					for(std::size_t i=0;i<use_types.size();++i)
 					{
 						if(!decl_types[i]->specialized_type)
 						{
 							// bind a temporary resolved type to the TypenameDecl so that we can enforce the template constraint
 							if(use_types[i]->specialized_type->type == TypeSpecifier::ReferredType::UNSPECIFIED)
-								ResolvedType::set(decl_types[i], ASTNodeHelper::findUniqueResolution(use_types[i]->specialized_type));
+								ResolvedType::set(decl_types[i], ASTNodeHelper::findUniqueTypeResolution(use_types[i]->specialized_type));
 							else
 								ResolvedType::set(decl_types[i], use_types[i]->specialized_type);
 
@@ -827,8 +827,8 @@ public:
 							}
 							else
 							{
-								ASTNode* resolved_use = ASTNodeHelper::findUniqueResolution(use_types[i]->specialized_type);
-								ASTNode* resolved_decl = ASTNodeHelper::findUniqueResolution(decl_types[i]->specialized_type);
+								ASTNode* resolved_use = ASTNodeHelper::findUniqueTypeResolution(use_types[i]->specialized_type);
+								ASTNode* resolved_decl = ASTNodeHelper::findUniqueTypeResolution(decl_types[i]->specialized_type);
 
 								if(!resolved_use || !resolved_decl || !resolved_use->isEqual(*resolved_decl))
 									return false;

@@ -177,13 +177,13 @@ struct SemanticVerificationStageVisitor0 : public GenericVisitor
 //						LOG_MESSAGE(UNEXPECTED_VARIADIC_TEMPLATE_PARAM, &node);
 				}
 				break;
-//			case TemplatedIdentifier::Usage::ACTUAL_ARGUMENT:
+			case TemplatedIdentifier::Usage::ACTUAL_ARGUMENT:
 //
 //				// UNEXPECTED_VARIADIC_TEMPLATE_ARG
 //				if(isEllipsis(cast<TypeSpecifier>(*i)) && !is_end_of_foreach(i, node.templated_type_list))
 //					LOG_MESSAGE(UNEXPECTED_VARIADIC_TEMPLATE_ARG, &node);
 //
-//				break;
+				break;
 			}
 
 			n++;

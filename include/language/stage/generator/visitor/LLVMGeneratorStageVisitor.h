@@ -129,6 +129,7 @@ struct LLVMGeneratorStageVisitor : public GenericVisitor
 
 	void apply(InterfaceDecl& node)
 	{
+		UNUSED_ARGUMENT(node);
 		// we don't generate code for interface
 	}
 
