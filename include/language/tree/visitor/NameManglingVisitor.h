@@ -126,7 +126,7 @@ struct NameManglingVisitor : Visitor<ASTNode, void, VisitorImplementation::recur
 	void mangle(FunctionDecl& node)
 	{
 #if 1 // NOTE: temporary work-around for c-tor bug
-		if(isa<ClassDecl>(node.parent) && node.name->toString() == L"new")
+		if(node.parent && isa<ClassDecl>(node.parent) && node.name->toString() == L"new")
 			return;
 #endif
 		if(node.parent) visit(*node.parent); // up-trace to get complete mangled-name
@@ -183,7 +183,7 @@ struct NameManglingVisitor : Visitor<ASTNode, void, VisitorImplementation::recur
 
 	void reset()
 	{
-#if 1 // NOTE: for debugging only
+#if 0 // NOTE: for debugging only
 		std::cout << "NameManglingVisitor: " << stream.str() << std::endl;
 #endif
 		stream.str("");
