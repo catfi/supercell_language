@@ -34,50 +34,48 @@ struct NameManglingVisitor : Visitor<ASTNode, void, VisitorImplementation::recur
 {
 	CREATE_INVOKER(mangleInvoker, mangle)
 
-	NameManglingVisitor() : scoped(false)
+	NameManglingVisitor() : named_scoped(false), dependent_component(false)
 	{
 		REGISTER_ALL_VISITABLE_ASTNODE(mangleInvoker)
 	}
 
 	void mangle(ASTNode& node)
-	{
-		if(node.parent) visit(*node.parent);
-	}
-
-	void mangle(Identifier& node)
-	{
-		if(node.parent) visit(*node.parent);
-
-		stream << "[" << __LINE__ << "]" << encode(node.toString());
-	}
+	{ }
 
 	void mangle(Package& node)
 	{
-		if(!ASTNodeHelper::isRootPackage(&node))
-			scoped = true;
-		if(node.parent) visit(*node.parent);
-
 		if(ASTNodeHelper::isRootPackage(&node))
 		{
 			stream << "_Z"; // always begin with "_Z"
-			if(scoped)
-				stream << "N"; // name involves a named scope
+			if(named_scoped)
+				stream << "N"; // name involves a Package/ClassDecl
 		}
 		else
-			stream << node.id->toString().length() << "[" << __LINE__ << "]" << encode(node.id->toString());
+		{
+			named_scoped = true;
+			visit(*node.id);
+		}
 	}
 
-	void mangle(Block& node)
+	void mangle(SimpleIdentifier& node)
 	{
-		if(node.parent) visit(*node.parent);
+		if(node.name == L"ptr_")        stream << "P";
+		else if(node.name == L"ref_")   stream << "R";
+		else if(node.name == L"const_") stream << "C";
+		else if(node.name == L"void_")  stream << "v";
+		else
+			stream << node.name.length() << encode(node.name);
+	}
 
-		stream << "_B_";
+	void mangle(TemplatedIdentifier& node)
+	{
+		visit(*node.id);
+		foreach(i, node.templated_type_list)
+            resolveAndVisit(*i);
 	}
 
 	void mangle(TypeSpecifier& node)
 	{
-//		if(node.parent) visit(*node.parent);
-
 		switch(node.type)
 		{
 		case TypeSpecifier::ReferredType::FUNCTION_TYPE:
@@ -98,77 +96,41 @@ struct NameManglingVisitor : Visitor<ASTNode, void, VisitorImplementation::recur
 			}
 			break;
 		case TypeSpecifier::ReferredType::UNSPECIFIED:
-			{
-	            ASTNode* resolved_type = ResolvedType::get(node.referred.unspecified);
-	            //BOOST_ASSERT(resolved_type && "shouldn't be NULL");
-	            if(resolved_type)
-	            {
-					if(isa<TypeSpecifier>(resolved_type))
-					{
-						TypeSpecifier* type_specifier = cast<TypeSpecifier>(resolved_type);
-	                	visit(*type_specifier);
-					}
-					else if(isa<ClassDecl>(resolved_type))
-					{
-						ClassDecl* decl = cast<ClassDecl>(resolved_type);
-						visit(*decl);
-					}
-					else
-						UNREACHABLE_CODE();
-	            }
-			}
-			stream << node.referred.unspecified->toString().length() << "[" << __LINE__ << "]" << encode(node.referred.unspecified->toString());
+			resolveAndVisit(&node);
 			break;
 		}
 	}
 
+	// NOTE: if there are repeating arg "function types", use "S{digit}_" to represent repeated arg
+	//       with digit being the index, instead of explicitly repeating the same mangled info
+	void mangle(FunctionType& node)
+	{
+		if(node.parent) visit(*node.parent); // up-trace to get complete mangled-name
+		stream << "PF"; // function pointer is always a pointer
+		visit(*node.return_type);
+		foreach(i, node.argument_types)
+        	resolveAndVisit(*i);
+		stream << "E"; // always end with "E"
+	}
+
 	void mangle(ClassDecl& node)
 	{
-		scoped = true;
-		if(node.parent) visit(*node.parent);
-
-		if(isa<TemplatedIdentifier>(node.name))
+		if(!dependent_component)
 		{
-			TemplatedIdentifier* templated_identifier = cast<TemplatedIdentifier>(node.name);
-			if(templated_identifier->toString() == L"ptr_")
-			{
-				stream << "P";
-			}
-			else if(templated_identifier->toString() == L"ref_")
-			{
-				stream << "R";
-			}
-			else if(templated_identifier->toString() == L"const_")
-			{
-				stream << "C";
-			}
+			if(node.parent) visit(*node.parent); // up-trace to get complete mangled-name
+			named_scoped = true;
 		}
-		else
-			stream << node.name->toString().length() << "[" << __LINE__ << "]" << encode(node.name->toString());
-	}
-
-	void mangle(InterfaceDecl& node)
-	{
-		if(node.parent) visit(*node.parent);
-
-		stream << "[" << __LINE__ << "]" << encode(node.name->toString());
-	}
-
-	void mangle(EnumDecl& node)
-	{
-		if(node.parent) visit(*node.parent);
-
-		stream << "[" << __LINE__ << "]" << encode(node.name->toString());
+		visitIdentifier(node.name);
 	}
 
 	void mangle(FunctionDecl& node)
 	{
-		if(isa<ClassDecl>(node.parent))
-			return; // bug work-around
-
-		if(node.parent) visit(*node.parent);
-
-		stream << node.name->toString().length() << "[" << __LINE__ << "]" << encode(node.name->toString());
+#if 1 // NOTE: temporary work-around for c-tor bug
+		if(isa<ClassDecl>(node.parent) && node.name->toString() == L"new")
+			return;
+#endif
+		if(node.parent) visit(*node.parent); // up-trace to get complete mangled-name
+		visitIdentifier(node.name);
 		std::vector<VariableDecl*>::iterator p = node.parameters.begin();
 		if(ASTNodeHelper::hasOwnerNamedScope(&node))
 		{
@@ -180,19 +142,12 @@ struct NameManglingVisitor : Visitor<ASTNode, void, VisitorImplementation::recur
 			}
 		}
 		if(p == node.parameters.end())
-			stream << "v"; // empty param list equivalent to "void" param type
+			stream << "v"; // empty param-list equivalent to "void" param type
 		else
 		{
 			for(; p != node.parameters.end(); p++)
                 visit(*(*p)->type);
 		}
-	}
-
-	void reset()
-	{
-		std::cout << "NameManglingVisitor::visit(): " << stream.str() << std::endl;
-		stream.str("");
-		scoped = false;
 	}
 
 	const std::string& encode(const std::wstring& ucs4)
@@ -208,52 +163,80 @@ struct NameManglingVisitor : Visitor<ASTNode, void, VisitorImplementation::recur
 		for(std::string::const_iterator i = ucs4_to_utf8_temp.begin(), e = ucs4_to_utf8_temp.end(); i != e; ++i)
 		{
 			char c = *i;
-			if(c == '<')
-				break;
-			if(i == ucs4_to_utf8_temp.begin())
+#if 1 // NOTE: truncate llvm-rewrite for now -- not useful
+			if(c == '<') break;
+#endif
+			if( ((i == ucs4_to_utf8_temp.begin()) ? false : isdigit(c)) || isalpha(c) || (c == '_') || (c == '.') )
 			{
-				if( isalpha(c) || (c == '_') || (c == '.') )
-				{
-					utf8_to_llvm_temp.push_back(c);
-				}
-				else
-				{
-					utf8_to_llvm_temp.push_back('$');
-					utf8_to_llvm_temp.append(toAsciiNumber(c));
-					utf8_to_llvm_temp.push_back('$');
-				}
+				utf8_to_llvm_temp.push_back(c);
 			}
 			else
 			{
-				if( isalpha(c) || isdigit(c) || (c == '_') || (c == '.') )
-				{
-					utf8_to_llvm_temp.push_back(c);
-				}
-				else
-				{
-					utf8_to_llvm_temp.push_back('$');
-					utf8_to_llvm_temp.append(toAsciiNumber(c));
-					utf8_to_llvm_temp.push_back('$');
-				}
+				utf8_to_llvm_temp.push_back('$');
+				utf8_to_llvm_temp.append(toAsciiNumber(c));
+				utf8_to_llvm_temp.push_back('$');
 			}
 		}
 
 		return utf8_to_llvm_temp;
 	}
 
-	inline const char* toAsciiNumber(char c)
+	void reset()
+	{
+#if 1 // NOTE: for debugging only
+		std::cout << "NameManglingVisitor: " << stream.str() << std::endl;
+#endif
+		stream.str("");
+		named_scoped        = false;
+		dependent_component = false;
+	}
+
+	std::stringstream stream;
+
+private:
+	static const char* toAsciiNumber(char c)
 	{
 		static char buffer[4];
 		snprintf(buffer, 3, "%d", c);
 		return buffer;
 	}
 
+	void resolveAndVisit(ASTNode* node)
+	{
+        ASTNode* resolved_type = ASTNodeHelper::findUniqueTypeResolution(node);
+        if(resolved_type)
+        {
+			dependent_component = true;
+			visitResolvedType(resolved_type);
+			dependent_component = false;
+        }
+	}
+
+	void visitResolvedType(ASTNode* node)
+	{
+		if(isa<TypeSpecifier>(node))
+			visit(*cast<TypeSpecifier>(node));
+		else if(isa<ClassDecl>(node))
+			visit(*cast<ClassDecl>(node));
+		else
+			UNREACHABLE_CODE();
+	}
+
+	void visitIdentifier(Identifier* ident)
+	{
+		if(isa<SimpleIdentifier>(ident))
+			visit(*cast<SimpleIdentifier>(ident));
+		else if(isa<TemplatedIdentifier>(ident))
+			visit(*cast<TemplatedIdentifier>(ident));
+		else
+			UNREACHABLE_CODE();
+	}
+
 	std::string ucs4_to_utf8_temp;
 	std::string utf8_to_llvm_temp;
 
-	std::stringstream stream;
-
-	bool scoped;
+	bool named_scoped;
+	bool dependent_component;
 };
 
 } } } }
