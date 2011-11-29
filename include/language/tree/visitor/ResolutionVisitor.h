@@ -854,6 +854,12 @@ public:
 								else
 									resolved_use = use_types[i]->specialized_type;
 
+								if(isa<TypenameDecl>(resolved_use))
+								{
+									resolved_use = cast<TypenameDecl>(resolved_use)->specialized_type;
+									BOOST_ASSERT(resolved_use && "invalid specialized type of TypenameDecl");
+								}
+
 								ASTNode* resolved_decl;
 								if(decl_types[i]->specialized_type->type == TypeSpecifier::ReferredType::UNSPECIFIED)
 									resolved_decl = ResolvedType::get(decl_types[i]->specialized_type);

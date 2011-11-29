@@ -585,9 +585,13 @@ private:
 			{
 				decl_typename->specialized_type = specialized_type_to_replace;
 			}
-			else if(isPartiallySpecializedTemplatedIdentifier(decl_id->templated_type_list[i]->specialized_type->referred.unspecified))
-			{
-				decl_typename->replaceUseWith(*decl_typename->specialized_type, *specialized_type_to_replace);
+			else
+            {
+                if(decl_id->templated_type_list[i]->specialized_type->type == TypeSpecifier::ReferredType::UNSPECIFIED &&
+                   isPartiallySpecializedTemplatedIdentifier(decl_id->templated_type_list[i]->specialized_type->referred.unspecified))
+                {
+                    decl_typename->replaceUseWith(*decl_typename->specialized_type, *specialized_type_to_replace);
+                }
 			}
 
     		// remove all default types
@@ -621,7 +625,7 @@ private:
 		// so that it does not lead ambiguous types in the end
 		foreach(i, resolution_visitor.candidates)
 		{
-			if(!isa<ClassDecl>(*i) || !isa<TemplatedIdentifier>(cast<ClassDecl>(*i)->name))
+			if(!(isa<ClassDecl>(*i) && isa<TemplatedIdentifier>(cast<ClassDecl>(*i)->name)))
 				return false;
 		}
 

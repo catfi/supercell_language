@@ -85,7 +85,17 @@ ThorScriptCompiler::ThorScriptCompiler() : stage::StageBuilder(true)
 			LiteralCompactionStage,
 			RestructureStage,
 			ResolutionStage,
-			StaticTestVerificationStage>>("mode-resolution-stage-only", "for debugging resolution stage");
+			StaticTestVerificationStage>>("mode-resolution", "for debugging resolution stage");
+
+	addMode<
+		boost::mpl::vector<
+			ThorScriptParserStage,
+			ASTDeserializationStage,
+			LiteralCompactionStage,
+			RestructureStage,
+			ResolutionStage,
+			StaticTestVerificationStage,
+			ManglingStage>>("mode-mangling", "for debugging resolution stage");
 
 	addMode<
 		boost::mpl::vector<

@@ -141,6 +141,7 @@ struct TemplatedIdentifier : public Identifier
 
 	bool isVariadic() const;
 	bool isFullySpecialized() const;
+	void specialize();
 
 	virtual bool isEmpty() const;
 	void setIdentifier(Identifier* identifier);

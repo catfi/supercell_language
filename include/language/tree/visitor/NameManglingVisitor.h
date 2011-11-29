@@ -48,7 +48,7 @@ struct NameManglingVisitor : Visitor<ASTNode, void, VisitorImplementation::recur
 	{
 		if(node.parent) visit(*node.parent);
 
-		stream << encode(node.toString());
+		stream << "[" << __LINE__ << "]" << encode(node.toString());
 	}
 
 	void mangle(Package& node)
@@ -64,7 +64,7 @@ struct NameManglingVisitor : Visitor<ASTNode, void, VisitorImplementation::recur
 				stream << "N"; // name involves a named scope
 		}
 		else
-			stream << node.id->toString().length() << encode(node.id->toString());
+			stream << node.id->toString().length() << "[" << __LINE__ << "]" << encode(node.id->toString());
 	}
 
 	void mangle(Block& node)
@@ -86,9 +86,9 @@ struct NameManglingVisitor : Visitor<ASTNode, void, VisitorImplementation::recur
 		case TypeSpecifier::ReferredType::PRIMITIVE:
 			switch(node.referred.primitive)
 			{
-			case PrimitiveType::VOID:	stream << "v"; break;
-			case PrimitiveType::BOOL:	stream << "b"; break;
-			case PrimitiveType::INT8:	stream << "c"; break;
+			case PrimitiveType::VOID:    stream << "v"; break;
+			case PrimitiveType::BOOL:    stream << "b"; break;
+			case PrimitiveType::INT8:    stream << "c"; break;
 			case PrimitiveType::INT16:   stream << "s"; break;
 			case PrimitiveType::INT32:   stream << "l"; /* or 'i' ? */ break;
 			case PrimitiveType::INT64:   stream << "x"; break;
@@ -98,7 +98,26 @@ struct NameManglingVisitor : Visitor<ASTNode, void, VisitorImplementation::recur
 			}
 			break;
 		case TypeSpecifier::ReferredType::UNSPECIFIED:
-			stream << node.referred.unspecified->toString().length() << encode(node.referred.unspecified->toString());
+			{
+	            ASTNode* resolved_type = ResolvedType::get(node.referred.unspecified);
+	            //BOOST_ASSERT(resolved_type && "shouldn't be NULL");
+	            if(resolved_type)
+	            {
+					if(isa<TypeSpecifier>(resolved_type))
+					{
+						TypeSpecifier* type_specifier = cast<TypeSpecifier>(resolved_type);
+	                	visit(*type_specifier);
+					}
+					else if(isa<ClassDecl>(resolved_type))
+					{
+						ClassDecl* decl = cast<ClassDecl>(resolved_type);
+						visit(*decl);
+					}
+					else
+						UNREACHABLE_CODE();
+	            }
+			}
+			stream << node.referred.unspecified->toString().length() << "[" << __LINE__ << "]" << encode(node.referred.unspecified->toString());
 			break;
 		}
 	}
@@ -110,43 +129,46 @@ struct NameManglingVisitor : Visitor<ASTNode, void, VisitorImplementation::recur
 
 		if(isa<TemplatedIdentifier>(node.name))
 		{
-			TemplatedIdentifier* tempalted_identifier = cast<TemplatedIdentifier>(node.name);
-			if(node.name->toString() == L"ptr_")
+			TemplatedIdentifier* templated_identifier = cast<TemplatedIdentifier>(node.name);
+			if(templated_identifier->toString() == L"ptr_")
 			{
 				stream << "P";
 			}
-			else if(node.name->toString() == L"ref_")
+			else if(templated_identifier->toString() == L"ref_")
 			{
 				stream << "R";
 			}
-			else if(node.name->toString() == L"const_")
+			else if(templated_identifier->toString() == L"const_")
 			{
 				stream << "C";
 			}
 		}
 		else
-			stream << node.name->toString().length() << encode(node.name->toString());
+			stream << node.name->toString().length() << "[" << __LINE__ << "]" << encode(node.name->toString());
 	}
 
 	void mangle(InterfaceDecl& node)
 	{
 		if(node.parent) visit(*node.parent);
 
-		stream << encode(node.name->toString());
+		stream << "[" << __LINE__ << "]" << encode(node.name->toString());
 	}
 
 	void mangle(EnumDecl& node)
 	{
 		if(node.parent) visit(*node.parent);
 
-		stream << encode(node.name->toString());
+		stream << "[" << __LINE__ << "]" << encode(node.name->toString());
 	}
 
 	void mangle(FunctionDecl& node)
 	{
+		if(isa<ClassDecl>(node.parent))
+			return; // bug work-around
+
 		if(node.parent) visit(*node.parent);
 
-		stream << node.name->toString().length() << encode(node.name->toString());
+		stream << node.name->toString().length() << "[" << __LINE__ << "]" << encode(node.name->toString());
 		std::vector<VariableDecl*>::iterator p = node.parameters.begin();
 		if(ASTNodeHelper::hasOwnerNamedScope(&node))
 		{
@@ -162,38 +184,13 @@ struct NameManglingVisitor : Visitor<ASTNode, void, VisitorImplementation::recur
 		else
 		{
 			for(; p != node.parameters.end(); p++)
-			{
-				// NOTE: this works
-                TypeSpecifier* type_specifier = (*p)->type;
-                visit(*type_specifier);
-
-				// NOTE: segfault
-//				TypeSpecifier* type_specifier = (*p)->type;
-//				if(ASTNodeHelper::isUnspecifiedType(type_specifier))
-//					visit(*ResolvedType::get(*p));
-//				else
-//					visit(*type_specifier);
-
-				// NOTE: segfault
-//                TypeSpecifier* type_specifier = (*p)->type;
-//                if(ASTNodeHelper::isUnspecifiedType(type_specifier))
-//                {
-//                    ASTNode* resolved_type = ResolvedType::get(*p);
-//                    if(resolved_type && isa<TypeSpecifier>(resolved_type))
-//                        type_specifier = cast<TypeSpecifier>(resolved_type);
-//                    else
-//                    {
-//                        visit(*resolved_type);
-//                        continue;
-//                    }
-//                }
-//                visit(*type_specifier);
-			}
+                visit(*(*p)->type);
 		}
 	}
 
 	void reset()
 	{
+		std::cout << "NameManglingVisitor::visit(): " << stream.str() << std::endl;
 		stream.str("");
 		scoped = false;
 	}
@@ -211,6 +208,8 @@ struct NameManglingVisitor : Visitor<ASTNode, void, VisitorImplementation::recur
 		for(std::string::const_iterator i = ucs4_to_utf8_temp.begin(), e = ucs4_to_utf8_temp.end(); i != e; ++i)
 		{
 			char c = *i;
+			if(c == '<')
+				break;
 			if(i == ucs4_to_utf8_temp.begin())
 			{
 				if( isalpha(c) || (c == '_') || (c == '.') )
