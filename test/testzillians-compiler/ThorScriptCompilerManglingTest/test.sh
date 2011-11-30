@@ -14,9 +14,9 @@ cd $BUILD_PATH
 $TS_DRIVER project create $PROJECT_NAME
 cd $PROJECT_NAME
 mkdir -p src
-cp $INPUT_FILE src
+cp -f $INPUT_FILE src
 $TS_DRIVER
-nm $PROJECT_NAME.so | xargs -I{} sh -c "echo {} | cut -d\" \" -f3 | grep \"${KEYWORD}\"" > $TEMP_FILE_A
+nm build/bin/$PROJECT_NAME.so | xargs -I{} sh -c "echo {} | cut -d\" \" -f3 | grep \"${KEYWORD}\"" > $TEMP_FILE_A
 cat $GOLD_OUTPUT > $TEMP_FILE_B
 
 diff $TEMP_FILE_A $TEMP_FILE_B

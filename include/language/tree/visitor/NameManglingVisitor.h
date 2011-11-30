@@ -35,7 +35,7 @@ struct NameManglingVisitor : Visitor<ASTNode, void, VisitorImplementation::recur
 {
 	CREATE_INVOKER(mangleInvoker, mangle)
 
-	NameManglingVisitor() : named_scoped(false), dependent_component(false)
+	NameManglingVisitor() : combo_name(false), dependent_component(false)
 	{
 		REGISTER_ALL_VISITABLE_ASTNODE(mangleInvoker)
 	}
@@ -48,12 +48,12 @@ struct NameManglingVisitor : Visitor<ASTNode, void, VisitorImplementation::recur
 		if(ASTNodeHelper::isRootPackage(&node))
 		{
 			stream << "_Z"; // always begin with "_Z"
-			if(named_scoped)
+			if(combo_name)
 				stream << "N"; // name involves a Package/ClassDecl
 		}
 		else
 		{
-			named_scoped = true;
+			combo_name = true;
 			visit(*node.id);
 		}
 	}
@@ -62,7 +62,7 @@ struct NameManglingVisitor : Visitor<ASTNode, void, VisitorImplementation::recur
 	{
 		if(node.name == L"ptr_")        stream << "P";
 		else if(node.name == L"ref_")   stream << "R";
-		else if(node.name == L"const_") stream << "C";
+		else if(node.name == L"const_") stream << "K";
 		else if(node.name == L"void_")  stream << "v";
 		else
 			stream << node.name.length() << encode(node.name);
@@ -106,7 +106,7 @@ struct NameManglingVisitor : Visitor<ASTNode, void, VisitorImplementation::recur
 	{
 		if(node.parent) visit(*node.parent); // up-trace to build complete name
 		stream << "PF"; // function pointer is always a pointer, hence "P" in "PF"
-		visit(*node.return_type);
+		resolveAndVisit(node.return_type);
 		std::vector<TypeSpecifier*> type_list;
 		foreach(i, node.argument_types)
 		{
@@ -132,7 +132,7 @@ struct NameManglingVisitor : Visitor<ASTNode, void, VisitorImplementation::recur
 		if(!dependent_component)
 		{
 			if(node.parent) visit(*node.parent); // up-trace to build complete name
-			named_scoped = true;
+			combo_name = true;
 		}
 		visitIdentifier(node.name);
 	}
@@ -142,7 +142,7 @@ struct NameManglingVisitor : Visitor<ASTNode, void, VisitorImplementation::recur
 		if(!dependent_component)
 		{
 			if(node.parent) visit(*node.parent); // up-trace to build complete name
-			named_scoped = true;
+			combo_name = true;
 		}
 		visitIdentifier(node.name);
 	}
@@ -152,14 +152,14 @@ struct NameManglingVisitor : Visitor<ASTNode, void, VisitorImplementation::recur
 		if(!dependent_component)
 		{
 			if(node.parent) visit(*node.parent); // up-trace to build complete name
-			named_scoped = true;
+			combo_name = true;
 		}
 		visitIdentifier(node.name);
 	}
 
 	void mangle(FunctionDecl& node)
 	{
-#if 1 // NOTE: temporary work-around for c-tor bug
+#if 0 // NOTE: temporary work-around for c-tor bug
 		if(node.is_member && node.parent && isa<ClassDecl>(node.parent) && node.name->toString() == L"new")
 			return;
 #endif
@@ -247,7 +247,7 @@ struct NameManglingVisitor : Visitor<ASTNode, void, VisitorImplementation::recur
 		std::cout << "NameManglingVisitor: " << stream.str() << std::endl;
 #endif
 		stream.str("");
-		named_scoped        = false;
+		combo_name        = false;
 		dependent_component = false;
 	}
 
@@ -296,7 +296,7 @@ private:
 		return a->isEqual(*b);
 	}
 
-	bool named_scoped;
+	bool combo_name;
 	bool dependent_component;
 };
 

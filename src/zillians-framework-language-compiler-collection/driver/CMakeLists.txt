@@ -41,10 +41,8 @@ IF(
     TARGET ts-dep AND
     TARGET ts-link AND
     TARGET ts-make AND
-    TARGET ts-manifest AND
     TARGET ts-strip AND
-    TARGET ts-stub AND
-    TARGET ts-vm
+    TARGET ts-stub
     )
     ADD_DEPENDENCIES(tsc
         ts-bundle
