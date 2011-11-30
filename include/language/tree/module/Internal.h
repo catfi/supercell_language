@@ -113,7 +113,9 @@ struct Internal : public ASTNode
     	Internal* internal = new Internal();
 
     	foreach(i, others)
-    		internal->addDanglingObject(*i)->clone());
+    		internal->addDanglingObject((*i)->clone());
+
+    	return internal;
     }
 
     template<typename Archive>
