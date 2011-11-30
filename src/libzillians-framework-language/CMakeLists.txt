@@ -65,6 +65,7 @@ add_library(zillians-framework-language SHARED
 	language/tree/basic/Identifier.cpp    
 	language/tree/basic/TypeSpecifier.cpp
 	language/tree/ASTNodeSerialization.cpp
+	language/tree/visitor/ASTGraphvizGenerator.cpp
 	language/stage/dep/ThorScriptDepStage.cpp
     language/stage/dep/ThorScriptPackageDependencyGrammar.cpp
     language/stage/make/ThorScriptMakeStage.cpp

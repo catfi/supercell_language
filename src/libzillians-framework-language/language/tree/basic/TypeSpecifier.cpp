@@ -99,7 +99,7 @@ bool TypeSpecifier::isEqualImpl(const ASTNode& rhs, ASTNodeSet& visited) const
 	END_COMPARE()
 }
 
-bool TypeSpecifier::replaceUseWith(const ASTNode& from, const ASTNode& to, bool update_parent = true)
+bool TypeSpecifier::replaceUseWith(const ASTNode& from, const ASTNode& to, bool update_parent)
 {
 	BEGIN_REPLACE()
 	switch(type)
