@@ -31,6 +31,26 @@ struct ResolvedType
 	explicit ResolvedType(tree::ASTNode* ref) : ref(ref)
 	{ }
 
+	static bool isValidResolvedType(tree::ASTNode* node)
+	{
+		using namespace zillians::language::tree;
+
+		if(!isa<ClassDecl>(node) &&
+		   !isa<InterfaceDecl>(node) &&
+		   !isa<EnumDecl>(node) &&
+		   !isa<TypenameDecl>(node) &&
+		   !isa<TypedefDecl>(node) &&
+		   !(isa<TypeSpecifier>(node) && cast<TypeSpecifier>(node)->type != TypeSpecifier::ReferredType::UNSPECIFIED)
+		   )
+		{
+			return false;
+		}
+		else
+		{
+			return true;
+		}
+	}
+
 	static tree::ASTNode* get(tree::ASTNode* node)
 	{
 		ResolvedType* resolved = node->get<ResolvedType>();
@@ -42,6 +62,11 @@ struct ResolvedType
 
 	static void set(tree::ASTNode* node, tree::ASTNode* ref)
 	{
+		if(ref)
+		{
+			BOOST_ASSERT(isValidResolvedType(ref) && "invalid resolved type");
+		}
+
 		return node->set<ResolvedType>(new ResolvedType(ref));
 	}
 
@@ -91,6 +116,24 @@ struct ResolvedSymbol
 	explicit ResolvedSymbol(tree::ASTNode* ref) : ref(ref)
 	{ }
 
+	static bool isValidResolvedSymbol(tree::ASTNode* node)
+	{
+		using namespace zillians::language::tree;
+
+		if(!isa<ClassDecl>(node) &&
+		   !isa<EnumDecl>(node) &&
+		   !isa<FunctionDecl>(node) &&
+		   !isa<VariableDecl>(node)
+		   )
+		{
+			return false;
+		}
+		else
+		{
+			return true;
+		}
+	}
+
 	static tree::ASTNode* get(tree::ASTNode* node)
 	{
 		ResolvedSymbol* resolved = node->get<ResolvedSymbol>();
@@ -102,6 +145,11 @@ struct ResolvedSymbol
 
 	static void set(tree::ASTNode* node, tree::ASTNode* ref)
 	{
+		if(ref)
+		{
+			BOOST_ASSERT(isValidResolvedSymbol(ref) && "invalid resolved symbol");
+		}
+
 		return node->set<ResolvedSymbol>(new ResolvedSymbol(ref));
 	}
 

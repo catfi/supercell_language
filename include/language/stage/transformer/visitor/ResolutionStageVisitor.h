@@ -44,7 +44,7 @@ namespace zillians { namespace language { namespace stage { namespace visitor {
  */
 struct ResolutionStageVisitor : public GenericDoubleVisitor
 {
-    CREATE_INVOKER(resolveInvoker, apply)
+	CREATE_INVOKER(resolveInvoker, resolve)
 
 	struct Target
 	{
@@ -59,12 +59,12 @@ struct ResolutionStageVisitor : public GenericDoubleVisitor
 		REGISTER_ALL_VISITABLE_ASTNODE(resolveInvoker)
 	}
 
-	void apply(ASTNode& node)
+	void resolve(ASTNode& node)
 	{
 		revisit(node);
 	}
 
-	void apply(NumericLiteral& node)
+	void resolve(NumericLiteral& node)
 	{
 		revisit(node);
 
@@ -75,7 +75,7 @@ struct ResolutionStageVisitor : public GenericDoubleVisitor
 		}
 	}
 
-	void apply(ObjectLiteral& node)
+	void resolve(ObjectLiteral& node)
 	{
 		revisit(node);
 
@@ -86,7 +86,7 @@ struct ResolutionStageVisitor : public GenericDoubleVisitor
 		}
 	}
 
-	void apply(StringLiteral& node)
+	void resolve(StringLiteral& node)
 	{
 		revisit(node);
 
@@ -97,21 +97,27 @@ struct ResolutionStageVisitor : public GenericDoubleVisitor
 		}
 	}
 
-	void apply(TemplatedIdentifier& node)
+	void resolve(TemplatedIdentifier& node)
 	{
-		if(node.type == TemplatedIdentifier::Usage::ACTUAL_ARGUMENT)
+		if(!node.isFullySpecialized())
+		{
+			resolver.enterScope(node);
+			revisit(node);
+			resolver.leaveScope(node);
+		}
+		else
 		{
 			revisit(node);
 		}
 	}
 
-	void apply(Internal& node)
+	void resolve(Internal& node)
 	{
 		UNUSED_ARGUMENT(node);
 		// since there won't be any unresolved type or symbol in the internal node, just skip it
 	}
 
-	void apply(Package& node)
+	void resolve(Package& node)
 	{
 		// tell resolver that we're entering this package scope
 		resolver.enterScope(node);
@@ -124,7 +130,7 @@ struct ResolutionStageVisitor : public GenericDoubleVisitor
 		resolver.leaveScope(node);
 	}
 
-	void apply(Block& node)
+	void resolve(Block& node)
 	{
 		// tell resolver that we're entering this block scope
 		resolver.enterScope(node);
@@ -139,7 +145,7 @@ struct ResolutionStageVisitor : public GenericDoubleVisitor
 		resolver.leaveScope(node);
 	}
 
-	void apply(Source& node)
+	void resolve(Source& node)
 	{
 		foreach(i, node.imports)
 			resolver.enterScope(**i);
@@ -150,44 +156,138 @@ struct ResolutionStageVisitor : public GenericDoubleVisitor
 			resolver.leaveScope(**i);
 	}
 
-	void apply(TypeSpecifier& node)
+	void resolve(TypeSpecifier& node)
 	{
 		// this can be reached from visiting type specifier of a variable declaration
 		// or visiting type specifier of the return type of function declaration
-		// or visiting
-		tryResolveType(&node, &node);
+		if(node.isUnspecified())
+		{
+			// if the the type specifier is specifying a template type, we have to visit the template identifier
+			if(isa<TemplatedIdentifier>(node.referred.unspecified))
+            {
+				visit(*node.referred.unspecified);
+
+				// we only try to resolve fully-specialized templated identifier
+				if(cast<TemplatedIdentifier>(node.referred.unspecified)->isFullySpecialized())
+				{
+					tryResolveType(&node, &node);
+				}
+            }
+			else
+			{
+				// non-templated identifier is always fully-specialized
+				tryResolveType(&node, &node);
+			}
+		}
 	}
 
-	void apply(ClassDecl& node)
+	void resolve(ClassDecl& node)
 	{
-		resolver.enterScope(node);
-		revisit(node);
-		resolver.leaveScope(node);
+		visit(*node.name);
+
+		if(isa<TemplatedIdentifier>(node.name))
+		{
+			// if the class itself is a class template, which has non-specialized version in its templated identifier
+			// we don't try to resolve types for class template
+			if(!cast<TemplatedIdentifier>(node.name)->isFullySpecialized())
+				return;
+
+			if(node.annotations) visit(*node.annotations);
+			if(node.name) visit(*node.name);
+
+			resolver.enterScope(*node.name);
+			resolver.enterScope(node);
+			{
+				if(node.base) visit(*node.base);
+				foreach(i, node.implements)			visit(**i);
+				foreach(i, node.member_functions)	visit(**i);
+				foreach(i, node.member_variables)	visit(**i);
+			}
+			resolver.leaveScope(node);
+			resolver.leaveScope(*node.name);
+		}
+		else
+		{
+			if(node.annotations) visit(*node.annotations);
+			if(node.name) visit(*node.name);
+
+			resolver.enterScope(node);
+			{
+				if(node.base) visit(*node.base);
+				foreach(i, node.implements)			visit(**i);
+				foreach(i, node.member_functions)	visit(**i);
+				foreach(i, node.member_variables)	visit(**i);
+			}
+			resolver.leaveScope(node);
+		}
 	}
 
-	void apply(InterfaceDecl& node)
+	void resolve(InterfaceDecl& node)
 	{
-		resolver.enterScope(node);
-		revisit(node);
-		resolver.leaveScope(node);
+		visit(*node.name);
+
+		// if the interface itself is a class template, which has non-specialized version in its templated identifier
+		// we don't try to resolve types for interface template
+		if(isa<TemplatedIdentifier>(node.name))
+		{
+			if(!cast<TemplatedIdentifier>(node.name)->isFullySpecialized())
+				return;
+
+			if(node.annotations) visit(*node.annotations);
+			if(node.name) visit(*node.name);
+
+			resolver.enterScope(*node.name);
+			resolver.enterScope(node);
+			{
+				foreach(i, node.member_functions)
+					visit(**i);
+			}
+			resolver.leaveScope(node);
+			resolver.leaveScope(*node.name);
+		}
+		else
+		{
+			if(node.annotations) visit(*node.annotations);
+			if(node.name) visit(*node.name);
+
+			resolver.enterScope(node);
+			{
+				foreach(i, node.member_functions)
+					visit(**i);
+			}
+			resolver.leaveScope(node);
+		}
 	}
 
-	void apply(FunctionDecl& node)
+	void resolve(FunctionDecl& node)
 	{
-		// when entering FunctionDecl scope
-		// all parameters can be seen by the resolver
-		// see ResolutionVisitor.h
-		resolver.enterScope(node);
+		visit(*node.name);
 
-		LOG4CXX_DEBUG(LoggerWrapper::TransformerStage, L"trying to apply function: " << node.name->toString());
+		// if the function itself is a class template, which has non-specialized version in its templated identifier
+		// we don't try to resolve types for function template
+		if(isa<TemplatedIdentifier>(node.name))
+		{
+			if(!cast<TemplatedIdentifier>(node.name)->isFullySpecialized())
+				return;
+
+			resolver.enterScope(*node.name);
+			resolver.enterScope(node);
+		}
+		else
+		{
+			// when entering FunctionDecl scope
+			// all parameters can be seen by the resolver
+			// see ResolutionVisitor.h
+			resolver.enterScope(node);
+		}
 
 		if(type == Target::TYPE_RESOLUTION)
 		{
-			// try to apply return type of the function
+			// try to resolve return type of the function
 			if(node.type)
 				visit(*node.type);
 
-			// try to apply parameters, which contains type specifier needed to be resolved
+			// try to resolve parameters, which contains type specifier needed to be resolved
 			foreach(i, node.parameters)
 				visit(**i);
 
@@ -203,10 +303,19 @@ struct ResolutionStageVisitor : public GenericDoubleVisitor
 			visit(*node.block);
 
 		// leaving FunctionDecl scope
-		resolver.leaveScope(node);
+		if(isa<TemplatedIdentifier>(node.name))
+		{
+			resolver.leaveScope(node);
+			resolver.leaveScope(*node.name);
+		}
+		else
+		{
+			resolver.leaveScope(node);
+		}
+
 	}
 
-	void apply(EnumDecl& node)
+	void resolve(EnumDecl& node)
 	{
 		if(type == Target::TYPE_RESOLUTION)
 		{
@@ -223,7 +332,7 @@ struct ResolutionStageVisitor : public GenericDoubleVisitor
 		}
 	}
 
-	void apply(TypedefDecl& node)
+	void resolve(TypedefDecl& node)
 	{
 		if(type == Target::TYPE_RESOLUTION)
 		{
@@ -237,7 +346,7 @@ struct ResolutionStageVisitor : public GenericDoubleVisitor
 		}
 	}
 
-	void apply(VariableDecl& node)
+	void resolve(VariableDecl& node)
 	{
 		if(type == Target::TYPE_RESOLUTION)
 		{
@@ -251,11 +360,11 @@ struct ResolutionStageVisitor : public GenericDoubleVisitor
 		}
 	}
 
-	void apply(BranchStmt& node)
+	void resolve(BranchStmt& node)
 	{
 		revisit(node);
 
-		// for all branch statement of return type, we should apply the type of it
+		// for all branch statement of return type, we should resolve the type of it
 		if(node.opcode == BranchStmt::OpCode::RETURN)
 		{
 			// get owner function's return type
@@ -282,23 +391,23 @@ struct ResolutionStageVisitor : public GenericDoubleVisitor
 		}
 	}
 
-	void apply(DeclarativeStmt& node)
+	void resolve(DeclarativeStmt& node)
 	{
 		revisit(node);
 	}
 
-	void apply(ExpressionStmt& node)
+	void resolve(ExpressionStmt& node)
 	{
 		revisit(node);
 	}
 
-	void apply(ForStmt& node)
+	void resolve(ForStmt& node)
 	{
 		revisit(node);
 		convertLogical(node.cond);
 	}
 
-	void apply(ForeachStmt& node)
+	void resolve(ForeachStmt& node)
 	{
 		// we have to enter scope for ForeachStmt because variable can be declared in the iterator
 		resolver.enterScope(node);
@@ -306,13 +415,13 @@ struct ResolutionStageVisitor : public GenericDoubleVisitor
 		resolver.leaveScope(node);
 	}
 
-	void apply(WhileStmt& node)
+	void resolve(WhileStmt& node)
 	{
 		revisit(node);
 		convertLogical(node.cond);
 	}
 
-	void apply(IfElseStmt& node)
+	void resolve(IfElseStmt& node)
 	{
 		revisit(node);
 
@@ -321,12 +430,12 @@ struct ResolutionStageVisitor : public GenericDoubleVisitor
 			convertLogical(i->cond);
 	}
 
-	void apply(SwitchStmt& node)
+	void resolve(SwitchStmt& node)
 	{
 		revisit(node);
 	}
 
-	void apply(UnaryExpr& node)
+	void resolve(UnaryExpr& node)
 	{
 		revisit(node);
 
@@ -348,7 +457,7 @@ struct ResolutionStageVisitor : public GenericDoubleVisitor
 		}
 	}
 
-	void apply(BinaryExpr& node)
+	void resolve(BinaryExpr& node)
 	{
 		revisit(node);
 		// TODO insert necessary cast expression here? or we left it for other phase but only check for compatibility
@@ -408,13 +517,13 @@ struct ResolutionStageVisitor : public GenericDoubleVisitor
 		convertDispatch(&node, node.left, node.right, node.isAssignment(), node.isArithmetic() || node.isBinary() || node.isComparison(), node.isLogical());
 	}
 
-	void apply(TernaryExpr& node)
+	void resolve(TernaryExpr& node)
 	{
 		revisit(node);
 		// TODO get synthesized type from true node and false node (which should be compatible and casted to the same type)
 	}
 
-	void apply(CallExpr& node)
+	void resolve(CallExpr& node)
 	{
 		revisit(node);
 
@@ -457,7 +566,7 @@ struct ResolutionStageVisitor : public GenericDoubleVisitor
 		}
 	}
 
-	void apply(MemberExpr& node)
+	void resolve(MemberExpr& node)
 	{
 		if(type == Target::TYPE_RESOLUTION)
 		{
@@ -471,7 +580,7 @@ struct ResolutionStageVisitor : public GenericDoubleVisitor
 		}
 	}
 
-	void apply(PrimaryExpr& node)
+	void resolve(PrimaryExpr& node)
 	{
 		if(type == Target::TYPE_RESOLUTION)
 		{
@@ -483,7 +592,7 @@ struct ResolutionStageVisitor : public GenericDoubleVisitor
 			if(node.catagory == PrimaryExpr::Catagory::IDENTIFIER)
 			{
 				// for general primary expression which is specified by an identifier
-				// we should apply its type to a symbol or package
+				// we should resolve its type to a symbol or package
 				tryResolveSymbolOrPackage(&node, node.value.identifier);
 			}
 			else if(node.catagory == PrimaryExpr::Catagory::LAMBDA)
@@ -506,11 +615,11 @@ struct ResolutionStageVisitor : public GenericDoubleVisitor
 		}
 	}
 
-	void apply(CastExpr& node)
+	void resolve(CastExpr& node)
 	{
 		if(type == Target::TYPE_RESOLUTION)
 		{
-			// the type we are casting to is a type specifier, so we have to apply its type
+			// the type we are casting to is a type specifier, so we have to resolve its type
 			if(node.type)
 				visit(*node.type);
 		}

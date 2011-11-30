@@ -65,7 +65,7 @@ struct InterfaceDecl : public Declaration
     	InterfaceDecl* cloned = new InterfaceDecl((name) ? cast<Identifier>(name->clone()) : NULL);
 
     	foreach(i, member_functions)
-    		cloned->member_functions.push_back((*i) ? cast<FunctionDecl>((*i)->clone()) : NULL);
+    		cloned->addFunction((*i) ? cast<FunctionDecl>((*i)->clone()) : NULL);
 
     	return cloned;
     }

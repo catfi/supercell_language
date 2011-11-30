@@ -119,7 +119,7 @@ bool ResolutionStage::resolveTypes(bool report_error_summary, bool& making_progr
 	if(!parser_context.active_source)
 		return false;
 
-	LOG4CXX_DEBUG(LoggerWrapper::TransformerStage, L"trying to resolve types");
+	LOG4CXX_DEBUG(LoggerWrapper::TransformerStage, L"resolution stage trying to resolve types");
 
 	making_progress = false;
 
@@ -129,13 +129,21 @@ bool ResolutionStage::resolveTypes(bool report_error_summary, bool& making_progr
 	visitor.reset();
 	visitor.visit(*parser_context.tangle);
 
+	std::size_t unresolved_count = 0; 
+	if(resolver.hasTransforms())
+	{
+		resolver.applyTransforms();
+		making_progress = true;
+        ++unresolved_count; // since we have instantiated new classes, there might be unresolved types within the class, so we have to assume there's at lease one unresolved types (though there can be none)
+	}
+
 	if(visitor.hasTransforms())
 	{
 		visitor.applyTransforms();
 		making_progress = true;
 	}
 
-	std::size_t unresolved_count = visitor.getUnresolvedCount();
+    unresolved_count += visitor.getUnresolvedCount();
 	if(unresolved_count < total_unresolved_count_type)
 	{
 		total_unresolved_count_type = unresolved_count;
@@ -166,7 +174,7 @@ bool ResolutionStage::resolveSymbols(bool report_error_summary, bool& making_pro
 	if(!parser_context.active_source)
 		return false;
 
-	LOG4CXX_DEBUG(LoggerWrapper::TransformerStage, "trying to resolve symbols");
+	LOG4CXX_DEBUG(LoggerWrapper::TransformerStage, "resolution stage trying to resolve symbols");
 
 	making_progress = false;
 
@@ -175,6 +183,12 @@ bool ResolutionStage::resolveSymbols(bool report_error_summary, bool& making_pro
 
 	visitor.reset();
 	visitor.visit(*parser_context.tangle);
+
+	if(resolver.hasTransforms())
+	{
+		resolver.applyTransforms();
+		making_progress = true;
+	}
 
 	if(visitor.hasTransforms())
 	{

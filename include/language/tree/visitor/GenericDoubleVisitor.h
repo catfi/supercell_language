@@ -89,9 +89,7 @@ struct GenericDoubleVisitor : Visitor<ASTNode, void, VisitorImplementation::recu
 
 			foreach(i, node.templated_type_list)
 			{
-				if(i->id) user_visitor->visit(*(i->id));
-				if(i->specialized_type) user_visitor->visit(*(i->specialized_type));
-				if(i->default_type) user_visitor->visit(*(i->default_type));
+				user_visitor->visit(**i);
 			}
 		}
 
@@ -174,8 +172,8 @@ struct GenericDoubleVisitor : Visitor<ASTNode, void, VisitorImplementation::recu
 		void apply(ClassDecl& node)
 		{
 			if(node.annotations) user_visitor->visit(*node.annotations);
-
 			if(node.name) user_visitor->visit(*node.name);
+
 			if(node.base) user_visitor->visit(*node.base);
 			foreach(i, node.implements)			user_visitor->visit(**i);
 			foreach(i, node.member_functions)	user_visitor->visit(**i);
@@ -185,8 +183,8 @@ struct GenericDoubleVisitor : Visitor<ASTNode, void, VisitorImplementation::recu
 		void apply(EnumDecl& node)
 		{
 			if(node.annotations) user_visitor->visit(*node.annotations);
-
 			if(node.name) user_visitor->visit(*node.name);
+
 			foreach(i, node.values)
 			{
 				user_visitor->visit(**i);
@@ -196,8 +194,8 @@ struct GenericDoubleVisitor : Visitor<ASTNode, void, VisitorImplementation::recu
 		void apply(FunctionDecl& node)
 		{
 			if(node.annotations) user_visitor->visit(*node.annotations);
-
 			if(node.name) user_visitor->visit(*node.name);
+
 			foreach(i, node.parameters)
 				user_visitor->visit(**i);
 			if(node.type) user_visitor->visit(*node.type);
@@ -207,27 +205,36 @@ struct GenericDoubleVisitor : Visitor<ASTNode, void, VisitorImplementation::recu
 		void apply(InterfaceDecl& node)
 		{
 			if(node.annotations) user_visitor->visit(*node.annotations);
-
 			if(node.name) user_visitor->visit(*node.name);
+
 			foreach(i, node.member_functions)
 				user_visitor->visit(**i);
 		}
 
 		void apply(TypedefDecl& node)
 		{
-			if(node.type) user_visitor->visit(*node.type);
+			if(node.annotations) user_visitor->visit(*node.annotations);
 			if(node.name) user_visitor->visit(*node.name);
 
-			if(node.annotations) user_visitor->visit(*node.annotations);
+			if(node.type) user_visitor->visit(*node.type);
 		}
 
 		void apply(VariableDecl& node)
 		{
 			if(node.annotations) user_visitor->visit(*node.annotations);
+			if(node.name) user_visitor->visit(*node.name);
 
 			if(node.initializer) user_visitor->visit(*node.initializer);
-			if(node.name) user_visitor->visit(*node.name);
 			if(node.type) user_visitor->visit(*node.type);
+		}
+
+		void apply(TypenameDecl& node)
+		{
+			if(node.annotations) user_visitor->visit(*node.annotations);
+			if(node.name) user_visitor->visit(*node.name);
+
+			if(node.specialized_type) user_visitor->visit(*node.specialized_type);
+			if(node.default_type) user_visitor->visit(*node.default_type);
 		}
 
 		//////////////////////////////////////////////////////////////////////

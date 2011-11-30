@@ -40,19 +40,19 @@ namespace zillians { namespace language { namespace stage { namespace visitor {
  */
 struct RestructureStageVisitor : public GenericDoubleVisitor
 {
-    CREATE_INVOKER(restructInvoker, apply)
+    CREATE_INVOKER(restructInvoker, restruct)
 
 	RestructureStageVisitor()
 	{
 		REGISTER_ALL_VISITABLE_ASTNODE(restructInvoker)
 	}
 
-	void apply(ASTNode& node)
+	void restruct(ASTNode& node)
 	{
 		revisit(node);
 	}
 
-	void apply(ClassDecl& node)
+	void restruct(ClassDecl& node)
 	{
 		revisit(node);
 
@@ -94,7 +94,7 @@ struct RestructureStageVisitor : public GenericDoubleVisitor
 		}
 	}
 
-	void apply(FunctionDecl& node)
+	void restruct(FunctionDecl& node)
 	{
 		revisit(node);
 
@@ -123,7 +123,20 @@ struct RestructureStageVisitor : public GenericDoubleVisitor
 		{
 			transforms.push_back([&, owner_class](){
 				SimpleIdentifier* name = new SimpleIdentifier(L"this");
-				Identifier* type_name = cast<Identifier>(owner_class->name->clone());
+
+				Identifier* type_name = NULL;
+				if(isa<TemplatedIdentifier>(owner_class->name))
+				{
+					// create a specialization from the general form
+					TemplatedIdentifier* templated_type_name = cast<TemplatedIdentifier>(owner_class->name->clone());
+					templated_type_name->specialize();
+					type_name = templated_type_name;
+				}
+				else
+				{
+					type_name = cast<Identifier>(owner_class->name->clone());
+				}
+
 				TypeSpecifier* type_specifier = new TypeSpecifier(type_name);
 
 				VariableDecl* this_parameter = new VariableDecl(
@@ -142,7 +155,7 @@ struct RestructureStageVisitor : public GenericDoubleVisitor
 		}
 	}
 
-	void apply(VariableDecl& node)
+	void restruct(VariableDecl& node)
 	{
 		revisit(node);
 
@@ -236,7 +249,7 @@ struct RestructureStageVisitor : public GenericDoubleVisitor
 		}
 	}
 
-	void apply(UnaryExpr& node)
+	void restruct(UnaryExpr& node)
 	{
 		revisit(node);
 
@@ -298,7 +311,7 @@ struct RestructureStageVisitor : public GenericDoubleVisitor
 
 	}
 
-	void apply(BinaryExpr& node)
+	void restruct(BinaryExpr& node)
 	{
 		revisit(node);
 

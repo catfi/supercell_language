@@ -47,7 +47,7 @@ namespace zillians { namespace language { namespace stage { namespace visitor {
  */
 struct LLVMGeneratorStageVisitor : public GenericDoubleVisitor
 {
-    CREATE_INVOKER(generateInvoker, apply)
+	CREATE_INVOKER(generateInvoker, generate)
 
 	LLVMGeneratorStageVisitor(llvm::LLVMContext& context, llvm::Module& module) :
 		mContext(context), mModule(module), mBuilder(context), mHelper(context)
@@ -61,17 +61,17 @@ struct LLVMGeneratorStageVisitor : public GenericDoubleVisitor
 		REGISTER_ALL_VISITABLE_ASTNODE(generateInvoker)
 	}
 
-	void apply(ASTNode& node)
+	void generate(ASTNode& node)
 	{
 		revisit(node);
 	}
 
-	void apply(Block& node)
+	void generate(Block& node)
 	{
 		revisit(node);
 	}
 
-	void apply(NumericLiteral& node)
+	void generate(NumericLiteral& node)
 	{
 		if(hasValue(node)) return;
 
@@ -101,33 +101,55 @@ struct LLVMGeneratorStageVisitor : public GenericDoubleVisitor
 		if(!result)
 		{
 			BOOST_ASSERT(false && "invalid LLVM interpretation");
-			terminate();
+			terminateRevisit();
 		}
 
 		SET_SYNTHESIZED_LLVM_VALUE(&node, result);
 	}
 
-	void apply(ObjectLiteral& node)
+	void generate(ObjectLiteral& node)
 	{
 		if(hasValue(node)) return;
 
 		revisit(node);
 	}
 
-	void apply(StringLiteral& node)
+	void generate(StringLiteral& node)
 	{
 		if(hasValue(node)) return;
 
 		revisit(node);
 	}
 
-	void apply(Source& node)
+	void generate(Source& node)
 	{
 		// create LLVM global variables to store VTT and other global variables in thorscript
 		revisit(node);
 	}
 
-	void apply(FunctionDecl& node)
+	void generate(InterfaceDecl& node)
+	{
+		UNUSED_ARGUMENT(node);
+		// we don't generate code for interface
+	}
+
+	void generate(ClassDecl& node)
+	{
+		visit(*node.name);
+
+		// we don't generate code for non-fully-specialized classes
+		if(isa<TemplatedIdentifier>(node.name))
+		{
+			// if the class itself is a class template, which has non-specialized version in its templated identifier
+			// we don't try to resolve types for class template
+			if(!cast<TemplatedIdentifier>(node.name)->isFullySpecialized())
+				return;
+		}
+
+		revisit(node);
+	}
+
+	void generate(FunctionDecl& node)
 	{
 		if(isFunctionVisited(node))
 			return;
@@ -157,7 +179,7 @@ struct LLVMGeneratorStageVisitor : public GenericDoubleVisitor
 		}
 	}
 
-	void apply(VariableDecl& node)
+	void generate(VariableDecl& node)
 	{
 		//if(ASTNodeHelper::hasDirectOwnerPackage(node))
 		if(node.parent && isa<Package>(node.parent))
@@ -165,7 +187,7 @@ struct LLVMGeneratorStageVisitor : public GenericDoubleVisitor
 
 		revisit(node);
 
-		// here we only apply AllocaInst for AST variables within function
+		// here we only generate AllocaInst for AST variables within function
 		// those sit in global scope or class member scope will be stored in some other object and access through game object API
 		// (all global variables are stored in a single game object, which is assembled by compiler)
 		if(ASTNodeHelper::hasOwner<FunctionDecl>(&node))
@@ -194,7 +216,7 @@ struct LLVMGeneratorStageVisitor : public GenericDoubleVisitor
 		}
 	}
 
-	void apply(DeclarativeStmt& node)
+	void generate(DeclarativeStmt& node)
 	{
 		if(hasValue(node)) return;
 		if(isBlockInsertionMasked() || isBlockTerminated(currentBlock()))	return;
@@ -204,7 +226,7 @@ struct LLVMGeneratorStageVisitor : public GenericDoubleVisitor
 		propagate(&node, node.declaration);
 	}
 
-	void apply(BranchStmt& node)
+	void generate(BranchStmt& node)
 	{
 		if(hasValue(node)) return;
 		if(isBlockInsertionMasked() || isBlockTerminated(currentBlock()))	return;
@@ -240,13 +262,13 @@ struct LLVMGeneratorStageVisitor : public GenericDoubleVisitor
 		if(!result)
 		{
 			BOOST_ASSERT(false && "invalid LLVM interpretation");
-			terminate();
+			terminateRevisit();
 		}
 
 		SET_SYNTHESIZED_LLVM_VALUE(&node, result);
 	}
 
-	void apply(ExpressionStmt& node)
+	void generate(ExpressionStmt& node)
 	{
 		if(hasValue(node)) return;
 
@@ -255,13 +277,13 @@ struct LLVMGeneratorStageVisitor : public GenericDoubleVisitor
 		propagate(&node, node.expr);
 	}
 
-	void apply(IfElseStmt& node)
+	void generate(IfElseStmt& node)
 	{
 		if(hasValue(node)) return;
 		if(isBlockInsertionMasked() || isBlockTerminated(currentBlock()))	return;
 
 		// TODO simplify the blocks by removing or merging unnecessary blocks
-		// apply code into blocks
+		// generate code into blocks
 		std::vector<llvm::BasicBlock*> llvm_blocks;
 		{
 			// for if branch
@@ -376,7 +398,7 @@ struct LLVMGeneratorStageVisitor : public GenericDoubleVisitor
 		}
 	}
 
-	void apply(ForStmt& node)
+	void generate(ForStmt& node)
 	{
 		if(hasValue(node)) return;
 		if(isBlockInsertionMasked() || isBlockTerminated(currentBlock()))	return;
@@ -409,7 +431,7 @@ struct LLVMGeneratorStageVisitor : public GenericDoubleVisitor
 		enterBasicBlock(finalized_block);
 	}
 
-	void apply(ForeachStmt& node)
+	void generate(ForeachStmt& node)
 	{
 		if(hasValue(node)) return;
 		if(isBlockInsertionMasked() || isBlockTerminated(currentBlock()))	return;
@@ -428,7 +450,7 @@ struct LLVMGeneratorStageVisitor : public GenericDoubleVisitor
 		// emit the preamble and prepare blocks
 	}
 
-	void apply(WhileStmt& node)
+	void generate(WhileStmt& node)
 	{
 		if(hasValue(node)) return;
 		if(isBlockInsertionMasked() || isBlockTerminated(currentBlock()))	return;
@@ -477,7 +499,7 @@ struct LLVMGeneratorStageVisitor : public GenericDoubleVisitor
 		}
 	}
 
-	void apply(SwitchStmt& node)
+	void generate(SwitchStmt& node)
 	{
 		if(hasValue(node)) return;
 		if(isBlockInsertionMasked() || isBlockTerminated(currentBlock()))	return;
@@ -486,7 +508,7 @@ struct LLVMGeneratorStageVisitor : public GenericDoubleVisitor
 		// emit the preamble and prepare blocks
 	}
 
-	void apply(PrimaryExpr& node)
+	void generate(PrimaryExpr& node)
 	{
 		if(hasValue(node)) return;
 		if(isBlockInsertionMasked() || isBlockTerminated(currentBlock()))	return;
@@ -506,7 +528,7 @@ struct LLVMGeneratorStageVisitor : public GenericDoubleVisitor
 		}
 	}
 
-	void apply(UnaryExpr& node)
+	void generate(UnaryExpr& node)
 	{
 		if(hasValue(node)) return;
 		if(isBlockInsertionMasked() || isBlockTerminated(currentBlock()))	return;
@@ -521,7 +543,7 @@ struct LLVMGeneratorStageVisitor : public GenericDoubleVisitor
 		if(!getValue(*node.node, operand_resolved, operand_value_for_read, operand_value_for_write, true, (node.opcode >= UnaryExpr::OpCode::POSTFIX_INCREMENT && node.opcode <= UnaryExpr::OpCode::PREFIX_DECREMENT)))
 		{
 			BOOST_ASSERT(false && "failed to resolve LLVM value for operand");
-			terminate();
+			terminateRevisit();
 		}
 
 		// TODO handle the differences between postfix and prefix increment/decrement
@@ -563,13 +585,13 @@ struct LLVMGeneratorStageVisitor : public GenericDoubleVisitor
 		if(!result)
 		{
 			BOOST_ASSERT(false && "invalid LLVM interpretation");
-			terminate();
+			terminateRevisit();
 		}
 
 		SET_SYNTHESIZED_LLVM_VALUE(&node, result);
 	}
 
-	void apply(BinaryExpr& node)
+	void generate(BinaryExpr& node)
 	{
 		if(hasValue(node)) return;
 		if(isBlockInsertionMasked() || isBlockTerminated(currentBlock()))	return;
@@ -583,7 +605,7 @@ struct LLVMGeneratorStageVisitor : public GenericDoubleVisitor
 		if(!getValue(*node.left, lhs_resolved, lhs_value_for_read, lhs_value_for_write, !is_assignment, is_assignment))
 		{
 			BOOST_ASSERT(false && "failed to resolve LLVM value for LHS");
-			terminate();
+			terminateRevisit();
 		}
 
 		ASTNode* rhs_resolved;
@@ -592,7 +614,7 @@ struct LLVMGeneratorStageVisitor : public GenericDoubleVisitor
 		if(!getValue(*node.right, rhs_resolved, rhs_value_for_read, rhs_value_for_write, true, false))
 		{
 			BOOST_ASSERT(false && "failed to resolve LLVM value for RHS");
-			terminate();
+			terminateRevisit();
 		}
 
 		llvm::Value* result = NULL;
@@ -707,13 +729,13 @@ struct LLVMGeneratorStageVisitor : public GenericDoubleVisitor
 		if(!result)
 		{
 			BOOST_ASSERT(false && "invalid LLVM interpretation");
-			terminate();
+			terminateRevisit();
 		}
 
 		SET_SYNTHESIZED_LLVM_VALUE(&node, result);
 	}
 
-	void apply(TernaryExpr& node)
+	void generate(TernaryExpr& node)
 	{
 		if(hasValue(node)) return;
 		if(isBlockInsertionMasked() || isBlockTerminated(currentBlock()))	return;
@@ -771,7 +793,7 @@ struct LLVMGeneratorStageVisitor : public GenericDoubleVisitor
 		}
 	}
 
-	void apply(CallExpr& node)
+	void generate(CallExpr& node)
 	{
 		if(hasValue(node)) return;
 		if(isBlockInsertionMasked() || isBlockTerminated(currentBlock()))	return;
@@ -787,7 +809,7 @@ struct LLVMGeneratorStageVisitor : public GenericDoubleVisitor
 			if(!getValue(**i, parameter_resolved, parameter_value_for_read, parameter_value_for_write, true, false))
 			{
 				BOOST_ASSERT(false && "invalid LLVM parameter value for function call");
-				terminate();
+				terminateRevisit();
 			}
 
 			arguments.push_back(parameter_value_for_read);
@@ -1001,7 +1023,7 @@ private:
 		if(!llvm_function)
 		{
 			BOOST_ASSERT(false && "invalid LLVM function object");
-			terminate();
+			terminateRevisit();
 			return false;
 		}
 
@@ -1046,7 +1068,7 @@ private:
 		if(!llvm_function)
 		{
 			BOOST_ASSERT(false && "invalid LLVM function object");
-			terminate();
+			terminateRevisit();
 			return false;
 		}
 

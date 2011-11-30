@@ -167,12 +167,23 @@ struct LLVMHelper
 		return resolved;
 	}
 
-	bool getFunctionType(FunctionDecl& ast_function, /*OUT*/ llvm::FunctionType*& llvm_function_type, /*OUT*/ std::vector<llvm::AttributeWithIndex>& llvm_function_parameter_type_attributes, /*OUT*/ llvm::Attributes& llvm_function_return_type_attribute)
+	bool getFunctionType(FunctionDecl& ast_function, /*OUT*/ llvm::FunctionType*& llvm_function_type, /*OUT*/ std::vector<llvm::AttributeWithIndex>& llvm_function_type_attributes)
 	{
+		// prepare LLVM function return type
+		const llvm::Type* llvm_function_return_type = NULL;
+		{
+			llvm::Attributes attr = llvm::Attribute::None;
+			if(!getType(*ast_function.type, llvm_function_return_type, attr))
+				return false;
+
+			if(attr != llvm::Attribute::None)
+				llvm_function_type_attributes.push_back(llvm::AttributeWithIndex::get(0, attr));
+		}
+
 		// prepare LLVM function parameter type list
 		std::vector<const llvm::Type*> llvm_function_parameter_types;
 		{
-			int index = 0;
+			int index = 1;
 			foreach(i, ast_function.parameters)
 			{
 				llvm::Attributes attr = llvm::Attribute::None;
@@ -183,17 +194,10 @@ struct LLVMHelper
 
 				llvm_function_parameter_types.push_back(t);
 				if(attr != llvm::Attribute::None)
-					llvm_function_parameter_type_attributes.push_back(llvm::AttributeWithIndex::get(index, attr));
+					llvm_function_type_attributes.push_back(llvm::AttributeWithIndex::get(index, attr));
 
 				++index;
 			}
-		}
-
-		// prepare LLVM function return type
-		const llvm::Type* llvm_function_return_type = NULL;
-		{
-			if(!getType(*ast_function.type, llvm_function_return_type, llvm_function_return_type_attribute))
-				return false;
 		}
 
 		llvm_function_type = llvm::FunctionType::get(llvm_function_return_type, llvm_function_parameter_types, false /*not variadic*/);

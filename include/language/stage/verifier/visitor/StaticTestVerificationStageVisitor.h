@@ -39,7 +39,7 @@ namespace zillians { namespace language { namespace stage { namespace visitor {
 
 struct StaticTestVerificationStageVisitor : public GenericDoubleVisitor
 {
-    CREATE_INVOKER(errorMessageAnnotationCheckInvoker, apply);
+    CREATE_INVOKER(errorMessageAnnotationCheckInvoker, check);
 
 	StaticTestVerificationStageVisitor() : mAllMatch(true)
 	{
@@ -51,24 +51,24 @@ struct StaticTestVerificationStageVisitor : public GenericDoubleVisitor
 		return mAllMatch;
 	}
 
-	void apply(ASTNode& node)
+	void check(ASTNode& node)
 	{
 		revisit(node);
 	}
 
-    void apply(Statement& node)
+    void check(Statement& node)
     {
         staticTest(node);
         revisit(node); // NOTE: not sure if needed (lambda???)
     }
 
-    void apply(Declaration& node)
+    void check(Declaration& node)
     {
         staticTest(node);
         revisit(node);
     }
 
-    void apply(Package& node)
+    void check(Package& node)
     {
         staticTest(node);
         revisit(node);

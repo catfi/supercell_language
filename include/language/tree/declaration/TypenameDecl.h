@@ -20,68 +20,53 @@
  * @date Aug 5, 2011 sdk - Initial version created.
  */
 
-#ifndef ZILLIANS_LANGUAGE_TREE_ENUMDECL_H_
-#define ZILLIANS_LANGUAGE_TREE_ENUMDECL_H_
+#ifndef ZILLIANS_LANGUAGE_TREE_TYPENAMEDECL_H_
+#define ZILLIANS_LANGUAGE_TREE_TYPENAMEDECL_H_
 
 #include "language/tree/declaration/Declaration.h"
 #include "language/tree/basic/Identifier.h"
+#include "language/tree/basic/TypeSpecifier.h"
 #include "language/tree/expression/Expression.h"
 
 namespace zillians { namespace language { namespace tree {
 
-struct EnumDecl : public Declaration
+struct TypenameDecl : public Declaration
 {
 	friend class boost::serialization::access;
 
 	DEFINE_VISITABLE();
-	DEFINE_HIERARCHY(EnumDecl, (EnumDecl)(Declaration)(ASTNode));
+	DEFINE_HIERARCHY(TypenameDecl, (TypenameDecl)(Declaration)(ASTNode));
 
-	explicit EnumDecl(Identifier* name) : Declaration(name)
+	explicit TypenameDecl(Identifier* name, TypeSpecifier* specialized_type = NULL, Expression* default_type = NULL) : Declaration(name), specialized_type(specialized_type), default_type(default_type)
 	{
-		BOOST_ASSERT(name && "null enumeration name is not allowed");
-	}
+		BOOST_ASSERT(name && "null variable name is not allowed");
 
-	void addEnumeration(VariableDecl* decl)
-	{
-		decl->parent = this;
-		values.push_back(decl);
-	}
-
-	void addEnumeration(SimpleIdentifier* tag, Expression* value = NULL)
-	{
-		BOOST_ASSERT(tag && "null tag for enumeration is not allowed");
-
-		tag->parent = this;
-		if(value) value->parent = this;
-
-		VariableDecl* decl = new VariableDecl(tag, new TypeSpecifier(PrimitiveType::INT32), true, true, true, Declaration::VisibilitySpecifier::DEFAULT, value);
-		decl->parent = this;
-
-		values.push_back(decl);
+		if(specialized_type) specialized_type->parent = this;
+		if(default_type) default_type->parent = this;
 	}
 
     virtual bool isEqualImpl(const ASTNode& rhs, ASTNodeSet& visited) const
     {
     	BEGIN_COMPARE_WITH_BASE(Declaration)
-		COMPARE_MEMBER(values)
+		COMPARE_MEMBER(specialized_type)
+		COMPARE_MEMBER(default_type)
 		END_COMPARE()
     }
 
     virtual bool replaceUseWith(const ASTNode& from, const ASTNode& to, bool update_parent = true)
     {
     	BEGIN_REPLACE_WITH_BASE(Declaration)
-		REPLACE_USE_WITH(values)
+		REPLACE_USE_WITH(specialized_type)
+		REPLACE_USE_WITH(default_type)
     	END_REPLACE()
     }
 
     virtual ASTNode* clone() const
     {
-    	EnumDecl* cloned = new EnumDecl((name) ? cast<Identifier>(name->clone()) : NULL);
-
-    	foreach(i, values)
-    		cloned->addEnumeration(cast<VariableDecl>((*i)->clone()));
-
-    	return cloned;
+    	return new TypenameDecl(
+    			(name) ? cast<Identifier>(name->clone()) : NULL,
+    			(specialized_type) ? cast<TypeSpecifier>(specialized_type->clone()) : NULL,
+    			(default_type) ? cast<Expression>(default_type->clone()) : NULL);
     }
 
     template<typename Archive>
@@ -90,15 +75,17 @@ struct EnumDecl : public Declaration
     	UNUSED_ARGUMENT(version);
 
     	ar & boost::serialization::base_object<Declaration>(*this);
-    	ar & values;
+    	ar & specialized_type;
+    	ar & default_type;
     }
 
-    std::vector<VariableDecl*> values;
+	TypeSpecifier* specialized_type;
+	Expression* default_type;
 
 protected:
-	EnumDecl() { }
+	TypenameDecl() { }
 };
 
 } } }
 
-#endif /* ZILLIANS_LANGUAGE_TREE_ENUMDECL_H_ */
+#endif /* ZILLIANS_LANGUAGE_TREE_TYPENAMEDECL_H_ */
