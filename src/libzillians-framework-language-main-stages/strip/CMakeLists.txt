@@ -32,3 +32,5 @@ add_library(zillians-framework-language-main-stages-strip
 target_link_libraries(zillians-framework-language-main-stages-strip
     zillians-framework-language-general
     )
+    
+add_dependencies(zillians-language-language-main-stages zillians-framework-language-main-stages-strip)

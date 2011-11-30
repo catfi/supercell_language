@@ -24,13 +24,13 @@ include_directories(
     ${PROJECT_FRAMEWORK_SOURCE_DIR}/include/
     )
 
-add_executable(ts-strip
+add_executable(ts-manifest
     main.cpp
     )
     
-target_link_libraries(ts-strip
-    zillians-framework-language-main-stages-strip
+target_link_libraries(ts-manifest
+    zillians-framework-language-main-stages-manifest
     )
     
-get_target_property(ThorScriptStrip ts-strip LOCATION)
-message(STATUS "Using ThorScript Strip: \"${ThorScriptStrip}\"")
+get_target_property(ThorScriptManifestBuilder ts-manifest LOCATION)
+message(STATUS "Using ThorScript Manifest Builder: \"${ThorScriptManifestBuilder}\"")

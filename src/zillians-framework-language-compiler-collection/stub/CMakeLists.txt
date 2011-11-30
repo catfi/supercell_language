@@ -22,16 +22,17 @@
 include_directories(
     ${PROJECT_COMMON_SOURCE_DIR}/include/
     ${PROJECT_FRAMEWORK_SOURCE_DIR}/include/
-    ${ZILLIANS_DEP_PATH}/linux
     )
 
-add_executable(ts-bundle
+add_executable(ts-stub
     main.cpp
     )
     
-target_link_libraries(ts-bundle
-    zillians-framework-language-main-stages-bundle
+target_link_libraries(ts-stub
+    zillians-framework-language-main-stages-stub
     )
-    
-get_target_property(ThorScriptBundler ts-bundle LOCATION)
-message(STATUS "Using ThorScript Bundler: \"${ThorScriptBundler}\"")
+
+get_target_property(ThorScriptStubGenerator ts-stub LOCATION)
+message(STATUS "Using ThorScript Stub Generator: \"${ThorScriptStubGenerator}\"")
+
+add_dependencies(zillians-framework-language-compiler-collection ts-stub)

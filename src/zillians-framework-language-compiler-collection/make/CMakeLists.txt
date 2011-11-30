@@ -24,13 +24,15 @@ include_directories(
     ${PROJECT_FRAMEWORK_SOURCE_DIR}/include/
     )
 
-add_executable(ts-stub
+add_executable(ts-make
     main.cpp
     )
     
-target_link_libraries(ts-stub
-    zillians-framework-language-main-stages-stub
+target_link_libraries(ts-make
+    zillians-framework-language-main-stages-make
     )
+    
+get_target_property(ThorScriptMake ts-make LOCATION)
+message(STATUS "Using ThorScript Make: \"${ThorScriptMake}\"")
 
-get_target_property(ThorScriptStubGenerator ts-stub LOCATION)
-message(STATUS "Using ThorScript Stub Generator: \"${ThorScriptStubGenerator}\"")
+add_dependencies(zillians-framework-language-compiler-collection ts-make)

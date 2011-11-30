@@ -24,13 +24,15 @@ include_directories(
     ${PROJECT_FRAMEWORK_SOURCE_DIR}/include/
     )
 
-add_executable(ts-compile
+add_executable(ts-vm
     main.cpp
     )
-
-target_link_libraries(ts-compile
-    zillians-framework-language-main-stages-compile
+    
+target_link_libraries(ts-vm
+    zillians-framework-language-main-stages-vm
     )
 
-get_target_property(ThorScriptCompiler ts-compile LOCATION)
-message(STATUS "Using ThorScript Compiler: \"${ThorScriptCompiler}\"")
+get_target_property(ThorScriptVM ts-vm LOCATION)
+message(STATUS "Using ThorScript VM: \"${ThorScriptVM}\"")
+
+add_dependencies(zillians-framework-language-compiler-collection ts-vm)

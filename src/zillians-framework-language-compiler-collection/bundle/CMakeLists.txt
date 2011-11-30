@@ -25,17 +25,15 @@ include_directories(
     ${ZILLIANS_DEP_PATH}/linux
     )
 
-add_definitions( ${LLVM_CPPFLAGS} )
+add_executable(ts-bundle
+    main.cpp
+    )
+    
+target_link_libraries(ts-bundle
+    zillians-framework-language-main-stages-bundle
+    )
+    
+get_target_property(ThorScriptBundler ts-bundle LOCATION)
+message(STATUS "Using ThorScript Bundler: \"${ThorScriptBundler}\"")
 
-add_library(zillians-framework-language-main-stages-link
-    language/stage/linker/ThorScriptLinkerStage.cpp
-    language/ThorScriptLinker.cpp    
-    )
-    
-target_link_libraries(zillians-framework-language-main-stages-link
-	${LLVM_LDFLAGS}
-    ${LLVM_ALL_LIBS}
-    zillians-framework-language-general
-    )
-    
-add_dependencies(zillians-language-language-main-stages zillians-framework-language-main-stages-link)
+add_dependencies(zillians-framework-language-compiler-collection ts-bundle)

@@ -64,3 +64,5 @@ add_library(zillians-framework-language-main-stages-stub
 target_link_libraries(zillians-framework-language-main-stages-stub
     zillians-framework-language-general-stages
     )
+
+add_dependencies(zillians-language-language-main-stages zillians-framework-language-main-stages-stub)

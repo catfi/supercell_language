@@ -24,37 +24,15 @@ include_directories(
     ${PROJECT_FRAMEWORK_SOURCE_DIR}/include/
     )
 
-add_executable(tsc
+add_executable(ts-compile
     main.cpp
     )
-    
-target_link_libraries(tsc
-    zillians-framework-language-main-stages-driver
-    )
-    
-get_target_property(ThorScriptDriver tsc LOCATION)
-message(STATUS "Using ThorScript Driver: \"${ThorScriptDriver}\"")
 
-IF(
-    TARGET ts-bundle AND
-    TARGET ts-compile AND
-    TARGET ts-dep AND
-    TARGET ts-link AND
-    TARGET ts-make AND
-    TARGET ts-manifest AND
-    TARGET ts-strip AND
-    TARGET ts-stub AND
-    TARGET ts-vm
+target_link_libraries(ts-compile
+    zillians-framework-language-main-stages-compile
     )
-    ADD_DEPENDENCIES(tsc
-        ts-bundle
-        ts-compile
-        ts-dep
-        ts-link
-        ts-make
-#        ts-manifest
-        ts-strip
-        ts-stub
-#        ts-vm
-        )
-ENDIF()
+
+get_target_property(ThorScriptCompiler ts-compile LOCATION)
+message(STATUS "Using ThorScript Compiler: \"${ThorScriptCompiler}\"")
+
+add_dependencies(zillians-framework-language-compiler-collection ts-bundle)
