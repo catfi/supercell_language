@@ -55,7 +55,7 @@ struct GarbageCollectionVisitor : GenericDoubleVisitor
 			revisit(node);
 	}
 
-	std::unordered_set<const ASTNode*> nonreachable_set;
+	unordered_set<const ASTNode*> nonreachable_set;
 };
 
 } } } }

@@ -79,7 +79,7 @@ struct EnumDecl : public Declaration
     	EnumDecl* cloned = new EnumDecl((name) ? cast<Identifier>(name->clone()) : NULL);
 
     	foreach(i, values)
-    		cloned->values.push_back(cast<VariableDecl>((*i)->clone()));
+    		cloned->addEnumeration(cast<VariableDecl>((*i)->clone()));
 
     	return cloned;
     }

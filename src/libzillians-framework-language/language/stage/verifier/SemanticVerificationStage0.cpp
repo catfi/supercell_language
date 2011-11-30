@@ -51,6 +51,7 @@ std::pair<shared_ptr<po::options_description>, shared_ptr<po::options_descriptio
 
 bool SemanticVerificationStage0::parseOptions(po::variables_map& vm)
 {
+	UNUSED_ARGUMENT(vm);
 	return true;
 }
 

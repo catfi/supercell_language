@@ -506,6 +506,28 @@ struct PrettyPrintVisitor : Visitor<const ASTNode, void>
 		}
 	}
 
+	void print(const TypenameDecl& node)
+	{
+		STREAM << L"<typename_decl " <<
+				L"name=\"" << node.name->toString() << L"\" " <<
+				L"type=\"" << decodeType(node.specialized_type) << L"\">" << std::endl;
+		{
+			printSourceInfo(node);
+		}
+		if(node.default_type)
+		{
+			STREAM << L"<default_type>" << std::endl;
+			{
+				increaseIdent();
+				visit(*node.default_type);
+				decreaseIdent();
+			}
+			STREAM << L"</default_type>" << std::endl;
+		}
+
+		STREAM << L"</typename_decl>" << std::endl;
+	}
+
 	//////////////////////////////////////////////////////////////////////
 	/// Statement
 

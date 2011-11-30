@@ -45,6 +45,18 @@ struct Internal : public ASTNode
 		ObjectTy   = new TypeSpecifier(PrimitiveType::OBJECT);
 		FunctionTy = new TypeSpecifier(PrimitiveType::FUNCTION);
 		StringTy   = new TypeSpecifier(PrimitiveType::STRING);
+
+		VoidTy->parent     = this;
+		BooleanTy->parent  = this;
+		Int8Ty->parent     = this;
+		Int16Ty->parent    = this;
+		Int32Ty->parent    = this;
+		Int64Ty->parent    = this;
+		Float32Ty->parent  = this;
+		Float64Ty->parent  = this;
+		ObjectTy->parent   = this;
+		FunctionTy->parent = this;
+		StringTy->parent   = this;
 	}
 
 	TypeSpecifier* getPrimitiveTy(PrimitiveType::type t)
@@ -64,6 +76,12 @@ struct Internal : public ASTNode
 		case PrimitiveType::STRING: return StringTy;
 		default: UNREACHABLE_CODE(); return NULL;
 		}
+	}
+
+	void addDanglingObject(ASTNode* object)
+	{
+		object->parent = this;
+		others.push_back(object);
 	}
 
     virtual bool isEqualImpl(const ASTNode& rhs, ASTNodeSet& visited) const
@@ -104,7 +122,12 @@ struct Internal : public ASTNode
 
     virtual ASTNode* clone() const
     {
-    	return new Internal();
+    	Internal* internal = new Internal();
+
+    	foreach(i, others)
+    		internal->addDanglingObject((*i)->clone());
+
+    	return internal;
     }
 
     template<typename Archive>

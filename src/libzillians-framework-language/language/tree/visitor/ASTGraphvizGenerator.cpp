@@ -234,9 +234,7 @@ void ASTGraphvizChildEdgeGenerator::genChildEdge(TemplatedIdentifier& node)
 
     foreach(i, node.templated_type_list)
     {
-        if(i->id) addChildEdge(&node, (i->id));
-        if(i->specialized_type) addChildEdge(&node, (i->specialized_type));
-        if(i->default_type) addChildEdge(&node, (i->default_type));
+    	addChildEdge(&node, *i);
     }
     revisit(node);
 }
@@ -388,6 +386,16 @@ void ASTGraphvizChildEdgeGenerator::genChildEdge(VariableDecl& node)
     if(node.name) addChildEdge(&node, node.name);
     if(node.type) addChildEdge(&node, node.type);
     revisit(node);
+}
+
+void ASTGraphvizChildEdgeGenerator::genChildEdge(TypenameDecl& node)
+{
+	if(node.annotations) addChildEdge(&node, node.annotations);
+	if(node.name) addChildEdge(&node, node.name);
+
+	if(node.specialized_type) addChildEdge(&node, node.specialized_type);
+	if(node.default_type) addChildEdge(&node, node.default_type);
+	revisit(node);
 }
 
 //////////////////////////////////////////////////////////////////////

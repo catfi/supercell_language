@@ -43,6 +43,47 @@ struct ASTNodeHelper
 		to.set<stage::SourceInfoContext>(new stage::SourceInfoContext(*from_src_info));
 	}
 
+	static ASTNode* findUniqueTypeResolution(ASTNode* node)
+	{
+		if(!node)
+			return NULL;
+
+		if(isa<TypenameDecl>(node))
+			return findUniqueTypeResolution(cast<TypenameDecl>(node)->specialized_type);
+
+		if(isa<TypeSpecifier>(node))
+		{
+			TypeSpecifier* specifier = cast<TypeSpecifier>(node);
+			if(specifier->type == TypeSpecifier::ReferredType::UNSPECIFIED)
+			{
+				return findUniqueTypeResolution(ResolvedType::get(specifier));
+			}
+			else
+			{
+				return specifier;
+			}
+		}
+
+		if(isa<Identifier>(node))
+		{
+			return findUniqueTypeResolution(ResolvedType::get(node));
+		}
+
+		BOOST_ASSERT(ResolvedType::isValidResolvedType(node) && "invalid type resolution");
+
+		return node;
+	}
+
+	static ASTNode* findUniqueSymbolResolution(ASTNode* node)
+	{
+		if(!node)
+			return NULL;
+
+		BOOST_ASSERT(ResolvedSymbol::isValidResolvedSymbol(node) && "invalid symbol resolution");
+
+		return node;
+	}
+
 	static FunctionType* createFunctionTypeFromFunctionDecl(FunctionDecl* node)
 	{
 		BOOST_ASSERT(node && "null pointer exception");
@@ -57,7 +98,7 @@ struct ASTNodeHelper
 			foreach(i, templated_name->templated_type_list)
 			{
 				// TODO is this correct?
-				function_type->appendTemplateParameter(i->id);
+//				function_type->appendTemplateParameter(i->id);
 			}
 		}
 
@@ -146,7 +187,7 @@ struct ASTNodeHelper
 	static T* getOwner(ASTNode* node)
 	{
 		BOOST_ASSERT(node && "null pointer exception");
-		for(ASTNode* p = node->parent; p && !isa<Package>(p); p = p->parent)
+		for(ASTNode* p = node->parent; !!p ; p = p->parent)
 			if(isa<T>(p))
 				return cast<T>(p);
 		return NULL;
@@ -268,7 +309,7 @@ struct ASTNodeHelper
         }
 
         fout << L"digraph G {" << std::endl;
-        fout << L"    //rankdir=LR;" << std::endl;
+        fout << L"    rankdir=LR;" << std::endl;
 
         fout << L"    // nodes" << std::endl;
         zillians::language::stage::visitor::ASTGraphvizNodeGenerator nodeGen(fout);

@@ -109,7 +109,6 @@ struct ASTGraphvizChildEdgeGenerator : public GenericDoubleVisitor
     void genChildEdge(zillians::language::tree::Identifier& node);
     void genChildEdge(zillians::language::tree::SimpleIdentifier& node);
     void genChildEdge(zillians::language::tree::NestedIdentifier& node);
-    void genChildEdge(zillians::language::tree::TemplateType& node);
     void genChildEdge(zillians::language::tree::TemplatedIdentifier& node);
     //void genChildEdge(zillians::language::tree::Literal& node);
     //void genChildEdge(zillians::language::tree::NumericLiteral& node);
@@ -124,6 +123,7 @@ struct ASTGraphvizChildEdgeGenerator : public GenericDoubleVisitor
     void genChildEdge(zillians::language::tree::TypedefDecl& node);
     void genChildEdge(zillians::language::tree::FunctionDecl& node);
     void genChildEdge(zillians::language::tree::VariableDecl& node);
+    void genChildEdge(zillians::language::tree::TypenameDecl& node);
     void genChildEdge(zillians::language::tree::Statement& node);
     void genChildEdge(zillians::language::tree::DeclarativeStmt& node);
     void genChildEdge(zillians::language::tree::ExpressionStmt& node);

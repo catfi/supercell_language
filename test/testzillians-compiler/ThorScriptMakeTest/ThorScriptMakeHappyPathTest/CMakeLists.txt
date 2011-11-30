@@ -27,12 +27,11 @@ INCLUDE_DIRECTORIES(
 ADD_EXECUTABLE(
     ThorScriptMakeTest_ThorScriptMakeHappyPathTest
     ThorScriptMakeHappyPathTest.cpp
-    ../../../../src/zillians-thorscript-make/language/ThorScriptMake.cpp
     )
 
 TARGET_LINK_LIBRARIES(ThorScriptMakeTest_ThorScriptMakeHappyPathTest
     zillians-common-core
-    zillians-framework-language
+    zillians-framework-language-main-stages-make
     )
 
 zillians_add_simple_test(TARGET ThorScriptMakeTest_ThorScriptMakeHappyPathTest)

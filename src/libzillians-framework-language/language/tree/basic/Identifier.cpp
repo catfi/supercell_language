@@ -19,6 +19,7 @@
 
 #include "language/tree/basic/Identifier.h"
 #include "language/tree/basic/TypeSpecifier.h"
+#include "language/tree/declaration/TypenameDecl.h"
 
 namespace zillians { namespace language { namespace tree {
 
@@ -57,8 +58,10 @@ ASTNode* SimpleIdentifier::clone() const
 	return new SimpleIdentifier(name);
 }
 
+} } }
 
 
+namespace zillians { namespace language { namespace tree {
 
 NestedIdentifier::NestedIdentifier()
 { }
@@ -115,60 +118,10 @@ ASTNode* NestedIdentifier::clone() const
 	return cloned;
 }
 
+} } }
 
 
-TemplateType::TemplateType(SimpleIdentifier* id, TypeSpecifier* specialized_type, ASTNode* default_type) : id(id), specialized_type(specialized_type), default_type(default_type)
-{
-	BOOST_ASSERT(id != NULL);
-}
-
-TemplateType& TemplateType::operator= (const TemplateType& s)
-{
-	id = s.id;
-	specialized_type = s.specialized_type;
-	default_type = s.default_type;
-	return *this;
-}
-
-bool TemplateType::isEqualImpl(const TemplateType& rhs, ASTNodeSet& visited) const
-{
-	const TemplateType* __p = &rhs;
-	COMPARE_MEMBER(id)
-	COMPARE_MEMBER(specialized_type)
-	COMPARE_MEMBER(default_type)
-	return true;
-}
-
-bool TemplateType::replaceUseWith(const ASTNode& from, const ASTNode& to, bool update_parent)
-{
-	BEGIN_REPLACE()
-	REPLACE_USE_WITH(id)
-	REPLACE_USE_WITH(specialized_type)
-	REPLACE_USE_WITH(default_type)
-	END_REPLACE()
-}
-
-std::wstring TemplateType::toString() const
-{
-	std::wstring t;
-
-	t += id->toString();
-	if(specialized_type)
-	{
-		t += L":";
-		t += specialized_type->toString();
-	}
-
-	return t;
-}
-
-TemplateType TemplateType::clone() const
-{
-	TemplateType s((id) ? cast<SimpleIdentifier>(id->clone()) : NULL, (specialized_type) ? cast<TypeSpecifier>(specialized_type->clone()) : NULL, (default_type) ? default_type->clone() : NULL);
-	return s;
-}
-
-
+namespace zillians { namespace language { namespace tree {
 
 TemplatedIdentifier::TemplatedIdentifier()
 { }
@@ -182,24 +135,81 @@ std::wstring TemplatedIdentifier::toString() const
 {
 	std::wstring t;
 
-	if(type == Usage::FORMAL_PARAMETER)
+	t += id->toString();
+	t += L"<";
+	foreach(i, templated_type_list)
 	{
-		t += id->toString();
-		t += L"<";
-		foreach(i, templated_type_list)
+		t += (*i)->name->toString();
+		if((*i)->specialized_type)
 		{
-			t += i->toString();
-			if(!is_end_of_foreach(i, templated_type_list))
-				t += L",";
+			t += L":";
+			t += (*i)->specialized_type->toString();
 		}
-		t += L">";
+		if(!is_end_of_foreach(i, templated_type_list))
+			t += L",";
 	}
-	else
-	{
-		// TODO how to dump type specifier without having its header?
-	}
+	t += L">";
 
 	return t;
+}
+
+bool TemplatedIdentifier::isVariadic() const
+{
+	auto last = *templated_type_list.rbegin();
+	return last->name->toString() == L"...";
+}
+
+bool TemplatedIdentifier::isFullySpecialized() const
+{
+	foreach(i, templated_type_list)
+	{
+		if(!(*i)->specialized_type)
+		{
+			return false;
+		}
+		else
+		{
+			if((*i)->specialized_type->type == TypeSpecifier::ReferredType::UNSPECIFIED)
+			{
+				if(isa<TemplatedIdentifier>((*i)->specialized_type->referred.unspecified))
+				{
+					if(!cast<TemplatedIdentifier>((*i)->specialized_type->referred.unspecified)->isFullySpecialized())
+					{
+						return false;
+					}
+				}
+			}
+		}
+	}
+	return true;
+}
+
+void TemplatedIdentifier::specialize()
+{
+	if(type == Usage::FORMAL_PARAMETER)
+	{
+		foreach(i, templated_type_list)
+		{
+			if(!(*i)->specialized_type)
+			{
+				TypeSpecifier* specialized_type = NULL;
+				if(isa<TemplatedIdentifier>((*i)->name))
+				{
+					TemplatedIdentifier* duplicated_id = cast<TemplatedIdentifier>((*i)->name->clone());
+					duplicated_id->specialize();
+					specialized_type = new TypeSpecifier(duplicated_id);
+				}
+				else
+				{
+					specialized_type = new TypeSpecifier((*i)->name->clone());
+				}
+
+				SimpleIdentifier* dummy_identifier = new SimpleIdentifier(L"_");
+				(*i)->replaceUseWith(*((*i)->name), *dummy_identifier);
+				(*i)->specialized_type = specialized_type;
+			}
+		}
+	}
 }
 
 bool TemplatedIdentifier::isEmpty() const
@@ -217,12 +227,9 @@ void TemplatedIdentifier::setIdentifier(Identifier* identifier)
 	id->parent = this;
 }
 
-void TemplatedIdentifier::append(TemplateType type)
+void TemplatedIdentifier::append(TypenameDecl* type)
 {
-	type.id->parent = this;
-	if(type.specialized_type) type.specialized_type->parent = this;
-	if(type.default_type) type.default_type = this;
-
+	type->parent = this;
 	templated_type_list.push_back(type);
 }
 
@@ -247,7 +254,10 @@ bool TemplatedIdentifier::replaceUseWith(const ASTNode& from, const ASTNode& to,
 ASTNode* TemplatedIdentifier::clone() const
 {
 	TemplatedIdentifier* cloned = new TemplatedIdentifier(type, (id) ? cast<Identifier>(id->clone()) : NULL);
-	foreach(i, templated_type_list) cloned->append(i->clone());
+
+	foreach(i, templated_type_list)
+		cloned->append(cast<TypenameDecl>((*i)->clone()));
+
 	return cloned;
 }
 
