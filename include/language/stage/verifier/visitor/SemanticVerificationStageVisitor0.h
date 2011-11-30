@@ -63,19 +63,19 @@ namespace zillians { namespace language { namespace stage { namespace visitor {
 
 struct SemanticVerificationStageVisitor0 : public GenericDoubleVisitor
 {
-    CREATE_INVOKER(verifyInvoker, apply)
+    CREATE_INVOKER(verifyInvoker, verify)
 
 	SemanticVerificationStageVisitor0()
 	{
 		REGISTER_ALL_VISITABLE_ASTNODE(verifyInvoker)
 	}
 
-	void apply(ASTNode& node)
+	void verify(ASTNode& node)
 	{
 		revisit(node);
 	}
 
-	void apply(Package& node)
+	void verify(Package& node)
 	{
 		verifyDupeName(&node);
 		cleanup.push_back([&](){
@@ -93,7 +93,7 @@ struct SemanticVerificationStageVisitor0 : public GenericDoubleVisitor
 	}
 
 #if 0
-	void apply(ClassDecl& node)
+	void verify(ClassDecl& node)
 	{
 		// CHECK: variable name and function name should not conflict with each other
 		std::map<std::wstring, ASTNode*> all_members;
@@ -148,43 +148,43 @@ struct SemanticVerificationStageVisitor0 : public GenericDoubleVisitor
 		revisit(node);
 	}
 
-	void apply(InterfaceDecl& node)
+	void verify(InterfaceDecl& node)
 	{
 		// CHECK: all member function in interface must not have private scope specifier
 	}
 #endif
 
-	void apply(TemplatedIdentifier& node)
+	void verify(TemplatedIdentifier& node)
 	{
 		std::set<std::wstring> name_set;
 		size_t n = 0;
 		foreach(i, node.templated_type_list)
 		{
-//			switch(node.type)
-//			{
-//			case TemplatedIdentifier::Usage::FORMAL_PARAMETER:
-//				{
-//					std::wstring name = cast<Identifier>(*i)->toString();
-//
-//					// DUPE_NAME
-//					if(name_set.find(name) == name_set.end())
-//						name_set.insert(name);
-//					else
-//						LOG_MESSAGE(DUPE_NAME, &node, _id = name);
-//
+			switch(node.type)
+			{
+			case TemplatedIdentifier::Usage::FORMAL_PARAMETER:
+				{
+					std::wstring name = cast<TypenameDecl>(*i)->name->toString();
+
+					// DUPE_NAME
+					if(name_set.find(name) == name_set.end())
+						name_set.insert(name);
+					else
+						LOG_MESSAGE(DUPE_NAME, &node, _id = name);
+
 //					// UNEXPECTED_VARIADIC_TEMPLATE_PARAM
 //					if(name == L"..." && !is_end_of_foreach(i, node.templated_type_list))
 //						LOG_MESSAGE(UNEXPECTED_VARIADIC_TEMPLATE_PARAM, &node);
-//				}
-//				break;
-//			case TemplatedIdentifier::Usage::ACTUAL_ARGUMENT:
+				}
+				break;
+			case TemplatedIdentifier::Usage::ACTUAL_ARGUMENT:
 //
 //				// UNEXPECTED_VARIADIC_TEMPLATE_ARG
 //				if(isEllipsis(cast<TypeSpecifier>(*i)) && !is_end_of_foreach(i, node.templated_type_list))
 //					LOG_MESSAGE(UNEXPECTED_VARIADIC_TEMPLATE_ARG, &node);
 //
-//				break;
-//			}
+				break;
+			}
 
 			n++;
 		}
@@ -196,7 +196,7 @@ struct SemanticVerificationStageVisitor0 : public GenericDoubleVisitor
 		revisit(node);
 	}
 
-	void apply(BinaryExpr& node)
+	void verify(BinaryExpr& node)
 	{
 		// WRITE_RVALUE
 		if(node.isAssignment() && node.left->isRValue())
@@ -205,7 +205,7 @@ struct SemanticVerificationStageVisitor0 : public GenericDoubleVisitor
 		revisit(node);
 	}
 
-	void apply(Statement& node)
+	void verify(Statement& node)
 	{
 		// DEAD_CODE
 		verifyDeadCode(&node);
@@ -213,7 +213,7 @@ struct SemanticVerificationStageVisitor0 : public GenericDoubleVisitor
 		revisit(node);
 	}
 
-	void apply(BranchStmt& node)
+	void verify(BranchStmt& node)
 	{
 		// MISSING_BREAK_TARGET
 		// MISSING_CONTINUE_TARGET
@@ -225,7 +225,7 @@ struct SemanticVerificationStageVisitor0 : public GenericDoubleVisitor
             case BranchStmt::OpCode::RETURN:   UNREACHABLE_CODE(); break;
 			}
 
-		// DEAD_CODE (NOTE: necessary because apply(BranchStmt&) is shadowed by verify(Statement&))
+		// DEAD_CODE (NOTE: necessary because verify (BranchStmt&) is shadowed by verify(Statement&))
 		verifyDeadCode(&node);
 		if(node.opcode == BranchStmt::OpCode::RETURN)
 			SemanticVerificationBlockContext_HasVisitedReturn::bind(ASTNodeHelper::getOwner<Block>(&node));
@@ -233,7 +233,7 @@ struct SemanticVerificationStageVisitor0 : public GenericDoubleVisitor
 		revisit(node);
 	}
 
-	void apply(Block& node)
+	void verify(Block& node)
 	{
 		cleanup.push_back([&](){
 			SemanticVerificationBlockContext_HasVisitedReturn::unbind(&node);
@@ -246,7 +246,7 @@ struct SemanticVerificationStageVisitor0 : public GenericDoubleVisitor
 			SemanticVerificationBlockContext_HasVisitedReturn::bind(node.parent);
 	}
 
-	void apply(VariableDecl& node)
+	void verify(VariableDecl& node)
 	{
 		verifyDupeName(&node);
 
@@ -257,7 +257,7 @@ struct SemanticVerificationStageVisitor0 : public GenericDoubleVisitor
 		revisit(node);
 	}
 
-	void apply(FunctionDecl& node)
+	void verify(FunctionDecl& node)
 	{
 		verifyDupeName(&node);
 		cleanup.push_back([&](){
@@ -294,7 +294,7 @@ struct SemanticVerificationStageVisitor0 : public GenericDoubleVisitor
 		revisit(node);
 	}
 
-	void apply(ClassDecl& node)
+	void verify(ClassDecl& node)
 	{
 		verifyDupeName(&node);
 		cleanup.push_back([&](){

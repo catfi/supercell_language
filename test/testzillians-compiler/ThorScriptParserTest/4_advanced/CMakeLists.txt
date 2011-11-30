@@ -30,7 +30,7 @@ zillians_add_complex_test(
             ${CMAKE_CURRENT_SOURCE_DIR}/5_lambda.t
             ${CMAKE_CURRENT_SOURCE_DIR}/6_template.t
             ${CMAKE_CURRENT_SOURCE_DIR}/7_container.t
-            ${CMAKE_CURRENT_SOURCE_DIR}/8_va_arg.t
+#            ${CMAKE_CURRENT_SOURCE_DIR}/8_va_arg.t
             ${CMAKE_CURRENT_SOURCE_DIR}/9_interface.t
     DEPENDS ${ThorScriptCompiler} ${ThorScriptLogFilter}
     )
@@ -46,7 +46,7 @@ zillians_add_complex_test(
             ${CMAKE_CURRENT_SOURCE_DIR}/5_lambda.t
             ${CMAKE_CURRENT_SOURCE_DIR}/6_template.t
             ${CMAKE_CURRENT_SOURCE_DIR}/7_container.t
-            ${CMAKE_CURRENT_SOURCE_DIR}/8_va_arg.t
+#            ${CMAKE_CURRENT_SOURCE_DIR}/8_va_arg.t
             ${CMAKE_CURRENT_SOURCE_DIR}/9_interface.t
     DEPENDS ${ThorScriptCompiler} ${ThorScriptLogFilter}
     )
@@ -62,7 +62,7 @@ zillians_add_complex_test(
             ${CMAKE_CURRENT_SOURCE_DIR}/5_lambda.t
             ${CMAKE_CURRENT_SOURCE_DIR}/6_template.t
             ${CMAKE_CURRENT_SOURCE_DIR}/7_container.t
-            ${CMAKE_CURRENT_SOURCE_DIR}/8_va_arg.t
+#            ${CMAKE_CURRENT_SOURCE_DIR}/8_va_arg.t
             ${CMAKE_CURRENT_SOURCE_DIR}/9_interface.t
     DEPENDS ${ThorScriptCompiler} ${ThorScriptLogFilter}
     )
@@ -78,7 +78,7 @@ zillians_add_complex_test(
             ${CMAKE_CURRENT_SOURCE_DIR}/5_lambda.t
             ${CMAKE_CURRENT_SOURCE_DIR}/6_template.t
             ${CMAKE_CURRENT_SOURCE_DIR}/7_container.t
-            ${CMAKE_CURRENT_SOURCE_DIR}/8_va_arg.t
+#            ${CMAKE_CURRENT_SOURCE_DIR}/8_va_arg.t
             ${CMAKE_CURRENT_SOURCE_DIR}/9_interface.t
     DEPENDS ${ThorScriptCompiler} ${ThorScriptLogFilter}
     )

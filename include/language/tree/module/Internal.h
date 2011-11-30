@@ -66,6 +66,12 @@ struct Internal : public ASTNode
 		}
 	}
 
+	void addDanglingObject(ASTNode* object)
+	{
+		object->parent = this;
+		others.push_back(object);
+	}
+
     virtual bool isEqualImpl(const ASTNode& rhs, ASTNodeSet& visited) const
     {
     	BEGIN_COMPARE()
@@ -104,7 +110,12 @@ struct Internal : public ASTNode
 
     virtual ASTNode* clone() const
     {
-    	return new Internal();
+    	Internal* internal = new Internal();
+
+    	foreach(i, others)
+    		internal->addDanglingObject((*i)->clone());
+
+    	return internal;
     }
 
     template<typename Archive>

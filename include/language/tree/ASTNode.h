@@ -165,6 +165,7 @@ enum class ASTNodeType : int
 		TypedefDecl,
 		FunctionDecl,
 		VariableDecl,
+		TypenameDecl,
 
 	Statement,
 		DeclarativeStmt,
@@ -201,7 +202,6 @@ struct Block;
 struct Identifier;
 struct SimpleIdentifier;
 struct NestedIdentifier;
-struct TemplateType;
 struct TemplatedIdentifier;
 struct Literal;
 struct NumericLiteral;
@@ -216,6 +216,7 @@ struct InterfaceDecl;
 struct TypedefDecl;
 struct FunctionDecl;
 struct VariableDecl;
+struct TypenameDecl;
 struct Statement;
 struct DeclarativeStmt;
 struct ExpressionStmt;
@@ -355,9 +356,9 @@ struct is_std_pair<std::pair<T0, T1>> : boost::mpl::true_
 
 typedef boost::mpl::vector<ASTNode, Annotation, Annotations, Internal, Tangle, Source,
 		Package, Import, Block, Identifier, SimpleIdentifier, NestedIdentifier,
-		TemplateType, TemplatedIdentifier, Literal, NumericLiteral, StringLiteral,
+		TemplatedIdentifier, Literal, NumericLiteral, StringLiteral,
 		ObjectLiteral, TypeSpecifier, FunctionType, Declaration, ClassDecl,
-		EnumDecl, InterfaceDecl, TypedefDecl, FunctionDecl, VariableDecl,
+		EnumDecl, InterfaceDecl, TypedefDecl, FunctionDecl, VariableDecl, TypenameDecl,
 		Statement, DeclarativeStmt, ExpressionStmt, IterativeStmt, ForStmt,
 		ForeachStmt, WhileStmt, Selection, SelectionStmt, IfElseStmt,
 		SwitchStmt, BranchStmt, Expression, PrimaryExpr, UnaryExpr, BinaryExpr,
@@ -774,7 +775,6 @@ BOOST_CLASS_EXPORT_KEY2(zillians::language::tree::Block                 , "Block
 BOOST_CLASS_EXPORT_KEY2(zillians::language::tree::Identifier            , "Identifier")
 BOOST_CLASS_EXPORT_KEY2(zillians::language::tree::SimpleIdentifier      , "SimpleIdentifier")
 BOOST_CLASS_EXPORT_KEY2(zillians::language::tree::NestedIdentifier      , "NestedIdentifier")
-BOOST_CLASS_EXPORT_KEY2(zillians::language::tree::TemplateType          , "TemplateType")
 BOOST_CLASS_EXPORT_KEY2(zillians::language::tree::TemplatedIdentifier   , "TemplatedIdent")
 BOOST_CLASS_EXPORT_KEY2(zillians::language::tree::Literal               , "Literal")
 BOOST_CLASS_EXPORT_KEY2(zillians::language::tree::NumericLiteral        , "NumericLiteral")
@@ -789,6 +789,7 @@ BOOST_CLASS_EXPORT_KEY2(zillians::language::tree::InterfaceDecl         , "Inter
 BOOST_CLASS_EXPORT_KEY2(zillians::language::tree::TypedefDecl           , "TypedefDecl")
 BOOST_CLASS_EXPORT_KEY2(zillians::language::tree::FunctionDecl          , "FunctionDecl")
 BOOST_CLASS_EXPORT_KEY2(zillians::language::tree::VariableDecl          , "VariableDecl")
+BOOST_CLASS_EXPORT_KEY2(zillians::language::tree::TypenameDecl          , "TypenameDecl")
 BOOST_CLASS_EXPORT_KEY2(zillians::language::tree::Statement             , "Statement")
 BOOST_CLASS_EXPORT_KEY2(zillians::language::tree::DeclarativeStmt       , "DeclarativeStm")
 BOOST_CLASS_EXPORT_KEY2(zillians::language::tree::ExpressionStmt        , "ExpressionStmt")

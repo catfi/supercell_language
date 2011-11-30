@@ -152,6 +152,16 @@ struct NodeInfoVisitor : Visitor<ASTNode, void, VisitorImplementation::recursive
 		stream << node.name->toString();
 	}
 
+	void info(TypenameDecl& node)
+	{
+		if(node.parent) tryVisit(*node.parent);
+
+		if(stream.str().length() > 0)
+			stream << L".";
+
+		stream << node.name->toString();
+	}
+
 	void info(Statement& node)
 	{
 		if(node.parent) tryVisit(*node.parent);
