@@ -26,13 +26,10 @@ INCLUDE_DIRECTORIES(
 
 ADD_EXECUTABLE( ThorScriptDriverTest_HappyPathTest
     DriverHappyPathTest.cpp
-    ${PROJECT_FRAMEWORK_SOURCE_DIR}/src/zillians-thorscript-driver/language/ThorScriptDriver.cpp
 )
 
 TARGET_LINK_LIBRARIES(ThorScriptDriverTest_HappyPathTest
-    zillians-common-core
-    zillians-common-utility
-    zillians-framework-language
+    zillians-framework-language-main-stages-driver
 )
 
 zillians_add_complex_test(

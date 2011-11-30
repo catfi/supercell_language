@@ -1,6 +1,6 @@
 # 
 # Zillians MMO
-# Copyright (C) 2007-2010 Zillians.com, Inc.
+# Copyright (C) 2007-2009 Zillians.com, Inc.
 # For more information see http:#www.zillians.com
 #
 # Zillians MMO is the library and runtime for massive multiplayer online game
@@ -19,17 +19,19 @@
 # Contact Information: info@zillians.com
 #
 
-INCLUDE_DIRECTORIES(
+include_directories(
     ${PROJECT_COMMON_SOURCE_DIR}/include/
     ${PROJECT_FRAMEWORK_SOURCE_DIR}/include/
+    ${ZILLIANS_DEP_PATH}/linux
     )
 
-ADD_EXECUTABLE(ThorScriptTreeTest_PrettyPrintVisitorTest PrettyPrintVisitorTest.cpp)
-
-TARGET_LINK_LIBRARIES(ThorScriptTreeTest_PrettyPrintVisitorTest
-    zillians-common-core
-    zillians-framework-language-tree
+add_executable(ts-link
+    main.cpp
     )
-
-zillians_add_simple_test(TARGET ThorScriptTreeTest_PrettyPrintVisitorTest)
-zillians_add_test_to_subject(SUBJECT thorscript-tree-test TARGET ThorScriptTreeTest_PrettyPrintVisitorTest)
+    
+target_link_libraries(ts-link
+    zillians-framework-language-main-stages-link
+    )
+    
+get_target_property(ThorScriptLinker ts-link LOCATION)
+message(STATUS "Using ThorScript Linker: \"${ThorScriptLinker}\"")

@@ -90,19 +90,11 @@ ADD_SUBDIRECTORY(zillians-stub-gen)
 
 ADD_SUBDIRECTORY(zillians-spirit-log-filter)
 
+# TODO consider to remove COG since we have ThorPP
 IF(COG_FOUND)
     ADD_SUBDIRECTORY(libzillians-framework-language)
+    ADD_SUBDIRECTORY(libzillians-framework-language-main-stages)
+    ADD_SUBDIRECTORY(zillians-language-compiler-collection)
 ENDIF()
 
-ADD_SUBDIRECTORY(zillians-thorscript-bundler)
-ADD_SUBDIRECTORY(zillians-thorscript-compiler)
-ADD_SUBDIRECTORY(zillians-thorscript-driver)
-ADD_SUBDIRECTORY(zillians-thorscript-linker)
-ADD_SUBDIRECTORY(zillians-thorscript-manifest-builder)
-ADD_SUBDIRECTORY(zillians-thorscript-strip)
-ADD_SUBDIRECTORY(zillians-thorscript-stub-generator)
-ADD_SUBDIRECTORY(zillians-thorscript-vm)
-ADD_SUBDIRECTORY(zillians-thorscript-dep)
-ADD_SUBDIRECTORY(zillians-thorscript-doc)
-ADD_SUBDIRECTORY(zillians-thorscript-make)
-#ADD_SUBDIRECTORY(zillians-thorscript-tsc)
+
