@@ -34,3 +34,5 @@ target_link_libraries(ts-stub
 
 get_target_property(ThorScriptStubGenerator ts-stub LOCATION)
 message(STATUS "Using ThorScript Stub Generator: \"${ThorScriptStubGenerator}\"")
+
+add_dependencies(zillians-language-compiler-collection ts-stub)

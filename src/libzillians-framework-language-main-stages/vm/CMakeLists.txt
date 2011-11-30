@@ -34,3 +34,5 @@ add_library(zillians-framework-language-main-stages-vm
 target_link_libraries(zillians-framework-language-main-stages-vm
     zillians-framework-language-general
     )
+    
+add_dependencies(zillians-language-language-main-stages zillians-framework-language-main-stages-vm)

@@ -34,3 +34,5 @@ target_link_libraries(ts-strip
     
 get_target_property(ThorScriptStrip ts-strip LOCATION)
 message(STATUS "Using ThorScript Strip: \"${ThorScriptStrip}\"")
+
+add_dependencies(zillians-language-compiler-collection ts-strip)

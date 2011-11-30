@@ -34,3 +34,5 @@ target_link_libraries(ts-vm
 
 get_target_property(ThorScriptVM ts-vm LOCATION)
 message(STATUS "Using ThorScript VM: \"${ThorScriptVM}\"")
+
+add_dependencies(zillians-language-compiler-collection ts-vm)

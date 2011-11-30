@@ -19,6 +19,8 @@
 # Contact Information: info@zillians.com
 #
 
+add_custom_target(zillians-language-compiler-collection)
+
 ADD_SUBDIRECTORY(bundle)
 ADD_SUBDIRECTORY(compile)
 ADD_SUBDIRECTORY(dep)

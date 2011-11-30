@@ -35,3 +35,5 @@ target_link_libraries(ts-bundle
     
 get_target_property(ThorScriptBundler ts-bundle LOCATION)
 message(STATUS "Using ThorScript Bundler: \"${ThorScriptBundler}\"")
+
+add_dependencies(zillians-language-compiler-collection ts-bundle)

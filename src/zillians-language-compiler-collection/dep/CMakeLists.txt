@@ -34,3 +34,5 @@ target_link_libraries(ts-dep
     
 get_target_property(ThorScriptDep ts-dep LOCATION)
 message(STATUS "Using ThorScript Dep: \"${ThorScriptDep}\"")
+
+add_dependencies(zillians-language-compiler-collection ts-bundle)

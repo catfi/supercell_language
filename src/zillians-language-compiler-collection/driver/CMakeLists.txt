@@ -34,3 +34,5 @@ target_link_libraries(tsc
     
 get_target_property(ThorScriptDriver tsc LOCATION)
 message(STATUS "Using ThorScript Driver: \"${ThorScriptDriver}\"")
+
+add_dependencies(zillians-language-compiler-collection tsc)

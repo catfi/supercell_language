@@ -34,3 +34,5 @@ target_link_libraries(ts-make
     
 get_target_property(ThorScriptMake ts-make LOCATION)
 message(STATUS "Using ThorScript Make: \"${ThorScriptMake}\"")
+
+add_dependencies(zillians-language-compiler-collection ts-make)

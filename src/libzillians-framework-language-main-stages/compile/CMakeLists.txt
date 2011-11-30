@@ -31,3 +31,5 @@ add_library(zillians-framework-language-main-stages-compile
 target_link_libraries(zillians-framework-language-main-stages-compile
     zillians-framework-language-general-stages
     )
+
+add_dependencies(zillians-language-language-main-stages zillians-framework-language-main-stages-compile)
