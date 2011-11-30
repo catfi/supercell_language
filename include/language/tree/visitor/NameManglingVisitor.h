@@ -27,6 +27,7 @@
 #include "language/tree/basic/PrimitiveType.h"
 #include "language/tree/ASTNodeHelper.h"
 #include <ctype.h>
+#include <algorithm>
 
 namespace zillians { namespace language { namespace tree { namespace visitor {
 
@@ -101,15 +102,28 @@ struct NameManglingVisitor : Visitor<ASTNode, void, VisitorImplementation::recur
 		}
 	}
 
-	// NOTE: if there are repeating arg "function types", use "S{digit}_" to represent repeated arg
-	//       with digit being the index, instead of explicitly repeating the same mangled info
 	void mangle(FunctionType& node)
 	{
-		if(node.parent) visit(*node.parent); // up-trace to get complete mangled-name
-		stream << "PF"; // function pointer is always a pointer
+		if(node.parent) visit(*node.parent); // up-trace to build complete name
+		stream << "PF"; // function pointer is always a pointer, hence "P" in "PF"
 		visit(*node.return_type);
+		std::vector<TypeSpecifier*> type_list;
 		foreach(i, node.argument_types)
-        	resolveAndVisit(*i);
+		{
+			int type_index = -1;
+			if((*i)->type != TypeSpecifier::ReferredType::PRIMITIVE)
+			{
+				auto p = std::find_if(type_list.begin(), type_list.end(),
+						std::bind2nd(std::ptr_fun(isEqual), *i));
+				if(p != type_list.end())
+					type_index = std::distance(type_list.begin(), p);
+				type_list.push_back(*i);
+			}
+			if(type_index != -1)
+				stream << "S" << type_index << "_";
+			else
+				resolveAndVisit(*i);
+		}
 		stream << "E"; // always end with "E"
 	}
 
@@ -117,7 +131,27 @@ struct NameManglingVisitor : Visitor<ASTNode, void, VisitorImplementation::recur
 	{
 		if(!dependent_component)
 		{
-			if(node.parent) visit(*node.parent); // up-trace to get complete mangled-name
+			if(node.parent) visit(*node.parent); // up-trace to build complete name
+			named_scoped = true;
+		}
+		visitIdentifier(node.name);
+	}
+
+	void mangle(InterfaceDecl& node)
+	{
+		if(!dependent_component)
+		{
+			if(node.parent) visit(*node.parent); // up-trace to build complete name
+			named_scoped = true;
+		}
+		visitIdentifier(node.name);
+	}
+
+	void mangle(EnumDecl& node)
+	{
+		if(!dependent_component)
+		{
+			if(node.parent) visit(*node.parent); // up-trace to build complete name
 			named_scoped = true;
 		}
 		visitIdentifier(node.name);
@@ -126,18 +160,20 @@ struct NameManglingVisitor : Visitor<ASTNode, void, VisitorImplementation::recur
 	void mangle(FunctionDecl& node)
 	{
 #if 1 // NOTE: temporary work-around for c-tor bug
-		if(node.parent && isa<ClassDecl>(node.parent) && node.name->toString() == L"new")
+		if(node.is_member && node.parent && isa<ClassDecl>(node.parent) && node.name->toString() == L"new")
 			return;
 #endif
-		if(node.parent) visit(*node.parent); // up-trace to get complete mangled-name
+		if(node.parent) visit(*node.parent); // up-trace to build complete name
 		visitIdentifier(node.name);
+		std::vector<TypeSpecifier*> type_list;
 		std::vector<VariableDecl*>::iterator p = node.parameters.begin();
 		if(ASTNodeHelper::hasOwnerNamedScope(&node))
 		{
-			stream << "E"; // if mangled name begins with "N", end with "E"
+			stream << "E"; // if mangled name begins with "N", always end with "E"
 			if(isa<ClassDecl>(node.parent))
 			{
 				BOOST_ASSERT(node.parameters.size() >= 1 && "methods must have 1st parameter \"this\"");
+				type_list.push_back((*p)->type);
 				p++; // skip "this" parameter for methods
 			}
 		}
@@ -146,9 +182,33 @@ struct NameManglingVisitor : Visitor<ASTNode, void, VisitorImplementation::recur
 		else
 		{
 			for(; p != node.parameters.end(); p++)
-                visit(*(*p)->type);
+			{
+				int type_index = -1;
+				if((*p)->type->type != TypeSpecifier::ReferredType::PRIMITIVE)
+				{
+					auto q = std::find_if(type_list.begin(), type_list.end(),
+							std::bind2nd(std::ptr_fun(isEqual), (*p)->type));
+					if(q != type_list.end())
+						type_index = std::distance(type_list.begin(), q);
+					type_list.push_back((*p)->type);
+				}
+				if(type_index != -1)
+				{
+					if(node.is_member && node.parent)
+						type_index--; // start counting from zero after "this" parameter
+					if(type_index == -1)
+						stream << "S_"; // parameter is same type as "this" parameter
+					else
+						stream << "S" << type_index << "_";
+				}
+				else
+					resolveAndVisit((*p)->type);
+			}
 		}
 	}
+
+	std::string ucs4_to_utf8_temp;
+	std::string utf8_to_llvm_temp;
 
 	const std::string& encode(const std::wstring& ucs4)
 	{
@@ -183,7 +243,7 @@ struct NameManglingVisitor : Visitor<ASTNode, void, VisitorImplementation::recur
 
 	void reset()
 	{
-#if 0 // NOTE: for debugging only
+#if 1 // NOTE: for debugging only
 		std::cout << "NameManglingVisitor: " << stream.str() << std::endl;
 #endif
 		stream.str("");
@@ -207,19 +267,18 @@ private:
         if(resolved_type)
         {
 			dependent_component = true;
-			visitResolvedType(resolved_type);
+			if(isa<TypeSpecifier>(resolved_type))
+				visit(*cast<TypeSpecifier>(resolved_type));
+			else if(isa<ClassDecl>(resolved_type))
+				visit(*cast<ClassDecl>(resolved_type));
+			else if(isa<InterfaceDecl>(resolved_type))
+				visit(*cast<InterfaceDecl>(resolved_type));
+			else if(isa<EnumDecl>(resolved_type))
+				visit(*cast<EnumDecl>(resolved_type));
+			else
+				UNREACHABLE_CODE();
 			dependent_component = false;
         }
-	}
-
-	void visitResolvedType(ASTNode* node)
-	{
-		if(isa<TypeSpecifier>(node))
-			visit(*cast<TypeSpecifier>(node));
-		else if(isa<ClassDecl>(node))
-			visit(*cast<ClassDecl>(node));
-		else
-			UNREACHABLE_CODE();
 	}
 
 	void visitIdentifier(Identifier* ident)
@@ -232,8 +291,10 @@ private:
 			UNREACHABLE_CODE();
 	}
 
-	std::string ucs4_to_utf8_temp;
-	std::string utf8_to_llvm_temp;
+	static bool isEqual(TypeSpecifier* a, TypeSpecifier* b)
+	{
+		return a->isEqual(*b);
+	}
 
 	bool named_scoped;
 	bool dependent_component;
