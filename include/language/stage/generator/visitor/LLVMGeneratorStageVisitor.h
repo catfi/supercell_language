@@ -22,7 +22,7 @@
 
 #include "core/Prerequisite.h"
 #include "language/tree/ASTNodeHelper.h"
-#include "language/tree/visitor/GenericVisitor.h"
+#include "language/tree/visitor/GenericDoubleVisitor.h"
 #include "language/tree/visitor/NodeInfoVisitor.h"
 #include "language/stage/generator/detail/LLVMForeach.h"
 #include "language/stage/generator/detail/LLVMHelper.h"
@@ -32,7 +32,7 @@
 #include "language/stage/generator/context/SynthesizedFunctionContext.h"
 
 using namespace zillians::language::tree;
-using zillians::language::tree::visitor::GenericVisitor;
+using zillians::language::tree::visitor::GenericDoubleVisitor;
 using zillians::language::tree::visitor::NodeInfoVisitor;
 
 namespace zillians { namespace language { namespace stage { namespace visitor {
@@ -45,9 +45,9 @@ namespace zillians { namespace language { namespace stage { namespace visitor {
  *
  * @see LLVMGeneratorPreambleVisitor
  */
-struct LLVMGeneratorStageVisitor : public GenericVisitor
+struct LLVMGeneratorStageVisitor : public GenericDoubleVisitor
 {
-    CREATE_GENERIC_INVOKER(generateInvoker)
+    CREATE_INVOKER(generateInvoker, apply)
 
 	LLVMGeneratorStageVisitor(llvm::LLVMContext& context, llvm::Module& module) :
 		mContext(context), mModule(module), mBuilder(context), mHelper(context)
@@ -63,19 +63,19 @@ struct LLVMGeneratorStageVisitor : public GenericVisitor
 
 	void apply(ASTNode& node)
 	{
-		GenericVisitor::apply(node);
+		revisit(node);
 	}
 
 	void apply(Block& node)
 	{
-		GenericVisitor::apply(node);
+		revisit(node);
 	}
 
 	void apply(NumericLiteral& node)
 	{
 		if(hasValue(node)) return;
 
-		GenericVisitor::apply(node);
+		revisit(node);
 
 		llvm::Value* result = NULL;
 		switch(node.type)
@@ -111,20 +111,20 @@ struct LLVMGeneratorStageVisitor : public GenericVisitor
 	{
 		if(hasValue(node)) return;
 
-		GenericVisitor::apply(node);
+		revisit(node);
 	}
 
 	void apply(StringLiteral& node)
 	{
 		if(hasValue(node)) return;
 
-		GenericVisitor::apply(node);
+		revisit(node);
 	}
 
 	void apply(Source& node)
 	{
 		// create LLVM global variables to store VTT and other global variables in thorscript
-		GenericVisitor::apply(node);
+		revisit(node);
 	}
 
 	void apply(FunctionDecl& node)
@@ -147,7 +147,7 @@ struct LLVMGeneratorStageVisitor : public GenericVisitor
 		}
 
 		// visit all children
-		GenericVisitor::apply(node);
+		revisit(node);
 
 		// emit epilogue of function
 		if(!finishFunction(node))
@@ -163,7 +163,7 @@ struct LLVMGeneratorStageVisitor : public GenericVisitor
 		if(node.parent && isa<Package>(node.parent))
 			return;
 
-		GenericVisitor::apply(node);
+		revisit(node);
 
 		// here we only apply AllocaInst for AST variables within function
 		// those sit in global scope or class member scope will be stored in some other object and access through game object API
@@ -199,7 +199,7 @@ struct LLVMGeneratorStageVisitor : public GenericVisitor
 		if(hasValue(node)) return;
 		if(isBlockInsertionMasked() || isBlockTerminated(currentBlock()))	return;
 
-		GenericVisitor::apply(node);
+		revisit(node);
 
 		propagate(&node, node.declaration);
 	}
@@ -209,7 +209,7 @@ struct LLVMGeneratorStageVisitor : public GenericVisitor
 		if(hasValue(node)) return;
 		if(isBlockInsertionMasked() || isBlockTerminated(currentBlock()))	return;
 
-		GenericVisitor::apply(node);
+		revisit(node);
 
 		llvm::Value* result = NULL;
 
@@ -250,7 +250,7 @@ struct LLVMGeneratorStageVisitor : public GenericVisitor
 	{
 		if(hasValue(node)) return;
 
-		GenericVisitor::apply(node);
+		revisit(node);
 
 		propagate(&node, node.expr);
 	}
@@ -482,7 +482,7 @@ struct LLVMGeneratorStageVisitor : public GenericVisitor
 		if(hasValue(node)) return;
 		if(isBlockInsertionMasked() || isBlockTerminated(currentBlock()))	return;
 
-		GenericVisitor::apply(node);
+		revisit(node);
 		// emit the preamble and prepare blocks
 	}
 
@@ -491,7 +491,7 @@ struct LLVMGeneratorStageVisitor : public GenericVisitor
 		if(hasValue(node)) return;
 		if(isBlockInsertionMasked() || isBlockTerminated(currentBlock()))	return;
 
-		GenericVisitor::apply(node);
+		revisit(node);
 
 		switch(node.catagory)
 		{
@@ -511,7 +511,7 @@ struct LLVMGeneratorStageVisitor : public GenericVisitor
 		if(hasValue(node)) return;
 		if(isBlockInsertionMasked() || isBlockTerminated(currentBlock()))	return;
 
-		GenericVisitor::apply(node);
+		revisit(node);
 
 		llvm::Value* result = NULL;
 
@@ -574,7 +574,7 @@ struct LLVMGeneratorStageVisitor : public GenericVisitor
 		if(hasValue(node)) return;
 		if(isBlockInsertionMasked() || isBlockTerminated(currentBlock()))	return;
 
-		GenericVisitor::apply(node);
+		revisit(node);
 
 		ASTNode* lhs_resolved;
 		llvm::Value* lhs_value_for_read;
@@ -776,7 +776,7 @@ struct LLVMGeneratorStageVisitor : public GenericVisitor
 		if(hasValue(node)) return;
 		if(isBlockInsertionMasked() || isBlockTerminated(currentBlock()))	return;
 
-		GenericVisitor::apply(node);
+		revisit(node);
 
 		std::vector<llvm::Value*> arguments;
 		foreach(i, node.parameters)
@@ -821,7 +821,7 @@ struct LLVMGeneratorStageVisitor : public GenericVisitor
 		if(hasValue(node)) return;
 		if(isBlockInsertionMasked() || isBlockTerminated(currentBlock()))	return;
 
-		GenericVisitor::apply(node);
+		revisit(node);
 
 		ASTNode* node_resolved = NULL;
 		llvm::Value* llvm_result = NULL;
@@ -930,7 +930,7 @@ struct LLVMGeneratorStageVisitor : public GenericVisitor
 		if(hasValue(node)) return;
 		if(isBlockInsertionMasked() || isBlockTerminated(currentBlock()))	return;
 
-		GenericVisitor::apply(node);
+		revisit(node);
 		// TODO if the node is resolved to a package, do nothing
 		// TODO otherwise, the node is resolved to a local variable, if the RHS is a member variable, use object resolver to resolve correct offset
 		// TODO if RHS is a member function, use object resolver to resolve correct function pointer (if it's a non-virtual function)

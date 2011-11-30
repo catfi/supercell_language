@@ -21,13 +21,13 @@
 #define ZILLIANS_LANGUAGE_STAGE_VISITOR_LLVMGENERATORPREAMBLESTAGEVISITOR_H_
 
 #include "core/Prerequisite.h"
-#include "language/tree/visitor/GenericVisitor.h"
+#include "language/tree/visitor/GenericDoubleVisitor.h"
 #include "language/stage/generator/detail/LLVMHelper.h"
 #include "language/stage/transformer/context/ManglingStageContext.h"
 #include "language/stage/generator/context/SynthesizedFunctionContext.h"
 
 using namespace zillians::language::tree;
-using zillians::language::tree::visitor::GenericVisitor;
+using zillians::language::tree::visitor::GenericDoubleVisitor;
 
 namespace zillians { namespace language { namespace stage { namespace visitor {
 
@@ -39,9 +39,9 @@ namespace zillians { namespace language { namespace stage { namespace visitor {
  *
  * @see LLVMGeneratorStageVisitor
  */
-struct LLVMGeneratorStagePreambleVisitor : public GenericVisitor
+struct LLVMGeneratorStagePreambleVisitor : public GenericDoubleVisitor
 {
-    CREATE_GENERIC_INVOKER(generateInvoker)
+    CREATE_INVOKER(generateInvoker, apply)
 
 	LLVMGeneratorStagePreambleVisitor(llvm::LLVMContext& context, llvm::Module& module) :
 		mContext(context), mModule(module), mBuilder(context), mHelper(context)
@@ -51,7 +51,7 @@ struct LLVMGeneratorStagePreambleVisitor : public GenericVisitor
 
 	void apply(ASTNode& node)
 	{
-		GenericVisitor::apply(node);
+		revisit(node);
 	}
 
 	void apply(FunctionDecl& node)
