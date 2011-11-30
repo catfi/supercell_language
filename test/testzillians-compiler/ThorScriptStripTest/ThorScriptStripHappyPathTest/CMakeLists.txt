@@ -32,7 +32,7 @@ ADD_EXECUTABLE(
 
 TARGET_LINK_LIBRARIES(ThorScriptStripTest_ThorScriptStripHappyPathTest
     zillians-common-core
-    zillians-framework-language
+    zillians-framework-language-general-stages
     )
 
 zillians_add_simple_test(TARGET ThorScriptStripTest_ThorScriptStripHappyPathTest)

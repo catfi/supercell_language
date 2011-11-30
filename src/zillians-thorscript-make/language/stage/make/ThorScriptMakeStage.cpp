@@ -19,11 +19,13 @@
 
 #define BOOST_MPL_CFG_NO_PREPROCESSED_HEADERS
 
+#include "core/Prerequisite.h"
+#include "language/stage/make/ThorScriptMakeStage.h"
+#include "language/stage/dep/ThorScriptSourceTangleGraph.h"
 #include "threading/JoinFunctionModule.h"
-#include <algorithm>
-#include <vector>
-#include <set>
-#include <iterator>
+#include "utility/UnicodeUtil.h"
+#include "utility/sha1.h"
+
 #include <boost/any.hpp>
 #include <boost/filesystem.hpp>
 #include <boost/graph/adjacency_list.hpp>
@@ -33,10 +35,6 @@
 #include <boost/archive/text_iarchive.hpp>
 #include <boost/serialization/set.hpp>
 #include <boost/filesystem.hpp>
-#include "language/stage/make/ThorScriptMakeStage.h"
-#include "language/stage/dep/ThorScriptSourceTangleGraph.h"
-#include "utility/UnicodeUtil.h"
-#include "utility/sha1.h"
 
 namespace zillians { namespace language { namespace stage {
 

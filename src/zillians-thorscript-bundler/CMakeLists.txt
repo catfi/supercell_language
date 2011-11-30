@@ -22,17 +22,21 @@
 include_directories(
     ${PROJECT_COMMON_SOURCE_DIR}/include/
     ${PROJECT_FRAMEWORK_SOURCE_DIR}/include/
+    ${ZILLIANS_DEP_PATH}/linux
     )
+
+add_definitions( ${LLVM_CPPFLAGS} )
 
 add_executable(ts-bundle
     main.cpp
+    language/stage/bundle/ThorScriptBundleStage.cpp
     language/ThorScriptBundler.cpp
     )
     
 target_link_libraries(ts-bundle
-    zillians-common-core
-    zillians-common-utility
-    zillians-framework-language
+	${LLVM_LDFLAGS}
+    ${LLVM_ALL_LIBS}
+    zillians-framework-language-general-stages
     )
     
 get_target_property(ThorScriptBundler ts-bundle LOCATION)

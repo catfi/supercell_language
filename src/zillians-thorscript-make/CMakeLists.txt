@@ -26,13 +26,12 @@ include_directories(
 
 add_executable(ts-make
     main.cpp
+    language/stage/make/ThorScriptMakeStage.cpp
     language/ThorScriptMake.cpp
     )
     
 target_link_libraries(ts-make
-    #    zillians-common-core
-    #    zillians-common-utility
-        zillians-framework-language
+    zillians-framework-language-general
     )
     
 get_target_property(ThorScriptMake ts-make LOCATION)

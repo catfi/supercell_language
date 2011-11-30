@@ -32,7 +32,7 @@ add_executable(tsc
 target_link_libraries(tsc
     zillians-common-core
     zillians-common-utility
-    zillians-framework-language
+    zillians-framework-language-general-stages
     )
     
 get_target_property(ThorScriptDriver tsc LOCATION)

@@ -30,9 +30,7 @@ add_executable(ts-compile
     )
 
 target_link_libraries(ts-compile
-    zillians-common-core
-    zillians-common-utility
-    zillians-framework-language
+    zillians-framework-language-general-stages
     )
 
 get_target_property(ThorScriptCompiler ts-compile LOCATION)

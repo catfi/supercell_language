@@ -30,9 +30,7 @@ add_executable(ts-manifest
     )
     
 target_link_libraries(ts-manifest
-    zillians-common-core
-    zillians-common-utility
-    zillians-framework-language
+    zillians-framework-language-general
     )
     
 get_target_property(ThorScriptManifestBuilder ts-manifest LOCATION)
