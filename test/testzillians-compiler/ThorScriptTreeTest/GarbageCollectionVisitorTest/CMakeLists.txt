@@ -27,7 +27,6 @@ INCLUDE_DIRECTORIES(
 ADD_EXECUTABLE(ThorScriptTreeTest_GarbageCollectionVisitorTest GarbageCollectionVisitorTest.cpp)
 
 TARGET_LINK_LIBRARIES(ThorScriptTreeTest_GarbageCollectionVisitorTest
-    zillians-framework-language
     zillians-common-core
     zillians-framework-language-tree
     )
