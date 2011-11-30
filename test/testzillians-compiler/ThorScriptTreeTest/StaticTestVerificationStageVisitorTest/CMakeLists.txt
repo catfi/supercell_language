@@ -28,7 +28,7 @@ ADD_EXECUTABLE(ThorScriptTreeTest_StaticTestVerificationStageVisitorTest StaticT
 
 TARGET_LINK_LIBRARIES(ThorScriptTreeTest_StaticTestVerificationStageVisitorTest
     zillians-common-core
-	zillians-framework-language-general
+	zillians-framework-language-general-stages
     )
 
 zillians_add_simple_test(TARGET ThorScriptTreeTest_StaticTestVerificationStageVisitorTest)
