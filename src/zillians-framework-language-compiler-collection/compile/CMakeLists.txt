@@ -24,13 +24,15 @@ include_directories(
     ${PROJECT_FRAMEWORK_SOURCE_DIR}/include/
     )
 
-add_executable(ts-strip
+add_executable(ts-compile
     main.cpp
     )
-    
-target_link_libraries(ts-strip
-    zillians-framework-language-main-stages-strip
+
+target_link_libraries(ts-compile
+    zillians-framework-language-main-stages-compile
     )
-    
-get_target_property(ThorScriptStrip ts-strip LOCATION)
-message(STATUS "Using ThorScript Strip: \"${ThorScriptStrip}\"")
+
+get_target_property(ThorScriptCompiler ts-compile LOCATION)
+message(STATUS "Using ThorScript Compiler: \"${ThorScriptCompiler}\"")
+
+add_dependencies(zillians-framework-language-compiler-collection ts-bundle)

@@ -22,15 +22,18 @@
 include_directories(
     ${PROJECT_COMMON_SOURCE_DIR}/include/
     ${PROJECT_FRAMEWORK_SOURCE_DIR}/include/
+    ${ZILLIANS_DEP_PATH}/linux
     )
 
-add_executable(tsc
+add_executable(ts-bundle
     main.cpp
     )
     
-target_link_libraries(tsc
-    zillians-framework-language-main-stages-driver
+target_link_libraries(ts-bundle
+    zillians-framework-language-main-stages-bundle
     )
     
-get_target_property(ThorScriptDriver tsc LOCATION)
-message(STATUS "Using ThorScript Driver: \"${ThorScriptDriver}\"")
+get_target_property(ThorScriptBundler ts-bundle LOCATION)
+message(STATUS "Using ThorScript Bundler: \"${ThorScriptBundler}\"")
+
+add_dependencies(zillians-framework-language-compiler-collection ts-bundle)

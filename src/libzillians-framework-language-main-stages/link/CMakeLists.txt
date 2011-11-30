@@ -37,3 +37,5 @@ target_link_libraries(zillians-framework-language-main-stages-link
     ${LLVM_ALL_LIBS}
     zillians-framework-language-general
     )
+    
+add_dependencies(zillians-language-language-main-stages zillians-framework-language-main-stages-link)

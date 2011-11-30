@@ -40,7 +40,7 @@
 
 include(ExternalProject)
 
-ExternalProject_Add(EP_ts-doc
+ExternalProject_Add(ts-doc
     #--Download step--------------
     URL
         "http://ftp.stack.nl/pub/users/dimitri/doxygen-1.7.5.1.src.tar.gz"
@@ -72,5 +72,7 @@ ExternalProject_Add(EP_ts-doc
     #--Custom targets-------------
     )
 
-#get_target_property(ThorScriptDocGenerator ts-doc LOCATION)
-#message(STATUS "Using ThorScript Doc Generator: \"${ThorScriptDocGenerator}\"")
+add_dependencies(zillians-framework-language-compiler-collection ts-doc)
+
+set(ThorScriptDocGenerator ${EXECUTABLE_OUTPUT_PATH}/ts-doc)
+message(STATUS "Using ThorScript Doc Generator: \"${ThorScriptDocGenerator}\"")

@@ -24,13 +24,15 @@ include_directories(
     ${PROJECT_FRAMEWORK_SOURCE_DIR}/include/
     )
 
-add_executable(ts-vm
+add_executable(ts-stub
     main.cpp
     )
     
-target_link_libraries(ts-vm
-    zillians-framework-language-main-stages-vm
+target_link_libraries(ts-stub
+    zillians-framework-language-main-stages-stub
     )
 
-get_target_property(ThorScriptVM ts-vm LOCATION)
-message(STATUS "Using ThorScript VM: \"${ThorScriptVM}\"")
+get_target_property(ThorScriptStubGenerator ts-stub LOCATION)
+message(STATUS "Using ThorScript Stub Generator: \"${ThorScriptStubGenerator}\"")
+
+add_dependencies(zillians-framework-language-compiler-collection ts-stub)

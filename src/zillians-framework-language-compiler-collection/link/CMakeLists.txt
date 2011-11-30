@@ -35,3 +35,5 @@ target_link_libraries(ts-link
     
 get_target_property(ThorScriptLinker ts-link LOCATION)
 message(STATUS "Using ThorScript Linker: \"${ThorScriptLinker}\"")
+
+add_dependencies(zillians-framework-language-compiler-collection ts-link)
