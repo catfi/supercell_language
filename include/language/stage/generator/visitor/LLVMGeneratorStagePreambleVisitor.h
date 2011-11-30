@@ -83,11 +83,10 @@ struct LLVMGeneratorStagePreambleVisitor : public GenericDoubleVisitor
 			llvm::Function* llvm_function = NULL;
 
 			llvm::FunctionType* llvm_function_type = NULL;
-			std::vector<llvm::AttributeWithIndex> llvm_function_parameter_type_attributes;
-			llvm::Attributes llvm_function_return_type_attribute = llvm::Attribute::None;
+			std::vector<llvm::AttributeWithIndex> llvm_function_type_attributes;
 
 			// try to resolve function type
-			if(!mHelper.getFunctionType(node, llvm_function_type, llvm_function_parameter_type_attributes, llvm_function_return_type_attribute))
+			if(!mHelper.getFunctionType(node, llvm_function_type, llvm_function_type_attributes))
 			{
 				BOOST_ASSERT(false && "failed to generate LLVM function object");
 				terminateRevisit();
@@ -105,8 +104,8 @@ struct LLVMGeneratorStagePreambleVisitor : public GenericDoubleVisitor
 			}
 
 			// set function attributes (modifiers)
-			if(llvm_function_parameter_type_attributes.size() > 0)
-				llvm_function->setAttributes(llvm::AttrListPtr::get(llvm_function_parameter_type_attributes.begin(), llvm_function_parameter_type_attributes.end()));
+			if(llvm_function_type_attributes.size() > 0)
+				llvm_function->setAttributes(llvm::AttrListPtr::get(llvm_function_type_attributes.begin(), llvm_function_type_attributes.end()));
 
 			// set function parameter names
 			int index = 0;
