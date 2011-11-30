@@ -490,6 +490,137 @@ struct GenericVisitor : Visitor<ASTNode, void, VisitorImplementation::recursive_
 	}
 };
 
+} } } } // zillians::language::tree::visitor
+
+namespace zillians { namespace language { namespace stage { namespace visitor {
+
+//////////////////////////////////////////////////////////////////////////////
+// Implementation of is_call_possible:
+//////////////////////////////////////////////////////////////////////////////
+// see: http://groups.google.com/group/comp.lang.c++.moderated/msg/e5fbc9305539f699 (for acutally work code)
+//      http://stackoverflow.com/questions/2122319/c-type-traits-to-check-if-class-has-operator-member (for the original concept)
+//      http://www.rsdn.ru/forum/cpp/2759773.1.aspx (for further discussion)
+template <typename Type>
+class has_member
+{
+    class yes { char m;};
+    class no { yes m[2];};
+
+    struct BaseMixin
+    {
+        void apply(){}
+    };
+
+    struct Base : public Type, public BaseMixin {};
+
+    template <typename T, T t>  class Helper{};
+
+    template <typename U>
+        static no deduce(U*, Helper<void (BaseMixin::*)(), &U::apply>* = 0);
+    static yes deduce(...);
+
+    public:
+    static const bool result = sizeof(yes) == sizeof(deduce((Base*) (0)));
+
+};
+
+namespace details
+{
+    template <typename type>
+    class void_exp_result
+    {};
+
+    template <typename type, typename U>
+    U const& operator,(U const&, void_exp_result<type>);
+
+    template <typename type, typename U>
+    U& operator,(U&, void_exp_result<type>);
+
+    template <typename src_type, typename dest_type>
+    struct clone_constness
+    {
+        typedef dest_type type;
+    };
+
+    template <typename src_type, typename dest_type>
+    struct clone_constness<const src_type, dest_type>
+    {
+        typedef const dest_type type;
+    };
+
+}
+
+template <typename type, typename call_details>
+struct is_call_possible
+{
+private:
+    class yes {};
+    class no { yes m[2]; };
+
+    struct derived : public type
+    {
+        using type::apply;
+        no apply(...) const;
+    };
+
+    typedef typename details::clone_constness<type, derived>::type
+        derived_type;
+
+    template <typename T, typename due_type>
+    struct return_value_check
+    {
+        static yes deduce(due_type);
+        static no deduce(...);
+        static no deduce(no);
+        static no deduce(details::void_exp_result<type>);
+    };
+
+    template <typename T>
+    struct return_value_check<T, void>
+    {
+        static yes deduce(...);
+        static no deduce(no);
+    };
+
+    template <bool has, typename F>
+    struct impl
+    {
+        static const bool value = false;
+    };
+
+    template <typename arg1, typename r>
+    struct impl<true, r(arg1)>
+    {
+        static const bool value = sizeof( return_value_check<type, r>::deduce( (((derived_type*)0)->apply(*(arg1*)0), details::void_exp_result<type>()))) == sizeof(yes);
+    };
+
+    // specializations of impl for 2 args, 3 args,..
+public:
+    static const bool value = impl<has_member<type>::result, call_details>::value;
+
+};
+
 } } } }
+
+#define CREATE_GENERIC_INVOKER(invoker)	\
+		typedef struct { 															\
+			template<typename VisitorImpl, typename Visitable>						\
+			static ReturnT invoke(VisitorImpl& visitor, Visitable& visitable)		\
+			{																		\
+				return visitor.apply(visitable);							        \
+			}																		\
+		} invoker;                                                                  \
+		//using GenericVisitor::apply;
+
+#define CREATE_CONDITIONAL_INVOKER(DerivedVisitorClass, invoker) \
+    typedef struct {                                             \
+        template<typename VisitorImpl, typename Visitable>       \
+        static ReturnT invoke(VisitorImpl& visitor, Visitable& visitable) \
+        { \
+            typedef typename std::conditional<zillians::language::stage::visitor::is_call_possible<DerivedVisitorClass, void(Visitable)>::value, DerivedVisitorClass, GenericVisitor>::type CallClass; \
+            visitor.CallClass::apply(visitable); \
+        } \
+    } invoker;
+
 
 #endif /* ZILLIANS_LANGUAGE_TREE_VISITOR_GENERICVISITOR_H_ */

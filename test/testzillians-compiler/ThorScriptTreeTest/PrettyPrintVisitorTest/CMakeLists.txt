@@ -28,7 +28,7 @@ ADD_EXECUTABLE(ThorScriptTreeTest_PrettyPrintVisitorTest PrettyPrintVisitorTest.
 
 TARGET_LINK_LIBRARIES(ThorScriptTreeTest_PrettyPrintVisitorTest
     zillians-common-core
-    zillians-framework-language
+    zillians-framework-language-tree
     )
 
 zillians_add_simple_test(TARGET ThorScriptTreeTest_PrettyPrintVisitorTest)

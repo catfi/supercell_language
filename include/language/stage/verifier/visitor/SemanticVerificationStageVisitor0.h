@@ -21,8 +21,8 @@
 #define ZILLIANS_LANGUAGE_STAGE_VISITOR_SEMANTICVERIFICATIONSTAGEVISITOR0_H_
 
 #include "core/Prerequisite.h"
-#include "language/tree/visitor/GenericVisitor.h"
-#include "language/tree/visitor/GenericVisitor.h"
+#include "language/tree/visitor/GenericDoubleVisitor.h"
+#include "language/tree/visitor/GenericDoubleVisitor.h"
 #include "language/tree/visitor/NameManglingVisitor.h"
 #include "language/stage/transformer/context/ManglingStageContext.h"
 #include "language/logging/StringTable.h"
@@ -35,7 +35,7 @@
 #include <string>
 
 using namespace zillians::language::tree;
-using zillians::language::tree::visitor::GenericVisitor;
+using zillians::language::tree::visitor::GenericDoubleVisitor;
 using zillians::language::tree::visitor::NameManglingVisitor;
 
 // CHECKS IN SEMANTIC VERIFICATION STAGE 0
@@ -61,21 +61,21 @@ using zillians::language::tree::visitor::NameManglingVisitor;
 
 namespace zillians { namespace language { namespace stage { namespace visitor {
 
-struct SemanticVerificationStageVisitor0 : public GenericVisitor
+struct SemanticVerificationStageVisitor0 : public GenericDoubleVisitor
 {
-    CREATE_GENERIC_INVOKER(verifyInvoker)
+    CREATE_INVOKER(verifyInvoker, verify)
 
 	SemanticVerificationStageVisitor0()
 	{
 		REGISTER_ALL_VISITABLE_ASTNODE(verifyInvoker)
 	}
 
-	void apply(ASTNode& node)
+	void verify(ASTNode& node)
 	{
-		GenericVisitor::apply(node);
+		revisit(node);
 	}
 
-	void apply(Package& node)
+	void verify(Package& node)
 	{
 		verifyDupeName(&node);
 		cleanup.push_back([&](){
@@ -89,11 +89,11 @@ struct SemanticVerificationStageVisitor0 : public GenericVisitor
 			LOG_MESSAGE(PACKAGE_NAME_COLLIDE_PARENT, &node, _package_id = node.id->toString());
 		}
 
-		GenericVisitor::apply(node);
+		revisit(node);
 	}
 
 #if 0
-	void apply(ClassDecl& node)
+	void verify(ClassDecl& node)
 	{
 		// CHECK: variable name and function name should not conflict with each other
 		std::map<std::wstring, ASTNode*> all_members;
@@ -145,16 +145,16 @@ struct SemanticVerificationStageVisitor0 : public GenericVisitor
 			}
 		}
 
-		GenericVisitor::apply(node);
+		revisit(node);
 	}
 
-	void apply(InterfaceDecl& node)
+	void verify(InterfaceDecl& node)
 	{
 		// CHECK: all member function in interface must not have private scope specifier
 	}
 #endif
 
-	void apply(TemplatedIdentifier& node)
+	void verify(TemplatedIdentifier& node)
 	{
 		std::set<std::wstring> name_set;
 		size_t n = 0;
@@ -193,27 +193,27 @@ struct SemanticVerificationStageVisitor0 : public GenericVisitor
 		if(n>getConfigurationContext().max_template_arg_param_count)
 			LOG_MESSAGE(EXCEED_TEMPLATE_PARAM_LIMIT, &node);
 
-		GenericVisitor::apply(node);
+		revisit(node);
 	}
 
-	void apply(BinaryExpr& node)
+	void verify(BinaryExpr& node)
 	{
 		// WRITE_RVALUE
 		if(node.isAssignment() && node.left->isRValue())
 			LOG_MESSAGE(WRITE_RVALUE, &node);
 
-		GenericVisitor::apply(node);
+		revisit(node);
 	}
 
-	void apply(Statement& node)
+	void verify(Statement& node)
 	{
 		// DEAD_CODE
 		verifyDeadCode(&node);
 
-		GenericVisitor::apply(node);
+		revisit(node);
 	}
 
-	void apply(BranchStmt& node)
+	void verify(BranchStmt& node)
 	{
 		// MISSING_BREAK_TARGET
 		// MISSING_CONTINUE_TARGET
@@ -225,28 +225,28 @@ struct SemanticVerificationStageVisitor0 : public GenericVisitor
             case BranchStmt::OpCode::RETURN:   UNREACHABLE_CODE(); break;
 			}
 
-		// DEAD_CODE (NOTE: necessary because apply(BranchStmt&) is shadowed by verify(Statement&))
+		// DEAD_CODE (NOTE: necessary because verify (BranchStmt&) is shadowed by verify(Statement&))
 		verifyDeadCode(&node);
 		if(node.opcode == BranchStmt::OpCode::RETURN)
 			SemanticVerificationBlockContext_HasVisitedReturn::bind(ASTNodeHelper::getOwner<Block>(&node));
 
-		GenericVisitor::apply(node);
+		revisit(node);
 	}
 
-	void apply(Block& node)
+	void verify(Block& node)
 	{
 		cleanup.push_back([&](){
 			SemanticVerificationBlockContext_HasVisitedReturn::unbind(&node);
 		});
 
-		GenericVisitor::apply(node);
+		revisit(node);
 
 		// DEAD_CODE
 		if(!isConditional(node.parent) && SemanticVerificationBlockContext_HasVisitedReturn::is_bound(&node))
 			SemanticVerificationBlockContext_HasVisitedReturn::bind(node.parent);
 	}
 
-	void apply(VariableDecl& node)
+	void verify(VariableDecl& node)
 	{
 		verifyDupeName(&node);
 
@@ -254,10 +254,10 @@ struct SemanticVerificationStageVisitor0 : public GenericVisitor
 		if(!isa<EnumDecl>(node.parent) && !isa<FunctionDecl>(node.parent) && node.is_static && !node.initializer)
 			LOG_MESSAGE(MISSING_STATIC_INIT, &node);
 
-		GenericVisitor::apply(node);
+		revisit(node);
 	}
 
-	void apply(FunctionDecl& node)
+	void verify(FunctionDecl& node)
 	{
 		verifyDupeName(&node);
 		cleanup.push_back([&](){
@@ -291,17 +291,17 @@ struct SemanticVerificationStageVisitor0 : public GenericVisitor
 		if(n>getConfigurationContext().max_param_count)
 			LOG_MESSAGE(EXCEED_PARAM_LIMIT, &node);
 
-		GenericVisitor::apply(node);
+		revisit(node);
 	}
 
-	void apply(ClassDecl& node)
+	void verify(ClassDecl& node)
 	{
 		verifyDupeName(&node);
 		cleanup.push_back([&](){
 			SemanticVerificationScopeContext_NameSet::unbind(&node);
 		});
 
-		GenericVisitor::apply(node);
+		revisit(node);
 	}
 
 private:

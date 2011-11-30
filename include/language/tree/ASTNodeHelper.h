@@ -26,6 +26,7 @@
 #include "language/context/TransformerContext.h"
 #include "language/stage/parser/context/SourceInfoContext.h"
 #include "language/tree/visitor/NodeInfoVisitor.h"
+#include "language/tree/visitor/ASTGraphvizGenerator.h"
 
 namespace zillians { namespace language { namespace tree {
 
@@ -287,6 +288,23 @@ struct ASTNodeHelper
 	{
 		return PrimitiveType::byteSize(node->referred.primitive);
 	}
+
+    static void visualize(ASTNode* node, const std::string& filename)
+    {
+        // DEBUG
+        // test graphviz generator
+        std::wofstream fout(filename);
+        fout << L"digraph G {" << std::endl;
+        fout << L"    rankdir=LR;" << std::endl;
+        zillians::language::stage::visitor::ASTGraphvizNodeGenerator nodeGen(fout);
+        nodeGen.label(*node);
+        fout << std::endl;
+        fout << std::endl;
+        zillians::language::stage::visitor::ASTGraphvizEdgeGenerator edgeGen(fout);
+        edgeGen.apply(*node);
+        fout << "}" << std::endl;
+    }
+
 
 private:
 	static bool isNamedScope(ASTNode* node)

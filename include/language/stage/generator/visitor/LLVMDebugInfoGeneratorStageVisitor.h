@@ -23,7 +23,7 @@
 #include "core/Prerequisite.h"
 #include <boost/filesystem.hpp>
 
-#include "language/tree/visitor/GenericVisitor.h"
+#include "language/tree/visitor/GenericDoubleVisitor.h"
 #include "language/context/ParserContext.h"
 #include "language/stage/parser/context/SourceInfoContext.h"
 #include "language/stage/transformer/context/ManglingStageContext.h"
@@ -32,15 +32,15 @@
 #include "utility/UnicodeUtil.h"
 
 using namespace zillians::language::tree;
-using zillians::language::tree::visitor::GenericVisitor;
+using zillians::language::tree::visitor::GenericDoubleVisitor;
 
 namespace zillians { namespace language { namespace stage { namespace visitor {
 
 #define COMPANY_INFORMATION "1.0 ThorScript Compiler (Zillians Inc)"
 
-struct LLVMDebugInfoGeneratorStageVisitor: public GenericVisitor
+struct LLVMDebugInfoGeneratorStageVisitor: public GenericDoubleVisitor
 {
-    CREATE_GENERIC_INVOKER(generateInvoker)
+    CREATE_INVOKER(generateInvoker, generate)
 
 	typedef std::map<PrimitiveType::type, llvm::DIType> type_cache_t;
 
@@ -50,7 +50,7 @@ struct LLVMDebugInfoGeneratorStageVisitor: public GenericVisitor
 		REGISTER_ALL_VISITABLE_ASTNODE(generateInvoker)
 	}
 
-	void apply(ASTNode& node)
+	void generate(ASTNode& node)
 	{
 		/**
 		 * Generic implementation:
@@ -86,10 +86,10 @@ struct LLVMDebugInfoGeneratorStageVisitor: public GenericVisitor
 			}
 		}
 
-		GenericVisitor::apply(node);
+		revisit(node);
 	}
 
-	void apply(Source& node)
+	void generate(Source& node)
 	{
 		LOG4CXX_DEBUG(LoggerWrapper::DebugInfoGeneratorStage, __PRETTY_FUNCTION__);
 		ModuleSourceInfoContext* module_info = ModuleSourceInfoContext::get(&node);
@@ -123,10 +123,10 @@ struct LLVMDebugInfoGeneratorStageVisitor: public GenericVisitor
 
 		DebugInfoProgramContext::set(&node, program_context);
 
-		GenericVisitor::apply(node);
+		revisit(node);
 	}
 
-	void apply(TypeSpecifier& node)
+	void generate(TypeSpecifier& node)
 	{
 		LOG4CXX_DEBUG(LoggerWrapper::DebugInfoGeneratorStage, __PRETTY_FUNCTION__);
 		SourceInfoContext* source_info = SourceInfoContext::get(&node);
@@ -151,7 +151,7 @@ struct LLVMDebugInfoGeneratorStageVisitor: public GenericVisitor
 		DebugInfoTypeContext::set(&node, new DebugInfoTypeContext(type));
 	}
 
-	void apply(FunctionDecl& node)
+	void generate(FunctionDecl& node)
 	{
 		LOG4CXX_DEBUG(LoggerWrapper::DebugInfoGeneratorStage, __PRETTY_FUNCTION__);
 		LOG4CXX_DEBUG(LoggerWrapper::DebugInfoGeneratorStage, "<Function> function name: " << ws_to_s(node.name->toString()));
@@ -165,11 +165,11 @@ struct LLVMDebugInfoGeneratorStageVisitor: public GenericVisitor
 		DebugInfoProgramContext* program_context = DebugInfoProgramContext::get(getParserContext().active_source);
 		LOG4CXX_DEBUG(LoggerWrapper::DebugInfoGeneratorStage, "<Function> file: " << program_context->files[source_index]);
 
-		// apply return type debug information
-		apply(*node.type);
+		// generate return type debug information
+		generate(*node.type);
 		DebugInfoTypeContext* return_type = DebugInfoTypeContext::get(node.type);
 
-		// TODO: apply debug information of parameters' type
+		// TODO: generate debug information of parameters' type
 
 		// Create DISubprogram for the function
 		llvm::Function * llvm_function = node.get<llvm::Function>();
@@ -192,18 +192,18 @@ struct LLVMDebugInfoGeneratorStageVisitor: public GenericVisitor
 		LOG4CXX_DEBUG(LoggerWrapper::DebugInfoGeneratorStage, "<Function> subprogram: " << subprogram << " mdnode: " << (llvm::MDNode*)subprogram);
 
 		// Visit other attributes
-		if(node.name) apply(*node.name);
+		if(node.name) generate(*node.name);
 		foreach(i, node.parameters)
 		{
-			if((*i)->name) apply(*((*i)->name));
-			if((*i)->type) apply(*((*i)->type));
-			if((*i)->initializer) apply(*((*i)->initializer));
+			if((*i)->name) generate(*((*i)->name));
+			if((*i)->type) generate(*((*i)->type));
+			if((*i)->initializer) generate(*((*i)->initializer));
 		}
-		if(node.block) apply(*node.block);
-		if(node.annotations) apply(*node.annotations);
+		if(node.block) generate(*node.block);
+		if(node.annotations) generate(*node.annotations);
 	}
 
-	void apply(Block& node)
+	void generate(Block& node)
 	{
 		LOG4CXX_DEBUG(LoggerWrapper::DebugInfoGeneratorStage, __PRETTY_FUNCTION__);
 		BOOST_ASSERT(node.parent && "Block has no parent!");
@@ -220,10 +220,10 @@ struct LLVMDebugInfoGeneratorStageVisitor: public GenericVisitor
 				parent_debug_info->compile_unit, parent_debug_info->file,	// inherit from parent node
 				function_block));
 		LOG4CXX_DEBUG(LoggerWrapper::DebugInfoGeneratorStage, "<Block> context: " << function_block);
-		GenericVisitor::apply(node);
+		revisit(node);
 	}
 
-	void apply(VariableDecl& node)
+	void generate(VariableDecl& node)
 	{
 		LOG4CXX_DEBUG(LoggerWrapper::DebugInfoGeneratorStage, __PRETTY_FUNCTION__);
 		BOOST_ASSERT(node.parent && "Variable declaration has no parent!");
@@ -233,8 +233,8 @@ struct LLVMDebugInfoGeneratorStageVisitor: public GenericVisitor
 
 		LOG4CXX_DEBUG(LoggerWrapper::DebugInfoGeneratorStage, "<Variable> parent context: " << parent_debug_info->context);
 
-		// apply type debug information
-		apply(*node.type);
+		// generate type debug information
+		generate(*node.type);
 		DebugInfoTypeContext* type_info = DebugInfoTypeContext::get(node.type);
 
 		// TODO: Need to decide the type
@@ -268,10 +268,10 @@ struct LLVMDebugInfoGeneratorStageVisitor: public GenericVisitor
 			store_inst->setDebugLoc(llvm::DebugLoc::get(source_info->line, source_info->column, scope));
 		}
 
-		GenericVisitor::apply(node);
+		revisit(node);
 	}
 
-	void apply(IfElseStmt& node)
+	void generate(IfElseStmt& node)
 	{
 		LOG4CXX_DEBUG(LoggerWrapper::DebugInfoGeneratorStage, __PRETTY_FUNCTION__);
 
@@ -280,7 +280,7 @@ struct LLVMDebugInfoGeneratorStageVisitor: public GenericVisitor
 
 		SourceInfoContext* source_info = SourceInfoContext::get(&node);
 
-		GenericVisitor::apply(node);
+		revisit(node);
 
 		llvm::Instruction* inst = llvm::cast<llvm::Instruction>(node.if_branch.cond->get<llvm::Value>());
 		inst->setDebugLoc(llvm::DebugLoc::get(source_info->line, source_info->column, parent_debug_info->context));

@@ -46,6 +46,7 @@ struct ClassDecl : public Declaration
 		BOOST_ASSERT(name && "null member function declaration is not allowed");
 
 		func->parent = this;
+		func->is_member = true;
 		member_functions.push_back(func);
 	}
 
@@ -54,6 +55,7 @@ struct ClassDecl : public Declaration
 		BOOST_ASSERT(name && "null member variable declaration is not allowed");
 
 		var->parent = this;
+		var->is_member = true;
 		member_variables.push_back(var);
 	}
 
@@ -101,16 +103,16 @@ struct ClassDecl : public Declaration
     {
     	ClassDecl* cloned = new ClassDecl((name) ? cast<Identifier>(name->clone()) : NULL);
 
-    	if(base) cloned->base = cast<TypeSpecifier>(base->clone());
+    	if(base) cloned->setBase(cast<TypeSpecifier>(base->clone()));
 
     	foreach(i, implements)
-    		cloned->implements.push_back((*i) ? cast<TypeSpecifier>((*i)->clone()) : NULL);
+    		cloned->addInterface((*i) ? cast<TypeSpecifier>((*i)->clone()) : NULL);
 
     	foreach(i, member_functions)
-    		cloned->member_functions.push_back((*i) ? cast<FunctionDecl>((*i)->clone()) : NULL);
+    		cloned->addFunction((*i) ? cast<FunctionDecl>((*i)->clone()) : NULL);
 
     	foreach(i, member_variables)
-    		cloned->member_variables.push_back((*i) ? cast<VariableDecl>((*i)->clone()) : NULL);
+    		cloned->addVariable((*i) ? cast<VariableDecl>((*i)->clone()) : NULL);
 
     	return cloned;
     }

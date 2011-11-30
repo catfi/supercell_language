@@ -28,6 +28,7 @@ ADD_EXECUTABLE(ThorScriptTreeTest_GarbageCollectionVisitorTest GarbageCollection
 
 TARGET_LINK_LIBRARIES(ThorScriptTreeTest_GarbageCollectionVisitorTest
     zillians-common-core
+    zillians-framework-language-tree
     )
 
 zillians_add_simple_test(TARGET ThorScriptTreeTest_GarbageCollectionVisitorTest)

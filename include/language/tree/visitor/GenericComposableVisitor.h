@@ -21,7 +21,7 @@
 #define ZILLIANS_LANGUAGE_TREE_VISITOR_GENERICCOMPOSABLEVISITOR_H_
 
 #include "core/Prerequisite.h"
-#include "language/tree/visitor/GenericVisitor.h"
+#include "language/tree/visitor/GenericDoubleVisitor.h"
 #include <boost/fusion/container.hpp>
 #include <boost/fusion/support/detail/access.hpp>
 #include <boost/preprocessor/repetition/enum_params.hpp>
@@ -35,11 +35,11 @@ static const bool Composable = true;
 static const bool Standalone = false;
 
 template<BOOST_PP_ENUM_PARAMS_WITH_A_DEFAULT(FUSION_MAX_VECTOR_SIZE, typename T, boost::fusion::void_)>
-struct GenericComposableVisitor : public GenericVisitor, boost::fusion::vector<BOOST_PP_ENUM_PARAMS(FUSION_MAX_VECTOR_SIZE, T)>
+struct GenericComposableVisitor : public GenericDoubleVisitor, boost::fusion::vector<BOOST_PP_ENUM_PARAMS(FUSION_MAX_VECTOR_SIZE, T)>
 {
 	typedef boost::fusion::vector<BOOST_PP_ENUM_PARAMS(FUSION_MAX_VECTOR_SIZE, T)> base_type;
 
-    CREATE_GENERIC_INVOKER(applyInvoker);
+    CREATE_INVOKER(applyInvoker, apply);
 
 	// the following code uses boost PP to create multiple version of constructor
 	// GenericComposableVisitor(T0)
@@ -63,7 +63,7 @@ struct GenericComposableVisitor : public GenericVisitor, boost::fusion::vector<B
 	void apply(ASTNode& node)
 	{
 		boost::fusion::for_each(*this, invoke_visit(node));
-		GenericVisitor::apply(node);
+		revisit(node);
 	}
 };
 

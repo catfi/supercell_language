@@ -20,6 +20,7 @@
 #ifndef ZILLIANS_LANGUAGE_THORSCRIPTDRIVER_H_
 #define ZILLIANS_LANGUAGE_THORSCRIPTDRIVER_H_
 
+#include "language/tree/ASTNodeFactory.h"
 #include <string>
 #include <vector>
 #include <boost/filesystem.hpp>
@@ -51,6 +52,8 @@ private:
 
 private:
     bool createProjectSkeleton(const std::string& projectName);
+    tree::Tangle* getMergedAST(const std::vector<std::string>& ast_files);
+
     bool buildDebug();
     bool buildRelease();
     bool build();
@@ -72,6 +75,10 @@ private:
     std::string readCache();
     std::vector<std::string> getAstUnderBuild();
     bool setProjectPathAndBuildPath(std::vector<std::string>& argv);
+
+private:
+    bool generateDocument();
+    bool configDoxyfile();
 
 protected:
     virtual int shell(const std::string& cmd);

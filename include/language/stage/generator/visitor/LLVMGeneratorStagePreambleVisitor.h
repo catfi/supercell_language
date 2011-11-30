@@ -21,27 +21,27 @@
 #define ZILLIANS_LANGUAGE_STAGE_VISITOR_LLVMGENERATORPREAMBLESTAGEVISITOR_H_
 
 #include "core/Prerequisite.h"
-#include "language/tree/visitor/GenericVisitor.h"
+#include "language/tree/visitor/GenericDoubleVisitor.h"
 #include "language/stage/generator/detail/LLVMHelper.h"
 #include "language/stage/transformer/context/ManglingStageContext.h"
 #include "language/stage/generator/context/SynthesizedFunctionContext.h"
 
 using namespace zillians::language::tree;
-using zillians::language::tree::visitor::GenericVisitor;
+using zillians::language::tree::visitor::GenericDoubleVisitor;
 
 namespace zillians { namespace language { namespace stage { namespace visitor {
 
 /**
  * LLVMGeneratorStagePreambleVisitor is used to generate llvm::Function object for all functions prior to actual code generation
  *
- * We have to apply llvm::Function object prior to actual code generation because the LLVMGeneratorVisitor visits the tree in a top-down approach,
+ * We have to generate llvm::Function object prior to actual code generation because the LLVMGeneratorVisitor visits the tree in a top-down approach,
  * so it's common case that the callee is visited after the caller, which requires llvm::Function object to create llvm::CallInst
  *
  * @see LLVMGeneratorStageVisitor
  */
-struct LLVMGeneratorStagePreambleVisitor : public GenericVisitor
+struct LLVMGeneratorStagePreambleVisitor : public GenericDoubleVisitor
 {
-    CREATE_GENERIC_INVOKER(generateInvoker)
+	CREATE_INVOKER(generateInvoker, generate)
 
 	LLVMGeneratorStagePreambleVisitor(llvm::LLVMContext& context, llvm::Module& module) :
 		mContext(context), mModule(module), mBuilder(context), mHelper(context)
@@ -49,18 +49,18 @@ struct LLVMGeneratorStagePreambleVisitor : public GenericVisitor
 		REGISTER_ALL_VISITABLE_ASTNODE(generateInvoker)
 	}
 
-	void apply(ASTNode& node)
+	void generate(ASTNode& node)
 	{
-		GenericVisitor::apply(node);
+		revisit(node);
 	}
 
-	void apply(InterfaceDecl& node)
+	void generate(InterfaceDecl& node)
 	{
 		UNUSED_ARGUMENT(node);
 		// we don't generate code for interface
 	}
 
-	void apply(ClassDecl& node)
+	void generate(ClassDecl& node)
 	{
 		visit(*node.name);
 
@@ -73,24 +73,23 @@ struct LLVMGeneratorStagePreambleVisitor : public GenericVisitor
 				return;
 		}
 
-		GenericVisitor::apply(node);
+		revisit(node);
 	}
 
-	void apply(FunctionDecl& node)
+	void generate(FunctionDecl& node)
 	{
 		if(!GET_SYNTHESIZED_LLVM_FUNCTION(&node))
 		{
 			llvm::Function* llvm_function = NULL;
 
 			llvm::FunctionType* llvm_function_type = NULL;
-			std::vector<llvm::AttributeWithIndex> llvm_function_parameter_type_attributes;
-			llvm::Attributes llvm_function_return_type_attribute = llvm::Attribute::None;
+			std::vector<llvm::AttributeWithIndex> llvm_function_type_attributes;
 
 			// try to resolve function type
-			if(!mHelper.getFunctionType(node, llvm_function_type, llvm_function_parameter_type_attributes, llvm_function_return_type_attribute))
+			if(!mHelper.getFunctionType(node, llvm_function_type, llvm_function_type_attributes))
 			{
-				BOOST_ASSERT(false && "failed to apply LLVM function object");
-				terminate();
+				BOOST_ASSERT(false && "failed to generate LLVM function object");
+				terminateRevisit();
 				return;
 			}
 
@@ -99,14 +98,14 @@ struct LLVMGeneratorStagePreambleVisitor : public GenericVisitor
 
 			if(!llvm_function)
 			{
-				BOOST_ASSERT(false && "failed to apply LLVM function object");
-				terminate();
+				BOOST_ASSERT(false && "failed to generate LLVM function object");
+				terminateRevisit();
 				return;
 			}
 
 			// set function attributes (modifiers)
-			if(llvm_function_parameter_type_attributes.size() > 0)
-				llvm_function->setAttributes(llvm::AttrListPtr::get(llvm_function_parameter_type_attributes.begin(), llvm_function_parameter_type_attributes.end()));
+			if(llvm_function_type_attributes.size() > 0)
+				llvm_function->setAttributes(llvm::AttrListPtr::get(llvm_function_type_attributes.begin(), llvm_function_type_attributes.end()));
 
 			// set function parameter names
 			int index = 0;

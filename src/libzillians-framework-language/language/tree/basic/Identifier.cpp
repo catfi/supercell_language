@@ -200,7 +200,7 @@ void TemplatedIdentifier::specialize()
 				}
 				else
 				{
-					specialized_type = new TypeSpecifier((*i)->name->clone());
+					specialized_type = new TypeSpecifier(cast<Identifier>((*i)->name->clone()));
 				}
 
 				SimpleIdentifier* dummy_identifier = new SimpleIdentifier(L"_");

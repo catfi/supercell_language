@@ -194,13 +194,13 @@ BOOST_AUTO_TEST_CASE( ThorScriptTreeTest_StaticTestVerificationStageVisitorTestC
 	Tangle* okTangle = createPassSample();
 	//checker.programNode = okProgram;
     getParserContext().active_source = okTangle->sources.begin()->second;
-	checker.check(*okTangle);
+	checker.visit(*okTangle);
 	BOOST_CHECK(checker.isAllMatch());
 
 	Tangle* failTangle = createFailSample();
 	//checker.programNode = failTangle;
     getParserContext().active_source = okTangle->sources.begin()->second;;
-	checker.check(*failTangle);
+	checker.visit(*failTangle);
 	BOOST_CHECK(!checker.isAllMatch());
 }
 

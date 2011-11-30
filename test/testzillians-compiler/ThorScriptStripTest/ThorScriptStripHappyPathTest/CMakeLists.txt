@@ -27,12 +27,11 @@ INCLUDE_DIRECTORIES(
 ADD_EXECUTABLE(
     ThorScriptStripTest_ThorScriptStripHappyPathTest
     ThorScriptStripHappyPathTest.cpp
-    ../../../../src/zillians-thorscript-strip/language/ThorScriptStrip.cpp
     )
 
 TARGET_LINK_LIBRARIES(ThorScriptStripTest_ThorScriptStripHappyPathTest
     zillians-common-core
-    zillians-framework-language
+    zillians-framework-language-main-stages-strip
     )
 
 zillians_add_simple_test(TARGET ThorScriptStripTest_ThorScriptStripHappyPathTest)
