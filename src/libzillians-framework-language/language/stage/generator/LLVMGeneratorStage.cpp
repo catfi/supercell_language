@@ -89,6 +89,7 @@ bool LLVMGeneratorStage::execute(bool& continue_execution)
 	// create visitor to walk through the entire tree and generate instructions accordingly
 	if(getParserContext().active_source)
 	{
+        //ASTNodeHelper::visualize(getParserContext().tangle, "whatever");
 		// emit preamble code (declare all LLVM functions)
 		visitor::LLVMGeneratorStagePreambleVisitor preamble_visitor(*context, *module);
 		preamble_visitor.visit(*getParserContext().active_source);
