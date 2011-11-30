@@ -35,7 +35,7 @@ struct NameManglingVisitor : Visitor<ASTNode, void, VisitorImplementation::recur
 {
 	CREATE_INVOKER(mangleInvoker, mangle)
 
-	NameManglingVisitor() : combo_name(false), dependent_component(false)
+	NameManglingVisitor() : uptrace_depth(0), dependent_component(false)
 	{
 		REGISTER_ALL_VISITABLE_ASTNODE(mangleInvoker)
 	}
@@ -45,17 +45,23 @@ struct NameManglingVisitor : Visitor<ASTNode, void, VisitorImplementation::recur
 
 	void mangle(Package& node)
 	{
+		bool combo_name = false;
+		if(node.parent)
+		{
+			uptrace_depth++;
+			combo_name = (uptrace_depth > 2);
+			visit(*node.parent); // up-trace to build complete name
+			uptrace_depth = 0;
+		}
 		if(ASTNodeHelper::isRootPackage(&node))
 		{
-			stream << "_Z"; // always begin with "_Z"
+			if(!dependent_component)
+				stream << "_Z"; // always begin with "_Z"
 			if(combo_name)
 				stream << "N"; // name involves a Package/ClassDecl
 		}
 		else
-		{
-			combo_name = true;
 			visit(*node.id);
-		}
 	}
 
 	void mangle(SimpleIdentifier& node)
@@ -104,7 +110,12 @@ struct NameManglingVisitor : Visitor<ASTNode, void, VisitorImplementation::recur
 
 	void mangle(FunctionType& node)
 	{
-		if(node.parent) visit(*node.parent); // up-trace to build complete name
+		if(node.parent)
+		{
+			uptrace_depth++;
+			visit(*node.parent); // up-trace to build complete name
+			uptrace_depth = 0;
+		}
 		stream << "PF"; // function pointer is always a pointer, hence "P" in "PF"
 		resolveAndVisit(node.return_type);
 		std::vector<TypeSpecifier*> type_list;
@@ -129,30 +140,33 @@ struct NameManglingVisitor : Visitor<ASTNode, void, VisitorImplementation::recur
 
 	void mangle(ClassDecl& node)
 	{
-		if(!dependent_component)
+		if(node.parent)
 		{
-			if(node.parent) visit(*node.parent); // up-trace to build complete name
-			combo_name = true;
+			uptrace_depth++;
+			visit(*node.parent); // up-trace to build complete name
+			uptrace_depth = 0;
 		}
 		visitIdentifier(node.name);
 	}
 
 	void mangle(InterfaceDecl& node)
 	{
-		if(!dependent_component)
+		if(node.parent)
 		{
-			if(node.parent) visit(*node.parent); // up-trace to build complete name
-			combo_name = true;
+			uptrace_depth++;
+			visit(*node.parent); // up-trace to build complete name
+			uptrace_depth = 0;
 		}
 		visitIdentifier(node.name);
 	}
 
 	void mangle(EnumDecl& node)
 	{
-		if(!dependent_component)
+		if(node.parent)
 		{
-			if(node.parent) visit(*node.parent); // up-trace to build complete name
-			combo_name = true;
+			uptrace_depth++;
+			visit(*node.parent); // up-trace to build complete name
+			uptrace_depth = 0;
 		}
 		visitIdentifier(node.name);
 	}
@@ -163,7 +177,12 @@ struct NameManglingVisitor : Visitor<ASTNode, void, VisitorImplementation::recur
 		if(node.is_member && node.parent && isa<ClassDecl>(node.parent) && node.name->toString() == L"new")
 			return;
 #endif
-		if(node.parent) visit(*node.parent); // up-trace to build complete name
+		if(node.parent)
+		{
+			uptrace_depth++;
+			visit(*node.parent); // up-trace to build complete name
+			uptrace_depth = 0;
+		}
 		visitIdentifier(node.name);
 		std::vector<TypeSpecifier*> type_list;
 		std::vector<VariableDecl*>::iterator p = node.parameters.begin();
@@ -247,7 +266,7 @@ struct NameManglingVisitor : Visitor<ASTNode, void, VisitorImplementation::recur
 		std::cout << "NameManglingVisitor: " << stream.str() << std::endl;
 #endif
 		stream.str("");
-		combo_name        = false;
+		uptrace_depth = 0;
 		dependent_component = false;
 	}
 
@@ -296,7 +315,7 @@ private:
 		return a->isEqual(*b);
 	}
 
-	bool combo_name;
+	size_t uptrace_depth;
 	bool dependent_component;
 };
 
