@@ -27,6 +27,7 @@ INCLUDE_DIRECTORIES(
 ADD_EXECUTABLE(ThorScriptTreeTest_PrettyPrintVisitorTest PrettyPrintVisitorTest.cpp)
 
 TARGET_LINK_LIBRARIES(ThorScriptTreeTest_PrettyPrintVisitorTest
+    zillians-framework-language
     zillians-common-core
     zillians-framework-language-tree
     )

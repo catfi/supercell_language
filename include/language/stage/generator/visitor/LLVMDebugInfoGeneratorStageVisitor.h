@@ -23,7 +23,7 @@
 #include "core/Prerequisite.h"
 #include <boost/filesystem.hpp>
 
-#include "language/tree/visitor/GenericVisitor.h"
+#include "language/tree/visitor/GenericDoubleVisitor.h"
 #include "language/context/ParserContext.h"
 #include "language/stage/parser/context/SourceInfoContext.h"
 #include "language/stage/transformer/context/ManglingStageContext.h"
@@ -32,15 +32,15 @@
 #include "utility/UnicodeUtil.h"
 
 using namespace zillians::language::tree;
-using zillians::language::tree::visitor::GenericVisitor;
+using zillians::language::tree::visitor::GenericDoubleVisitor;
 
 namespace zillians { namespace language { namespace stage { namespace visitor {
 
 #define COMPANY_INFORMATION "1.0 ThorScript Compiler (Zillians Inc)"
 
-struct LLVMDebugInfoGeneratorStageVisitor: public GenericVisitor
+struct LLVMDebugInfoGeneratorStageVisitor: public GenericDoubleVisitor
 {
-    CREATE_GENERIC_INVOKER(generateInvoker)
+    CREATE_INVOKER(generateInvoker, apply)
 
 	typedef std::map<PrimitiveType::type, llvm::DIType> type_cache_t;
 
@@ -86,7 +86,7 @@ struct LLVMDebugInfoGeneratorStageVisitor: public GenericVisitor
 			}
 		}
 
-		GenericVisitor::apply(node);
+		revisit(node);
 	}
 
 	void apply(Source& node)
@@ -123,7 +123,7 @@ struct LLVMDebugInfoGeneratorStageVisitor: public GenericVisitor
 
 		DebugInfoProgramContext::set(&node, program_context);
 
-		GenericVisitor::apply(node);
+		revisit(node);
 	}
 
 	void apply(TypeSpecifier& node)
@@ -220,7 +220,7 @@ struct LLVMDebugInfoGeneratorStageVisitor: public GenericVisitor
 				parent_debug_info->compile_unit, parent_debug_info->file,	// inherit from parent node
 				function_block));
 		LOG4CXX_DEBUG(LoggerWrapper::DebugInfoGeneratorStage, "<Block> context: " << function_block);
-		GenericVisitor::apply(node);
+		revisit(node);
 	}
 
 	void apply(VariableDecl& node)
@@ -268,7 +268,7 @@ struct LLVMDebugInfoGeneratorStageVisitor: public GenericVisitor
 			store_inst->setDebugLoc(llvm::DebugLoc::get(source_info->line, source_info->column, scope));
 		}
 
-		GenericVisitor::apply(node);
+		revisit(node);
 	}
 
 	void apply(IfElseStmt& node)
@@ -280,7 +280,7 @@ struct LLVMDebugInfoGeneratorStageVisitor: public GenericVisitor
 
 		SourceInfoContext* source_info = SourceInfoContext::get(&node);
 
-		GenericVisitor::apply(node);
+		revisit(node);
 
 		llvm::Instruction* inst = llvm::cast<llvm::Instruction>(node.if_branch.cond->get<llvm::Value>());
 		inst->setDebugLoc(llvm::DebugLoc::get(source_info->line, source_info->column, parent_debug_info->context));

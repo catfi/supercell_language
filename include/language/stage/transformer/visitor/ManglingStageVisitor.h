@@ -21,12 +21,12 @@
 #define ZILLIANS_LANGUAGE_STAGE_VISITOR_MANGLINGSTAGEVISITOR_H_
 
 #include "core/Prerequisite.h"
-#include "language/tree/visitor/GenericVisitor.h"
+#include "language/tree/visitor/GenericDoubleVisitor.h"
 #include "language/tree/visitor/NameManglingVisitor.h"
 #include "language/stage/transformer/context/ManglingStageContext.h"
 
 using namespace zillians::language::tree;
-using zillians::language::tree::visitor::GenericVisitor;
+using zillians::language::tree::visitor::GenericDoubleVisitor;
 using zillians::language::tree::visitor::NameManglingVisitor;
 
 namespace zillians { namespace language { namespace stage { namespace visitor {
@@ -36,9 +36,9 @@ namespace zillians { namespace language { namespace stage { namespace visitor {
  *
  * @see ManglingStage
  */
-struct ManglingStageVisitor : public GenericVisitor
+struct ManglingStageVisitor : public GenericDoubleVisitor
 {
-    CREATE_GENERIC_INVOKER(mangleInvoker)
+    CREATE_INVOKER(mangleInvoker, apply)
 
 	ManglingStageVisitor() : next_type_id(1024), next_symbol_id(0)
 	{
@@ -47,7 +47,7 @@ struct ManglingStageVisitor : public GenericVisitor
 
 	void apply(ASTNode& node)
 	{
-		GenericVisitor::apply(node);
+		revisit(node);
 	}
 
 	void apply(Identifier& node)
@@ -63,7 +63,7 @@ struct ManglingStageVisitor : public GenericVisitor
 
 		TypeIdManglingContext::set(&node, new TypeIdManglingContext(next_type_id++));
 
-		GenericVisitor::apply(node);
+		revisit(node);
 	}
 
 	void apply(InterfaceDecl& node)
@@ -74,7 +74,7 @@ struct ManglingStageVisitor : public GenericVisitor
 
 		TypeIdManglingContext::set(&node, new TypeIdManglingContext(next_type_id++));
 
-		GenericVisitor::apply(node);
+		revisit(node);
 	}
 
 	void apply(EnumDecl& node)
@@ -85,7 +85,7 @@ struct ManglingStageVisitor : public GenericVisitor
 
 		TypeIdManglingContext::set(&node, new TypeIdManglingContext(next_type_id++));
 
-		GenericVisitor::apply(node);
+		revisit(node);
 	}
 
 	void apply(FunctionDecl& node)
@@ -96,7 +96,7 @@ struct ManglingStageVisitor : public GenericVisitor
 
 		SymbolIdManglingContext::set(&node, new SymbolIdManglingContext(next_symbol_id++));
 
-		GenericVisitor::apply(node);
+		revisit(node);
 	}
 
 	void apply(VariableDecl& node)

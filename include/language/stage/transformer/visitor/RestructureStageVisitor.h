@@ -23,12 +23,12 @@
 #include "core/Prerequisite.h"
 #include "language/tree/ASTNodeHelper.h"
 #include "language/context/TransformerContext.h"
-#include "language/tree/visitor/GenericVisitor.h"
+#include "language/tree/visitor/GenericDoubleVisitor.h"
 #include "language/tree/visitor/NameManglingVisitor.h"
 #include "language/stage/transformer/context/ManglingStageContext.h"
 
 using namespace zillians::language::tree;
-using zillians::language::tree::visitor::GenericVisitor;
+using zillians::language::tree::visitor::GenericDoubleVisitor;
 using zillians::language::tree::visitor::NameManglingVisitor;
 
 namespace zillians { namespace language { namespace stage { namespace visitor {
@@ -38,9 +38,9 @@ namespace zillians { namespace language { namespace stage { namespace visitor {
  *
  * @see RestructureStage
  */
-struct RestructureStageVisitor : public GenericVisitor
+struct RestructureStageVisitor : public GenericDoubleVisitor
 {
-    CREATE_GENERIC_INVOKER(restructInvoker)
+    CREATE_INVOKER(restructInvoker, apply)
 
 	RestructureStageVisitor()
 	{
@@ -49,12 +49,12 @@ struct RestructureStageVisitor : public GenericVisitor
 
 	void apply(ASTNode& node)
 	{
-		GenericVisitor::apply(node);
+		revisit(node);
 	}
 
 	void apply(ClassDecl& node)
 	{
-		GenericVisitor::apply(node);
+		revisit(node);
 
 		// check if there's no default constructor,
 		bool has_default_constructor = false;
@@ -96,7 +96,7 @@ struct RestructureStageVisitor : public GenericVisitor
 
 	void apply(FunctionDecl& node)
 	{
-		GenericVisitor::apply(node);
+		revisit(node);
 
 		// for all class member function
 		bool need_to_prepend_this_argument = false;
@@ -144,7 +144,7 @@ struct RestructureStageVisitor : public GenericVisitor
 
 	void apply(VariableDecl& node)
 	{
-		GenericVisitor::apply(node);
+		revisit(node);
 
 		if(node.initializer)
 		{
@@ -238,7 +238,7 @@ struct RestructureStageVisitor : public GenericVisitor
 
 	void apply(UnaryExpr& node)
 	{
-		GenericVisitor::apply(node);
+		revisit(node);
 
         /*
 		   transform simple new operator to new function call
@@ -300,7 +300,7 @@ struct RestructureStageVisitor : public GenericVisitor
 
 	void apply(BinaryExpr& node)
 	{
-		GenericVisitor::apply(node);
+		revisit(node);
 
         /*
 		   transform all arithmetic assignment into separate arithmetic expression and assignment expression

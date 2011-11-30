@@ -21,7 +21,7 @@
 #define ZILLIANS_LANGUAGE_TREE_VISITOR_GENERICCOMPOSABLEVISITOR_H_
 
 #include "core/Prerequisite.h"
-#include "language/tree/visitor/GenericVisitor.h"
+#include "language/tree/visitor/GenericDoubleVisitor.h"
 #include <boost/fusion/container.hpp>
 #include <boost/fusion/support/detail/access.hpp>
 #include <boost/preprocessor/repetition/enum_params.hpp>

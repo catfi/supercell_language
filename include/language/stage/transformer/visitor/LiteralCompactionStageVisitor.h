@@ -21,13 +21,13 @@
 #define ZILLIANS_LANGUAGE_STAGE_VISITOR_LITERALCOMPACTIONSTAGEVISITOR_H_
 
 #include "core/Prerequisite.h"
-#include "language/tree/visitor/GenericVisitor.h"
+#include "language/tree/visitor/GenericDoubleVisitor.h"
 #include "language/tree/visitor/NameManglingVisitor.h"
 #include "language/stage/transformer/context/ManglingStageContext.h"
 #include "language/logging/StringTable.h"
 
 using namespace zillians::language::tree;
-using zillians::language::tree::visitor::GenericVisitor;
+using zillians::language::tree::visitor::GenericDoubleVisitor;
 using zillians::language::tree::visitor::NameManglingVisitor;
 
 namespace zillians { namespace language { namespace stage { namespace visitor {
@@ -37,9 +37,9 @@ namespace zillians { namespace language { namespace stage { namespace visitor {
  *
  * @see LiteralCompactionStage
  */
-struct LiteralCompactionStageVisitor : public GenericVisitor
+struct LiteralCompactionStageVisitor : public GenericDoubleVisitor
 {
-    CREATE_GENERIC_INVOKER(compactInvoker)
+    CREATE_INVOKER(compactInvoker, apply)
 
 	LiteralCompactionStageVisitor() : program(NULL)
 	{
@@ -48,13 +48,13 @@ struct LiteralCompactionStageVisitor : public GenericVisitor
 
 	void apply(ASTNode& node)
 	{
-		GenericVisitor::apply(node);
+		revisit(node);
 	}
 
 	void apply(Source& node)
 	{
 		program = &node;
-		GenericVisitor::apply(node);
+		revisit(node);
 	}
 
 	void apply(NumericLiteral& node)

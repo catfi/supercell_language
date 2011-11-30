@@ -22,8 +22,8 @@
 
 #include "core/Prerequisite.h"
 #include "language/context/TransformerContext.h"
-#include "language/tree/visitor/GenericVisitor.h"
-#include "language/tree/visitor/GenericVisitor.h"
+#include "language/tree/visitor/GenericDoubleVisitor.h"
+#include "language/tree/visitor/GenericDoubleVisitor.h"
 #include "language/stage/transformer/context/ManglingStageContext.h"
 #include "language/logging/StringTable.h"
 #include "language/logging/LoggerWrapper.h"
@@ -33,7 +33,7 @@
 #include "language/resolver/Resolver.h"
 
 using namespace zillians::language::tree;
-using zillians::language::tree::visitor::GenericVisitor;
+using zillians::language::tree::visitor::GenericDoubleVisitor;
 
 // CHECKS IN SEMANTIC VERIFICATION STAGE 1
 
@@ -57,9 +57,9 @@ using zillians::language::tree::visitor::GenericVisitor;
 
 namespace zillians { namespace language { namespace stage { namespace visitor {
 
-struct SemanticVerificationStageVisitor1 : public GenericVisitor
+struct SemanticVerificationStageVisitor1 : public GenericDoubleVisitor
 {
-    CREATE_GENERIC_INVOKER(verifyInvoker)
+    CREATE_INVOKER(verifyInvoker, apply)
 
 	SemanticVerificationStageVisitor1()
 	{
@@ -68,7 +68,7 @@ struct SemanticVerificationStageVisitor1 : public GenericVisitor
 
 	void apply(ASTNode& node)
 	{
-		GenericVisitor::apply(node);
+		revisit(node);
 	}
 
 	void apply(MemberExpr& node)
@@ -84,7 +84,7 @@ struct SemanticVerificationStageVisitor1 : public GenericVisitor
 				verifyVisibilityAccessViolation(&node, cast<FunctionDecl>(resolved_symbol));
 		}
 
-		GenericVisitor::apply(node);
+		revisit(node);
 	}
 
 	void apply(PrimaryExpr& node)
@@ -123,7 +123,7 @@ struct SemanticVerificationStageVisitor1 : public GenericVisitor
 			}
 		}
 
-		GenericVisitor::apply(node);
+		revisit(node);
 	}
 
 	void apply(CallExpr& node)
@@ -147,7 +147,7 @@ struct SemanticVerificationStageVisitor1 : public GenericVisitor
 			}
 		}
 
-		GenericVisitor::apply(node);
+		revisit(node);
 	}
 
 	void apply(BinaryExpr& node)
@@ -176,7 +176,7 @@ struct SemanticVerificationStageVisitor1 : public GenericVisitor
 			}
 		}
 
-		GenericVisitor::apply(node);
+		revisit(node);
 	}
 
 	void apply(BranchStmt& node)
@@ -208,7 +208,7 @@ struct SemanticVerificationStageVisitor1 : public GenericVisitor
 				LOG_MESSAGE(UNEXPECTED_RETURN_VALUE, &node);
 		}
 
-		GenericVisitor::apply(node);
+		revisit(node);
 	}
 
 	void apply(VariableDecl& node)
@@ -217,7 +217,7 @@ struct SemanticVerificationStageVisitor1 : public GenericVisitor
 			SemanticVerificationVariableDeclContext_HasBeenInit::unbind(&node);
 		});
 
-		GenericVisitor::apply(node);
+		revisit(node);
 	}
 
 	void apply(FunctionDecl& node)
@@ -226,7 +226,7 @@ struct SemanticVerificationStageVisitor1 : public GenericVisitor
 		foreach(i, node.parameters)
 			SemanticVerificationVariableDeclContext_HasBeenInit::bind(*i);
 
-		GenericVisitor::apply(node);
+		revisit(node);
 
 		if(!isVoid(node.type))
 		{
@@ -250,7 +250,7 @@ struct SemanticVerificationStageVisitor1 : public GenericVisitor
 			SemanticVerificationBlockContext_AlwaysReturns::unbind(&node);
 		});
 
-		GenericVisitor::apply(node);
+		revisit(node);
 
 		if(isa<Block>(node.parent) && SemanticVerificationBlockContext_AlwaysReturns::get(&node))
 			SemanticVerificationBlockContext_AlwaysReturns::bind(node.parent);
@@ -258,7 +258,7 @@ struct SemanticVerificationStageVisitor1 : public GenericVisitor
 
 	void apply(IfElseStmt& node)
 	{
-		GenericVisitor::apply(node);
+		revisit(node);
 
 		// CONTROL_REACHES_END
 		bool always_returns = true;
@@ -297,7 +297,7 @@ struct SemanticVerificationStageVisitor1 : public GenericVisitor
 			}
 		}
 
-		GenericVisitor::apply(node);
+		revisit(node);
 
 		// CONTROL_REACHES_END
 		bool always_returns = true;
@@ -311,7 +311,7 @@ struct SemanticVerificationStageVisitor1 : public GenericVisitor
 
 	void apply(IterativeStmt& node)
 	{
-		GenericVisitor::apply(node);
+		revisit(node);
 
 		if(isa<Block>(node.parent) && SemanticVerificationBlockContext_AlwaysReturns::get(node.block))
 			SemanticVerificationBlockContext_AlwaysReturns::bind(node.parent);
