@@ -46,6 +46,7 @@ struct ClassDecl : public Declaration
 		BOOST_ASSERT(name && "null member function declaration is not allowed");
 
 		func->parent = this;
+		func->is_member = true;
 		member_functions.push_back(func);
 	}
 
@@ -54,6 +55,7 @@ struct ClassDecl : public Declaration
 		BOOST_ASSERT(name && "null member variable declaration is not allowed");
 
 		var->parent = this;
+		var->is_member = true;
 		member_variables.push_back(var);
 	}
 
