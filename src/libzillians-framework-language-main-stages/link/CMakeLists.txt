@@ -38,4 +38,4 @@ target_link_libraries(zillians-framework-language-main-stages-link
     zillians-framework-language-general
     )
     
-add_dependencies(zillians-language-language-main-stages zillians-framework-language-main-stages-link)
+add_dependencies(zillians-framework-language-main-stages zillians-framework-language-main-stages-link)
