@@ -73,6 +73,10 @@ private:
     std::vector<std::string> getAstUnderBuild();
     bool setProjectPathAndBuildPath(std::vector<std::string>& argv);
 
+private:
+    bool generateDocument();
+    bool configDoxyfile();
+
 protected:
     virtual int shell(const std::string& cmd);
 
