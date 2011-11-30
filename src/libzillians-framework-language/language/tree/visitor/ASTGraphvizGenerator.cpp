@@ -140,19 +140,19 @@ void ASTGraphvizParentEdgeGenerator::genParentEdge(zillians::language::tree::AST
     // ResolvedType
     if(ASTNode* context = zillians::language::ResolvedType::get(&node))
     {
-        addParentEdge(&node, context, L"ResolvedType", L"purple");
+        addParentEdge(context, &node, L"ResolvedType", L"purple");
     }
 
     // ResolvedSymbol
     if(ASTNode* context = zillians::language::ResolvedSymbol::get(&node))
     {
-        addParentEdge(&node, context, L"ResolvedSymbol", L"orange");
+        addParentEdge(context, &node, L"ResolvedSymbol", L"orange");
     }
 
     // SplitReferenceContext
     if(ASTNode* context = zillians::language::SplitReferenceContext::get(&node))
     {
-        addParentEdge(&node, context, L"SplitReferenceContext", L"blue");
+        addParentEdge(context, &node, L"SplitReferenceContext", L"blue");
     }
 
     revisit(node);
