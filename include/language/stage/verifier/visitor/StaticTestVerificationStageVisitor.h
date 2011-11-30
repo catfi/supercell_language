@@ -28,18 +28,18 @@
 #include "language/logging/StringTable.h"
 #include "core/Visitor.h"
 #include "language/tree/ASTNodeFactory.h"
-#include "language/tree/visitor/GenericVisitor.h"
+#include "language/tree/visitor/GenericDoubleVisitor.h"
 #include "language/stage/parser/context/SourceInfoContext.h"
 #include "language/context/LogInfoContext.h"
 
 using namespace zillians::language::tree;
-using zillians::language::tree::visitor::GenericVisitor;
+using zillians::language::tree::visitor::GenericDoubleVisitor;
 
 namespace zillians { namespace language { namespace stage { namespace visitor {
 
-struct StaticTestVerificationStageVisitor : public GenericVisitor
+struct StaticTestVerificationStageVisitor : public GenericDoubleVisitor
 {
-    CREATE_GENERIC_INVOKER(errorMessageAnnotationCheckInvoker);
+    CREATE_INVOKER(errorMessageAnnotationCheckInvoker, apply);
 
 	StaticTestVerificationStageVisitor() : mAllMatch(true)
 	{
@@ -53,25 +53,25 @@ struct StaticTestVerificationStageVisitor : public GenericVisitor
 
 	void apply(ASTNode& node)
 	{
-		GenericVisitor::apply(node);
+		revisit(node);
 	}
 
     void apply(Statement& node)
     {
         staticTest(node);
-        GenericVisitor::apply(node); // NOTE: not sure if needed (lambda???)
+        revisit(node); // NOTE: not sure if needed (lambda???)
     }
 
     void apply(Declaration& node)
     {
         staticTest(node);
-        GenericVisitor::apply(node);
+        revisit(node);
     }
 
     void apply(Package& node)
     {
         staticTest(node);
-        GenericVisitor::apply(node);
+        revisit(node);
     }
 
 private:

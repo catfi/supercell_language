@@ -27,21 +27,26 @@
 #include "core/Prerequisite.h"
 #include "core/Visitor.h"
 #include "language/tree/ASTNodeFactory.h"
-#include "language/tree/visitor/GenericVisitor.h"
+#include "language/tree/visitor/GenericDoubleVisitor.h"
 
 using namespace zillians::language::tree;
-using zillians::language::tree::visitor::GenericVisitor;
+using zillians::language::tree::visitor::GenericDoubleVisitor;
 
 namespace zillians { namespace language { namespace stage { namespace visitor {
 
-struct ThorScriptStripStageVisitor : public GenericVisitor
+struct ThorScriptStripStageVisitor : public GenericDoubleVisitor
 {
-	CREATE_GENERIC_INVOKER(mStripeVisitorInvoker);
+    CREATE_INVOKER(mStripeVisitorInvoker, apply);
 
 	ThorScriptStripStageVisitor()
 	{
 		REGISTER_ALL_VISITABLE_ASTNODE(mStripeVisitorInvoker)
 	}
+
+    void apply(zillians::language::tree::ASTNode& node)
+    {
+        revisit(node);
+    }
 
     void apply(zillians::language::tree::FunctionDecl& node)
     {
@@ -57,12 +62,6 @@ private:
         return isa<TemplatedIdentifier>(node.name) &&
                cast<TemplatedIdentifier>(node.name)->type == zillians::language::tree::TemplatedIdentifier::Usage::FORMAL_PARAMETER ;
     }
-
-
-public:
-	//Source* programNode;
-
-private:
 
 };
 

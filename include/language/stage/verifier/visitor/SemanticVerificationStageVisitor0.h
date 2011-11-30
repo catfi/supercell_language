@@ -21,8 +21,8 @@
 #define ZILLIANS_LANGUAGE_STAGE_VISITOR_SEMANTICVERIFICATIONSTAGEVISITOR0_H_
 
 #include "core/Prerequisite.h"
-#include "language/tree/visitor/GenericVisitor.h"
-#include "language/tree/visitor/GenericVisitor.h"
+#include "language/tree/visitor/GenericDoubleVisitor.h"
+#include "language/tree/visitor/GenericDoubleVisitor.h"
 #include "language/tree/visitor/NameManglingVisitor.h"
 #include "language/stage/transformer/context/ManglingStageContext.h"
 #include "language/logging/StringTable.h"
@@ -35,7 +35,7 @@
 #include <string>
 
 using namespace zillians::language::tree;
-using zillians::language::tree::visitor::GenericVisitor;
+using zillians::language::tree::visitor::GenericDoubleVisitor;
 using zillians::language::tree::visitor::NameManglingVisitor;
 
 // CHECKS IN SEMANTIC VERIFICATION STAGE 0
@@ -61,9 +61,9 @@ using zillians::language::tree::visitor::NameManglingVisitor;
 
 namespace zillians { namespace language { namespace stage { namespace visitor {
 
-struct SemanticVerificationStageVisitor0 : public GenericVisitor
+struct SemanticVerificationStageVisitor0 : public GenericDoubleVisitor
 {
-    CREATE_GENERIC_INVOKER(verifyInvoker)
+    CREATE_INVOKER(verifyInvoker, apply)
 
 	SemanticVerificationStageVisitor0()
 	{
@@ -72,7 +72,7 @@ struct SemanticVerificationStageVisitor0 : public GenericVisitor
 
 	void apply(ASTNode& node)
 	{
-		GenericVisitor::apply(node);
+		revisit(node);
 	}
 
 	void apply(Package& node)
@@ -89,7 +89,7 @@ struct SemanticVerificationStageVisitor0 : public GenericVisitor
 			LOG_MESSAGE(PACKAGE_NAME_COLLIDE_PARENT, &node, _package_id = node.id->toString());
 		}
 
-		GenericVisitor::apply(node);
+		revisit(node);
 	}
 
 #if 0
@@ -145,7 +145,7 @@ struct SemanticVerificationStageVisitor0 : public GenericVisitor
 			}
 		}
 
-		GenericVisitor::apply(node);
+		revisit(node);
 	}
 
 	void apply(InterfaceDecl& node)
@@ -193,7 +193,7 @@ struct SemanticVerificationStageVisitor0 : public GenericVisitor
 		if(n>getConfigurationContext().max_template_arg_param_count)
 			LOG_MESSAGE(EXCEED_TEMPLATE_PARAM_LIMIT, &node);
 
-		GenericVisitor::apply(node);
+		revisit(node);
 	}
 
 	void apply(BinaryExpr& node)
@@ -202,7 +202,7 @@ struct SemanticVerificationStageVisitor0 : public GenericVisitor
 		if(node.isAssignment() && node.left->isRValue())
 			LOG_MESSAGE(WRITE_RVALUE, &node);
 
-		GenericVisitor::apply(node);
+		revisit(node);
 	}
 
 	void apply(Statement& node)
@@ -210,7 +210,7 @@ struct SemanticVerificationStageVisitor0 : public GenericVisitor
 		// DEAD_CODE
 		verifyDeadCode(&node);
 
-		GenericVisitor::apply(node);
+		revisit(node);
 	}
 
 	void apply(BranchStmt& node)
@@ -230,7 +230,7 @@ struct SemanticVerificationStageVisitor0 : public GenericVisitor
 		if(node.opcode == BranchStmt::OpCode::RETURN)
 			SemanticVerificationBlockContext_HasVisitedReturn::bind(ASTNodeHelper::getOwner<Block>(&node));
 
-		GenericVisitor::apply(node);
+		revisit(node);
 	}
 
 	void apply(Block& node)
@@ -239,7 +239,7 @@ struct SemanticVerificationStageVisitor0 : public GenericVisitor
 			SemanticVerificationBlockContext_HasVisitedReturn::unbind(&node);
 		});
 
-		GenericVisitor::apply(node);
+		revisit(node);
 
 		// DEAD_CODE
 		if(!isConditional(node.parent) && SemanticVerificationBlockContext_HasVisitedReturn::is_bound(&node))
@@ -254,7 +254,7 @@ struct SemanticVerificationStageVisitor0 : public GenericVisitor
 		if(!isa<EnumDecl>(node.parent) && !isa<FunctionDecl>(node.parent) && node.is_static && !node.initializer)
 			LOG_MESSAGE(MISSING_STATIC_INIT, &node);
 
-		GenericVisitor::apply(node);
+		revisit(node);
 	}
 
 	void apply(FunctionDecl& node)
@@ -291,7 +291,7 @@ struct SemanticVerificationStageVisitor0 : public GenericVisitor
 		if(n>getConfigurationContext().max_param_count)
 			LOG_MESSAGE(EXCEED_PARAM_LIMIT, &node);
 
-		GenericVisitor::apply(node);
+		revisit(node);
 	}
 
 	void apply(ClassDecl& node)
@@ -301,7 +301,7 @@ struct SemanticVerificationStageVisitor0 : public GenericVisitor
 			SemanticVerificationScopeContext_NameSet::unbind(&node);
 		});
 
-		GenericVisitor::apply(node);
+		revisit(node);
 	}
 
 private:
