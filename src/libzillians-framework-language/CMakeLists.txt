@@ -121,11 +121,11 @@ target_link_libraries(zillians-framework-language-general-stages
 add_dependencies(zillians-framework-language-general generate-string-table)
 
 
-add_dependencies(zillians-language-language zillians-framework-language-spirit)
-add_dependencies(zillians-language-language zillians-framework-language-llvm)
-add_dependencies(zillians-language-language zillians-framework-language-tree)
-add_dependencies(zillians-language-language zillians-framework-language-general)
-add_dependencies(zillians-language-language zillians-framework-language-general-stages)
+add_dependencies(zillians-framework-language zillians-framework-language-spirit)
+add_dependencies(zillians-framework-language zillians-framework-language-llvm)
+add_dependencies(zillians-framework-language zillians-framework-language-tree)
+add_dependencies(zillians-framework-language zillians-framework-language-general)
+add_dependencies(zillians-framework-language zillians-framework-language-general-stages)
 
 #get_target_property(__lib_location zillians-framework-language-spirit LOCATION)
 #add_custom_command(TARGET zillians-framework-language-spirit POST_BUILD
