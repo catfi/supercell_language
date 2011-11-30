@@ -24,15 +24,15 @@ include_directories(
     ${PROJECT_FRAMEWORK_SOURCE_DIR}/include/
     )
 
-add_executable(ts-dep
+add_executable(ts-make
     main.cpp
     )
     
-target_link_libraries(ts-dep
-    zillians-framework-language-main-stages-dep
+target_link_libraries(ts-make
+    zillians-framework-language-main-stages-make
     )
     
-get_target_property(ThorScriptDep ts-dep LOCATION)
-message(STATUS "Using ThorScript Dep: \"${ThorScriptDep}\"")
+get_target_property(ThorScriptMake ts-make LOCATION)
+message(STATUS "Using ThorScript Make: \"${ThorScriptMake}\"")
 
-add_dependencies(zillians-language-compiler-collection ts-bundle)
+add_dependencies(zillians-framework-language-compiler-collection ts-make)

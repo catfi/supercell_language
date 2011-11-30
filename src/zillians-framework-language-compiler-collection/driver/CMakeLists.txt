@@ -24,15 +24,15 @@ include_directories(
     ${PROJECT_FRAMEWORK_SOURCE_DIR}/include/
     )
 
-add_executable(ts-vm
+add_executable(tsc
     main.cpp
     )
     
-target_link_libraries(ts-vm
-    zillians-framework-language-main-stages-vm
+target_link_libraries(tsc
+    zillians-framework-language-main-stages-driver
     )
+    
+get_target_property(ThorScriptDriver tsc LOCATION)
+message(STATUS "Using ThorScript Driver: \"${ThorScriptDriver}\"")
 
-get_target_property(ThorScriptVM ts-vm LOCATION)
-message(STATUS "Using ThorScript VM: \"${ThorScriptVM}\"")
-
-add_dependencies(zillians-language-compiler-collection ts-vm)
+add_dependencies(zillians-framework-language-compiler-collection tsc)

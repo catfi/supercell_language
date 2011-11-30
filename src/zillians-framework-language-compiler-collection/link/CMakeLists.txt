@@ -1,35 +1,39 @@
-#
+# 
 # Zillians MMO
-# Copyright (C) 2007-2012 Zillians.com, Inc.
+# Copyright (C) 2007-2009 Zillians.com, Inc.
 # For more information see http:#www.zillians.com
 #
 # Zillians MMO is the library and runtime for massive multiplayer online game
-# development in utility computing model, which runs as a service for every
+# development in utility computing model, which runs as a service for every 
 # developer to build their virtual world running on our GPU-assisted machines
 #
 # This is a close source library intended to be used solely within Zillians.com
-#
+# 
 # THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 # IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
 # FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
 # COPYRIGHT HOLDER(S) BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN
 # AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
-# CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+# CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. 
 #
 # Contact Information: info@zillians.com
 #
 
-add_custom_target(zillians-language-compiler-collection)
+include_directories(
+    ${PROJECT_COMMON_SOURCE_DIR}/include/
+    ${PROJECT_FRAMEWORK_SOURCE_DIR}/include/
+    ${ZILLIANS_DEP_PATH}/linux
+    )
 
-ADD_SUBDIRECTORY(bundle)
-ADD_SUBDIRECTORY(compile)
-ADD_SUBDIRECTORY(dep)
-ADD_SUBDIRECTORY(doc)
-ADD_SUBDIRECTORY(driver)
-ADD_SUBDIRECTORY(link)
-ADD_SUBDIRECTORY(make)
-ADD_SUBDIRECTORY(manifest)
-ADD_SUBDIRECTORY(strip)
-ADD_SUBDIRECTORY(stub)
-ADD_SUBDIRECTORY(vm)
+add_executable(ts-link
+    main.cpp
+    )
+    
+target_link_libraries(ts-link
+    zillians-framework-language-main-stages-link
+    )
+    
+get_target_property(ThorScriptLinker ts-link LOCATION)
+message(STATUS "Using ThorScript Linker: \"${ThorScriptLinker}\"")
 
+add_dependencies(zillians-framework-language-compiler-collection ts-link)

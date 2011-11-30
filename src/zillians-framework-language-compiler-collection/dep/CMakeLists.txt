@@ -22,18 +22,17 @@
 include_directories(
     ${PROJECT_COMMON_SOURCE_DIR}/include/
     ${PROJECT_FRAMEWORK_SOURCE_DIR}/include/
-    ${ZILLIANS_DEP_PATH}/linux
     )
 
-add_executable(ts-link
+add_executable(ts-dep
     main.cpp
     )
     
-target_link_libraries(ts-link
-    zillians-framework-language-main-stages-link
+target_link_libraries(ts-dep
+    zillians-framework-language-main-stages-dep
     )
     
-get_target_property(ThorScriptLinker ts-link LOCATION)
-message(STATUS "Using ThorScript Linker: \"${ThorScriptLinker}\"")
+get_target_property(ThorScriptDep ts-dep LOCATION)
+message(STATUS "Using ThorScript Dep: \"${ThorScriptDep}\"")
 
-add_dependencies(zillians-language-compiler-collection ts-link)
+add_dependencies(zillians-framework-language-compiler-collection ts-bundle)

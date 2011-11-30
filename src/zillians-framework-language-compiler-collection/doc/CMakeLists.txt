@@ -72,7 +72,7 @@ ExternalProject_Add(ts-doc
     #--Custom targets-------------
     )
 
-add_dependencies(zillians-language-compiler-collection ts-doc)
+add_dependencies(zillians-framework-language-compiler-collection ts-doc)
 
 set(ThorScriptDocGenerator ${EXECUTABLE_OUTPUT_PATH}/ts-doc)
 message(STATUS "Using ThorScript Doc Generator: \"${ThorScriptDocGenerator}\"")

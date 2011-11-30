@@ -94,7 +94,7 @@ ADD_SUBDIRECTORY(zillians-spirit-log-filter)
 IF(COG_FOUND)
     ADD_SUBDIRECTORY(libzillians-framework-language)
     ADD_SUBDIRECTORY(libzillians-framework-language-main-stages)
-    ADD_SUBDIRECTORY(zillians-language-compiler-collection)
+    ADD_SUBDIRECTORY(zillians-framework-language-compiler-collection)
 ENDIF()
 
 
