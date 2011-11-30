@@ -91,7 +91,7 @@ bool ResolutionStage::execute(bool& continue_execution)
         if(dump_graphviz)
         {
             std::ostringstream oss;
-            oss << "post-resolution-" << count << ".dot";
+            oss << "pre-resolution-" << count << ".dot";
             boost::filesystem::path p(dump_graphviz_dir);
             ASTNodeHelper::visualize(getParserContext().tangle, p / oss.str());
             ++count;
