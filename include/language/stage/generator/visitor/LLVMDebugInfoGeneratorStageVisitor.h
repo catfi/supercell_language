@@ -34,17 +34,13 @@
 using namespace zillians::language::tree;
 using zillians::language::tree::visitor::GenericDoubleVisitor;
 
-namespace zillians {
-namespace language {
-namespace stage {
-namespace visitor {
+namespace zillians { namespace language { namespace stage { namespace visitor {
 
-#define COMPANY_INFORMATION "1.0 ThorScript Compiler (Zillians Corp.)"
+#define COMPANY_INFORMATION "1.0 ThorScript Compiler (Zillians Inc)"
 
-
-struct LLVMDebugInfoGeneratorStageVisitor: GenericDoubleVisitor
+struct LLVMDebugInfoGeneratorStageVisitor: public GenericDoubleVisitor
 {
-	CREATE_INVOKER(generateInvoker, generate)
+    CREATE_INVOKER(generateInvoker, generate)
 
 	typedef std::map<PrimitiveType::type, llvm::DIType> type_cache_t;
 
@@ -169,11 +165,11 @@ struct LLVMDebugInfoGeneratorStageVisitor: GenericDoubleVisitor
 		DebugInfoProgramContext* program_context = DebugInfoProgramContext::get(getParserContext().active_source);
 		LOG4CXX_DEBUG(LoggerWrapper::DebugInfoGeneratorStage, "<Function> file: " << program_context->files[source_index]);
 
-		// Generate return type debug information
+		// generate return type debug information
 		generate(*node.type);
 		DebugInfoTypeContext* return_type = DebugInfoTypeContext::get(node.type);
 
-		// TODO: Generate debug information of parameters' type
+		// TODO: generate debug information of parameters' type
 
 		// Create DISubprogram for the function
 		llvm::Function * llvm_function = node.get<llvm::Function>();
@@ -237,7 +233,7 @@ struct LLVMDebugInfoGeneratorStageVisitor: GenericDoubleVisitor
 
 		LOG4CXX_DEBUG(LoggerWrapper::DebugInfoGeneratorStage, "<Variable> parent context: " << parent_debug_info->context);
 
-		// Generate type debug information
+		// generate type debug information
 		generate(*node.type);
 		DebugInfoTypeContext* type_info = DebugInfoTypeContext::get(node.type);
 

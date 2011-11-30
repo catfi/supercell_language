@@ -34,16 +34,16 @@ namespace zillians { namespace language { namespace stage { namespace visitor {
  * ASTSerializationStageVisitor is a helper to serialize all context object stored in ContextHub of AST
  */
 template<typename Archive>
-struct ASTSerializationStageVisitor : GenericDoubleVisitor
+struct ASTSerializationStageVisitor : public GenericDoubleVisitor
 {
-	CREATE_INVOKER(serializeInvoker, serialize)
+    CREATE_INVOKER(serializeInvoker, apply)
 
 	ASTSerializationStageVisitor(Archive& oa) : archive(oa)
 	{
 		REGISTER_ALL_VISITABLE_ASTNODE(serializeInvoker)
 	}
 
-	void serialize(ASTNode& node)
+	void apply(ASTNode& node)
 	{
 		FullSerializer serializer(node);
 		archive << serializer;

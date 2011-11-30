@@ -20,15 +20,12 @@
 #ifndef ZILLIANS_LANGUAGE_STAGE_MAKE_THORSCRIPTLINKERSTAGE_H_
 #define ZILLIANS_LANGUAGE_STAGE_MAKE_THORSCRIPTLINKERSTAGE_H_
 
-#include <vector>
-#include <string>
 #include "language/stage/Stage.h"
 
 namespace zillians { namespace language { namespace stage {
 
 /**
- * The ThorScriptLinkerStage is responsible for:
- *
+ * The ThorScriptLinkerStage is responsible for generating native machine code
  */
 class ThorScriptLinkerStage : public Stage
 {

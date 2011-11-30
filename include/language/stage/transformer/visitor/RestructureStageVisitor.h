@@ -38,9 +38,9 @@ namespace zillians { namespace language { namespace stage { namespace visitor {
  *
  * @see RestructureStage
  */
-struct RestructureStageVisitor : GenericDoubleVisitor
+struct RestructureStageVisitor : public GenericDoubleVisitor
 {
-	CREATE_INVOKER(restructInvoker, restruct)
+    CREATE_INVOKER(restructInvoker, restruct)
 
 	RestructureStageVisitor()
 	{

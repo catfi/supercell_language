@@ -25,39 +25,30 @@
 
 #include <string>
 #include "core/Prerequisite.h"
-//#include "language/logging/StringTable.h"
 #include "core/Visitor.h"
 #include "language/tree/ASTNodeFactory.h"
 #include "language/tree/visitor/GenericDoubleVisitor.h"
-//#include "language/stage/parser/context/SourceInfoContext.h"
-//#include "language/context/LogInfoContext.h"
 
 using namespace zillians::language::tree;
 using zillians::language::tree::visitor::GenericDoubleVisitor;
 
 namespace zillians { namespace language { namespace stage { namespace visitor {
 
-struct ThorScriptStripStageVisitor : public zillians::language::tree::visitor::GenericDoubleVisitor
+struct ThorScriptStripStageVisitor : public GenericDoubleVisitor
 {
-	CREATE_INVOKER(thorScriptStripInvoker, strip);
+    CREATE_INVOKER(mStripeVisitorInvoker, apply);
 
 	ThorScriptStripStageVisitor()
 	{
-		REGISTER_ALL_VISITABLE_ASTNODE(thorScriptStripInvoker)
+		REGISTER_ALL_VISITABLE_ASTNODE(mStripeVisitorInvoker)
 	}
 
-	void strip(zillians::language::tree::ASTNode& node)
-	{
-		revisit(node);
-	}
-
-    bool static isFormalTemplateFunction(zillians::language::tree::FunctionDecl& node)
+    void apply(zillians::language::tree::ASTNode& node)
     {
-        return isa<TemplatedIdentifier>(node.name) &&
-               cast<TemplatedIdentifier>(node.name)->type == zillians::language::tree::TemplatedIdentifier::Usage::FORMAL_PARAMETER ;
+        revisit(node);
     }
 
-    void strip(zillians::language::tree::FunctionDecl& node)
+    void apply(zillians::language::tree::FunctionDecl& node)
     {
         if(!isFormalTemplateFunction(node))
         {
@@ -66,11 +57,11 @@ struct ThorScriptStripStageVisitor : public zillians::language::tree::visitor::G
     }
 
 private:
-
-public:
-	//Source* programNode;
-
-private:
+    bool static isFormalTemplateFunction(zillians::language::tree::FunctionDecl& node)
+    {
+        return isa<TemplatedIdentifier>(node.name) &&
+               cast<TemplatedIdentifier>(node.name)->type == zillians::language::tree::TemplatedIdentifier::Usage::FORMAL_PARAMETER ;
+    }
 
 };
 

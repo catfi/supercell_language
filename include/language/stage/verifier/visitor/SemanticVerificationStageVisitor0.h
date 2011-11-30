@@ -21,7 +21,7 @@
 #define ZILLIANS_LANGUAGE_STAGE_VISITOR_SEMANTICVERIFICATIONSTAGEVISITOR0_H_
 
 #include "core/Prerequisite.h"
-#include "language/tree/visitor/GenericVisitor.h"
+#include "language/tree/visitor/GenericDoubleVisitor.h"
 #include "language/tree/visitor/GenericDoubleVisitor.h"
 #include "language/tree/visitor/NameManglingVisitor.h"
 #include "language/stage/transformer/context/ManglingStageContext.h"
@@ -61,9 +61,9 @@ using zillians::language::tree::visitor::NameManglingVisitor;
 
 namespace zillians { namespace language { namespace stage { namespace visitor {
 
-struct SemanticVerificationStageVisitor0 : GenericDoubleVisitor
+struct SemanticVerificationStageVisitor0 : public GenericDoubleVisitor
 {
-	CREATE_INVOKER(verifyInvoker, verify)
+    CREATE_INVOKER(verifyInvoker, verify)
 
 	SemanticVerificationStageVisitor0()
 	{
@@ -225,7 +225,7 @@ struct SemanticVerificationStageVisitor0 : GenericDoubleVisitor
             case BranchStmt::OpCode::RETURN:   UNREACHABLE_CODE(); break;
 			}
 
-		// DEAD_CODE (NOTE: necessary because verify(BranchStmt&) is shadowed by verify(Statement&))
+		// DEAD_CODE (NOTE: necessary because verify (BranchStmt&) is shadowed by verify(Statement&))
 		verifyDeadCode(&node);
 		if(node.opcode == BranchStmt::OpCode::RETURN)
 			SemanticVerificationBlockContext_HasVisitedReturn::bind(ASTNodeHelper::getOwner<Block>(&node));

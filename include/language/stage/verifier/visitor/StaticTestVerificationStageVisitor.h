@@ -37,9 +37,9 @@ using zillians::language::tree::visitor::GenericDoubleVisitor;
 
 namespace zillians { namespace language { namespace stage { namespace visitor {
 
-struct StaticTestVerificationStageVisitor : public zillians::language::tree::visitor::GenericDoubleVisitor
+struct StaticTestVerificationStageVisitor : public GenericDoubleVisitor
 {
-	CREATE_INVOKER(errorMessageAnnotationCheckInvoker, check);
+    CREATE_INVOKER(errorMessageAnnotationCheckInvoker, check);
 
 	StaticTestVerificationStageVisitor() : mAllMatch(true)
 	{
@@ -51,24 +51,24 @@ struct StaticTestVerificationStageVisitor : public zillians::language::tree::vis
 		return mAllMatch;
 	}
 
-	void check(zillians::language::tree::ASTNode& node)
+	void check(ASTNode& node)
 	{
 		revisit(node);
 	}
 
-    void check(zillians::language::tree::Statement& node)
+    void check(Statement& node)
     {
         staticTest(node);
         revisit(node); // NOTE: not sure if needed (lambda???)
     }
 
-    void check(zillians::language::tree::Declaration& node)
+    void check(Declaration& node)
     {
         staticTest(node);
         revisit(node);
     }
 
-    void check(zillians::language::tree::Package& node)
+    void check(Package& node)
     {
         staticTest(node);
         revisit(node);

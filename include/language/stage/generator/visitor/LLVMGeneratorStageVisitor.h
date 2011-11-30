@@ -45,7 +45,7 @@ namespace zillians { namespace language { namespace stage { namespace visitor {
  *
  * @see LLVMGeneratorPreambleVisitor
  */
-struct LLVMGeneratorStageVisitor : GenericDoubleVisitor
+struct LLVMGeneratorStageVisitor : public GenericDoubleVisitor
 {
 	CREATE_INVOKER(generateInvoker, generate)
 
@@ -157,14 +157,14 @@ struct LLVMGeneratorStageVisitor : GenericDoubleVisitor
 		// create function signature (if necessary) and emit prologue of function
 		if(!startFunction(node))
 		{
-			terminateRevisit();
+			terminate();
 			return;
 		}
 
 		// create alloca for all parameters
 		if(!allocateParameters(node))
 		{
-			terminateRevisit();
+			terminate();
 			return;
 		}
 
@@ -174,7 +174,7 @@ struct LLVMGeneratorStageVisitor : GenericDoubleVisitor
 		// emit epilogue of function
 		if(!finishFunction(node))
 		{
-			terminateRevisit();
+			terminate();
 			return;
 		}
 	}
@@ -838,7 +838,7 @@ struct LLVMGeneratorStageVisitor : GenericDoubleVisitor
 		// TODO if it's a class member function and it's virtual, we have different calling convention here
 	}
 
-	void generate(CastExpr& node)
+	void apply(CastExpr& node)
 	{
 		if(hasValue(node)) return;
 		if(isBlockInsertionMasked() || isBlockTerminated(currentBlock()))	return;
@@ -852,7 +852,7 @@ struct LLVMGeneratorStageVisitor : GenericDoubleVisitor
 		if(!getValue(*node.node, node_resolved, llvm_value_for_read, llvm_value_for_write, true, false))
 		{
 			BOOST_ASSERT(false && "invalid LLVM parameter value for type conversion");
-			terminateRevisit();
+			terminate();
 		}
 
 		if(node.type->type == TypeSpecifier::ReferredType::PRIMITIVE)
@@ -947,7 +947,7 @@ struct LLVMGeneratorStageVisitor : GenericDoubleVisitor
 		}
 	}
 
-	void generate(MemberExpr& node)
+	void apply(MemberExpr& node)
 	{
 		if(hasValue(node)) return;
 		if(isBlockInsertionMasked() || isBlockTerminated(currentBlock()))	return;

@@ -1,0 +1,322 @@
+From aa5a667b091e1d0df7daf8775e75827664c3305b Mon Sep 17 00:00:00 2001
+From: Jerry <jerry@zillians.com>
+Date: Thu, 24 Nov 2011 12:23:00 +0800
+Subject: [PATCH 1/2] Squashed commit of the following:
+
+commit 0f43634e1694435ee9c3b9528a3afdf9066639b6
+Author: Jerry <jerry@zillians.com>
+Date:   Thu Nov 24 11:35:12 2011 +0800
+
+    move Thor hint in help message
+
+commit 03be428cc5102b37b6723b1ad562a4390bf45d31
+Author: Jerry <jerry@zillians.com>
+Date:   Thu Nov 24 11:29:07 2011 +0800
+
+    minor adjustments -- add Thor hint in help message
+
+commit d85e64da468c7e69ff2ad8ada212cb287fe15d48
+Author: Jerry <jerry@zillians.com>
+Date:   Wed Nov 23 15:33:19 2011 +0800
+
+    add thor package support
+
+commit ce765b0698260221860a966c4597face6490716e
+Author: Jerry <jerry@zillians.com>
+Date:   Tue Nov 22 17:27:04 2011 +0800
+
+    make fix
+---
+ src/config.l          |    1 +
+ src/configoptions.cpp |    5 +++++
+ src/doxygen.cpp       |    2 +-
+ src/scanner.l         |   41 +++++++++++++++++++++++++++++++----------
+ src/util.cpp          |    4 ++++
+ src/util.h            |    1 +
+ 6 files changed, 43 insertions(+), 11 deletions(-)
+
+diff --git a/src/config.l b/src/config.l
+index ef3f35c..27314b2 100644
+--- a/src/config.l
++++ b/src/config.l
+@@ -1300,6 +1300,7 @@ void Config::check()
+     filePatternList.append("*.c++");
+     filePatternList.append("*.d");
+     filePatternList.append("*.java");
++    filePatternList.append("*.t");
+     filePatternList.append("*.ii");
+     filePatternList.append("*.ixx");
+     filePatternList.append("*.ipp");
+diff --git a/src/configoptions.cpp b/src/configoptions.cpp
+index 61fc635..0ed2331 100644
+--- a/src/configoptions.cpp
++++ b/src/configoptions.cpp
+@@ -212,6 +212,11 @@ void addConfigOptions(Config *cfg)
+   cl->addValue("");
+   cl->addDependency("FULL_PATH_NAMES");
+   //----
++  cs = cfg->addString(
++                 "THORSCRIPT_ROOT_DIR",
++                 "ThorScript root-dir. Thor package namespaces will be rooted here."
++                );
++  //----
+   cl = cfg->addList(
+                  "STRIP_FROM_INC_PATH",
+                  "The STRIP_FROM_INC_PATH tag can be used to strip a user-defined part of\n"
+diff --git a/src/doxygen.cpp b/src/doxygen.cpp
+index 240db24..dde5920 100644
+--- a/src/doxygen.cpp
++++ b/src/doxygen.cpp
+@@ -9381,7 +9381,7 @@ void dumpConfigAsXML()
+ 
+ static void usage(const char *name)
+ {
+-  msg("Doxygen version %s\nCopyright Dimitri van Heesch 1997-2011\n\n",versionString);
++  msg("Doxygen version %s -- with ThorScript support\nCopyright Dimitri van Heesch 1997-2011\n\n",versionString);
+   msg("You can use doxygen in a number of ways:\n\n");
+   msg("1) Use doxygen to generate a template configuration file:\n");
+   msg("    %s [-s] -g [configName]\n\n",name);
+diff --git a/src/scanner.l b/src/scanner.l
+index 791eb9d..7094478 100644
+--- a/src/scanner.l
++++ b/src/scanner.l
+@@ -43,6 +43,9 @@
+ #include "commentscan.h"
+ #include "code.h"
+ 
++#include <qstring.h>
++#include <qdir.h>
++
+ #define YY_NEVER_INTERACTIVE 1
+ 
+ /* -----------------------------------------------------------------
+@@ -116,6 +119,7 @@ static bool             insidePHP   = FALSE;		//!< processing PHP code?
+ static bool             insideObjC  = FALSE;            //!< processing Objective C code?
+ static bool             insideCli   = FALSE;            //!< processing C++/CLI code?
+ static bool             insideJS    = FALSE;            //!< processing JavaScript code?
++static bool             insideTS    = FALSE;            //!< processing ThorScript code?
+ 
+ static bool             insideCppQuote = FALSE;
+ static bool             insideProtocolList = FALSE;
+@@ -335,6 +339,7 @@ static void setContext()
+   insidePHP  = language==SrcLangExt_PHP;
+   insideObjC = language==SrcLangExt_ObjC;
+   insideJS   = language==SrcLangExt_JS;
++  insideTS   = language==SrcLangExt_TS;
+   if ( insidePHP )
+   {
+     useOverrideCommands = TRUE;
+@@ -1185,7 +1190,7 @@ TYPEDEFPREFIX (("typedef"{BN}+)?)((("volatile"|"const"){BN}+)?)
+   					  BEGIN(FindMembers);
+   					}
+ <FindMembers>"@"{ID}			{
+-  					  if (insideJava) // Java annotation
++  					  if (insideJava || insideTS) // Java annotation
+ 					  {
+ 					    // skip annotation
+ 					  }
+@@ -1961,7 +1966,7 @@ TYPEDEFPREFIX (("typedef"{BN}+)?)((("volatile"|"const"){BN}+)?)
+ 					  {
+ 					    BEGIN(CppQuote);
+ 					  }
+-					  else if ((insideIDL || insideJava || insideD) && yyleng==6 && strcmp(yytext,"import")==0)
++					  else if ((insideIDL || insideJava || insideTS || insideD) && yyleng==6 && strcmp(yytext,"import")==0)
+ 					  {
+ 					    if (insideIDL)
+ 					      BEGIN(NextSemi);
+@@ -1972,7 +1977,7 @@ TYPEDEFPREFIX (("typedef"{BN}+)?)((("volatile"|"const"){BN}+)?)
+ 					  {
+ 					    BEGIN(PHPUse);
+ 					  }
+-					  else if (insideJava && strcmp(yytext,"package")==0)
++					  else if ((insideJava || insideTS) && strcmp(yytext,"package")==0)
+ 					  {
+   					    lineCount();
+ 					    BEGIN(PackageName);
+@@ -1986,11 +1991,11 @@ TYPEDEFPREFIX (("typedef"{BN}+)?)((("volatile"|"const"){BN}+)?)
+ 					    insideTryBlock=FALSE;
+ 					    BEGIN(TryFunctionBlock);
+ 					  }
+-					  else if (insideJS && strcmp(yytext,"var")==0)
++					  else if ((insideJS || insideTS) && strcmp(yytext,"var")==0)
+ 					  { // javascript variable
+ 					    current->type="var";
+ 					  }
+-					  else if (insideJS && strcmp(yytext,"function")==0)
++					  else if ((insideJS || insideTS) && strcmp(yytext,"function")==0)
+ 					  { // javascript function
+ 					    current->type="function";
+ 					  }
+@@ -2007,7 +2012,7 @@ TYPEDEFPREFIX (("typedef"{BN}+)?)((("volatile"|"const"){BN}+)?)
+ 					    {
+ 					      addType( current ) ;
+ 					    }
+-					    bool javaLike = insideJava || insideCS || insideD || insidePHP || insideJS;
++					    bool javaLike = insideJava || insideCS || insideD || insidePHP || insideJS || insideTS;
+ 					    if (javaLike && strcmp(yytext,"public")==0)
+ 					    {
+ 					      current->protection = Public;
+@@ -3183,7 +3188,7 @@ TYPEDEFPREFIX (("typedef"{BN}+)?)((("volatile"|"const"){BN}+)?)
+ 						current = new Entry(*current);
+ 						if (current->section==Entry::NAMESPACE_SEC || 
+ 						    (current->spec==Entry::Interface) ||
+-						    insideJava || insidePHP || insideCS || insideD || insideJS
++						    insideJava || insidePHP || insideCS || insideD || insideJS || insideTS
+ 						   )
+ 						{ // namespaces and interfaces and java classes ends with a closing bracket without semicolon
+ 						  current->reset();
+@@ -3681,7 +3686,7 @@ TYPEDEFPREFIX (("typedef"{BN}+)?)((("volatile"|"const"){BN}+)?)
+   					  *copyArgString+=*yytext;
+   					  fullArgString+=*yytext;
+ 					  stringToArgumentList(fullArgString,current->argList);
+-					  if (insideJS)
++					  if (insideJS || insideTS)
+ 					  {
+ 					    fixArgumentListForJavaScript(current->argList);
+ 					  }
+@@ -4667,7 +4672,7 @@ TYPEDEFPREFIX (("typedef"{BN}+)?)((("volatile"|"const"){BN}+)?)
+ 					    roundCount=0;
+ 					    BEGIN(SkipUnionSwitch);
+ 					  }
+-					  else if ((insideJava || insidePHP || insideJS) && (strcmp(yytext,"implements")==0 || strcmp(yytext,"extends")==0))
++					  else if ((insideJava || insidePHP || insideJS || insideTS) && (strcmp(yytext,"implements")==0 || strcmp(yytext,"extends")==0))
+ 					  {
+   					    current->type.resize(0);
+ 					    baseProt=Public;
+@@ -5758,7 +5763,7 @@ static void parseCompounds(Entry *rt)
+       if( ce->section==Entry::CLASS_SEC ) // class
+       {
+ 
+-        if (insidePHP || insideD || insideJS)
++        if (insidePHP || insideD || insideJS || insideTS)
+ 	{
+           current->protection = protection = Public ; 
+ 	}
+@@ -5879,6 +5884,22 @@ static void parseMain(const char *fileName,const char *fileBuf,Entry *rt)
+       BEGIN( FindMembers );
+     }
+ 
++    if(insideTS)
++    {
++      QCString root_dir = Config_getString("THORSCRIPT_ROOT_DIR");
++      printf("THORSCRIPT_ROOT_DIR: %s\n", root_dir.data());
++      QFileInfo pathInfo(yyFileName);
++      QCString filepath = pathInfo.dir().path().data();
++      if(filepath.mid(0, root_dir.length()) == root_dir)
++        filepath = filepath.remove(0, root_dir.length());
++      if(filepath[0] == '/')
++        filepath = filepath.remove(0, 1);
++      QCString ns = substitute(filepath, "/", ".");
++      QCString buf = QCString("package ")+ns+";";
++      printf("THORSCRIPT_PACKAGE_DECL: %s\n", buf.data());
++      for(int i = buf.length()-1; i >= 0; --i)
++        unput( buf[i] );
++    }
+     scanYYlex();
+     g_lexInit=TRUE;
+ 
+diff --git a/src/util.cpp b/src/util.cpp
+index 62f8443..fd3e452 100644
+--- a/src/util.cpp
++++ b/src/util.cpp
+@@ -320,6 +320,7 @@ int guessSection(const char *name)
+       n.right(4)==".xml" 
+      ) return Entry::SOURCE_SEC;
+   if (n.right(2)==".h"   || // header
++      n.right(2)==".t"   ||
+       n.right(3)==".hh"  ||
+       n.right(4)==".hxx" ||
+       n.right(4)==".hpp" ||
+@@ -6256,6 +6257,7 @@ g_lang2extMap[] =
+   { "idl",         "c",       SrcLangExt_IDL     },
+   { "java",        "c",       SrcLangExt_Java    },
+   { "javascript",  "c",       SrcLangExt_JS      },
++  { "thorscript",  "c",       SrcLangExt_TS      },
+   { "csharp",      "c",       SrcLangExt_CSharp  },
+   { "d",           "c",       SrcLangExt_D       },
+   { "php",         "c",       SrcLangExt_PHP     },
+@@ -6314,6 +6316,7 @@ void initDefaultExtensionMapping()
+   updateLanguageMapping(".java",  "java");
+   updateLanguageMapping(".as",    "javascript"); 
+   updateLanguageMapping(".js",    "javascript");
++  updateLanguageMapping(".t",     "thorscript");
+   updateLanguageMapping(".cs",    "csharp");
+   updateLanguageMapping(".d",     "d");
+   updateLanguageMapping(".php",   "php"); 
+@@ -7137,6 +7140,7 @@ QCString langToString(SrcLangExt lang)
+     case SrcLangExt_ObjC:    return "Objective-C";
+     case SrcLangExt_Cpp:     return "C++";
+     case SrcLangExt_JS:      return "Javascript";
++    case SrcLangExt_TS:      return "Thorscript";
+     case SrcLangExt_Python:  return "Python";
+     case SrcLangExt_Fortran: return "Fortran";
+     case SrcLangExt_VHDL:    return "VHDL";
+diff --git a/src/util.h b/src/util.h
+index 7db71e3..279c66f 100644
+--- a/src/util.h
++++ b/src/util.h
+@@ -98,6 +98,7 @@ enum SrcLangExt
+   SrcLangExt_ObjC    = 0x0100,
+   SrcLangExt_Cpp     = 0x0200,
+   SrcLangExt_JS      = 0x0400,
++  SrcLangExt_TS     = 0x16000,
+   SrcLangExt_Python  = 0x0800,
+   SrcLangExt_Fortran = 0x1000,
+   SrcLangExt_VHDL    = 0x2000,
+-- 
+1.7.4.1
+
+
+From 409ccb5351ae3c6c0db338595b5953375d4235ee Mon Sep 17 00:00:00 2001
+From: Jerry <jerry@zillians.com>
+Date: Thu, 24 Nov 2011 14:39:01 +0800
+Subject: [PATCH 2/2] Squashed commit of the following:
+
+commit cc4438f518a85ca97e6a62f18e19b6a14cd55f3b
+Author: Jerry <jerry@zillians.com>
+Date:   Thu Nov 24 14:38:02 2011 +0800
+
+    fix warning
+
+commit 0f43634e1694435ee9c3b9528a3afdf9066639b6
+Author: Jerry <jerry@zillians.com>
+Date:   Thu Nov 24 11:35:12 2011 +0800
+
+    move Thor hint in help message
+
+commit 03be428cc5102b37b6723b1ad562a4390bf45d31
+Author: Jerry <jerry@zillians.com>
+Date:   Thu Nov 24 11:29:07 2011 +0800
+
+    minor adjustments -- add Thor hint in help message
+
+commit d85e64da468c7e69ff2ad8ada212cb287fe15d48
+Author: Jerry <jerry@zillians.com>
+Date:   Wed Nov 23 15:33:19 2011 +0800
+
+    add thor package support
+
+commit ce765b0698260221860a966c4597face6490716e
+Author: Jerry <jerry@zillians.com>
+Date:   Tue Nov 22 17:27:04 2011 +0800
+
+    make fix
+---
+ src/docsets.cpp |    1 +
+ 1 files changed, 1 insertions(+), 0 deletions(-)
+
+diff --git a/src/docsets.cpp b/src/docsets.cpp
+index 7d7dd2e..afc2824 100644
+--- a/src/docsets.cpp
++++ b/src/docsets.cpp
+@@ -283,6 +283,7 @@ void DocSets::addIndexItem(Definition *context,MemberDef *md,const char *)
+     case SrcLangExt_D:       lang="d"; break;          // D
+     case SrcLangExt_Java:    lang="java"; break;       // Java
+     case SrcLangExt_JS:      lang="javascript"; break; // Javascript
++    case SrcLangExt_TS:      lang="thorscript"; break; // Thorscript
+     case SrcLangExt_Python:  lang="python"; break;     // Python
+     case SrcLangExt_Fortran: lang="fortran"; break;    // Fortran
+     case SrcLangExt_VHDL:    lang="vhdl"; break;       // VHDL
+-- 
+1.7.4.1
+

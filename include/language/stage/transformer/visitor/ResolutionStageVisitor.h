@@ -42,7 +42,7 @@ namespace zillians { namespace language { namespace stage { namespace visitor {
  * @see ResolutionStage, Resolver
  * @todo implement resolution cache
  */
-struct ResolutionStageVisitor : GenericDoubleVisitor
+struct ResolutionStageVisitor : public GenericDoubleVisitor
 {
 	CREATE_INVOKER(resolveInvoker, resolve)
 

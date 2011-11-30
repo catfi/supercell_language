@@ -37,27 +37,27 @@ namespace zillians { namespace language { namespace stage { namespace visitor {
  *
  * @see LiteralCompactionStage
  */
-struct LiteralCompactionStageVisitor : GenericDoubleVisitor
+struct LiteralCompactionStageVisitor : public GenericDoubleVisitor
 {
-	CREATE_INVOKER(compactInvoker, compact)
+    CREATE_INVOKER(compactInvoker, apply)
 
 	LiteralCompactionStageVisitor() : program(NULL)
 	{
 		REGISTER_ALL_VISITABLE_ASTNODE(compactInvoker)
 	}
 
-	void compact(ASTNode& node)
+	void apply(ASTNode& node)
 	{
 		revisit(node);
 	}
 
-	void compact(Source& node)
+	void apply(Source& node)
 	{
 		program = &node;
 		revisit(node);
 	}
 
-	void compact(NumericLiteral& node)
+	void apply(NumericLiteral& node)
 	{
 		if(PrimitiveType::isIntegerType(node.type))
 		{

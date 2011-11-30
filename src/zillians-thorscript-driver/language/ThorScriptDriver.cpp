@@ -22,6 +22,7 @@
 
 #define BOOST_MPL_CFG_NO_PREPROCESSED_HEADERS
 
+#include <boost/algorithm/string/predicate.hpp>
 #include <boost/filesystem.hpp>
 #include <boost/filesystem/fstream.hpp>
 #include "core/Types.h"
@@ -288,6 +289,10 @@ bool ThorScriptDriver::main(std::vector<std::string> argv)
     {
         return generateServerStub();
     }
+    else if(arg == "generate doc")
+    {
+        return generateDocument();
+    }
     else
     {
         printHelpPage();
@@ -388,7 +393,7 @@ bool ThorScriptDriver::generateBundle(const ThorScriptDriver::STRIP_TYPE isStrip
     }
 
     if(shell(cmd) == 0) return true;
-    else                         return false;
+    else                return false;
 }
 
 bool ThorScriptDriver::generateStub(const std::vector<std::string>& stubTypes)
@@ -430,6 +435,63 @@ bool ThorScriptDriver::generateServerStub()
                          "GATEWAY_GAMECOMMAND_CLOUDCOMMANDOBJECT_H",
                          "GATEWAY_GAMECOMMAND_GAMECOMMANDTRANSLATOR_CPP",
                          "GATEWAY_GAMECOMMAND_GAMEMODULE_MODULE"});
+    return true;
+}
+
+
+bool ThorScriptDriver::configDoxyfile()
+{
+    BOOST_ASSERT(boost::filesystem::exists("Doxyfile"));
+    std::ifstream fin("Doxyfile");
+    std::vector<std::string> lines;
+    for(std::string line; std::getline(fin, line); )
+    {
+        lines.push_back(line);
+    }
+    fin.close();
+
+    std::map<std::string, std::string> configs = {
+        {"OUTPUT_DIRECTORY", "doc"},
+        {"RECURSIVE", "YES"},
+        {"EXTRACT_ALL", "YES"},
+        {"THORSCRIPT_ROOT_DIR", (boost::filesystem::current_path() / "src").string()}
+    };
+
+    std::ofstream fout("Doxyfile");
+    foreach(line, lines)
+    {
+        foreach(kv, configs)
+        {
+            std::string key = kv->first;
+            std::string value = kv->second;
+            if(boost::algorithm::starts_with(*line, key))
+            {
+                *line = key + " = " + value;
+                break;
+            }
+        }
+        fout << *line << std::endl;
+    }
+    fout.close();
+    return true;
+}
+
+bool ThorScriptDriver::generateDocument()
+{
+    if(!boost::filesystem::exists("Doxyfile"))
+    {
+        if(shell("ts-doc -g") != 0)
+        {
+            std::cerr << "Can not generate Doxyfile" << std::endl;
+        }
+        configDoxyfile();
+    }
+
+    if(shell("ts-doc") != 0)
+    {
+        std::cerr << "Can not generate document with Doxygen" << std::endl;
+    }
+
     return true;
 }
 

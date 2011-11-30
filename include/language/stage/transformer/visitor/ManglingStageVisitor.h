@@ -36,26 +36,26 @@ namespace zillians { namespace language { namespace stage { namespace visitor {
  *
  * @see ManglingStage
  */
-struct ManglingStageVisitor : GenericDoubleVisitor
+struct ManglingStageVisitor : public GenericDoubleVisitor
 {
-	CREATE_INVOKER(mangleInvoker, mangle)
+    CREATE_INVOKER(mangleInvoker, apply)
 
 	ManglingStageVisitor() : next_type_id(1024), next_symbol_id(0)
 	{
 		REGISTER_ALL_VISITABLE_ASTNODE(mangleInvoker)
 	}
 
-	void mangle(ASTNode& node)
+	void apply(ASTNode& node)
 	{
 		revisit(node);
 	}
 
-	void mangle(Identifier& node)
+	void apply(Identifier& node)
 	{
 		NameManglingContext::set(&node, new NameManglingContext(mangler.encode(node.toString())));
 	}
 
-	void mangle(ClassDecl& node)
+	void apply(ClassDecl& node)
 	{
 		mangler.visit(node);
 		NameManglingContext::set(&node, new NameManglingContext(mangler.stream.str()));
@@ -66,7 +66,7 @@ struct ManglingStageVisitor : GenericDoubleVisitor
 		revisit(node);
 	}
 
-	void mangle(InterfaceDecl& node)
+	void apply(InterfaceDecl& node)
 	{
 		mangler.visit(node);
 		NameManglingContext::set(&node, new NameManglingContext(mangler.stream.str()));
@@ -77,7 +77,7 @@ struct ManglingStageVisitor : GenericDoubleVisitor
 		revisit(node);
 	}
 
-	void mangle(EnumDecl& node)
+	void apply(EnumDecl& node)
 	{
 		mangler.visit(node);
 		NameManglingContext::set(&node, new NameManglingContext(mangler.stream.str()));
@@ -88,7 +88,7 @@ struct ManglingStageVisitor : GenericDoubleVisitor
 		revisit(node);
 	}
 
-	void mangle(FunctionDecl& node)
+	void apply(FunctionDecl& node)
 	{
 		mangler.visit(node);
 		NameManglingContext::set(&node, new NameManglingContext(mangler.stream.str()));
@@ -99,7 +99,7 @@ struct ManglingStageVisitor : GenericDoubleVisitor
 		revisit(node);
 	}
 
-	void mangle(VariableDecl& node)
+	void apply(VariableDecl& node)
 	{
 		NameManglingContext::set(&node, new NameManglingContext(mangler.encode(node.name->toString())));
 		mangler.reset();

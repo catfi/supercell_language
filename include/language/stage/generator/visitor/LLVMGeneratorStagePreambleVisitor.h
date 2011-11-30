@@ -39,7 +39,7 @@ namespace zillians { namespace language { namespace stage { namespace visitor {
  *
  * @see LLVMGeneratorStageVisitor
  */
-struct LLVMGeneratorStagePreambleVisitor : GenericDoubleVisitor
+struct LLVMGeneratorStagePreambleVisitor : public GenericDoubleVisitor
 {
 	CREATE_INVOKER(generateInvoker, generate)
 

@@ -139,7 +139,7 @@
 
 namespace zillians { namespace language { namespace tree { namespace visitor {
 
-struct GenericVisitor : Visitor<const ASTNode, void, VisitorImplementation::recursive_dfs>
+struct GenericVisitor : Visitor<ASTNode, void, VisitorImplementation::recursive_dfs>
 {
 	template<typename Impl, typename Invoker>
 	void registerInvoker(Impl* impl)
@@ -150,12 +150,12 @@ struct GenericVisitor : Visitor<const ASTNode, void, VisitorImplementation::recu
 	//////////////////////////////////////////////////////////////////////
 	/// Basic
 
-	void apply(const ASTNode& node)
+	void apply(ASTNode& node)
 	{
 		UNUSED_ARGUMENT(node);
 	}
 
-	void apply(const Annotation& node)
+	void apply(Annotation& node)
 	{
 		if(node.name) visit(*node.name);
 		foreach(i, node.attribute_list)
@@ -165,33 +165,33 @@ struct GenericVisitor : Visitor<const ASTNode, void, VisitorImplementation::recu
 		}
 	}
 
-	void apply(const Annotations& node)
+	void apply(Annotations& node)
 	{
 		foreach(i, node.annotation_list) visit(**i);
 	}
 
-	void apply(const Block& node)
+	void apply(Block& node)
 	{
 		foreach(i, node.objects) visit(**i);
 	}
 
-	void apply(const Identifier& node)
+	void apply(Identifier& node)
 	{
 		UNUSED_ARGUMENT(node);
 		UNREACHABLE_CODE();
 	}
 
-	void apply(const SimpleIdentifier& node)
+	void apply(SimpleIdentifier& node)
 	{
 		UNUSED_ARGUMENT(node);
 	}
 
-	void apply(const NestedIdentifier& node)
+	void apply(NestedIdentifier& node)
 	{
 		foreach(i, node.identifier_list) visit(**i);
 	}
 
-	void apply(const TemplatedIdentifier& node)
+	void apply(TemplatedIdentifier& node)
 	{
 		if(node.id) visit(*node.id);
 
@@ -201,7 +201,7 @@ struct GenericVisitor : Visitor<const ASTNode, void, VisitorImplementation::recu
 		}
 	}
 
-	void apply(const TypeSpecifier& node)
+	void apply(TypeSpecifier& node)
 	{
 		switch(node.type)
 		{
@@ -211,7 +211,7 @@ struct GenericVisitor : Visitor<const ASTNode, void, VisitorImplementation::recu
 		}
 	}
 
-	void apply(const FunctionType& node)
+	void apply(FunctionType& node)
 	{
 		foreach(i, node.templated_parameters) visit(**i);
 		foreach(i, node.argument_types)       visit(**i);
@@ -219,7 +219,7 @@ struct GenericVisitor : Visitor<const ASTNode, void, VisitorImplementation::recu
 
 	//////////////////////////////////////////////////////////////////////
 	/// Module
-	void apply(const Internal& node)
+	void apply(Internal& node)
 	{
 		if(node.VoidTy)     visit(*node.VoidTy);
 		if(node.BooleanTy)  visit(*node.BooleanTy);
@@ -236,7 +236,7 @@ struct GenericVisitor : Visitor<const ASTNode, void, VisitorImplementation::recu
 		foreach(i, node.others) visit(**i);
 	}
 
-	void apply(const Tangle& node)
+	void apply(Tangle& node)
 	{
 		if(node.internal) visit(*node.internal);
 
@@ -247,14 +247,14 @@ struct GenericVisitor : Visitor<const ASTNode, void, VisitorImplementation::recu
 		}
 	}
 
-	void apply(const Source& node)
+	void apply(Source& node)
 	{
 		foreach(i, node.imports) visit(**i);
 
 		if(node.root) visit(*node.root);
 	}
 
-	void apply(const Package& node)
+	void apply(Package& node)
 	{
 		if(node.annotations) visit(*node.annotations);
 
@@ -264,7 +264,7 @@ struct GenericVisitor : Visitor<const ASTNode, void, VisitorImplementation::recu
 		if(node.annotations) visit(*node.annotations);
 	}
 
-	void apply(const Import& node)
+	void apply(Import& node)
 	{
 		if(node.ns) visit(*node.ns);
 	}
@@ -277,7 +277,7 @@ struct GenericVisitor : Visitor<const ASTNode, void, VisitorImplementation::recu
 		UNREACHABLE_CODE();
 	}
 
-	void apply(const ClassDecl& node)
+	void apply(ClassDecl& node)
 	{
 		if(node.annotations) visit(*node.annotations);
 		if(node.name) visit(*node.name);
@@ -288,7 +288,7 @@ struct GenericVisitor : Visitor<const ASTNode, void, VisitorImplementation::recu
 		foreach(i, node.member_variables) visit(**i);
 	}
 
-	void apply(const EnumDecl& node)
+	void apply(EnumDecl& node)
 	{
 		if(node.annotations) visit(*node.annotations);
 		if(node.name) visit(*node.name);
@@ -299,7 +299,7 @@ struct GenericVisitor : Visitor<const ASTNode, void, VisitorImplementation::recu
 		}
 	}
 
-	void apply(const FunctionDecl& node)
+	void apply(FunctionDecl& node)
 	{
 		if(node.annotations) visit(*node.annotations);
 		if(node.name) visit(*node.name);
@@ -312,7 +312,7 @@ struct GenericVisitor : Visitor<const ASTNode, void, VisitorImplementation::recu
 		if(node.block) visit(*node.block);
 	}
 
-	void apply(const InterfaceDecl& node)
+	void apply(InterfaceDecl& node)
 	{
 		if(node.annotations) visit(*node.annotations);
 		if(node.name) visit(*node.name);
@@ -320,7 +320,7 @@ struct GenericVisitor : Visitor<const ASTNode, void, VisitorImplementation::recu
 		foreach(i, node.member_functions) visit(**i);
 	}
 
-	void apply(const TypedefDecl& node)
+	void apply(TypedefDecl& node)
 	{
 		if(node.annotations) visit(*node.annotations);
 		if(node.name) visit(*node.name);
@@ -328,7 +328,7 @@ struct GenericVisitor : Visitor<const ASTNode, void, VisitorImplementation::recu
 		if(node.type) visit(*node.type);
 	}
 
-	void apply(const VariableDecl& node)
+	void apply(VariableDecl& node)
 	{
 		if(node.annotations) visit(*node.annotations);
 		if(node.name)        visit(*node.name);
@@ -354,21 +354,21 @@ struct GenericVisitor : Visitor<const ASTNode, void, VisitorImplementation::recu
 		UNREACHABLE_CODE();
 	}
 
-	void apply(const DeclarativeStmt& node)
+	void apply(DeclarativeStmt& node)
 	{
 		if(node.annotations) visit(*node.annotations);
 
 		if(node.declaration) visit(*node.declaration);
 	}
 
-	void apply(const ExpressionStmt& node)
+	void apply(ExpressionStmt& node)
 	{
 		if(node.annotations) visit(*node.annotations);
 
 		if(node.expr) visit(*node.expr);
 	}
 
-	void apply(const ForeachStmt& node)
+	void apply(ForeachStmt& node)
 	{
 		if(node.annotations) visit(*node.annotations);
 
@@ -377,7 +377,7 @@ struct GenericVisitor : Visitor<const ASTNode, void, VisitorImplementation::recu
 		if(node.block)    visit(*node.block);
 	}
 
-	void apply(const ForStmt& node)
+	void apply(ForStmt& node)
 	{
 		if(node.annotations) visit(*node.annotations);
 
@@ -387,7 +387,7 @@ struct GenericVisitor : Visitor<const ASTNode, void, VisitorImplementation::recu
 		if(node.step)  visit(*node.step);
 	}
 
-	void apply(const WhileStmt& node)
+	void apply(WhileStmt& node)
 	{
 		if(node.annotations) visit(*node.annotations);
 
@@ -395,7 +395,7 @@ struct GenericVisitor : Visitor<const ASTNode, void, VisitorImplementation::recu
 		if(node.block) visit(*node.block);
 	}
 
-	void apply(const IfElseStmt& node)
+	void apply(IfElseStmt& node)
 	{
 		if(node.annotations) visit(*node.annotations);
 
@@ -409,7 +409,7 @@ struct GenericVisitor : Visitor<const ASTNode, void, VisitorImplementation::recu
 		if(node.else_block) visit(*node.else_block);
 	}
 
-	void apply(const SwitchStmt& node)
+	void apply(SwitchStmt& node)
 	{
 		if(node.annotations) visit(*node.annotations);
 
@@ -422,7 +422,7 @@ struct GenericVisitor : Visitor<const ASTNode, void, VisitorImplementation::recu
 		if(node.default_block) visit(*node.default_block);
 	}
 
-	void apply(const BranchStmt& node)
+	void apply(BranchStmt& node)
 	{
 		if(node.annotations) visit(*node.annotations);
 	}
@@ -435,7 +435,7 @@ struct GenericVisitor : Visitor<const ASTNode, void, VisitorImplementation::recu
 		UNREACHABLE_CODE();
 	}
 
-	void apply(const PrimaryExpr& node)
+	void apply(PrimaryExpr& node)
 	{
 		switch(node.catagory)
 		{
@@ -445,12 +445,12 @@ struct GenericVisitor : Visitor<const ASTNode, void, VisitorImplementation::recu
 		}
 	}
 
-	void apply(const UnaryExpr& node)
+	void apply(UnaryExpr& node)
 	{
 		if(node.node) visit(*node.node);
 	}
 
-	void apply(const BinaryExpr& node)
+	void apply(BinaryExpr& node)
 	{
 		if(node.isRighAssociative())
 		{
@@ -464,32 +464,163 @@ struct GenericVisitor : Visitor<const ASTNode, void, VisitorImplementation::recu
 		}
 	}
 
-	void apply(const TernaryExpr& node)
+	void apply(TernaryExpr& node)
 	{
 		if(node.cond)       visit(*node.cond);
 		if(node.true_node)  visit(*node.true_node);
 		if(node.false_node) visit(*node.false_node);
 	}
 
-	void apply(const MemberExpr& node)
+	void apply(MemberExpr& node)
 	{
 		if(node.node)   visit(*node.node);
 		if(node.member) visit(*node.member);
 	}
 
-	void apply(const CallExpr& node)
+	void apply(CallExpr& node)
 	{
 		if(node.node) visit(*node.node);
 		foreach(i, node.parameters) visit(**i);
 	}
 
-	void apply(const CastExpr& node)
+	void apply(CastExpr& node)
 	{
 		if(node.node) visit(*node.node);
 		if(node.type) visit(*node.type);
 	}
 };
 
+} } } } // zillians::language::tree::visitor
+
+namespace zillians { namespace language { namespace stage { namespace visitor {
+
+//////////////////////////////////////////////////////////////////////////////
+// Implementation of is_call_possible:
+//////////////////////////////////////////////////////////////////////////////
+// see: http://groups.google.com/group/comp.lang.c++.moderated/msg/e5fbc9305539f699 (for acutally work code)
+//      http://stackoverflow.com/questions/2122319/c-type-traits-to-check-if-class-has-operator-member (for the original concept)
+//      http://www.rsdn.ru/forum/cpp/2759773.1.aspx (for further discussion)
+template <typename Type>
+class has_member
+{
+    class yes { char m;};
+    class no { yes m[2];};
+
+    struct BaseMixin
+    {
+        void apply(){}
+    };
+
+    struct Base : public Type, public BaseMixin {};
+
+    template <typename T, T t>  class Helper{};
+
+    template <typename U>
+        static no deduce(U*, Helper<void (BaseMixin::*)(), &U::apply>* = 0);
+    static yes deduce(...);
+
+    public:
+    static const bool result = sizeof(yes) == sizeof(deduce((Base*) (0)));
+
+};
+
+namespace details
+{
+    template <typename type>
+    class void_exp_result
+    {};
+
+    template <typename type, typename U>
+    U const& operator,(U const&, void_exp_result<type>);
+
+    template <typename type, typename U>
+    U& operator,(U&, void_exp_result<type>);
+
+    template <typename src_type, typename dest_type>
+    struct clone_constness
+    {
+        typedef dest_type type;
+    };
+
+    template <typename src_type, typename dest_type>
+    struct clone_constness<const src_type, dest_type>
+    {
+        typedef const dest_type type;
+    };
+
+}
+
+template <typename type, typename call_details>
+struct is_call_possible
+{
+private:
+    class yes {};
+    class no { yes m[2]; };
+
+    struct derived : public type
+    {
+        using type::apply;
+        no apply(...) const;
+    };
+
+    typedef typename details::clone_constness<type, derived>::type
+        derived_type;
+
+    template <typename T, typename due_type>
+    struct return_value_check
+    {
+        static yes deduce(due_type);
+        static no deduce(...);
+        static no deduce(no);
+        static no deduce(details::void_exp_result<type>);
+    };
+
+    template <typename T>
+    struct return_value_check<T, void>
+    {
+        static yes deduce(...);
+        static no deduce(no);
+    };
+
+    template <bool has, typename F>
+    struct impl
+    {
+        static const bool value = false;
+    };
+
+    template <typename arg1, typename r>
+    struct impl<true, r(arg1)>
+    {
+        static const bool value = sizeof( return_value_check<type, r>::deduce( (((derived_type*)0)->apply(*(arg1*)0), details::void_exp_result<type>()))) == sizeof(yes);
+    };
+
+    // specializations of impl for 2 args, 3 args,..
+public:
+    static const bool value = impl<has_member<type>::result, call_details>::value;
+
+};
+
 } } } }
+
+#define CREATE_GENERIC_INVOKER(invoker)	\
+		typedef struct { 															\
+			template<typename VisitorImpl, typename Visitable>						\
+			static ReturnT invoke(VisitorImpl& visitor, Visitable& visitable)		\
+			{																		\
+				return visitor.apply(visitable);							        \
+			}																		\
+		} invoker;                                                                  \
+		//using GenericVisitor::apply;
+
+#define CREATE_CONDITIONAL_INVOKER(DerivedVisitorClass, invoker) \
+    typedef struct {                                             \
+        template<typename VisitorImpl, typename Visitable>       \
+        static ReturnT invoke(VisitorImpl& visitor, Visitable& visitable) \
+        { \
+            typedef typename std::conditional<zillians::language::stage::visitor::is_call_possible<DerivedVisitorClass, void(Visitable)>::value, DerivedVisitorClass, GenericVisitor>::type CallClass; \
+            visitor.CallClass::apply(visitable); \
+        } \
+    } invoker;
+
 
 #endif /* ZILLIANS_LANGUAGE_TREE_VISITOR_GENERICVISITOR_H_ */

@@ -40,21 +40,21 @@ using zillians::language::tree::visitor::GenericDoubleVisitor;
 
 namespace zillians { namespace language { namespace stage { namespace visitor {
 
-struct LLVMGlobalDispatchGeneratorStageVisitor : GenericDoubleVisitor
+struct LLVMGlobalDispatchGeneratorStageVisitor : public GenericDoubleVisitor
 {
-    CREATE_INVOKER(generateInvoker, collect)
+    CREATE_INVOKER(generateInvoker, apply)
 
     LLVMGlobalDispatchGeneratorStageVisitor()
     {
         REGISTER_ALL_VISITABLE_ASTNODE(generateInvoker)
     }
 
-    void collect(ASTNode& node)
+    void apply(ASTNode& node)
     {
         revisit(node);
     }
 
-    void collect(Annotation& node)
+    void apply(Annotation& node)
     {
         if(isServerFunctionAnnotaion(node))
         {
