@@ -53,6 +53,7 @@ add_library(zillians-framework-language-tree SHARED
 	language/tree/basic/Identifier.cpp    
 	language/tree/basic/TypeSpecifier.cpp
 	language/tree/ASTNodeSerialization.cpp
+	language/tree/visitor/ASTGraphvizGenerator.cpp
     )
 
 add_library(zillians-framework-language-general

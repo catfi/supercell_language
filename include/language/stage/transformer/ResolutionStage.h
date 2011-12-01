@@ -51,6 +51,8 @@ private:
 private:
 	bool debug;
 	bool disable_type_inference;
+	bool dump_graphviz;
+    std::string dump_graphviz_dir;
 	std::size_t total_unresolved_count_type;
 	std::size_t total_unresolved_count_symbol;
 	__gnu_cxx::hash_set<tree::ASTNode*> unresolved_symbols;

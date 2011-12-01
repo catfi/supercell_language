@@ -38,6 +38,8 @@ public:
 
 private:
 	bool debug;
+	bool dump_graphviz;
+    std::string dump_graphviz_dir;
 };
 
 } } }

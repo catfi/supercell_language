@@ -587,7 +587,7 @@ private:
     		// replace the current specialized type to the desired specialized type
 			if(!decl_typename->specialized_type)
 			{
-				decl_typename->specialized_type = specialized_type_to_replace;
+				decl_typename->setSpecializdType(specialized_type_to_replace);
 			}
 			else
             {
@@ -599,7 +599,7 @@ private:
 			}
 
     		// remove all default types
-			decl_typename->default_type = NULL;
+			decl_typename->setDefaultType(NULL);
     	}
 
     	return to;

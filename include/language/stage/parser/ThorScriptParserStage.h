@@ -46,6 +46,8 @@ private:
 	bool debug_ast;
 	bool debug_ast_with_loc;
 	bool use_relative_path;
+	bool dump_graphviz;
+    std::string dump_graphviz_dir;
 	boost::filesystem::path root_dir;
 	std::vector<std::string> inputs;
 };

@@ -198,10 +198,12 @@ void TemplatedIdentifier::specialize()
 					TemplatedIdentifier* duplicated_id = cast<TemplatedIdentifier>((*i)->name->clone());
 					duplicated_id->specialize();
 					specialized_type = new TypeSpecifier(duplicated_id);
+					specialized_type->parent = this;
 				}
 				else
 				{
 					specialized_type = new TypeSpecifier((*i)->name->clone());
+					specialized_type->parent = this;
 				}
 
 				SimpleIdentifier* dummy_identifier = new SimpleIdentifier(L"_");
