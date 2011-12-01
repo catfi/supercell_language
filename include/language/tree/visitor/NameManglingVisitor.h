@@ -37,7 +37,7 @@ struct NameManglingVisitor : Visitor<ASTNode, void, VisitorImplementation::recur
 
 	NameManglingVisitor() : mUptraceDepth(0),
 			mInsideComboName(false), mBeginOfComboName(false), mEndOfComboName(false),
-			mInsideResolvedLink(false)
+			mInsideParamList(false)
 	{
 		REGISTER_ALL_VISITABLE_ASTNODE(mangleInvoker)
 	}
@@ -51,7 +51,7 @@ struct NameManglingVisitor : Visitor<ASTNode, void, VisitorImplementation::recur
 		{
 			mInsideComboName = (mUptraceDepth>1); // must check before up-trace
 			uptrace(&node);
-			if(!mInsideResolvedLink)
+			if(!mInsideParamList)
 				stream << "_Z";
 
 			{
@@ -91,8 +91,10 @@ struct NameManglingVisitor : Visitor<ASTNode, void, VisitorImplementation::recur
 	void mangle(TemplatedIdentifier& node)
 	{
 		visit(*node.id);
+		mInsideParamList = true;
 		foreach(i, node.templated_type_list)
             resolveAndVisit(*i);
+		mInsideParamList = false;
 	}
 
 	void mangle(TypeSpecifier& node)
@@ -128,6 +130,7 @@ struct NameManglingVisitor : Visitor<ASTNode, void, VisitorImplementation::recur
 		stream << "PF"; // function pointer is always a pointer, hence "P" in "PF"
 		resolveAndVisit(node.return_type);
 		std::vector<TypeSpecifier*> type_list;
+		mInsideParamList = true;
 		foreach(i, node.argument_types)
 		{
 			int type_index = -1;
@@ -144,6 +147,7 @@ struct NameManglingVisitor : Visitor<ASTNode, void, VisitorImplementation::recur
 			else
 				resolveAndVisit(*i);
 		}
+		mInsideParamList = false;
 		stream << "E"; // ALWAYS postfix "E"
 	}
 
@@ -167,6 +171,7 @@ struct NameManglingVisitor : Visitor<ASTNode, void, VisitorImplementation::recur
 			stream << "v"; // empty param-list equivalent to "void" param type
 		else
 		{
+			mInsideParamList = true;
 			for(; p != node.parameters.end(); p++)
 			{
 				int type_index = -1;
@@ -190,6 +195,7 @@ struct NameManglingVisitor : Visitor<ASTNode, void, VisitorImplementation::recur
 				else
 					resolveAndVisit((*p)->type);
 			}
+			mInsideParamList = false;
 		}
 	}
 
@@ -233,7 +239,7 @@ struct NameManglingVisitor : Visitor<ASTNode, void, VisitorImplementation::recur
 		stream.str("");
 		mUptraceDepth = 0;
 		mInsideComboName = mBeginOfComboName = mEndOfComboName = false;
-		mInsideResolvedLink = false;
+		mInsideParamList = false;
 	}
 
 	std::stringstream stream;
@@ -268,11 +274,7 @@ private:
 	{
         ASTNode* resolved_type = ASTNodeHelper::findUniqueTypeResolution(node);
         if(resolved_type)
-        {
-			mInsideResolvedLink = true;
 			visit(*resolved_type);
-			mInsideResolvedLink = false;
-        }
 	}
 
 	static bool isEqual(TypeSpecifier* a, TypeSpecifier* b)
@@ -289,7 +291,7 @@ private:
 
 	size_t mUptraceDepth;
 	bool mInsideComboName, mBeginOfComboName, mEndOfComboName;
-	bool mInsideResolvedLink;
+	bool mInsideParamList;
 };
 
 } } } }
