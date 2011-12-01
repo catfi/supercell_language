@@ -32,7 +32,8 @@ ResolutionStage::ResolutionStage() :
 		debug(false),
 		disable_type_inference(false),
 		total_unresolved_count_type(std::numeric_limits<std::size_t>::max()),
-		total_unresolved_count_symbol(std::numeric_limits<std::size_t>::max())
+		total_unresolved_count_symbol(std::numeric_limits<std::size_t>::max()),
+        dump_graphviz(false)
 { }
 
 ResolutionStage::~ResolutionStage()

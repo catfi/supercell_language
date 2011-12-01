@@ -170,10 +170,10 @@ void ASTGraphvizParentEdgeGenerator::addParentEdge(ASTNode* from, ASTNode* to, c
     std::wstring color = edgeColor;
     if(color == L"") color = L"lightgray";
 
-    os_ << L" [arrowhead=\"crow\"";
-    if(label != L"") os_ << L", label=\""   << label << L"\"";
-    if(label != L"") os_ << L"fontsize=\""   << 7 << L"\"";
-    if(color != L"") os_ << L", color=\"" << color << L"\"";
+    os_ << L" [dir=\"back\", arrowtail=\"vee\"";
+    if(label != L"") os_ << L", label=\""     << label << L"\"";
+    if(label != L"") os_ << L", fontsize=\""  << 7     << L"\"";
+    if(color != L"") os_ << L", color=\""     << color << L"\"";
     if(color != L"") os_ << L", fontcolor=\"" << color << L"\"";
 
     os_ << L"];" << std::endl;

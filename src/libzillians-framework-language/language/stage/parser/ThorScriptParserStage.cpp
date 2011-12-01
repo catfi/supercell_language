@@ -113,7 +113,7 @@ static boost::filesystem::path normalize_path(boost::filesystem::path p)
 
 }
 
-ThorScriptParserStage::ThorScriptParserStage() : debug_parser(false), debug_ast(false), debug_ast_with_loc(false), use_relative_path(false)
+ThorScriptParserStage::ThorScriptParserStage() : debug_parser(false), debug_ast(false), debug_ast_with_loc(false), use_relative_path(false), dump_graphviz(false)
 { }
 
 ThorScriptParserStage::~ThorScriptParserStage()
