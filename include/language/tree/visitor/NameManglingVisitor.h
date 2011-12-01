@@ -35,7 +35,7 @@ struct NameManglingVisitor : Visitor<ASTNode, void, VisitorImplementation::recur
 {
 	CREATE_INVOKER(mangleInvoker, mangle)
 
-	NameManglingVisitor() : uptrace_depth(0), dependent_component(false)
+	NameManglingVisitor() : mUptraceDepth(0), mComboName(false), mDependentComponent(false), mCtorMode(CTOR_NONE)
 	{
 		REGISTER_ALL_VISITABLE_ASTNODE(mangleInvoker)
 	}
@@ -46,20 +46,18 @@ struct NameManglingVisitor : Visitor<ASTNode, void, VisitorImplementation::recur
 	void mangle(Package& node)
 	{
 		bool is_root = ASTNodeHelper::isRootPackage(&node);
-		bool combo_name = false;
-		if(is_root)
-			combo_name = (uptrace_depth > 1);
+		mComboName = (is_root && mUptraceDepth>1);
 		if(node.parent)
 		{
-			uptrace_depth++;
+			mUptraceDepth++;
 			visit(*node.parent); // up-trace to build complete name
-			uptrace_depth = 0;
+			mUptraceDepth = 0;
 		}
 		if(is_root)
 		{
-			if(!dependent_component)
+			if(!mDependentComponent)
 				stream << "_Z"; // always begin with "_Z"
-			if(combo_name)
+			if(mComboName)
 				stream << "N"; // name involves a Package/ClassDecl
 		}
 		else
@@ -72,6 +70,15 @@ struct NameManglingVisitor : Visitor<ASTNode, void, VisitorImplementation::recur
 		else if(node.name == L"ref_")   stream << "R";
 		else if(node.name == L"const_") stream << "K";
 		else if(node.name == L"void_")  stream << "v";
+		else if(node.name == L"new")
+		{
+			switch(mCtorMode)
+			{
+			case CTOR_1: stream << "C1"; break;
+			case CTOR_2: stream << "C2"; break;
+			default: break;
+			}
+		}
 		else
 			stream << node.name.length() << encode(node.name);
 	}
@@ -114,9 +121,9 @@ struct NameManglingVisitor : Visitor<ASTNode, void, VisitorImplementation::recur
 	{
 		if(node.parent)
 		{
-			uptrace_depth++;
+			mUptraceDepth++;
 			visit(*node.parent); // up-trace to build complete name
-			uptrace_depth = 0;
+			mUptraceDepth = 0;
 		}
 		stream << "PF"; // function pointer is always a pointer, hence "P" in "PF"
 		resolveAndVisit(node.return_type);
@@ -144,9 +151,9 @@ struct NameManglingVisitor : Visitor<ASTNode, void, VisitorImplementation::recur
 	{
 		if(node.parent)
 		{
-			uptrace_depth++;
+			mUptraceDepth++;
 			visit(*node.parent); // up-trace to build complete name
-			uptrace_depth = 0;
+			mUptraceDepth = 0;
 		}
 		visitIdentifier(node.name);
 	}
@@ -155,9 +162,9 @@ struct NameManglingVisitor : Visitor<ASTNode, void, VisitorImplementation::recur
 	{
 		if(node.parent)
 		{
-			uptrace_depth++;
+			mUptraceDepth++;
 			visit(*node.parent); // up-trace to build complete name
-			uptrace_depth = 0;
+			mUptraceDepth = 0;
 		}
 		visitIdentifier(node.name);
 	}
@@ -166,31 +173,40 @@ struct NameManglingVisitor : Visitor<ASTNode, void, VisitorImplementation::recur
 	{
 		if(node.parent)
 		{
-			uptrace_depth++;
+			mUptraceDepth++;
 			visit(*node.parent); // up-trace to build complete name
-			uptrace_depth = 0;
+			mUptraceDepth = 0;
 		}
 		visitIdentifier(node.name);
 	}
 
 	void mangle(FunctionDecl& node)
 	{
-#if 0 // NOTE: temporary work-around for c-tor bug
-		if(node.is_member && node.parent && isa<ClassDecl>(node.parent) && node.name->toString() == L"new")
-			return;
+		if(isConstructor(node.name) && mCtorMode == CTOR_NONE)
+		{
+			mCtorMode = CTOR_1;
+			visit(node);
+#if 0 // NOTE: unused -- see http://stackoverflow.com/questions/6921295/dual-emission-of-constructor-symbols
+			mCtorMode = CTOR_2;
+			visit(node);
 #endif
+			mCtorMode = CTOR_NONE;
+			return;
+		}
+		mComboName = false;
 		if(node.parent)
 		{
-			uptrace_depth++;
+			mUptraceDepth++;
 			visit(*node.parent); // up-trace to build complete name
-			uptrace_depth = 0;
+			mUptraceDepth = 0;
 		}
 		visitIdentifier(node.name);
+		if(mComboName)
+			stream << "E"; // if mangled name begins with "N", always end with "E"
 		std::vector<TypeSpecifier*> type_list;
 		std::vector<VariableDecl*>::iterator p = node.parameters.begin();
 		if(ASTNodeHelper::hasOwnerNamedScope(&node))
 		{
-			stream << "E"; // if mangled name begins with "N", always end with "E"
 			if(isa<ClassDecl>(node.parent))
 			{
 				BOOST_ASSERT(node.parameters.size() >= 1 && "methods must have 1st parameter \"this\"");
@@ -264,12 +280,14 @@ struct NameManglingVisitor : Visitor<ASTNode, void, VisitorImplementation::recur
 
 	void reset()
 	{
-#if 1 // NOTE: for debugging only
+#if 0 // NOTE: for debugging only
 		std::cout << "NameManglingVisitor: " << stream.str() << std::endl;
 #endif
 		stream.str("");
-		uptrace_depth = 0;
-		dependent_component = false;
+		mUptraceDepth = 0;
+		mComboName = false;
+		mDependentComponent = false;
+		mCtorMode = CTOR_NONE;
 	}
 
 	std::stringstream stream;
@@ -287,7 +305,7 @@ private:
         ASTNode* resolved_type = ASTNodeHelper::findUniqueTypeResolution(node);
         if(resolved_type)
         {
-			dependent_component = true;
+			mDependentComponent = true;
 			if(isa<TypeSpecifier>(resolved_type))
 				visit(*cast<TypeSpecifier>(resolved_type));
 			else if(isa<ClassDecl>(resolved_type))
@@ -298,7 +316,7 @@ private:
 				visit(*cast<EnumDecl>(resolved_type));
 			else
 				UNREACHABLE_CODE();
-			dependent_component = false;
+			mDependentComponent = false;
         }
 	}
 
@@ -312,13 +330,33 @@ private:
 			UNREACHABLE_CODE();
 	}
 
+	static bool isConstructor(Identifier* ident)
+	{
+		if(isa<SimpleIdentifier>(ident))
+			return (cast<SimpleIdentifier>(ident)->name == L"new");
+		else if(isa<TemplatedIdentifier>(ident))
+			return isConstructor(cast<TemplatedIdentifier>(ident)->id);
+		else
+			UNREACHABLE_CODE();
+		return false;
+	}
+
 	static bool isEqual(TypeSpecifier* a, TypeSpecifier* b)
 	{
 		return a->isEqual(*b);
 	}
 
-	size_t uptrace_depth;
-	bool dependent_component;
+	size_t mUptraceDepth;
+	bool mComboName;
+	bool mDependentComponent;
+
+	enum CTOR_MODE
+	{
+		CTOR_NONE,
+		CTOR_1,
+		CTOR_2
+	};
+	CTOR_MODE mCtorMode;
 };
 
 } } } }

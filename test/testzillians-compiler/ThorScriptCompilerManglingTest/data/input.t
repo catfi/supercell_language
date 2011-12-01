@@ -42,7 +42,9 @@ function _func_32_(x:ptr_<ptr_<void_> >):void { }
 function _func_33_(x:ref_<ptr_<void_> >):void { }
 function _func_34_(x:ref_<ptr_<ptr_<void_> > >):void { }
 //function _func_35_(x:function(int8):void):void { }
-//function _func_36_(x:function(int8):void, x2:function(int8):void):void { }
+//function _func_36_(x:function(int8):void, y:function(int8):void):void { }
+function _func_37_(x:QWE):void { }
+function _func_38_(x:QWE, y:QWE):void { }
 
 // const vs non-const
 function _func_40_(x:ptr_<const_<void_> >):void { }
