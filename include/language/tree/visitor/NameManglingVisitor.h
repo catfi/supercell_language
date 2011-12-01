@@ -45,15 +45,17 @@ struct NameManglingVisitor : Visitor<ASTNode, void, VisitorImplementation::recur
 
 	void mangle(Package& node)
 	{
+		bool is_root = ASTNodeHelper::isRootPackage(&node);
 		bool combo_name = false;
+		if(is_root)
+			combo_name = (uptrace_depth > 1);
 		if(node.parent)
 		{
 			uptrace_depth++;
-			combo_name = (uptrace_depth > 2);
 			visit(*node.parent); // up-trace to build complete name
 			uptrace_depth = 0;
 		}
-		if(ASTNodeHelper::isRootPackage(&node))
+		if(is_root)
 		{
 			if(!dependent_component)
 				stream << "_Z"; // always begin with "_Z"
