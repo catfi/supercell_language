@@ -138,6 +138,12 @@ std::string ThorScriptMakeStage::genCompileCmd(boost::graph_traits<TangleGraphTy
     boost::filesystem::path llvmPath = buildPath / (outputFileName + ".bc");
     cmd += " '--emit-ast=" + astPath.string() + "'";
     cmd += " '--emit-llvm=" + llvmPath.string() + "'";
+    if(dumpGraphviz)
+    {
+        cmd += " '--dump-graphviz'";
+        boost::filesystem::path graphvizPath = buildPath / "graphviz" / outputFileName;
+        cmd += " '--dump-graphviz-dir=" + graphvizPath.string() + "'";
+    }
 
     return cmd;
 }
@@ -175,7 +181,10 @@ std::pair<shared_ptr<po::options_description>, shared_ptr<po::options_descriptio
 
 	foreach(i, option_desc_public->options()) option_desc_private->add(*i);
 
-	option_desc_private->add_options() ;
+	option_desc_private->add_options()
+		("dump-graphviz", "dump AST in graphviz format")
+		("dump-graphviz-dir", po::value<std::string>(), "dump AST in graphviz format")
+    ;
 
 	return std::make_pair(option_desc_public, option_desc_private);
 }
@@ -206,6 +215,10 @@ bool ThorScriptMakeStage::parseOptions(po::variables_map& vm)
     else if(vm.count("release"))
     {
         buildType = BUILD_TYPE::RELEASE;
+    }
+    if(vm.count("dump-graphviz"))
+    {
+        dumpGraphviz = true;
     }
     return true;
 }

@@ -45,7 +45,10 @@ std::pair<shared_ptr<po::options_description>, shared_ptr<po::options_descriptio
 
 	foreach(i, option_desc_public->options()) option_desc_private->add(*i);
 
-	option_desc_private->add_options();
+	option_desc_private->add_options()
+		//("dump-graphviz", "dump AST in graphviz format")
+		//("dump-graphviz-dir", po::value<std::string>(), "dump AST in graphviz format")
+    ;
 
 	return std::make_pair(option_desc_public, option_desc_private);
 }
@@ -57,6 +60,12 @@ bool ASTDeserializationStage::parseOptions(po::variables_map& vm)
 		enabled_load = true;
 		ast_file_to_load = vm["load-ast"].as<std::string>();
 	}
+
+	dump_graphviz = (vm.count("dump-graphviz") > 0);
+    if(vm.count("dump-graphviz-dir") > 0)
+    {
+        dump_graphviz_dir = vm["dump-graphviz-dir"].as<std::string>();
+    }
 
 	inputs = vm["input"].as<std::vector<std::string>>();
 
@@ -85,6 +94,12 @@ bool ASTDeserializationStage::execute(bool& continue_execution)
 			getParserContext().tangle = t;
 		}
 	}
+
+    if(dump_graphviz)
+    {
+        boost::filesystem::path p(dump_graphviz_dir);
+        ASTNodeHelper::visualize(getParserContext().tangle, p / "post-deserialized.dot");
+    }
 
 	UNUSED_ARGUMENT(continue_execution);
 

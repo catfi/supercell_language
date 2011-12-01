@@ -59,6 +59,8 @@ public:
 
 private:
     BUILD_TYPE buildType;
+	bool dumpGraphviz;
+    std::string dumpGraphvizDir;
 };
 
 } } }

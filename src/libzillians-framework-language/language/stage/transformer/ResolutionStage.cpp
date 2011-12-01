@@ -54,7 +54,10 @@ std::pair<shared_ptr<po::options_description>, shared_ptr<po::options_descriptio
 	foreach(i, option_desc_public->options()) option_desc_private->add(*i);
 
 	option_desc_private->add_options()
-		("debug-resolution-stage", "debug type conversion stage");
+		("debug-resolution-stage", "debug type conversion stage")
+		//("dump-graphviz", "dump AST in graphviz format")
+		//("dump-graphviz-dir", po::value<std::string>(), "dump AST in graphviz format")
+    ;
 
 	return std::make_pair(option_desc_public, option_desc_private);
 }
@@ -63,6 +66,11 @@ bool ResolutionStage::parseOptions(po::variables_map& vm)
 {
 	debug = (vm.count("debug-resolution-stage") > 0);
 	disable_type_inference = (vm.count("no-type-inference") > 0);
+	dump_graphviz = (vm.count("dump-graphviz") > 0);
+    if(vm.count("dump-graphviz-dir") > 0)
+    {
+        dump_graphviz_dir = vm["dump-graphviz-dir"].as<std::string>();
+    }
 
 	return true;
 }
@@ -77,8 +85,18 @@ bool ResolutionStage::execute(bool& continue_execution)
 	bool complete_type_resolution = false;
 	bool complete_symbol_resolution = false;
 
+    size_t count = 0;
 	while(true)
 	{
+        if(dump_graphviz)
+        {
+            std::ostringstream oss;
+            oss << "pre-resolution-" << count << ".dot";
+            boost::filesystem::path p(dump_graphviz_dir);
+            ASTNodeHelper::visualize(getParserContext().tangle, p / oss.str());
+            ++count;
+        }
+
 		bool making_progress_on_type_resolution = false;
 		if(!complete_type_resolution)
 			complete_type_resolution = resolveTypes(false, making_progress_on_type_resolution);

@@ -18,8 +18,7 @@
 #
 # Contact Information: info@zillians.com
 #
-
-add_custom_target(zillians-language-language-main-stages)
+add_custom_target(zillians-framework-language-main-stages)
 
 ADD_SUBDIRECTORY(bundle)
 ADD_SUBDIRECTORY(compile)

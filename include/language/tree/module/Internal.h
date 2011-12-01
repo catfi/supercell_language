@@ -45,6 +45,18 @@ struct Internal : public ASTNode
 		ObjectTy   = new TypeSpecifier(PrimitiveType::OBJECT);
 		FunctionTy = new TypeSpecifier(PrimitiveType::FUNCTION);
 		StringTy   = new TypeSpecifier(PrimitiveType::STRING);
+
+		VoidTy->parent     = this;
+		BooleanTy->parent  = this;
+		Int8Ty->parent     = this;
+		Int16Ty->parent    = this;
+		Int32Ty->parent    = this;
+		Int64Ty->parent    = this;
+		Float32Ty->parent  = this;
+		Float64Ty->parent  = this;
+		ObjectTy->parent   = this;
+		FunctionTy->parent = this;
+		StringTy->parent   = this;
 	}
 
 	TypeSpecifier* getPrimitiveTy(PrimitiveType::type t)
