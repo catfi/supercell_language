@@ -176,11 +176,10 @@ std::vector<std::string> ThorScriptDriver::getAstUnderBuild()
 
 bool ThorScriptDriver::setProjectPathAndBuildPath(std::vector<std::string>& argv)
 {
-    const std::string dStr = "--dump-command";
-    projectPath = upToManifestDir();
+    std::string opt = "--dump-command";
     foreach(i, argv)
     {
-        if(i->find(dStr) == 0)
+        if(*i == opt)
         {
             dumpCommand = true;
             argv.erase(i);
@@ -188,13 +187,35 @@ bool ThorScriptDriver::setProjectPathAndBuildPath(std::vector<std::string>& argv
         }
     }
 
-    const std::string pStr = "--project-path=";
+    opt = "--dump-graphviz";
+    foreach(i, argv)
+    {
+        if(*i == opt)
+        {
+            dumpGraphviz = true;
+            argv.erase(i);
+            break;
+        }
+    }
+
+    opt = "--dump-graphviz-dir=";
+    foreach(i, argv)
+    {
+        if(i->find(opt) == 0)
+        {
+            dumpGraphvizDir = i->substr(opt.size());
+            argv.erase(i);
+            break;
+        }
+    }
+
+    opt = "--project-path=";
     projectPath = upToManifestDir();
     foreach(i, argv)
     {
-        if(i->find(pStr) == 0)
+        if(i->find(opt) == 0)
         {
-            projectPath = i->substr(pStr.size());
+            projectPath = i->substr(opt.size());
             argv.erase(i);
             break;
         }
@@ -555,6 +576,14 @@ bool ThorScriptDriver::make(const ThorScriptDriver::BUILD_TYPE type)
     if(dumpCommand)
     {
         cmd += " --dump-command";
+    }
+    if(dumpGraphviz)
+    {
+        cmd += " --dump-graphviz";
+    }
+    if(dumpGraphvizDir != "")
+    {
+        cmd += " --dump-graphviz-dir=" + dumpGraphvizDir;
     }
     if(type == ThorScriptDriver::BUILD_TYPE::DEBUG)
     {
