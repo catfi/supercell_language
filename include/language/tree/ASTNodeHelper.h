@@ -20,6 +20,7 @@
 #ifndef ZILLIANS_LANGUAGE_TREE_ASTNODEHELPER_H_
 #define ZILLIANS_LANGUAGE_TREE_ASTNODEHELPER_H_
 
+#include <boost/filesystem.hpp>
 #include "language/tree/ASTNodeFactory.h"
 #include "language/context/ParserContext.h"
 #include "language/context/ResolverContext.h"
@@ -297,19 +298,32 @@ struct ASTNodeHelper
 		return PrimitiveType::byteSize(node->referred.primitive);
 	}
 
-    static void visualize(ASTNode* node, const std::string& filename)
+    static void visualize(ASTNode* node, const boost::filesystem::path& path)
     {
-        // DEBUG
-        // test graphviz generator
-        std::wofstream fout(filename);
+        boost::filesystem::create_directories(path.parent_path());
+        std::wofstream fout(path.string());
+        if(!fout.is_open())
+        {
+            std::cerr << "Can not open file" << path.string() << std::endl;
+            return;
+        }
+
         fout << L"digraph G {" << std::endl;
         fout << L"    rankdir=LR;" << std::endl;
+
+        fout << L"    // nodes" << std::endl;
         zillians::language::stage::visitor::ASTGraphvizNodeGenerator nodeGen(fout);
-        nodeGen.label(*node);
+        nodeGen.visit(*node);
+
         fout << std::endl;
+        fout << L"    // children to parent edges" << std::endl;
+        zillians::language::stage::visitor::ASTGraphvizParentEdgeGenerator parentEdgeGen(fout);
+        parentEdgeGen.visit(*node);
+
         fout << std::endl;
-        zillians::language::stage::visitor::ASTGraphvizEdgeGenerator edgeGen(fout);
-        edgeGen.apply(*node);
+        fout << L"    // parent to children edge" << std::endl;
+        zillians::language::stage::visitor::ASTGraphvizChildEdgeGenerator childEdgeGen(fout);
+        childEdgeGen.visit(*node);
         fout << "}" << std::endl;
     }
 

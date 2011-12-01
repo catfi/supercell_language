@@ -46,279 +46,106 @@ struct ASTGraphvizNodeGenerator : public GenericDoubleVisitor
     ~ASTGraphvizNodeGenerator()
     { }
 
-	void label(ASTNode& node)
-	{
-        stream << "    n" << std::hex << &node << " [label=\"" << node.instanceName();
-        stream << "\"];" << std::endl;
-        revisit(node);
-	}
+	void label(ASTNode& node);
+	void label(Identifier& node);
+	void label(Import& node);
+	void label(Package& node);
+	void label(Block& node);
+	void label(TypeSpecifier& node);
+	void label(Declaration& node);
 
-	void label(Identifier& node)
-	{
-		stream << "    n" << std::hex << &node << " [label=\"" << node.instanceName();
-		stream << " : " << node.toString();
-        stream << "\"];" << std::endl;
-        revisit(node);
-	}
-
-	void label(Import& node)
-	{
-		stream << "    n" << std::hex << &node << " [label=\"" << node.instanceName();
-		if(node.alias)
-		{
-			if(node.alias->isEmpty())
-			{
-				stream << "[alias: . => " << node.ns->toString() << "]";
-			}
-			else
-			{
-				stream << "[alias: " << node.alias->toString() << " => " << node.ns->toString() << "]";
-			}
-		}
-		else
-		{
-			stream << "[import: " << node.ns->toString() << "]";
-		}
-        stream << "\"];" << std::endl;
-        revisit(node);
-	}
-
-	void label(Package& node)
-	{
-		stream << "    n" << std::hex << &node << " [label=\"" << node.instanceName();
-		if(node.id->isEmpty())
-			stream << "[root_package]";
-		else
-			stream << " : " << node.id->toString();
-        stream << "\"];" << std::endl;
-        revisit(node);
-	}
-
-	void label(Block& node)
-	{
-		stream << "    n" << std::hex << &node << " [label=\"" << node.instanceName();
-		if(node.is_pipelined_block)
-			stream << L"[pipeline_blocl]";
-		else if(node.is_async_block)
-			stream << L"[async_blocl]";
-		else
-			stream << L"[block]";
-        stream << "\"];" << std::endl;
-        revisit(node);
-	}
-
-	void label(TypeSpecifier& node)
-	{
-		stream << "    n" << std::hex << &node << " [label=\"" << node.instanceName();
-		stream << " : " << node.toString();
-        stream << "\"];" << std::endl;
-        revisit(node);
-	}
-
-	void label(ClassDecl& node)
-	{
-		stream << "    n" << std::hex << &node << " [label=\"" << node.instanceName();
-		stream << " : " << node.name->toString();
-        stream << "\"];" << std::endl;
-        revisit(node);
-	}
-
-	void label(InterfaceDecl& node)
-	{
-		stream << "    n" << std::hex << &node << " [label=\"" << node.instanceName();
-		stream << " : " << node.name->toString();
-        stream << "\"];" << std::endl;
-        revisit(node);
-	}
-
-	void label(EnumDecl& node)
-	{
-		stream << "    n" << std::hex << &node << " [label=\"" << node.instanceName();
-		stream << " : " << node.name->toString();
-        stream << "\"];" << std::endl;
-        revisit(node);
-	}
-
-	void label(FunctionDecl& node)
-	{
-		stream << "    n" << std::hex << &node << " [label=\"" << node.instanceName();
-		stream << " : " << node.name->toString();
-        stream << "\"];" << std::endl;
-        revisit(node);
-	}
-
-	void label(Statement& node)
-	{
-		stream << "    n" << std::hex << &node << " [label=\"" << node.instanceName();
-        stream << "\"];" << std::endl;
-        revisit(node);
-	}
-
-	void label(BranchStmt& node)
-	{
-		stream << "    n" << std::hex << &node << " [label=\"" << node.instanceName();
-        stream << "\"];" << std::endl;
-        revisit(node);
-	}
-
-	void label(DeclarativeStmt& node)
-	{
-		stream << "    n" << std::hex << &node << " [label=\"" << node.instanceName();
-        stream << "\"];" << std::endl;
-        revisit(node);
-	}
-
-	void label(ExpressionStmt& node)
-	{
-		stream << "    n" << std::hex << &node << " [label=\"" << node.instanceName();
-        stream << "\"];" << std::endl;
-        revisit(node);
-	}
-
-	void label(ForStmt& node)
-	{
-		stream << "    n" << std::hex << &node << " [label=\"" << node.instanceName();
-        stream << "\"];" << std::endl;
-        revisit(node);
-	}
-
-	void label(ForeachStmt& node)
-	{
-		stream << "    n" << std::hex << &node << " [label=\"" << node.instanceName();
-        stream << "\"];" << std::endl;
-        revisit(node);
-	}
-
-	void label(WhileStmt& node)
-	{
-		stream << "    n" << std::hex << &node << " [label=\"" << node.instanceName();
-        stream << "\"];" << std::endl;
-        revisit(node);
-	}
-
-	void label(IfElseStmt& node)
-	{
-		stream << "    n" << std::hex << &node << " [label=\"" << node.instanceName();
-        stream << "\"];" << std::endl;
-        revisit(node);
-	}
-
-	void label(SwitchStmt& node)
-	{
-		stream << "    n" << std::hex << &node << " [label=\"" << node.instanceName();
-        stream << "\"];" << std::endl;
-        revisit(node);
-	}
-
-	void label(Expression& node)
-	{
-		stream << "    n" << std::hex << &node << " [label=\"" << node.instanceName();
-        stream << "\"];" << std::endl;
-        revisit(node);
-	}
-
-	void label(UnaryExpr& node)
-	{
-		stream << "    n" << std::hex << &node << " [label=\"" << node.instanceName();
-        stream << "\"];" << std::endl;
-        revisit(node);
-	}
-
-	void label(BinaryExpr& node)
-	{
-		stream << "    n" << std::hex << &node << " [label=\"" << node.instanceName();
-        stream << "\"];" << std::endl;
-        revisit(node);
-	}
-
-	void label(TernaryExpr& node)
-	{
-		stream << "    n" << std::hex << &node << " [label=\"" << node.instanceName();
-        stream << "\"];" << std::endl;
-        revisit(node);
-	}
-
-	void label(CallExpr& node)
-	{
-		stream << "    n" << std::hex << &node << " [label=\"" << node.instanceName();
-        stream << "\"];" << std::endl;
-        revisit(node);
-	}
-
-	void label(CastExpr& node)
-	{
-		stream << "    n" << std::hex << &node << " [label=\"" << node.instanceName();
-        stream << "\"];" << std::endl;
-        revisit(node);
-	}
-
-	void label(PrimaryExpr& node)
-	{
-		stream << "    n" << std::hex << &node << " [label=\"" << node.instanceName();
-        stream << "\"];" << std::endl;
-        revisit(node);
-	}
-
-	void label(MemberExpr& node)
-	{
-		stream << "    n" << std::hex << &node << " [label=\"" << node.instanceName();
-        stream << "\"];" << std::endl;
-	}
-
+    void addNode(ASTNode& node,
+                 const std::wstring& label = L"",
+                 const std::wstring& shape = L"",
+                 const std::wstring& borderColor = L"",
+                 const std::wstring& fillColor = L"");
 private:
     std::wostream& stream;
 } ;
 
-
-struct ASTGraphvizEdgeGenerator : public GenericDoubleVisitor
+struct ASTGraphvizParentEdgeGenerator : public GenericDoubleVisitor
 {
-    CREATE_INVOKER(mInvoker, apply);
+    CREATE_INVOKER(mInvoker, genParentEdge);
 
-    ASTGraphvizEdgeGenerator(std::wostream& os) : os_(os)
+    ASTGraphvizParentEdgeGenerator(std::wostream& os) : os_(os)
     {
         REGISTER_ALL_VISITABLE_ASTNODE(mInvoker);
     }
 
-    ~ASTGraphvizEdgeGenerator()
+    ~ASTGraphvizParentEdgeGenerator()
     {
     }
 
-    void apply(zillians::language::tree::ASTNode& node)
+    void genParentEdge(zillians::language::tree::ASTNode& node);
+    void addParentEdge(ASTNode* from, ASTNode* to, const std::wstring& label = L"", const std::wstring& color = L"");
+
+private:
+    std::wostream& os_;
+
+};
+
+struct ASTGraphvizChildEdgeGenerator : public GenericDoubleVisitor
+{
+    CREATE_INVOKER(mInvoker, genChildEdge);
+
+    ASTGraphvizChildEdgeGenerator(std::wostream& os) : os_(os)
     {
-        addEdge(node.parent, &node);
-
-        // ResolvedType
-        if(ASTNode* context = ResolvedType::get(&node))
-        {
-            addEdge(&node, context, L"ResolvedType", L"purple");
-        }
-
-        // ResolvedSymbol
-        if(ASTNode* context = ResolvedSymbol::get(&node))
-        {
-            addEdge(&node, context, L"ResolvedSymbol", L"orange");
-        }
-
-        // SplitReferenceContext
-        if(ASTNode* context = SplitReferenceContext::get(&node))
-        {
-            addEdge(&node, context, L"SplitReferenceContext", L"blue");
-        }
-
-        revisit(node);
+        REGISTER_ALL_VISITABLE_ASTNODE(mInvoker);
     }
 
-    void addEdge(ASTNode* from, ASTNode* to, const std::wstring& label = L"", const std::wstring& color = L"black")
+    ~ASTGraphvizChildEdgeGenerator()
     {
-        os_ << L"    n"
-            << std::hex << from
-            << L" -> n"
-            << std::hex << to
-            << L" [label=\"" << label << L"\", color=\"" << color << L"\"];"
-            << std::endl;
     }
 
-public:
+    void genChildEdge(zillians::language::tree::ASTNode& node);
+    void genChildEdge(zillians::language::tree::Annotation& node);
+    void genChildEdge(zillians::language::tree::Annotations& node);
+    void genChildEdge(zillians::language::tree::Internal& node);
+    void genChildEdge(zillians::language::tree::Tangle& node);
+    void genChildEdge(zillians::language::tree::Source& node);
+    void genChildEdge(zillians::language::tree::Package& node);
+    void genChildEdge(zillians::language::tree::Import& node);
+    void genChildEdge(zillians::language::tree::Block& node);
+    void genChildEdge(zillians::language::tree::Identifier& node);
+    void genChildEdge(zillians::language::tree::SimpleIdentifier& node);
+    void genChildEdge(zillians::language::tree::NestedIdentifier& node);
+    void genChildEdge(zillians::language::tree::TemplatedIdentifier& node);
+    //void genChildEdge(zillians::language::tree::Literal& node);
+    //void genChildEdge(zillians::language::tree::NumericLiteral& node);
+    //void genChildEdge(zillians::language::tree::StringLiteral& node);
+    //void genChildEdge(zillians::language::tree::ObjectLiteral& node);
+    void genChildEdge(zillians::language::tree::TypeSpecifier& node);
+    void genChildEdge(zillians::language::tree::FunctionType& node);
+    void genChildEdge(zillians::language::tree::Declaration& node);
+    void genChildEdge(zillians::language::tree::ClassDecl& node);
+    void genChildEdge(zillians::language::tree::EnumDecl& node);
+    void genChildEdge(zillians::language::tree::InterfaceDecl& node);
+    void genChildEdge(zillians::language::tree::TypedefDecl& node);
+    void genChildEdge(zillians::language::tree::FunctionDecl& node);
+    void genChildEdge(zillians::language::tree::VariableDecl& node);
+    void genChildEdge(zillians::language::tree::TypenameDecl& node);
+    void genChildEdge(zillians::language::tree::Statement& node);
+    void genChildEdge(zillians::language::tree::DeclarativeStmt& node);
+    void genChildEdge(zillians::language::tree::ExpressionStmt& node);
+    //void genChildEdge(zillians::language::tree::IterativeStmt& node);
+    void genChildEdge(zillians::language::tree::ForStmt& node);
+    void genChildEdge(zillians::language::tree::ForeachStmt& node);
+    void genChildEdge(zillians::language::tree::WhileStmt& node);
+    void genChildEdge(zillians::language::tree::Selection& node);
+    //void genChildEdge(zillians::language::tree::SelectionStmt& node);
+    void genChildEdge(zillians::language::tree::IfElseStmt& node);
+    void genChildEdge(zillians::language::tree::SwitchStmt& node);
+    void genChildEdge(zillians::language::tree::BranchStmt& node);
+    void genChildEdge(zillians::language::tree::Expression& node);
+    void genChildEdge(zillians::language::tree::PrimaryExpr& node);
+    void genChildEdge(zillians::language::tree::UnaryExpr& node);
+    void genChildEdge(zillians::language::tree::BinaryExpr& node);
+    void genChildEdge(zillians::language::tree::TernaryExpr& node);
+    void genChildEdge(zillians::language::tree::MemberExpr& node);
+    void genChildEdge(zillians::language::tree::CallExpr& node);
+    void genChildEdge(zillians::language::tree::CastExpr& node);
+
+    void addChildEdge(ASTNode* parent, ASTNode* child, const std::wstring& label = L"", const std::wstring& color = L"");
 
 private:
     std::wostream& os_;

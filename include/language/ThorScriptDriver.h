@@ -90,6 +90,8 @@ private:
     boost::filesystem::path buildPath;
     std::string argv;
     bool dumpCommand;
+    bool dumpGraphviz;
+    std::string dumpGraphvizDir;
 };
 
 } }

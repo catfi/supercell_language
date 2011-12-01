@@ -45,6 +45,20 @@ struct TypenameDecl : public Declaration
 		if(default_type) default_type->parent = this;
 	}
 
+	void setSpecializdType(TypeSpecifier* s)
+	{
+		if(specialized_type) specialized_type->parent = NULL;
+		if(s) s->parent = this;
+		specialized_type = s;
+	}
+
+	void setDefaultType(Expression* d)
+	{
+		if(default_type) default_type->parent = NULL;
+		if(d) d->parent = this;
+		default_type = d;
+	}
+
     virtual bool isEqualImpl(const ASTNode& rhs, ASTNodeSet& visited) const
     {
     	BEGIN_COMPARE_WITH_BASE(Declaration)

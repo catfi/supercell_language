@@ -138,7 +138,10 @@ std::pair<shared_ptr<po::options_description>, shared_ptr<po::options_descriptio
 		("debug-parser", "dump parsing tree for debugging purpose")
 		("debug-parser-ast", "dump parsed abstract syntax tree for debugging purpose")
 		("debug-parser-ast-with-loc", "dump parsed abstract syntax tree with location for debugging purpose")
-		("use-relative-path", "use relative file path instead of absolute path (for debugging info generation)");
+		("use-relative-path", "use relative file path instead of absolute path (for debugging info generation)")
+		("dump-graphviz", "dump AST in graphviz format")
+		("dump-graphviz-dir", po::value<std::string>(), "dump AST in graphviz format")
+    ;
 
 	return std::make_pair(option_desc_public, option_desc_private);
 }
@@ -149,6 +152,11 @@ bool ThorScriptParserStage::parseOptions(po::variables_map& vm)
 	debug_ast = (vm.count("debug-parser-ast") > 0);
 	debug_ast_with_loc = (vm.count("debug-parser-ast-with-loc") > 0);
 	use_relative_path = (vm.count("use-relative-path") > 0);
+	dump_graphviz = (vm.count("dump-graphviz") > 0);
+    if(vm.count("dump-graphviz-dir") > 0)
+    {
+        dump_graphviz_dir = vm["dump-graphviz-dir"].as<std::string>();
+    }
 
 	if(vm.count("root-dir") == 0)
 		root_dir = boost::filesystem::current_path() / "src";
@@ -299,6 +307,12 @@ bool ThorScriptParserStage::parse(const boost::filesystem::path& p)
 
 		return false;
 	}
+
+    if(dump_graphviz)
+    {
+        boost::filesystem::path p(dump_graphviz_dir);
+        ASTNodeHelper::visualize(getParserContext().tangle, p / "post-parse.dot");
+    }
 
 	return true;
 }
