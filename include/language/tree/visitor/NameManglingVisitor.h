@@ -70,7 +70,7 @@ struct NameManglingVisitor : Visitor<ASTNode, void, VisitorImplementation::recur
 		else if(node.name == L"ref_")   stream << "R";
 		else if(node.name == L"const_") stream << "K";
 		else if(node.name == L"void_")  stream << "v";
-		else if(node.name == L"new")
+		else if(isConstructor(&node))
 		{
 			switch(mCtorMode)
 			{
