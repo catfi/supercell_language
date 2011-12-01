@@ -133,7 +133,7 @@ struct NameManglingVisitor : Visitor<ASTNode, void, VisitorImplementation::recur
 			if((*i)->type != TypeSpecifier::ReferredType::PRIMITIVE)
 			{
 				auto p = std::find_if(type_list.begin(), type_list.end(),
-						std::bind2nd(std::ptr_fun(isEqual), *i));
+						[&](TypeSpecifier* type_specifier) { return (*i)->isEqual(*type_specifier); } );
 				if(p != type_list.end())
 					type_index = std::distance(type_list.begin(), p);
 				type_list.push_back(*i);
@@ -204,7 +204,7 @@ struct NameManglingVisitor : Visitor<ASTNode, void, VisitorImplementation::recur
 				if((*p)->type->type != TypeSpecifier::ReferredType::PRIMITIVE)
 				{
 					auto q = std::find_if(type_list.begin(), type_list.end(),
-							std::bind2nd(std::ptr_fun(isEqual), (*p)->type));
+							[&](TypeSpecifier* type_specifier) { return (*p)->type->isEqual(*type_specifier); } );
 					if(q != type_list.end())
 						type_index = std::distance(type_list.begin(), q);
 					type_list.push_back((*p)->type);
