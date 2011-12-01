@@ -35,7 +35,9 @@ struct NameManglingVisitor : Visitor<ASTNode, void, VisitorImplementation::recur
 {
 	CREATE_INVOKER(mangleInvoker, mangle)
 
-	NameManglingVisitor() : mUptraceDepth(0), mComboName(false), mDependentComponent(false), mCtorMode(CTOR_NONE)
+	NameManglingVisitor() : mUptraceDepth(0),
+			mInsideComboName(false), mBeginOfComboName(false), mEndOfComboName(false),
+			mDependentComponent(false), mCtorMode(CTOR_NONE)
 	{
 		REGISTER_ALL_VISITABLE_ASTNODE(mangleInvoker)
 	}
@@ -46,19 +48,19 @@ struct NameManglingVisitor : Visitor<ASTNode, void, VisitorImplementation::recur
 	void mangle(Package& node)
 	{
 		bool is_root = ASTNodeHelper::isRootPackage(&node);
-		mComboName = (is_root && mUptraceDepth>1);
-		if(node.parent)
-		{
-			mUptraceDepth++;
-			visit(*node.parent); // up-trace to build complete name
-			mUptraceDepth = 0;
-		}
+		if(is_root)
+			mInsideComboName = (mUptraceDepth>1); // must check before up-trace
+		uptrace(&node);
 		if(is_root)
 		{
 			if(!mDependentComponent)
-				stream << "_Z"; // always begin with "_Z"
-			if(mComboName)
-				stream << "N"; // name involves a Package/ClassDecl
+				stream << "_Z"; // ALWAYS prefix "_Z"
+
+			{
+				mBeginOfComboName = mInsideComboName;
+				visit(*node.id);
+				mBeginOfComboName = false;
+			}
 		}
 		else
 			visit(*node.id);
@@ -66,6 +68,7 @@ struct NameManglingVisitor : Visitor<ASTNode, void, VisitorImplementation::recur
 
 	void mangle(SimpleIdentifier& node)
 	{
+		if(mBeginOfComboName) stream << "N"; // if mangled name is a combo name, prefix "N"
 		if(node.name == L"ptr_")        stream << "P";
 		else if(node.name == L"ref_")   stream << "R";
 		else if(node.name == L"const_") stream << "K";
@@ -79,8 +82,9 @@ struct NameManglingVisitor : Visitor<ASTNode, void, VisitorImplementation::recur
 			default: break;
 			}
 		}
-		else
+		else if(!node.name.empty())
 			stream << node.name.length() << encode(node.name);
+		if(mEndOfComboName) stream << "E"; // if mangled name is a combo name, postfix "E"
 	}
 
 	void mangle(TemplatedIdentifier& node)
@@ -119,12 +123,7 @@ struct NameManglingVisitor : Visitor<ASTNode, void, VisitorImplementation::recur
 
 	void mangle(FunctionType& node)
 	{
-		if(node.parent)
-		{
-			mUptraceDepth++;
-			visit(*node.parent); // up-trace to build complete name
-			mUptraceDepth = 0;
-		}
+		uptrace(&node);
 		stream << "PF"; // function pointer is always a pointer, hence "P" in "PF"
 		resolveAndVisit(node.return_type);
 		std::vector<TypeSpecifier*> type_list;
@@ -144,40 +143,25 @@ struct NameManglingVisitor : Visitor<ASTNode, void, VisitorImplementation::recur
 			else
 				resolveAndVisit(*i);
 		}
-		stream << "E"; // always end with "E"
+		stream << "E"; // ALWAYS postfix "E"
 	}
 
 	void mangle(ClassDecl& node)
 	{
-		if(node.parent)
-		{
-			mUptraceDepth++;
-			visit(*node.parent); // up-trace to build complete name
-			mUptraceDepth = 0;
-		}
-		visitIdentifier(node.name);
+		uptrace(&node);
+		visit(*node.name);
 	}
 
 	void mangle(InterfaceDecl& node)
 	{
-		if(node.parent)
-		{
-			mUptraceDepth++;
-			visit(*node.parent); // up-trace to build complete name
-			mUptraceDepth = 0;
-		}
-		visitIdentifier(node.name);
+		uptrace(&node);
+		visit(*node.name);
 	}
 
 	void mangle(EnumDecl& node)
 	{
-		if(node.parent)
-		{
-			mUptraceDepth++;
-			visit(*node.parent); // up-trace to build complete name
-			mUptraceDepth = 0;
-		}
-		visitIdentifier(node.name);
+		uptrace(&node);
+		visit(*node.name);
 	}
 
 	void mangle(FunctionDecl& node)
@@ -193,26 +177,22 @@ struct NameManglingVisitor : Visitor<ASTNode, void, VisitorImplementation::recur
 			mCtorMode = CTOR_NONE;
 			return;
 		}
-		mComboName = false;
-		if(node.parent)
+
+		mInsideComboName = false;
+		uptrace(&node);
 		{
-			mUptraceDepth++;
-			visit(*node.parent); // up-trace to build complete name
-			mUptraceDepth = 0;
+			mEndOfComboName = mInsideComboName;
+			visit(*node.name);
+			mEndOfComboName = false;
 		}
-		visitIdentifier(node.name);
-		if(mComboName)
-			stream << "E"; // if mangled name begins with "N", always end with "E"
+
 		std::vector<TypeSpecifier*> type_list;
 		std::vector<VariableDecl*>::iterator p = node.parameters.begin();
-		if(ASTNodeHelper::hasOwnerNamedScope(&node))
+		if(node.is_member && isa<ClassDecl>(node.parent))
 		{
-			if(isa<ClassDecl>(node.parent))
-			{
-				BOOST_ASSERT(node.parameters.size() >= 1 && "methods must have 1st parameter \"this\"");
-				type_list.push_back((*p)->type);
-				p++; // skip "this" parameter for methods
-			}
+			BOOST_ASSERT(node.parameters.size() >= 1 && "methods must have 1st parameter \"this\"");
+			type_list.push_back((*p)->type);
+			p++; // skip "this" parameter for methods
 		}
 		if(p == node.parameters.end())
 			stream << "v"; // empty param-list equivalent to "void" param type
@@ -260,7 +240,7 @@ struct NameManglingVisitor : Visitor<ASTNode, void, VisitorImplementation::recur
 		for(std::string::const_iterator i = ucs4_to_utf8_temp.begin(), e = ucs4_to_utf8_temp.end(); i != e; ++i)
 		{
 			char c = *i;
-#if 1 // NOTE: truncate llvm-rewrite for now -- not useful
+#if 0 // NOTE: truncate llvm-rewrite for now -- not useful
 			if(c == '<') break;
 #endif
 			if( ((i == ucs4_to_utf8_temp.begin()) ? false : isdigit(c)) || isalpha(c) || (c == '_') || (c == '.') )
@@ -285,7 +265,9 @@ struct NameManglingVisitor : Visitor<ASTNode, void, VisitorImplementation::recur
 #endif
 		stream.str("");
 		mUptraceDepth = 0;
-		mComboName = false;
+		mInsideComboName = false;
+		mBeginOfComboName = false;
+		mEndOfComboName = false;
 		mDependentComponent = false;
 		mCtorMode = CTOR_NONE;
 	}
@@ -293,11 +275,14 @@ struct NameManglingVisitor : Visitor<ASTNode, void, VisitorImplementation::recur
 	std::stringstream stream;
 
 private:
-	static const char* toAsciiNumber(char c)
+	void uptrace(ASTNode* node)
 	{
-		static char buffer[4];
-		snprintf(buffer, 3, "%d", c);
-		return buffer;
+		if(node->parent)
+		{
+			mUptraceDepth++;
+			visit(*node->parent); // up-trace to build FQN
+			mUptraceDepth = 0;
+		}
 	}
 
 	void resolveAndVisit(ASTNode* node)
@@ -320,16 +305,6 @@ private:
         }
 	}
 
-	void visitIdentifier(Identifier* ident)
-	{
-		if(isa<SimpleIdentifier>(ident))
-			visit(*cast<SimpleIdentifier>(ident));
-		else if(isa<TemplatedIdentifier>(ident))
-			visit(*cast<TemplatedIdentifier>(ident));
-		else
-			UNREACHABLE_CODE();
-	}
-
 	static bool isConstructor(Identifier* ident)
 	{
 		if(isa<SimpleIdentifier>(ident))
@@ -346,8 +321,17 @@ private:
 		return a->isEqual(*b);
 	}
 
+	static const char* toAsciiNumber(char c)
+	{
+		static char buffer[4];
+		snprintf(buffer, 3, "%d", c);
+		return buffer;
+	}
+
 	size_t mUptraceDepth;
-	bool mComboName;
+	bool mInsideComboName;
+	bool mBeginOfComboName;
+	bool mEndOfComboName;
 	bool mDependentComponent;
 
 	enum CTOR_MODE
