@@ -37,7 +37,7 @@ struct NameManglingVisitor : Visitor<ASTNode, void, VisitorImplementation::recur
 
 	NameManglingVisitor() : mUptraceDepth(0),
 			mInsideComboName(false), mBeginOfComboName(false), mEndOfComboName(false),
-			mDependentComponent(false), mCtorMode(CTOR_NONE)
+			mInsideResolvedLink(false)
 	{
 		REGISTER_ALL_VISITABLE_ASTNODE(mangleInvoker)
 	}
@@ -47,14 +47,12 @@ struct NameManglingVisitor : Visitor<ASTNode, void, VisitorImplementation::recur
 
 	void mangle(Package& node)
 	{
-		bool is_root = ASTNodeHelper::isRootPackage(&node);
-		if(is_root)
-			mInsideComboName = (mUptraceDepth>1); // must check before up-trace
-		uptrace(&node);
-		if(is_root)
+		if(ASTNodeHelper::isRootPackage(&node))
 		{
-			if(!mDependentComponent)
-				stream << "_Z"; // ALWAYS prefix "_Z"
+			mInsideComboName = (mUptraceDepth>1); // must check before up-trace
+			uptrace(&node);
+			if(!mInsideResolvedLink)
+				stream << "_Z";
 
 			{
 				mBeginOfComboName = mInsideComboName;
@@ -63,27 +61,30 @@ struct NameManglingVisitor : Visitor<ASTNode, void, VisitorImplementation::recur
 			}
 		}
 		else
+		{
+			uptrace(&node);
 			visit(*node.id);
+		}
 	}
 
 	void mangle(SimpleIdentifier& node)
 	{
 		if(mBeginOfComboName) stream << "N"; // if mangled name is a combo name, prefix "N"
+
 		if(node.name == L"ptr_")        stream << "P";
 		else if(node.name == L"ref_")   stream << "R";
 		else if(node.name == L"const_") stream << "K";
 		else if(node.name == L"void_")  stream << "v";
-		else if(isConstructor(&node))
+		else if(node.name == L"new")
 		{
-			switch(mCtorMode)
-			{
-			case CTOR_1: stream << "C1"; break;
-			case CTOR_2: stream << "C2"; break;
-			default: break;
-			}
+			stream << "C1";
+#if 0 // NOTE: see --> http://stackoverflow.com/questions/6921295/dual-emission-of-constructor-symbols
+			stream << "C2"; // base object constructor
+#endif
 		}
 		else if(!node.name.empty())
 			stream << node.name.length() << encode(node.name);
+
 		if(mEndOfComboName) stream << "E"; // if mangled name is a combo name, postfix "E"
 	}
 
@@ -146,49 +147,17 @@ struct NameManglingVisitor : Visitor<ASTNode, void, VisitorImplementation::recur
 		stream << "E"; // ALWAYS postfix "E"
 	}
 
-	void mangle(ClassDecl& node)
+	void mangle(Declaration& node)
 	{
-		uptrace(&node);
-		visit(*node.name);
-	}
-
-	void mangle(InterfaceDecl& node)
-	{
-		uptrace(&node);
-		visit(*node.name);
-	}
-
-	void mangle(EnumDecl& node)
-	{
-		uptrace(&node);
-		visit(*node.name);
+		uptraceAndAppendName(&node);
 	}
 
 	void mangle(FunctionDecl& node)
 	{
-		if(isConstructor(node.name) && mCtorMode == CTOR_NONE)
-		{
-			mCtorMode = CTOR_1;
-			visit(node);
-#if 0 // NOTE: unused -- see http://stackoverflow.com/questions/6921295/dual-emission-of-constructor-symbols
-			mCtorMode = CTOR_2;
-			visit(node);
-#endif
-			mCtorMode = CTOR_NONE;
-			return;
-		}
-
-		mInsideComboName = false;
-		uptrace(&node);
-		{
-			mEndOfComboName = mInsideComboName;
-			visit(*node.name);
-			mEndOfComboName = false;
-		}
-
+		uptraceAndAppendName(&node);
 		std::vector<TypeSpecifier*> type_list;
 		std::vector<VariableDecl*>::iterator p = node.parameters.begin();
-		if(node.is_member && isa<ClassDecl>(node.parent))
+		if(node.is_member && node.parent)
 		{
 			BOOST_ASSERT(node.parameters.size() >= 1 && "methods must have 1st parameter \"this\"");
 			type_list.push_back((*p)->type);
@@ -240,13 +209,11 @@ struct NameManglingVisitor : Visitor<ASTNode, void, VisitorImplementation::recur
 		for(std::string::const_iterator i = ucs4_to_utf8_temp.begin(), e = ucs4_to_utf8_temp.end(); i != e; ++i)
 		{
 			char c = *i;
-#if 0 // NOTE: truncate llvm-rewrite for now -- not useful
+#if 0 // NOTE: for debugging only
 			if(c == '<') break;
 #endif
 			if( ((i == ucs4_to_utf8_temp.begin()) ? false : isdigit(c)) || isalpha(c) || (c == '_') || (c == '.') )
-			{
 				utf8_to_llvm_temp.push_back(c);
-			}
 			else
 			{
 				utf8_to_llvm_temp.push_back('$');
@@ -265,11 +232,8 @@ struct NameManglingVisitor : Visitor<ASTNode, void, VisitorImplementation::recur
 #endif
 		stream.str("");
 		mUptraceDepth = 0;
-		mInsideComboName = false;
-		mBeginOfComboName = false;
-		mEndOfComboName = false;
-		mDependentComponent = false;
-		mCtorMode = CTOR_NONE;
+		mInsideComboName = mBeginOfComboName = mEndOfComboName = false;
+		mInsideResolvedLink = false;
 	}
 
 	std::stringstream stream;
@@ -285,35 +249,30 @@ private:
 		}
 	}
 
+	void uptraceAndAppendName(Declaration* node)
+	{
+		mInsideComboName = false;
+		bool base_name = (mUptraceDepth == 0); // must check before up-trace
+		uptrace(node);
+		if(base_name)
+		{
+			mEndOfComboName = mInsideComboName;
+			visit(*node->name);
+			mEndOfComboName = false;
+		}
+		else
+			visit(*node->name);
+	}
+
 	void resolveAndVisit(ASTNode* node)
 	{
         ASTNode* resolved_type = ASTNodeHelper::findUniqueTypeResolution(node);
         if(resolved_type)
         {
-			mDependentComponent = true;
-			if(isa<TypeSpecifier>(resolved_type))
-				visit(*cast<TypeSpecifier>(resolved_type));
-			else if(isa<ClassDecl>(resolved_type))
-				visit(*cast<ClassDecl>(resolved_type));
-			else if(isa<InterfaceDecl>(resolved_type))
-				visit(*cast<InterfaceDecl>(resolved_type));
-			else if(isa<EnumDecl>(resolved_type))
-				visit(*cast<EnumDecl>(resolved_type));
-			else
-				UNREACHABLE_CODE();
-			mDependentComponent = false;
+			mInsideResolvedLink = true;
+			visit(*resolved_type);
+			mInsideResolvedLink = false;
         }
-	}
-
-	static bool isConstructor(Identifier* ident)
-	{
-		if(isa<SimpleIdentifier>(ident))
-			return (cast<SimpleIdentifier>(ident)->name == L"new");
-		else if(isa<TemplatedIdentifier>(ident))
-			return isConstructor(cast<TemplatedIdentifier>(ident)->id);
-		else
-			UNREACHABLE_CODE();
-		return false;
 	}
 
 	static bool isEqual(TypeSpecifier* a, TypeSpecifier* b)
@@ -329,18 +288,8 @@ private:
 	}
 
 	size_t mUptraceDepth;
-	bool mInsideComboName;
-	bool mBeginOfComboName;
-	bool mEndOfComboName;
-	bool mDependentComponent;
-
-	enum CTOR_MODE
-	{
-		CTOR_NONE,
-		CTOR_1,
-		CTOR_2
-	};
-	CTOR_MODE mCtorMode;
+	bool mInsideComboName, mBeginOfComboName, mEndOfComboName;
+	bool mInsideResolvedLink;
 };
 
 } } } }
