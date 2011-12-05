@@ -36,14 +36,14 @@ namespace zillians { namespace language { namespace stage { namespace visitor {
 template<typename Archive>
 struct ASTSerializationStageVisitor : public GenericDoubleVisitor
 {
-    CREATE_INVOKER(serializeInvoker, apply)
+    CREATE_INVOKER(serializeInvoker, serialize)
 
 	ASTSerializationStageVisitor(Archive& oa) : archive(oa)
 	{
 		REGISTER_ALL_VISITABLE_ASTNODE(serializeInvoker)
 	}
 
-	void apply(ASTNode& node)
+	void serialize(ASTNode& node)
 	{
 		FullSerializer serializer(node);
 		archive << serializer;

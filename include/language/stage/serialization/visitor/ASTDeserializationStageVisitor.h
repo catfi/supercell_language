@@ -22,11 +22,11 @@
 
 #include "core/Prerequisite.h"
 #include "language/tree/ASTNodeHelper.h"
-#include "language/tree/visitor/GenericVisitor.h"
+#include "language/tree/visitor/GenericDoubleVisitor.h"
 #include "language/stage/serialization/detail/ASTSerializationCommon.h"
 
 using namespace zillians::language::tree;
-using zillians::language::tree::visitor::GenericVisitor;
+using zillians::language::tree::visitor::GenericDoubleVisitor;
 
 namespace zillians { namespace language { namespace stage { namespace visitor {
 
@@ -34,20 +34,20 @@ namespace zillians { namespace language { namespace stage { namespace visitor {
  * ASTDeserializationStageVisitor is a helper to deserialize all context object stored in ContextHub of AST
  */
 template<typename Archive>
-struct ASTDeserializationStageVisitor : public GenericVisitor
+struct ASTDeserializationStageVisitor : public GenericDoubleVisitor
 {
-    CREATE_GENERIC_INVOKER(deserializeInvoker)
+	CREATE_INVOKER(deserializeInvoker, deserialize)
 
 	ASTDeserializationStageVisitor(Archive& ia) : archive(ia)
 	{
 		REGISTER_ALL_VISITABLE_ASTNODE(deserializeInvoker)
 	}
 
-	void apply(ASTNode& node)
+	void deserialize(ASTNode& node)
 	{
 		FullSerializer serializer(node);
 		archive >> serializer;
-		GenericVisitor::apply(node);
+		revisit(node);
 	}
 
 	Archive& archive;
