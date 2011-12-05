@@ -475,7 +475,7 @@ struct ThorScript : qi::grammar<Iterator, typename SA::start::attribute_type, de
 
 		annotation_list
 			= qi::eps [ typename SA::location::cache_loc() ]
-				>> (*annotation) [ typename SA::annotation_list::init() ]
+				>> (+annotation) [ typename SA::annotation_list::init() ]
 			;
 
 		annotation
