@@ -117,7 +117,9 @@ bool ThorScriptStubStage::execute(bool& continue_execution)
         case GATEWAY_GAMECOMMAND_GAMECOMMANDTRANSLATOR_CPP: filename = get_stub_filename<GATEWAY_GAMECOMMAND_GAMECOMMANDTRANSLATOR_CPP>(var_map); break;
         case GATEWAY_GAMECOMMAND_GAMEMODULE_MODULE:         filename = get_stub_filename<GATEWAY_GAMECOMMAND_GAMEMODULE_MODULE>(var_map); break;
         case CLIENT_CLIENTSTUB_H:                           filename = get_stub_filename<CLIENT_CLIENTSTUB_H>(var_map); break;
+#if 0 // NOTE: not defined, omit for now
         case CLIENT_GAMEOBJECTS_H:                          filename = get_stub_filename<CLIENT_GAMEOBJECTS_H>(var_map); break;
+#endif
         case CLIENT_GAMESERVICE_CPP:                        filename = get_stub_filename<CLIENT_GAMESERVICE_CPP>(var_map); break;
         case CLIENT_GAMESERVICE_H:                          filename = get_stub_filename<CLIENT_GAMESERVICE_H>(var_map); break;
         default:
@@ -148,7 +150,9 @@ bool ThorScriptStubStage::execute(bool& continue_execution)
             case GATEWAY_GAMECOMMAND_GAMECOMMANDTRANSLATOR_CPP: print_stub<GATEWAY_GAMECOMMAND_GAMECOMMANDTRANSLATOR_CPP>(tangle, var_map); break;
             case GATEWAY_GAMECOMMAND_GAMEMODULE_MODULE:         print_stub<GATEWAY_GAMECOMMAND_GAMEMODULE_MODULE>(tangle, var_map); break;
             case CLIENT_CLIENTSTUB_H:                           print_stub<CLIENT_CLIENTSTUB_H>(tangle, var_map); break;
+#if 0 // NOTE: not defined, omit for now
             case CLIENT_GAMEOBJECTS_H:                          print_stub<CLIENT_GAMEOBJECTS_H>(tangle, var_map); break;
+#endif
             case CLIENT_GAMESERVICE_CPP:                        print_stub<CLIENT_GAMESERVICE_CPP>(tangle, var_map); break;
             case CLIENT_GAMESERVICE_H:                          print_stub<CLIENT_GAMESERVICE_H>(tangle, var_map); break;
             default:

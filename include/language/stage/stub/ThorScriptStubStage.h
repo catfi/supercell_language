@@ -74,11 +74,9 @@ private:
 } } }
 
 template<zillians::language::stage::ThorScriptStubStage::stub_type_t ENUM>
-std::string get_stub_filename(zillians::language::stage::ThorScriptStubStage::var_map_t& var_map)
-{ return ""; }
+std::string get_stub_filename(zillians::language::stage::ThorScriptStubStage::var_map_t& var_map);
 
 template<zillians::language::stage::ThorScriptStubStage::stub_type_t ENUM>
-void print_stub(zillians::language::tree::Tangle* node, zillians::language::stage::ThorScriptStubStage::var_map_t& var_map)
-{ }
+void print_stub(zillians::language::tree::Tangle* node, zillians::language::stage::ThorScriptStubStage::var_map_t& var_map);
 
 #endif /* ZILLIANS_LANGUAGE_STAGE_MAKE_THORSCRIPTSTUBSTAGE_H_ */
