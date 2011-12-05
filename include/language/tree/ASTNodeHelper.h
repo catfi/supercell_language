@@ -249,9 +249,9 @@ struct ASTNodeHelper
 		return isa<DeclarativeStmt>(node->parent);
 	}
 
-	static bool isRootPackage(Package* node)
+	static bool isRootPackage(ASTNode* node)
 	{
-		return node->id->toString().empty();
+		return isa<Package>(node) && cast<Package>(node)->id->toString().empty();
 	}
 
 	static bool isInvalidDebugAnnotationAttachPoint(ASTNode* node)

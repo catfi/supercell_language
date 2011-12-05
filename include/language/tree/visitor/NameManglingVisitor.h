@@ -35,9 +35,7 @@ struct NameManglingVisitor : Visitor<ASTNode, void, VisitorImplementation::recur
 {
 	CREATE_INVOKER(mangleInvoker, mangle)
 
-	NameManglingVisitor() : mUptraceDepth(0),
-			mInsideComboName(false), mBeginOfComboName(false), mEndOfComboName(false),
-			mInsideParamList(false)
+	NameManglingVisitor() : mUptraceDepth(0), mInsideParamList(false)
 	{
 		REGISTER_ALL_VISITABLE_ASTNODE(mangleInvoker)
 	}
@@ -49,16 +47,12 @@ struct NameManglingVisitor : Visitor<ASTNode, void, VisitorImplementation::recur
 	{
 		if(ASTNodeHelper::isRootPackage(&node))
 		{
-			mInsideComboName = (mUptraceDepth>1); // must check before up-trace
+			bool inside_combo_name = (mUptraceDepth>1); // must check before up-trace
 			uptrace(&node);
 			if(!mInsideParamList)
 				stream << "_Z";
-
-			{
-				mBeginOfComboName = mInsideComboName;
-				visit(*node.id);
-				mBeginOfComboName = false;
-			}
+			if(inside_combo_name)
+				stream << "N"; // if mangled name is a combo name, prefix "N"
 		}
 		else
 		{
@@ -69,8 +63,6 @@ struct NameManglingVisitor : Visitor<ASTNode, void, VisitorImplementation::recur
 
 	void mangle(SimpleIdentifier& node)
 	{
-		if(mBeginOfComboName) stream << "N"; // if mangled name is a combo name, prefix "N"
-
 		if(node.name == L"ptr_")        stream << "P";
 		else if(node.name == L"ref_")   stream << "R";
 		else if(node.name == L"const_") stream << "K";
@@ -84,8 +76,6 @@ struct NameManglingVisitor : Visitor<ASTNode, void, VisitorImplementation::recur
 		}
 		else if(!node.name.empty())
 			stream << node.name.length() << encode(node.name);
-
-		if(mEndOfComboName) stream << "E"; // if mangled name is a combo name, postfix "E"
 	}
 
 	void mangle(TemplatedIdentifier& node)
@@ -238,7 +228,6 @@ struct NameManglingVisitor : Visitor<ASTNode, void, VisitorImplementation::recur
 #endif
 		stream.str("");
 		mUptraceDepth = 0;
-		mInsideComboName = mBeginOfComboName = mEndOfComboName = false;
 		mInsideParamList = false;
 	}
 
@@ -257,14 +246,13 @@ private:
 
 	void uptraceAndAppendName(Declaration* node)
 	{
-		mInsideComboName = false;
-		bool base_name = (mUptraceDepth == 0); // must check before up-trace
+		bool at_base_name = (mUptraceDepth == 0); // must check before up-trace
 		uptrace(node);
-		if(base_name)
+		if(at_base_name)
 		{
-			mEndOfComboName = mInsideComboName;
 			visit(*node->name);
-			mEndOfComboName = false;
+			if(!ASTNodeHelper::isRootPackage(node->parent))
+				stream << "E"; // if mangled name is a combo name, postfix "E"
 		}
 		else
 			visit(*node->name);
@@ -290,7 +278,6 @@ private:
 	}
 
 	size_t mUptraceDepth;
-	bool mInsideComboName, mBeginOfComboName, mEndOfComboName;
 	bool mInsideParamList;
 };
 
