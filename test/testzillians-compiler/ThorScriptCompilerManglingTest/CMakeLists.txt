@@ -18,19 +18,14 @@
 #
 # Contact Information: info@zillians.com
 #
-
-include_directories(
-    ${PROJECT_COMMON_SOURCE_DIR}/include/
-    ${PROJECT_FRAMEWORK_SOURCE_DIR}/include/
+MESSAGE("ZXC: ${CMAKE_CURRENT_BINARY_DIR}")
+MESSAGE("ZXC: ${CMAKE_CURRENT_SOURCE_DIR}")
+zillians_add_complex_test(
+    TARGET thorscript-mangling-test
+    SHELL ${CMAKE_CURRENT_SOURCE_DIR}/test.sh ${ThorScriptDriver} ${CMAKE_CURRENT_BINARY_DIR}
+            ${CMAKE_CURRENT_SOURCE_DIR}/data/input.t
+            "qwe"
+            "_func_"
+            ${CMAKE_CURRENT_SOURCE_DIR}/gold/output
+    DEPENDS tsc
     )
-
-add_executable(ts-manifest
-    main.cpp
-    )
-    
-target_link_libraries(ts-manifest
-    zillians-framework-language-main-stages-manifest
-    )
-    
-get_target_property(ThorScriptManifestBuilder ts-manifest LOCATION)
-message(STATUS "Using ThorScript Manifest Builder: \"${ThorScriptManifestBuilder}\"")
