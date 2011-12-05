@@ -32,31 +32,26 @@ struct program
 	BEGIN_ACTION(append_import)
 	{
 #ifdef DEBUG
-		printf("program::append_import_decl param(0) type = %s\n", typeid(_param_t(0)).name());
+		printf("program::append_import param(0) type = %s\n", typeid(_param_t(0)).name());
+		printf("program::append_import param(1) type = %s\n", typeid(_param_t(1)).name());
 #endif
 		if(getParserContext().active_source)
 		{
-			Import* import = new Import(_param(0)); BIND_CACHED_LOCATION(import);
-			getParserContext().active_source->addImport(import);
-		}
-	}
-	END_ACTION
-
-	BEGIN_ACTION(append_import_alias)
-	{
-		if(getParserContext().active_source)
-		{
-			Import* import = new Import(_param(0), _param(1)); BIND_CACHED_LOCATION(import);
-			getParserContext().active_source->addImport(import);
-		}
-	}
-	END_ACTION
-
-	BEGIN_ACTION(append_import_global_alias)
-	{
-		if(getParserContext().active_source)
-		{
-			Import* import = new Import(new SimpleIdentifier(L""), _param(0)); BIND_CACHED_LOCATION(import);
+			Import* import = NULL;
+			if(_param(0).is_initialized())
+			{
+				Identifier* ident = NULL;
+				switch((*_param(0)).which())
+				{
+				case 0: ident = boost::get<SimpleIdentifier*>(*_param(0)); break;
+				case 1: ident = new SimpleIdentifier(L""); break;
+				}
+				import = new Import(ident, _param(1)); BIND_CACHED_LOCATION(import);
+			}
+			else
+			{
+				import = new Import(_param(1)); BIND_CACHED_LOCATION(import);
+			}
 			getParserContext().active_source->addImport(import);
 		}
 	}

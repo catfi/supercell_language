@@ -102,7 +102,7 @@ struct template_param_identifier
 			BIND_CACHED_LOCATION(_result = new TemplatedIdentifier(TemplatedIdentifier::Usage::FORMAL_PARAMETER, _param(0)));
 			deduced_foreach_value(i, *(_param(1)))
 			{
-				SimpleIdentifier* ident            = boost::fusion::at_c<0>(i);
+				Identifier*       ident            = boost::fusion::at_c<0>(i);
 				TypeSpecifier*    specialized_type = NULL;
 				Expression*       default_type     = NULL;
 				if(boost::fusion::at_c<1>(i).is_initialized())
