@@ -35,7 +35,7 @@ struct NameManglingVisitor : Visitor<ASTNode, void, VisitorImplementation::recur
 {
 	CREATE_INVOKER(mangleInvoker, mangle)
 
-	NameManglingVisitor() : mUptraceDepth(0), mInsideParamList(false)
+	NameManglingVisitor() : mInsideUptrace(false), mInsideComboName(false), mInsideParamList(false)
 	{
 		REGISTER_ALL_VISITABLE_ASTNODE(mangleInvoker)
 	}
@@ -47,11 +47,9 @@ struct NameManglingVisitor : Visitor<ASTNode, void, VisitorImplementation::recur
 	{
 		if(ASTNodeHelper::isRootPackage(&node))
 		{
-			bool inside_combo_name = (mUptraceDepth>1); // must check before up-trace
-			uptrace(&node);
 			if(!mInsideParamList)
 				stream << "_Z";
-			if(inside_combo_name)
+			if(mInsideComboName)
 				stream << "N"; // if mangled name is a combo name, prefix "N"
 		}
 		else
@@ -81,10 +79,13 @@ struct NameManglingVisitor : Visitor<ASTNode, void, VisitorImplementation::recur
 	void mangle(TemplatedIdentifier& node)
 	{
 		visit(*node.id);
-		mInsideParamList = true;
-		foreach(i, node.templated_type_list)
-            resolveAndVisit(*i);
-		mInsideParamList = false;
+
+		{
+			mInsideParamList = true;
+			foreach(i, node.templated_type_list)
+				resolveAndVisit(*i);
+			mInsideParamList = false;
+		}
 	}
 
 	void mangle(TypeSpecifier& node)
@@ -119,25 +120,29 @@ struct NameManglingVisitor : Visitor<ASTNode, void, VisitorImplementation::recur
 		uptrace(&node);
 		stream << "PF"; // function pointer is always a pointer, hence "P" in "PF"
 		resolveAndVisit(node.return_type);
-		std::vector<TypeSpecifier*> type_list;
-		mInsideParamList = true;
-		foreach(i, node.argument_types)
+
 		{
-			int type_index = -1;
-			if((*i)->type != TypeSpecifier::ReferredType::PRIMITIVE)
+			mInsideParamList = true;
+			std::vector<TypeSpecifier*> type_list;
+			foreach(i, node.argument_types)
 			{
-				auto p = std::find_if(type_list.begin(), type_list.end(),
-						[&](TypeSpecifier* type_specifier) { return (*i)->isEqual(*type_specifier); } );
-				if(p != type_list.end())
-					type_index = std::distance(type_list.begin(), p);
-				type_list.push_back(*i);
+				int type_index = -1;
+				if((*i)->type != TypeSpecifier::ReferredType::PRIMITIVE)
+				{
+					auto p = std::find_if(type_list.begin(), type_list.end(),
+							[&](TypeSpecifier* type_specifier) { return (*i)->isEqual(*type_specifier); } );
+					if(p != type_list.end())
+						type_index = std::distance(type_list.begin(), p);
+					type_list.push_back(*i);
+				}
+				if(type_index != -1)
+					stream << "S" << type_index << "_";
+				else
+					resolveAndVisit(*i);
 			}
-			if(type_index != -1)
-				stream << "S" << type_index << "_";
-			else
-				resolveAndVisit(*i);
+			mInsideParamList = false;
 		}
-		mInsideParamList = false;
+
 		stream << "E"; // ALWAYS postfix "E"
 	}
 
@@ -227,8 +232,7 @@ struct NameManglingVisitor : Visitor<ASTNode, void, VisitorImplementation::recur
 		std::cout << "NameManglingVisitor: " << stream.str() << std::endl;
 #endif
 		stream.str("");
-		mUptraceDepth = 0;
-		mInsideParamList = false;
+		mInsideUptrace = mInsideComboName = mInsideParamList = false;
 	}
 
 	std::stringstream stream;
@@ -236,26 +240,25 @@ struct NameManglingVisitor : Visitor<ASTNode, void, VisitorImplementation::recur
 private:
 	void uptrace(ASTNode* node)
 	{
+		mInsideUptrace = true;
 		if(node->parent)
-		{
-			mUptraceDepth++;
 			visit(*node->parent); // up-trace to build FQN
-			mUptraceDepth = 0;
-		}
+		mInsideUptrace = false;
 	}
 
 	void uptraceAndAppendName(Declaration* node)
 	{
-		bool at_base_name = (mUptraceDepth == 0); // must check before up-trace
-		uptrace(node);
-		if(at_base_name)
+		bool inside_combo_name = (!mInsideUptrace && !ASTNodeHelper::isRootPackage(node->parent));
+
 		{
-			visit(*node->name);
-			if(!ASTNodeHelper::isRootPackage(node->parent))
-				stream << "E"; // if mangled name is a combo name, postfix "E"
+			mInsideComboName |= inside_combo_name;
+			uptrace(node);
+			mInsideComboName = false;
 		}
-		else
-			visit(*node->name);
+
+		visit(*node->name);
+		if(inside_combo_name)
+			stream << "E"; // if mangled name is a combo name, postfix "E"
 	}
 
 	void resolveAndVisit(ASTNode* node)
@@ -277,7 +280,8 @@ private:
 		return buffer;
 	}
 
-	size_t mUptraceDepth;
+	bool mInsideUptrace;
+	bool mInsideComboName;
 	bool mInsideParamList;
 };
 
