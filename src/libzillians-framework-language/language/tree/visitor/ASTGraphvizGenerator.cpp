@@ -141,7 +141,7 @@ void ASTGraphvizNodeGenerator::label(Declaration& node)
 
 void ASTGraphvizParentEdgeGenerator::genParentEdge(zillians::language::tree::ASTNode& node)
 {
-    addParentEdge(node.parent, &node);
+    //addParentEdge(node.parent, &node);
 
     // ResolvedType
     if(ASTNode* context = zillians::language::ResolvedType::get(&node))

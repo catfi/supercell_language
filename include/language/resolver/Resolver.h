@@ -577,10 +577,31 @@ private:
 
     			// make the use type as the specialized type in decl id
                 ASTNode* uniq = tree::ASTNodeHelper::findUniqueTypeResolution(use_typename->specialized_type);
-                ASTNode* copy = uniq->clone();
-				specialized_type_to_replace = tree::cast<tree::TypeSpecifier>(copy);
+
+                ClassDecl* classDecl = cast<ClassDecl>(uniq);
+                if(classDecl != NULL)
+                {
+                    Identifier* classIdentifier = cast<Identifier>(classDecl->name->clone());
+                    TypeSpecifier* fier = new TypeSpecifier(classIdentifier);
+
+                    // template argu is class template
+                    TemplatedIdentifier* templateId = cast<TemplatedIdentifier>(classIdentifier);
+                    if(templateId != NULL)
+                    {
+                        templateId->specialize();
+                        //templateId->templated_type_list[]
+                    }
+
+                    specialized_type_to_replace = fier;
+                }
+                // primitive types
+                else
+                {
+                    tree::ASTNode* copy = uniq->clone();
+                    specialized_type_to_replace = tree::cast<tree::TypeSpecifier>(copy);
+                }
+
                 BOOST_ASSERT(specialized_type_to_replace != NULL);
-                // This assertion will be unnecessary, cause now apply findUniqueTypeResolution() first before clone, the result might be a class.
 				ResolvedType::set(specialized_type_to_replace, ResolvedType::get(use_typename->specialized_type));
 
     		}
