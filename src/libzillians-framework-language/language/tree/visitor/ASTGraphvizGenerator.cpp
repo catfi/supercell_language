@@ -588,7 +588,7 @@ void ASTGraphvizChildEdgeGenerator::addChildEdge(ASTNode* parent, ASTNode* child
     if(label != L""           ) os_ << L"label=\""      << label << L"\"";
     if(label != L""           ) os_ << L", fontsize=\"" << 7     << L"\"";
     if(color != L""           ) os_ << L", color=\""    << color << L"\"";
-    if(child->parent != parent) os_ << L", penwidth= 10\"";
+    if(child->parent != parent) os_ << L", penwidth=\"10\"";
 
     os_ << L"];" << std::endl;
 }
