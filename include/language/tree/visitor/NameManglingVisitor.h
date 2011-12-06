@@ -28,6 +28,9 @@
 #include "language/tree/ASTNodeHelper.h"
 #include <ctype.h>
 #include <algorithm>
+#include <iostream>
+#include <vector>
+#include <string>
 
 namespace zillians { namespace language { namespace tree { namespace visitor {
 
@@ -335,12 +338,22 @@ private:
 		return type_specifier;
 	}
 
+	std::string ito36a(size_t n)
+	{
+	    static char b[] = "0123456789abcdefghijklmnopqrstuvwxyz";
+	    std::string tmp ;
+	    for(;n; n /= 36)
+	        tmp += b[n % 36];
+	    if(tmp.empty()) return "0";
+	    else return std::string(tmp.rbegin(), tmp.rend());
+	}
+
 	void writeRepeatTypeAlias(int type_index)
 	{
 		if(type_index == -1)
 			stream << "S_";
 		else
-			stream << "S" << type_index << "_";
+			stream << "S" << ito36a(type_index) << "_";
 	}
 
 	std::wstring getPureName(Identifier* ident)
