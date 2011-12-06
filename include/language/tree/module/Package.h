@@ -51,7 +51,7 @@ struct Package : public ASTNode
 	void setAnnotations(Annotations* anns)
 	{
 		if(annotations) annotations->parent = NULL;
-		anns->parent = this;
+		if(anns) anns->parent = this;
 		annotations = anns;
 	}
 

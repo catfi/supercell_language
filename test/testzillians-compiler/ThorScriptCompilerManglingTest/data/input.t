@@ -58,39 +58,48 @@ class _BBB_
 
 /*
 // templated class member
-class _CCC_<T>
+class _CCC_<T, T2>
 {
-    function _func_54_():void { }
+    function _func_54_(x:_QWE_):void { }
 }
 
 // class templated member
 class _DDD_
 {
-    function _func_55_<T>():void { }
+    function _func_55_<T, T2>(x:_QWE_):int64 { }
 }
 
-function _func_main_():void
+// templated function
+function _func_56_<T, T2>(x:_QWE_):int64 { }
+
+function main():void
 {
     // simple class member
     var bbb:_BBB_;
     bbb._func_51_();
-    bbb._func_52_(bbb);
-    bbb._func_53_(bbb, bbb, bbb);
+    bbb._func_52_(0);
+    bbb._func_53_(0, 0, 0);
 
     // templated class member
-    var ccc:_CCC_<int8>;
-    ccc._func_54_();
+    var ccc:_CCC_<int8, int8>;
+    ccc._func_54_(0);
 
     // templated class member (specialized class)
-    var ccc2:_CCC_<_QWE_>;
-    ccc2._func_54_();
+    var ccc2:_CCC_<_QWE_, _QWE_>;
+    ccc2._func_54_(0);
 
     // class templated member
     var ddd:_DDD_;
-    ddd._func_55_<int8>();
+    ddd._func_55_<int8, int8>(0);
 
     // class templated member (specialized member)
-    ddd._func_55_<_QWE_>();
+    ddd._func_55_<_QWE_, _QWE_>(0);
+
+    // templated function
+    _func_56_<int8, int8>(0);
+
+    // templated function (specialized)
+    _func_56_<_QWE_, _QWE_>(0);
 }
 */
 

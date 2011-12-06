@@ -80,12 +80,19 @@ struct NameManglingVisitor : Visitor<ASTNode, void, VisitorImplementation::recur
 	{
 		visit(*node.id);
 
+		bool reserved_construct = isReservedWord(getPureName(node.id));
+		if(!reserved_construct)
+			stream << "I";
+
 		{
 			mInsideParamList = true;
 			foreach(i, node.templated_type_list)
 				resolveAndVisit(*i);
 			mInsideParamList = false;
 		}
+
+		if(!reserved_construct)
+			stream << "E"; // ALWAYS postfix "E"
 	}
 
 	void mangle(TypeSpecifier& node)
@@ -117,7 +124,8 @@ struct NameManglingVisitor : Visitor<ASTNode, void, VisitorImplementation::recur
 
 	void mangle(FunctionType& node)
 	{
-		addDummyTypeToRepeatTypeSet();
+		// NOTE: function type occupies 2 alias names, but only assumes the identity of 2nd alias
+		addDummyPlaceholderToRepeatTypeSet();
 
 		uptrace(&node);
 		stream << "PF"; // function pointer is always a pointer, hence "P" in "PF"
@@ -135,10 +143,10 @@ struct NameManglingVisitor : Visitor<ASTNode, void, VisitorImplementation::recur
 				else
 				{
 					int type_index = addToRepeatTypeSet(*i);
-					if(type_index != -1)
-						writeRepeatTypeAlias(type_index+1);
-					else
+					if(type_index == -1)
 						resolveAndVisit(*i);
+					else
+						writeRepeatTypeAlias(type_index-1);
 				}
 			}
 			mInsideParamList = false;
@@ -154,16 +162,32 @@ struct NameManglingVisitor : Visitor<ASTNode, void, VisitorImplementation::recur
 
 	void mangle(FunctionDecl& node)
 	{
+		clearRepeatTypeSet();
+		uptraceAndAppendName(&node);
+
 		auto p = node.parameters.begin();
 		if(node.is_member)
 		{
+			BOOST_ASSERT(node.parent && "method must have parant");
 			BOOST_ASSERT((node.parameters.size() >= 1) && "method must have 1st parameter \"this\"");
 			addToRepeatTypeSet((*p)->type);
-			p++;
+			p++; // no need to mangle "this"
+			if(p != node.parameters.end())
+			{
+				ASTNode* resolved_type = ASTNodeHelper::findUniqueTypeResolution((*p)->type);
+				if(resolved_type == node.parent)
+				{
+					stream << "PS_"; // NOTE: "this" is always a pointer, hence "P" in "PS_"
+					TypeSpecifier* this_type = popLastTypeFromRepeatTypeSet();
+					addDummyPlaceholderToRepeatTypeSet();
+					addToRepeatTypeSet(this_type);
+					p++; // skip first visible parameter after "this"
+					if(p == node.parameters.end())
+						return; // NOTE: prevent writing "v" for empty param list
+				}
+			}
 		}
 
-		uptraceAndAppendName(&node);
-		clearRepeatTypeSet();
 		if(p == node.parameters.end())
 			stream << "v"; // empty param-list equivalent to "void" param type
 		else
@@ -176,14 +200,17 @@ struct NameManglingVisitor : Visitor<ASTNode, void, VisitorImplementation::recur
 				else
 				{
 					int type_index = addToRepeatTypeSet((*p)->type);
-					if(type_index != -1)
-						writeRepeatTypeAlias(type_index+1);
-					else
+					if(type_index == -1)
 						resolveAndVisit((*p)->type);
+					else
+						writeRepeatTypeAlias(type_index-1);
 				}
 			}
 			mInsideParamList = false;
 		}
+
+		if(isa<TemplatedIdentifier>(node.name))
+			visit(*node.type);
 	}
 
 	std::string ucs4_to_utf8_temp;
@@ -281,7 +308,7 @@ private:
 	int addToRepeatTypeSet(TypeSpecifier* type_specifier)
 	{
 		auto p = std::find_if(mRepeatTypeSet.begin(), mRepeatTypeSet.end(),
-				[&](TypeSpecifier* other) { return type_specifier->isEqual(*other); } );
+				[&](TypeSpecifier* other) { return other ? type_specifier->isEqual(*other) : false; } );
 		if(p != mRepeatTypeSet.end())
 			return std::distance(mRepeatTypeSet.begin(), p);
 		else
@@ -296,17 +323,47 @@ private:
 		mRepeatTypeSet.clear();
 	}
 
-	void addDummyTypeToRepeatTypeSet()
+	void addDummyPlaceholderToRepeatTypeSet()
 	{
 		mRepeatTypeSet.push_back(NULL);
 	}
 
+	TypeSpecifier* popLastTypeFromRepeatTypeSet()
+	{
+		TypeSpecifier* type_specifier = mRepeatTypeSet.back();
+		mRepeatTypeSet.pop_back();
+		return type_specifier;
+	}
+
 	void writeRepeatTypeAlias(int type_index)
 	{
-		if(type_index > 0)
-			stream << "S" << (type_index-1) << "_";
-		else
+		if(type_index == -1)
 			stream << "S_";
+		else
+			stream << "S" << type_index << "_";
+	}
+
+	std::wstring getPureName(Identifier* ident)
+	{
+		if(isa<SimpleIdentifier>(ident))
+			return cast<SimpleIdentifier>(ident)->name;
+		else if(isa<TemplatedIdentifier>(ident))
+			return getPureName(cast<TemplatedIdentifier>(ident)->id);
+		else if(isa<NestedIdentifier>(ident))
+		{
+			if(!cast<NestedIdentifier>(ident)->identifier_list.empty())
+				return getPureName(cast<NestedIdentifier>(ident)->identifier_list.back());
+			else
+				return L"";
+		}
+		else
+			UNREACHABLE_CODE();
+		return L"";
+	}
+
+	bool isReservedWord(std::wstring s)
+	{
+		return (s == L"ptr_" || s == L"ref_" || s == L"const_" || s == L"void_");
 	}
 };
 
