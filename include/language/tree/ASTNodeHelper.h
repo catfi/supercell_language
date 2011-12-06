@@ -193,20 +193,7 @@ struct ASTNodeHelper
 		return NULL;
 	}
 
-	static bool hasDirectOwnerPackage(ASTNode* node) { return getDirectOwnerPackage(node); }
-	static Package* getDirectOwnerPackage(ASTNode* node)
-	{
-		BOOST_ASSERT(node && "null pointer exception");
-		for(ASTNode* p = node->parent; p; p = p->parent)
-		{
-			if(isa<FunctionDecl>(p))  return NULL;
-			if(isa<ClassDecl>(p))     return NULL;
-			if(isa<InterfaceDecl>(p)) return NULL;
-			if(isa<Package>(p))       return cast<Package>(p);
-		}
-		return NULL;
-	}
-
+	static bool hasOwnerNamedScope(ASTNode* node) { return getOwnerNamedScope(node); }
 	static ASTNode* getOwnerNamedScope(ASTNode* node)
 	{
 		BOOST_ASSERT(node && "null pointer exception");
@@ -260,6 +247,11 @@ struct ASTNodeHelper
 	{
 		BOOST_ASSERT(node && "null pointer exception");
 		return isa<DeclarativeStmt>(node->parent);
+	}
+
+	static bool isRootPackage(ASTNode* node)
+	{
+		return isa<Package>(node) && cast<Package>(node)->id->toString().empty();
 	}
 
 	static bool isInvalidDebugAnnotationAttachPoint(ASTNode* node)
@@ -335,7 +327,7 @@ private:
 		return isa<FunctionDecl>(node)
 				|| isa<ClassDecl>(node)
 				|| isa<InterfaceDecl>(node)
-				|| isa<Package>(node);
+				|| (isa<Package>(node) && !cast<Package>(node)->id->toString().empty());
 	}
 
 	static bool isDebugAnnotationAttachPoint(ASTNode* node)

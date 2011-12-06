@@ -202,7 +202,8 @@ private:
 				if(!no_action)
 				{
 					ResolvedSymbol::set(&attach, ref);
-					ResolvedType::set(&attach, cast<VariableDecl>(ref)->type);
+					BOOST_ASSERT(ASTNodeHelper::findUniqueTypeResolution(cast<VariableDecl>(ref)->type) != NULL);
+					ResolvedType::set(&attach, ASTNodeHelper::findUniqueTypeResolution(cast<VariableDecl>(ref)->type));
 				}
 			}
 			else if(isa<FunctionDecl>(ref)) // declared function (as class member function or global function)

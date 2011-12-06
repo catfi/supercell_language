@@ -475,7 +475,7 @@ struct ThorScript : qi::grammar<Iterator, typename SA::start::attribute_type, de
 
 		annotation_list
 			= qi::eps [ typename SA::location::cache_loc() ]
-				>> (*annotation) [ typename SA::annotation_list::init() ]
+				>> (+annotation) [ typename SA::annotation_list::init() ]
 			;
 
 		annotation
@@ -911,10 +911,9 @@ struct ThorScript : qi::grammar<Iterator, typename SA::start::attribute_type, de
 		///
 
 		program
-			=	*( ( (IMPORT >> IDENTIFIER >> ASSIGN > nested_identifier > SEMICOLON) [ typename SA::program::append_import_alias() ] ) |
-				   ( (IMPORT >> DOT > ASSIGN > nested_identifier > SEMICOLON) [ typename SA::program::append_import_global_alias() ] ) |
-				   ( (IMPORT >> nested_identifier > SEMICOLON) [ typename SA::program::append_import() ] ) )
-				> *( global_decl                              [ typename SA::program::append_global_decl() ] )
+			=	*(	(IMPORT >> -((IDENTIFIER | EMIT_BOOL(DOT)) >> ASSIGN) > nested_identifier > SEMICOLON
+					) [ typename SA::program::append_import() ] )
+			>	*( global_decl [ typename SA::program::append_global_decl() ] )
 			;
 
 		///

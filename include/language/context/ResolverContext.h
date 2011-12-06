@@ -40,6 +40,7 @@ struct ResolvedType
 		   !isa<EnumDecl>(node) &&
 		   !isa<TypenameDecl>(node) &&
 		   !isa<TypedefDecl>(node) &&
+		   !isa<FunctionDecl>(node) &&
 		   !(isa<TypeSpecifier>(node) && cast<TypeSpecifier>(node)->type != TypeSpecifier::ReferredType::UNSPECIFIED)
 		   )
 		{

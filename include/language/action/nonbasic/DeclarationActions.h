@@ -54,14 +54,14 @@ struct variable_decl_stem
 		printf("variable_decl_stem param(0) type = %s\n", typeid(_param_t(0)).name());
 		printf("variable_decl_stem param(1) type = %s\n", typeid(_param_t(1)).name());
 #endif
-		Identifier*                            name        = _param(0);
+		Identifier*                            ident       = _param(0);
 		TypeSpecifier*                         type        = _param(1).is_initialized() ? *_param(1) : NULL;
 		Expression*                            initializer = NULL;
 		Declaration::VisibilitySpecifier::type visibility  = Declaration::VisibilitySpecifier::PUBLIC;
 		bool                                   is_member   = false;
 		bool                                   is_static   = false;
 		bool                                   is_const    = false;
-		BIND_CACHED_LOCATION(_result = new VariableDecl(name, type, is_member, is_static, is_const, visibility, initializer));
+		BIND_CACHED_LOCATION(_result = new VariableDecl(ident, type, is_member, is_static, is_const, visibility, initializer));
 	}
 	END_ACTION
 };
@@ -124,14 +124,14 @@ struct function_decl
 		printf("function_decl param(2) type = %s\n", typeid(_param_t(2)).name());
 		printf("function_decl param(3) type = %s\n", typeid(_param_t(3)).name());
 #endif
-		Identifier* name = NULL;
+		Identifier* ident = NULL;
 		switch(_param(0).which())
 		{
 		case 0:
-			name = boost::get<Identifier*>(_param(0));
+			ident = boost::get<Identifier*>(_param(0));
 			break;
 		case 1:
-			BIND_CACHED_LOCATION(name = new SimpleIdentifier(L"new"));
+			BIND_CACHED_LOCATION(ident = new SimpleIdentifier(L"new"));
 			break;
 		}
 		std::vector<VariableDecl*>*            parameters = _param(1).is_initialized() ? &(*_param(1)) : NULL;
@@ -140,7 +140,7 @@ struct function_decl
 		Declaration::VisibilitySpecifier::type visibility = Declaration::VisibilitySpecifier::PUBLIC;
 		bool                                   is_member  = false;
 		bool                                   is_static  = false;
-		BIND_CACHED_LOCATION(_result = new FunctionDecl(name, type, is_member, is_static, visibility, block));
+		BIND_CACHED_LOCATION(_result = new FunctionDecl(ident, type, is_member, is_static, visibility, block));
 		if(parameters)
 		{
 			deduced_foreach_value(i, *parameters)
@@ -179,12 +179,12 @@ struct class_decl
 		printf("class_decl param(2) type = %s\n", typeid(_param_t(2)).name());
 		printf("class_decl param(3) type = %s\n", typeid(_param_t(3)).name());
 #endif
-		Identifier* name = _param(0);
+		Identifier* ident = _param(0);
 		Identifier* extends_from_ident = _param(1).is_initialized() ? *_param(1) : NULL;
 		TypeSpecifier* extends_from = NULL;
 		if(extends_from_ident)
 			BIND_CACHED_LOCATION(extends_from = new TypeSpecifier(extends_from_ident));
-		BIND_CACHED_LOCATION(_result = new ClassDecl(name));
+		BIND_CACHED_LOCATION(_result = new ClassDecl(ident));
 		if(extends_from)
 			cast<ClassDecl>(_result)->setBase(extends_from);
 		if(_param(2).is_initialized())

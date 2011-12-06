@@ -602,16 +602,6 @@ public:
 
 } } } }
 
-#define CREATE_GENERIC_INVOKER(invoker)	\
-		typedef struct { 															\
-			template<typename VisitorImpl, typename Visitable>						\
-			static ReturnT invoke(VisitorImpl& visitor, Visitable& visitable)		\
-			{																		\
-				return visitor.apply(visitable);							        \
-			}																		\
-		} invoker;                                                                  \
-		//using GenericVisitor::apply;
-
 #define CREATE_CONDITIONAL_INVOKER(DerivedVisitorClass, invoker) \
     typedef struct {                                             \
         template<typename VisitorImpl, typename Visitable>       \

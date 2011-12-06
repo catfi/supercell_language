@@ -120,7 +120,6 @@ ASTNode* NestedIdentifier::clone() const
 
 } } }
 
-
 namespace zillians { namespace language { namespace tree {
 
 TemplatedIdentifier::TemplatedIdentifier()

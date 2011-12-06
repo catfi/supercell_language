@@ -19,7 +19,7 @@
 # Contact Information: info@zillians.com
 #
 
-SET(compile_options_resolution "--mode-resolution-stage-only")
+SET(compile_options_resolution "--mode-resolution")
 
 add_subdirectory(00_root_symbol_resolution)
 add_subdirectory(01_scoped_symbol_resolution)
