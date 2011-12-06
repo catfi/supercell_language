@@ -71,6 +71,12 @@ void ASTGraphvizNodeGenerator::label(Identifier& node)
     revisit(node);
 }
 
+void ASTGraphvizNodeGenerator::label(TemplatedIdentifier& node)
+{
+    addNode(node, node.toString() + (node.type == TemplatedIdentifier::Usage::FORMAL_PARAMETER ? L"FORMAL" : L"ACTUAL"));
+    revisit(node);
+}
+
 void ASTGraphvizNodeGenerator::label(Import& node)
 {
     stream << "    n" << std::hex << &node << " [label=\"" << node.instanceName();
@@ -153,6 +159,12 @@ void ASTGraphvizParentEdgeGenerator::genParentEdge(zillians::language::tree::AST
     if(ASTNode* context = zillians::language::SplitReferenceContext::get(&node))
     {
         addParentEdge(context, &node, L"SplitReferenceContext", L"blue");
+    }
+
+    // InstantiatedFrom Context
+    if(ASTNode* context = zillians::language::InstantiatedFrom::get(&node))
+    {
+        addParentEdge(context, &node, L"InstantiatedFrom", L"green2");
     }
 
     revisit(node);
@@ -563,19 +575,20 @@ void ASTGraphvizChildEdgeGenerator::genChildEdge(CastExpr& node)
     revisit(node);
 }
 
-void ASTGraphvizChildEdgeGenerator::addChildEdge(ASTNode* from, ASTNode* to, const std::wstring& label, const std::wstring& color)
+void ASTGraphvizChildEdgeGenerator::addChildEdge(ASTNode* parent, ASTNode* child, const std::wstring& label, const std::wstring& color)
 {
     // edge
     os_ << L"    n"
-        << std::hex << from
+        << std::hex << parent
         << L" -> n"
-        << std::hex << to;
+        << std::hex << child;
 
     // attribute
     os_ << L" [";
-    if(label != L"") os_ << L"label=\""   << label << L"\"";
-    if(label != L"") os_ << L"fontsize=\""   << 7 << L"\"";
-    if(color != L"") os_ << L", color=\"" << color << L"\"";
+    if(label != L""           ) os_ << L"label=\""      << label << L"\"";
+    if(label != L""           ) os_ << L", fontsize=\"" << 7     << L"\"";
+    if(color != L""           ) os_ << L", color=\""    << color << L"\"";
+    if(child->parent != parent) os_ << L", penwidth= 10\"";
 
     os_ << L"];" << std::endl;
 }
