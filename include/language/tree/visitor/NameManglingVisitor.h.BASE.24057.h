@@ -121,23 +121,24 @@ struct NameManglingVisitor : Visitor<ASTNode, void, VisitorImplementation::recur
 		stream << "PF"; // function pointer is always a pointer, hence "P" in "PF"
 		resolveAndVisit(node.return_type);
 
-		if(node.argument_types.empty())
-			stream << "v"; // empty param-list equivalent to "void" param type
-		else
 		{
 			mInsideParamList = true;
+			std::vector<TypeSpecifier*> type_list;
 			foreach(i, node.argument_types)
 			{
-				if((*i)->type == TypeSpecifier::ReferredType::PRIMITIVE)
-					resolveAndVisit(*i);
-				else
+				int type_index = -1;
+				if((*i)->type != TypeSpecifier::ReferredType::PRIMITIVE)
 				{
-					int type_index = addToRepeatTypeSet(*i);
-					if(type_index != -1)
-						writeRepeatTypeAlias(type_index+1);
-					else
-						resolveAndVisit(*i);
+					auto p = std::find_if(type_list.begin(), type_list.end(),
+							[&](TypeSpecifier* type_specifier) { return (*i)->isEqual(*type_specifier); } );
+					if(p != type_list.end())
+						type_index = std::distance(type_list.begin(), p);
+					type_list.push_back(*i);
 				}
+				if(type_index != -1)
+					stream << "S" << type_index << "_";
+				else
+					resolveAndVisit(*i);
 			}
 			mInsideParamList = false;
 		}
@@ -152,16 +153,15 @@ struct NameManglingVisitor : Visitor<ASTNode, void, VisitorImplementation::recur
 
 	void mangle(FunctionDecl& node)
 	{
-		auto p = node.parameters.begin();
-		if(node.is_member)
-		{
-			BOOST_ASSERT((node.parameters.size() >= 1) && "method must have 1st parameter \"this\"");
-			addToRepeatTypeSet((*p)->type);
-			p++;
-		}
-
 		uptraceAndAppendName(&node);
-		clearRepeatTypeSet();
+		std::vector<TypeSpecifier*> type_list;
+		std::vector<VariableDecl*>::iterator p = node.parameters.begin();
+		if(node.is_member && node.parent)
+		{
+			BOOST_ASSERT(node.parameters.size() >= 1 && "methods must have 1st parameter \"this\"");
+			type_list.push_back((*p)->type);
+			p++; // skip "this" parameter for methods
+		}
 		if(p == node.parameters.end())
 			stream << "v"; // empty param-list equivalent to "void" param type
 		else
@@ -169,16 +169,26 @@ struct NameManglingVisitor : Visitor<ASTNode, void, VisitorImplementation::recur
 			mInsideParamList = true;
 			for(; p != node.parameters.end(); p++)
 			{
-				if((*p)->type->type == TypeSpecifier::ReferredType::PRIMITIVE)
-					resolveAndVisit((*p)->type);
-				else
+				int type_index = -1;
+				if((*p)->type->type != TypeSpecifier::ReferredType::PRIMITIVE)
 				{
-					int type_index = addToRepeatTypeSet((*p)->type);
-					if(type_index != -1)
-						writeRepeatTypeAlias(type_index+1);
-					else
-						resolveAndVisit((*p)->type);
+					auto q = std::find_if(type_list.begin(), type_list.end(),
+							[&](TypeSpecifier* type_specifier) { return (*p)->type->isEqual(*type_specifier); } );
+					if(q != type_list.end())
+						type_index = std::distance(type_list.begin(), q);
+					type_list.push_back((*p)->type);
 				}
+				if(type_index != -1)
+				{
+					if(node.is_member && node.parent)
+						type_index--; // start counting from zero after "this" parameter
+					if(type_index == -1)
+						stream << "S_"; // parameter is same type as "this" parameter
+					else
+						stream << "S" << type_index << "_";
+				}
+				else
+					resolveAndVisit((*p)->type);
 			}
 			mInsideParamList = false;
 		}
@@ -273,39 +283,6 @@ private:
 	bool mInsideUptrace;
 	bool mInsideComboName;
 	bool mInsideParamList;
-
-	std::vector<TypeSpecifier*> mRepeatTypeSet;
-
-	int addToRepeatTypeSet(TypeSpecifier* type_specifier)
-	{
-		auto p = std::find_if(mRepeatTypeSet.begin(), mRepeatTypeSet.end(),
-				[&](TypeSpecifier* other) { return type_specifier->isEqual(*other); } );
-		if(p != mRepeatTypeSet.end())
-			return std::distance(mRepeatTypeSet.begin(), p);
-		else
-		{
-			mRepeatTypeSet.push_back(type_specifier);
-			return -1; // can't find type, require visitation
-		}
-	}
-
-	void clearRepeatTypeSet()
-	{
-		mRepeatTypeSet.clear();
-	}
-
-	void addDummyTypeToRepeatTypeSet()
-	{
-		mRepeatTypeSet.push_back(NULL);
-	}
-
-	void writeRepeatTypeAlias(int type_index)
-	{
-		if(type_index > 0)
-			stream << "S" << (type_index-1) << "_";
-		else
-			stream << "S_";
-	}
 };
 
 } } } }

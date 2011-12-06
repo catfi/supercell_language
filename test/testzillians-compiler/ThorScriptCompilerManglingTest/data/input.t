@@ -17,9 +17,6 @@ class void_
 // no-param vs params vs return-value
 function _func_00_():void { }
 function _func_01_(x:int8, y:int8):void { }
-/*  NOTE: return type makes no difference in signature
-    function _func_02_():int8 { }
-*/
 
 // primitive-type
 function _func_10_(x:int8):void { }
@@ -29,11 +26,8 @@ function _func_13_(x:int32):void { }
 function _func_14_(x:int64):void { }
 
 // non-primitive-type
-class QWE { }
-function _func_20_(x:QWE):void { }
-/*  NOTE: return type makes no difference in signature
-    function _func_21_(x:QWE):QWE { }
-*/
+class _QWE_ { }
+function _func_20_(x:_QWE_):void { }
 
 // pointer vs reference
 function _func_30_(x:ptr_<void_>):void { }
@@ -42,9 +36,10 @@ function _func_32_(x:ptr_<ptr_<void_> >):void { }
 function _func_33_(x:ref_<ptr_<void_> >):void { }
 function _func_34_(x:ref_<ptr_<ptr_<void_> > >):void { }
 //function _func_35_(x:function(int8):void):void { }
-//function _func_36_(x:function(int8):void, y:function(int8):void):void { }
-function _func_37_(x:QWE):void { }
-function _func_38_(x:QWE, y:QWE):void { }
+//function _func_36_(x:function(int8):void, y:function(int8):void, z:function(int8):void):void { }
+function _func_37_(x:_QWE_):void { }
+function _func_38_(x:_QWE_, y:_QWE_, z:_QWE_):void { }
+//function _func_39_(x:function(_QWE_, _QWE_):void, y:function(_QWE_, _QWE_):void):void { }
 
 // const vs non-const
 function _func_40_(x:ptr_<const_<void_> >):void { }
@@ -53,11 +48,49 @@ function _func_42_(x:ptr_<ptr_<const_<void_> > >):void { }
 function _func_43_(x:ptr_<const_<ptr_<void_> > >):void { }
 function _func_44_(x:ptr_<ptr_<void_> >):void { }
 
-class ASD
+// simple class member
+class _BBB_
 {
-    function _func_45_():void { }
-/*  NOTE: same signature as _func_45_
-    static function _func_46_():void { }
-*/
+    function _func_51_():void { }
+    function _func_51_(x:_BBB_):void { }
+    function _func_51_(x:_BBB_, y:_BBB_, z:_BBB_):void { }
 }
+
+/*
+// templated class member
+class _CCC_<T>
+{
+    function _func_54_():void { }
+}
+
+// class templated member
+class _DDD_
+{
+    function _func_55_<T>():void { }
+}
+
+function _func_main_():void
+{
+    // simple class member
+    var bbb:_BBB_;
+    bbb._func_51_();
+    bbb._func_52_(bbb);
+    bbb._func_53_(bbb, bbb, bbb);
+
+    // templated class member
+    var ccc:_CCC_<int8>;
+    ccc._func_54_();
+
+    // templated class member (specialized class)
+    var ccc2:_CCC_<_QWE_>;
+    ccc2._func_54_();
+
+    // class templated member
+    var ddd:_DDD_;
+    ddd._func_55_<int8>();
+
+    // class templated member (specialized member)
+    ddd._func_55_<_QWE_>();
+}
+*/
 
