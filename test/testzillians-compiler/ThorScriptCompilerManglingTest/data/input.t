@@ -52,8 +52,8 @@ function _func_44_(x:ptr_<ptr_<void_> >):void { }
 class _BBB_
 {
     function _func_51_():void { }
-    function _func_51_(x:_BBB_):void { }
-    function _func_51_(x:_BBB_, y:_BBB_, z:_BBB_):void { }
+    function _func_52_(x:_BBB_):void { }
+    function _func_53_(x:_BBB_, y:_BBB_, z:_BBB_):void { }
 }
 
 /*

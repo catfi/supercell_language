@@ -117,6 +117,8 @@ struct NameManglingVisitor : Visitor<ASTNode, void, VisitorImplementation::recur
 
 	void mangle(FunctionType& node)
 	{
+		addDummyTypeToRepeatTypeSet();
+
 		uptrace(&node);
 		stream << "PF"; // function pointer is always a pointer, hence "P" in "PF"
 		resolveAndVisit(node.return_type);
