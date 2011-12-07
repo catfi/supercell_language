@@ -280,7 +280,7 @@ struct PrettyPrintVisitor : Visitor<const ASTNode, void>
 
 	void print(const FunctionType& node)
 	{
-		STREAM << L"<function_type>" << std::endl;
+		STREAM << L"<function_type return_type=\"" << decodeType(node.return_type) << L"\">" << std::endl;
 		{
 			printSourceInfo(node);
 		}

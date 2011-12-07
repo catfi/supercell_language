@@ -214,6 +214,7 @@ struct GenericVisitor : Visitor<ASTNode, void, VisitorImplementation::recursive_
 	void apply(FunctionType& node)
 	{
 		foreach(i, node.parameter_types) visit(**i);
+		if(node.return_type)             visit(*node.return_type);
 	}
 
 	//////////////////////////////////////////////////////////////////////
