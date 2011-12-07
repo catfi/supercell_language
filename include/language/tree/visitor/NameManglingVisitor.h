@@ -134,12 +134,12 @@ struct NameManglingVisitor : Visitor<ASTNode, void, VisitorImplementation::recur
 		stream << "PF"; // function pointer is always a pointer, hence "P" in "PF"
 		resolveAndVisit(node.return_type);
 
-		if(node.argument_types.empty())
+		if(node.parameter_types.empty())
 			stream << "v"; // empty param-list equivalent to "void" param type
 		else
 		{
 			mInsideParamList = true;
-			foreach(i, node.argument_types)
+			foreach(i, node.parameter_types)
 			{
 				if((*i)->type == TypeSpecifier::ReferredType::PRIMITIVE)
 					resolveAndVisit(*i);
@@ -250,7 +250,7 @@ struct NameManglingVisitor : Visitor<ASTNode, void, VisitorImplementation::recur
 
 	void reset()
 	{
-#if 0 // NOTE: for debugging only
+#if 1 // NOTE: for debugging only
 		std::cout << "NameManglingVisitor: " << stream.str() << std::endl;
 #endif
 		stream.str("");

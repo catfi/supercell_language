@@ -105,8 +105,7 @@ struct GenericDoubleVisitor : Visitor<ASTNode, void, VisitorImplementation::recu
 
 		void apply(FunctionType& node)
 		{
-			foreach(i, node.templated_parameters)	user_visitor->visit(**i);
-			foreach(i, node.argument_types)			user_visitor->visit(**i);
+			foreach(i, node.parameter_types) user_visitor->visit(**i);
 		}
 
 		//////////////////////////////////////////////////////////////////////

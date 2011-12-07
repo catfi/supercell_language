@@ -114,11 +114,10 @@ struct ASTNodeHelper
 	{
 		BOOST_ASSERT(a && b && "null pointer exception");
 
-		if(a->argument_types.size() != b->argument_types.size()) return false;
-		if(a->templated_parameters.size() != b->templated_parameters.size()) return false;
+		if(a->parameter_types.size() != b->parameter_types.size()) return false;
 
-		auto it_a = make_begin(a->argument_types), it_a_end = make_end(a->argument_types);
-		auto it_b = make_begin(b->argument_types), it_b_end = make_end(b->argument_types);
+		auto it_a = make_begin(a->parameter_types), it_a_end = make_end(a->parameter_types);
+		auto it_b = make_begin(b->parameter_types), it_b_end = make_end(b->parameter_types);
 
 		for(; it_a != it_a_end && it_b != it_b_end; ++it_a, ++it_b)
 		{

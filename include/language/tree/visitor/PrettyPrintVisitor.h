@@ -285,29 +285,17 @@ struct PrettyPrintVisitor : Visitor<const ASTNode, void>
 			printSourceInfo(node);
 		}
 		{
-			int index = 0;
 			increaseIdent();
-			foreach(i, node.templated_parameters)
+			int index = 0;
+			foreach(i, node.parameter_types)
 			{
-				STREAM << L"<templated_parameter index=\"" << index << "\">" << std::endl;
+				STREAM << L"<parameter_type index=\"" << index << "\">" << std::endl;
 				{
 					increaseIdent();
 					visit(**i);
 					decreaseIdent();
 				}
-				STREAM << L"</templated_parameter>" << std::endl;
-				++index;
-			}
-			index = 0;
-			foreach(i, node.argument_types)
-			{
-				STREAM << L"<argument_type index=\"" << index << "\">" << std::endl;
-				{
-					increaseIdent();
-					visit(**i);
-					decreaseIdent();
-				}
-				STREAM << L"</argument_type>" << std::endl;
+				STREAM << L"</parameter_type>" << std::endl;
 				++index;
 			}
 			decreaseIdent();
@@ -1210,18 +1198,15 @@ private:
 	{
 		std::wstringstream ss;
 
-		ss << L"function";
-		if(type->templated_parameters.size() > 0)
-		{
-			ss << L"<";
-			foreach(i, type->templated_parameters)
-				ss << (*i)->toString() << ((i != type->templated_parameters.end()) ? L", " : L"");
-			ss << L">";
-		}
-		ss << "(";
-		foreach(i, type->argument_types)
-			ss << decodeType(*i) << ((i != type->argument_types.end()) ? L", " : L"");
+		ss << L"function(";
+		foreach(i, type->parameter_types)
+			ss << decodeType(*i) << ((i != type->parameter_types.end()) ? L", " : L"");
 		ss << ")";
+		if(type->return_type)
+		{
+			ss << L":";
+			ss << type->return_type->toString();
+		}
 
 		return ss.str();
 	}

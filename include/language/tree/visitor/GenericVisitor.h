@@ -213,8 +213,7 @@ struct GenericVisitor : Visitor<ASTNode, void, VisitorImplementation::recursive_
 
 	void apply(FunctionType& node)
 	{
-		foreach(i, node.templated_parameters) visit(**i);
-		foreach(i, node.argument_types)       visit(**i);
+		foreach(i, node.parameter_types) visit(**i);
 	}
 
 	//////////////////////////////////////////////////////////////////////
