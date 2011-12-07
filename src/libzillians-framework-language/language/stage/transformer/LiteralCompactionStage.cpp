@@ -24,7 +24,7 @@
 
 namespace zillians { namespace language { namespace stage {
 
-LiteralCompactionStage::LiteralCompactionStage()
+LiteralCompactionStage::LiteralCompactionStage() : dump_graphviz(false)
 { }
 
 LiteralCompactionStage::~LiteralCompactionStage()

@@ -71,6 +71,12 @@ void ASTGraphvizNodeGenerator::label(Identifier& node)
     revisit(node);
 }
 
+void ASTGraphvizNodeGenerator::label(TemplatedIdentifier& node)
+{
+    addNode(node, node.toString() + (node.type == TemplatedIdentifier::Usage::FORMAL_PARAMETER ? L"FORMAL" : L"ACTUAL"));
+    revisit(node);
+}
+
 void ASTGraphvizNodeGenerator::label(Import& node)
 {
     stream << "    n" << std::hex << &node << " [label=\"" << node.instanceName();
@@ -135,7 +141,7 @@ void ASTGraphvizNodeGenerator::label(Declaration& node)
 
 void ASTGraphvizParentEdgeGenerator::genParentEdge(zillians::language::tree::ASTNode& node)
 {
-    addParentEdge(node.parent, &node);
+    //addParentEdge(node.parent, &node);
 
     // ResolvedType
     if(ASTNode* context = zillians::language::ResolvedType::get(&node))
@@ -155,6 +161,12 @@ void ASTGraphvizParentEdgeGenerator::genParentEdge(zillians::language::tree::AST
         addParentEdge(context, &node, L"SplitReferenceContext", L"blue");
     }
 
+    // InstantiatedFrom Context
+    if(ASTNode* context = zillians::language::InstantiatedFrom::get(&node))
+    {
+        addParentEdge(context, &node, L"InstantiatedFrom", L"green2");
+    }
+
     revisit(node);
 }
 
@@ -170,10 +182,10 @@ void ASTGraphvizParentEdgeGenerator::addParentEdge(ASTNode* from, ASTNode* to, c
     std::wstring color = edgeColor;
     if(color == L"") color = L"lightgray";
 
-    os_ << L" [arrowhead=\"crow\"";
-    if(label != L"") os_ << L", label=\""   << label << L"\"";
-    if(label != L"") os_ << L"fontsize=\""   << 7 << L"\"";
-    if(color != L"") os_ << L", color=\"" << color << L"\"";
+    os_ << L" [dir=\"back\", arrowtail=\"vee\"";
+    if(label != L"") os_ << L", label=\""     << label << L"\"";
+    if(label != L"") os_ << L", fontsize=\""  << 7     << L"\"";
+    if(color != L"") os_ << L", color=\""     << color << L"\"";
     if(color != L"") os_ << L", fontcolor=\"" << color << L"\"";
 
     os_ << L"];" << std::endl;
@@ -245,8 +257,8 @@ void ASTGraphvizChildEdgeGenerator::genChildEdge(TypeSpecifier& node)
 {
     switch(node.type)
     {
-    case TypeSpecifier::ReferredType::FUNCTION_TYPE: if(node.referred.function_type) addChildEdge(&node, node.referred.function_type, L"function_type"); break;
-    case TypeSpecifier::ReferredType::UNSPECIFIED  : if(node.referred.unspecified  ) addChildEdge(&node, node.referred.unspecified  , L"unspecified"  ); break;
+    case TypeSpecifier::ReferredType::FUNCTION_TYPE: if(node.referred.function_type) addChildEdge(&node, node.referred.function_type, L"referred.function_type"); break;
+    case TypeSpecifier::ReferredType::UNSPECIFIED  : if(node.referred.unspecified  ) addChildEdge(&node, node.referred.unspecified  , L"referred.unspecified"  ); break;
     default: break;
     }
     revisit(node);
@@ -254,8 +266,8 @@ void ASTGraphvizChildEdgeGenerator::genChildEdge(TypeSpecifier& node)
 
 void ASTGraphvizChildEdgeGenerator::genChildEdge(FunctionType& node)
 {
-    foreach(i, node.templated_parameters)	addChildEdge(&node, *i, L"templated_parameters");
-    foreach(i, node.argument_types)			addChildEdge(&node, *i, L"argument_types");
+    foreach(i, node.templated_parameters)	addChildEdge(&node, *i, L"templated_parameters[]");
+    foreach(i, node.argument_types)			addChildEdge(&node, *i, L"argument_types[]");
     revisit(node);
 }
 
@@ -331,9 +343,9 @@ void ASTGraphvizChildEdgeGenerator::genChildEdge(ClassDecl& node)
 
     if(node.name) addChildEdge(&node, node.name, L"name");
     if(node.base) addChildEdge(&node, node.base, L"base");
-    foreach(i, node.implements)			addChildEdge(&node, *i, L"implements"      );
-    foreach(i, node.member_functions)	addChildEdge(&node, *i, L"member_functions");
-    foreach(i, node.member_variables)	addChildEdge(&node, *i, L"member_variables");
+    foreach(i, node.implements)			addChildEdge(&node, *i, L"implements[]"      );
+    foreach(i, node.member_functions)	addChildEdge(&node, *i, L"member_functions[]");
+    foreach(i, node.member_variables)	addChildEdge(&node, *i, L"member_variables[]");
     revisit(node);
 }
 
@@ -355,7 +367,7 @@ void ASTGraphvizChildEdgeGenerator::genChildEdge(FunctionDecl& node)
 
     if(node.name) addChildEdge(&node, node.name, L"name");
     foreach(i, node.parameters)
-        addChildEdge(&node, *i, L"parameters");
+        addChildEdge(&node, *i, L"parameters[]");
     if(node.type ) addChildEdge(&node, node.type , L"type" );
     if(node.block) addChildEdge(&node, node.block, L"block");
     revisit(node);
@@ -477,8 +489,8 @@ void ASTGraphvizChildEdgeGenerator::genChildEdge(SwitchStmt& node)
     if(node.node) addChildEdge(&node, node.node, L"node");
     foreach(i, node.cases)
     {
-        if(i->cond ) addChildEdge(&node, i->cond , L"cond" );
-        if(i->block) addChildEdge(&node, i->block, L"block");
+        if(i->cond ) addChildEdge(&node, i->cond , L"cond[]" );
+        if(i->block) addChildEdge(&node, i->block, L"block[]");
     }
     if(node.default_block) visit(*node.default_block);
     revisit(node);
@@ -505,9 +517,9 @@ void ASTGraphvizChildEdgeGenerator::genChildEdge(PrimaryExpr& node)
 {
     switch(node.catagory)
     {
-    case PrimaryExpr::Catagory::IDENTIFIER: if(node.value.identifier) addChildEdge(&node, node.value.identifier, L"identifier"); break;
-    case PrimaryExpr::Catagory::LITERAL:    if(node.value.literal   ) addChildEdge(&node, node.value.literal   , L"literal"   ); break;
-    case PrimaryExpr::Catagory::LAMBDA:     if(node.value.lambda    ) addChildEdge(&node, node.value.lambda    , L"lambda"    ); break;
+    case PrimaryExpr::Catagory::IDENTIFIER: if(node.value.identifier) addChildEdge(&node, node.value.identifier, L"value.identifier"); break;
+    case PrimaryExpr::Catagory::LITERAL:    if(node.value.literal   ) addChildEdge(&node, node.value.literal   , L"value.literal"   ); break;
+    case PrimaryExpr::Catagory::LAMBDA:     if(node.value.lambda    ) addChildEdge(&node, node.value.lambda    , L"value.lambda"    ); break;
     }
     revisit(node);
 }
@@ -563,19 +575,20 @@ void ASTGraphvizChildEdgeGenerator::genChildEdge(CastExpr& node)
     revisit(node);
 }
 
-void ASTGraphvizChildEdgeGenerator::addChildEdge(ASTNode* from, ASTNode* to, const std::wstring& label, const std::wstring& color)
+void ASTGraphvizChildEdgeGenerator::addChildEdge(ASTNode* parent, ASTNode* child, const std::wstring& label, const std::wstring& color)
 {
     // edge
     os_ << L"    n"
-        << std::hex << from
+        << std::hex << parent
         << L" -> n"
-        << std::hex << to;
+        << std::hex << child;
 
     // attribute
     os_ << L" [";
-    if(label != L"") os_ << L"label=\""   << label << L"\"";
-    if(label != L"") os_ << L"fontsize=\""   << 7 << L"\"";
-    if(color != L"") os_ << L", color=\"" << color << L"\"";
+    if(label != L""           ) os_ << L"label=\""      << label << L"\"";
+    if(label != L""           ) os_ << L", fontsize=\"" << 7     << L"\"";
+    if(color != L""           ) os_ << L", color=\""    << color << L"\"";
+    if(child->parent != parent) os_ << L", penwidth=\"10\"";
 
     os_ << L"];" << std::endl;
 }

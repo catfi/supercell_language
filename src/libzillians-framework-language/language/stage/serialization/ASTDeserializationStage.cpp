@@ -24,7 +24,7 @@
 
 namespace zillians { namespace language { namespace stage {
 
-ASTDeserializationStage::ASTDeserializationStage() : enabled_load(false)
+ASTDeserializationStage::ASTDeserializationStage() : enabled_load(false), dump_graphviz(false)
 { }
 
 ASTDeserializationStage::~ASTDeserializationStage()
