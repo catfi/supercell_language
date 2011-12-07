@@ -35,11 +35,11 @@ function _func_31_(x:ref_<int8>):void { }
 function _func_32_(x:ptr_<ptr_<void_> >):void { }
 function _func_33_(x:ref_<ptr_<void_> >):void { }
 function _func_34_(x:ref_<ptr_<ptr_<void_> > >):void { }
-//function _func_35_(x:function(int8):void):void { }
-//function _func_36_(x:function(int8):void, y:function(int8):void, z:function(int8):void):void { }
+function _func_35_(x:function(int8):void):void { }
+function _func_36_(x:function(int8):void, y:function(int8):void, z:function(int8):void):void { }
 function _func_37_(x:_QWE_):void { }
 function _func_38_(x:_QWE_, y:_QWE_, z:_QWE_):void { }
-//function _func_39_(x:function(_QWE_, _QWE_):void, y:function(_QWE_, _QWE_):void):void { }
+function _func_39_(x:function(_QWE_, _QWE_):void, y:function(_QWE_, _QWE_):void):void { }
 
 // const vs non-const
 function _func_40_(x:ptr_<const_<void_> >):void { }

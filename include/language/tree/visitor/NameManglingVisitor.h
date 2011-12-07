@@ -130,9 +130,6 @@ struct NameManglingVisitor : Visitor<ASTNode, void, VisitorImplementation::recur
 
 	void mangle(FunctionType& node)
 	{
-		// NOTE: function type occupies 2 substitute names, but only assumes the identity of 2nd substitute
-		addToRepeatTypeSet();
-
 		uptrace(&node);
 		stream << "PF"; // function pointer is always a pointer, hence "P" in "PF"
 		visit(*node.return_type);
@@ -151,9 +148,7 @@ struct NameManglingVisitor : Visitor<ASTNode, void, VisitorImplementation::recur
 					int type_index = findRepeatTypeSet(*i);
 					if(type_index == -1)
 					{
-//						std::wcout << L"BEFORE visit FunctionType param: " << (*i)->toString() << std::endl;
 						visit(*(*i));
-//						std::wcout << L"AFTER visit FunctionType param: " << (*i)->toString() << std::endl;
 						addToRepeatTypeSet(*i);
 					}
 					else
@@ -164,6 +159,9 @@ struct NameManglingVisitor : Visitor<ASTNode, void, VisitorImplementation::recur
 		}
 
 		stream << "E"; // ALWAYS postfix "E"
+
+		// NOTE: function type occupies 2 substitute names, not sure why..
+		addToRepeatTypeSet();
 	}
 
 	void mangle(Declaration& node)
@@ -213,9 +211,7 @@ struct NameManglingVisitor : Visitor<ASTNode, void, VisitorImplementation::recur
 					int type_index = findRepeatTypeSet((*p)->type);
 					if(type_index == -1)
 					{
-//						std::wcout << L"BEFORE visit FunctionDecl param: " << (*p)->type->toString() << std::endl;
 						visit(*(*p)->type);
-//						std::wcout << L"AFTER visit FunctionDecl param: " << (*p)->type->toString() << std::endl;
 						addToRepeatTypeSet((*p)->type);
 					}
 					else
@@ -263,7 +259,7 @@ struct NameManglingVisitor : Visitor<ASTNode, void, VisitorImplementation::recur
 
 	void reset()
 	{
-#if 1 // NOTE: for debugging only
+#if 0 // NOTE: for debugging only
 		std::cout << "NameManglingVisitor: " << stream.str() << std::endl;
 #endif
 		stream.str("");
