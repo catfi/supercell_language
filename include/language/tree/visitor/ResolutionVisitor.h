@@ -594,6 +594,33 @@ struct ResolutionVisitor : Visitor<ASTNode, void, VisitorImplementation::recursi
 		}
 	}
 
+    bool useCanSeeFunctionScopeDecl(tree::Identifier* use, tree::Identifier* decl)
+    {
+        if(!ASTNodeHelper::getOwner<FunctionDecl>(decl))
+        {
+            return true;
+        }
+
+        zillians::language::stage::SourceInfoContext* declContext = stage::SourceInfoContext::get(decl);
+        zillians::language::stage::SourceInfoContext*  useContext = stage::SourceInfoContext::get(use);
+        if(declContext->line < useContext->line)
+        {
+            return true;
+        }
+        else if(useContext->line < declContext->line)
+        {
+            return false;
+        }
+        else if(declContext->column <= useContext->column)
+        {
+            return true;
+        }
+        else
+        {
+            return false;
+        }
+    }
+
 	void resolve(VariableDecl& node)
 	{
 		if(isMatched())
@@ -609,7 +636,9 @@ struct ResolutionVisitor : Visitor<ASTNode, void, VisitorImplementation::recursi
 			if(isSearchForSymbol())
 			{
 				bool is_template_partial_match = false;
-				if(compare(current, node.name, is_template_partial_match))
+				if (compare(current, node.name, is_template_partial_match) &&
+                    useCanSeeFunctionScopeDecl(current, node.name)
+                   )
 				{
 					if(isLast())
 					{
@@ -628,12 +657,40 @@ struct ResolutionVisitor : Visitor<ASTNode, void, VisitorImplementation::recursi
 		}
 	}
 
+    bool useCanSeeTemplatedTypenameDecl(tree::Identifier* use, tree::Identifier* decl)
+    {
+        if(ASTNodeHelper::getOwner<TemplatedIdentifier>(use ) == NULL) return true;
+        if(ASTNodeHelper::getOwner<TemplatedIdentifier>(decl) == NULL) return true;
+        if(ASTNodeHelper::getOwner<TemplatedIdentifier>(use) != ASTNodeHelper::getOwner<TemplatedIdentifier>(decl)) return true;
+
+        zillians::language::stage::SourceInfoContext* declContext = stage::SourceInfoContext::get(decl);
+        zillians::language::stage::SourceInfoContext*  useContext = stage::SourceInfoContext::get(use);
+        if(declContext->line < useContext->line)
+        {
+            return true;
+        }
+        else if(useContext->line < declContext->line)
+        {
+            return false;
+        }
+        else if(declContext->column <= useContext->column)
+        {
+            return true;
+        }
+        else
+        {
+            return false;
+        }
+    }
+
 	void resolve(TypenameDecl& node)
 	{
 		if(!isMatched())
 		{
 			bool is_template_partial_match = false;
-			if(compare(current, node.name, is_template_partial_match))
+			if (compare(current, node.name, is_template_partial_match) &&
+                useCanSeeTemplatedTypenameDecl(current, node.name)
+               )
 			{
 				if(isLast())
 				{
