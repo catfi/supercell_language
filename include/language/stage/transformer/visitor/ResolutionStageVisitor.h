@@ -186,6 +186,14 @@ struct ResolutionStageVisitor : public GenericDoubleVisitor
 				tryResolveType(&node, &node);
 			}
 		}
+		else if(node.isFunctionType())
+		{
+			visit(*node.referred.function_type);
+			if(ResolvedType::get(&node))
+			{
+				ResolvedType::set(&node, node.referred.function_type);
+			}
+		}
 	}
 
 	void resolve(ClassDecl& node)
