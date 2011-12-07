@@ -61,6 +61,7 @@ private:
     BUILD_TYPE buildType;
 	bool dumpGraphviz;
     std::string dumpGraphvizDir;
+    std::string prepandPackage;
 };
 
 } } }
