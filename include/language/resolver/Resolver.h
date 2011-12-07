@@ -58,11 +58,15 @@ public:
 		node_info_visitor.visit(node);
 		//LOG4CXX_DEBUG(LoggerWrapper::Resolver, L"entering scope: \"" << node_info_visitor.stream.str() << L"\"");
 
-		__gnu_cxx::hash_set<tree::ASTNode*>::iterator scope = current_scopes.find(&node);
-		if(scope == current_scopes.end())
-		{
-			current_scopes.insert(&node);
-		}
+		//__gnu_cxx::hash_set<tree::ASTNode*>::iterator scope = current_scopes.find(&node);
+		//if(scope == current_scopes.end())
+		//{
+		//	current_scopes.insert(&node);
+		//}
+        if(std::find(current_scopes.begin(), current_scopes.end(), &node) == current_scopes.end())
+        {
+            current_scopes.push_back(&node);
+        }
 		else
 		{
 			LOG4CXX_ERROR(LoggerWrapper::Resolver, L"enter duplicated scope: \"" << node_info_visitor.stream.str() << L"\"");
@@ -78,11 +82,15 @@ public:
 		node_info_visitor.visit(node);
 		//LOG4CXX_DEBUG(LoggerWrapper::Resolver, L"leaving scope: \"" << node_info_visitor.stream.str() << L"\"");
 
-		__gnu_cxx::hash_set<tree::ASTNode*>::iterator scope = current_scopes.find(&node);
-		if(scope != current_scopes.end())
-		{
-			current_scopes.erase(scope);
-		}
+		//__gnu_cxx::hash_set<tree::ASTNode*>::iterator scope = current_scopes.find(&node);
+		//if(scope != current_scopes.end())
+		//{
+		//	current_scopes.erase(scope);
+		//}
+        if(*current_scopes.rbegin() == &node)
+        {
+            current_scopes.pop_back();
+        }
 		else
 		{
 			LOG4CXX_ERROR(LoggerWrapper::Resolver, L"leaving unknown scope: \"" << node_info_visitor.stream.str() << L"\"");
@@ -155,7 +163,7 @@ public:
 			resolution_visitor.candidate(&node);
 			resolution_visitor.filter(visitor::ResolutionVisitor::Filter::SYMBOL);
 
-			for(__gnu_cxx::hash_set<ASTNode*>::const_iterator scope = current_scopes.begin(); scope != current_scopes.end(); ++scope)
+			for(auto scope = current_scopes.rbegin(); scope != current_scopes.rend(); ++scope)
 			{
 				tree::visitor::NodeInfoVisitor node_info_visitor;
 				node_info_visitor.visit(**scope);
@@ -202,7 +210,8 @@ private:
 				if(!no_action)
 				{
 					ResolvedSymbol::set(&attach, ref);
-					ResolvedType::set(&attach, cast<VariableDecl>(ref)->type);
+					BOOST_ASSERT(ASTNodeHelper::findUniqueTypeResolution(cast<VariableDecl>(ref)->type) != NULL);
+					ResolvedType::set(&attach, ASTNodeHelper::findUniqueTypeResolution(cast<VariableDecl>(ref)->type));
 				}
 			}
 			else if(isa<FunctionDecl>(ref)) // declared function (as class member function or global function)
@@ -312,7 +321,8 @@ public:
 			resolution_visitor.filter(visitor::ResolutionVisitor::Filter::TYPE);
 
             // TODO FIX search candidate in scopes by inner-outer order
-			for(__gnu_cxx::hash_set<ASTNode*>::const_iterator scope = current_scopes.begin(); scope != current_scopes.end(); ++scope)
+			//for(__gnu_cxx::hash_set<ASTNode*>::const_iterator scope = current_scopes.begin(); scope != current_scopes.end(); ++scope)
+			for(auto scope = current_scopes.rbegin(); scope != current_scopes.rend(); ++scope)
 			{
 				resolution_visitor.tryVisit(**scope);
 			}
@@ -397,7 +407,10 @@ private:
     				else if(!isPartiallySpecializedTemplatedIdentifier(a->specialized_type->referred.unspecified) &&
     	    		        !isPartiallySpecializedTemplatedIdentifier(b->specialized_type->referred.unspecified))
     				{
-    					BOOST_ASSERT(a->specialized_type->referred.unspecified->isEqual(*b->specialized_type->referred.unspecified));
+    					//BOOST_ASSERT(a->specialized_type->referred.unspecified->isEqual(*b->specialized_type->referred.unspecified));
+                        zillians::language::tree::visitor::ResolutionVisitor v;
+                        bool partialmatch;
+                        BOOST_ASSERT(v.compare(a->specialized_type->referred.unspecified, b->specialized_type->referred.unspecified, partialmatch));
     					return true;
     				}
     				// otherwise, either a or b are templated identifier and the other one is not
@@ -564,7 +577,32 @@ private:
     			TypenameDecl* use_typename = use_id->templated_type_list[i];
 
     			// make the use type as the specialized type in decl id
-				specialized_type_to_replace = cast<TypeSpecifier>(use_typename->specialized_type->clone());
+                ASTNode* uniq = tree::ASTNodeHelper::findUniqueTypeResolution(use_typename->specialized_type);
+
+                ClassDecl* classDecl = cast<ClassDecl>(uniq);
+                if(classDecl != NULL)
+                {
+                    Identifier* classIdentifier = cast<Identifier>(classDecl->name->clone());
+                    TypeSpecifier* fier = new TypeSpecifier(classIdentifier);
+
+                    // template argu is class template
+                    TemplatedIdentifier* templateId = cast<TemplatedIdentifier>(classIdentifier);
+                    if(templateId != NULL)
+                    {
+                        templateId->specialize();
+                        //templateId->templated_type_list[]
+                    }
+
+                    specialized_type_to_replace = fier;
+                }
+                // primitive types
+                else
+                {
+                    tree::ASTNode* copy = uniq->clone();
+                    specialized_type_to_replace = tree::cast<tree::TypeSpecifier>(copy);
+                }
+
+                BOOST_ASSERT(specialized_type_to_replace != NULL);
 				ResolvedType::set(specialized_type_to_replace, ResolvedType::get(use_typename->specialized_type));
 
     		}
@@ -619,7 +657,10 @@ private:
 
     	// if the current identifier is not a fully specialized templated identifier, it's not suitable for class template instantiation
     	if(node.type != TypeSpecifier::ReferredType::UNSPECIFIED && !isFullySpecializedTemplatedIdentifier(node.referred.unspecified))
+        {
+            LOG4CXX_DEBUG(LoggerWrapper::Resolver, L"type \"" << node.referred.unspecified->toString() << L"\" is not fully specialized template.\"");
     		return false;
+        }
 
     	// if there's no candidates, of course we cannot find class template to instantiate
     	if(resolution_visitor.candidates.size() == 0)
@@ -654,6 +695,8 @@ private:
     	if(!most_specialized_class_template)
     		return false;
 
+        LOG4CXX_DEBUG(LoggerWrapper::Resolver, L"type \"" << node.referred.unspecified->toString() << L"\" is resolved to class template: \"" << most_specialized_class_template->name->toString() << L"\"");
+
     	// otherwise
     	TemplatedIdentifier* id = cast<TemplatedIdentifier>(most_specialized_class_template->name);
     	if(id->isFullySpecialized())
@@ -681,7 +724,10 @@ private:
     			for(auto i = ranges.first;i != ranges.second; ++i)
     			{
     				// if there's already class instantiation requested
-    				if(i->second.specifier->isEqual(node))
+                    zillians::language::tree::visitor::ResolutionVisitor v;
+                    bool partialmatch;
+    				//if(i->second.specifier->isEqual(node))
+    				if(v.compare(i->second.specifier->referred.unspecified, node.referred.unspecified, partialmatch))
     				{
     					// just append the attach node to the attach list
     					i->second.to_attach.push_back(&attach);
@@ -717,6 +763,7 @@ private:
     		}
 
     		ClassDecl* instantiated = instantiateClassTemplate(specifier, class_template);
+            zillians::language::InstantiatedFrom::set(instantiated, class_template);
 
     		foreach(j, i->second.to_attach)
     		{
@@ -857,7 +904,8 @@ public:
 			resolution_visitor.candidate(&node);
 			resolution_visitor.filter(visitor::ResolutionVisitor::Filter::PACKAGE);
 
-			for(__gnu_cxx::hash_set<ASTNode*>::const_iterator scope = current_scopes.begin(); scope != current_scopes.end(); ++scope)
+			//for(__gnu_cxx::hash_set<ASTNode*>::const_iterator scope = current_scopes.begin(); scope != current_scopes.end(); ++scope)
+			for(auto scope = current_scopes.rbegin(); scope != current_scopes.rend(); ++scope)
 			{
 				resolution_visitor.tryVisit(**scope);
 			}
@@ -941,7 +989,7 @@ public:
 	}
 
 private:
-	__gnu_cxx::hash_set<tree::ASTNode*> current_scopes;
+	std::vector<tree::ASTNode*> current_scopes;
 	tree::visitor::ResolutionVisitor resolution_visitor;
 
 private:

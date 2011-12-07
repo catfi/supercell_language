@@ -99,7 +99,8 @@ struct ResolutionStageVisitor : public GenericDoubleVisitor
 
 	void resolve(TemplatedIdentifier& node)
 	{
-		if(!node.isFullySpecialized())
+		//if(!node.isFullySpecialized())
+        if(!isa<VariableDecl>(node.parent->parent))
 		{
 			resolver.enterScope(node);
 			revisit(node);
@@ -159,7 +160,7 @@ struct ResolutionStageVisitor : public GenericDoubleVisitor
 
 		visit(*node.root);
 
-		foreach(i, node.imports)
+		reverse_foreach(i, node.imports)
 			resolver.leaveScope(**i);
 	}
 

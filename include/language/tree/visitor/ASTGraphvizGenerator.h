@@ -48,6 +48,7 @@ struct ASTGraphvizNodeGenerator : public GenericDoubleVisitor
 
 	void label(ASTNode& node);
 	void label(Identifier& node);
+    void label(TemplatedIdentifier& node);
 	void label(Import& node);
 	void label(Package& node);
 	void label(Block& node);

@@ -32,7 +32,8 @@ ResolutionStage::ResolutionStage() :
 		debug(false),
 		disable_type_inference(false),
 		total_unresolved_count_type(std::numeric_limits<std::size_t>::max()),
-		total_unresolved_count_symbol(std::numeric_limits<std::size_t>::max())
+		total_unresolved_count_symbol(std::numeric_limits<std::size_t>::max()),
+        dump_graphviz(false)
 { }
 
 ResolutionStage::~ResolutionStage()
@@ -88,13 +89,13 @@ bool ResolutionStage::execute(bool& continue_execution)
     size_t count = 0;
 	while(true)
 	{
+        LOG4CXX_DEBUG(LoggerWrapper::TransformerStage, L"=== Resolution iteration : " << count);
         if(dump_graphviz)
         {
             std::ostringstream oss;
             oss << "pre-resolution-" << count << ".dot";
             boost::filesystem::path p(dump_graphviz_dir);
             ASTNodeHelper::visualize(getParserContext().tangle, p / oss.str());
-            ++count;
         }
 
 		bool making_progress_on_type_resolution = false;
@@ -104,6 +105,15 @@ bool ResolutionStage::execute(bool& continue_execution)
 		bool making_progress_on_symbol_resolution = false;
 		if(!complete_symbol_resolution)
 			complete_symbol_resolution = resolveSymbols(false, making_progress_on_symbol_resolution);
+
+        if(dump_graphviz)
+        {
+            std::ostringstream oss;
+            oss << "post-resolution-" << count << ".dot";
+            boost::filesystem::path p(dump_graphviz_dir);
+            ASTNodeHelper::visualize(getParserContext().tangle, p / oss.str());
+        }
+        ++count;
 
 		if(!making_progress_on_type_resolution && !making_progress_on_symbol_resolution)
 			break;

@@ -86,6 +86,64 @@ private:
 	ResolvedType() { }
 };
 
+struct InstantiatedFrom
+{
+	friend class boost::serialization::access;
+
+	explicit InstantiatedFrom(tree::ASTNode* ref) : ref(ref)
+	{ }
+
+	static bool isValid(tree::ASTNode* node)
+	{
+		using namespace zillians::language::tree;
+
+        if (!isa<ClassDecl>(node) &&
+            !isa<InterfaceDecl>(node) &&
+            !isa<FunctionDecl>(node))
+        {
+            return false;
+        }
+
+        TemplatedIdentifier* tid = cast<TemplatedIdentifier>(cast<Declaration>(node)->name);
+        if (tid == NULL) return false;
+        if (tid->isFullySpecialized()) return false;
+
+        return true;
+	}
+
+	static tree::ASTNode* get(tree::ASTNode* node)
+	{
+		InstantiatedFrom* resolved = node->get<InstantiatedFrom>();
+		if(resolved)
+			return resolved->ref;
+		else
+			return NULL;
+	}
+
+	static void set(tree::ASTNode* node, tree::ASTNode* ref)
+	{
+		if(ref)
+		{
+			BOOST_ASSERT(isValid(ref) && "invalid resolved type");
+		}
+
+		return node->set<InstantiatedFrom>(new InstantiatedFrom(ref));
+	}
+
+    template<typename Archive>
+    void serialize(Archive& ar, unsigned int version)
+    {
+    	UNUSED_ARGUMENT(version);
+
+    	ar & ref;
+    }
+
+	tree::ASTNode* ref;
+
+private:
+	InstantiatedFrom() { }
+};
+
 struct AmbiguousResolvedType
 {
 	friend class boost::serialization::access;

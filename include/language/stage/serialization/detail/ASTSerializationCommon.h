@@ -43,7 +43,8 @@ typedef ContextHubSerialization<
 				SourceInfoContext,
 				NameManglingContext,
 				TypeIdManglingContext,
-				SymbolIdManglingContext
+				SymbolIdManglingContext,
+				InstantiatedFrom
 				> > FullSerializer;
 
 } } } }
