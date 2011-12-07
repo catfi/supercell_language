@@ -145,6 +145,13 @@ struct ResolutionStageVisitor : public GenericDoubleVisitor
 		resolver.leaveScope(node);
 	}
 
+	void resolve(FunctionType& node)
+	{
+		foreach(i, node.parameter_types)
+			revisit(**i);
+		revisit(*node.return_type);
+	}
+
 	void resolve(Source& node)
 	{
 		foreach(i, node.imports)
