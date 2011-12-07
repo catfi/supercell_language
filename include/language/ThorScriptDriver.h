@@ -92,6 +92,7 @@ private:
     bool dumpCommand;
     bool dumpGraphviz;
     std::string dumpGraphvizDir;
+    std::string prepandPackage;
 };
 
 } }
