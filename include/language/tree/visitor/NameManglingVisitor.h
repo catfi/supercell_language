@@ -28,6 +28,9 @@
 #include "language/tree/ASTNodeHelper.h"
 #include <ctype.h>
 #include <algorithm>
+#include <iostream>
+#include <vector>
+#include <string>
 
 namespace zillians { namespace language { namespace tree { namespace visitor {
 
@@ -80,12 +83,22 @@ struct NameManglingVisitor : Visitor<ASTNode, void, VisitorImplementation::recur
 	{
 		visit(*node.id);
 
+		bool reserved_construct = isReservedConstructName(getPureName(node.id));
+		if(!reserved_construct)
+			stream << "I";
+
 		{
 			mInsideParamList = true;
 			foreach(i, node.templated_type_list)
-				resolveAndVisit(*i);
+			{
+				if(node.type == TemplatedIdentifier::Usage::FORMAL_PARAMETER)
+					resolveFirstThenVisit(*i);
+			}
 			mInsideParamList = false;
 		}
+
+		if(!reserved_construct)
+			stream << "E"; // ALWAYS postfix "E"
 	}
 
 	void mangle(TypeSpecifier& node)
@@ -110,7 +123,7 @@ struct NameManglingVisitor : Visitor<ASTNode, void, VisitorImplementation::recur
 			}
 			break;
 		case TypeSpecifier::ReferredType::UNSPECIFIED:
-			resolveAndVisit(&node);
+			resolveFirstThenVisit(&node);
 			break;
 		}
 	}
@@ -119,31 +132,36 @@ struct NameManglingVisitor : Visitor<ASTNode, void, VisitorImplementation::recur
 	{
 		uptrace(&node);
 		stream << "PF"; // function pointer is always a pointer, hence "P" in "PF"
-		resolveAndVisit(node.return_type);
+		visit(*node.return_type);
 
+		if(node.parameter_types.empty())
+			stream << "v"; // empty param-list equivalent to "void" param type
+		else
 		{
 			mInsideParamList = true;
-			std::vector<TypeSpecifier*> type_list;
-			foreach(i, node.argument_types)
+			foreach(i, node.parameter_types)
 			{
-				int type_index = -1;
-				if((*i)->type != TypeSpecifier::ReferredType::PRIMITIVE)
-				{
-					auto p = std::find_if(type_list.begin(), type_list.end(),
-							[&](TypeSpecifier* type_specifier) { return (*i)->isEqual(*type_specifier); } );
-					if(p != type_list.end())
-						type_index = std::distance(type_list.begin(), p);
-					type_list.push_back(*i);
-				}
-				if(type_index != -1)
-					stream << "S" << type_index << "_";
+				if((*i)->type == TypeSpecifier::ReferredType::PRIMITIVE)
+					visit(*(*i));
 				else
-					resolveAndVisit(*i);
+				{
+					int type_index = findRepeatTypeSet(*i);
+					if(type_index == -1)
+					{
+						visit(*(*i));
+						addToRepeatTypeSet(*i);
+					}
+					else
+						writeSubstitution(type_index);
+				}
 			}
 			mInsideParamList = false;
 		}
 
 		stream << "E"; // ALWAYS postfix "E"
+
+		// NOTE: function type occupies 2 substitute names, not sure why..
+		addToRepeatTypeSet();
 	}
 
 	void mangle(Declaration& node)
@@ -153,15 +171,32 @@ struct NameManglingVisitor : Visitor<ASTNode, void, VisitorImplementation::recur
 
 	void mangle(FunctionDecl& node)
 	{
+		clearRepeatTypeSet();
 		uptraceAndAppendName(&node);
-		std::vector<TypeSpecifier*> type_list;
-		std::vector<VariableDecl*>::iterator p = node.parameters.begin();
-		if(node.is_member && node.parent)
+
+		auto p = node.parameters.begin();
+		if(node.is_member)
 		{
-			BOOST_ASSERT(node.parameters.size() >= 1 && "methods must have 1st parameter \"this\"");
-			type_list.push_back((*p)->type);
-			p++; // skip "this" parameter for methods
+			BOOST_ASSERT(node.parent && "method must have parant");
+			BOOST_ASSERT((node.parameters.size() >= 1) && "method must have 1st parameter \"this\"");
+			addToRepeatTypeSet((*p)->type);
+			p++; // no need to mangle "this"
+			if(p != node.parameters.end())
+			{
+				ASTNode* resolved_type = ASTNodeHelper::findUniqueTypeResolution((*p)->type);
+				if(resolved_type == node.parent)
+				{
+					stream << "PS_"; // NOTE: "this" is always a pointer, hence "P" in "PS_"
+					TypeSpecifier* this_type = popLastTypeFromRepeatTypeSet();
+					addToRepeatTypeSet();
+					addToRepeatTypeSet(this_type);
+					p++; // skip first visible parameter after "this"
+					if(p == node.parameters.end())
+						return; // NOTE: prevent writing "v" for empty param list
+				}
+			}
 		}
+
 		if(p == node.parameters.end())
 			stream << "v"; // empty param-list equivalent to "void" param type
 		else
@@ -169,29 +204,25 @@ struct NameManglingVisitor : Visitor<ASTNode, void, VisitorImplementation::recur
 			mInsideParamList = true;
 			for(; p != node.parameters.end(); p++)
 			{
-				int type_index = -1;
-				if((*p)->type->type != TypeSpecifier::ReferredType::PRIMITIVE)
-				{
-					auto q = std::find_if(type_list.begin(), type_list.end(),
-							[&](TypeSpecifier* type_specifier) { return (*p)->type->isEqual(*type_specifier); } );
-					if(q != type_list.end())
-						type_index = std::distance(type_list.begin(), q);
-					type_list.push_back((*p)->type);
-				}
-				if(type_index != -1)
-				{
-					if(node.is_member && node.parent)
-						type_index--; // start counting from zero after "this" parameter
-					if(type_index == -1)
-						stream << "S_"; // parameter is same type as "this" parameter
-					else
-						stream << "S" << type_index << "_";
-				}
+				if((*p)->type->type == TypeSpecifier::ReferredType::PRIMITIVE)
+					visit(*(*p)->type);
 				else
-					resolveAndVisit((*p)->type);
+				{
+					int type_index = findRepeatTypeSet((*p)->type);
+					if(type_index == -1)
+					{
+						visit(*(*p)->type);
+						addToRepeatTypeSet((*p)->type);
+					}
+					else
+						writeSubstitution(type_index);
+				}
 			}
 			mInsideParamList = false;
 		}
+
+		if(isa<TemplatedIdentifier>(node.name))
+			visit(*node.type);
 	}
 
 	std::string ucs4_to_utf8_temp;
@@ -261,11 +292,11 @@ private:
 			stream << "E"; // if mangled name is a combo name, postfix "E"
 	}
 
-	void resolveAndVisit(ASTNode* node)
+	void resolveFirstThenVisit(ASTNode* node)
 	{
         ASTNode* resolved_type = ASTNodeHelper::findUniqueTypeResolution(node);
         if(resolved_type)
-			visit(*resolved_type);
+        	visit(*resolved_type);
 	}
 
 	static bool isEqual(TypeSpecifier* a, TypeSpecifier* b)
@@ -283,6 +314,73 @@ private:
 	bool mInsideUptrace;
 	bool mInsideComboName;
 	bool mInsideParamList;
+
+	std::vector<TypeSpecifier*> mRepeatTypeSet;
+
+	int findRepeatTypeSet(TypeSpecifier* type_specifier)
+	{
+		auto p = std::find_if(mRepeatTypeSet.begin(), mRepeatTypeSet.end(),
+				[&](TypeSpecifier* other) { return other ? type_specifier->isEqual(*other) : false; } );
+		return (p != mRepeatTypeSet.end()) ? std::distance(mRepeatTypeSet.begin(), p) : -1;
+	}
+
+	void addToRepeatTypeSet(TypeSpecifier* type_specifier = NULL, bool check_if_unique = false)
+	{
+		if(check_if_unique && findRepeatTypeSet(type_specifier) != -1)
+			return;
+		mRepeatTypeSet.push_back(type_specifier);
+	}
+
+	void clearRepeatTypeSet()
+	{
+		mRepeatTypeSet.clear();
+	}
+
+	TypeSpecifier* popLastTypeFromRepeatTypeSet()
+	{
+		TypeSpecifier* type_specifier = mRepeatTypeSet.back();
+		mRepeatTypeSet.pop_back();
+		return type_specifier;
+	}
+
+	std::string ito36a(size_t n)
+	{
+	    static char b[] = "0123456789abcdefghijklmnopqrstuvwxyz";
+	    std::string tmp ;
+	    for(;n; n /= 36)
+	        tmp += b[n % 36];
+	    if(tmp.empty()) return "0";
+	    else return std::string(tmp.rbegin(), tmp.rend());
+	}
+
+	void writeSubstitution(int type_index)
+	{
+		BOOST_ASSERT(type_index >= 0 && "negative type index has no substitution");
+		stream << ((type_index == 0) ? "S_" : "S"+ito36a(type_index-1)+"_");
+	}
+
+	std::wstring getPureName(Identifier* ident)
+	{
+		if(isa<SimpleIdentifier>(ident))
+			return cast<SimpleIdentifier>(ident)->name;
+		else if(isa<TemplatedIdentifier>(ident))
+			return getPureName(cast<TemplatedIdentifier>(ident)->id);
+		else if(isa<NestedIdentifier>(ident))
+		{
+			if(!cast<NestedIdentifier>(ident)->identifier_list.empty())
+				return getPureName(cast<NestedIdentifier>(ident)->identifier_list.back());
+			else
+				return L"";
+		}
+		else
+			UNREACHABLE_CODE();
+		return L"";
+	}
+
+	bool isReservedConstructName(std::wstring s)
+	{
+		return (s == L"ptr_" || s == L"ref_" || s == L"const_" || s == L"void_");
+	}
 };
 
 } } } }
