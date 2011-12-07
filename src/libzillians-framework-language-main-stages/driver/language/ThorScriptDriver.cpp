@@ -133,7 +133,7 @@ static void printHelpPage()
 // public member function
 //////////////////////////////////////////////////////////////////////////////
 
-ThorScriptDriver::ThorScriptDriver() : originalPath(boost::filesystem::current_path()), dumpCommand(false)
+ThorScriptDriver::ThorScriptDriver() : originalPath(boost::filesystem::current_path()), dumpCommand(false), dumpGraphviz(false)
 {
 }
 

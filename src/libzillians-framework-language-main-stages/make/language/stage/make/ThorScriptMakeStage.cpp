@@ -152,7 +152,7 @@ std::string ThorScriptMakeStage::genCompileCmd(boost::graph_traits<TangleGraphTy
 // class member function
 //////////////////////////////////////////////////////////////////////////////
 
-ThorScriptMakeStage::ThorScriptMakeStage() : dumpCompileCommand(false), projectPath("./"), buildPath("./build/"), logger(log4cxx::Logger::getLogger("ts-make"))
+ThorScriptMakeStage::ThorScriptMakeStage() : dumpCompileCommand(false), projectPath("./"), buildPath("./build/"), logger(log4cxx::Logger::getLogger("ts-make")), dumpGraphviz(false)
 {
     log4cxx::BasicConfigurator::configure();
     logger->setLevel(log4cxx::Level::getAll());

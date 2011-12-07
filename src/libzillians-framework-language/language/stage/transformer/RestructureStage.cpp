@@ -24,7 +24,7 @@
 
 namespace zillians { namespace language { namespace stage {
 
-RestructureStage::RestructureStage()
+RestructureStage::RestructureStage() : dump_graphviz(false)
 { }
 
 RestructureStage::~RestructureStage()
