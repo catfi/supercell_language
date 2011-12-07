@@ -124,8 +124,8 @@ struct LLVMHelper
 		case TypeSpecifier::ReferredType::FUNCTION_TYPE:
 		{
 			// TODO return pointer to function type
-			result = NULL;
-			resolved = false; break;
+			resolved = getFunctionType(*specifier.referred.function_type, result);
+			break;
 		}
 		case TypeSpecifier::ReferredType::PRIMITIVE:
 		{
@@ -141,13 +141,17 @@ struct LLVMHelper
 				{
 					modifier |= llvm::Attribute::ZExt;
 					result = llvm::IntegerType::getInt32Ty(mContext);
-					resolved = true; break;
+					resolved = true;
 				}
 				else if(isa<EnumDecl>(resolved_type))
 				{
 					modifier |= llvm::Attribute::ZExt;
 					result = llvm::IntegerType::getInt32Ty(mContext);
-					resolved = true; break;
+					resolved = true;
+				}
+				else if(isa<TypeSpecifier>(resolved_type))
+				{
+					resolved = getType(*cast<TypeSpecifier>(resolved_type), result, modifier);
 				}
 				else
 				{
@@ -165,6 +169,36 @@ struct LLVMHelper
 		}
 		}
 		return resolved;
+	}
+
+	bool getFunctionType(FunctionType& ast_function_type, /*OUT*/ const llvm::Type*& llvm_function_type)
+	{
+		// prepare LLVM function return type
+		const llvm::Type* llvm_function_return_type = NULL;
+		{
+			llvm::Attributes attr = llvm::Attribute::None;
+			if(!getType(*ast_function_type.return_type, llvm_function_return_type, attr))
+				return false;
+		}
+
+		// prepare LLVM function parameter type list
+		std::vector<const llvm::Type*> llvm_function_parameter_types;
+		{
+			foreach(i, ast_function_type.parameter_types)
+			{
+				llvm::Attributes attr = llvm::Attribute::None;
+				const llvm::Type* t = NULL;
+
+				if(!getType(**i, t, attr))
+					return false;
+
+				llvm_function_parameter_types.push_back(t);
+			}
+		}
+
+		llvm_function_type = llvm::FunctionType::get(llvm_function_return_type, llvm_function_parameter_types, false /*not variadic*/)->getPointerTo();
+
+		return true;
 	}
 
 	bool getFunctionType(FunctionDecl& ast_function, /*OUT*/ llvm::FunctionType*& llvm_function_type, /*OUT*/ std::vector<llvm::AttributeWithIndex>& llvm_function_type_attributes)

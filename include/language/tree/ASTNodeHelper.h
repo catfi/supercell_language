@@ -51,12 +51,19 @@ struct ASTNodeHelper
 		if(isa<TypenameDecl>(node))
 			return findUniqueTypeResolution(cast<TypenameDecl>(node)->specialized_type);
 
+		if(isa<FunctionType>(node))
+			return node;
+
 		if(isa<TypeSpecifier>(node))
 		{
 			TypeSpecifier* specifier = cast<TypeSpecifier>(node);
 			if(specifier->type == TypeSpecifier::ReferredType::UNSPECIFIED)
 			{
 				return findUniqueTypeResolution(ResolvedType::get(specifier));
+			}
+			if(specifier->type == TypeSpecifier::ReferredType::FUNCTION_TYPE)
+			{
+				return specifier->referred.function_type;
 			}
 			else
 			{

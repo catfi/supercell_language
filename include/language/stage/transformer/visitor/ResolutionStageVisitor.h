@@ -148,8 +148,8 @@ struct ResolutionStageVisitor : public GenericDoubleVisitor
 	void resolve(FunctionType& node)
 	{
 		foreach(i, node.parameter_types)
-			revisit(**i);
-		revisit(*node.return_type);
+			visit(**i);
+		visit(*node.return_type);
 	}
 
 	void resolve(Source& node)
