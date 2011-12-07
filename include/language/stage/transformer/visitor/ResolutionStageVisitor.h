@@ -153,7 +153,7 @@ struct ResolutionStageVisitor : public GenericDoubleVisitor
 
 		visit(*node.root);
 
-		foreach(i, node.imports)
+		reverse_foreach(i, node.imports)
 			resolver.leaveScope(**i);
 	}
 
