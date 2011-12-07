@@ -83,14 +83,17 @@ struct NameManglingVisitor : Visitor<ASTNode, void, VisitorImplementation::recur
 	{
 		visit(*node.id);
 
-		bool reserved_construct = isReservedWord(getPureName(node.id));
+		bool reserved_construct = isReservedConstructName(getPureName(node.id));
 		if(!reserved_construct)
 			stream << "I";
 
 		{
 			mInsideParamList = true;
 			foreach(i, node.templated_type_list)
-				resolveAndVisit(*i);
+			{
+				if(node.type == TemplatedIdentifier::Usage::FORMAL_PARAMETER)
+					resolveFirstThenVisit(*i);
+			}
 			mInsideParamList = false;
 		}
 
@@ -120,7 +123,7 @@ struct NameManglingVisitor : Visitor<ASTNode, void, VisitorImplementation::recur
 			}
 			break;
 		case TypeSpecifier::ReferredType::UNSPECIFIED:
-			resolveAndVisit(&node);
+			resolveFirstThenVisit(&node);
 			break;
 		}
 	}
@@ -132,7 +135,7 @@ struct NameManglingVisitor : Visitor<ASTNode, void, VisitorImplementation::recur
 
 		uptrace(&node);
 		stream << "PF"; // function pointer is always a pointer, hence "P" in "PF"
-		resolveAndVisit(node.return_type);
+		visit(*node.return_type);
 
 		if(node.parameter_types.empty())
 			stream << "v"; // empty param-list equivalent to "void" param type
@@ -149,7 +152,7 @@ struct NameManglingVisitor : Visitor<ASTNode, void, VisitorImplementation::recur
 					if(type_index == -1)
 					{
 //						std::wcout << L"BEFORE visit FunctionType param: " << (*i)->toString() << std::endl;
-						resolveAndVisit(*i);
+						visit(*(*i));
 //						std::wcout << L"AFTER visit FunctionType param: " << (*i)->toString() << std::endl;
 						addToRepeatTypeSet(*i);
 					}
@@ -211,7 +214,7 @@ struct NameManglingVisitor : Visitor<ASTNode, void, VisitorImplementation::recur
 					if(type_index == -1)
 					{
 //						std::wcout << L"BEFORE visit FunctionDecl param: " << (*p)->type->toString() << std::endl;
-						resolveAndVisit((*p)->type);
+						visit(*(*p)->type);
 //						std::wcout << L"AFTER visit FunctionDecl param: " << (*p)->type->toString() << std::endl;
 						addToRepeatTypeSet((*p)->type);
 					}
@@ -293,11 +296,11 @@ private:
 			stream << "E"; // if mangled name is a combo name, postfix "E"
 	}
 
-	void resolveAndVisit(ASTNode* node)
+	void resolveFirstThenVisit(ASTNode* node)
 	{
         ASTNode* resolved_type = ASTNodeHelper::findUniqueTypeResolution(node);
         if(resolved_type)
-			visit(*resolved_type);
+        	visit(*resolved_type);
 	}
 
 	static bool isEqual(TypeSpecifier* a, TypeSpecifier* b)
@@ -378,7 +381,7 @@ private:
 		return L"";
 	}
 
-	bool isReservedWord(std::wstring s)
+	bool isReservedConstructName(std::wstring s)
 	{
 		return (s == L"ptr_" || s == L"ref_" || s == L"const_" || s == L"void_");
 	}
