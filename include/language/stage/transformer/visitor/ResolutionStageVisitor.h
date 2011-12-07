@@ -189,7 +189,7 @@ struct ResolutionStageVisitor : public GenericDoubleVisitor
 		else if(node.isFunctionType())
 		{
 			visit(*node.referred.function_type);
-			if(ResolvedType::get(&node))
+			if(!ResolvedType::get(&node))
 			{
 				ResolvedType::set(&node, node.referred.function_type);
 			}
