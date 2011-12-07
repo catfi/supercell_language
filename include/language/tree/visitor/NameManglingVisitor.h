@@ -127,8 +127,8 @@ struct NameManglingVisitor : Visitor<ASTNode, void, VisitorImplementation::recur
 
 	void mangle(FunctionType& node)
 	{
-		// NOTE: function type occupies 2 alias names, but only assumes the identity of 2nd alias
-		addDummyPlaceholderToRepeatTypeSet();
+		// NOTE: function type occupies 2 substitute names, but only assumes the identity of 2nd substitute
+		addToRepeatTypeSet();
 
 		uptrace(&node);
 		stream << "PF"; // function pointer is always a pointer, hence "P" in "PF"
@@ -142,14 +142,19 @@ struct NameManglingVisitor : Visitor<ASTNode, void, VisitorImplementation::recur
 			foreach(i, node.parameter_types)
 			{
 				if((*i)->type == TypeSpecifier::ReferredType::PRIMITIVE)
-					resolveAndVisit(*i);
+					visit(*(*i));
 				else
 				{
-					int type_index = addToRepeatTypeSet(*i);
+					int type_index = findRepeatTypeSet(*i);
 					if(type_index == -1)
+					{
+//						std::wcout << L"BEFORE visit FunctionType param: " << (*i)->toString() << std::endl;
 						resolveAndVisit(*i);
+//						std::wcout << L"AFTER visit FunctionType param: " << (*i)->toString() << std::endl;
+						addToRepeatTypeSet(*i);
+					}
 					else
-						writeRepeatTypeAlias(type_index-1);
+						writeSubstitution(type_index);
 				}
 			}
 			mInsideParamList = false;
@@ -182,7 +187,7 @@ struct NameManglingVisitor : Visitor<ASTNode, void, VisitorImplementation::recur
 				{
 					stream << "PS_"; // NOTE: "this" is always a pointer, hence "P" in "PS_"
 					TypeSpecifier* this_type = popLastTypeFromRepeatTypeSet();
-					addDummyPlaceholderToRepeatTypeSet();
+					addToRepeatTypeSet();
 					addToRepeatTypeSet(this_type);
 					p++; // skip first visible parameter after "this"
 					if(p == node.parameters.end())
@@ -199,14 +204,19 @@ struct NameManglingVisitor : Visitor<ASTNode, void, VisitorImplementation::recur
 			for(; p != node.parameters.end(); p++)
 			{
 				if((*p)->type->type == TypeSpecifier::ReferredType::PRIMITIVE)
-					resolveAndVisit((*p)->type);
+					visit(*(*p)->type);
 				else
 				{
-					int type_index = addToRepeatTypeSet((*p)->type);
+					int type_index = findRepeatTypeSet((*p)->type);
 					if(type_index == -1)
+					{
+//						std::wcout << L"BEFORE visit FunctionDecl param: " << (*p)->type->toString() << std::endl;
 						resolveAndVisit((*p)->type);
+//						std::wcout << L"AFTER visit FunctionDecl param: " << (*p)->type->toString() << std::endl;
+						addToRepeatTypeSet((*p)->type);
+					}
 					else
-						writeRepeatTypeAlias(type_index-1);
+						writeSubstitution(type_index);
 				}
 			}
 			mInsideParamList = false;
@@ -308,27 +318,23 @@ private:
 
 	std::vector<TypeSpecifier*> mRepeatTypeSet;
 
-	int addToRepeatTypeSet(TypeSpecifier* type_specifier)
+	int findRepeatTypeSet(TypeSpecifier* type_specifier)
 	{
 		auto p = std::find_if(mRepeatTypeSet.begin(), mRepeatTypeSet.end(),
 				[&](TypeSpecifier* other) { return other ? type_specifier->isEqual(*other) : false; } );
-		if(p != mRepeatTypeSet.end())
-			return std::distance(mRepeatTypeSet.begin(), p);
-		else
-		{
-			mRepeatTypeSet.push_back(type_specifier);
-			return -1; // can't find type, require visitation
-		}
+		return (p != mRepeatTypeSet.end()) ? std::distance(mRepeatTypeSet.begin(), p) : -1;
+	}
+
+	void addToRepeatTypeSet(TypeSpecifier* type_specifier = NULL, bool check_if_unique = false)
+	{
+		if(check_if_unique && findRepeatTypeSet(type_specifier) != -1)
+			return;
+		mRepeatTypeSet.push_back(type_specifier);
 	}
 
 	void clearRepeatTypeSet()
 	{
 		mRepeatTypeSet.clear();
-	}
-
-	void addDummyPlaceholderToRepeatTypeSet()
-	{
-		mRepeatTypeSet.push_back(NULL);
 	}
 
 	TypeSpecifier* popLastTypeFromRepeatTypeSet()
@@ -348,12 +354,10 @@ private:
 	    else return std::string(tmp.rbegin(), tmp.rend());
 	}
 
-	void writeRepeatTypeAlias(int type_index)
+	void writeSubstitution(int type_index)
 	{
-		if(type_index == -1)
-			stream << "S_";
-		else
-			stream << "S" << ito36a(type_index) << "_";
+		BOOST_ASSERT(type_index >= 0 && "negative type index has no substitution");
+		stream << ((type_index == 0) ? "S_" : "S"+ito36a(type_index-1)+"_");
 	}
 
 	std::wstring getPureName(Identifier* ident)
