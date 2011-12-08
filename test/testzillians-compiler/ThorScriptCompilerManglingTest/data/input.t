@@ -73,6 +73,9 @@ class _DDD_
 function _func_56_<T, T2>(x:_QWE_):int64 { }
 */
 
+@call_by_value
+function _func_60_(x:ptr_<_QWE_>, y:_QWE_):void { }
+
 function main():void
 {
     /*

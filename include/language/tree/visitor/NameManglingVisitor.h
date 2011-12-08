@@ -38,7 +38,8 @@ struct NameManglingVisitor : Visitor<ASTNode, void, VisitorImplementation::recur
 {
 	CREATE_INVOKER(mangleInvoker, mangle)
 
-	NameManglingVisitor() : mInsideUptrace(false), mInsideComboName(false), mInsideParamList(false)
+	NameManglingVisitor() : mInsideUptrace(false), mInsideComboName(false), mInsideParamList(false),
+			mModeCallByValue(false)
 	{
 		REGISTER_ALL_VISITABLE_ASTNODE(mangleInvoker)
 	}
@@ -51,9 +52,9 @@ struct NameManglingVisitor : Visitor<ASTNode, void, VisitorImplementation::recur
 		if(ASTNodeHelper::isRootPackage(&node))
 		{
 			if(!mInsideParamList)
-				stream << "_Z";
+				stream << "_Z"; // RULE: mangled name begins with "_Z"
 			if(mInsideComboName)
-				stream << "N"; // if mangled name is a combo name, prefix "N"
+				stream << "N"; // RULE: combo name begins with "N"
 		}
 		else
 		{
@@ -77,28 +78,6 @@ struct NameManglingVisitor : Visitor<ASTNode, void, VisitorImplementation::recur
 		}
 		else if(!node.name.empty())
 			stream << node.name.length() << encode(node.name);
-	}
-
-	void mangle(TemplatedIdentifier& node)
-	{
-		visit(*node.id);
-
-		bool reserved_construct = isReservedConstructName(getPureName(node.id));
-		if(!reserved_construct)
-			stream << "I";
-
-		{
-			mInsideParamList = true;
-			foreach(i, node.templated_type_list)
-			{
-				if(node.type == TemplatedIdentifier::Usage::FORMAL_PARAMETER)
-					resolveFirstThenVisit(*i);
-			}
-			mInsideParamList = false;
-		}
-
-		if(!reserved_construct)
-			stream << "E"; // ALWAYS postfix "E"
 	}
 
 	void mangle(TypeSpecifier& node)
@@ -128,28 +107,6 @@ struct NameManglingVisitor : Visitor<ASTNode, void, VisitorImplementation::recur
 		}
 	}
 
-	void mangle(FunctionType& node)
-	{
-		uptrace(&node);
-		stream << "PF"; // function pointer is always a pointer, hence "P" in "PF"
-		visit(*node.return_type);
-
-		if(node.parameter_types.empty())
-			stream << "v"; // empty param-list equivalent to "void" param type
-		else
-		{
-			mInsideParamList = true;
-			foreach(i, node.parameter_types)
-				visitParam(*i);
-			mInsideParamList = false;
-		}
-
-		stream << "E"; // ALWAYS postfix "E"
-
-		// NOTE: function type occupies 2 substitute names, not sure why..
-		addToRepeatTypeSet();
-	}
-
 	void mangle(Declaration& node)
 	{
 		uptraceAndAppendName(&node);
@@ -157,10 +114,10 @@ struct NameManglingVisitor : Visitor<ASTNode, void, VisitorImplementation::recur
 
 	void mangle(ClassDecl& node)
 	{
-		if(mInsideParamList && !isReservedConstructName(getPureName(node.name)))
+		if(mInsideParamList && !isReservedConstructName(getBasename(node.name)))
 		{
-			stream << "P"; // object passing is always by pointer, hence "P"
-			addToRepeatTypeSet(); // slot for pointer-to-class type
+			stream << "P"; // THOR_SPECIFIC: object passing is by pointer, hence "P"
+			addToAliasSlots(); // HACK: alias slot for pointer-to-class type
 		}
 
 		uptraceAndAppendName(&node);
@@ -168,26 +125,28 @@ struct NameManglingVisitor : Visitor<ASTNode, void, VisitorImplementation::recur
 
 	void mangle(FunctionDecl& node)
 	{
-		clearRepeatTypeSet();
+		mModeCallByValue = ASTNodeHelper::findAnnotation(&node, L"call_by_value");
+
+		clearAliasSlots();
 		uptraceAndAppendName(&node);
 
 		auto p = node.parameters.begin();
-		if(node.is_member)
+		if(node.is_member && !node.is_static)
 		{
 			BOOST_ASSERT(node.parent && "method must have parant");
 			BOOST_ASSERT((node.parameters.size() >= 1) && "method must have 1st parameter \"this\"");
-			addToRepeatTypeSet((*p)->type);
-			p++; // no need to mangle "this"
+			addToAliasSlots((*p)->type);
+			p++; // skip "this" param
 			if(p != node.parameters.end())
 			{
 				ASTNode* resolved_type = ASTNodeHelper::findUniqueTypeResolution((*p)->type);
 				if(resolved_type == node.parent)
 				{
-					stream << "PS_"; // NOTE: "this" is always a pointer, hence "P" in "PS_"
-					TypeSpecifier* this_type = popLastTypeFromRepeatTypeSet();
-					addToRepeatTypeSet();          // <== slot for "*this" type
-					addToRepeatTypeSet(this_type); // <== slot for "this" type
-					p++; // skip first visible parameter after "this"
+					stream << "PS_"; // THOR_SPECIFIC: "this" is a pointer, hence "P" in "PS_"
+					TypeSpecifier* this_type = popFinalAliasSlots(); // HACK: bump "this" param up 1 alias slot
+					addToAliasSlots();                               // HACK: alias slot for "*this" param
+					addToAliasSlots(this_type);                      // HACK: alias slot for "this" param
+					p++;                                             // HACK: skip "this" param (again!)
 					if(p == node.parameters.end())
 						return; // NOTE: prevent writing "v" for empty param list
 				}
@@ -198,14 +157,55 @@ struct NameManglingVisitor : Visitor<ASTNode, void, VisitorImplementation::recur
 			stream << "v"; // empty param-list equivalent to "void" param type
 		else
 		{
-			mInsideParamList = true;
 			for(; p != node.parameters.end(); p++)
 				visitParam((*p)->type);
-			mInsideParamList = false;
 		}
 
 		if(isa<TemplatedIdentifier>(node.name))
 			visit(*node.type);
+
+		mModeCallByValue = false;
+	}
+
+	void mangle(FunctionType& node)
+	{
+		uptrace(&node);
+		stream << "PF"; // RULE/THOR_SPECIFIC: callback begins with "F", and is a pointer, hence "P" in "PF"
+		visit(*node.return_type);
+
+		if(node.parameter_types.empty())
+			stream << "v"; // empty param-list equivalent to "void" param type
+		else
+		{
+			foreach(i, node.parameter_types)
+				visitParam(*i);
+		}
+
+		stream << "E"; // RULE: callback ends with "E"
+
+		addToAliasSlots(); // HACK: function type occupies 2 alias slots, not sure why..
+	}
+
+	void mangle(TemplatedIdentifier& node)
+	{
+		visit(*node.id);
+
+		bool reserved_construct = isReservedConstructName(getBasename(node.id));
+		if(!reserved_construct)
+			stream << "I"; // RULE: template begins with "I"
+
+		{
+			mInsideParamList = true;
+			foreach(i, node.templated_type_list)
+			{
+				if(node.type == TemplatedIdentifier::Usage::FORMAL_PARAMETER)
+					resolveFirstThenVisit(*i);
+			}
+			mInsideParamList = false;
+		}
+
+		if(!reserved_construct)
+			stream << "E"; // RULE: template ends with "E"
 	}
 
 	std::string ucs4_to_utf8_temp;
@@ -246,7 +246,7 @@ struct NameManglingVisitor : Visitor<ASTNode, void, VisitorImplementation::recur
 		std::cout << "NameManglingVisitor: " << stream.str() << std::endl;
 #endif
 		stream.str("");
-		mInsideUptrace = mInsideComboName = mInsideParamList = false;
+		mInsideUptrace = mInsideComboName = mInsideParamList = mModeCallByValue = false;
 	}
 
 	std::stringstream stream;
@@ -272,7 +272,7 @@ private:
 
 		visit(*node->name);
 		if(inside_combo_name)
-			stream << "E"; // if mangled name is a combo name, postfix "E"
+			stream << "E"; // RULE: combo name ends with "E"
 	}
 
 	void resolveFirstThenVisit(ASTNode* node)
@@ -284,19 +284,21 @@ private:
 
 	void visitParam(TypeSpecifier* type_specifier)
 	{
+		mInsideParamList = true;
 		if(type_specifier->type == TypeSpecifier::ReferredType::PRIMITIVE)
 			visit(*type_specifier);
 		else
 		{
-			int type_index = findRepeatTypeSet(type_specifier);
-			if(type_index == -1)
+			int slot = findAliasSlot(type_specifier);
+			if(slot == -1)
 			{
 				visit(*type_specifier);
-				addToRepeatTypeSet(type_specifier);
+				addToAliasSlots(type_specifier);
 			}
 			else
-				writeSubstitution(type_index);
+				writeSubstitution(slot);
 		}
+		mInsideParamList = false;
 	}
 
 	static bool isEqual(TypeSpecifier* a, TypeSpecifier* b)
@@ -314,32 +316,33 @@ private:
 	bool mInsideUptrace;
 	bool mInsideComboName;
 	bool mInsideParamList;
+	bool mModeCallByValue;
 
-	std::vector<TypeSpecifier*> mRepeatTypeSet;
+	std::vector<TypeSpecifier*> mAliasSlots;
 
-	int findRepeatTypeSet(TypeSpecifier* type_specifier)
+	int findAliasSlot(TypeSpecifier* type_specifier)
 	{
-		auto p = std::find_if(mRepeatTypeSet.begin(), mRepeatTypeSet.end(),
+		auto p = std::find_if(mAliasSlots.begin(), mAliasSlots.end(),
 				[&](TypeSpecifier* other) { return other ? type_specifier->isEqual(*other) : false; } );
-		return (p != mRepeatTypeSet.end()) ? std::distance(mRepeatTypeSet.begin(), p) : -1;
+		return (p != mAliasSlots.end()) ? std::distance(mAliasSlots.begin(), p) : -1;
 	}
 
-	void addToRepeatTypeSet(TypeSpecifier* type_specifier = NULL, bool check_if_unique = false)
+	void addToAliasSlots(TypeSpecifier* type_specifier = NULL, bool check_if_unique = false)
 	{
-		if(check_if_unique && findRepeatTypeSet(type_specifier) != -1)
+		if(check_if_unique && findAliasSlot(type_specifier) != -1)
 			return;
-		mRepeatTypeSet.push_back(type_specifier);
+		mAliasSlots.push_back(type_specifier);
 	}
 
-	void clearRepeatTypeSet()
+	void clearAliasSlots()
 	{
-		mRepeatTypeSet.clear();
+		mAliasSlots.clear();
 	}
 
-	TypeSpecifier* popLastTypeFromRepeatTypeSet()
+	TypeSpecifier* popFinalAliasSlots()
 	{
-		TypeSpecifier* type_specifier = mRepeatTypeSet.back();
-		mRepeatTypeSet.pop_back();
+		TypeSpecifier* type_specifier = mAliasSlots.back();
+		mAliasSlots.pop_back();
 		return type_specifier;
 	}
 
@@ -353,22 +356,22 @@ private:
 	    else return std::string(tmp.rbegin(), tmp.rend());
 	}
 
-	void writeSubstitution(int type_index)
+	void writeSubstitution(int slot)
 	{
-		BOOST_ASSERT(type_index >= 0 && "negative type index has no substitution");
-		stream << ((type_index == 0) ? "S_" : "S"+ito36a(type_index-1)+"_");
+		BOOST_ASSERT(slot >= 0 && "negative type index has no substitution");
+		stream << ((slot == 0) ? "S_" : "S"+ito36a(slot-1)+"_");
 	}
 
-	std::wstring getPureName(Identifier* ident)
+	std::wstring getBasename(Identifier* ident)
 	{
 		if(isa<SimpleIdentifier>(ident))
 			return cast<SimpleIdentifier>(ident)->name;
 		else if(isa<TemplatedIdentifier>(ident))
-			return getPureName(cast<TemplatedIdentifier>(ident)->id);
+			return getBasename(cast<TemplatedIdentifier>(ident)->id);
 		else if(isa<NestedIdentifier>(ident))
 		{
 			if(!cast<NestedIdentifier>(ident)->identifier_list.empty())
-				return getPureName(cast<NestedIdentifier>(ident)->identifier_list.back());
+				return getBasename(cast<NestedIdentifier>(ident)->identifier_list.back());
 			else
 				return L"";
 		}
