@@ -129,6 +129,12 @@ void ASTGraphvizNodeGenerator::label(TypeSpecifier& node)
     revisit(node);
 }
 
+void ASTGraphvizNodeGenerator::label(Literal& node)
+{
+    addNode(node, node.toString());
+    revisit(node);
+}
+
 void ASTGraphvizNodeGenerator::label(Declaration& node)
 {
     addNode(node, node.name->toString());
