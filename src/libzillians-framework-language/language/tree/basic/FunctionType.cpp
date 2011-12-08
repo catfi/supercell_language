@@ -22,55 +22,37 @@
 
 namespace zillians { namespace language { namespace tree {
 
-void FunctionType::appendTemplateParameter(Identifier* parameter)
-{
-	parameter->parent = this;
-	templated_parameters.push_back(parameter);
-}
-
 void FunctionType::appendParameterType(TypeSpecifier* type)
 {
 	type->parent = this;
-	argument_types.push_back(type);
+	parameter_types.push_back(type);
 }
 
 std::wstring FunctionType::toString() const
 {
-	static std::wstring t;
 	std::wstringstream ss;
-	ss << L"function";
-	foreach(i, templated_parameters)
-	{
-		if(is_begin_of_foreach(i, templated_parameters))
-			ss << L"<";
 
-		ss << (*i)->toString();
-
-		if(!is_end_of_foreach(i, templated_parameters))
-			ss << L", ";
-		else
-			ss << L">";
-	}
-
-	ss << L"(";
-	foreach(i, argument_types)
+	ss << L"function(";
+	foreach(i, parameter_types)
 	{
 		ss << (*i)->toString();
 		if(!is_end_of_foreach(i, templated_parameters))
 			ss << L", ";
 	}
 	ss << L")";
+	if(return_type)
+	{
+		ss << L":";
+		ss << return_type->toString();
+	}
 
-	t = ss.str();
-
-	return t;
+	return ss.str();
 }
 
 ASTNode* FunctionType::clone() const
 {
 	FunctionType* cloned = new FunctionType();
-	foreach(i, templated_parameters) cloned->templated_parameters.push_back( (*i) ? cast<Identifier>((*i)->clone()) : NULL);
-	foreach(i, argument_types) cloned->argument_types.push_back( (*i) ? cast<TypeSpecifier>((*i)->clone()) : NULL);
+	foreach(i, parameter_types) cloned->parameter_types.push_back( (*i) ? cast<TypeSpecifier>((*i)->clone()) : NULL);
 	cloned->return_type = (return_type) ? cast<TypeSpecifier>(return_type->clone()) : NULL;
 	return cloned;
 }

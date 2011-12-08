@@ -146,6 +146,13 @@ struct ResolutionStageVisitor : public GenericDoubleVisitor
 		resolver.leaveScope(node);
 	}
 
+	void resolve(FunctionType& node)
+	{
+		foreach(i, node.parameter_types)
+			visit(**i);
+		visit(*node.return_type);
+	}
+
 	void resolve(Source& node)
 	{
 		foreach(i, node.imports)
@@ -178,6 +185,14 @@ struct ResolutionStageVisitor : public GenericDoubleVisitor
 			{
 				// non-templated identifier is always fully-specialized
 				tryResolveType(&node, &node);
+			}
+		}
+		else if(node.isFunctionType())
+		{
+			visit(*node.referred.function_type);
+			if(!ResolvedType::get(&node))
+			{
+				ResolvedType::set(&node, node.referred.function_type);
 			}
 		}
 	}
