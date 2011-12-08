@@ -18,8 +18,7 @@
 #
 # Contact Information: info@zillians.com
 #
-MESSAGE("ZXC: ${CMAKE_CURRENT_BINARY_DIR}")
-MESSAGE("ZXC: ${CMAKE_CURRENT_SOURCE_DIR}")
+
 zillians_add_complex_test(
     TARGET thorscript-mangling-test
     SHELL ${CMAKE_CURRENT_SOURCE_DIR}/test.sh ${ThorScriptDriver} ${CMAKE_CURRENT_BINARY_DIR}

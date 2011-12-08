@@ -272,8 +272,7 @@ void ASTGraphvizChildEdgeGenerator::genChildEdge(TypeSpecifier& node)
 
 void ASTGraphvizChildEdgeGenerator::genChildEdge(FunctionType& node)
 {
-    foreach(i, node.templated_parameters)	addChildEdge(&node, *i, L"templated_parameters[]");
-    foreach(i, node.argument_types)			addChildEdge(&node, *i, L"argument_types[]");
+    foreach(i, node.parameter_types) addChildEdge(&node, *i, L"parameter_types");
     revisit(node);
 }
 
