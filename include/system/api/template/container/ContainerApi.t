@@ -19,8 +19,6 @@
  
 package api.system;
 
-
-
 @system
 class Array<T> : Object
 {
@@ -75,25 +73,6 @@ class HashMap<K,V> : Object
 class HashSet<V> : Object
 { 
 	// TODO complete all method definitions
-}
-
-@system
-class String : Object
-{
-	@system
-	public function length():int32;
-	
-	@system
-	public function concate(other:String):String;
-	
-	@system
-	public function extract(from:int32, to:int32 = -1):String;
-	
-	@system
-	public function find(candidate:String):int32;
-	
-	@system
-	public function tokenize(s:String):Vector<String>;
 }
 
 @system
