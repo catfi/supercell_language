@@ -209,6 +209,7 @@ struct ASTNodeHelper
 		return NULL;
 	}
 
+	static bool hasAnnotation(ASTNode* node, std::wstring tag) { return findAnnotation(node, tag); }
 	static Annotation* findAnnotation(ASTNode* node, std::wstring tag)
 	{
 		BOOST_ASSERT(node && "null pointer exception");
@@ -325,6 +326,10 @@ struct ASTNodeHelper
         fout << "}" << std::endl;
     }
 
+    static TypeSpecifier* buildTypeSpecifier(ClassDecl* decl)
+	{
+		return new TypeSpecifier(cast<Identifier>(decl->name->clone()));
+	}
 
 private:
 	static bool isNamedScope(ASTNode* node)
