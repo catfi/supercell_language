@@ -22,7 +22,14 @@ package api.system;
 @system
 class Array<T> : Object
 {
-	// TODO complete all method definitions
+	@system
+	function new(size:int32):Array<T>;
+	
+	@system
+	function at(index:int32):T;
+	
+	@system
+	function size():int32;
 }
 
 @system
@@ -30,7 +37,10 @@ class Vector<T> : Object
 {
 	// TODO complete all method definitions
 	@system 
-	public function size():uint32;
+	public function size():int32;
+
+	@system
+	public clear():void;
 	
 	@system
 	public function front():T
@@ -46,33 +56,88 @@ class Vector<T> : Object
 }
 
 @system
-class Vector<T> : Object
-{ 
-	// TODO complete all method definitions
-}
-
-@system
 class List<T> : Object
 { 
-	// TODO complete all method definitions
+	@system 
+	public function size():int32;
+	
+	@system
+	public clear():void;
+
+	@system
+	public function front():T
+
+	@system
+	public function back():T
+	
+	@system 
+	public function pushFront(element:T):void
+	
+	@system
+	public function popFront():void
+	
+	@system 
+	public function pushBack(element:T):void
+	
+	@system
+	public function popBack():void
 }
 
 @system
 class Queue<T> : Object
 { 
-	// TODO complete all method definitions
+	@system 
+	public function size():int32;
+	
+	@system
+	public clear():void;
+	
+	@system
+	public function head():T
+
+	@system
+	public function tail():T
+	
+	@system 
+	public function push(element:T):void
+	
+	@system
+	public function pop():void
 }
 
 @system
 class HashMap<K,V> : Object
 { 
-	// TODO complete all method definitions
+	@system 
+	public function size():int32;
+
+	@system
+	public clear():void;
+	
+	@system
+	public set(key:K, value:V):void;
+	
+	@system
+	public get(key:K):V;
 }
 
 @system
 class HashSet<V> : Object
 { 
-	// TODO complete all method definitions
+	@system 
+	public function size():int32;
+
+	@system
+	public clear():void;
+	
+	@system
+	public add(value:V):void;
+
+	@system
+	public remove(value:V):boolean;
+	
+	@system
+	public has(value:V):boolean;
 }
 
 @system
