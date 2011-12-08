@@ -26,7 +26,10 @@ class Array<T> : Object
 	function new(size:int32):Array<T>;
 	
 	@system
-	function at(index:int32):T;
+	function get(index:int32):T;
+
+	@system
+	function set(index:int32, value:T):void;
 	
 	@system
 	function size():int32;
@@ -65,22 +68,22 @@ class List<T> : Object
 	public clear():void;
 
 	@system
-	public function front():T
+	public function front():T;
 
 	@system
-	public function back():T
+	public function back():T;
 	
 	@system 
-	public function pushFront(element:T):void
+	public function pushFront(element:T):void;
 	
 	@system
-	public function popFront():void
+	public function popFront():void;
 	
 	@system 
-	public function pushBack(element:T):void
+	public function pushBack(element:T):void;
 	
 	@system
-	public function popBack():void
+	public function popBack():void;
 }
 
 @system
@@ -93,16 +96,16 @@ class Queue<T> : Object
 	public clear():void;
 	
 	@system
-	public function head():T
+	public function head():T;
 
 	@system
-	public function tail():T
+	public function tail():T;
 	
 	@system 
-	public function push(element:T):void
+	public function push(element:T):void;
 	
 	@system
-	public function pop():void
+	public function pop():void;
 }
 
 @system
