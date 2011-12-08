@@ -74,6 +74,7 @@ struct ObjectLiteral : public Literal
 			case THIS_OBJECT: return L"this";
 			case SUPER_OBJECT: return L"super";
 			case GLOBAL_OBJECT: return L"global";
+            default : UNREACHABLE_CODE(); return L"<unknown>";
 			}
 		}
 	};
@@ -104,7 +105,7 @@ struct ObjectLiteral : public Literal
 
 	virtual std::wstring toString() const
     {
-        return L"{...}";
+        return LiteralType::toString(type);
     }
 
     template<typename Archive>
