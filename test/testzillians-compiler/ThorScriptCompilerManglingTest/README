@@ -87,6 +87,8 @@ int64 _func_56_(_QWE_* x) { } // when specialize for int8 ==> _Z9_func_56_IccExP
 template<>
 int64 _func_56_<_QWE_, _QWE_>(_QWE_* x) { } // _Z9_func_56_I5_QWE_S0_ExPS0_
 
+void _func_60_(_QWE_* x, _QWE_ y) { } // _Z9_func_60_P5_QWE_S_
+
 int main()
 {
     // namespace decl

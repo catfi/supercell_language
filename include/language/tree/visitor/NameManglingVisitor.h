@@ -114,7 +114,7 @@ struct NameManglingVisitor : Visitor<ASTNode, void, VisitorImplementation::recur
 
 	void mangle(ClassDecl& node)
 	{
-		if(mInsideParamList && !isReservedConstructName(getBasename(node.name)))
+		if(mInsideParamList && !isReservedConstructName(getBasename(node.name)) && !mModeCallByValue)
 		{
 			stream << "P"; // THOR_SPECIFIC: object passing is by pointer, hence "P"
 			addToAliasSlots(); // HACK: alias slot for pointer-to-class type
