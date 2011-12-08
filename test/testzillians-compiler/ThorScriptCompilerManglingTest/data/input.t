@@ -56,13 +56,13 @@ class _BBB_
     public function _func_53_(x:_BBB_, y:_BBB_, z:_BBB_):void { }
 }
 
+/*
 // templated class member
 class _CCC_<T, T2>
 {
     public function _func_54_(x:_QWE_):void { }
 }
 
-/*
 // class templated member
 class _DDD_
 {
@@ -75,6 +75,7 @@ function _func_56_<T, T2>(x:_QWE_):int64 { }
 
 function main():void
 {
+    /*
     // simple class member
     var bbb:_BBB_;
     bbb._func_51_();
@@ -91,7 +92,6 @@ function main():void
     var ccc2:_CCC_<_QWE_, _QWE_>;
     ccc2._func_54_(qwe);
 
-    /*
     // class templated member
     var ddd:_DDD_;
     ddd._func_55_<int8, int8>(0);

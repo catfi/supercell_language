@@ -169,6 +169,17 @@ struct NameManglingVisitor : Visitor<ASTNode, void, VisitorImplementation::recur
 		uptraceAndAppendName(&node);
 	}
 
+	void mangle(ClassDecl& node)
+	{
+		if(mInsideParamList && !isReservedConstructName(getPureName(node.name)))
+		{
+			stream << "P"; // object passing is always by pointer, hence "P"
+			addToRepeatTypeSet();
+		}
+
+		uptraceAndAppendName(&node);
+	}
+
 	void mangle(FunctionDecl& node)
 	{
 		clearRepeatTypeSet();
@@ -259,7 +270,7 @@ struct NameManglingVisitor : Visitor<ASTNode, void, VisitorImplementation::recur
 
 	void reset()
 	{
-#if 0 // NOTE: for debugging only
+#if 1 // NOTE: for debugging only
 		std::cout << "NameManglingVisitor: " << stream.str() << std::endl;
 #endif
 		stream.str("");
