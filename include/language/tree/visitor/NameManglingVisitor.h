@@ -140,21 +140,7 @@ struct NameManglingVisitor : Visitor<ASTNode, void, VisitorImplementation::recur
 		{
 			mInsideParamList = true;
 			foreach(i, node.parameter_types)
-			{
-				if((*i)->type == TypeSpecifier::ReferredType::PRIMITIVE)
-					visit(*(*i));
-				else
-				{
-					int type_index = findRepeatTypeSet(*i);
-					if(type_index == -1)
-					{
-						visit(*(*i));
-						addToRepeatTypeSet(*i);
-					}
-					else
-						writeSubstitution(type_index);
-				}
-			}
+				visitParam(*i);
 			mInsideParamList = false;
 		}
 
@@ -174,7 +160,7 @@ struct NameManglingVisitor : Visitor<ASTNode, void, VisitorImplementation::recur
 		if(mInsideParamList && !isReservedConstructName(getPureName(node.name)))
 		{
 			stream << "P"; // object passing is always by pointer, hence "P"
-			addToRepeatTypeSet();
+			addToRepeatTypeSet(); // slot for pointer-to-class type
 		}
 
 		uptraceAndAppendName(&node);
@@ -199,8 +185,8 @@ struct NameManglingVisitor : Visitor<ASTNode, void, VisitorImplementation::recur
 				{
 					stream << "PS_"; // NOTE: "this" is always a pointer, hence "P" in "PS_"
 					TypeSpecifier* this_type = popLastTypeFromRepeatTypeSet();
-					addToRepeatTypeSet();
-					addToRepeatTypeSet(this_type);
+					addToRepeatTypeSet();          // <== slot for "*this" type
+					addToRepeatTypeSet(this_type); // <== slot for "this" type
 					p++; // skip first visible parameter after "this"
 					if(p == node.parameters.end())
 						return; // NOTE: prevent writing "v" for empty param list
@@ -214,21 +200,7 @@ struct NameManglingVisitor : Visitor<ASTNode, void, VisitorImplementation::recur
 		{
 			mInsideParamList = true;
 			for(; p != node.parameters.end(); p++)
-			{
-				if((*p)->type->type == TypeSpecifier::ReferredType::PRIMITIVE)
-					visit(*(*p)->type);
-				else
-				{
-					int type_index = findRepeatTypeSet((*p)->type);
-					if(type_index == -1)
-					{
-						visit(*(*p)->type);
-						addToRepeatTypeSet((*p)->type);
-					}
-					else
-						writeSubstitution(type_index);
-				}
-			}
+				visitParam((*p)->type);
 			mInsideParamList = false;
 		}
 
@@ -308,6 +280,23 @@ private:
         ASTNode* resolved_type = ASTNodeHelper::findUniqueTypeResolution(node);
         if(resolved_type)
         	visit(*resolved_type);
+	}
+
+	void visitParam(TypeSpecifier* type_specifier)
+	{
+		if(type_specifier->type == TypeSpecifier::ReferredType::PRIMITIVE)
+			visit(*type_specifier);
+		else
+		{
+			int type_index = findRepeatTypeSet(type_specifier);
+			if(type_index == -1)
+			{
+				visit(*type_specifier);
+				addToRepeatTypeSet(type_specifier);
+			}
+			else
+				writeSubstitution(type_index);
+		}
 	}
 
 	static bool isEqual(TypeSpecifier* a, TypeSpecifier* b)
