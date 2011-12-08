@@ -16,59 +16,20 @@
  * AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
- 
-package api.system;
 
-@native
-class Array<T>
+@system
+class InputStream
+{ }
+
+@system
+class OutputStream
+{ }
+
+class BasicStream
 {
-	// TODO define more array methods
+	@system
+	static var stdin:InputStream;
+	
+	@system
+	static var stdout:OutputStream;
 }
-
-@native
-class Vector<T>
-{
-	@native
-	public function new();
-	
-	@native 
-	public function size():uint32;
-	
-	@native
-	public function front():T
-
-	@native
-	public function back():T
-	
-	@native 
-	public function pushBack(element:T):void
-	
-	@native
-	public function popBack():void
-}
-
-// every user defined object is derived from Object
-@native 
-class Object
-{
-	@native
-	public function clone():Object;
-	
-	@native
-	public function hash():uint32;
-	
-	@native
-	public function domain():uint32;
-}
-
-// define the null constant 
-@native 
-const null:Object;
-
-// define the convention type conversion routine
-@native 
-function cast<X,Y>(Y value):X;
-
-// define the convention type conversion check routine
-@native 
-function isa<X,Y>(Y value):boolean;
