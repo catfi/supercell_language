@@ -71,13 +71,32 @@ bool ImplicitConversionStage::execute(bool& continue_execution)
 	if(parser_context.active_source)
 	{
 		// restructure the entire tree in multiple passes
+        size_t count = 0;
 		while(true)
 		{
+            if(dump_graphviz)
+            {
+                std::ostringstream oss;
+                oss << "pre-implicit-conversion-" << count << ".dot";
+                boost::filesystem::path p(dump_graphviz_dir);
+                ASTNodeHelper::visualize(parser_context.tangle, p / oss.str());
+            }
+
 			visitor::ImplicitConversionStageVisitor restruct;
 			restruct.visit(*parser_context.tangle);
-			if(restruct.hasTransforms())
-				restruct.applyTransforms();
-			else
+            restruct.applyTransforms();
+
+            if(dump_graphviz)
+            {
+                std::ostringstream oss;
+                oss << "post-implicit-conversion-" << count << ".dot";
+                boost::filesystem::path p(dump_graphviz_dir);
+                ASTNodeHelper::visualize(parser_context.tangle, p / oss.str());
+            }
+
+            ++count;
+
+			if(!restruct.hasTransforms())
 				break;
 		}
 
@@ -86,12 +105,6 @@ bool ImplicitConversionStage::execute(bool& continue_execution)
 			tree::visitor::PrettyPrintVisitor printer;
 			printer.visit(*parser_context.tangle);
 		}
-
-        if(dump_graphviz)
-        {
-            boost::filesystem::path p(dump_graphviz_dir);
-            ASTNodeHelper::visualize(getParserContext().tangle, p / "post-implicit-conversion.dot");
-        }
 
 		return true;
 	}

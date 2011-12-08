@@ -41,7 +41,7 @@ struct ImplicitConversionStageVisitor : public GenericDoubleVisitor
 
     ImplicitConversionStageVisitor()
 	{
-		REGISTER_ALL_VISITABLE_ASTNODE(restructInvoker)
+		REGISTER_ALL_VISITABLE_ASTNODE(convertInvoker)
 	}
 
 	void convert(ASTNode& node)
@@ -49,14 +49,50 @@ struct ImplicitConversionStageVisitor : public GenericDoubleVisitor
 		revisit(node);
 	}
 
-	void convert(BinaryExpr& node)
+    //void convert(BinaryExpr& node)
+    //{
+    //    if(node.opcode != BinaryExpr::OpCode::ASSIGN)
+    //    {
+    //        return;
+    //    }
+
+    //    tree::ASTNode* ltype = ResolvedType::get(node.left);
+    //    tree::ASTNode* rtype = ResolvedType::get(node.right);
+    //    BOOST_ASSERT(ltype != NULL);
+    //    BOOST_ASSERT(rtype != NULL);
+    //    tree::ASTNode* uniqLtype = ASTNodeHelper::findUniqueTypeResolution(ltype);
+    //    tree::ASTNode* uniqRtype = ASTNodeHelper::findUniqueTypeResolution(rtype);
+
+    //    if(uniqLtype != uniqRtype)
+    //    {
+    //        transforms.push_back([&](){
+    //            CastExpr* castExpr = new tree::CastExpr(node.right, ltype);
+    //            ResolvedType::set(castExpr, ltype);
+    //        });
+    //    }
+    //}
+
+	void convert(CallExpr& node)
 	{
+        // for each argument
+        for(size_t i=0; i != node.parameters.size(); ++i)
+        {
+            FunctionDecl* func          = cast<FunctionDecl>(ResolvedSymbol::get(node.node));
+            Expression*   argumentExpr  = node.parameters[i];
+            VariableDecl* parameterDecl = func->parameters[i];
 
-	}
+            if(ResolvedType::get(argumentExpr)->isEqual(*parameterDecl->type))
+            {
+                continue;
+            }
 
-	void convert(CastExpr& node)
-	{
-
+            transforms.push_back([&node, i, argumentExpr, parameterDecl](){
+                CastExpr* castExpr = new CastExpr(argumentExpr, parameterDecl->type);
+                node.parameters[i] = castExpr;
+                castExpr->parent = &node;
+                ResolvedType::set(castExpr, parameterDecl->type);
+            });
+        }
 	}
 
 public:
