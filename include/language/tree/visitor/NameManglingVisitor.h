@@ -80,12 +80,48 @@ struct NameManglingVisitor : Visitor<ASTNode, void, VisitorImplementation::recur
 			stream << node.name.length() << encode(node.name);
 	}
 
+	void mangle(TemplatedIdentifier& node)
+	{
+		visit(*node.id);
+
+		bool reserved_construct = isReservedConstructName(getBasename(node.id));
+		if(!reserved_construct)
+			stream << "I"; // RULE: template begins with "I"
+
+		{
+			mInsideParamList = true;
+			foreach(i, node.templated_type_list)
+			{
+				if(node.type == TemplatedIdentifier::Usage::FORMAL_PARAMETER)
+				{
+//					resolveFirstThenVisit(*i);
+			        ASTNode* resolved_type = ASTNodeHelper::findUniqueTypeResolution(*i);
+			        if(resolved_type)
+			        {
+			        	if(isa<ClassDecl>(resolved_type))
+			        	{
+			        		// NOTE: memory leak!
+			        		TypeSpecifier* type_specifier = ASTNodeHelper::buildTypeSpecifier(cast<ClassDecl>(resolved_type));
+			    			addToAliasSlots(type_specifier);
+			        	}
+			        	visit(*resolved_type);
+			        }
+				}
+			}
+			mInsideParamList = false;
+		}
+
+		if(!reserved_construct)
+			stream << "E"; // RULE: template ends with "E"
+	}
+
 	void mangle(TypeSpecifier& node)
 	{
 		switch(node.type)
 		{
 		case TypeSpecifier::ReferredType::FUNCTION_TYPE:
 			visit(*node.referred.function_type);
+			addToAliasSlots(&node);
 			break;
 		case TypeSpecifier::ReferredType::PRIMITIVE:
 			switch(node.referred.primitive)
@@ -103,8 +139,28 @@ struct NameManglingVisitor : Visitor<ASTNode, void, VisitorImplementation::recur
 			break;
 		case TypeSpecifier::ReferredType::UNSPECIFIED:
 			resolveFirstThenVisit(&node);
+			addToAliasSlots(&node);
 			break;
 		}
+	}
+
+	void mangle(FunctionType& node)
+	{
+		uptrace(&node);
+		stream << "PF"; // RULE/THOR_SPECIFIC: callback begins with "F", and is a pointer, hence "P" in "PF"
+		visit(*node.return_type);
+
+		if(node.parameter_types.empty())
+			stream << "v"; // empty param-list equivalent to "void" param type
+		else
+		{
+			foreach(i, node.parameter_types)
+				visitParam(*i);
+		}
+
+		stream << "E"; // RULE: callback ends with "E"
+
+		addToAliasSlots(NULL, false); // HACK: function type occupies 2 alias slots, not sure why..
 	}
 
 	void mangle(Declaration& node)
@@ -114,13 +170,14 @@ struct NameManglingVisitor : Visitor<ASTNode, void, VisitorImplementation::recur
 
 	void mangle(ClassDecl& node)
 	{
-		if(mInsideParamList && !isReservedConstructName(getBasename(node.name)) && !mModeCallByValue)
-		{
+		bool need_ptr_type = (mInsideParamList && !isReservedConstructName(getBasename(node.name)) && !mModeCallByValue);
+		if(need_ptr_type)
 			stream << "P"; // THOR_SPECIFIC: object passing is by pointer, hence "P"
-			addToAliasSlots(); // HACK: alias slot for pointer-to-class type
-		}
 
 		uptraceAndAppendName(&node);
+
+		if(need_ptr_type)
+			addToAliasSlots(NULL, false); // HACK: alias slot for pointer-to-class type
 	}
 
 	void mangle(FunctionDecl& node)
@@ -144,7 +201,7 @@ struct NameManglingVisitor : Visitor<ASTNode, void, VisitorImplementation::recur
 				{
 					stream << "PS_"; // THOR_SPECIFIC: "this" is a pointer, hence "P" in "PS_"
 					TypeSpecifier* this_type = popFinalAliasSlots(); // HACK: bump "this" param up 1 alias slot
-					addToAliasSlots();                               // HACK: alias slot for "*this" param
+					addToAliasSlots(NULL, false);                               // HACK: alias slot for "*this" param
 					addToAliasSlots(this_type);                      // HACK: alias slot for "this" param
 					p++;                                             // HACK: skip "this" param (again!)
 					if(p == node.parameters.end())
@@ -165,47 +222,6 @@ struct NameManglingVisitor : Visitor<ASTNode, void, VisitorImplementation::recur
 			visit(*node.type);
 
 		mModeCallByValue = false;
-	}
-
-	void mangle(FunctionType& node)
-	{
-		uptrace(&node);
-		stream << "PF"; // RULE/THOR_SPECIFIC: callback begins with "F", and is a pointer, hence "P" in "PF"
-		visit(*node.return_type);
-
-		if(node.parameter_types.empty())
-			stream << "v"; // empty param-list equivalent to "void" param type
-		else
-		{
-			foreach(i, node.parameter_types)
-				visitParam(*i);
-		}
-
-		stream << "E"; // RULE: callback ends with "E"
-
-		addToAliasSlots(); // HACK: function type occupies 2 alias slots, not sure why..
-	}
-
-	void mangle(TemplatedIdentifier& node)
-	{
-		visit(*node.id);
-
-		bool reserved_construct = isReservedConstructName(getBasename(node.id));
-		if(!reserved_construct)
-			stream << "I"; // RULE: template begins with "I"
-
-		{
-			mInsideParamList = true;
-			foreach(i, node.templated_type_list)
-			{
-				if(node.type == TemplatedIdentifier::Usage::FORMAL_PARAMETER)
-					resolveFirstThenVisit(*i);
-			}
-			mInsideParamList = false;
-		}
-
-		if(!reserved_construct)
-			stream << "E"; // RULE: template ends with "E"
 	}
 
 	std::string ucs4_to_utf8_temp;
@@ -291,10 +307,7 @@ private:
 		{
 			int slot = findAliasSlot(type_specifier);
 			if(slot == -1)
-			{
 				visit(*type_specifier);
-				addToAliasSlots(type_specifier);
-			}
 			else
 				writeSubstitution(slot);
 		}
@@ -327,7 +340,7 @@ private:
 		return (p != mAliasSlots.end()) ? std::distance(mAliasSlots.begin(), p) : -1;
 	}
 
-	void addToAliasSlots(TypeSpecifier* type_specifier = NULL, bool check_if_unique = false)
+	void addToAliasSlots(TypeSpecifier* type_specifier = NULL, bool check_if_unique = true)
 	{
 		if(check_if_unique && findAliasSlot(type_specifier) != -1)
 			return;
