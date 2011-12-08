@@ -23,16 +23,22 @@ package api.system;
 class Array<T> : Object
 {
 	@system
-	function new(size:int32):Array<T>;
-	
-	@system
-	function get(index:int32):T;
+	private function new():Array<T>;
 
 	@system
-	function set(index:int32, value:T):void;
+	public function new(ref:Array<T>):Array<T>;
 	
 	@system
-	function size():int32;
+	public function new(size:int32):Array<T>;
+	
+	@system
+	public function get(index:int32):T;
+
+	@system
+	public function set(index:int32, value:T):void;
+	
+	@system
+	public function size():int32;
 }
 
 @system
