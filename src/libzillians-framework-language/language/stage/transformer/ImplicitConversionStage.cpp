@@ -70,6 +70,22 @@ bool ImplicitConversionStage::execute(bool& continue_execution)
 
 	if(parser_context.active_source)
 	{
+        if(dump_graphviz)
+        {
+            boost::filesystem::path p(dump_graphviz_dir);
+            ASTNodeHelper::visualize(parser_context.tangle, p / "pre-prepand.dot");
+        }
+
+        visitor::PrepandThisStageVisitor prepand;
+        prepand.visit(*parser_context.tangle);
+        prepand.applyTransforms();
+
+        if(dump_graphviz)
+        {
+            boost::filesystem::path p(dump_graphviz_dir);
+            ASTNodeHelper::visualize(parser_context.tangle, p / "post-prepand.dot");
+        }
+
 		// restructure the entire tree in multiple passes
         size_t count = 0;
 		while(true)
@@ -82,9 +98,9 @@ bool ImplicitConversionStage::execute(bool& continue_execution)
                 ASTNodeHelper::visualize(parser_context.tangle, p / oss.str());
             }
 
-			visitor::ImplicitConversionStageVisitor restruct;
-			restruct.visit(*parser_context.tangle);
-            restruct.applyTransforms();
+			visitor::ImplicitConversionStageVisitor implicitConvert;
+			implicitConvert.visit(*parser_context.tangle);
+            implicitConvert.applyTransforms();
 
             if(dump_graphviz)
             {
@@ -96,7 +112,7 @@ bool ImplicitConversionStage::execute(bool& continue_execution)
 
             ++count;
 
-			if(!restruct.hasTransforms())
+			if(!implicitConvert.hasTransforms())
 				break;
 		}
 

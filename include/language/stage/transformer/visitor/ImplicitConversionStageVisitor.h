@@ -31,6 +31,66 @@ using zillians::language::tree::visitor::GenericDoubleVisitor;
 namespace zillians { namespace language { namespace stage { namespace visitor {
 
 /**
+ * PrepandThisStageVisitor is the visitation helper for ImplicitConversionStage
+ *
+ * @see ImplicitConversionStage
+ */
+struct PrepandThisStageVisitor : public GenericDoubleVisitor
+{
+    CREATE_INVOKER(prepandInvoker, prepand)
+
+    PrepandThisStageVisitor()
+	{
+		REGISTER_ALL_VISITABLE_ASTNODE(prepandInvoker)
+	}
+
+	void prepand(ASTNode& node)
+	{
+		revisit(node);
+	}
+
+    bool isMemberFunctionCall(CallExpr& node)
+    {
+        return (isa<MemberExpr>(node.node));
+    }
+
+	void prepand(CallExpr& node)
+	{
+        // apply prepand 'this' to member function call
+        if(isMemberFunctionCall(node))
+        {
+            transforms.push_back([&node](){
+                MemberExpr*  memberExpr     = cast<MemberExpr>(node.node);
+                PrimaryExpr* arguExpr       = cast<PrimaryExpr>(memberExpr->node->clone());
+                ASTNode*     resolvedType   = ResolvedType  ::get(memberExpr->node);
+                ASTNode*     resolvedSymbol = ResolvedSymbol::get(memberExpr->node);
+                ResolvedType::set(arguExpr, resolvedType);
+                ResolvedSymbol::set(arguExpr, resolvedSymbol);
+                node.prependParameter(arguExpr);
+            });
+        }
+	}
+
+public:
+	bool hasTransforms()
+	{
+		return (transforms.size() > 0);
+	}
+
+	void applyTransforms()
+	{
+		foreach(i, transforms)
+		{
+			(*i)();
+		}
+		transforms.clear();
+	}
+
+private:
+	std::vector<std::function<void()>> transforms;
+};
+
+/**
  * ImplicitConversionStageVisitor is the visitation helper for ImplicitConversionStage
  *
  * @see ImplicitConversionStage
@@ -72,16 +132,24 @@ struct ImplicitConversionStageVisitor : public GenericDoubleVisitor
     //    }
     //}
 
+    bool isMemberFunctionCall(CallExpr& node)
+    {
+        return (isa<MemberExpr>(node.node));
+    }
+
 	void convert(CallExpr& node)
 	{
-        // for each argument
+        // for each argument, apply promotion/standrad conversion
         for(size_t i=0; i != node.parameters.size(); ++i)
         {
             FunctionDecl* func          = cast<FunctionDecl>(ResolvedSymbol::get(node.node));
             Expression*   argumentExpr  = node.parameters[i];
             VariableDecl* parameterDecl = func->parameters[i];
 
-            if(ResolvedType::get(argumentExpr)->isEqual(*parameterDecl->type))
+            //if(ResolvedType::get(argumentExpr)->isEqual(*parameterDecl->type))
+            ASTNode* arguType  = ResolvedType::get(argumentExpr);
+            ASTNode* paramType = parameterDecl->type->isPrimitiveType() ? parameterDecl->type : ResolvedType::get(parameterDecl->type);
+            if(ASTNodeHelper::findUniqueTypeResolution(arguType)->isEqual(*ASTNodeHelper::findUniqueTypeResolution(paramType)))
             {
                 continue;
             }
@@ -93,6 +161,8 @@ struct ImplicitConversionStageVisitor : public GenericDoubleVisitor
                 ResolvedType::set(castExpr, parameterDecl->type);
             });
         }
+
+        revisit(node);
 	}
 
 public:
