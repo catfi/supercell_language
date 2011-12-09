@@ -326,9 +326,11 @@ struct ASTNodeHelper
         fout << "}" << std::endl;
     }
 
-    static TypeSpecifier* buildTypeSpecifier(ClassDecl* decl)
+    static TypeSpecifier* buildResolvableTypeSpecifier(ClassDecl* decl)
 	{
-		return new TypeSpecifier(cast<Identifier>(decl->name->clone()));
+    	TypeSpecifier* type_specifier = new TypeSpecifier(cast<Identifier>(decl->name->clone()));
+    	ResolvedType::set(type_specifier, decl);
+		return type_specifier;
 	}
 
 private:

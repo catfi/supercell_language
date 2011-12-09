@@ -94,17 +94,19 @@ struct NameManglingVisitor : Visitor<ASTNode, void, VisitorImplementation::recur
 			{
 				if(node.type == TemplatedIdentifier::Usage::FORMAL_PARAMETER)
 				{
-//					resolveFirstThenVisit(*i);
 			        ASTNode* resolved_type = ASTNodeHelper::findUniqueTypeResolution(*i);
 			        if(resolved_type)
 			        {
 			        	if(isa<ClassDecl>(resolved_type))
 			        	{
-			        		// NOTE: memory leak!
-			        		TypeSpecifier* type_specifier = ASTNodeHelper::buildTypeSpecifier(cast<ClassDecl>(resolved_type));
+			        		TypeSpecifier* type_specifier = ASTNodeHelper::buildResolvableTypeSpecifier(
+			        				cast<ClassDecl>(resolved_type));
 			    			addToAliasSlots(type_specifier);
+			    			mManagedAliasSlots.push_back(shared_ptr<TypeSpecifier>(type_specifier));
+			    			visit(*type_specifier);
 			        	}
-			        	visit(*resolved_type);
+			        	else
+			        		visit(*resolved_type);
 			        }
 				}
 			}
@@ -138,8 +140,12 @@ struct NameManglingVisitor : Visitor<ASTNode, void, VisitorImplementation::recur
 			}
 			break;
 		case TypeSpecifier::ReferredType::UNSPECIFIED:
-			resolveFirstThenVisit(&node);
-			addToAliasSlots(&node);
+			{
+				ASTNode* resolved_type = ASTNodeHelper::findUniqueTypeResolution(&node);
+				BOOST_ASSERT(resolved_type && "failed to resolve unspecified symbol!");
+				visit(*resolved_type);
+				addToAliasSlots(&node);
+			}
 			break;
 		}
 	}
@@ -150,13 +156,15 @@ struct NameManglingVisitor : Visitor<ASTNode, void, VisitorImplementation::recur
 		stream << "PF"; // RULE/THOR_SPECIFIC: callback begins with "F", and is a pointer, hence "P" in "PF"
 		visit(*node.return_type);
 
+		mInsideParamList = true;
 		if(node.parameter_types.empty())
-			stream << "v"; // empty param-list equivalent to "void" param type
+			visitEmptyParams();
 		else
 		{
 			foreach(i, node.parameter_types)
 				visitParam(*i);
 		}
+		mInsideParamList = false;
 
 		stream << "E"; // RULE: callback ends with "E"
 
@@ -187,6 +195,7 @@ struct NameManglingVisitor : Visitor<ASTNode, void, VisitorImplementation::recur
 		clearAliasSlots();
 		uptraceAndAppendName(&node);
 
+		mInsideParamList = true;
 		auto p = node.parameters.begin();
 		if(node.is_member && !node.is_static)
 		{
@@ -199,9 +208,10 @@ struct NameManglingVisitor : Visitor<ASTNode, void, VisitorImplementation::recur
 				ASTNode* resolved_type = ASTNodeHelper::findUniqueTypeResolution((*p)->type);
 				if(resolved_type == node.parent)
 				{
+//					visit(*(*p)->type);
 					stream << "PS_"; // THOR_SPECIFIC: "this" is a pointer, hence "P" in "PS_"
 					TypeSpecifier* this_type = popFinalAliasSlots(); // HACK: bump "this" param up 1 alias slot
-					addToAliasSlots(NULL, false);                               // HACK: alias slot for "*this" param
+					addToAliasSlots(NULL, false);                    // HACK: alias slot for "*this" param
 					addToAliasSlots(this_type);                      // HACK: alias slot for "this" param
 					p++;                                             // HACK: skip "this" param (again!)
 					if(p == node.parameters.end())
@@ -209,14 +219,14 @@ struct NameManglingVisitor : Visitor<ASTNode, void, VisitorImplementation::recur
 				}
 			}
 		}
-
 		if(p == node.parameters.end())
-			stream << "v"; // empty param-list equivalent to "void" param type
+			visitEmptyParams();
 		else
 		{
 			for(; p != node.parameters.end(); p++)
 				visitParam((*p)->type);
 		}
+		mInsideParamList = false;
 
 		if(isa<TemplatedIdentifier>(node.name))
 			visit(*node.type);
@@ -291,16 +301,8 @@ private:
 			stream << "E"; // RULE: combo name ends with "E"
 	}
 
-	void resolveFirstThenVisit(ASTNode* node)
-	{
-        ASTNode* resolved_type = ASTNodeHelper::findUniqueTypeResolution(node);
-        if(resolved_type)
-        	visit(*resolved_type);
-	}
-
 	void visitParam(TypeSpecifier* type_specifier)
 	{
-		mInsideParamList = true;
 		if(type_specifier->type == TypeSpecifier::ReferredType::PRIMITIVE)
 			visit(*type_specifier);
 		else
@@ -311,7 +313,12 @@ private:
 			else
 				writeSubstitution(slot);
 		}
-		mInsideParamList = false;
+	}
+
+	void visitEmptyParams()
+	{
+		TypeSpecifier type_specifier(PrimitiveType::VOID);
+		visit(type_specifier); // RULE: empty param-list equivalent to "void" param type
 	}
 
 	static bool isEqual(TypeSpecifier* a, TypeSpecifier* b)
@@ -332,6 +339,7 @@ private:
 	bool mModeCallByValue;
 
 	std::vector<TypeSpecifier*> mAliasSlots;
+	std::vector<shared_ptr<TypeSpecifier>> mManagedAliasSlots;
 
 	int findAliasSlot(TypeSpecifier* type_specifier)
 	{
@@ -350,6 +358,7 @@ private:
 	void clearAliasSlots()
 	{
 		mAliasSlots.clear();
+		mManagedAliasSlots.clear();
 	}
 
 	TypeSpecifier* popFinalAliasSlots()
