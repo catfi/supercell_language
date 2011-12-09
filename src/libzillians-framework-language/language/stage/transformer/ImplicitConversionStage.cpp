@@ -70,10 +70,11 @@ bool ImplicitConversionStage::execute(bool& continue_execution)
 
 	if(parser_context.active_source)
 	{
+        // prepand this
+        boost::filesystem::path graphviz_path(dump_graphviz_dir);
         if(dump_graphviz)
         {
-            boost::filesystem::path p(dump_graphviz_dir);
-            ASTNodeHelper::visualize(parser_context.tangle, p / "pre-prepand.dot");
+            ASTNodeHelper::visualize(parser_context.tangle, graphviz_path / "pre-prepand.dot");
         }
 
         visitor::PrepandThisStageVisitor prepand;
@@ -82,39 +83,23 @@ bool ImplicitConversionStage::execute(bool& continue_execution)
 
         if(dump_graphviz)
         {
-            boost::filesystem::path p(dump_graphviz_dir);
-            ASTNodeHelper::visualize(parser_context.tangle, p / "post-prepand.dot");
+            ASTNodeHelper::visualize(parser_context.tangle, graphviz_path / "post-prepand.dot");
         }
 
 		// restructure the entire tree in multiple passes
-        size_t count = 0;
-		while(true)
-		{
-            if(dump_graphviz)
-            {
-                std::ostringstream oss;
-                oss << "pre-implicit-conversion-" << count << ".dot";
-                boost::filesystem::path p(dump_graphviz_dir);
-                ASTNodeHelper::visualize(parser_context.tangle, p / oss.str());
-            }
+        if(dump_graphviz)
+        {
+            ASTNodeHelper::visualize(parser_context.tangle, graphviz_path / "pre-implicit-conversion.dot");
+        }
 
-			visitor::ImplicitConversionStageVisitor implicitConvert;
-			implicitConvert.visit(*parser_context.tangle);
-            implicitConvert.applyTransforms();
+        visitor::ImplicitConversionStageVisitor implicitConvert;
+        implicitConvert.visit(*parser_context.tangle);
+        implicitConvert.applyTransforms();
 
-            if(dump_graphviz)
-            {
-                std::ostringstream oss;
-                oss << "post-implicit-conversion-" << count << ".dot";
-                boost::filesystem::path p(dump_graphviz_dir);
-                ASTNodeHelper::visualize(parser_context.tangle, p / oss.str());
-            }
-
-            ++count;
-
-			if(!implicitConvert.hasTransforms())
-				break;
-		}
+        if(dump_graphviz)
+        {
+            ASTNodeHelper::visualize(parser_context.tangle, graphviz_path / "post-implicit-conversion.dot");
+        }
 
 		if(debug)
 		{
