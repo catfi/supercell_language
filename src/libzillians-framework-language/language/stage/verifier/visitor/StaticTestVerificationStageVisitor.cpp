@@ -126,41 +126,30 @@ static std::wstring getLiteralString(Literal* literal)
     }
 }
 
-static LogInfo constructErrorContextFromAnnotation(zillians::language::tree::Annotation& node)
+static LogInfo constructExpectMessageFromAnnotation(zillians::language::tree::ASTNode& node)
 {
     using namespace zillians::language::tree;
     using zillians::language::tree::cast;
 
-    BOOST_ASSERT(node.attribute_list.size() == 1);
-    if (node.attribute_list.size() != 1 )
-    {
-        LOG_MESSAGE(WRONG_STATIC_TEST_ANNOTATION_FORMAT, &node, _detail = L"number of attribute list should be 1");
-    }
+    ASTNode* expectMessageAnno = &node;
 
-    std::pair<SimpleIdentifier*, ASTNode*>& expectMessage = node.attribute_list[0];
-    BOOST_ASSERT(cast<SimpleIdentifier>(expectMessage.first)->name == L"expect_message");
-    if (cast<SimpleIdentifier>(expectMessage.first) == NULL)
-    {
-        LOG_MESSAGE(WRONG_STATIC_TEST_ANNOTATION_FORMAT, &node, _detail = L"key should be \"expect_message\"");
-    }
-
-    BOOST_ASSERT(cast<Annotation>(expectMessage.second) != NULL);
-    if (cast<Annotation>(expectMessage.second) == NULL)
+    BOOST_ASSERT(cast<Annotation>(expectMessageAnno) != NULL);
+    if (cast<Annotation>(expectMessageAnno) == NULL)
     {
         LOG_MESSAGE(WRONG_STATIC_TEST_ANNOTATION_FORMAT, &node, _detail = L"child of Annotations should be Annotation");
     }
 
-    Annotation* anno = cast<Annotation>(expectMessage.second);
-    BOOST_ASSERT(cast<Annotation>(expectMessage.second)->attribute_list.size() == 3 ||
-                 cast<Annotation>(expectMessage.second)->attribute_list.size() == 2);
-    if (cast<Annotation>(expectMessage.second)->attribute_list.size() < 2 ||
-        cast<Annotation>(expectMessage.second)->attribute_list.size() > 3)
+    Annotation* anno = cast<Annotation>(expectMessageAnno);
+    BOOST_ASSERT(cast<Annotation>(expectMessageAnno)->attribute_list.size() == 3 ||
+                 cast<Annotation>(expectMessageAnno)->attribute_list.size() == 2);
+    if (cast<Annotation>(expectMessageAnno)->attribute_list.size() < 2 ||
+        cast<Annotation>(expectMessageAnno)->attribute_list.size() > 3)
     {
         LOG_MESSAGE(WRONG_STATIC_TEST_ANNOTATION_FORMAT, &node, _detail = L"number of attribute list should be 3 or 2");
     }
 
     // log level
-    std::pair<SimpleIdentifier*, ASTNode*> logLevel = cast<Annotation>(expectMessage.second)->attribute_list[0];
+    std::pair<SimpleIdentifier*, ASTNode*> logLevel = cast<Annotation>(expectMessageAnno)->attribute_list[0];
     BOOST_ASSERT(cast<SimpleIdentifier>(logLevel.first) != NULL);
     if (cast<SimpleIdentifier>(logLevel.first) == NULL)
     {
@@ -183,7 +172,7 @@ static LogInfo constructErrorContextFromAnnotation(zillians::language::tree::Ann
     std::wstring levelString = cast<StringLiteral>(cast<PrimaryExpr>(logLevel.second)->value.literal)->value;
 
     // log id
-    std::pair<SimpleIdentifier*, ASTNode*> logId = cast<Annotation>(expectMessage.second)->attribute_list[1];
+    std::pair<SimpleIdentifier*, ASTNode*> logId = cast<Annotation>(expectMessageAnno)->attribute_list[1];
     BOOST_ASSERT(cast<SimpleIdentifier>(logId.first) != NULL);
     if (cast<SimpleIdentifier>(logId.first) == NULL)
     {
@@ -211,7 +200,7 @@ static LogInfo constructErrorContextFromAnnotation(zillians::language::tree::Ann
     }
 
     // parameter pairs
-    std::pair<SimpleIdentifier*, ASTNode*> paramPairs = cast<Annotation>(expectMessage.second)->attribute_list[2];
+    std::pair<SimpleIdentifier*, ASTNode*> paramPairs = cast<Annotation>(expectMessageAnno)->attribute_list[2];
     BOOST_ASSERT(cast<SimpleIdentifier>(paramPairs.first) != NULL);
     if (cast<SimpleIdentifier>(paramPairs.first) == NULL)
     {
@@ -273,8 +262,16 @@ std::vector<LogInfo> StaticTestVerificationStageVisitor::constructLogInfoVecFrom
     {
         if((*i)->name->name == L"static_test")
         {
-            LogInfo logInfo = constructErrorContextFromAnnotation(**i);
-            annotatedLogInfoVec.push_back(logInfo);
+            Annotation& anno = **i;
+            foreach(j, anno.attribute_list)
+            {
+                std::pair<SimpleIdentifier*, ASTNode*>& attr = *j;
+                if(attr.first->name == L"expect_message")
+                {
+                    LogInfo logInfo = constructExpectMessageFromAnnotation(*attr.second);
+                    annotatedLogInfoVec.push_back(logInfo);
+                }
+            }
         }
     }
     return annotatedLogInfoVec;
