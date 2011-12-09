@@ -150,17 +150,12 @@ struct NameManglingVisitor : Visitor<ASTNode, void, VisitorImplementation::recur
 							&& !isReservedConstructName(getBasename(cast<Declaration>(resolved_type)->name))
 							&& !mModeCallByValue);
 				}
-				// FIX-ME: "P" is not printed sometimes.. why ?
 				if(need_ptr_type)
 					outChannel() << "P"; // THOR_SPECIFIC: object passing is by pointer, hence "P"
 				visit(*resolved_type);
-				addAliasSlot(&node);
 				if(need_ptr_type)
-				{
-					addAliasSlot(NULL, false); // HACK: alias slot for pointer-to-class type
-					TypeSpecifier* type_specifier = popFinalAliasSlot();
-					mAliasSlots.push_back(type_specifier);
-				}
+					addAliasSlot(NULL, false); // FIX-ME: HACK
+				addAliasSlot(&node);
 			}
 			break;
 		}
@@ -254,7 +249,7 @@ struct NameManglingVisitor : Visitor<ASTNode, void, VisitorImplementation::recur
 					if(FirstParamIsThis && !HasVisitedNonImplicitThis
 							&& isEqual((*i)->type, mAliasSlots[ThisSlot]))
 					{
-						// FIX-ME: re-order ThisSlot -- send to back.. doesn't quite work
+						// FIX-ME: HACK -- re-order ThisSlot -- send to back
 						TypeSpecifier* type_specifier = removeAliasSlot(ThisSlot);
 						addAliasSlot(type_specifier);
 						HasVisitedNonImplicitThis = true;
@@ -395,6 +390,7 @@ private:
 
 	static bool isEqual(TypeSpecifier* a, TypeSpecifier* b)
 	{
+		// FIX-ME: needs work
 		return a->isEqual(*b);
 	}
 
@@ -409,13 +405,6 @@ private:
 	{
 		mAliasSlots.clear();
 		mManagedAliasSlots.clear();
-	}
-
-	TypeSpecifier* popFinalAliasSlot()
-	{
-		TypeSpecifier* type_specifier = mAliasSlots.back();
-		mAliasSlots.pop_back();
-		return type_specifier;
 	}
 
 	TypeSpecifier* removeAliasSlot(int slot)
