@@ -101,7 +101,7 @@ struct NameManglingVisitor : Visitor<ASTNode, void, VisitorImplementation::recur
 			        	{
 			        		TypeSpecifier* type_specifier = ASTNodeHelper::buildResolvableTypeSpecifier(
 			        				cast<ClassDecl>(resolved_type));
-			    			addToAliasSlots(type_specifier);
+			    			addAliasSlot(type_specifier);
 			    			mManagedAliasSlots.push_back(shared_ptr<TypeSpecifier>(type_specifier));
 			    			visit(*type_specifier);
 			        	}
@@ -123,7 +123,7 @@ struct NameManglingVisitor : Visitor<ASTNode, void, VisitorImplementation::recur
 		{
 		case TypeSpecifier::ReferredType::FUNCTION_TYPE:
 			visit(*node.referred.function_type);
-			addToAliasSlots(&node);
+			addAliasSlot(&node);
 			break;
 		case TypeSpecifier::ReferredType::PRIMITIVE:
 			switch(node.referred.primitive)
@@ -143,8 +143,24 @@ struct NameManglingVisitor : Visitor<ASTNode, void, VisitorImplementation::recur
 			{
 				ASTNode* resolved_type = ASTNodeHelper::findUniqueTypeResolution(&node);
 				BOOST_ASSERT(resolved_type && "failed to resolve unspecified symbol!");
+				bool need_ptr_type = false;
+				if(isa<Declaration>(resolved_type))
+				{
+					need_ptr_type = (mInsideParamList
+							&& !isReservedConstructName(getBasename(cast<Declaration>(resolved_type)->name))
+							&& !mModeCallByValue);
+				}
+				// FIX-ME: "P" is not printed sometimes.. why ?
+				if(need_ptr_type)
+					outChannel() << "P"; // THOR_SPECIFIC: object passing is by pointer, hence "P"
 				visit(*resolved_type);
-				addToAliasSlots(&node);
+				addAliasSlot(&node);
+				if(need_ptr_type)
+				{
+					addAliasSlot(NULL, false); // HACK: alias slot for pointer-to-class type
+					TypeSpecifier* type_specifier = popFinalAliasSlot();
+					mAliasSlots.push_back(type_specifier);
+				}
 			}
 			break;
 		}
@@ -168,7 +184,7 @@ struct NameManglingVisitor : Visitor<ASTNode, void, VisitorImplementation::recur
 
 		outChannel() << "E"; // RULE: callback ends with "E"
 
-		addToAliasSlots(NULL, false); // HACK: function type occupies 2 alias slots, not sure why..
+		addAliasSlot(NULL, false); // HACK: function type occupies 2 alias slots, not sure why..
 	}
 
 	void mangle(Declaration& node)
@@ -178,59 +194,76 @@ struct NameManglingVisitor : Visitor<ASTNode, void, VisitorImplementation::recur
 
 	void mangle(ClassDecl& node)
 	{
-		bool need_ptr_type = (mInsideParamList && !isReservedConstructName(getBasename(node.name)) && !mModeCallByValue);
-		if(need_ptr_type)
-			outChannel() << "P"; // THOR_SPECIFIC: object passing is by pointer, hence "P"
+		if(isa<TemplatedIdentifier>(node.name))
+		{
+			if(!cast<TemplatedIdentifier>(node.name)->isFullySpecialized())
+				return;
+		}
 
 		uptraceAndAppendName(&node);
-
-		if(need_ptr_type)
-			addToAliasSlots(NULL, false); // HACK: alias slot for pointer-to-class type
 	}
 
 	void mangle(FunctionDecl& node)
 	{
+		if(isa<TemplatedIdentifier>(node.name))
+		{
+			if(!cast<TemplatedIdentifier>(node.name)->isFullySpecialized())
+				return;
+		}
+
 		mModeCallByValue = ASTNodeHelper::findAnnotation(&node, L"call_by_value");
 
 		clearAliasSlots();
 		uptraceAndAppendName(&node);
 
 		mInsideParamList = true;
-		auto p = node.parameters.begin();
+		bool FirstParamIsThis = false;
 		if(node.is_member && !node.is_static)
 		{
 			BOOST_ASSERT(node.parent && "method must have parant");
-			BOOST_ASSERT((node.parameters.size() > 0) && "method must have one parameter");
-			ASTNode* resolved_type = ASTNodeHelper::findUniqueTypeResolution((*p)->type);
-#if 0 // NOTE: should work, but doesn't -- type has no ResolvedType context
-			BOOST_ASSERT((resolved_type == node.parent) && "method's first parameter must be \"this\"");
-			mOutChannel = NULL;
-			visit(*(*p)->type);
-			mOutChannel = &mOutStream;
-#endif
-			addToAliasSlots((*p)->type);
-			p++; // skip "this" param
-			if(p != node.parameters.end())
+			BOOST_ASSERT(isa<Declaration>(node.parent) && "method parent must be declaration");
+			Declaration* decl = cast<Declaration>(node.parent);
+			if(isa<TemplatedIdentifier>(decl->name))
 			{
-				ASTNode* resolved_type = ASTNodeHelper::findUniqueTypeResolution((*p)->type);
-				if(resolved_type == node.parent)
-				{
-					outChannel() << "PS_"; // THOR_SPECIFIC: "this" is a pointer, hence "P" in "PS_"
-					TypeSpecifier* this_type = popFinalAliasSlots(); // HACK: bump "this" param up 1 alias slot
-					addToAliasSlots(NULL, false);                    // HACK: alias slot for "*this" param
-					addToAliasSlots(this_type);                      // HACK: alias slot for "this" param
-					p++;                                             // HACK: skip "this" param (again!)
-					if(p == node.parameters.end())
-						return; // NOTE: prevent writing "v" for empty param list
-				}
+				if(!cast<TemplatedIdentifier>(decl->name)->isFullySpecialized())
+					return;
 			}
+			BOOST_ASSERT((node.parameters.size() > 0) && "method must have one parameter");
+			auto p = node.parameters.begin();
+			ASTNode* resolved_type = ASTNodeHelper::findUniqueTypeResolution((*p)->type);
+			BOOST_ASSERT(resolved_type->isEqual(*node.parent) && "method's first parameter must be \"this\"");
+			FirstParamIsThis = true;
 		}
-		if(p == node.parameters.end())
+		if(node.parameters.empty() || (FirstParamIsThis && node.parameters.size() == 1))
 			visitEmptyParams();
 		else
 		{
-			for(; p != node.parameters.end(); p++)
-				visitParam((*p)->type);
+			int ThisSlot = -1;
+			bool HasVisitedNonImplicitThis = false;
+			foreach(i, node.parameters)
+			{
+				if(FirstParamIsThis && (i == node.parameters.begin()))
+				{
+					mOutChannel = NULL;
+					visit(*(*i)->type);
+					ThisSlot = findAliasSlot((*i)->type);
+					mOutChannel = &mOutStream;
+				}
+				else
+				{
+					if(FirstParamIsThis && !HasVisitedNonImplicitThis
+							&& isEqual((*i)->type, mAliasSlots[ThisSlot]))
+					{
+						// FIX-ME: re-order ThisSlot -- send to back.. doesn't quite work
+						TypeSpecifier* type_specifier = removeAliasSlot(ThisSlot);
+						addAliasSlot(type_specifier);
+						HasVisitedNonImplicitThis = true;
+						outChannel() << "PS_";
+					}
+					else
+						visitParam((*i)->type);
+				}
+			}
 		}
 		mInsideParamList = false;
 
@@ -338,11 +371,6 @@ private:
 		visit(type_specifier); // RULE: empty param-list equivalent to "void" param type
 	}
 
-	static bool isEqual(TypeSpecifier* a, TypeSpecifier* b)
-	{
-		return a->isEqual(*b);
-	}
-
 	static const char* toAsciiNumber(char c)
 	{
 		static char buffer[4];
@@ -361,11 +389,16 @@ private:
 	int findAliasSlot(TypeSpecifier* type_specifier)
 	{
 		auto p = std::find_if(mAliasSlots.begin(), mAliasSlots.end(),
-				[&](TypeSpecifier* other) { return other ? type_specifier->isEqual(*other) : false; } );
+				[&](TypeSpecifier* other) { return other ? isEqual(type_specifier, other) : false; } );
 		return (p != mAliasSlots.end()) ? std::distance(mAliasSlots.begin(), p) : -1;
 	}
 
-	void addToAliasSlots(TypeSpecifier* type_specifier = NULL, bool check_if_unique = true)
+	static bool isEqual(TypeSpecifier* a, TypeSpecifier* b)
+	{
+		return a->isEqual(*b);
+	}
+
+	void addAliasSlot(TypeSpecifier* type_specifier = NULL, bool check_if_unique = true)
 	{
 		if(check_if_unique && findAliasSlot(type_specifier) != -1)
 			return;
@@ -378,10 +411,18 @@ private:
 		mManagedAliasSlots.clear();
 	}
 
-	TypeSpecifier* popFinalAliasSlots()
+	TypeSpecifier* popFinalAliasSlot()
 	{
 		TypeSpecifier* type_specifier = mAliasSlots.back();
 		mAliasSlots.pop_back();
+		return type_specifier;
+	}
+
+	TypeSpecifier* removeAliasSlot(int slot)
+	{
+		BOOST_ASSERT((slot != -1) && "invalid slot");
+		TypeSpecifier* type_specifier = mAliasSlots[slot];
+		mAliasSlots.erase(mAliasSlots.begin()+slot);
 		return type_specifier;
 	}
 
