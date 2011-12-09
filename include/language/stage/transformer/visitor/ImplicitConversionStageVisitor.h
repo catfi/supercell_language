@@ -49,24 +49,38 @@ struct PrepandThisStageVisitor : public GenericDoubleVisitor
 		revisit(node);
 	}
 
-    bool isMemberFunctionCall(CallExpr& node)
+    bool isNoneStaticMemberFunction(FunctionDecl& func)
     {
-        return (isa<MemberExpr>(node.node));
+        return func.is_member && !func.is_static;
     }
 
 	void prepand(CallExpr& node)
 	{
         // apply prepand 'this' to member function call
-        if(isMemberFunctionCall(node))
+        FunctionDecl* func = cast<FunctionDecl>(ResolvedSymbol::get(node.node));
+        if(isNoneStaticMemberFunction(*func))
         {
             transforms.push_back([&node](){
-                MemberExpr*  memberExpr     = cast<MemberExpr>(node.node);
-                PrimaryExpr* arguExpr       = cast<PrimaryExpr>(memberExpr->node->clone());
-                ASTNode*     resolvedType   = ResolvedType  ::get(memberExpr->node);
-                ASTNode*     resolvedSymbol = ResolvedSymbol::get(memberExpr->node);
-                ResolvedType::set(arguExpr, resolvedType);
-                ResolvedSymbol::set(arguExpr, resolvedSymbol);
-                node.prependParameter(arguExpr);
+                // if call via other_obj.func()
+                if(isa<MemberExpr>(node.node))
+                {
+                    MemberExpr*  memberExpr     = cast<MemberExpr>(node.node);
+                    PrimaryExpr* arguExpr       = cast<PrimaryExpr>(memberExpr->node->clone());
+                    ASTNode*     resolvedType   = ResolvedType  ::get(memberExpr->node);
+                    ASTNode*     resolvedSymbol = ResolvedSymbol::get(memberExpr->node);
+                    ResolvedType::set(arguExpr, resolvedType);
+                    ResolvedSymbol::set(arguExpr, resolvedSymbol);
+                    node.prependParameter(arguExpr);
+                }
+                // else call within member function via 'this'
+                else
+                {
+                    Literal* thisLiteral = new ObjectLiteral(ObjectLiteral::LiteralType::THIS_OBJECT);
+                    Expression* thisExpr = new PrimaryExpr(thisLiteral);
+                    ClassDecl* classDecl = ASTNodeHelper::getOwner<ClassDecl>(&node);
+                    ResolvedType::set(thisExpr, classDecl);
+                    node.prependParameter(thisExpr);
+                }
             });
         }
 	}
@@ -131,11 +145,6 @@ struct ImplicitConversionStageVisitor : public GenericDoubleVisitor
     //        });
     //    }
     //}
-
-    bool isMemberFunctionCall(CallExpr& node)
-    {
-        return (isa<MemberExpr>(node.node));
-    }
 
 	void convert(CallExpr& node)
 	{
