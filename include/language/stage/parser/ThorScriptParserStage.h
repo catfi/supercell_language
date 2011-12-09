@@ -48,6 +48,7 @@ private:
 	bool use_relative_path;
 	bool dump_graphviz;
     std::string dump_graphviz_dir;
+    std::string prepand_package;
 	boost::filesystem::path root_dir;
 	std::vector<std::string> inputs;
 };

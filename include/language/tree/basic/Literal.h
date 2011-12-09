@@ -38,6 +38,8 @@ struct Literal : public ASTNode
 	DEFINE_VISITABLE();
 	DEFINE_HIERARCHY(Literal, (Literal)(ASTNode));
 
+	virtual std::wstring toString() const = 0;
+
     template<typename Archive>
     void serialize(Archive& ar, const unsigned int version)
     {
@@ -72,6 +74,7 @@ struct ObjectLiteral : public Literal
 			case THIS_OBJECT: return L"this";
 			case SUPER_OBJECT: return L"super";
 			case GLOBAL_OBJECT: return L"global";
+            default : UNREACHABLE_CODE(); return L"<unknown>";
 			}
 		}
 	};
@@ -98,6 +101,11 @@ struct ObjectLiteral : public Literal
     virtual ASTNode* clone() const
     {
     	return new ObjectLiteral(type);
+    }
+
+	virtual std::wstring toString() const
+    {
+        return LiteralType::toString(type);
     }
 
     template<typename Archive>
@@ -191,6 +199,23 @@ struct NumericLiteral : public Literal
         return NULL;
     }
 
+	virtual std::wstring toString() const
+    {
+        std::wostringstream oss;
+		switch(type)
+		{
+		case PrimitiveType::BOOL   : oss <<        value.b  ; break;
+		case PrimitiveType::INT8   : oss << (int32)value.i8 ; break;
+		case PrimitiveType::INT16  : oss << (int32)value.i16; break;
+		case PrimitiveType::INT32  : oss <<        value.i32; break;
+		case PrimitiveType::INT64  : oss <<        value.i64; break;
+		case PrimitiveType::FLOAT32: oss <<        value.f32; break;
+		case PrimitiveType::FLOAT64: oss <<        value.f64; break;
+		default                    :                          break;
+		}
+        return oss.str();
+    }
+
     template<typename Archive>
     void serialize(Archive& ar, const unsigned int version)
     {
@@ -269,6 +294,13 @@ struct StringLiteral : public Literal
     virtual ASTNode* clone() const
     {
     	return new StringLiteral(value);
+    }
+
+	virtual std::wstring toString() const
+    {
+        std::wostringstream oss;
+        oss << L'"' << value << L'"';
+        return oss.str();
     }
 
     template<typename Archive>

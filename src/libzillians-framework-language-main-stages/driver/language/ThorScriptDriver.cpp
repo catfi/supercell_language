@@ -150,7 +150,7 @@ int ThorScriptDriver::shell(const std::string& cmd)
 {
     if(dumpCommand)
     {
-        std::cerr << "tsc call shell: `" << cmd << "`" << std::endl ;
+        std::cerr << "[tsc] call shell: `" << cmd << "`" << std::endl ;
     }
 
     return system(cmd.c_str());
@@ -193,6 +193,17 @@ bool ThorScriptDriver::setProjectPathAndBuildPath(std::vector<std::string>& argv
         if(*i == opt)
         {
             dumpGraphviz = true;
+            argv.erase(i);
+            break;
+        }
+    }
+
+    opt = "--prepand-package=";
+    foreach(i, argv)
+    {
+        if(i->find(opt) == 0)
+        {
+            prepandPackage = i->substr(opt.size());
             argv.erase(i);
             break;
         }
@@ -580,6 +591,10 @@ bool ThorScriptDriver::make(const ThorScriptDriver::BUILD_TYPE type)
     if(dumpGraphviz)
     {
         cmd += " --dump-graphviz";
+    }
+    if(prepandPackage != "")
+    {
+        cmd += " --prepand-package=" + prepandPackage;
     }
     if(dumpGraphvizDir != "")
     {
