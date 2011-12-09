@@ -39,7 +39,7 @@ struct NameManglingVisitor : Visitor<ASTNode, void, VisitorImplementation::recur
 	CREATE_INVOKER(mangleInvoker, mangle)
 
 	NameManglingVisitor() : mInsideUptrace(false), mInsideComboName(false), mInsideParamList(false),
-			mModeCallByValue(false)
+			mModeCallByValue(false), mOutChannel(&mOutStream)
 	{
 		REGISTER_ALL_VISITABLE_ASTNODE(mangleInvoker)
 	}
@@ -52,9 +52,9 @@ struct NameManglingVisitor : Visitor<ASTNode, void, VisitorImplementation::recur
 		if(ASTNodeHelper::isRootPackage(&node))
 		{
 			if(!mInsideParamList)
-				stream << "_Z"; // RULE: mangled name begins with "_Z"
+				outChannel() << "_Z"; // RULE: mangled name begins with "_Z"
 			if(mInsideComboName)
-				stream << "N"; // RULE: combo name begins with "N"
+				outChannel() << "N"; // RULE: combo name begins with "N"
 		}
 		else
 		{
@@ -65,19 +65,19 @@ struct NameManglingVisitor : Visitor<ASTNode, void, VisitorImplementation::recur
 
 	void mangle(SimpleIdentifier& node)
 	{
-		if(node.name == L"ptr_")        stream << "P";
-		else if(node.name == L"ref_")   stream << "R";
-		else if(node.name == L"const_") stream << "K";
-		else if(node.name == L"void_")  stream << "v";
+		if(node.name == L"ptr_")        outChannel() << "P";
+		else if(node.name == L"ref_")   outChannel() << "R";
+		else if(node.name == L"const_") outChannel() << "K";
+		else if(node.name == L"void_")  outChannel() << "v";
 		else if(node.name == L"new")
 		{
-			stream << "C1";
+			outChannel() << "C1";
 #if 0 // NOTE: see --> http://stackoverflow.com/questions/6921295/dual-emission-of-constructor-symbols
-			stream << "C2"; // base object constructor
+			outChannel() << "C2"; // base object constructor
 #endif
 		}
 		else if(!node.name.empty())
-			stream << node.name.length() << encode(node.name);
+			outChannel() << node.name.length() << encode(node.name);
 	}
 
 	void mangle(TemplatedIdentifier& node)
@@ -86,7 +86,7 @@ struct NameManglingVisitor : Visitor<ASTNode, void, VisitorImplementation::recur
 
 		bool reserved_construct = isReservedConstructName(getBasename(node.id));
 		if(!reserved_construct)
-			stream << "I"; // RULE: template begins with "I"
+			outChannel() << "I"; // RULE: template begins with "I"
 
 		{
 			mInsideParamList = true;
@@ -114,7 +114,7 @@ struct NameManglingVisitor : Visitor<ASTNode, void, VisitorImplementation::recur
 		}
 
 		if(!reserved_construct)
-			stream << "E"; // RULE: template ends with "E"
+			outChannel() << "E"; // RULE: template ends with "E"
 	}
 
 	void mangle(TypeSpecifier& node)
@@ -128,14 +128,14 @@ struct NameManglingVisitor : Visitor<ASTNode, void, VisitorImplementation::recur
 		case TypeSpecifier::ReferredType::PRIMITIVE:
 			switch(node.referred.primitive)
 			{
-			case PrimitiveType::VOID:    stream << "v"; break;
-			case PrimitiveType::BOOL:    stream << "b"; break;
-			case PrimitiveType::INT8:    stream << "c"; break;
-			case PrimitiveType::INT16:   stream << "s"; break;
-			case PrimitiveType::INT32:   stream << "l"; /* or 'i' ? */ break;
-			case PrimitiveType::INT64:   stream << "x"; break;
-			case PrimitiveType::FLOAT32: stream << "f"; break;
-			case PrimitiveType::FLOAT64: stream << "d"; break;
+			case PrimitiveType::VOID:    outChannel() << "v"; break;
+			case PrimitiveType::BOOL:    outChannel() << "b"; break;
+			case PrimitiveType::INT8:    outChannel() << "c"; break;
+			case PrimitiveType::INT16:   outChannel() << "s"; break;
+			case PrimitiveType::INT32:   outChannel() << "l"; /* or 'i' ? */ break;
+			case PrimitiveType::INT64:   outChannel() << "x"; break;
+			case PrimitiveType::FLOAT32: outChannel() << "f"; break;
+			case PrimitiveType::FLOAT64: outChannel() << "d"; break;
 			default: UNREACHABLE_CODE();
 			}
 			break;
@@ -153,7 +153,7 @@ struct NameManglingVisitor : Visitor<ASTNode, void, VisitorImplementation::recur
 	void mangle(FunctionType& node)
 	{
 		uptrace(&node);
-		stream << "PF"; // RULE/THOR_SPECIFIC: callback begins with "F", and is a pointer, hence "P" in "PF"
+		outChannel() << "PF"; // RULE/THOR_SPECIFIC: callback begins with "F", and is a pointer, hence "P" in "PF"
 		visit(*node.return_type);
 
 		mInsideParamList = true;
@@ -166,7 +166,7 @@ struct NameManglingVisitor : Visitor<ASTNode, void, VisitorImplementation::recur
 		}
 		mInsideParamList = false;
 
-		stream << "E"; // RULE: callback ends with "E"
+		outChannel() << "E"; // RULE: callback ends with "E"
 
 		addToAliasSlots(NULL, false); // HACK: function type occupies 2 alias slots, not sure why..
 	}
@@ -180,7 +180,7 @@ struct NameManglingVisitor : Visitor<ASTNode, void, VisitorImplementation::recur
 	{
 		bool need_ptr_type = (mInsideParamList && !isReservedConstructName(getBasename(node.name)) && !mModeCallByValue);
 		if(need_ptr_type)
-			stream << "P"; // THOR_SPECIFIC: object passing is by pointer, hence "P"
+			outChannel() << "P"; // THOR_SPECIFIC: object passing is by pointer, hence "P"
 
 		uptraceAndAppendName(&node);
 
@@ -200,7 +200,14 @@ struct NameManglingVisitor : Visitor<ASTNode, void, VisitorImplementation::recur
 		if(node.is_member && !node.is_static)
 		{
 			BOOST_ASSERT(node.parent && "method must have parant");
-			BOOST_ASSERT((node.parameters.size() >= 1) && "method must have 1st parameter \"this\"");
+			BOOST_ASSERT((node.parameters.size() > 0) && "method must have one parameter");
+			ASTNode* resolved_type = ASTNodeHelper::findUniqueTypeResolution((*p)->type);
+#if 0 // NOTE: should work, but doesn't -- type has no ResolvedType context
+			BOOST_ASSERT((resolved_type == node.parent) && "method's first parameter must be \"this\"");
+			mOutChannel = NULL;
+			visit(*(*p)->type);
+			mOutChannel = &mOutStream;
+#endif
 			addToAliasSlots((*p)->type);
 			p++; // skip "this" param
 			if(p != node.parameters.end())
@@ -208,8 +215,7 @@ struct NameManglingVisitor : Visitor<ASTNode, void, VisitorImplementation::recur
 				ASTNode* resolved_type = ASTNodeHelper::findUniqueTypeResolution((*p)->type);
 				if(resolved_type == node.parent)
 				{
-//					visit(*(*p)->type);
-					stream << "PS_"; // THOR_SPECIFIC: "this" is a pointer, hence "P" in "PS_"
+					outChannel() << "PS_"; // THOR_SPECIFIC: "this" is a pointer, hence "P" in "PS_"
 					TypeSpecifier* this_type = popFinalAliasSlots(); // HACK: bump "this" param up 1 alias slot
 					addToAliasSlots(NULL, false);                    // HACK: alias slot for "*this" param
 					addToAliasSlots(this_type);                      // HACK: alias slot for "this" param
@@ -269,15 +275,26 @@ struct NameManglingVisitor : Visitor<ASTNode, void, VisitorImplementation::recur
 	void reset()
 	{
 #if 1 // NOTE: for debugging only
-		std::cout << "NameManglingVisitor: " << stream.str() << std::endl;
+		std::cout << "NameManglingVisitor: " << mOutChannel->str() << std::endl;
 #endif
-		stream.str("");
+		mOutChannel->str("");
 		mInsideUptrace = mInsideComboName = mInsideParamList = mModeCallByValue = false;
 	}
 
-	std::stringstream stream;
+	std::stringstream mOutStream;
 
 private:
+	std::stringstream* mOutChannel;
+
+	std::ostream& outChannel()
+	{
+		static std::stringstream nullOutChannel;
+		if(mOutChannel)
+			return *mOutChannel;
+		else
+			return nullOutChannel;
+	}
+
 	void uptrace(ASTNode* node)
 	{
 		mInsideUptrace = true;
@@ -298,7 +315,7 @@ private:
 
 		visit(*node->name);
 		if(inside_combo_name)
-			stream << "E"; // RULE: combo name ends with "E"
+			outChannel() << "E"; // RULE: combo name ends with "E"
 	}
 
 	void visitParam(TypeSpecifier* type_specifier)
@@ -381,7 +398,7 @@ private:
 	void writeSubstitution(int slot)
 	{
 		BOOST_ASSERT(slot >= 0 && "negative type index has no substitution");
-		stream << ((slot == 0) ? "S_" : "S"+ito36a(slot-1)+"_");
+		outChannel() << ((slot == 0) ? "S_" : "S"+ito36a(slot-1)+"_");
 	}
 
 	std::wstring getBasename(Identifier* ident)

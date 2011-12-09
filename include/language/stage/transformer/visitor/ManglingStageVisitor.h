@@ -58,7 +58,7 @@ struct ManglingStageVisitor : public GenericDoubleVisitor
 	void apply(ClassDecl& node)
 	{
 		mangler.visit(node);
-		NameManglingContext::set(&node, new NameManglingContext(mangler.stream.str()));
+		NameManglingContext::set(&node, new NameManglingContext(mangler.mOutStream.str()));
 		mangler.reset();
 
 		TypeIdManglingContext::set(&node, new TypeIdManglingContext(next_type_id++));
@@ -69,7 +69,7 @@ struct ManglingStageVisitor : public GenericDoubleVisitor
 	void apply(InterfaceDecl& node)
 	{
 		mangler.visit(node);
-		NameManglingContext::set(&node, new NameManglingContext(mangler.stream.str()));
+		NameManglingContext::set(&node, new NameManglingContext(mangler.mOutStream.str()));
 		mangler.reset();
 
 		TypeIdManglingContext::set(&node, new TypeIdManglingContext(next_type_id++));
@@ -80,7 +80,7 @@ struct ManglingStageVisitor : public GenericDoubleVisitor
 	void apply(EnumDecl& node)
 	{
 		mangler.visit(node);
-		NameManglingContext::set(&node, new NameManglingContext(mangler.stream.str()));
+		NameManglingContext::set(&node, new NameManglingContext(mangler.mOutStream.str()));
 		mangler.reset();
 
 		TypeIdManglingContext::set(&node, new TypeIdManglingContext(next_type_id++));
@@ -91,7 +91,7 @@ struct ManglingStageVisitor : public GenericDoubleVisitor
 	void apply(FunctionDecl& node)
 	{
 		mangler.visit(node);
-		NameManglingContext::set(&node, new NameManglingContext(mangler.stream.str()));
+		NameManglingContext::set(&node, new NameManglingContext(mangler.mOutStream.str()));
 		mangler.reset();
 
 		SymbolIdManglingContext::set(&node, new SymbolIdManglingContext(next_symbol_id++));
