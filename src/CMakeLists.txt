@@ -95,4 +95,6 @@ IF(COG_FOUND)
     ADD_SUBDIRECTORY(libzillians-framework-language)
     ADD_SUBDIRECTORY(libzillians-framework-language-main-stages)
     ADD_SUBDIRECTORY(zillians-framework-language-compiler-collection)
+    
+    ADD_SUBDIRECTORY(libzillians-framework-system-api-mt)
 ENDIF()

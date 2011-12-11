@@ -60,7 +60,7 @@ ExternalProject_Add(ts-doc
     #--Install step---------------
     INSTALL_COMMAND
         make install &&
-            ${CMAKE_COMMAND} -E copy ${CMAKE_CURRENT_BINARY_DIR}/bin_path/bin/doxygen ${EXECUTABLE_OUTPUT_PATH}/ts-doc
+            ${CMAKE_COMMAND} -E copy ${CMAKE_CURRENT_BINARY_DIR}/bin_path/bin/doxygen ${TSC_BINARY_PATH}/ts-doc
     #--Test step------------------
     #--Output logging-------------
     LOG_DOWNLOAD
@@ -73,6 +73,3 @@ ExternalProject_Add(ts-doc
     )
 
 add_dependencies(zillians-framework-language-compiler-collection ts-doc)
-
-set(ThorScriptDocGenerator ${EXECUTABLE_OUTPUT_PATH}/ts-doc)
-message(STATUS "Using ThorScript Doc Generator: \"${ThorScriptDocGenerator}\"")

@@ -17,10 +17,8 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
  
-package api.system;
-
 @system
-class Array<T> : Object
+class Array<T> extends Object
 {
 	@system
 	private function new():Array<T>;
@@ -42,7 +40,7 @@ class Array<T> : Object
 }
 
 @system
-class Vector<T> : Object
+class Vector<T> extends Object
 {
 	// TODO complete all method definitions
 	@system 
@@ -65,7 +63,7 @@ class Vector<T> : Object
 }
 
 @system
-class List<T> : Object
+class List<T> extends Object
 { 
 	@system 
 	public function size():int32;
@@ -93,7 +91,7 @@ class List<T> : Object
 }
 
 @system
-class Queue<T> : Object
+class Queue<T> extends Object
 { 
 	@system 
 	public function size():int32;
@@ -115,7 +113,7 @@ class Queue<T> : Object
 }
 
 @system
-class HashMap<K,V> : Object
+class HashMap<K,V> extends Object
 { 
 	@system 
 	public function size():int32;
@@ -131,7 +129,7 @@ class HashMap<K,V> : Object
 }
 
 @system
-class HashSet<V> : Object
+class HashSet<V> extends Object
 { 
 	@system 
 	public function size():int32;

@@ -17,42 +17,7 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-import . = api.system.unmanaged;
- 
-class ImplicitVariable { }
+import . = api.system.internal;
 
-class ThreadId : ImplicitVariable {
-	function init():void {
-		@register
-		var blockDimX:int32;
-
-		@register
-		var blockIdxX:int32;
-
-		@register
-		var threadIdxX:int32;
-
-		value = blockDimX * blockIdxX + threadIdxX;
-	}
-	var value:int32;
-}
-
-@global
-var __global_debug_service_api_buffer:ptr_<ptr_<int8> >;
-
-class DebugServiceApiBuffer : ImplicitVariable {
-	function init():void {
-		value = deref<ptr_<ptr_<int8> >, ptr_<int8> >(DebugServiceApiBuffer);
-	}
-	var value:ptr_<int8>;
-};
-
-@global
-var __global_game_object_service_api_buffer:ptr_<ptr_<int8> >;
-
-class GameObjectServiceApiBuffer : ImplicitVariable {
-	function init():void {
-		value = deref<ptr_<ptr_<int8> >, ptr_<int8> >(__global_game_object_service_api_buffer);
-	}
-	var value:ptr_<int8>;
-};
+@system
+function trace(thread_id:ThreadId, debug_api_buffer:DebugServiceApiBuffer, v:int32):void;

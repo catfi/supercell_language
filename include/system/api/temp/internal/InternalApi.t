@@ -17,17 +17,42 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-@system
-class ptr_<T> { }
+import . = api.system.unmanaged;
+ 
+class ImplicitVariable { }
 
-@system
-class ref_<T> { }
+class ThreadId extends ImplicitVariable {
+	function init():void {
+		@register
+		var blockDimX:int32;
 
-@system
-class const_<T> { }
+		@register
+		var blockIdxX:int32;
 
-@system
-function deref<P, V>(var pointer:P):V;
+		@register
+		var threadIdxX:int32;
 
-@system
-function addressof<V, P>(var value:V):P;
+		value = blockDimX * blockIdxX + threadIdxX;
+	}
+	var value:int32;
+}
+
+@global
+var __global_debug_service_api_buffer:ptr_<ptr_<int8> >;
+
+class DebugServiceApiBuffer extends ImplicitVariable {
+	function init():void {
+		value = deref<ptr_<ptr_<int8> >, ptr_<int8> >(DebugServiceApiBuffer);
+	}
+	var value:ptr_<int8>;
+}
+
+@global
+var __global_game_object_service_api_buffer:ptr_<ptr_<int8> >;
+
+class GameObjectServiceApiBuffer extends ImplicitVariable {
+	function init():void {
+		value = deref<ptr_<ptr_<int8> >, ptr_<int8> >(__global_game_object_service_api_buffer);
+	}
+	var value:ptr_<int8>;
+}

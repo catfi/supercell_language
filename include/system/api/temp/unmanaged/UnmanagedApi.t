@@ -17,6 +17,17 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-@native
 @system
-function trace(v:int32):void;
+class ptr_<T> { }
+
+@system
+class ref_<T> { }
+
+@system
+class const_<T> { }
+
+@system
+function deref<P, V>(pointer:P):V;
+
+@system
+function addressof<V, P>(value:V):P;

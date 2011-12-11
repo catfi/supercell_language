@@ -32,7 +32,5 @@ target_link_libraries(ts-compile
     zillians-framework-language-main-stages-compile
     )
 
-get_target_property(ThorScriptCompiler ts-compile LOCATION)
-message(STATUS "Using ThorScript Compiler: \"${ThorScriptCompiler}\"")
-
+set_target_properties(ts-compile PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${TSC_BINARY_PATH})
 add_dependencies(zillians-framework-language-compiler-collection ts-bundle)

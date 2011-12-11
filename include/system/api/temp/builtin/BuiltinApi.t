@@ -19,11 +19,11 @@
 
 // define the convention type conversion routine
 @system 
-function cast<X,Y>(Y value):X;
+function cast<X,Y>(value:Y):X;
 
 // define the convention type conversion check routine
 @system 
-function isa<X,Y>(Y value):boolean;
+function isa<X,Y>(value:Y):boolean;
 
 @system
 class Object

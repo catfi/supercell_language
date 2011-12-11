@@ -17,19 +17,37 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-@system
-class InputStream
-{ }
+#ifndef ZILLIANS_LANGUAGE_THORTYPES_H_
+#define ZILLIANS_LANGUAGE_THORTYPES_H_
 
-@system
-class OutputStream
-{ }
+#include <stddef.h>
+#include <stdint.h>
+#include <limits.h>
 
-class BasicStream
-{
-	@system
-	static var stdin:InputStream;
-	
-	@system
-	static var stdout:OutputStream;
-}
+namespace zillians { namespace language {
+
+// define common types
+typedef void ts_void;
+typedef bool ts_boolean;
+
+typedef int8_t ts_int8;
+typedef int16_t ts_int16;
+typedef int32_t ts_int32;
+typedef long long ts_int64;
+
+typedef uint8_t ts_uint8;
+typedef uint16_t ts_uint16;
+typedef uint32_t ts_uint32;
+typedef unsigned long long ts_uint64;
+
+typedef float ts_float32;
+typedef double ts_float64;
+
+typedef uint32_t ts_object;
+typedef unsigned long long ts_callback; // first 32bit for game id, second 32bit for function id
+
+typedef ts_uint8* ts_pointer;
+
+} }
+
+#endif /* ZILLIANS_LANGUAGE_THORTYPES_H_ */

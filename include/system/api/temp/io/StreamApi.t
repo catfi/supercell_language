@@ -17,6 +17,19 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-@native
 @system
-function trace(v:int32):void;
+class InputStream
+{ }
+
+@system
+class OutputStream
+{ }
+
+class BasicStream
+{
+	@system
+	var stdin:InputStream;
+	
+	@system
+	var stdout:OutputStream;
+}
