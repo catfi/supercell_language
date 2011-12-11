@@ -27,6 +27,7 @@
 #include <boost/filesystem/fstream.hpp>
 #include "core/Types.h"
 #include "utility/Foreach.h"
+#include "utility/Filesystem.h"
 #include "language/ThorScriptManifest.h"
 #include "language/ThorScriptDriver.h"
 #include "language/tree/ASTNodeFactory.h"
@@ -38,6 +39,13 @@ namespace zillians { namespace language {
 //////////////////////////////////////////////////////////////////////////////
 // static function
 //////////////////////////////////////////////////////////////////////////////
+
+std::string ThorScriptDriver::getStageExecutable(const std::string& executable)
+{
+	boost::filesystem::path p = executablePath / executable;
+	std::cerr << "getting " << executable << "for " << p.string() << std::endl;
+	return p.string();
+}
 
 void ThorScriptDriver::saveCache(const std::string& s)
 {
@@ -263,6 +271,9 @@ bool ThorScriptDriver::setProjectPathAndBuildPath(std::vector<std::string>& argv
 
 bool ThorScriptDriver::main(std::vector<std::string> argv)
 {
+	boost::filesystem::path driver_path = Filesystem::current_executable_path();
+	executablePath = driver_path.parent_path();
+
     if(argv[1] == "--help")
     {
         printHelpPage();
@@ -434,7 +445,7 @@ bool ThorScriptDriver::generateBundle(const ThorScriptDriver::STRIP_TYPE isStrip
 {
     UNUSED_ARGUMENT(isStrip);
 
-    std::string cmd("ts-bundle -m manifest.xml");
+    std::string cmd(getStageExecutable("ts-bundle") + " -m manifest.xml");
     cmd += " -o " + (buildPath / "bin" / (pm.name + ".bundle")).string();
     std::vector<std::string> astFiles = getAstUnderBuild();
     foreach(i, astFiles)
@@ -462,8 +473,8 @@ bool ThorScriptDriver::generateStub(const std::vector<std::string>& stubTypes)
 
     foreach(i, stubTypes)
     {
-        std::string cmd = "ts-stub " +
-                          stubAstPath.string() +
+        std::string cmd = getStageExecutable("ts-stub") +
+        		          " " + stubAstPath.string() +
                           " --output-path=" + stubPath.string() +
                           " --stub-type=" + *i +
                           " --game-name=" + pm.name;
@@ -535,14 +546,14 @@ bool ThorScriptDriver::generateDocument()
 {
     if(!boost::filesystem::exists("Doxyfile"))
     {
-        if(shell("ts-doc -g") != 0)
+        if(shell(getStageExecutable("ts-doc") + " -g") != 0)
         {
             std::cerr << "Can not generate Doxyfile" << std::endl;
         }
         configDoxyfile();
     }
 
-    if(shell("ts-doc") != 0)
+    if(shell(getStageExecutable("ts-doc")) != 0)
     {
         std::cerr << "Can not generate document with Doxygen" << std::endl;
     }
@@ -559,7 +570,7 @@ bool ThorScriptDriver::unbundle()
 
     foreach(i, projectManifest.dep.bundles)
     {
-        std::string cmd = "ts-bundle -d " + *i + " --build-path=" + buildPath.string();
+        std::string cmd = getStageExecutable("ts-bundle") + " -d " + *i + " --build-path=" + buildPath.string();
         if(shell(cmd) != 0)
         {
             std::cerr << "ERROR unbundle step fail: " << cmd << std::endl;
@@ -572,7 +583,7 @@ bool ThorScriptDriver::unbundle()
 
 bool ThorScriptDriver::dep()
 {
-    if(shell("ts-dep --build-path=" + buildPath.string()) != 0)
+    if(shell(getStageExecutable("ts-dep") + " --build-path=" + buildPath.string()) != 0)
     {
         std::cerr << "ERROR dep step fail: " << "ts-dep" << std::endl;
         return false;
@@ -583,7 +594,7 @@ bool ThorScriptDriver::dep()
 bool ThorScriptDriver::make(const ThorScriptDriver::BUILD_TYPE type)
 {
     // TODO ts-make should take option --debug --release
-    std::string cmd = "ts-make --build-path=" + buildPath.string();
+    std::string cmd = getStageExecutable("ts-make") + " --build-path=" + buildPath.string();
     if(dumpCommand)
     {
         cmd += " --dump-command";
@@ -620,7 +631,7 @@ bool ThorScriptDriver::bundle()
 {
     boost::filesystem::create_directories(buildPath / "bin");
     boost::filesystem::path bundlePath = buildPath / "bin" / (pm.name + ".bundle");
-    std::string cmd = "ts-bundle -m manifest -o " + bundlePath.string();;
+    std::string cmd = getStageExecutable("ts-bundle") + " -m manifest -o " + bundlePath.string();;
     if(shell(cmd) != 0)
     {
         std::cerr << "ERROR bundle step fail: " << "ts-bundle" << std::endl;
@@ -631,7 +642,7 @@ bool ThorScriptDriver::bundle()
 
 bool ThorScriptDriver::strip()
 {
-    if(shell("ts-strip") != 0)
+    if(shell(getStageExecutable("ts-strip")) != 0)
     {
         std::cerr << "ERROR strip step fail: " << "ts-strip" << std::endl;
         return false;
@@ -645,7 +656,7 @@ bool ThorScriptDriver::link()
 
     fs::create_directories(buildPath / "bin");
     fs::path soPath = buildPath / "bin" / (pm.name + ".so");
-    std::string cmd = "ts-link -o " + soPath.string();
+    std::string cmd = getStageExecutable("ts-link") + " -o " + soPath.string();
     for(auto i = fs::directory_iterator(buildPath); i != fs::directory_iterator(); ++i)
     {
         if(i->path().extension() == ".bc")

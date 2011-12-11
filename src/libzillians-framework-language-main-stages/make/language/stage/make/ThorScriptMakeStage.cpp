@@ -24,6 +24,7 @@
 #include "language/stage/dep/ThorScriptSourceTangleGraph.h"
 #include "threading/JoinFunctionModule.h"
 #include "utility/UnicodeUtil.h"
+#include "utility/Filesystem.h"
 #include "utility/sha1.h"
 
 #include <boost/any.hpp>
@@ -99,7 +100,7 @@ static bool allSourceAreAst(const std::set<std::string>& sourceFiles)
 
 std::string ThorScriptMakeStage::genCompileCmd(boost::graph_traits<TangleGraphType>::vertex_descriptor v, TangleGraphType& g)
 {
-    std::string cmd = "ts-compile";
+    std::string cmd = (executablePath / "ts-compile").string();
 
     // TODO pass the buildType to ts-compile
     //if(buildType == BUILD_TYPE::DEBUG)
@@ -158,6 +159,9 @@ std::string ThorScriptMakeStage::genCompileCmd(boost::graph_traits<TangleGraphTy
 
 ThorScriptMakeStage::ThorScriptMakeStage() : dumpCompileCommand(false), projectPath("./"), buildPath("./build/"), logger(log4cxx::Logger::getLogger("ts-make")), dumpGraphviz(false)
 {
+	boost::filesystem::path make_path = Filesystem::current_executable_path();
+	executablePath = make_path.parent_path();
+
     log4cxx::BasicConfigurator::configure();
     logger->setLevel(log4cxx::Level::getAll());
 }
