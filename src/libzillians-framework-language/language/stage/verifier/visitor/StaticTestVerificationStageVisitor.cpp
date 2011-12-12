@@ -21,6 +21,7 @@
 
 #include <iostream>
 #include <vector>
+#include <map>
 #include "language/tree/ASTNodeFactory.h"
 #include "language/stage/verifier/visitor/StaticTestVerificationStageVisitor.h"
 #include "language/context/LogInfoContext.h"
@@ -304,6 +305,113 @@ bool StaticTestVerificationStageVisitor::compareLogInfoVec(ASTNode* errorNode, s
         dumpMultipleMismatchLogInfoError(errorNode, annotatedLogInfoVec, hookedLogInfoVec);
         return false;
     }
+}
+
+/**
+ * @brief Get the expect_resolution id of the function call
+ * @param node The ExpressionStmt node of the function call
+ * @return @p __no_annotation__ if there is no expect_resolution annotation on this node.
+ *         @p (EmptyString) if the function call is not resolved
+ *         @p SomeId if the function is resolved
+ */
+static std::wstring getUseId(ASTNode& node)
+{
+    Annotation* useAnno = ASTNodeHelper::findAnnotation(&node, L"static_test");
+    if(useAnno == NULL)
+    {
+        return L"__no_annotation__";
+    }
+
+    foreach(i, useAnno->attribute_list)
+    {
+        SimpleIdentifier* useAnnoKey = cast<SimpleIdentifier>(i->first);
+        if(useAnnoKey->name == L"expect_resolution")
+        {
+            PrimaryExpr* useAnnoValue = cast<PrimaryExpr>(i->second);
+            const std::wstring& useId = cast<StringLiteral>(useAnnoValue->value.literal)->value;
+            return useId;
+        }
+    }
+    return L"__no_annotation__";
+}
+
+
+static Declaration* getDecl(ASTNode& node)
+{
+    ASTNode*            stmtNode      = &node;
+    ExpressionStmt*     exprStmt      = cast<ExpressionStmt>(stmtNode);
+    CallExpr*           callExpr      = cast<CallExpr>(exprStmt->expr);
+    Declaration*        decl          = cast<Declaration>(ResolvedSymbol::get(callExpr->node));
+    return decl;
+}
+
+/**
+ * @brief Get the resolution id of the function declaration
+ * @param node The ExpressionStmt node of the function call
+ * @return @p __no_ResolvedSymbol__ if the function call is not resolved
+ *         @p _no_StaticTestAnnotation_ if the declaration has no static_test annotation
+ *         @p SomeId The declaration id if the function is resolved
+ */
+static std::wstring getDeclId(ASTNode& node)
+{
+    Declaration* decl = getDecl(node);
+    if(decl == NULL)
+    {
+        return L"__no_ResolvedSymbol__";
+    }
+
+    Annotation*         declAnno      = ASTNodeHelper::findAnnotation(decl, L"static_test");
+    if(declAnno == NULL)
+    {
+        return L"__no_annotation__";
+    }
+
+    PrimaryExpr*        declAnnoValue = cast<PrimaryExpr>(declAnno->attribute_list.begin()->second);
+    const std::wstring& declId        = cast<StringLiteral>(declAnnoValue->value.literal)->value;
+    return declId;
+}
+
+bool StaticTestVerificationStageVisitor::checkResolutionTarget(zillians::language::tree::ASTNode& node)
+{
+    std::wstring useId = getUseId(node);
+
+    // There are three OK:
+    // 1. no annotation
+    // 2. Can not be resolved && no ResolvedSymbol
+    // 3. Can be resolved && has match ResolvedSymbol
+    if(useId == L"__no_annotation__")
+    {
+        return true;
+    }
+
+    std::wstring declId = getDeclId(node);
+
+    if(useId == L"" && declId == L"__no_ResolvedSymbol__")
+    {
+        std::cout << "Resolution OK" << std::endl;
+        return true;
+    }
+    else if(useId == declId)
+    {
+        std::cout << "Resolution OK" << std::endl;
+        return true;
+    }
+
+    // And two FAIL:
+    // 1. Fales positive: should not resolved, but resolved.
+    // 2. Resolved, but not match
+    else if(useId == L"" && declId != L"__no_ResolvedSymbol__")
+    {
+        std::wcerr << L"Error: Function call `" << ASTNodeHelper::getNodeName(&node) << L"' should not be resolved, but resolved to `" << ASTNodeHelper::getNodeName(getDecl(node)) << L"'" << std::endl;
+        return false;
+    }
+    else
+    {
+        std::wcerr << L"Error: Function call `" << ASTNodeHelper::getNodeName(&node) << L"' resolved to wrong declaration `" << ASTNodeHelper::getNodeName(getDecl(node)) << L"'" << std::endl;
+        return false;
+    }
+
+    UNREACHABLE_CODE();
 }
 
 } } } } // namespace zillians::language::tree::visitor
