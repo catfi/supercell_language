@@ -371,6 +371,36 @@ static std::wstring getDeclId(ASTNode& node)
     return declId;
 }
 
+struct CodePoint
+{
+    CodePoint(ASTNode* node)
+    {
+        Source* sourceNode = ASTNodeHelper::getOwner<Source>(node);
+        filename = s_to_ws(sourceNode->filename);
+        stage::SourceInfoContext* source_info = stage::SourceInfoContext::get(node);
+        line = source_info->line;
+        column = source_info->column;
+    }
+
+    std::wstring filename;
+    uint32 line;
+    uint32 column;
+} ;
+
+/**
+ * @brief Check function resolution
+ * @param node function call stmt to be resolved
+ * @return @p true if all match, @p false is not
+ *
+ * There are 3 OK:
+ *   1. No annotation
+ *   2. Can not be resolved && no ResolvedSymbol
+ *   3. Can be resolved && has match ResolvedSymbol
+ *
+ * and 2 Fail:
+ *   1. Fales positive: should not resolved, but resolved.
+ *   2. Resolved, but not match
+ */
 bool StaticTestVerificationStageVisitor::checkResolutionTarget(zillians::language::tree::ASTNode& node)
 {
     std::wstring useId = getUseId(node);
@@ -402,12 +432,18 @@ bool StaticTestVerificationStageVisitor::checkResolutionTarget(zillians::languag
     // 2. Resolved, but not match
     else if(useId == L"" && declId != L"__no_ResolvedSymbol__")
     {
-        std::wcerr << L"Error: Function call `" << ASTNodeHelper::getNodeName(&node) << L"' should not be resolved, but resolved to `" << ASTNodeHelper::getNodeName(getDecl(node)) << L"'" << std::endl;
+        CodePoint usePoint(&node);
+        CodePoint declPoint(getDecl(node));
+        std::wcerr <<  usePoint.filename << L":" <<  usePoint.line << L": Error: Function call `" + ASTNodeHelper::getNodeName(&node, true) + L"' should not be resolved, but resolved to:" << std::endl
+                   << declPoint.filename << L":" << declPoint.line << L": " + ASTNodeHelper::getNodeName(getDecl(node), true) << std::endl;
         return false;
     }
-    else
+    else if(useId != declId)
     {
-        std::wcerr << L"Error: Function call `" << ASTNodeHelper::getNodeName(&node) << L"' resolved to wrong declaration `" << ASTNodeHelper::getNodeName(getDecl(node)) << L"'" << std::endl;
+        CodePoint usePoint(&node);
+        CodePoint declPoint(getDecl(node));
+        std::wcerr <<  usePoint.filename << L":" <<  usePoint.line << L": Error: Function call `" + ASTNodeHelper::getNodeName(&node, true) + L"' resolved to wrong declaration:" << std::endl
+                   << declPoint.filename << L":" << declPoint.line << L": " + ASTNodeHelper::getNodeName(getDecl(node), true) << std::endl;
         return false;
     }
 
