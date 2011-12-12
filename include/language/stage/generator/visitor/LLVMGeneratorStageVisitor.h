@@ -151,6 +151,9 @@ struct LLVMGeneratorStageVisitor : public GenericDoubleVisitor
 
 	void generate(FunctionDecl& node)
 	{
+		if(ASTNodeHelper::hasNativeLinkage(&node))
+			return;
+
 		if(isFunctionVisited(node))
 			return;
 

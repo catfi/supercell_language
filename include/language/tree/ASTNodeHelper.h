@@ -209,6 +209,17 @@ struct ASTNodeHelper
 		return NULL;
 	}
 
+	static bool hasNativeLinkage(ASTNode* node)
+	{
+		if(findAnnotation(node, L"native"))
+			return true;
+
+		if(findAnnotation(node, L"system"))
+			return true;
+
+		return false;
+	}
+
 	static Annotation* findAnnotation(ASTNode* node, std::wstring tag)
 	{
 		BOOST_ASSERT(node && "null pointer exception");
