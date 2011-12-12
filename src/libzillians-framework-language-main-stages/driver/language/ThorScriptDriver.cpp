@@ -43,7 +43,6 @@ namespace zillians { namespace language {
 std::string ThorScriptDriver::getStageExecutable(const std::string& executable)
 {
 	boost::filesystem::path p = executablePath / executable;
-	std::cerr << "getting " << executable << "for " << p.string() << std::endl;
 	return p.string();
 }
 
