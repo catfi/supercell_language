@@ -333,7 +333,7 @@ struct ASTNodeHelper
 		return type_specifier;
 	}
 
-    static bool sameResolution(TypeSpecifier* a, TypeSpecifier* b)
+    static bool sameResolvedType(TypeSpecifier* a, TypeSpecifier* b)
 	{
 		if(a->type == b->type)
 		{

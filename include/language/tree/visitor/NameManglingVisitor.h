@@ -99,7 +99,7 @@ struct NameManglingVisitor : Visitor<ASTNode, void, VisitorImplementation::recur
 			        {
 			        	if(isa<ClassDecl>(resolved_type))
 			        	{
-			        		// FIXME: HACK -- can't reverse-lookup
+			        		// FIXME: HACK -- can't do reverse-lookup
 			        		// * since "ASTNodeHelper::findUniqueTypeResolution" jumps directly to a "Declaration",
 			        		//   skipping "TypeSpecifier", we miss a chance to check if we've visited a type.
 			        		// * a work-around, albeit dirty, is to build a temporary type for the "Declaration",
@@ -150,18 +150,7 @@ struct NameManglingVisitor : Visitor<ASTNode, void, VisitorImplementation::recur
 			{
 				ASTNode* resolved_type = ASTNodeHelper::findUniqueTypeResolution(&node);
 				BOOST_ASSERT(resolved_type && "failed to resolve type");
-				bool need_ptr_type = false;
-				if(isa<Declaration>(resolved_type))
-				{
-					need_ptr_type = (mInsideParamList
-							&& !isReservedConstructName(getBasename(cast<Declaration>(resolved_type)->name))
-							&& !mModeCallByValue);
-				}
-				if(need_ptr_type)
-					outChannel() << "P"; // THOR_SPECIFIC: object passing is by pointer, hence "P"
 				visit(*resolved_type);
-				if(need_ptr_type)
-					addAliasSlot(NULL, false); // FIXME: HACK
 				addAliasSlot(&node);
 			}
 			break;
@@ -180,13 +169,13 @@ struct NameManglingVisitor : Visitor<ASTNode, void, VisitorImplementation::recur
 		else
 		{
 			foreach(i, node.parameter_types)
-				visitParam(*i);
+				visitResolvableType(*i);
 		}
 		mInsideParamList = false;
 
 		outChannel() << "E"; // RULE: callback ends with "E"
 
-		addAliasSlot(NULL, false); // FIXME: HACK -- function type occupies 2 alias slots
+		addDummySlot(); // FIXME: HACK -- function type occupies 2 alias slots
 	}
 
 	void mangle(Declaration& node)
@@ -249,7 +238,7 @@ struct NameManglingVisitor : Visitor<ASTNode, void, VisitorImplementation::recur
 			else
 			{
 				foreach(i, node.parameters)
-					visitParam((*i)->type);
+					visitResolvableType((*i)->type);
 			}
 		}
 		else
@@ -264,14 +253,27 @@ struct NameManglingVisitor : Visitor<ASTNode, void, VisitorImplementation::recur
 					if(i != node.parameters.begin())
 					{
 						if(!VisitedExplicitThis
-								&& ASTNodeHelper::sameResolution((*i)->type, mAliasSlots[ThisSlot]))
+								&& ASTNodeHelper::sameResolvedType((*i)->type, mAliasSlots[ThisSlot]))
 						{
-							outChannel() << "PS_";
-							addAliasSlot(removeAliasSlot(ThisSlot)); // FIXME: HACK -- send ThisSlot to back
+							if(!mModeCallByValue)
+							{
+								outChannel() << "P"; // THOR_SPECIFIC: object passing is by pointer, hence "P"
+							}
+
+							visitResolvableType((*i)->type);
+
+							// FIXME: HACK -- send "ThisSlot" to back
+							if(!mModeCallByValue)
+							{
+								TypeSpecifier* type_specifier = removeAliasSlot(ThisSlot);
+								addDummySlot(); // FIXME: HACK -- bump up actual type to account for pointer type
+								addAliasSlot(type_specifier);
+							}
+
 							VisitedExplicitThis = true;
 						}
 						else
-							visitParam((*i)->type);
+							visitResolvableType((*i)->type);
 					}
 				}
 			}
@@ -347,22 +349,22 @@ private:
 		mInsideUptrace = false;
 	}
 
-	void uptraceAndEmitComboName(Declaration* node)
+	void uptraceAndEmitComboName(Declaration* decl)
 	{
-		bool inside_combo_name = (!mInsideUptrace && !ASTNodeHelper::isRootPackage(node->parent));
+		bool inside_combo_name = (!mInsideUptrace && !ASTNodeHelper::isRootPackage(decl->parent));
 
 		{
 			mInsideComboName |= inside_combo_name;
-			uptrace(node);
+			uptrace(decl);
 			mInsideComboName = false;
 		}
 
-		visit(*node->name);
+		visit(*decl->name);
 		if(inside_combo_name)
 			outChannel() << "E"; // RULE: combo name ends with "E"
 	}
 
-	void visitParam(TypeSpecifier* type_specifier)
+	void visitResolvableType(TypeSpecifier* type_specifier)
 	{
 		if(type_specifier->type == TypeSpecifier::ReferredType::PRIMITIVE)
 			visit(*type_specifier);
@@ -370,7 +372,21 @@ private:
 		{
 			int slot = findAliasSlot(type_specifier);
 			if(slot == -1)
+			{
+				ASTNode* resolved_type = ASTNodeHelper::findUniqueTypeResolution(type_specifier);
+				BOOST_ASSERT(resolved_type && "failed to resolve type");
+				if(isa<Declaration>(resolved_type))
+				{
+					if(mInsideParamList
+							&& !isReservedConstructName(getBasename(cast<Declaration>(resolved_type)->name))
+							&& !mModeCallByValue)
+					{
+						outChannel() << "P"; // THOR_SPECIFIC: object passing is by pointer, hence "P"
+						addDummySlot(); // FIXME: HACK -- bump up actual type to account for pointer type
+					}
+				}
 				visit(*type_specifier);
+			}
 			else
 				writeSubstitution(slot);
 		}
@@ -401,7 +417,7 @@ private:
 	{
 		auto p = std::find_if(mAliasSlots.begin(), mAliasSlots.end(),
 				[&](TypeSpecifier* other) {
-						return other ? ASTNodeHelper::sameResolution(type_specifier, other) : false;
+						return other ? ASTNodeHelper::sameResolvedType(type_specifier, other) : false;
 						} );
 		return (p != mAliasSlots.end()) ? std::distance(mAliasSlots.begin(), p) : -1;
 	}
@@ -411,6 +427,11 @@ private:
 		if(check_if_unique && findAliasSlot(type_specifier) != -1)
 			return;
 		mAliasSlots.push_back(type_specifier);
+	}
+
+	void addDummySlot()
+	{
+		addAliasSlot(NULL, false);
 	}
 
 	void clearAliasSlots()
