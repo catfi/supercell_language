@@ -68,6 +68,7 @@ add_library(zillians-framework-language-general-stages
     language/stage/transformer/ResolutionStage.cpp
     language/stage/transformer/ManglingStage.cpp
     language/stage/transformer/RestructureStage.cpp
+    language/stage/transformer/ImplicitConversionStage.cpp
     language/stage/verifier/SemanticVerificationStage0.cpp
     language/stage/verifier/SemanticVerificationStage1.cpp
 	language/stage/verifier/StaticTestVerificationStage.cpp    

@@ -144,6 +144,10 @@ std::string ThorScriptMakeStage::genCompileCmd(boost::graph_traits<TangleGraphTy
         boost::filesystem::path graphvizPath = buildPath / "graphviz" / outputFileName;
         cmd += " '--dump-graphviz-dir=" + graphvizPath.string() + "'";
     }
+    if(!prepandPackage.empty())
+    {
+        cmd += " '--prepand-package=" + prepandPackage + "'";
+    }
 
     return cmd;
 }
@@ -184,6 +188,7 @@ std::pair<shared_ptr<po::options_description>, shared_ptr<po::options_descriptio
 	option_desc_private->add_options()
 		("dump-graphviz", "dump AST in graphviz format")
 		("dump-graphviz-dir", po::value<std::string>(), "dump AST in graphviz format")
+		("prepand-package", po::value<std::string>(), "prepand package to all sources")
     ;
 
 	return std::make_pair(option_desc_public, option_desc_private);
@@ -219,6 +224,10 @@ bool ThorScriptMakeStage::parseOptions(po::variables_map& vm)
     if(vm.count("dump-graphviz"))
     {
         dumpGraphviz = true;
+    }
+    if(vm.count("prepand-package"))
+    {
+        prepandPackage = vm["prepand-package"].as<std::string>();
     }
     return true;
 }
@@ -275,7 +284,7 @@ bool ThorScriptMakeStage::execute(bool& continue_execution)
         std::string cmd = genCompileCmd(*vi.first, tangleRestored);
         if(dumpCompileCommand)
         {
-            std::cout << "compile-command: " << cmd << std::endl ;
+            std::cout << "[ts-make] call shell: `" << cmd << "`" <<  std::endl ;
         }
         int inputNum = boost::out_degree(*vi.first, tangleRestored);
         if(inputNum == 0)

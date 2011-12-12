@@ -25,6 +25,7 @@
 #include "language/stage/transformer/LiteralCompactionStage.h"
 #include "language/stage/transformer/RestructureStage.h"
 #include "language/stage/transformer/ResolutionStage.h"
+#include "language/stage/transformer/ImplicitConversionStage.h"
 #include "language/stage/transformer/ManglingStage.h"
 #include "language/stage/generator/LLVMGeneratorStage.h"
 #include "language/stage/generator/LLVMDebugInfoGeneratorStage.h"
@@ -49,6 +50,7 @@ ThorScriptCompiler::ThorScriptCompiler() : stage::StageBuilder(true)
 			LiteralCompactionStage,
 			RestructureStage,
 			ResolutionStage,
+            ImplicitConversionStage,
 			SemanticVerificationStage1,
 			StaticTestVerificationStage,
 			ManglingStage,
@@ -105,6 +107,7 @@ ThorScriptCompiler::ThorScriptCompiler() : stage::StageBuilder(true)
 			LiteralCompactionStage,
 			RestructureStage,
 			ResolutionStage,
+            ImplicitConversionStage,
 			SemanticVerificationStage1,
 			StaticTestVerificationStage>>("mode-semantic-verify-1", "for semantic verification stage 1");
 }

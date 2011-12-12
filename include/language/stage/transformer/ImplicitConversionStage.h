@@ -17,23 +17,21 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef ZILLIANS_LANGUAGE_STAGE_MAKE_THORSCRIPTMAKESTAGE_H_
-#define ZILLIANS_LANGUAGE_STAGE_MAKE_THORSCRIPTMAKESTAGE_H_
+#ifndef ZILLIANS_LANGUAGE_STAGE_TRANSFORMER_IMPLICITCONVERSIONSTAGE_H_
+#define ZILLIANS_LANGUAGE_STAGE_TRANSFORMER_IMPLICITCONVERSIONSTAGE_H_
 
 #include "language/stage/Stage.h"
-#include "language/stage/dep/ThorScriptSourceTangleGraph.h"
-#include <boost/filesystem.hpp>
 
 namespace zillians { namespace language { namespace stage {
 
 /**
- * The ThorScriptMakeStage invoke compile commands with ts-compile.
+ * ImplicitConversionStage will transform the AST by adding implicit conversion (CastExpr)
  */
-class ThorScriptMakeStage : public Stage
+class ImplicitConversionStage : public Stage
 {
 public:
-	ThorScriptMakeStage();
-	virtual ~ThorScriptMakeStage();
+	ImplicitConversionStage();
+	virtual ~ImplicitConversionStage();
 
 public:
 	virtual const char* name();
@@ -42,28 +40,11 @@ public:
 	virtual bool execute(bool& continue_execution);
 
 private:
-    enum class BUILD_TYPE
-    {
-        DEBUG,
-        RELEASE
-    };
-
-private:
-    std::string genCompileCmd(boost::graph_traits<TangleGraphType>::vertex_descriptor v, TangleGraphType& g);
-
-public:
-    bool dumpCompileCommand;
-    boost::filesystem::path projectPath;
-    boost::filesystem::path buildPath;
-    log4cxx::LoggerPtr logger;
-
-private:
-    BUILD_TYPE buildType;
-	bool dumpGraphviz;
-    std::string dumpGraphvizDir;
-    std::string prepandPackage;
+	bool debug;
+	bool dump_graphviz;
+    std::string dump_graphviz_dir;
 };
 
 } } }
 
-#endif /* ZILLIANS_LANGUAGE_STAGE_MAKE_THORSCRIPTMAKESTAGE_H_ */
+#endif /* ZILLIANS_LANGUAGE_STAGE_TRANSFORMER_IMPLICITCONVERSIONSTAGE_H_ */
