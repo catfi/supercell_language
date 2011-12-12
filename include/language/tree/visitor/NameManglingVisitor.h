@@ -39,7 +39,7 @@ struct NameManglingVisitor : Visitor<ASTNode, void, VisitorImplementation::recur
 	CREATE_INVOKER(mangleInvoker, mangle)
 
 	NameManglingVisitor() : mInsideUptrace(false), mInsideComboName(false), mInsideParamList(false),
-			mModeCallByValue(false), mOutChannel(&mOutStream)
+			mModeCallByValue(false), mCurrentOutStream(&mOutStream)
 	{
 		REGISTER_ALL_VISITABLE_ASTNODE(mangleInvoker)
 	}
@@ -99,11 +99,18 @@ struct NameManglingVisitor : Visitor<ASTNode, void, VisitorImplementation::recur
 			        {
 			        	if(isa<ClassDecl>(resolved_type))
 			        	{
-			        		TypeSpecifier* type_specifier = ASTNodeHelper::buildResolvableTypeSpecifier(
+			        		// FIXME: HACK -- can't reverse-lookup
+			        		// * since "ASTNodeHelper::findUniqueTypeResolution" jumps directly to a "Declaration",
+			        		//   skipping "TypeSpecifier", we miss a chance to check if we've visited a type.
+			        		// * a work-around, albeit dirty, is to build a temporary type for the "Declaration",
+			        		//   and visit that instead.
+			        		// * one side-effect is that we must remember to delete the temporary type after each
+			        		//   function mangling.
+			        		TypeSpecifier* temp_type_specifier = ASTNodeHelper::buildResolvableTypeSpecifier(
 			        				cast<ClassDecl>(resolved_type));
-			    			addAliasSlot(type_specifier);
-			    			mManagedAliasSlots.push_back(shared_ptr<TypeSpecifier>(type_specifier));
-			    			visit(*type_specifier);
+			    			addAliasSlot(temp_type_specifier);
+			    			mManagedAliasSlots.push_back(shared_ptr<TypeSpecifier>(temp_type_specifier));
+			    			visit(*temp_type_specifier);
 			        	}
 			        	else
 			        		visit(*resolved_type);
@@ -142,7 +149,7 @@ struct NameManglingVisitor : Visitor<ASTNode, void, VisitorImplementation::recur
 		case TypeSpecifier::ReferredType::UNSPECIFIED:
 			{
 				ASTNode* resolved_type = ASTNodeHelper::findUniqueTypeResolution(&node);
-				BOOST_ASSERT(resolved_type && "failed to resolve unspecified symbol!");
+				BOOST_ASSERT(resolved_type && "failed to resolve type");
 				bool need_ptr_type = false;
 				if(isa<Declaration>(resolved_type))
 				{
@@ -154,7 +161,7 @@ struct NameManglingVisitor : Visitor<ASTNode, void, VisitorImplementation::recur
 					outChannel() << "P"; // THOR_SPECIFIC: object passing is by pointer, hence "P"
 				visit(*resolved_type);
 				if(need_ptr_type)
-					addAliasSlot(NULL, false); // FIX-ME: HACK
+					addAliasSlot(NULL, false); // FIXME: HACK
 				addAliasSlot(&node);
 			}
 			break;
@@ -179,12 +186,12 @@ struct NameManglingVisitor : Visitor<ASTNode, void, VisitorImplementation::recur
 
 		outChannel() << "E"; // RULE: callback ends with "E"
 
-		addAliasSlot(NULL, false); // HACK: function type occupies 2 alias slots, not sure why..
+		addAliasSlot(NULL, false); // FIXME: HACK -- function type occupies 2 alias slots
 	}
 
 	void mangle(Declaration& node)
 	{
-		uptraceAndAppendName(&node);
+		uptraceAndEmitComboName(&node);
 	}
 
 	void mangle(ClassDecl& node)
@@ -195,7 +202,7 @@ struct NameManglingVisitor : Visitor<ASTNode, void, VisitorImplementation::recur
 				return;
 		}
 
-		uptraceAndAppendName(&node);
+		uptraceAndEmitComboName(&node);
 	}
 
 	void mangle(FunctionDecl& node)
@@ -209,10 +216,10 @@ struct NameManglingVisitor : Visitor<ASTNode, void, VisitorImplementation::recur
 		mModeCallByValue = ASTNodeHelper::findAnnotation(&node, L"call_by_value");
 
 		clearAliasSlots();
-		uptraceAndAppendName(&node);
+		uptraceAndEmitComboName(&node);
 
 		mInsideParamList = true;
-		bool FirstParamIsThis = false;
+		int ThisSlot = -1;
 		if(node.is_member && !node.is_static)
 		{
 			BOOST_ASSERT(node.parent && "method must have parant");
@@ -224,39 +231,48 @@ struct NameManglingVisitor : Visitor<ASTNode, void, VisitorImplementation::recur
 					return;
 			}
 			BOOST_ASSERT((node.parameters.size() > 0) && "method must have one parameter");
-			auto p = node.parameters.begin();
-			ASTNode* resolved_type = ASTNodeHelper::findUniqueTypeResolution((*p)->type);
+			auto first_param = node.parameters.begin();
+			ASTNode* resolved_type = ASTNodeHelper::findUniqueTypeResolution((*first_param)->type);
 			BOOST_ASSERT(resolved_type->isEqual(*node.parent) && "method's first parameter must be \"this\"");
-			FirstParamIsThis = true;
+
+			{
+				mCurrentOutStream = NULL;
+				visit(*(*first_param)->type);
+				ThisSlot = findAliasSlot((*first_param)->type);
+				mCurrentOutStream = &mOutStream;
+			}
 		}
-		if(node.parameters.empty() || (FirstParamIsThis && node.parameters.size() == 1))
-			visitEmptyParams();
+		if(ThisSlot == -1)
+		{
+			if(node.parameters.empty())
+				visitEmptyParams();
+			else
+			{
+				foreach(i, node.parameters)
+					visitParam((*i)->type);
+			}
+		}
 		else
 		{
-			int ThisSlot = -1;
-			bool HasVisitedNonImplicitThis = false;
-			foreach(i, node.parameters)
+			if(node.parameters.size() == 1)
+				visitEmptyParams();
+			else
 			{
-				if(FirstParamIsThis && (i == node.parameters.begin()))
+				bool VisitedExplicitThis = false;
+				foreach(i, node.parameters)
 				{
-					mOutChannel = NULL;
-					visit(*(*i)->type);
-					ThisSlot = findAliasSlot((*i)->type);
-					mOutChannel = &mOutStream;
-				}
-				else
-				{
-					if(FirstParamIsThis && !HasVisitedNonImplicitThis
-							&& isEqual((*i)->type, mAliasSlots[ThisSlot]))
+					if(i != node.parameters.begin())
 					{
-						// FIX-ME: HACK -- re-order ThisSlot -- send to back
-						TypeSpecifier* type_specifier = removeAliasSlot(ThisSlot);
-						addAliasSlot(type_specifier);
-						HasVisitedNonImplicitThis = true;
-						outChannel() << "PS_";
+						if(!VisitedExplicitThis
+								&& ASTNodeHelper::sameResolution((*i)->type, mAliasSlots[ThisSlot]))
+						{
+							outChannel() << "PS_";
+							addAliasSlot(removeAliasSlot(ThisSlot)); // FIXME: HACK -- send ThisSlot to back
+							VisitedExplicitThis = true;
+						}
+						else
+							visitParam((*i)->type);
 					}
-					else
-						visitParam((*i)->type);
 				}
 			}
 		}
@@ -302,25 +318,25 @@ struct NameManglingVisitor : Visitor<ASTNode, void, VisitorImplementation::recur
 
 	void reset()
 	{
-#if 1 // NOTE: for debugging only
-		std::cout << "NameManglingVisitor: " << mOutChannel->str() << std::endl;
+#if 0 // NOTE: for debugging only
+		std::cout << "NameManglingVisitor: " << mCurrentOutStream->str() << std::endl;
 #endif
-		mOutChannel->str("");
+		mCurrentOutStream->str("");
 		mInsideUptrace = mInsideComboName = mInsideParamList = mModeCallByValue = false;
 	}
 
 	std::stringstream mOutStream;
 
 private:
-	std::stringstream* mOutChannel;
+	std::stringstream* mCurrentOutStream;
 
 	std::ostream& outChannel()
 	{
-		static std::stringstream nullOutChannel;
-		if(mOutChannel)
-			return *mOutChannel;
+		static std::stringstream NullOutStream;
+		if(mCurrentOutStream)
+			return *mCurrentOutStream;
 		else
-			return nullOutChannel;
+			return NullOutStream;
 	}
 
 	void uptrace(ASTNode* node)
@@ -331,7 +347,7 @@ private:
 		mInsideUptrace = false;
 	}
 
-	void uptraceAndAppendName(Declaration* node)
+	void uptraceAndEmitComboName(Declaration* node)
 	{
 		bool inside_combo_name = (!mInsideUptrace && !ASTNodeHelper::isRootPackage(node->parent));
 
@@ -363,7 +379,7 @@ private:
 	void visitEmptyParams()
 	{
 		TypeSpecifier type_specifier(PrimitiveType::VOID);
-		visit(type_specifier); // RULE: empty param-list equivalent to "void" param type
+		visit(type_specifier); // RULE: empty param-list equivalent to "void" type
 	}
 
 	static const char* toAsciiNumber(char c)
@@ -384,14 +400,10 @@ private:
 	int findAliasSlot(TypeSpecifier* type_specifier)
 	{
 		auto p = std::find_if(mAliasSlots.begin(), mAliasSlots.end(),
-				[&](TypeSpecifier* other) { return other ? isEqual(type_specifier, other) : false; } );
+				[&](TypeSpecifier* other) {
+						return other ? ASTNodeHelper::sameResolution(type_specifier, other) : false;
+						} );
 		return (p != mAliasSlots.end()) ? std::distance(mAliasSlots.begin(), p) : -1;
-	}
-
-	static bool isEqual(TypeSpecifier* a, TypeSpecifier* b)
-	{
-		// FIX-ME: needs work
-		return a->isEqual(*b);
 	}
 
 	void addAliasSlot(TypeSpecifier* type_specifier = NULL, bool check_if_unique = true)

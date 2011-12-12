@@ -333,6 +333,24 @@ struct ASTNodeHelper
 		return type_specifier;
 	}
 
+    static bool sameResolution(TypeSpecifier* a, TypeSpecifier* b)
+	{
+		if(a->type == b->type)
+		{
+			if(a->type == TypeSpecifier::ReferredType::UNSPECIFIED)
+			{
+		        ASTNode* resolved_type_a = findUniqueTypeResolution(a);
+		        ASTNode* resolved_type_b = findUniqueTypeResolution(b);
+		        BOOST_ASSERT(resolved_type_a && resolved_type_b && "failed to resolve type");
+		        return (resolved_type_a == resolved_type_b);
+			}
+			else
+				return a->isEqual(*b);
+		}
+		else
+			return false;
+	}
+
 private:
 	static bool isNamedScope(ASTNode* node)
 	{
