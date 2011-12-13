@@ -163,7 +163,7 @@ struct NameManglingVisitor : Visitor<ASTNode, void, VisitorImplementation::recur
 		visit(*node.return_type);
 		mParamDepth++;
 		if(node.parameter_types.empty())
-			emitVoid(); // RULE: empty param-list equivalent to "void" type
+			writeVoid(); // RULE: empty param-list equivalent to "void" type
 		else
 		{
 			foreach(i, node.parameter_types)
@@ -220,7 +220,7 @@ struct NameManglingVisitor : Visitor<ASTNode, void, VisitorImplementation::recur
 		if(ThisSlot == -1)
 		{
 			if(node.parameters.empty())
-				emitVoid(); // RULE: empty param-list equivalent to "void" type
+				writeVoid(); // RULE: empty param-list equivalent to "void" type
 			else
 			{
 				foreach(i, node.parameters)
@@ -230,7 +230,7 @@ struct NameManglingVisitor : Visitor<ASTNode, void, VisitorImplementation::recur
 		else
 		{
 			if(node.parameters.size() == 1)
-				emitVoid(); // RULE: empty param-list equivalent to "void" type
+				writeVoid(); // RULE: empty param-list equivalent to "void" type
 			else
 			{
 				bool VisitedFirstExplicitThis = false;
@@ -359,20 +359,18 @@ private:
 			{
 				ASTNode* resolved_type = ASTNodeHelper::findUniqueTypeResolution(type_specifier);
 				BOOST_ASSERT(resolved_type && "failed to resolve type");
-				if(isa<Declaration>(resolved_type))
+				if((mParamDepth > 0)
+						&& isa<Declaration>(resolved_type)
+						&& !isReservedConstructName(getBasename(cast<Declaration>(resolved_type)->name))
+						&& !mModeCallByValue)
 				{
-					if((mParamDepth > 0)
-							&& !isReservedConstructName(getBasename(cast<Declaration>(resolved_type)->name))
-							&& !mModeCallByValue)
-					{
-						outStream() << "P"; // THOR_SPECIFIC: object passing is by pointer, hence "P"
-						mAliasMgr.addDummy(); // HACK: bump up actual type to account for pointer type
-					}
+					outStream() << "P"; // THOR_SPECIFIC: object passing is by pointer, hence "P"
+					mAliasMgr.addDummy(); // HACK: bump up actual type to account for pointer type
 				}
 				visit(*type_specifier);
 			}
 			else
-				emitAlias(slot);
+				writeSubstitution(slot);
 		}
 	}
 
@@ -422,7 +420,7 @@ private:
 		std::vector<shared_ptr<TypeSpecifier>> mManagedAliasSlots;
 	} mAliasMgr;
 
-	void emitAlias(int slot)
+	void writeSubstitution(int slot)
 	{
 		auto ito36a = [](size_t n)
 			{
@@ -436,7 +434,7 @@ private:
 		outStream() << ((slot == 0) ? "S_" : ("S"+ito36a(slot-1)+"_"));
 	}
 
-	void emitVoid()
+	void writeVoid()
 	{
 		TypeSpecifier type_specifier(PrimitiveType::VOID);
 		visit(type_specifier);
