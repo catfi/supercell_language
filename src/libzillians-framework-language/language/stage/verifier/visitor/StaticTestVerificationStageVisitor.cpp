@@ -338,11 +338,22 @@ static std::wstring getUseId(ASTNode& node)
 
 static Declaration* getDecl(ASTNode& node)
 {
-    ASTNode*            stmtNode      = &node;
-    ExpressionStmt*     exprStmt      = cast<ExpressionStmt>(stmtNode);
-    CallExpr*           callExpr      = cast<CallExpr>(exprStmt->expr);
-    Declaration*        decl          = cast<Declaration>(ResolvedSymbol::get(callExpr->node));
-    return decl;
+    ASTNode*         stmtNode = &node;
+    ExpressionStmt*  exprStmt = cast<ExpressionStmt>(stmtNode);
+    DeclarativeStmt* declStmt = cast<DeclarativeStmt>(stmtNode);
+    if(exprStmt != NULL)
+    {
+        CallExpr*    callExpr = cast<CallExpr>(exprStmt->expr);
+        Declaration* decl     = cast<Declaration>(ResolvedSymbol::get(callExpr->node));
+        return decl;
+    }
+    else
+    {
+        VariableDecl*  varDecl = cast<VariableDecl>(declStmt->declaration);
+        TypeSpecifier* type    = varDecl->type;
+        Declaration*   decl    = cast<Declaration>(ResolvedType::get(type));
+        return decl;
+    }
 }
 
 /**
@@ -414,6 +425,7 @@ bool StaticTestVerificationStageVisitor::checkResolutionTarget(zillians::languag
         return true;
     }
 
+    std::wstring callOrDecl = isa<ExpressionStmt>(&node) ? L"Function call" : L"Variable declaration";
     std::wstring declId = getDeclId(node);
 
     if(useId == L"" && declId == L"__no_ResolvedSymbol__")
@@ -434,16 +446,16 @@ bool StaticTestVerificationStageVisitor::checkResolutionTarget(zillians::languag
     {
         CodePoint usePoint(&node);
         CodePoint declPoint(getDecl(node));
-        std::wcerr <<  usePoint.filename << L":" <<  usePoint.line << L": Error: Function call `" + ASTNodeHelper::getNodeName(&node, true) + L"' should not be resolved, but resolved to:" << std::endl
-                   << declPoint.filename << L":" << declPoint.line << L": " + ASTNodeHelper::getNodeName(getDecl(node), true) << std::endl;
+        std::wcerr <<  usePoint.filename << L":" <<  usePoint.line << L": Error: " << callOrDecl << " `" << ASTNodeHelper::getNodeName(&node, true) << L"' should not be resolved, but resolved to:" << std::endl
+                   << declPoint.filename << L":" << declPoint.line << L": " << ASTNodeHelper::getNodeName(getDecl(node), true) << std::endl;
         return false;
     }
     else if(useId != declId)
     {
         CodePoint usePoint(&node);
         CodePoint declPoint(getDecl(node));
-        std::wcerr <<  usePoint.filename << L":" <<  usePoint.line << L": Error: Function call `" + ASTNodeHelper::getNodeName(&node, true) + L"' resolved to wrong declaration:" << std::endl
-                   << declPoint.filename << L":" << declPoint.line << L": " + ASTNodeHelper::getNodeName(getDecl(node), true) << std::endl;
+        std::wcerr <<  usePoint.filename << L":" <<  usePoint.line << L": Error: " << callOrDecl << " `" << ASTNodeHelper::getNodeName(&node, true) << L"' resolved to wrong declaration:" << std::endl
+                   << declPoint.filename << L":" << declPoint.line << L": " << ASTNodeHelper::getNodeName(getDecl(node), true) << std::endl;
         return false;
     }
 
