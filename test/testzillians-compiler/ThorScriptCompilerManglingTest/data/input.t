@@ -115,16 +115,16 @@ function main():void
     /*
     // class templated member (specialized member)
     var ddd:_DDD_;
-    ddd._func_55_<int8, int8>(0);
+    ddd._func_55_<int8, int8>(qwe);
 
     // class templated member (specialized member)
-    ddd._func_55_<_QWE_, _QWE_>(0);
+    ddd._func_55_<_QWE_, _QWE_>(qwe);
 
     // templated function
-    _func_56_<int8, int8>(0);
+    _func_56_<int8, int8>(qwe);
 
     // templated function (specialized)
-    _func_56_<_QWE_, _QWE_>(0);
+    _func_56_<_QWE_, _QWE_>(qwe);
     */
 }
 
