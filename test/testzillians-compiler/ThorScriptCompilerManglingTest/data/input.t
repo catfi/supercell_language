@@ -96,14 +96,14 @@ class _EEE_
 
 function main():void
 {
-    /*
+    var qwe:_QWE_;
+
     // simple class member
     var bbb:_BBB_;
     bbb._func_51_();
-    bbb._func_52_(0);
-    bbb._func_53_(0, 0, 0);
-
-    var qwe:_QWE_;
+    /*
+    bbb._func_52_(qwe);
+    bbb._func_53_(qwe, qwe, qwe);
 
     // templated class member (specialized class)
     var ccc:_CCC_<int8, int8>;
