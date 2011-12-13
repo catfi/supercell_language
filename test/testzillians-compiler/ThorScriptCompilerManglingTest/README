@@ -89,6 +89,11 @@ int64 _func_56_<_QWE_, _QWE_>(_QWE_* x) { } // _Z9_func_56_I5_QWE_S0_ExPS0_
 
 void _func_60_(_QWE_* x, _QWE_ y) { } // _Z9_func_60_P5_QWE_S_
 
+struct _EEE_
+{
+    void _func_61_(_QWE_* x, _QWE_ y) { } // _ZN5_EEE_9_func_61_EP5_QWE_S0_
+};
+
 int main()
 {
     // namespace decl
@@ -97,27 +102,27 @@ int main()
     // simple class member
     _BBB_ bbb;
     bbb._func_51_();
-    bbb._func_52_(0);
-    bbb._func_53_(0, 0, 0);
+    bbb._func_52_(&bbb);
+    bbb._func_53_(&bbb, &bbb, &bbb);
+
+    _QWE_ qwe;
 
     // templated class member
     _CCC_<int8, int8> ccc;
-    ccc._func_54_(0);
-
-    // templated class member (specialized class)
+    ccc._func_54_(&qwe);
     _CCC_<_QWE_, _QWE_> ccc2;
-    ccc2._func_54_(0);
+    ccc2._func_54_(&qwe);
 
     // class templated member
     _DDD_ ddd;
-    ddd._func_55_<int8, int8>(0);
-
-    // class templated member (specialized member)
-    ddd._func_55_<_QWE_, _QWE_>(0);
+    ddd._func_55_<int8, int8>(&qwe);
+    ddd._func_55_<_QWE_, _QWE_>(&qwe);
 
     // templated function
-    _func_56_<int8, int8>(0);
+    _func_56_<int8, int8>(&qwe);
+    _func_56_<_QWE_, _QWE_>(&qwe);
 
-    // templated function (specialized)
-    _func_56_<_QWE_, _QWE_>(0);
+    _func_60_(&qwe, qwe);
+    _EEE_ eee;
+    eee._func_61_(&qwe, qwe);
 }

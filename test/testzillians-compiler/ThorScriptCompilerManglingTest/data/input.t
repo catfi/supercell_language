@@ -61,29 +61,27 @@ class _CCC_<T, T2>
 {
     public function _func_54_(x:_QWE_):void { }
 }
-
-// templated class member (specialized class)
 class _CCC_<T:int8, T2:int8>
 {
     public function _func_54_(x:_QWE_):void { }
 }
-
-// templated class member (specialized class)
 class _CCC_<T:_QWE_, T2:_QWE_>
 {
     public function _func_54_(x:_QWE_):void { }
 }
 
-/*
 // class templated member
 class _DDD_
 {
-    public function _func_55_<T, T2>(x:_QWE_):int64 { }
+    //public function _func_55_<T, T2>(x:_QWE_):int64 { }
+    public function _func_55_<T:int8, T2:int8>(x:_QWE_):int64 { }
+    public function _func_55_<T:_QWE_, T2:_QWE_>(x:_QWE_):int64 { }
 }
 
 // templated function
-function _func_56_<T, T2>(x:_QWE_):int64 { }
-*/
+//function _func_56_<T, T2>(x:_QWE_):int64 { }
+function _func_56_<T:int8, T2:int8>(x:_QWE_):int64 { }
+function _func_56_<T:_QWE_, T2:_QWE_>(x:_QWE_):int64 { }
 
 @call_by_value
 function _func_60_(x:ptr_<_QWE_>, y:_QWE_):void { }
@@ -104,26 +102,20 @@ function main():void
 
     var qwe:_QWE_;
 
-    // templated class member (specialized class)
+    // templated class member
     var ccc:_CCC_<int8, int8>;
     ccc._func_54_(qwe);
-
-    // templated class member (specialized class)
     var ccc2:_CCC_<_QWE_, _QWE_>;
     ccc2._func_54_(qwe);
 
     /*
-    // class templated member (specialized member)
+    // class templated member
     var ddd:_DDD_;
     ddd._func_55_<int8, int8>(qwe);
-
-    // class templated member (specialized member)
     ddd._func_55_<_QWE_, _QWE_>(qwe);
 
     // templated function
     _func_56_<int8, int8>(qwe);
-
-    // templated function (specialized)
     _func_56_<_QWE_, _QWE_>(qwe);
     */
 }
