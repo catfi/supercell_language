@@ -38,7 +38,7 @@ struct NameManglingVisitor : Visitor<ASTNode, void, VisitorImplementation::recur
 {
 	CREATE_INVOKER(mangleInvoker, mangle)
 
-	NameManglingVisitor() : mInsideUptrace(false), mInsideComboName(false), mInsideParamList(false),
+	NameManglingVisitor() : mInsideUptrace(false), mInsideComboName(false), mParamDepth(0),
 			mModeCallByValue(false), mCurrentOutStream(&mOutStream)
 	{
 		REGISTER_ALL_VISITABLE_ASTNODE(mangleInvoker)
@@ -51,7 +51,7 @@ struct NameManglingVisitor : Visitor<ASTNode, void, VisitorImplementation::recur
 	{
 		if(ASTNodeHelper::isRootPackage(&node))
 		{
-			if(!mInsideParamList)
+			if(mParamDepth == 0)
 				outChannel() << "_Z"; // RULE: mangled name begins with "_Z"
 			if(mInsideComboName)
 				outChannel() << "N"; // RULE: combo name begins with "N"
@@ -65,7 +65,7 @@ struct NameManglingVisitor : Visitor<ASTNode, void, VisitorImplementation::recur
 
 	void mangle(SimpleIdentifier& node)
 	{
-		if(node.name == L"ptr_")        outChannel() << "P";
+		if(node.name == L"ptr_")		outChannel() << "P";
 		else if(node.name == L"ref_")   outChannel() << "R";
 		else if(node.name == L"const_") outChannel() << "K";
 		else if(node.name == L"void_")  outChannel() << "v";
@@ -89,35 +89,34 @@ struct NameManglingVisitor : Visitor<ASTNode, void, VisitorImplementation::recur
 			outChannel() << "I"; // RULE: template begins with "I"
 
 		{
-			mInsideParamList = true;
+			mParamDepth++;
 			foreach(i, node.templated_type_list)
 			{
 				if(node.type == TemplatedIdentifier::Usage::FORMAL_PARAMETER)
 				{
-			        ASTNode* resolved_type = ASTNodeHelper::findUniqueTypeResolution(*i);
-			        if(resolved_type)
-			        {
-			        	if(isa<ClassDecl>(resolved_type))
-			        	{
-			        		// FIXME: HACK -- can't do reverse-lookup
-			        		// * since "ASTNodeHelper::findUniqueTypeResolution" jumps directly to a "Declaration",
-			        		//   skipping "TypeSpecifier", we miss a chance to check if we've visited a type.
-			        		// * a work-around, albeit dirty, is to build a temporary type for the "Declaration",
-			        		//   and visit that instead.
-			        		// * one side-effect is that we must remember to delete the temporary type after each
-			        		//   function mangling.
-			        		TypeSpecifier* temp_type_specifier = ASTNodeHelper::buildResolvableTypeSpecifier(
-			        				cast<ClassDecl>(resolved_type));
-			    			addAliasSlot(temp_type_specifier);
-			    			mManagedAliasSlots.push_back(shared_ptr<TypeSpecifier>(temp_type_specifier));
-			    			visit(*temp_type_specifier);
-			        	}
-			        	else
-			        		visit(*resolved_type);
-			        }
+					ASTNode* resolved_type = ASTNodeHelper::findUniqueTypeResolution(*i);
+					if(resolved_type)
+					{
+						if(isa<ClassDecl>(resolved_type))
+						{
+							// FIXME: HACK -- can't do reverse-lookup
+							// * since "ASTNodeHelper::findUniqueTypeResolution" jumps directly to "Declaration",
+							//   skipping "TypeSpecifier", we miss a chance to check if we've visited a type.
+							// * a work-around, albeit dirty, is to build a temporary type for the "Declaration",
+							//   and visit that instead.
+							// * one side-effect is that we must remember to delete the temporary type after each
+							//   function mangling.
+							TypeSpecifier* temp_type_specifier = ASTNodeHelper::buildResolvableTypeSpecifier(
+									cast<ClassDecl>(resolved_type));
+							visitParamType(temp_type_specifier);
+							mManagedAliasSlots.push_back(shared_ptr<TypeSpecifier>(temp_type_specifier));
+						}
+						else
+							visit(*resolved_type);
+					}
 				}
 			}
-			mInsideParamList = false;
+			mParamDepth--;
 		}
 
 		if(!reserved_construct)
@@ -135,9 +134,9 @@ struct NameManglingVisitor : Visitor<ASTNode, void, VisitorImplementation::recur
 		case TypeSpecifier::ReferredType::PRIMITIVE:
 			switch(node.referred.primitive)
 			{
-			case PrimitiveType::VOID:    outChannel() << "v"; break;
-			case PrimitiveType::BOOL:    outChannel() << "b"; break;
-			case PrimitiveType::INT8:    outChannel() << "c"; break;
+			case PrimitiveType::VOID:	outChannel() << "v"; break;
+			case PrimitiveType::BOOL:	outChannel() << "b"; break;
+			case PrimitiveType::INT8:	outChannel() << "c"; break;
 			case PrimitiveType::INT16:   outChannel() << "s"; break;
 			case PrimitiveType::INT32:   outChannel() << "l"; /* or 'i' ? */ break;
 			case PrimitiveType::INT64:   outChannel() << "x"; break;
@@ -163,15 +162,15 @@ struct NameManglingVisitor : Visitor<ASTNode, void, VisitorImplementation::recur
 		outChannel() << "PF"; // RULE/THOR_SPECIFIC: callback begins with "F", and is a pointer, hence "P" in "PF"
 		visit(*node.return_type);
 
-		mInsideParamList = true;
+		mParamDepth++;
 		if(node.parameter_types.empty())
 			visitEmptyParams();
 		else
 		{
 			foreach(i, node.parameter_types)
-				visitResolvableType(*i);
+				visitParamType(*i);
 		}
-		mInsideParamList = false;
+		mParamDepth--;
 
 		outChannel() << "E"; // RULE: callback ends with "E"
 
@@ -207,7 +206,7 @@ struct NameManglingVisitor : Visitor<ASTNode, void, VisitorImplementation::recur
 		clearAliasSlots();
 		uptraceAndEmitComboName(&node);
 
-		mInsideParamList = true;
+		mParamDepth++;
 		int ThisSlot = -1;
 		if(node.is_member && !node.is_static)
 		{
@@ -238,7 +237,7 @@ struct NameManglingVisitor : Visitor<ASTNode, void, VisitorImplementation::recur
 			else
 			{
 				foreach(i, node.parameters)
-					visitResolvableType((*i)->type);
+					visitParamType((*i)->type);
 			}
 		}
 		else
@@ -255,30 +254,25 @@ struct NameManglingVisitor : Visitor<ASTNode, void, VisitorImplementation::recur
 						if(!VisitedExplicitThis
 								&& ASTNodeHelper::sameResolvedType((*i)->type, mAliasSlots[ThisSlot]))
 						{
-							if(!mModeCallByValue)
+							if(mModeCallByValue)
+								visitParamType((*i)->type);
+							else
 							{
 								outChannel() << "P"; // THOR_SPECIFIC: object passing is by pointer, hence "P"
-							}
-
-							visitResolvableType((*i)->type);
-
-							// FIXME: HACK -- send "ThisSlot" to back
-							if(!mModeCallByValue)
-							{
+								visitParamType((*i)->type);
 								TypeSpecifier* type_specifier = removeAliasSlot(ThisSlot);
 								addDummySlot(); // FIXME: HACK -- bump up actual type to account for pointer type
-								addAliasSlot(type_specifier);
+								addAliasSlot(type_specifier); // FIXME: HACK -- send "ThisSlot" to back
 							}
-
 							VisitedExplicitThis = true;
 						}
 						else
-							visitResolvableType((*i)->type);
+							visitParamType((*i)->type);
 					}
 				}
 			}
 		}
-		mInsideParamList = false;
+		mParamDepth--;
 
 		if(isa<TemplatedIdentifier>(node.name))
 			visit(*node.type);
@@ -324,7 +318,9 @@ struct NameManglingVisitor : Visitor<ASTNode, void, VisitorImplementation::recur
 		std::cout << "NameManglingVisitor: " << mCurrentOutStream->str() << std::endl;
 #endif
 		mCurrentOutStream->str("");
-		mInsideUptrace = mInsideComboName = mInsideParamList = mModeCallByValue = false;
+		mInsideUptrace = mInsideComboName = false;
+		mParamDepth = 0;
+		mModeCallByValue = false;
 	}
 
 	std::stringstream mOutStream;
@@ -364,7 +360,7 @@ private:
 			outChannel() << "E"; // RULE: combo name ends with "E"
 	}
 
-	void visitResolvableType(TypeSpecifier* type_specifier)
+	void visitParamType(TypeSpecifier* type_specifier)
 	{
 		if(type_specifier->type == TypeSpecifier::ReferredType::PRIMITIVE)
 			visit(*type_specifier);
@@ -377,7 +373,7 @@ private:
 				BOOST_ASSERT(resolved_type && "failed to resolve type");
 				if(isa<Declaration>(resolved_type))
 				{
-					if(mInsideParamList
+					if((mParamDepth > 0)
 							&& !isReservedConstructName(getBasename(cast<Declaration>(resolved_type)->name))
 							&& !mModeCallByValue)
 					{
@@ -407,7 +403,7 @@ private:
 
 	bool mInsideUptrace;
 	bool mInsideComboName;
-	bool mInsideParamList;
+	int mParamDepth;
 	bool mModeCallByValue;
 
 	std::vector<TypeSpecifier*> mAliasSlots;
@@ -450,12 +446,14 @@ private:
 
 	std::string ito36a(size_t n)
 	{
-	    static char b[] = "0123456789abcdefghijklmnopqrstuvwxyz";
-	    std::string tmp ;
-	    for(;n; n /= 36)
-	        tmp += b[n % 36];
-	    if(tmp.empty()) return "0";
-	    else return std::string(tmp.rbegin(), tmp.rend());
+		static char b[] = "0123456789abcdefghijklmnopqrstuvwxyz";
+		std::string tmp ;
+		for(;n; n /= 36)
+			tmp += b[n % 36];
+		if(tmp.empty())
+			return "0";
+		else
+			return std::string(tmp.rbegin(), tmp.rend());
 	}
 
 	void writeSubstitution(int slot)
