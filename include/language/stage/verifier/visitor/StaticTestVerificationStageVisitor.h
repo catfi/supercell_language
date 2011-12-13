@@ -90,10 +90,19 @@ private:
         {
             mAllMatch = false;
         }
+
+        // check resolution
+        if (!checkResolutionTarget(node))
+        {
+            mAllMatch = false;
+        }
     }
 
     std::vector<LogInfo> constructLogInfoVecFromAnnotations(zillians::language::tree::Annotations* annos);
     bool compareLogInfoVec(ASTNode* errorNode, std::vector<LogInfo> annotatedLogInfoVec, std::vector<LogInfo> hookedLogInfoVec);
+
+    //std::map<std::wstring, ASTNode*> constructResolutionTargetsFromAnnotations(zillians::language::tree::Annotations* annos);
+    bool checkResolutionTarget(ASTNode& node);
 
 private:
 	bool mAllMatch;

@@ -85,6 +85,40 @@ using boost::unit_test::framework::master_test_suite;
 
 BOOST_AUTO_TEST_CASE( ThorScriptDriverTest_HappyPathTestCase1 )
 {
+    // build lib1
+    {
+        std::vector<std::string> lib1Argv(master_test_suite().argv, master_test_suite().argv + master_test_suite().argc);
+        lib1Argv[1] += "lib1";
+        lib1Argv[2] += "lib1/build";
+        zillians::language::ThorScriptDriver lib1Driver;
+        lib1Driver.main(lib1Argv);
+    }
+
+    // generate lib1.bundle
+    {
+        std::vector<std::string> lib1Argv(master_test_suite().argv, master_test_suite().argv + master_test_suite().argc);
+        lib1Argv[1] += "lib1";
+        lib1Argv[2] += "lib1/build";
+        zillians::language::ThorScriptDriver lib1Driver;
+        lib1Argv.push_back("generate");
+        lib1Argv.push_back("bundle");
+        lib1Driver.main(lib1Argv);
+    }
+
+    // copy lib1.bundle to project path of happytest
+    {
+        std::vector<std::string> argv(master_test_suite().argv, master_test_suite().argv + master_test_suite().argc);
+        boost::filesystem::path lib1ProjectPath(argv[1].substr(15) + "lib1");
+        boost::filesystem::path lib1BuildPath(argv[2].substr(13) + "lib1/build");
+        boost::filesystem::create_directories(lib1ProjectPath / ".." / "happy1" / "inbundle");
+        // should use boost::filesystem::copy_file(), however, this function has different prototype in c++0x,
+        // see http://boost.2283326.n4.nabble.com/Filesystem-problems-with-g-std-c-0x-td2639716.html
+        //boost::filesystem::copy_file(lib1ProjectPath / "build" / "bin" / "lib1.bundle", lib1ProjectPath / ".." / "happy1" / "inbundle" / "lib1.bundle");
+        std::string cmd = "cp " + lib1BuildPath.string() + "/bin/lib1.bundle " + lib1ProjectPath.string() + "/../happy1/inbundle/lib1.bundle";
+        system(cmd.c_str());
+    }
+
+    //////////////////////////////////////////////////////////////////////////////
     std::vector<std::string> argv(master_test_suite().argv, master_test_suite().argv + master_test_suite().argc);
     argv[1] += "happy1";
     argv[2] += "happy1/build";
