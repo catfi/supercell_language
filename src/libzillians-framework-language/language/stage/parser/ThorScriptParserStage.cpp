@@ -26,6 +26,7 @@
 #include "utility/Foreach.h"
 #include "utility/UnicodeUtil.h"
 #include <boost/filesystem.hpp>
+#include <boost/algorithm/string.hpp>
 
 namespace classic = boost::spirit::classic;
 namespace qi = boost::spirit::qi;
@@ -141,6 +142,7 @@ std::pair<shared_ptr<po::options_description>, shared_ptr<po::options_descriptio
 		("use-relative-path", "use relative file path instead of absolute path (for debugging info generation)")
 		("dump-graphviz", "dump AST in graphviz format")
 		("dump-graphviz-dir", po::value<std::string>(), "dump AST in graphviz format")
+		("prepand-package", po::value<std::string>(), "prepand package to all sources")
     ;
 
 	return std::make_pair(option_desc_public, option_desc_private);
@@ -156,6 +158,10 @@ bool ThorScriptParserStage::parseOptions(po::variables_map& vm)
     if(vm.count("dump-graphviz-dir") > 0)
     {
         dump_graphviz_dir = vm["dump-graphviz-dir"].as<std::string>();
+    }
+    if(vm.count("prepand-package"))
+    {
+        prepand_package = vm["prepand-package"].as<std::string>();
     }
 
 	if(vm.count("root-dir") == 0)
@@ -207,6 +213,16 @@ bool ThorScriptParserStage::parse(const boost::filesystem::path& p)
 		LOG4CXX_ERROR(LoggerWrapper::ParserStage, "failed to enumerate package for file: " << p.string());
 		return false;
 	}
+
+    if(!prepand_package.empty())
+    {
+        std::vector<std::wstring> v;
+        std::wstring ws = s_to_ws(prepand_package);
+        // boost::split take string as an l-value
+        // can't boost::split(v, s_to_ws(...), ...);
+        boost::split(v, ws, [](const wchar_t c){ return c == L'.'; });
+        parent_sequence.insert(parent_sequence.end(), v.begin(), v.end());
+    }
 
 	getParserContext().active_source = new Source(p.string());
 	SourceInfoContext::set(getParserContext().active_source, new SourceInfoContext(0, 0)); // for logger, just in case

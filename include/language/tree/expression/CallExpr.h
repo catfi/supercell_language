@@ -46,6 +46,14 @@ struct CallExpr : public Expression
 		parameters.push_back(parameter);
 	}
 
+	void prependParameter(Expression* parameter)
+	{
+		BOOST_ASSERT(parameter && "null parameter for call expression is not allowed");
+
+		parameter->parent = this;
+		parameters.insert(parameters.begin(), parameter);
+	}
+
 	virtual bool isRValue() const
 	{
 		return true;
