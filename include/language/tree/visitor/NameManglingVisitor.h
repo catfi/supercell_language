@@ -52,9 +52,9 @@ struct NameManglingVisitor : Visitor<ASTNode, void, VisitorImplementation::recur
 		if(ASTNodeHelper::isRootPackage(&node))
 		{
 			if(mParamDepth == 0)
-				outChannel() << "_Z"; // RULE: mangled name begins with "_Z"
+				outStream() << "_Z"; // RULE: mangled name begins with "_Z"
 			if(mInsideComboName)
-				outChannel() << "N"; // RULE: combo name begins with "N"
+				outStream() << "N"; // RULE: combo name begins with "N"
 		}
 		else
 		{
@@ -65,19 +65,19 @@ struct NameManglingVisitor : Visitor<ASTNode, void, VisitorImplementation::recur
 
 	void mangle(SimpleIdentifier& node)
 	{
-		if(node.name == L"ptr_")		outChannel() << "P";
-		else if(node.name == L"ref_")   outChannel() << "R";
-		else if(node.name == L"const_") outChannel() << "K";
-		else if(node.name == L"void_")  outChannel() << "v";
+		if(node.name == L"ptr_")        outStream() << "P";
+		else if(node.name == L"ref_")   outStream() << "R";
+		else if(node.name == L"const_") outStream() << "K";
+		else if(node.name == L"void_")  outStream() << "v";
 		else if(node.name == L"new")
 		{
-			outChannel() << "C1";
+			outStream() << "C1";
 #if 0 // NOTE: see --> http://stackoverflow.com/questions/6921295/dual-emission-of-constructor-symbols
-			outChannel() << "C2"; // base object constructor
+			outStream() << "C2"; // base object constructor
 #endif
 		}
 		else if(!node.name.empty())
-			outChannel() << node.name.length() << encode(node.name);
+			outStream() << node.name.length() << encode(node.name);
 	}
 
 	void mangle(TemplatedIdentifier& node)
@@ -86,7 +86,7 @@ struct NameManglingVisitor : Visitor<ASTNode, void, VisitorImplementation::recur
 
 		bool reserved_construct = isReservedConstructName(getBasename(node.id));
 		if(!reserved_construct)
-			outChannel() << "I"; // RULE: template begins with "I"
+			outStream() << "I"; // RULE: template params begin with "I"
 
 		{
 			mParamDepth++;
@@ -99,7 +99,7 @@ struct NameManglingVisitor : Visitor<ASTNode, void, VisitorImplementation::recur
 					{
 						if(isa<ClassDecl>(resolved_type))
 						{
-							// FIXME: HACK -- can't do reverse-lookup
+							// HACK: can't do reverse-lookup
 							// * since "ASTNodeHelper::findUniqueTypeResolution" jumps directly to "Declaration",
 							//   skipping "TypeSpecifier", we miss a chance to check if we've visited a type.
 							// * a work-around, albeit dirty, is to build a temporary type for the "Declaration",
@@ -108,8 +108,8 @@ struct NameManglingVisitor : Visitor<ASTNode, void, VisitorImplementation::recur
 							//   function mangling.
 							TypeSpecifier* temp_type_specifier = ASTNodeHelper::buildResolvableTypeSpecifier(
 									cast<ClassDecl>(resolved_type));
-							visitParamType(temp_type_specifier);
-							mManagedAliasSlots.push_back(shared_ptr<TypeSpecifier>(temp_type_specifier));
+							visitAliasedType(temp_type_specifier);
+							mAliasMgr.mManagedAliasSlots.push_back(shared_ptr<TypeSpecifier>(temp_type_specifier));
 						}
 						else
 							visit(*resolved_type);
@@ -120,7 +120,7 @@ struct NameManglingVisitor : Visitor<ASTNode, void, VisitorImplementation::recur
 		}
 
 		if(!reserved_construct)
-			outChannel() << "E"; // RULE: template ends with "E"
+			outStream() << "E"; // RULE: template params end with "E"
 	}
 
 	void mangle(TypeSpecifier& node)
@@ -129,19 +129,19 @@ struct NameManglingVisitor : Visitor<ASTNode, void, VisitorImplementation::recur
 		{
 		case TypeSpecifier::ReferredType::FUNCTION_TYPE:
 			visit(*node.referred.function_type);
-			addAliasSlot(&node);
+			mAliasMgr.add(&node);
 			break;
 		case TypeSpecifier::ReferredType::PRIMITIVE:
 			switch(node.referred.primitive)
 			{
-			case PrimitiveType::VOID:	outChannel() << "v"; break;
-			case PrimitiveType::BOOL:	outChannel() << "b"; break;
-			case PrimitiveType::INT8:	outChannel() << "c"; break;
-			case PrimitiveType::INT16:   outChannel() << "s"; break;
-			case PrimitiveType::INT32:   outChannel() << "l"; /* or 'i' ? */ break;
-			case PrimitiveType::INT64:   outChannel() << "x"; break;
-			case PrimitiveType::FLOAT32: outChannel() << "f"; break;
-			case PrimitiveType::FLOAT64: outChannel() << "d"; break;
+			case PrimitiveType::VOID:    outStream() << "v"; break;
+			case PrimitiveType::BOOL:    outStream() << "b"; break;
+			case PrimitiveType::INT8:    outStream() << "c"; break;
+			case PrimitiveType::INT16:   outStream() << "s"; break;
+			case PrimitiveType::INT32:   outStream() << "l"; /* or 'i' ? */ break;
+			case PrimitiveType::INT64:   outStream() << "x"; break;
+			case PrimitiveType::FLOAT32: outStream() << "f"; break;
+			case PrimitiveType::FLOAT64: outStream() << "d"; break;
 			default: UNREACHABLE_CODE();
 			}
 			break;
@@ -150,7 +150,7 @@ struct NameManglingVisitor : Visitor<ASTNode, void, VisitorImplementation::recur
 				ASTNode* resolved_type = ASTNodeHelper::findUniqueTypeResolution(&node);
 				BOOST_ASSERT(resolved_type && "failed to resolve type");
 				visit(*resolved_type);
-				addAliasSlot(&node);
+				mAliasMgr.add(&node);
 			}
 			break;
 		}
@@ -159,65 +159,52 @@ struct NameManglingVisitor : Visitor<ASTNode, void, VisitorImplementation::recur
 	void mangle(FunctionType& node)
 	{
 		uptrace(&node);
-		outChannel() << "PF"; // RULE/THOR_SPECIFIC: callback begins with "F", and is a pointer, hence "P" in "PF"
+		outStream() << "PF"; // RULE/THOR_SPECIFIC: callback begins with "F", and is a pointer, hence "P" in "PF"
 		visit(*node.return_type);
-
 		mParamDepth++;
 		if(node.parameter_types.empty())
-			visitEmptyParams();
+			emitVoid(); // RULE: empty param-list equivalent to "void" type
 		else
 		{
 			foreach(i, node.parameter_types)
-				visitParamType(*i);
+				visitAliasedType(*i);
 		}
 		mParamDepth--;
-
-		outChannel() << "E"; // RULE: callback ends with "E"
-
-		addDummySlot(); // FIXME: HACK -- function type occupies 2 alias slots
+		outStream() << "E"; // RULE: callback ends with "E"
+		mAliasMgr.addDummy(); // HACK: function type occupies 2 alias slots
 	}
 
 	void mangle(Declaration& node)
 	{
-		uptraceAndEmitComboName(&node);
+		uptraceComboName(&node);
 	}
 
 	void mangle(ClassDecl& node)
 	{
-		if(isa<TemplatedIdentifier>(node.name))
-		{
-			if(!cast<TemplatedIdentifier>(node.name)->isFullySpecialized())
-				return;
-		}
-
-		uptraceAndEmitComboName(&node);
+		if(isa<TemplatedIdentifier>(node.name) && !cast<TemplatedIdentifier>(node.name)->isFullySpecialized())
+			return;
+		uptraceComboName(&node);
 	}
 
 	void mangle(FunctionDecl& node)
 	{
-		if(isa<TemplatedIdentifier>(node.name))
-		{
-			if(!cast<TemplatedIdentifier>(node.name)->isFullySpecialized())
-				return;
-		}
+		if(isa<TemplatedIdentifier>(node.name) && !cast<TemplatedIdentifier>(node.name)->isFullySpecialized())
+			return;
 
 		mModeCallByValue = ASTNodeHelper::findAnnotation(&node, L"call_by_value");
 
-		clearAliasSlots();
-		uptraceAndEmitComboName(&node);
+		mAliasMgr.clear();
+		uptraceComboName(&node);
 
 		mParamDepth++;
 		int ThisSlot = -1;
 		if(node.is_member && !node.is_static)
 		{
-			BOOST_ASSERT(node.parent && "method must have parant");
+			BOOST_ASSERT(node.parent && "method must have parent");
 			BOOST_ASSERT(isa<Declaration>(node.parent) && "method parent must be declaration");
 			Declaration* decl = cast<Declaration>(node.parent);
-			if(isa<TemplatedIdentifier>(decl->name))
-			{
-				if(!cast<TemplatedIdentifier>(decl->name)->isFullySpecialized())
-					return;
-			}
+			if(isa<TemplatedIdentifier>(decl->name) && !cast<TemplatedIdentifier>(decl->name)->isFullySpecialized())
+				return;
 			BOOST_ASSERT((node.parameters.size() > 0) && "method must have one parameter");
 			auto first_param = node.parameters.begin();
 			ASTNode* resolved_type = ASTNodeHelper::findUniqueTypeResolution((*first_param)->type);
@@ -226,48 +213,48 @@ struct NameManglingVisitor : Visitor<ASTNode, void, VisitorImplementation::recur
 			{
 				mCurrentOutStream = NULL;
 				visit(*(*first_param)->type);
-				ThisSlot = findAliasSlot((*first_param)->type);
+				ThisSlot = mAliasMgr.find((*first_param)->type);
 				mCurrentOutStream = &mOutStream;
 			}
 		}
 		if(ThisSlot == -1)
 		{
 			if(node.parameters.empty())
-				visitEmptyParams();
+				emitVoid(); // RULE: empty param-list equivalent to "void" type
 			else
 			{
 				foreach(i, node.parameters)
-					visitParamType((*i)->type);
+					visitAliasedType((*i)->type);
 			}
 		}
 		else
 		{
 			if(node.parameters.size() == 1)
-				visitEmptyParams();
+				emitVoid(); // RULE: empty param-list equivalent to "void" type
 			else
 			{
-				bool VisitedExplicitThis = false;
+				bool VisitedFirstExplicitThis = false;
 				foreach(i, node.parameters)
 				{
 					if(i != node.parameters.begin())
 					{
-						if(!VisitedExplicitThis
-								&& ASTNodeHelper::sameResolvedType((*i)->type, mAliasSlots[ThisSlot]))
+						if(!VisitedFirstExplicitThis
+								&& ASTNodeHelper::sameResolvedType((*i)->type, mAliasMgr.mAliasSlots[ThisSlot]))
 						{
 							if(mModeCallByValue)
-								visitParamType((*i)->type);
+								visitAliasedType((*i)->type);
 							else
 							{
-								outChannel() << "P"; // THOR_SPECIFIC: object passing is by pointer, hence "P"
-								visitParamType((*i)->type);
-								TypeSpecifier* type_specifier = removeAliasSlot(ThisSlot);
-								addDummySlot(); // FIXME: HACK -- bump up actual type to account for pointer type
-								addAliasSlot(type_specifier); // FIXME: HACK -- send "ThisSlot" to back
+								outStream() << "P"; // THOR_SPECIFIC: object passing is by pointer, hence "P"
+								visitAliasedType((*i)->type);
+								TypeSpecifier* type_specifier = mAliasMgr.remove(ThisSlot);
+								mAliasMgr.addDummy(); // HACK: bump up actual type to account for pointer type
+								mAliasMgr.add(type_specifier); // HACK: send "ThisSlot" to back
 							}
-							VisitedExplicitThis = true;
+							VisitedFirstExplicitThis = true;
 						}
 						else
-							visitParamType((*i)->type);
+							visitAliasedType((*i)->type);
 					}
 				}
 			}
@@ -280,13 +267,17 @@ struct NameManglingVisitor : Visitor<ASTNode, void, VisitorImplementation::recur
 		mModeCallByValue = false;
 	}
 
-	std::string ucs4_to_utf8_temp;
-	std::string utf8_to_llvm_temp;
-
-	const std::string& encode(const std::wstring& ucs4)
+	std::string encode(const std::wstring ucs4)
 	{
-		ucs4_to_utf8_temp.clear();
-		utf8_to_llvm_temp.clear();
+		auto toAsciiNumber = [](char c)
+			{
+				static char buffer[4];
+				snprintf(buffer, 3, "%d", c);
+				return buffer;
+			};
+
+		std::string ucs4_to_utf8_temp;
+		std::string utf8_to_llvm_temp;
 
 		// first we should covert UCS-4 to UTF-8
 		ucs4_to_utf8(ucs4, ucs4_to_utf8_temp);
@@ -328,13 +319,10 @@ struct NameManglingVisitor : Visitor<ASTNode, void, VisitorImplementation::recur
 private:
 	std::stringstream* mCurrentOutStream;
 
-	std::ostream& outChannel()
+	std::ostream& outStream()
 	{
 		static std::stringstream NullOutStream;
-		if(mCurrentOutStream)
-			return *mCurrentOutStream;
-		else
-			return NullOutStream;
+		return mCurrentOutStream ? *mCurrentOutStream : NullOutStream;
 	}
 
 	void uptrace(ASTNode* node)
@@ -345,7 +333,7 @@ private:
 		mInsideUptrace = false;
 	}
 
-	void uptraceAndEmitComboName(Declaration* decl)
+	void uptraceComboName(Declaration* decl)
 	{
 		bool inside_combo_name = (!mInsideUptrace && !ASTNodeHelper::isRootPackage(decl->parent));
 
@@ -357,16 +345,16 @@ private:
 
 		visit(*decl->name);
 		if(inside_combo_name)
-			outChannel() << "E"; // RULE: combo name ends with "E"
+			outStream() << "E"; // RULE: combo name ends with "E"
 	}
 
-	void visitParamType(TypeSpecifier* type_specifier)
+	void visitAliasedType(TypeSpecifier* type_specifier)
 	{
 		if(type_specifier->type == TypeSpecifier::ReferredType::PRIMITIVE)
 			visit(*type_specifier);
 		else
 		{
-			int slot = findAliasSlot(type_specifier);
+			int slot = mAliasMgr.find(type_specifier);
 			if(slot == -1)
 			{
 				ASTNode* resolved_type = ASTNodeHelper::findUniqueTypeResolution(type_specifier);
@@ -377,28 +365,15 @@ private:
 							&& !isReservedConstructName(getBasename(cast<Declaration>(resolved_type)->name))
 							&& !mModeCallByValue)
 					{
-						outChannel() << "P"; // THOR_SPECIFIC: object passing is by pointer, hence "P"
-						addDummySlot(); // FIXME: HACK -- bump up actual type to account for pointer type
+						outStream() << "P"; // THOR_SPECIFIC: object passing is by pointer, hence "P"
+						mAliasMgr.addDummy(); // HACK: bump up actual type to account for pointer type
 					}
 				}
 				visit(*type_specifier);
 			}
 			else
-				writeSubstitution(slot);
+				emitAlias(slot);
 		}
-	}
-
-	void visitEmptyParams()
-	{
-		TypeSpecifier type_specifier(PrimitiveType::VOID);
-		visit(type_specifier); // RULE: empty param-list equivalent to "void" type
-	}
-
-	static const char* toAsciiNumber(char c)
-	{
-		static char buffer[4];
-		snprintf(buffer, 3, "%d", c);
-		return buffer;
 	}
 
 	bool mInsideUptrace;
@@ -406,63 +381,68 @@ private:
 	int mParamDepth;
 	bool mModeCallByValue;
 
-	std::vector<TypeSpecifier*> mAliasSlots;
-	std::vector<shared_ptr<TypeSpecifier>> mManagedAliasSlots;
-
-	int findAliasSlot(TypeSpecifier* type_specifier)
+	struct AliasMgr
 	{
-		auto p = std::find_if(mAliasSlots.begin(), mAliasSlots.end(),
-				[&](TypeSpecifier* other) {
-						return other ? ASTNodeHelper::sameResolvedType(type_specifier, other) : false;
-						} );
-		return (p != mAliasSlots.end()) ? std::distance(mAliasSlots.begin(), p) : -1;
+		int find(TypeSpecifier* type_specifier)
+		{
+			auto p = std::find_if(mAliasSlots.begin(), mAliasSlots.end(),
+					[&](TypeSpecifier* other) {
+							return other ? ASTNodeHelper::sameResolvedType(type_specifier, other) : false;
+							} );
+			return (p != mAliasSlots.end()) ? std::distance(mAliasSlots.begin(), p) : -1;
+		}
+
+		void add(TypeSpecifier* type_specifier = NULL, bool check_if_unique = true)
+		{
+			if(check_if_unique && find(type_specifier) != -1)
+				return;
+			mAliasSlots.push_back(type_specifier);
+		}
+
+		void addDummy()
+		{
+			add(NULL, false);
+		}
+
+		TypeSpecifier* remove(int slot)
+		{
+			BOOST_ASSERT((slot != -1) && "invalid slot");
+			TypeSpecifier* type_specifier = mAliasSlots[slot];
+			mAliasSlots.erase(mAliasSlots.begin()+slot);
+			return type_specifier;
+		}
+
+		void clear()
+		{
+			mAliasSlots.clear();
+			mManagedAliasSlots.clear();
+		}
+
+		std::vector<TypeSpecifier*> mAliasSlots;
+		std::vector<shared_ptr<TypeSpecifier>> mManagedAliasSlots;
+	} mAliasMgr;
+
+	void emitAlias(int slot)
+	{
+		auto ito36a = [](size_t n)
+			{
+				static const char b[] = "0123456789abcdefghijklmnopqrstuvwxyz";
+				std::string s ;
+				for(;n ; n /= 36)
+					s += b[n % 36];
+				return !s.empty() ? std::string(s.rbegin(), s.rend()) : "0";
+			};
+		BOOST_ASSERT(slot >= 0 && "invalid slot");
+		outStream() << ((slot == 0) ? "S_" : ("S"+ito36a(slot-1)+"_"));
 	}
 
-	void addAliasSlot(TypeSpecifier* type_specifier = NULL, bool check_if_unique = true)
+	void emitVoid()
 	{
-		if(check_if_unique && findAliasSlot(type_specifier) != -1)
-			return;
-		mAliasSlots.push_back(type_specifier);
+		TypeSpecifier type_specifier(PrimitiveType::VOID);
+		visit(type_specifier);
 	}
 
-	void addDummySlot()
-	{
-		addAliasSlot(NULL, false);
-	}
-
-	void clearAliasSlots()
-	{
-		mAliasSlots.clear();
-		mManagedAliasSlots.clear();
-	}
-
-	TypeSpecifier* removeAliasSlot(int slot)
-	{
-		BOOST_ASSERT((slot != -1) && "invalid slot");
-		TypeSpecifier* type_specifier = mAliasSlots[slot];
-		mAliasSlots.erase(mAliasSlots.begin()+slot);
-		return type_specifier;
-	}
-
-	std::string ito36a(size_t n)
-	{
-		static char b[] = "0123456789abcdefghijklmnopqrstuvwxyz";
-		std::string tmp ;
-		for(;n; n /= 36)
-			tmp += b[n % 36];
-		if(tmp.empty())
-			return "0";
-		else
-			return std::string(tmp.rbegin(), tmp.rend());
-	}
-
-	void writeSubstitution(int slot)
-	{
-		BOOST_ASSERT(slot >= 0 && "negative type index has no substitution");
-		outChannel() << ((slot == 0) ? "S_" : "S"+ito36a(slot-1)+"_");
-	}
-
-	std::wstring getBasename(Identifier* ident)
+	static std::wstring getBasename(Identifier* ident)
 	{
 		if(isa<SimpleIdentifier>(ident))
 			return cast<SimpleIdentifier>(ident)->name;
@@ -480,7 +460,7 @@ private:
 		return L"";
 	}
 
-	bool isReservedConstructName(std::wstring s)
+	static bool isReservedConstructName(std::wstring s)
 	{
 		return (s == L"ptr_" || s == L"ref_" || s == L"const_" || s == L"void_");
 	}
