@@ -2,127 +2,137 @@ typedef char int8;
 typedef short int16;
 typedef long int32;
 typedef long long int64;
+class _QWE_ { };
 
 // no-param vs params vs return-value
-void _func_00_() { }               // _Z9_func_00_v
+void _func_00_()               { } // _Z9_func_00_v
 void _func_01_(int8 x, int8 y) { } // _Z9_func_01_cc
 
 // primitive-type
-void _func_10_(int8 x) { }  // _Z9_func_10_c
+void _func_10_(int8 x)  { } // _Z9_func_10_c
 void _func_11_(int16 x) { } // _Z9_func_11_s
 void _func_12_(int32 x) { } // _Z9_func_12_l
 void _func_13_(int32 x) { } // _Z9_func_13_l
 void _func_14_(int64 x) { } // _Z9_func_14_x
 
 // non-primitive-type
-class _QWE_ { };
 void _func_20_(_QWE_* x) { } // _Z9_func_20_P5_QWE_
 
 // pointer vs reference
-void _func_30_(void* x) { }                                              // _Z9_func_30_Pv
-void _func_31_(int8& x) { }                                              // _Z9_func_31_Rc
-void _func_32_(void** x) { }                                             // _Z9_func_32_PPv
-void _func_33_(void*& x) { }                                             // _Z9_func_33_RPv
-void _func_34_(void**& x) { }                                            // _Z9_func_34_RPPv
-void _func_35_(void (*x)(int8)) { }                                      // _Z9_func_35_PFvcE
-void _func_36_(void (*x)(int8), void (*y)(int8), void (*z)(int8)) { }    // _Z9_func_36_PFvcES0_S0_
-void _func_37_(_QWE_* x) { }                                             // _Z9_func_37_P5_QWE_
-void _func_38_(_QWE_* x, _QWE_* y, _QWE_* z) { }                         // _Z9_func_38_P5_QWE_S0_S0_
+void _func_30_(void* x)                                              { } // _Z9_func_30_Pv
+void _func_31_(int8& x)                                              { } // _Z9_func_31_Rc
+void _func_32_(void** x)                                             { } // _Z9_func_32_PPv
+void _func_33_(void*& x)                                             { } // _Z9_func_33_RPv
+void _func_34_(void**& x)                                            { } // _Z9_func_34_RPPv
+void _func_35_(void (*x)(int8))                                      { } // _Z9_func_35_PFvcE
+void _func_36_(void (*x)(int8), void (*y)(int8), void (*z)(int8))    { } // _Z9_func_36_PFvcES0_S0_
+void _func_37_(_QWE_* x)                                             { } // _Z9_func_37_P5_QWE_
+void _func_38_(_QWE_* x, _QWE_* y, _QWE_* z)                         { } // _Z9_func_38_P5_QWE_S0_S0_
 void _func_39_(void (*x)(_QWE_*, _QWE_*), void (*y)(_QWE_*, _QWE_*)) { } // _Z9_func_39_PFvP5_QWE_S0_ES2_
 
 // const vs non-const
-void _func_40_(void const* x) { }  // _Z9_func_40_PKv
-void _func_41_(void* x) { }        // _Z9_func_41_Pv
+void _func_40_(void const* x)  { } // _Z9_func_40_PKv
+void _func_41_(void* x)        { } // _Z9_func_41_Pv
 void _func_42_(void const** x) { } // _Z9_func_42_PPKv
-void _func_43_(void*const* x) { }  // _Z9_func_43_PKPv
-void _func_44_(void** x) { }       // _Z9_func_44_PPv
+void _func_43_(void*const* x)  { } // _Z9_func_43_PKPv
+void _func_44_(void** x)       { } // _Z9_func_44_PPv
 
-// namespace decl
+// namespace member
 namespace _AAA_
 {
     namespace _XXX_
     {
-        void _func_50_() { } // _ZN5_AAA_9_func_50_Ev
+        void _func_50_() { } // _ZN5_AAA_5_XXX_9_func_50_Ev
     }
 }
 
-// simple class member
+// class member
 struct _BBB_
 {
-    void _func_51_() { }                             // _ZN5_BBB_9_func_51_Ev
-    void _func_52_(_BBB_* x) { }                     // _ZN5_BBB_9_func_52_EPS_
-    void _func_53_(_BBB_* x, _BBB_* y, _BBB_* z) { } // _ZN5_BBB_9_func_53_EPS_S0_S0_
+    void _func_60_()                             { } // _ZN5_BBB_9_func_60_Ev
+    void _func_61_(_QWE_* x)                     { } // _ZN5_BBB_9_func_61_EP5_QWE_
+    void _func_62_(_QWE_* x, _QWE_* y, _QWE_* z) { } // _ZN5_BBB_9_func_62_EP5_QWE_S1_S1_
+    void _func_63_(_BBB_* x, _BBB_* y, _BBB_* z) { } // _ZN5_BBB_9_func_63_EPS_S0_S0_
 };
 
 // templated class member
 template<class T, class T2>
 struct _CCC_
 {
-    void _func_54_(_QWE_* x) { } // when specialize for int8 ==> _ZN5_CCC_IccE9_func_54_EP5_QWE_
-};
-
-// templated class member (specialized class)
-template<>
-struct _CCC_<_QWE_, _QWE_>
-{
-    void _func_54_(_QWE_* x) { } // _ZN5_CCC_I5_QWE_S0_E9_func_54_EPS0_
+    void _func_70_()                                                  { }
+    void _func_71_(_QWE_* x)                                          { }
+    void _func_72_(_QWE_* x, _QWE_* y, _QWE_* z)                      { }
+    void _func_73_(_CCC_<T, T2>* x, _CCC_<T, T2>* y, _CCC_<T, T2>* z) { }
 };
 
 // class templated member
 struct _DDD_
 {
-    template<class T, class T2>
-    int64 _func_55_(_QWE_* x) { } // when specialize for int8 ==> _ZN5_DDD_9_func_55_IccEExP5_QWE_
+    template<class T, class T2> int64 _func_80_()                             { }
+    template<class T, class T2> int64 _func_81_(_QWE_* x)                     { }
+    template<class T, class T2> int64 _func_82_(_QWE_* x, _QWE_* y, _QWE_* z) { }
+    template<class T, class T2> int64 _func_83_(_DDD_* x, _DDD_* y, _DDD_* z) { }
 };
 
-// class templated member (specialized member)
-template<>
-int64 _DDD_::_func_55_<_QWE_, _QWE_>(_QWE_* x) { } // _ZN5_DDD_9_func_55_I5_QWE_S1_EExPS1_
-
 // templated function
-template<class T, class T2>
-int64 _func_56_(_QWE_* x) { } // when specialize for int8 ==> _Z9_func_56_IccExP5_QWE_
+template<class T, class T2> int64 _func_90_()                             { }
+template<class T, class T2> int64 _func_91_(_QWE_* x)                     { }
+template<class T, class T2> int64 _func_92_(_QWE_* x, _QWE_* y, _QWE_* z) { }
 
-// templated function (specialized)
-template<>
-int64 _func_56_<_QWE_, _QWE_>(_QWE_* x) { } // _Z9_func_56_I5_QWE_S0_ExPS0_
-
-void _func_60_(_QWE_* x, _QWE_ y) { } // _Z9_func_60_P5_QWE_S_
-
+// mixing pointer non-pointer
+void _func_A0_(_QWE_* x, _QWE_ y) { } // _Z9_func_A0_P5_QWE_S_
 struct _EEE_
 {
-    void _func_61_(_QWE_* x, _QWE_ y) { } // _ZN5_EEE_9_func_61_EP5_QWE_S0_
+    void _func_A1_(_QWE_* x, _QWE_ y) { } // _ZN5_EEE_9_func_A1_EP5_QWE_S0_
 };
 
 int main()
 {
-    // namespace decl
+    _QWE_ qwe;
+    _DDD_ ddd;
+    _EEE_ eee;
+
+    // namespace member
     _AAA_::_XXX_::_func_50_();
 
-    // simple class member
+    // class member
     _BBB_ bbb;
-    bbb._func_51_();
-    bbb._func_52_(&bbb);
-    bbb._func_53_(&bbb, &bbb, &bbb);
-
-    _QWE_ qwe;
+    bbb._func_60_();
+    bbb._func_61_(&qwe);
+    bbb._func_62_(&qwe, &qwe, &qwe);
+    bbb._func_63_(&bbb, &bbb, &bbb);
 
     // templated class member
     _CCC_<int8, int8> ccc;
-    ccc._func_54_(&qwe);
-    _CCC_<_QWE_, _QWE_> ccc2;
-    ccc2._func_54_(&qwe);
+    _CCC_<_QWE_*, _QWE_*> ccc2;
+    ccc._func_70_();                     // _ZN5_CCC_IccE9_func_70_Ev
+    ccc._func_71_(&qwe);                 // _ZN5_CCC_IccE9_func_71_EP5_QWE_
+    ccc._func_72_(&qwe, &qwe, &qwe);     // _ZN5_CCC_IccE9_func_72_EP5_QWE_S2_S2_
+    ccc._func_73_(&ccc, &ccc, &ccc);     // _ZN5_CCC_IccE9_func_73_EPS0_S1_S1_
+    ccc2._func_70_();                    // _ZN5_CCC_IP5_QWE_S1_E9_func_70_Ev
+    ccc2._func_71_(&qwe);                // _ZN5_CCC_IP5_QWE_S1_E9_func_71_ES1_
+    ccc2._func_72_(&qwe, &qwe, &qwe);    // _ZN5_CCC_IP5_QWE_S1_E9_func_72_ES1_S1_S1_
+    ccc2._func_73_(&ccc2, &ccc2, &ccc2); // _ZN5_CCC_IP5_QWE_S1_E9_func_73_EPS2_S3_S3_
 
     // class templated member
-    _DDD_ ddd;
-    ddd._func_55_<int8, int8>(&qwe);
-    ddd._func_55_<_QWE_, _QWE_>(&qwe);
+    ddd._func_80_<int8, int8>();                     // _ZN5_DDD_9_func_80_IccEExv
+    ddd._func_81_<int8, int8>(&qwe);                 // _ZN5_DDD_9_func_81_IccEExP5_QWE_
+    ddd._func_82_<int8, int8>(&qwe, &qwe, &qwe);     // _ZN5_DDD_9_func_82_IccEExP5_QWE_S2_S2_
+    ddd._func_83_<int8, int8>(&ddd, &ddd, &ddd);     // _ZN5_DDD_9_func_83_IccEExPS_S1_S1_
+    ddd._func_80_<_QWE_*, _QWE_*>();                 // _ZN5_DDD_9_func_80_IP5_QWE_S2_EExv
+    ddd._func_81_<_QWE_*, _QWE_*>(&qwe);             // _ZN5_DDD_9_func_81_IP5_QWE_S2_EExS2_
+    ddd._func_82_<_QWE_*, _QWE_*>(&qwe, &qwe, &qwe); // _ZN5_DDD_9_func_82_IP5_QWE_S2_EExS2_S2_S2_
+    ddd._func_83_<_QWE_*, _QWE_*>(&ddd, &ddd, &ddd); // _ZN5_DDD_9_func_83_IP5_QWE_S2_EExPS_S3_S3_
 
     // templated function
-    _func_56_<int8, int8>(&qwe);
-    _func_56_<_QWE_, _QWE_>(&qwe);
+    _func_90_<int8, int8>();                     // _Z9_func_90_IccExv
+    _func_91_<int8, int8>(&qwe);                 // _Z9_func_91_IccExP5_QWE_
+    _func_92_<int8, int8>(&qwe, &qwe, &qwe);     // _Z9_func_92_IccExP5_QWE_S1_S1_
+    _func_90_<_QWE_*, _QWE_*>();                 // _Z9_func_90_IP5_QWE_S1_Exv
+    _func_91_<_QWE_*, _QWE_*>(&qwe);             // _Z9_func_91_IP5_QWE_S1_ExS1_
+    _func_92_<_QWE_*, _QWE_*>(&qwe, &qwe, &qwe); // _Z9_func_92_IP5_QWE_S1_ExS1_S1_S1_
 
-    _func_60_(&qwe, qwe);
-    _EEE_ eee;
-    eee._func_61_(&qwe, qwe);
+    // mixing pointer non-pointer
+    _func_A0_(&qwe, qwe);
+    eee._func_A1_(&qwe, qwe);
 }
