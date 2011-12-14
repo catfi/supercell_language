@@ -82,9 +82,12 @@ struct NameManglingVisitor : Visitor<ASTNode, void, VisitorImplementation::recur
 
 	void mangle(TemplatedIdentifier& node)
 	{
+		bool reserved_construct = isReservedConstructName(getBasename(node.id));
+//		if(!reserved_construct)
+//			mAliasMgr.addDummy();
+
 		visit(*node.id);
 
-		bool reserved_construct = isReservedConstructName(getBasename(node.id));
 		if(!reserved_construct)
 			outStream() << "I"; // RULE: template params begin with "I"
 
@@ -196,6 +199,9 @@ struct NameManglingVisitor : Visitor<ASTNode, void, VisitorImplementation::recur
 		mAliasMgr.clear();
 		uptraceComboName(&node);
 
+		if(isa<TemplatedIdentifier>(node.name))
+			visit(*node.type);
+
 		mParamDepth++;
 		int ThisSlot = -1;
 		if(node.is_member && !node.is_static)
@@ -260,9 +266,6 @@ struct NameManglingVisitor : Visitor<ASTNode, void, VisitorImplementation::recur
 			}
 		}
 		mParamDepth--;
-
-		if(isa<TemplatedIdentifier>(node.name))
-			visit(*node.type);
 
 		mModeCallByValue = false;
 	}
