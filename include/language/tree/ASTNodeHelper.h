@@ -33,6 +33,35 @@ namespace zillians { namespace language { namespace tree {
 
 struct ASTNodeHelper
 {
+	template<int N, typename ContextTypeList>
+	struct ContextCloneImpl
+	{
+		static void clone(ASTNode& to, ASTNode& from)
+		{
+			typedef typename boost::mpl::at<ContextTypeList, boost::mpl::int_<N-1> ContextT;
+			if(from.get<ContextT>())
+			{
+				ContextT* ctx = new ContextT(*from.get<ContextT>());
+				to.set<ContextT, ContextOwnership::transfer>(ctx);
+			}
+			ContextCloneImpl<N-1, ContextTypeList>::clone(to, from);
+		}
+	};
+
+	template<typename ContextTypeList>
+	struct ContextCloneImpl<0, ContextTypeList>
+	{
+		static void clone(ASTNode& to, ASTNode& from)
+		{
+		}
+	};
+
+	template<typename ContextTypeList>
+	static void clone(ASTNode& to, ASTNode& from)
+	{
+		ContextCloneImpl<boost::mpl::size<ContextTypeList>::value, ContextTypeList>::clone(to, from);
+	}
+
 	static void propogateSourceInfo(ASTNode& to, ASTNode& from)
 	{
 		stage::SourceInfoContext* to_src_info = to.get<stage::SourceInfoContext>();
