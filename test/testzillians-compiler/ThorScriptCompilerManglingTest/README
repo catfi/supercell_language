@@ -89,8 +89,6 @@ struct _EEE_
 int main()
 {
     _QWE_ qwe;
-    _DDD_ ddd;
-    _EEE_ eee;
 
     // namespace member
     _AAA_::_XXX_::_func_50_();
@@ -104,17 +102,28 @@ int main()
 
     // templated class member
     _CCC_<int8, int8> ccc;
-    _CCC_<_QWE_*, _QWE_*> ccc2;
     ccc._func_70_();                     // _ZN5_CCC_IccE9_func_70_Ev
     ccc._func_71_(&qwe);                 // _ZN5_CCC_IccE9_func_71_EP5_QWE_
-    ccc._func_72_(&qwe, &qwe, &qwe);     // _ZN5_CCC_IccE9_func_72_EP5_QWE_S2_S2_
-    ccc._func_73_(&ccc, &ccc, &ccc);     // _ZN5_CCC_IccE9_func_73_EPS0_S1_S1_
+
+    ccc._func_72_(&qwe, &qwe, &qwe);     // _ZN5_CCC_IccE9_func_72_EP5_QWE_S2_S2_ (RIGHT)
+                                         // _ZN5_CCC_IccE9_func_72_EP5_QWE_S3_S3_ (WRONG)
+                                                                         // ^ - param list +1
+
+    ccc._func_73_(&ccc, &ccc, &ccc);     // _ZN5_CCC_IccE9_func_73_EPS0_S1_S1_ (RIGHT)
+                                         // _ZN5_CCC_IccE9_func_73_EPS1_S2_S2_ (WRONG)
+                                                                   // ^ - param list +1
+
+    _CCC_<_QWE_*, _QWE_*> ccc2;
     ccc2._func_70_();                    // _ZN5_CCC_IP5_QWE_S1_E9_func_70_Ev
     ccc2._func_71_(&qwe);                // _ZN5_CCC_IP5_QWE_S1_E9_func_71_ES1_
     ccc2._func_72_(&qwe, &qwe, &qwe);    // _ZN5_CCC_IP5_QWE_S1_E9_func_72_ES1_S1_S1_
-    ccc2._func_73_(&ccc2, &ccc2, &ccc2); // _ZN5_CCC_IP5_QWE_S1_E9_func_73_EPS2_S3_S3_
+
+    ccc2._func_73_(&ccc2, &ccc2, &ccc2); // _ZN5_CCC_IP5_QWE_S1_E9_func_73_EPS2_S3_S3_ (RIGHT)
+                                         // _ZN5_CCC_IP5_QWE_S1_E9_func_73_EPS3_S4_S4_ (WRONG)
+                                                                           // ^ - param list +1
 
     // class templated member
+    _DDD_ ddd;
     ddd._func_80_<int8, int8>();                     // _ZN5_DDD_9_func_80_IccEExv
     ddd._func_81_<int8, int8>(&qwe);                 // _ZN5_DDD_9_func_81_IccEExP5_QWE_
     ddd._func_82_<int8, int8>(&qwe, &qwe, &qwe);     // _ZN5_DDD_9_func_82_IccEExP5_QWE_S2_S2_
@@ -134,5 +143,6 @@ int main()
 
     // mixing pointer non-pointer
     _func_A0_(&qwe, qwe);
+    _EEE_ eee;
     eee._func_A1_(&qwe, qwe);
 }
