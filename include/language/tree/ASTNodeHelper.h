@@ -29,10 +29,46 @@
 #include "language/tree/visitor/NodeInfoVisitor.h"
 #include "language/tree/visitor/ASTGraphvizGenerator.h"
 
+#include <boost/mpl/vector.hpp>
+#include <boost/mpl/size.hpp>
+#include <boost/mpl/at.hpp>
+#include <boost/mpl/int.hpp>
+
 namespace zillians { namespace language { namespace tree {
 
 struct ASTNodeHelper
 {
+	template<int N, typename ContextTypeList>
+	struct ContextCloneImpl
+	{
+		typedef typename boost::mpl::at<ContextTypeList, boost::mpl::int_<N-1> >::type ContextT;
+		static void clone(ASTNode* to, ASTNode* from)
+		{
+			if(from->get<ContextT>())
+			{
+				ContextT* ctx = new ContextT(*from->get<ContextT>());
+				to->set<ContextT, ContextOwnership::transfer>(ctx);
+			}
+			ContextCloneImpl<N-1, ContextTypeList>::clone(to, from);
+		}
+	};
+
+	template<typename ContextTypeList>
+	struct ContextCloneImpl<0, ContextTypeList>
+	{
+		static void clone(ASTNode* to, ASTNode* from)
+		{
+			UNUSED_ARGUMENT(to);
+			UNUSED_ARGUMENT(from);
+		}
+	};
+
+	template<typename ContextTypeList>
+	static void clone(ASTNode* to, ASTNode* from)
+	{
+		ContextCloneImpl<boost::mpl::size<ContextTypeList>::value, ContextTypeList>::clone(to, from);
+	}
+
 	static void propogateSourceInfo(ASTNode& to, ASTNode& from)
 	{
 		stage::SourceInfoContext* to_src_info = to.get<stage::SourceInfoContext>();
