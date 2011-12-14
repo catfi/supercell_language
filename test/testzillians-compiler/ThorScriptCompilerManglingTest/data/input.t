@@ -143,11 +143,11 @@ function main():void
 
     // templated class member
     var ccc:_CCC_<int8, int8>;
-    var ccc2:_CCC_<_QWE_, _QWE_>;
     ccc._func_70_();
     ccc._func_71_(qwe);
     ccc._func_72_(qwe, qwe, qwe);
     ccc._func_73_(ccc, ccc, ccc);
+    var ccc2:_CCC_<_QWE_, _QWE_>;
     ccc2._func_70_();
     ccc2._func_71_(qwe);
     ccc2._func_72_(qwe, qwe, qwe);

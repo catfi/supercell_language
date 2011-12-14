@@ -83,8 +83,8 @@ struct NameManglingVisitor : Visitor<ASTNode, void, VisitorImplementation::recur
 	void mangle(TemplatedIdentifier& node)
 	{
 		bool reserved_construct = isReservedConstructName(getBasename(node.id));
-//		if(!reserved_construct)
-//			mAliasMgr.addDummy();
+		if(!reserved_construct)
+			mAliasMgr.addDummy();
 
 		visit(*node.id);
 
@@ -270,42 +270,6 @@ struct NameManglingVisitor : Visitor<ASTNode, void, VisitorImplementation::recur
 		mModeCallByValue = false;
 	}
 
-	std::string encode(const std::wstring ucs4)
-	{
-		auto toAsciiNumber = [](char c)
-			{
-				static char buffer[4];
-				snprintf(buffer, 3, "%d", c);
-				return buffer;
-			};
-
-		std::string ucs4_to_utf8_temp;
-		std::string utf8_to_llvm_temp;
-
-		// first we should covert UCS-4 to UTF-8
-		ucs4_to_utf8(ucs4, ucs4_to_utf8_temp);
-
-		// because LLVM only accept identifier of the form: '[%@][a-zA-Z$._][a-zA-Z$._0-9]*'
-		// we have to convert illegal identifier into legal one
-		for(std::string::const_iterator i = ucs4_to_utf8_temp.begin(), e = ucs4_to_utf8_temp.end(); i != e; ++i)
-		{
-			char c = *i;
-#if 0 // NOTE: for debugging only
-			if(c == '<') break;
-#endif
-			if( ((i == ucs4_to_utf8_temp.begin()) ? false : isdigit(c)) || isalpha(c) || (c == '_') || (c == '.') )
-				utf8_to_llvm_temp.push_back(c);
-			else
-			{
-				utf8_to_llvm_temp.push_back('$');
-				utf8_to_llvm_temp.append(toAsciiNumber(c));
-				utf8_to_llvm_temp.push_back('$');
-			}
-		}
-
-		return utf8_to_llvm_temp;
-	}
-
 	void reset()
 	{
 #if 0 // NOTE: for debugging only
@@ -464,6 +428,43 @@ private:
 	static bool isReservedConstructName(std::wstring s)
 	{
 		return (s == L"ptr_" || s == L"ref_" || s == L"const_" || s == L"void_");
+	}
+
+public:
+	std::string encode(const std::wstring ucs4)
+	{
+		auto toAsciiNumber = [](char c)
+			{
+				static char buffer[4];
+				snprintf(buffer, 3, "%d", c);
+				return buffer;
+			};
+
+		std::string ucs4_to_utf8_temp;
+		std::string utf8_to_llvm_temp;
+
+		// first we should covert UCS-4 to UTF-8
+		ucs4_to_utf8(ucs4, ucs4_to_utf8_temp);
+
+		// because LLVM only accept identifier of the form: '[%@][a-zA-Z$._][a-zA-Z$._0-9]*'
+		// we have to convert illegal identifier into legal one
+		for(std::string::const_iterator i = ucs4_to_utf8_temp.begin(), e = ucs4_to_utf8_temp.end(); i != e; ++i)
+		{
+			char c = *i;
+#if 0 // NOTE: for debugging only
+			if(c == '<') break;
+#endif
+			if( ((i == ucs4_to_utf8_temp.begin()) ? false : isdigit(c)) || isalpha(c) || (c == '_') || (c == '.') )
+				utf8_to_llvm_temp.push_back(c);
+			else
+			{
+				utf8_to_llvm_temp.push_back('$');
+				utf8_to_llvm_temp.append(toAsciiNumber(c));
+				utf8_to_llvm_temp.push_back('$');
+			}
+		}
+
+		return utf8_to_llvm_temp;
 	}
 };
 
