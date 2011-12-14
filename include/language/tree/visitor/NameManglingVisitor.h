@@ -58,7 +58,7 @@ struct NameManglingVisitor : Visitor<ASTNode, void, VisitorImplementation::recur
 		}
 		else
 		{
-			uptrace(&node);
+			visitParent(&node);
 			visit(*node.id);
 		}
 	}
@@ -87,7 +87,14 @@ struct NameManglingVisitor : Visitor<ASTNode, void, VisitorImplementation::recur
 		bool reserved_construct = isReservedConstructName(getBasename(node.id));
 		if(!reserved_construct)
 		{
-			mAliasMgr.addDummy();
+//			if(isa<ClassDecl>(node.parent))
+//			{
+//				TypeSpecifier* temp_type_specifier = ASTNodeHelper::buildResolvableTypeSpecifier(
+//						cast<ClassDecl>(node.parent));
+//				if(mAliasMgr.find(temp_type_specifier) == -1)
+//					mAliasMgr.addDummy();
+//			}
+			mAliasMgr.addDummy(); // FIXME: HACK: unreasonable to do this every time
 			outStream() << "I"; // RULE: template params begin with "I"
 		}
 
@@ -161,7 +168,7 @@ struct NameManglingVisitor : Visitor<ASTNode, void, VisitorImplementation::recur
 
 	void mangle(FunctionType& node)
 	{
-		uptrace(&node);
+		visitParent(&node);
 		outStream() << "PF"; // RULE/THOR_SPECIFIC: callback begins with "F", and is a pointer, hence "P" in "PF"
 		visit(*node.return_type);
 		mParamDepth++;
@@ -179,14 +186,21 @@ struct NameManglingVisitor : Visitor<ASTNode, void, VisitorImplementation::recur
 
 	void mangle(Declaration& node)
 	{
-		uptraceComboName(&node);
+		visitParentThenPrintName(&node);
 	}
 
 	void mangle(ClassDecl& node)
 	{
 		if(isa<TemplatedIdentifier>(node.name) && !cast<TemplatedIdentifier>(node.name)->isFullySpecialized())
 			return;
-		uptraceComboName(&node);
+
+		visitParentThenPrintName(&node);
+
+		{
+			TypeSpecifier* temp_type_specifier = ASTNodeHelper::buildResolvableTypeSpecifier(&node);
+			mAliasMgr.add(temp_type_specifier);
+			mAliasMgr.mManagedAliasSlots.push_back(shared_ptr<TypeSpecifier>(temp_type_specifier));
+		}
 	}
 
 	void mangle(FunctionDecl& node)
@@ -197,7 +211,7 @@ struct NameManglingVisitor : Visitor<ASTNode, void, VisitorImplementation::recur
 		mModeCallByValue = ASTNodeHelper::findAnnotation(&node, L"call_by_value");
 
 		mAliasMgr.clear();
-		uptraceComboName(&node);
+		visitParentThenPrintName(&node);
 
 		if(isa<TemplatedIdentifier>(node.name))
 			visit(*node.type);
@@ -292,7 +306,7 @@ private:
 		return mCurrentOutStream ? *mCurrentOutStream : NullOutStream;
 	}
 
-	void uptrace(ASTNode* node)
+	void visitParent(ASTNode* node)
 	{
 		mInsideUptrace = true;
 		if(node->parent)
@@ -300,18 +314,18 @@ private:
 		mInsideUptrace = false;
 	}
 
-	void uptraceComboName(Declaration* decl)
+	void visitParentThenPrintName(Declaration* decl)
 	{
-		bool inside_combo_name = (!mInsideUptrace && !ASTNodeHelper::isRootPackage(decl->parent));
+		bool end_of_combo_name = (!mInsideUptrace && !ASTNodeHelper::isRootPackage(decl->parent));
 
 		{
-			mInsideComboName |= inside_combo_name;
-			uptrace(decl);
+			mInsideComboName |= end_of_combo_name;
+			visitParent(decl);
 			mInsideComboName = false;
 		}
 
 		visit(*decl->name);
-		if(inside_combo_name)
+		if(end_of_combo_name)
 			outStream() << "E"; // RULE: combo name ends with "E"
 	}
 
@@ -337,7 +351,7 @@ private:
 				visit(*type_specifier);
 			}
 			else
-				writeSubstitution(slot);
+				printSubstitution(slot);
 		}
 	}
 
@@ -387,7 +401,7 @@ private:
 		std::vector<shared_ptr<TypeSpecifier>> mManagedAliasSlots;
 	} mAliasMgr;
 
-	void writeSubstitution(int slot)
+	void printSubstitution(int slot)
 	{
 		auto ito36a = [](size_t n)
 			{
