@@ -82,14 +82,14 @@ struct NameManglingVisitor : Visitor<ASTNode, void, VisitorImplementation::recur
 
 	void mangle(TemplatedIdentifier& node)
 	{
-		bool reserved_construct = isReservedConstructName(getBasename(node.id));
-		if(!reserved_construct)
-			mAliasMgr.addDummy();
-
 		visit(*node.id);
 
+		bool reserved_construct = isReservedConstructName(getBasename(node.id));
 		if(!reserved_construct)
+		{
+			mAliasMgr.addDummy();
 			outStream() << "I"; // RULE: template params begin with "I"
+		}
 
 		{
 			mParamDepth++;
@@ -108,7 +108,7 @@ struct NameManglingVisitor : Visitor<ASTNode, void, VisitorImplementation::recur
 							// * a work-around, albeit dirty, is to build a temporary type for the "Declaration",
 							//   and visit that instead.
 							// * one side-effect is that we must remember to delete the temporary type after each
-							//   function mangling.
+							//   name mangling.
 							TypeSpecifier* temp_type_specifier = ASTNodeHelper::buildResolvableTypeSpecifier(
 									cast<ClassDecl>(resolved_type));
 							visitAliasedType(temp_type_specifier);
