@@ -59,12 +59,7 @@ struct NameManglingVisitor : Visitor<ASTNode, void, VisitorImplementation::recur
 		else
 		{
 			visitParentThenPrintName(&node);
-
-			{
-				TypeSpecifier* temp_type_specifier = ASTNodeHelper::buildResolvableTypeSpecifier(&node);
-				mAliasMgr.add(temp_type_specifier);
-				mAliasMgr.mManagedAliasSlots.push_back(shared_ptr<TypeSpecifier>(temp_type_specifier));
-			}
+			mAliasMgr.addManaged(ASTNodeHelper::buildResolvableTypeSpecifier(&node));
 		}
 	}
 
@@ -89,7 +84,7 @@ struct NameManglingVisitor : Visitor<ASTNode, void, VisitorImplementation::recur
 	{
 		visit(*node.id);
 
-		bool reserved_construct = isReservedConstructName(getBasename(node.id));
+		bool reserved_construct = isReservedConstructName(node.id);
 		if(!reserved_construct)
 		{
 //			if(isa<ClassDecl>(node.parent))
@@ -124,7 +119,7 @@ struct NameManglingVisitor : Visitor<ASTNode, void, VisitorImplementation::recur
 							TypeSpecifier* temp_type_specifier = ASTNodeHelper::buildResolvableTypeSpecifier(
 									cast<ClassDecl>(resolved_type));
 							visitAliasedType(temp_type_specifier);
-							mAliasMgr.mManagedAliasSlots.push_back(shared_ptr<TypeSpecifier>(temp_type_specifier));
+							mAliasMgr.addManaged(temp_type_specifier);
 						}
 						else
 							visit(*resolved_type);
@@ -200,12 +195,7 @@ struct NameManglingVisitor : Visitor<ASTNode, void, VisitorImplementation::recur
 			return;
 
 		visitParentThenPrintName(&node);
-
-		{
-			TypeSpecifier* temp_type_specifier = ASTNodeHelper::buildResolvableTypeSpecifier(&node);
-			mAliasMgr.add(temp_type_specifier);
-			mAliasMgr.mManagedAliasSlots.push_back(shared_ptr<TypeSpecifier>(temp_type_specifier));
-		}
+		mAliasMgr.addManaged(ASTNodeHelper::buildResolvableTypeSpecifier(&node));
 	}
 
 	void mangle(FunctionDecl& node)
@@ -264,7 +254,7 @@ struct NameManglingVisitor : Visitor<ASTNode, void, VisitorImplementation::recur
 					if(i != node.parameters.begin())
 					{
 						if(!VisitedFirstExplicitThis
-								&& ASTNodeHelper::sameResolvedType((*i)->type, mAliasMgr.mAliasSlots[ThisSlot]))
+								&& ASTNodeHelper::sameResolvedType((*i)->type, mAliasMgr.typeForSlot(ThisSlot)))
 						{
 							if(mModeCallByValue)
 								visitAliasedType((*i)->type);
@@ -353,7 +343,7 @@ private:
 				BOOST_ASSERT(resolved_type && "failed to resolve type");
 				if((mParamDepth > 0)
 						&& isa<Declaration>(resolved_type)
-						&& !isReservedConstructName(getBasename(cast<Declaration>(resolved_type)->name))
+						&& !isReservedConstructName(cast<Declaration>(resolved_type)->name)
 						&& !mModeCallByValue)
 				{
 					outStream() << "P"; // THOR_SPECIFIC: object passing is by pointer, hence "P"
@@ -362,7 +352,7 @@ private:
 				visit(*type_specifier);
 			}
 			else
-				printSubstitution(slot);
+				outStream() << getSubstitutionSymbol(slot);
 		}
 	}
 
@@ -389,6 +379,12 @@ private:
 			mAliasSlots.push_back(type_specifier);
 		}
 
+		void addManaged(TypeSpecifier* type_specifier = NULL, bool check_if_unique = true)
+		{
+			add(type_specifier, check_if_unique);
+			mManagedAliasSlots.push_back(shared_ptr<TypeSpecifier>(type_specifier));
+		}
+
 		void addDummy()
 		{
 			add(NULL, false);
@@ -408,11 +404,17 @@ private:
 			mManagedAliasSlots.clear();
 		}
 
+		TypeSpecifier* typeForSlot(int slot)
+		{
+			BOOST_ASSERT((slot != -1) && "invalid slot");
+			return mAliasSlots[slot];
+		}
+
 		std::vector<TypeSpecifier*> mAliasSlots;
 		std::vector<shared_ptr<TypeSpecifier>> mManagedAliasSlots;
 	} mAliasMgr;
 
-	void printSubstitution(int slot)
+	std::string getSubstitutionSymbol(int slot)
 	{
 		auto ito36a = [](size_t n)
 			{
@@ -423,7 +425,7 @@ private:
 				return !s.empty() ? std::string(s.rbegin(), s.rend()) : "0";
 			};
 		BOOST_ASSERT(slot >= 0 && "invalid slot");
-		outStream() << ((slot == 0) ? "S_" : ("S"+ito36a(slot-1)+"_"));
+		return ((slot == 0) ? "S_" : ("S"+ito36a(slot-1)+"_"));
 	}
 
 	void writeVoid()
@@ -450,8 +452,9 @@ private:
 		return L"";
 	}
 
-	static bool isReservedConstructName(std::wstring s)
+	static bool isReservedConstructName(Identifier* ident)
 	{
+		std::wstring s = getBasename(ident);
 		return (s == L"ptr_" || s == L"ref_" || s == L"const_" || s == L"void_");
 	}
 
