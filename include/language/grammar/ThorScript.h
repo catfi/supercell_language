@@ -445,13 +445,13 @@ struct ThorScript : qi::grammar<Iterator, typename SA::start::attribute_type, de
 
 		template_param_identifier
 			= qi::eps [ typename SA::location::cache_loc() ]
-			    >>	(IDENTIFIER > -(COMPARE_LT >> ((IDENTIFIER > -((COLON > thor_param_type) | init_specifier)) % COMMA) >> COMPARE_GT)
+			    >>	(nested_identifier > -(COMPARE_LT >> ((IDENTIFIER > -((COLON > thor_param_type) | init_specifier)) % COMMA) >> COMPARE_GT)
 					) [ typename SA::template_param_identifier::init() ]
 			;
 
 		template_arg_identifier
 			= qi::eps [ typename SA::location::cache_loc() ]
-				>> (IDENTIFIER > -type_specialize_specifier) [ typename SA::template_arg_identifier::init() ]
+				>> (nested_identifier > -type_specialize_specifier) [ typename SA::template_arg_identifier::init() ]
 			;
 
 		type_specialize_specifier

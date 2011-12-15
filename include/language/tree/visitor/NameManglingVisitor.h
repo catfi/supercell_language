@@ -40,9 +40,9 @@
 // 1. all names begin with "_Z"
 // 2. simple names have the form: [NAME_LENGTH]<NAME>, EXAMPLE: "aaa" --> "3aaa"
 // 3. nested namespaces translate into "combo names"
-//    combo names have the form: N(*<SIMPLE_NAME>)E,            EXAMPLE: "aaa.bbb.ccc"                  --> "N3aaa3bbb3cccE"
-// 4. templates have the form: <NAME>I(*<NAME>)E,               EXAMPLE: "ddd<aaa.bbb.ccc>"             --> "3dddIN3aaa3bbb3cccEE"
-// 5. functions have the form: <NAME>(+<PARAM_TYPE>),           EXAMPLE: "void _eee_(char, char)"       --> "_Z5_eee_cc"
+//    combo names have the form: N(*<SIMPLE_NAME>)E,  EXAMPLE: "aaa.bbb.ccc"                  --> "N3aaa3bbb3cccE"
+// 4. templates have the form: <NAME>I(*<NAME>)E,     EXAMPLE: "ddd<aaa.bbb.ccc>"             --> "3dddIN3aaa3bbb3cccEE"
+// 5. functions have the form: <NAME>(+<PARAM_TYPE>), EXAMPLE: "void _eee_(char, char)"       --> "_Z5_eee_cc"
 //    an empty parameter list translates into "void"
 // 6. template functions have the form: <NAME><RETURN_TYPE>(+<PARAM_TYPE>)
 //    EXAMPLE: "void _fff_<bool>(char, char)" --> "_Z5_fff_IbEvcc"

@@ -45,6 +45,7 @@ namespace _AAA_
     namespace _XXX_
     {
         function _func_50_():void { }
+        class _ASD_ { };
     }
 
     class _ZXC_<T>
