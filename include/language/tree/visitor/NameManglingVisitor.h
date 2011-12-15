@@ -58,7 +58,7 @@ struct NameManglingVisitor : Visitor<ASTNode, void, VisitorImplementation::recur
 		}
 		else
 		{
-			visitParentThenPrintName(&node);
+			mangleParentThenPrintName(&node);
 			mAliasMgr.addManaged(ASTNodeHelper::buildResolvableTypeSpecifier(&node));
 		}
 	}
@@ -87,14 +87,7 @@ struct NameManglingVisitor : Visitor<ASTNode, void, VisitorImplementation::recur
 		bool reserved_construct = isReservedConstructName(node.id);
 		if(!reserved_construct)
 		{
-//			if(isa<ClassDecl>(node.parent))
-//			{
-//				TypeSpecifier* temp_type_specifier = ASTNodeHelper::buildResolvableTypeSpecifier(
-//						cast<ClassDecl>(node.parent));
-//				if(mAliasMgr.find(temp_type_specifier) == -1)
-//					mAliasMgr.addDummy();
-//			}
-			mAliasMgr.addDummy(); // FIXME: HACK: unreasonable to do this every time
+			mAliasMgr.addDummy(__LINE__); // FIXME: HACK: unreasonable to do this every time
 			outStream() << "I"; // RULE: template params begin with "I"
 		}
 
@@ -118,7 +111,7 @@ struct NameManglingVisitor : Visitor<ASTNode, void, VisitorImplementation::recur
 							//   name mangling.
 							TypeSpecifier* temp_type_specifier = ASTNodeHelper::buildResolvableTypeSpecifier(
 									cast<ClassDecl>(resolved_type));
-							visitAliasedType(temp_type_specifier);
+							mangleAliasedType(temp_type_specifier);
 							mAliasMgr.addManaged(temp_type_specifier);
 						}
 						else
@@ -168,25 +161,25 @@ struct NameManglingVisitor : Visitor<ASTNode, void, VisitorImplementation::recur
 
 	void mangle(FunctionType& node)
 	{
-		visitParent(&node);
+		mangleParent(&node);
 		outStream() << "PF"; // RULE/THOR_SPECIFIC: callback begins with "F", and is a pointer, hence "P" in "PF"
 		visit(*node.return_type);
 		mParamDepth++;
 		if(node.parameter_types.empty())
-			writeVoid(); // RULE: empty param-list equivalent to "void" type
+			mangleVoid(); // RULE: empty param-list equivalent to "void" type
 		else
 		{
 			foreach(i, node.parameter_types)
-				visitAliasedType(*i);
+				mangleAliasedType(*i);
 		}
 		mParamDepth--;
 		outStream() << "E"; // RULE: callback ends with "E"
-		mAliasMgr.addDummy(); // HACK: function type occupies 2 alias slots
+		mAliasMgr.addDummy(__LINE__); // HACK: function type occupies 2 alias slots
 	}
 
 	void mangle(Declaration& node)
 	{
-		visitParentThenPrintName(&node);
+		mangleParentThenPrintName(&node);
 	}
 
 	void mangle(ClassDecl& node)
@@ -194,7 +187,7 @@ struct NameManglingVisitor : Visitor<ASTNode, void, VisitorImplementation::recur
 		if(isa<TemplatedIdentifier>(node.name) && !cast<TemplatedIdentifier>(node.name)->isFullySpecialized())
 			return;
 
-		visitParentThenPrintName(&node);
+		mangleParentThenPrintName(&node);
 		mAliasMgr.addManaged(ASTNodeHelper::buildResolvableTypeSpecifier(&node));
 	}
 
@@ -206,7 +199,7 @@ struct NameManglingVisitor : Visitor<ASTNode, void, VisitorImplementation::recur
 		mModeCallByValue = ASTNodeHelper::findAnnotation(&node, L"call_by_value");
 
 		mAliasMgr.clear();
-		visitParentThenPrintName(&node);
+		mangleParentThenPrintName(&node);
 
 		if(isa<TemplatedIdentifier>(node.name))
 			visit(*node.type);
@@ -223,6 +216,7 @@ struct NameManglingVisitor : Visitor<ASTNode, void, VisitorImplementation::recur
 			BOOST_ASSERT((node.parameters.size() > 0) && "method must have one parameter");
 			auto first_param = node.parameters.begin();
 			ASTNode* resolved_type = ASTNodeHelper::findUniqueTypeResolution((*first_param)->type);
+			BOOST_ASSERT(resolved_type && "failed to resolve type");
 			BOOST_ASSERT(resolved_type->isEqual(*node.parent) && "method's first parameter must be \"this\"");
 
 			{
@@ -235,17 +229,17 @@ struct NameManglingVisitor : Visitor<ASTNode, void, VisitorImplementation::recur
 		if(ThisSlot == -1)
 		{
 			if(node.parameters.empty())
-				writeVoid(); // RULE: empty param-list equivalent to "void" type
+				mangleVoid(); // RULE: empty param-list equivalent to "void" type
 			else
 			{
 				foreach(i, node.parameters)
-					visitAliasedType((*i)->type);
+					mangleAliasedType((*i)->type);
 			}
 		}
 		else
 		{
 			if(node.parameters.size() == 1)
-				writeVoid(); // RULE: empty param-list equivalent to "void" type
+				mangleVoid(); // RULE: empty param-list equivalent to "void" type
 			else
 			{
 				bool VisitedFirstExplicitThis = false;
@@ -257,19 +251,23 @@ struct NameManglingVisitor : Visitor<ASTNode, void, VisitorImplementation::recur
 								&& ASTNodeHelper::sameResolvedType((*i)->type, mAliasMgr.typeForSlot(ThisSlot)))
 						{
 							if(mModeCallByValue)
-								visitAliasedType((*i)->type);
+								mangleAliasedType((*i)->type);
 							else
 							{
 								outStream() << "P"; // THOR_SPECIFIC: object passing is by pointer, hence "P"
-								visitAliasedType((*i)->type);
+								mangleAliasedType((*i)->type);
 								TypeSpecifier* type_specifier = mAliasMgr.remove(ThisSlot);
-								mAliasMgr.addDummy(); // HACK: bump up actual type to account for pointer type
+//								ASTNode* resolved_type = ASTNodeHelper::findUniqueTypeResolution(type_specifier);
+//								BOOST_ASSERT(resolved_type && "failed to resolve type");
+//								if(isa<ClassDecl>(resolved_type))
+//									mAliasMgr.remove(ThisSlot-1); // remove associated pointer type
+								mAliasMgr.addDummy(__LINE__); // HACK: bump up actual type to account for pointer type
 								mAliasMgr.add(type_specifier); // HACK: send "ThisSlot" to back
 							}
 							VisitedFirstExplicitThis = true;
 						}
 						else
-							visitAliasedType((*i)->type);
+							mangleAliasedType((*i)->type);
 					}
 				}
 			}
@@ -301,7 +299,7 @@ private:
 		return mCurrentOutStream ? *mCurrentOutStream : NullOutStream;
 	}
 
-	void visitParent(ASTNode* node)
+	void mangleParent(ASTNode* node)
 	{
 		mInsideUptrace = true;
 		if(node->parent)
@@ -309,14 +307,14 @@ private:
 		mInsideUptrace = false;
 	}
 
-	void visitParentThenPrintName(ASTNode* node)
+	void mangleParentThenPrintName(ASTNode* node)
 	{
 		BOOST_ASSERT((isa<Declaration>(node) || isa<Package>(node)) && "unhandled node type");
 		bool end_of_combo_name = (!mInsideUptrace && !ASTNodeHelper::isRootPackage(node->parent));
 
 		{
 			mInsideComboName |= end_of_combo_name;
-			visitParent(node);
+			mangleParent(node);
 			mInsideComboName = false;
 		}
 
@@ -330,7 +328,7 @@ private:
 			outStream() << "E"; // RULE: combo name ends with "E"
 	}
 
-	void visitAliasedType(TypeSpecifier* type_specifier)
+	void mangleAliasedType(TypeSpecifier* type_specifier)
 	{
 		if(type_specifier->type == TypeSpecifier::ReferredType::PRIMITIVE)
 			visit(*type_specifier);
@@ -347,7 +345,7 @@ private:
 						&& !mModeCallByValue)
 				{
 					outStream() << "P"; // THOR_SPECIFIC: object passing is by pointer, hence "P"
-					mAliasMgr.addDummy(); // HACK: bump up actual type to account for pointer type
+					mAliasMgr.addDummy(__LINE__); // HACK: bump up actual type to account for pointer type
 				}
 				visit(*type_specifier);
 			}
@@ -376,6 +374,17 @@ private:
 		{
 			if(check_if_unique && find(type_specifier) != -1)
 				return;
+#if 1 // NOTE: for debugging only
+			if(check_if_unique)
+			{
+				BOOST_ASSERT(type_specifier && "bad input");
+				std::wcout << mAliasSlots.size() << L": [add] " << type_specifier->toString() << std::endl;
+			}
+			else
+			{
+				std::wcout << mAliasSlots.size() << L": [add] NULL";
+			}
+#endif
 			mAliasSlots.push_back(type_specifier);
 		}
 
@@ -385,15 +394,24 @@ private:
 			mManagedAliasSlots.push_back(shared_ptr<TypeSpecifier>(type_specifier));
 		}
 
-		void addDummy()
+		void addDummy(int line_number)
 		{
 			add(NULL, false);
+#if 1 // NOTE: for debugging only
+			std::wcout << L".. from line #" << line_number << std::endl;
+#endif
 		}
 
 		TypeSpecifier* remove(int slot)
 		{
 			BOOST_ASSERT((slot != -1) && "invalid slot");
 			TypeSpecifier* type_specifier = mAliasSlots[slot];
+#if 1 // NOTE: for debugging only
+			{
+				BOOST_ASSERT(type_specifier && "bad input");
+				std::wcout << mAliasSlots.size() << L": [remove]" << type_specifier->toString() << std::endl;
+			}
+#endif
 			mAliasSlots.erase(mAliasSlots.begin()+slot);
 			return type_specifier;
 		}
@@ -428,7 +446,7 @@ private:
 		return ((slot == 0) ? "S_" : ("S"+ito36a(slot-1)+"_"));
 	}
 
-	void writeVoid()
+	void mangleVoid()
 	{
 		TypeSpecifier type_specifier(PrimitiveType::VOID);
 		visit(type_specifier);
