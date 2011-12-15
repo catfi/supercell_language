@@ -93,6 +93,17 @@ struct _EEE_
     void _func_A1_(_QWE_* x, _QWE_ y) { } // _ZN5_EEE_9_func_A1_EP5_QWE_S0_
 };
 
+// enums
+enum _FFF_
+{
+    _FFF0_,
+    _FFF1_,
+    _FFF2_
+};
+void _func_B0_(_FFF_ x) { }
+template<class T>
+void _func_B1_(_FFF_ x) { }
+
 int main()
 {
     _QWE_ qwe;
@@ -144,4 +155,8 @@ int main()
     _func_A0_(&qwe, qwe);
     _EEE_ eee;
     eee._func_A1_(&qwe, qwe);
+
+    // enums
+    _func_B0_(_FFF0_);
+    _func_B1_<_FFF_>(_FFF0_);
 }

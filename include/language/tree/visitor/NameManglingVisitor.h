@@ -32,6 +32,56 @@
 #include <vector>
 #include <string>
 
+// References:
+// - http://sourcery.mentor.com/public/cxx-abi/abi.html#mangling
+// - http://www.agner.org/optimize/calling_conventions.pdf
+
+// Rule Summary:
+// 1. all names begin with "_Z"
+// 2. simple names have the form: [NAME_LENGTH]<NAME>, EXAMPLE: "aaa" --> "3aaa"
+// 3. nested namespaces translate into "combo names"
+//    combo names have the form: N(*<SIMPLE_NAME>)E,            EXAMPLE: "aaa.bbb.ccc"                  --> "N3aaa3bbb3cccE"
+// 4. templates have the form: <NAME>I(*<NAME>)E,               EXAMPLE: "ddd<aaa.bbb.ccc>"             --> "3dddIN3aaa3bbb3cccEE"
+// 5. functions have the form: <NAME>(+<PARAM_TYPE>),           EXAMPLE: "void _eee_(char, char)"       --> "_Z5_eee_cc"
+//    an empty parameter list translates into "void"
+// 6. template functions have the form: <NAME><RETURN_TYPE>(+<PARAM_TYPE>)
+//    EXAMPLE: "void _fff_<bool>(char, char)" --> "_Z5_fff_IbEvcc"
+// 7. primitive types are mangled as follows:
+//    void      --> v
+//    bool      --> b
+//    char      --> c
+//    short     --> s
+//    int       --> i
+//    long      --> l
+//    long long --> x
+//    float     --> f
+//    double    --> d
+// 8. modifiers are mangled as follows:
+//    pointer(*)   --> P<TYPE>,                                      EXAMPLE: "char*"                  --> "Pc"
+//    reference(&) --> R<TYPE>,                                      EXAMPLE: "char*&"                 --> "RPc"
+//    const        --> K<TYPE>,                                      EXAMPLE: "const char*&"           --> "KRPc"
+// 9. function types have the form: PF<RETURN_TYPE>(+<PARAM_TYPE>)E, EXAMPLE: "void (char, char)"      --> "PFvccE"
+// 10. member functions do not mangle "this",                        EXAMPLE: "aaa::_ggg_(char, char)" --> "_ZN3aaa5_ggg_Ecc"
+// 11. duplicate name/types are substituted with substitution symbols
+//     substitution symbols start with "S_", then "S0_", "S1_", etc.
+//     the index of the form "S[index]_" is encoded in base 36
+//     if these run out, then no substitution occurs
+//     substitution candidates are namespace/class/modified_types/function_types/enum, but functions are never substituted
+//     substitution candidates are visited from left to right
+//     templates occupy an extra substitution slot with their stem name
+//     function types occupy an extra substitution slot (not sure why)
+//     EXAMPLE: "aaa::_hhh_(aaa* x, aaa* y, aaa* z)" --> "_ZN3aaa5_hhh_EPS_S0_S0_"
+// 12. enums are mangled just like namespaces/classes
+
+// ThorScript Specific:
+// 1. modifiers require special reserved templates to generate correct AST for mangling
+//    pointer:   ptr_<T>
+//    reference: ref_<T>
+//    const:     const_<T>
+//    void:      void_
+// 2. when a ThorScript signature requires "exact" translation to a c++ signature, that function must be
+//    annotated with "@call_by_value", otherwise ThorScript objects assume pass-by-reference mangling
+
 namespace zillians { namespace language { namespace tree { namespace visitor {
 
 struct NameManglingVisitor : Visitor<ASTNode, void, VisitorImplementation::recursive_dfs>
@@ -87,7 +137,7 @@ struct NameManglingVisitor : Visitor<ASTNode, void, VisitorImplementation::recur
 		bool reserved_construct = isReservedConstructName(node.id);
 		if(!reserved_construct)
 		{
-			mAliasMgr.addDummy(__LINE__); // FIXME: HACK: unreasonable to do this every time
+			mAliasMgr.addDummy(__LINE__); // HACK: template name occupies a slot
 			outStream() << "I"; // RULE: template params begin with "I"
 		}
 
@@ -180,6 +230,7 @@ struct NameManglingVisitor : Visitor<ASTNode, void, VisitorImplementation::recur
 	void mangle(Declaration& node)
 	{
 		mangleParentThenPrintName(&node);
+		mAliasMgr.addManaged(ASTNodeHelper::buildResolvableTypeSpecifier(&node));
 	}
 
 	void mangle(ClassDecl& node)
@@ -246,7 +297,7 @@ struct NameManglingVisitor : Visitor<ASTNode, void, VisitorImplementation::recur
 					if(i != node.parameters.begin())
 					{
 						if(!VisitedFirstExplicitThis
-								&& ASTNodeHelper::sameResolvedType((*i)->type, mAliasMgr.typeForSlot(ThisSlot)))
+								&& ASTNodeHelper::sameResolvedType((*i)->type, mAliasMgr.typeAt(ThisSlot)))
 						{
 							if(mModeCallByValue)
 								mangleAliasedType((*i)->type);
@@ -324,8 +375,7 @@ private:
 
 	void mangleAliasedType(TypeSpecifier* type_specifier, bool mute = false)
 	{
-		if(mute)
-			mCurrentOutStream = NULL;
+		if(mute) mCurrentOutStream = NULL;
 		if(type_specifier->type == TypeSpecifier::ReferredType::PRIMITIVE)
 			visit(*type_specifier);
 		else
@@ -337,6 +387,7 @@ private:
 				BOOST_ASSERT(resolved_type && "failed to resolve type");
 				if((mParamDepth > 0)
 						&& isa<Declaration>(resolved_type)
+						&& !isa<EnumDecl>(resolved_type)
 						&& !isReservedConstructName(cast<Declaration>(resolved_type)->name)
 						&& !mModeCallByValue)
 				{
@@ -348,8 +399,7 @@ private:
 			else
 				outStream() << getSubstitutionSymbol(slot);
 		}
-		if(mute)
-			mCurrentOutStream = &mOutStream;
+		if(mute) mCurrentOutStream = &mOutStream;
 	}
 
 	bool mInsideUptrace;
@@ -419,7 +469,7 @@ private:
 			mManagedAliasSlots.clear();
 		}
 
-		TypeSpecifier* typeForSlot(int slot)
+		TypeSpecifier* typeAt(int slot)
 		{
 			BOOST_ASSERT((slot != -1) && "invalid slot");
 			return mAliasSlots[slot];

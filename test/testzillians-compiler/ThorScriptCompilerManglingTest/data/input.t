@@ -129,6 +129,19 @@ class _EEE_
     function _func_A1_(x:ptr_<_QWE_>, y:_QWE_):void { }
 }
 
+// enums
+enum _FFF_
+{
+    _FFF0_;
+    _FFF1_;
+    _FFF2_;
+}
+function _func_B0_(x:_FFF_):void { }
+/*
+function _func_B1_<T>(x:_FFF_):void { }
+*/
+function _func_B1_<T:_FFF_>(x:_FFF_):void { }
+
 function main():void
 {
     var qwe:_QWE_;
@@ -185,6 +198,12 @@ function main():void
     _func_A0_(qwe, qwe);
     var eee:_EEE_;
     eee._func_A1_(qwe, qwe);
+    */
+
+    /*
+    // enums
+    _func_B0_(_FFF_._FFF0_);
+    _func_B1_<_FFF_>(_FFF_._FFF0_);
     */
 }
 
