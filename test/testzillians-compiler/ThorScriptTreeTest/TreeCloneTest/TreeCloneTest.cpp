@@ -60,7 +60,7 @@ BOOST_AUTO_TEST_CASE( ThorScriptTreeTest_TreeCloneTestCase1 )
 
 	BOOST_CHECK(cloned_id != NULL);
 
-	ASTNodeHelper::clone<ContextToCloneT>(cloned_id, original_id);
+	ASTNodeHelper::clone<ContextToCloneT>(original_id, cloned_id);
 
 	SourceInfoContext* cloned_src_ctx = cloned_id->get<SourceInfoContext>();
 	NameManglingContext* cloned_name_ctx = cloned_id->get<NameManglingContext>();
@@ -80,6 +80,46 @@ BOOST_AUTO_TEST_CASE( ThorScriptTreeTest_TreeCloneTestCase1 )
 		BOOST_CHECK(cloned_name_ctx->managled_name == original_name_ctx->managled_name);
 	}
 
+}
+
+BOOST_AUTO_TEST_CASE( ThorScriptTreeTest_TreeCloneTestCaseRecursive )
+{
+    // simple id 1
+	SimpleIdentifier* original_sid1 = new SimpleIdentifier(L"a");
+	SourceInfoContext* original_src_ctx_s1 = new SourceInfoContext(123, 456);
+	original_sid1->set<SourceInfoContext>(original_src_ctx_s1);
+
+    // simple id 2
+	SimpleIdentifier* original_sid2 = new SimpleIdentifier(L"b");
+	SourceInfoContext* original_src_ctx_s2 = new SourceInfoContext(123, 458);
+	original_sid2->set<SourceInfoContext>(original_src_ctx_s2);
+
+    // nested id
+    NestedIdentifier* original_nid = new NestedIdentifier();
+	SourceInfoContext* original_src_ctx_n  = new SourceInfoContext(123, 454);
+	original_nid->set<SourceInfoContext>(original_src_ctx_n);
+    original_nid->appendIdentifier(original_sid1);
+    original_nid->appendIdentifier(original_sid2);
+	NameManglingContext* original_name_ctx_n = new NameManglingContext("_ZN1a1bE");
+    NameManglingContext::set(original_nid, original_name_ctx_n);
+
+    // clone it!
+	NestedIdentifier* cloned_nid = cast<NestedIdentifier>(original_nid->clone());
+	BOOST_CHECK(cloned_nid != NULL);
+	ASTNodeHelper::clone<ContextToCloneT>(original_nid, cloned_nid);
+
+    // check nested id context
+	SourceInfoContext* cloned_src_ctx_n = cloned_nid->get<SourceInfoContext>();
+	NameManglingContext* cloned_name_ctx = cloned_nid->get<NameManglingContext>();
+    BOOST_CHECK_EQUAL(cloned_src_ctx_n->line        , original_src_ctx_n->line);
+    BOOST_CHECK_EQUAL(cloned_src_ctx_n->column      , original_src_ctx_n->column);
+    BOOST_CHECK_EQUAL(cloned_name_ctx->managled_name, original_name_ctx_n->managled_name);
+
+    // check simple id context
+    BOOST_CHECK_EQUAL(SourceInfoContext::get(cloned_nid->identifier_list[0])->line  , SourceInfoContext::get(original_sid1)->line);
+    BOOST_CHECK_EQUAL(SourceInfoContext::get(cloned_nid->identifier_list[0])->column, SourceInfoContext::get(original_sid1)->column);
+    BOOST_CHECK_EQUAL(SourceInfoContext::get(cloned_nid->identifier_list[1])->line  , SourceInfoContext::get(original_sid2)->line);
+    BOOST_CHECK_EQUAL(SourceInfoContext::get(cloned_nid->identifier_list[1])->column, SourceInfoContext::get(original_sid2)->column);
 }
 
 BOOST_AUTO_TEST_SUITE_END()
