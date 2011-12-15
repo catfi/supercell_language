@@ -41,7 +41,7 @@ public:
 
 private:
 	bool enabled_load;
-	std::string ast_file_to_load;
+    std::vector<std::string> ast_files_to_load;
 	std::vector<std::string> inputs;
 	bool dump_graphviz;
     std::string dump_graphviz_dir;
