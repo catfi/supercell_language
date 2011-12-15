@@ -255,10 +255,6 @@ struct NameManglingVisitor : Visitor<ASTNode, void, VisitorImplementation::recur
 								outStream() << "P"; // THOR_SPECIFIC: object passing is by pointer, hence "P"
 								mangleAliasedType((*i)->type);
 								TypeSpecifier* type_specifier = mAliasMgr.remove(ThisSlot);
-//								ASTNode* resolved_type = ASTNodeHelper::findUniqueTypeResolution(type_specifier);
-//								BOOST_ASSERT(resolved_type && "failed to resolve type");
-//								if(isa<ClassDecl>(resolved_type))
-//									mAliasMgr.remove(ThisSlot-1); // remove associated pointer type
 								mAliasMgr.addDummy(__LINE__); // HACK: bump up actual type to account for pointer type
 								mAliasMgr.add(type_specifier); // HACK: send "ThisSlot" to back
 							}
@@ -377,16 +373,14 @@ private:
 		{
 			if(check_if_unique && find(type_specifier) != -1)
 				return;
-#if 1 // NOTE: for debugging only
+#if 0 // NOTE: for debugging only
 			if(check_if_unique)
 			{
 				BOOST_ASSERT(type_specifier && "bad input");
 				std::wcout << mAliasSlots.size() << L": [add] " << type_specifier->toString() << std::endl;
 			}
 			else
-			{
 				std::wcout << mAliasSlots.size() << L": [add] NULL";
-			}
 #endif
 			mAliasSlots.push_back(type_specifier);
 		}
@@ -400,7 +394,7 @@ private:
 		void addDummy(int line_number)
 		{
 			add(NULL, false);
-#if 1 // NOTE: for debugging only
+#if 0 // NOTE: for debugging only
 			std::wcout << L".. from line #" << line_number << std::endl;
 #endif
 		}
@@ -409,7 +403,7 @@ private:
 		{
 			BOOST_ASSERT((slot != -1) && "invalid slot");
 			TypeSpecifier* type_specifier = mAliasSlots[slot];
-#if 1 // NOTE: for debugging only
+#if 0 // NOTE: for debugging only
 			{
 				BOOST_ASSERT(type_specifier && "bad input");
 				std::wcout << mAliasSlots.size() << L": [remove]" << type_specifier->toString() << std::endl;

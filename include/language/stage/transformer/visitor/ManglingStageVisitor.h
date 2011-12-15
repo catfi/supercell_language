@@ -92,7 +92,7 @@ struct ManglingStageVisitor : public GenericDoubleVisitor
 
 	void apply(FunctionDecl& node)
 	{
-#if 1 // NOTE: for debugging only
+#if 0 // NOTE: for debugging only
 		std::wcout << L"MANGLING: " << std::wstring(20, L'=') << std::endl;
 		PrettyPrintVisitor v;
 		v.print(node);

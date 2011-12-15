@@ -100,7 +100,7 @@ int main()
     // namespace member
     _AAA_::_XXX_::_func_50_();
     _AAA_::_ZXC_<_AAA_::_XXX_::_ASD_> zxc;
-    zxc._func_51_();
+    zxc._func_51_(); // _ZN5_AAA_5_ZXC_INS_5_XXX_5_ASD_EE9_func_51_Ev
 
     // class member
     _BBB_ bbb;
@@ -113,23 +113,13 @@ int main()
     _CCC_<int8, int8> ccc;
     ccc._func_70_();                     // _ZN5_CCC_IccE9_func_70_Ev
     ccc._func_71_(&qwe);                 // _ZN5_CCC_IccE9_func_71_EP5_QWE_
-
-    ccc._func_72_(&qwe, &qwe, &qwe);     // _ZN5_CCC_IccE9_func_72_EP5_QWE_S2_S2_ (RIGHT)
-                                         // _ZN5_CCC_IccE9_func_72_EP5_QWE_S3_S3_ (WRONG)
-                                                                         // ^ - param list +1
-
-    ccc._func_73_(&ccc, &ccc, &ccc);     // _ZN5_CCC_IccE9_func_73_EPS0_S1_S1_ (RIGHT)
-                                         // _ZN5_CCC_IccE9_func_73_EPS1_S2_S2_ (WRONG)
-                                                                   // ^ - param list +1
-
+    ccc._func_72_(&qwe, &qwe, &qwe);     // _ZN5_CCC_IccE9_func_72_EP5_QWE_S2_S2_
+    ccc._func_73_(&ccc, &ccc, &ccc);     // _ZN5_CCC_IccE9_func_73_EPS0_S1_S1_
     _CCC_<_QWE_*, _QWE_*> ccc2;
     ccc2._func_70_();                    // _ZN5_CCC_IP5_QWE_S1_E9_func_70_Ev
     ccc2._func_71_(&qwe);                // _ZN5_CCC_IP5_QWE_S1_E9_func_71_ES1_
     ccc2._func_72_(&qwe, &qwe, &qwe);    // _ZN5_CCC_IP5_QWE_S1_E9_func_72_ES1_S1_S1_
-
-    ccc2._func_73_(&ccc2, &ccc2, &ccc2); // _ZN5_CCC_IP5_QWE_S1_E9_func_73_EPS2_S3_S3_ (RIGHT)
-                                         // _ZN5_CCC_IP5_QWE_S1_E9_func_73_EPS3_S4_S4_ (WRONG)
-                                                                           // ^ - param list +1
+    ccc2._func_73_(&ccc2, &ccc2, &ccc2); // _ZN5_CCC_IP5_QWE_S1_E9_func_73_EPS2_S3_S3_
 
     // class templated member
     _DDD_ ddd;
