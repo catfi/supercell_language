@@ -36,37 +36,80 @@
 
 namespace zillians { namespace language { namespace tree {
 
-struct ASTNodeHelper
+namespace detail {
+
+template<typename T, bool RecursiveVisit = true, bool IncludeSelf = true>
+struct ForeachVisitor : public visitor::GenericVisitor
 {
-	template<int N, typename ContextTypeList>
-	struct ContextCloneImpl
-	{
-		typedef typename boost::mpl::at<ContextTypeList, boost::mpl::int_<N-1> >::type ContextT;
-		static void clone(ASTNode* to, ASTNode* from)
-		{
-			if(from->get<ContextT>())
-			{
-				ContextT* ctx = new ContextT(*from->get<ContextT>());
-				to->set<ContextT, ContextOwnership::transfer>(ctx);
-			}
-			ContextCloneImpl<N-1, ContextTypeList>::clone(to, from);
-		}
-	};
+	CREATE_GENERIC_INVOKER(foreachInvoker);
 
-	template<typename ContextTypeList>
-	struct ContextCloneImpl<0, ContextTypeList>
-	{
-		static void clone(ASTNode* to, ASTNode* from)
-		{
-			UNUSED_ARGUMENT(to);
-			UNUSED_ARGUMENT(from);
-		}
-	};
+	ForeachVisitor(std::function<void(T&)> functor) : depth(0), functor(functor)
+	{ }
 
-	template<typename ContextTypeList>
+	void apply(ASTNode& node)
+	{
+		if(IncludeSelf || depth)
+			functor(node);
+
+		if(RecursiveVisit || (!RecursiveVisit && !depth))
+		{
+			++depth;
+			GenericVisitor::apply(node);
+			--depth;
+		}
+	}
+
+	int depth;
+	std::function<void(T&)> functor;
+};
+
+template<int N, typename ContextTypeList>
+struct ContextCloneImpl
+{
+	typedef typename boost::mpl::at<ContextTypeList, boost::mpl::int_<N-1> >::type ContextT;
 	static void clone(ASTNode* to, ASTNode* from)
 	{
-		ContextCloneImpl<boost::mpl::size<ContextTypeList>::value, ContextTypeList>::clone(to, from);
+		if(from->get<ContextT>())
+		{
+			ContextT* ctx = new ContextT(*from->get<ContextT>());
+			to->set<ContextT, ContextOwnership::transfer>(ctx);
+		}
+		ContextCloneImpl<N-1, ContextTypeList>::clone(to, from);
+	}
+};
+
+template<typename ContextTypeList>
+struct ContextCloneImpl<0, ContextTypeList>
+{
+	static void clone(ASTNode* to, ASTNode* from)
+	{
+		UNUSED_ARGUMENT(to);
+		UNUSED_ARGUMENT(from);
+	}
+};
+
+}
+
+struct ASTNodeHelper
+{
+	template<typename T = ASTNode, bool RecursiveVisit = true, bool IncludeSelf = true>
+	static void foreachApply(ASTNode& node, std::function<void(T&)> functor)
+	{
+		typename detail::ForeachVisitor<T, RecursiveVisit, IncludeSelf> visitor(functor);
+		visitor.visit(node);
+	}
+
+	template<typename ContextTypeList, bool RecursiveClone = true>
+	static void clone(ASTNode* to, ASTNode* from)
+	{
+		if(RecursiveClone)
+		{
+
+		}
+		else
+		{
+			detail::ContextCloneImpl<boost::mpl::size<ContextTypeList>::value, ContextTypeList>::clone(to, from);
+		}
 	}
 
 	static void propogateSourceInfo(ASTNode& to, ASTNode& from)
