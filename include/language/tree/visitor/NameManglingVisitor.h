@@ -220,10 +220,8 @@ struct NameManglingVisitor : Visitor<ASTNode, void, VisitorImplementation::recur
 			BOOST_ASSERT(resolved_type->isEqual(*node.parent) && "method's first parameter must be \"this\"");
 
 			{
-				mCurrentOutStream = NULL;
-				visit(*(*first_param)->type);
+				mangleAliasedType((*first_param)->type, true);
 				ThisSlot = mAliasMgr.find((*first_param)->type);
-				mCurrentOutStream = &mOutStream;
 			}
 		}
 		if(ThisSlot == -1)
@@ -328,8 +326,10 @@ private:
 			outStream() << "E"; // RULE: combo name ends with "E"
 	}
 
-	void mangleAliasedType(TypeSpecifier* type_specifier)
+	void mangleAliasedType(TypeSpecifier* type_specifier, bool mute = false)
 	{
+		if(mute)
+			mCurrentOutStream = NULL;
 		if(type_specifier->type == TypeSpecifier::ReferredType::PRIMITIVE)
 			visit(*type_specifier);
 		else
@@ -352,6 +352,8 @@ private:
 			else
 				outStream() << getSubstitutionSymbol(slot);
 		}
+		if(mute)
+			mCurrentOutStream = &mOutStream;
 	}
 
 	bool mInsideUptrace;
@@ -359,8 +361,9 @@ private:
 	int mParamDepth;
 	bool mModeCallByValue;
 
-	struct AliasMgr
+	class AliasMgr
 	{
+	public:
 		int find(TypeSpecifier* type_specifier)
 		{
 			auto p = std::find_if(mAliasSlots.begin(), mAliasSlots.end(),
@@ -428,6 +431,7 @@ private:
 			return mAliasSlots[slot];
 		}
 
+	private:
 		std::vector<TypeSpecifier*> mAliasSlots;
 		std::vector<shared_ptr<TypeSpecifier>> mManagedAliasSlots;
 	} mAliasMgr;
