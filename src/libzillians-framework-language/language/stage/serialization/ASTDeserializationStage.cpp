@@ -41,7 +41,7 @@ std::pair<shared_ptr<po::options_description>, shared_ptr<po::options_descriptio
 	shared_ptr<po::options_description> option_desc_private(new po::options_description());
 
 	option_desc_public->add_options()
-		("load-ast", po::value<std::string>(), "load serialized AST file as root");
+		("load-ast", po::value<std::vector<std::string>>(), "load serialized AST file as root");
 
 	foreach(i, option_desc_public->options()) option_desc_private->add(*i);
 
@@ -58,7 +58,7 @@ bool ASTDeserializationStage::parseOptions(po::variables_map& vm)
 	if(vm.count("load-ast") > 0)
 	{
 		enabled_load = true;
-		ast_file_to_load = vm["load-ast"].as<std::string>();
+		ast_files_to_load = vm["load-ast"].as<std::vector<std::string>>();
 	}
 
 	dump_graphviz = (vm.count("dump-graphviz") > 0);
@@ -78,8 +78,9 @@ bool ASTDeserializationStage::execute(bool& continue_execution)
 	if(!hasParserContext())
 		setParserContext(new ParserContext());
 
-	if(enabled_load)
+	foreach(i, ast_files_to_load)
 	{
+        std::string ast_file_to_load = *i;
 		tree::ASTNode* deserialized = ASTSerializationHelper::deserialize(ast_file_to_load);
 		if(!deserialized || !tree::isa<tree::Tangle>(deserialized)) return false;
 
