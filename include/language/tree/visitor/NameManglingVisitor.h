@@ -58,8 +58,13 @@ struct NameManglingVisitor : Visitor<ASTNode, void, VisitorImplementation::recur
 		}
 		else
 		{
-			visitParent(&node);
-			visit(*node.id);
+			visitParentThenPrintName(&node);
+
+			{
+				TypeSpecifier* temp_type_specifier = ASTNodeHelper::buildResolvableTypeSpecifier(&node);
+				mAliasMgr.add(temp_type_specifier);
+				mAliasMgr.mManagedAliasSlots.push_back(shared_ptr<TypeSpecifier>(temp_type_specifier));
+			}
 		}
 	}
 
@@ -314,17 +319,23 @@ private:
 		mInsideUptrace = false;
 	}
 
-	void visitParentThenPrintName(Declaration* decl)
+	void visitParentThenPrintName(ASTNode* node)
 	{
-		bool end_of_combo_name = (!mInsideUptrace && !ASTNodeHelper::isRootPackage(decl->parent));
+		BOOST_ASSERT((isa<Declaration>(node) || isa<Package>(node)) && "unhandled node type");
+		bool end_of_combo_name = (!mInsideUptrace && !ASTNodeHelper::isRootPackage(node->parent));
 
 		{
 			mInsideComboName |= end_of_combo_name;
-			visitParent(decl);
+			visitParent(node);
 			mInsideComboName = false;
 		}
 
-		visit(*decl->name);
+		if(isa<Declaration>(node))
+			visit(*cast<Declaration>(node)->name);
+		else if(isa<Package>(node))
+			visit(*cast<Package>(node)->id);
+		else
+			UNREACHABLE_CODE();
 		if(end_of_combo_name)
 			outStream() << "E"; // RULE: combo name ends with "E"
 	}

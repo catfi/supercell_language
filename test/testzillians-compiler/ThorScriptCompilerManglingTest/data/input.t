@@ -46,6 +46,11 @@ namespace _AAA_
     {
         function _func_50_():void { }
     }
+
+    class _ZXC_<T>
+    {
+        void _func_51_() { }
+    };
 }
 */
 
@@ -131,6 +136,8 @@ function main():void
     /*
     // namespace member
     _AAA_._XXX_._func_50_();
+    var zxc:_AAA_._ZXC_<_AAA_._XXX_._ASD_>;
+    zxc._func_51_();
     */
 
     /*

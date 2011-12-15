@@ -43,7 +43,14 @@ namespace _AAA_
     namespace _XXX_
     {
         void _func_50_() { } // _ZN5_AAA_5_XXX_9_func_50_Ev
+        class _ASD_ { };
     }
+
+    template<class T>
+    struct _ZXC_
+    {
+        void _func_51_() { }
+    };
 }
 
 // class member
@@ -92,6 +99,8 @@ int main()
 
     // namespace member
     _AAA_::_XXX_::_func_50_();
+    _AAA_::_ZXC_<_AAA_::_XXX_::_ASD_> zxc;
+    zxc._func_51_();
 
     // class member
     _BBB_ bbb;

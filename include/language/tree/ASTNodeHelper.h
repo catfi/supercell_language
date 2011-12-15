@@ -333,14 +333,31 @@ struct ASTNodeHelper
 		return type_specifier;
 	}
 
+    static TypeSpecifier* buildResolvableTypeSpecifier(Package* package)
+	{
+    	TypeSpecifier* type_specifier = new TypeSpecifier(cast<Identifier>(package->id->clone()));
+#if 0 // NOTE: package rejected by "ResolvedType::isValidResolvedType"
+    	ResolvedType::set(type_specifier, package);
+#else
+    	type_specifier->set<ResolvedType>(new ResolvedType(package));
+#endif
+		return type_specifier;
+	}
+
     static bool sameResolvedType(TypeSpecifier* a, TypeSpecifier* b)
 	{
+        BOOST_ASSERT(a && b && "bad input");
 		if(a->type == b->type)
 		{
 			if(a->type == TypeSpecifier::ReferredType::UNSPECIFIED)
 			{
-		        ASTNode* resolved_type_a = findUniqueTypeResolution(a);
-		        ASTNode* resolved_type_b = findUniqueTypeResolution(b);
+		        ASTNode* resolved_type_a = ResolvedType::get(a);
+		        ASTNode* resolved_type_b = ResolvedType::get(b);
+		        BOOST_ASSERT(resolved_type_a && resolved_type_b && "failed to resolve type");
+		        if(isa<Package>(resolved_type_a) || isa<Package>(resolved_type_b))
+					return (resolved_type_a == resolved_type_b); // NOTE: no need to look further
+		        resolved_type_a = findUniqueTypeResolution(a);
+		        resolved_type_b = findUniqueTypeResolution(b);
 		        BOOST_ASSERT(resolved_type_a && resolved_type_b && "failed to resolve type");
 		        return (resolved_type_a == resolved_type_b);
 			}
