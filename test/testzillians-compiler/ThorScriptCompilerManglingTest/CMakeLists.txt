@@ -35,7 +35,7 @@ zillians_add_complex_test(
     SHELL ${CMAKE_CURRENT_SOURCE_DIR}/test.sh ${ThorScriptDriver} ${CMAKE_CURRENT_BINARY_DIR}
             ${CMAKE_CURRENT_SOURCE_DIR}/data/_AAA_/input2.t
             "_AAA_"
-            "qwe"
+            "qwe2"
             "_func_"
             ${CMAKE_CURRENT_SOURCE_DIR}/gold/output2
     DEPENDS tsc
