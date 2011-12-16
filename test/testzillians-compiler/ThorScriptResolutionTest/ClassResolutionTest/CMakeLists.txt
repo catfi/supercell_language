@@ -24,18 +24,10 @@ INCLUDE_DIRECTORIES(
     ${PROJECT_FRAMEWORK_SOURCE_DIR}/include/
 )
 
-#ADD_EXECUTABLE( ThorScriptDriverTest_HappyPathTest
-#    DriverHappyPathTest.cpp
-#)
-
-#TARGET_LINK_LIBRARIES(ThorScriptDriverTest_HappyPathTest
-#    zillians-framework-language-main-stages-driver
-#)
-
 zillians_add_complex_test(
     TARGET thorscript-class-resolution-test
     DEPENDS ts-compile
-    SHELL ts-compile --enable-static-test --root-dir=${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/c0.t
+    SHELL ts-compile --enable-static-test --root-dir=${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/all.t
 )
 
 zillians_add_test_to_subject(SUBJECT thorscript-resolution-test TARGET thorscript-class-resolution-test)
