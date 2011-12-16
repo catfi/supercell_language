@@ -78,6 +78,12 @@ struct EnumDecl : public Declaration
     {
     	EnumDecl* cloned = new EnumDecl((name) ? cast<Identifier>(name->clone()) : NULL);
 
+        if(annotations != NULL)
+        {
+            Annotations* anno = cast<Annotations>(annotations->clone());
+            cloned->setAnnotations(anno);
+        }
+
     	foreach(i, values)
     		cloned->addEnumeration(cast<VariableDecl>((*i)->clone()));
 

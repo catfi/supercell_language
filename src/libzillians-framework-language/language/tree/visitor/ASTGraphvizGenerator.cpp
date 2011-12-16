@@ -25,6 +25,7 @@
 #include "language/tree/visitor/ASTGraphvizGenerator.h"
 #include "language/context/TransformerContext.h"
 #include "language/context/ResolverContext.h"
+#include "language/stage/parser/context/SourceInfoContext.h"
 
 namespace zillians { namespace language { namespace stage { namespace visitor {
 
@@ -45,6 +46,11 @@ void ASTGraphvizNodeGenerator::addNode(ASTNode& node,
     {
         color = L"red";
         penwidth = 4;
+    }
+
+    if(zillians::language::stage::SourceInfoContext::get(&node) == NULL)
+    {
+        fillColor = L"lightgreen";
     }
 
     stream << L"    n" << std::hex << &node << L" [label=\"" << node.instanceName();
