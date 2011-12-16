@@ -560,7 +560,7 @@ private:
     	BOOST_ASSERT(owner_package != NULL && "can't find owner package for class template");
 
     	// make a clone from class template
-    	ClassDecl* to = cast<ClassDecl>(from->clone());
+    	ClassDecl* to = cast<ClassDecl>(ASTNodeHelper::clone(from));
     	owner_package->addObject(to);
 
     	// update the templated identifier to make it a class instantiation
@@ -582,7 +582,7 @@ private:
                 ClassDecl* classDecl = cast<ClassDecl>(uniq);
                 if(classDecl != NULL)
                 {
-                    Identifier* classIdentifier = cast<Identifier>(classDecl->name->clone());
+                    Identifier* classIdentifier = cast<Identifier>(ASTNodeHelper::clone(classDecl->name));
                     TypeSpecifier* fier = new TypeSpecifier(classIdentifier);
 
                     // template argu is class template
@@ -598,7 +598,7 @@ private:
                 // primitive types
                 else
                 {
-                    tree::ASTNode* copy = uniq->clone();
+                    tree::ASTNode* copy = ASTNodeHelper::clone(uniq);
                     specialized_type_to_replace = tree::cast<tree::TypeSpecifier>(copy);
                 }
 
@@ -613,7 +613,7 @@ private:
     			if(isa<ClassDecl>(resolved_default_type))
     			{
     				// create a TypeSpecifier which resolve to the class
-    				specialized_type_to_replace = new TypeSpecifier(cast<Identifier>(cast<ClassDecl>(resolved_default_type)->name->clone()));
+    				specialized_type_to_replace = new TypeSpecifier(cast<Identifier>(ASTNodeHelper::clone(cast<ClassDecl>(resolved_default_type)->name)));
     				ResolvedType::set(specialized_type_to_replace, resolved_default_type);
     			}
     			else

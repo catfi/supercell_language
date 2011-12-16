@@ -128,13 +128,13 @@ struct RestructureStageVisitor : public GenericDoubleVisitor
 				if(isa<TemplatedIdentifier>(owner_class->name))
 				{
 					// create a specialization from the general form
-					TemplatedIdentifier* templated_type_name = cast<TemplatedIdentifier>(owner_class->name->clone());
+					TemplatedIdentifier* templated_type_name = cast<TemplatedIdentifier>(ASTNodeHelper::clone(owner_class->name));
 					templated_type_name->specialize();
 					type_name = templated_type_name;
 				}
 				else
 				{
-					type_name = cast<Identifier>(owner_class->name->clone());
+					type_name = cast<Identifier>(ASTNodeHelper::clone(owner_class->name));
 				}
 
 				TypeSpecifier* type_specifier = new TypeSpecifier(type_name);
@@ -194,7 +194,7 @@ struct RestructureStageVisitor : public GenericDoubleVisitor
 
 					BOOST_ASSERT(parent != NULL && name != NULL && anchor != NULL && "variable declaration has incorrect hierarchy");
 
-					Identifier*     new_identifier      = cast<Identifier>(node.name->clone());
+					Identifier*     new_identifier      = cast<Identifier>(ASTNodeHelper::clone(node.name));
 					PrimaryExpr*    new_primary_expr    = new PrimaryExpr(new_identifier);
 					BinaryExpr*     new_assignment_expr = new BinaryExpr(BinaryExpr::OpCode::ASSIGN, new_primary_expr, node.initializer);
 					ExpressionStmt* new_expr_stmt       = new ExpressionStmt(new_assignment_expr);
@@ -224,7 +224,7 @@ struct RestructureStageVisitor : public GenericDoubleVisitor
 					{
 						if((*i)->name->toString() == L"new")
 						{
-							Identifier*     new_identifier      = cast<Identifier>(node.name->clone());
+							Identifier*     new_identifier      = cast<Identifier>(ASTNodeHelper::clone(node.name));
 							PrimaryExpr*    new_primary_expr    = new PrimaryExpr(new_identifier);
 							BinaryExpr*     new_assignment_expr = new BinaryExpr(BinaryExpr::OpCode::ASSIGN, new_primary_expr, node.initializer);
 							ExpressionStmt* new_expr_stmt       = new ExpressionStmt(new_assignment_expr);
@@ -358,7 +358,7 @@ struct RestructureStageVisitor : public GenericDoubleVisitor
 
 				BOOST_ASSERT(decomposed_op != BinaryExpr::OpCode::INVALID && "invalid decomposed binary operator");
 
-				Expression* new_lhs = cast<Expression>(node.left->clone());
+				Expression* new_lhs = cast<Expression>(ASTNodeHelper::clone(node.left));
 				BinaryExpr* new_rhs = new BinaryExpr(decomposed_op, new_lhs, node.right);
 
 				SplitReferenceContext::set(new_lhs, &node);

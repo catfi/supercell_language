@@ -28,6 +28,7 @@
 #include "language/stage/parser/context/SourceInfoContext.h"
 #include "language/tree/visitor/NodeInfoVisitor.h"
 #include "language/tree/visitor/ASTGraphvizGenerator.h"
+#include "language/stage/transformer/context/ManglingStageContext.h"
 
 #include <boost/mpl/vector.hpp>
 #include <boost/mpl/size.hpp>
@@ -101,42 +102,53 @@ struct ASTNodeHelper
 		visitor.visit(node);
 	}
 
-	template<typename ContextTypeList, bool RecursiveClone = true>
-	static void clone(ASTNode* from, ASTNode* to)
+	static ASTNode* clone(ASTNode* from/*, ASTNode* to*/)
 	{
-		if(RecursiveClone)
-		{
-            // collect from nodes
-            std::vector<ASTNode*> fromNodes;
-            foreachApply<ASTNode>(*from, [&fromNodes](ASTNode& node){
-                fromNodes.push_back(&node);
-            });
-            // collect to nodes
-            std::vector<ASTNode*> toNodes;
-            foreachApply<ASTNode>(*to, [&toNodes](ASTNode& node){
-                toNodes.push_back(&node);
-            });
-            BOOST_ASSERT(fromNodes.size() == toNodes.size());
-            // copy
-            for(size_t i=0; i != fromNodes.size(); ++i)
-            {
-                ASTNode* fromNode = fromNodes[i];
-                ASTNode* toNode   = toNodes[i];
-                detail::ContextCloneImpl<boost::mpl::size<ContextTypeList>::value, ContextTypeList>::clone(fromNode, toNode);
-            }
-		}
-		else
-		{
-			detail::ContextCloneImpl<boost::mpl::size<ContextTypeList>::value, ContextTypeList>::clone(from, to);
-		}
+        ////////////////////////////////////////////////////////////////////// 
+        // clone tree
+        ////////////////////////////////////////////////////////////////////// 
+        ASTNode* to = from->clone();
+
+        ////////////////////////////////////////////////////////////////////// 
+        // clone context
+        ////////////////////////////////////////////////////////////////////// 
+        // list of contexts
+        typedef boost::mpl::vector<
+            zillians::language::stage::SourceInfoContext,
+            zillians::language::stage::NameManglingContext
+        > ContextToCloneTypeList;
+
+        // collect from-nodes
+        std::vector<ASTNode*> fromNodes;
+        foreachApply<ASTNode>(*from, [&fromNodes](ASTNode& node){
+            fromNodes.push_back(&node);
+        });
+
+        // collect to-nodes
+        std::vector<ASTNode*> toNodes;
+        foreachApply<ASTNode>(*to, [&toNodes](ASTNode& node){
+            toNodes.push_back(&node);
+        });
+        BOOST_ASSERT(fromNodes.size() == toNodes.size());
+
+        // copy context for each node
+        for(size_t i=0; i != fromNodes.size(); ++i)
+        {
+            ASTNode* fromNode = fromNodes[i];
+            ASTNode* toNode   = toNodes[i];
+            detail::ContextCloneImpl<boost::mpl::size<ContextToCloneTypeList>::value, ContextToCloneTypeList>::clone(fromNode, toNode);
+        }
+
+        return to;
 	}
 
 	static void propogateSourceInfo(ASTNode& to, ASTNode& from)
 	{
-		stage::SourceInfoContext* to_src_info = to.get<stage::SourceInfoContext>();
+		//stage::SourceInfoContext* to_src_info = to.get<stage::SourceInfoContext>();
 		stage::SourceInfoContext* from_src_info = from.get<stage::SourceInfoContext>();
 
-		BOOST_ASSERT(to_src_info == NULL && "invalid propagating source info propagation");
+        // TBD: no need to check this anymore? since now we clone SourceInfo by default?
+		//BOOST_ASSERT(to_src_info == NULL && "invalid propagating source info propagation");
 
 		to.set<stage::SourceInfoContext>(new stage::SourceInfoContext(*from_src_info));
 	}
