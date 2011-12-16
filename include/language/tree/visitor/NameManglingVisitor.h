@@ -114,120 +114,6 @@ struct NameManglingVisitor : Visitor<ASTNode, void, VisitorImplementation::recur
 		}
 	}
 
-	void mangle(SimpleIdentifier& node)
-	{
-		if(node.name == L"ptr_")        outStream() << "P";
-		else if(node.name == L"ref_")   outStream() << "R";
-		else if(node.name == L"const_") outStream() << "K";
-		else if(node.name == L"void_")  outStream() << "v";
-		else if(node.name == L"new")
-		{
-			outStream() << "C1";
-#if 0 // NOTE: see --> http://stackoverflow.com/questions/6921295/dual-emission-of-constructor-symbols
-			outStream() << "C2"; // base object constructor
-#endif
-		}
-		else if(!node.name.empty())
-			outStream() << node.name.length() << encode(node.name);
-	}
-
-	void mangle(TemplatedIdentifier& node)
-	{
-		visit(*node.id);
-
-		bool reserved_construct = isReservedConstructName(node.id);
-		if(!reserved_construct)
-		{
-			mAliasMgr.addDummy(__LINE__); // HACK: template name occupies a slot
-			outStream() << "I"; // RULE: template params begin with "I"
-		}
-
-		{
-			mParamDepth++;
-			foreach(i, node.templated_type_list)
-			{
-				if(node.type == TemplatedIdentifier::Usage::FORMAL_PARAMETER)
-				{
-					ASTNode* resolved_type = findUniqueTypeResolution(*i);
-					if(resolved_type)
-					{
-						if(isa<ClassDecl>(resolved_type))
-						{
-							// HACK: can't do reverse-lookup
-							// * since "ASTNodeHelper::findUniqueTypeResolution" jumps directly to "Declaration",
-							//   skipping "TypeSpecifier", we miss a chance to check if we've visited a type.
-							// * a work-around, albeit dirty, is to build a temporary type for the "Declaration",
-							//   and visit that instead.
-							// * one side-effect is that we must remember to delete the temporary type after each
-							//   name mangling.
-							TypeSpecifier* temp_type_specifier = buildResolvableTypeSpecifier(
-									cast<ClassDecl>(resolved_type));
-							mangleAliasedType(temp_type_specifier);
-							mAliasMgr.addManaged(temp_type_specifier);
-						}
-						else
-							visit(*resolved_type);
-					}
-				}
-			}
-			mParamDepth--;
-		}
-
-		if(!reserved_construct)
-			outStream() << "E"; // RULE: template params end with "E"
-	}
-
-	void mangle(TypeSpecifier& node)
-	{
-		switch(node.type)
-		{
-		case TypeSpecifier::ReferredType::FUNCTION_TYPE:
-			visit(*node.referred.function_type);
-			mAliasMgr.add(&node);
-			break;
-		case TypeSpecifier::ReferredType::PRIMITIVE:
-			switch(node.referred.primitive)
-			{
-			case PrimitiveType::VOID:    outStream() << "v"; break;
-			case PrimitiveType::BOOL:    outStream() << "b"; break;
-			case PrimitiveType::INT8:    outStream() << "c"; break;
-			case PrimitiveType::INT16:   outStream() << "s"; break;
-			case PrimitiveType::INT32:   outStream() << "l"; /* or 'i' ? */ break;
-			case PrimitiveType::INT64:   outStream() << "x"; break;
-			case PrimitiveType::FLOAT32: outStream() << "f"; break;
-			case PrimitiveType::FLOAT64: outStream() << "d"; break;
-			default: UNREACHABLE_CODE();
-			}
-			break;
-		case TypeSpecifier::ReferredType::UNSPECIFIED:
-			{
-				ASTNode* resolved_type = findUniqueTypeResolution(&node);
-				BOOST_ASSERT(resolved_type && "failed to resolve type");
-				visit(*resolved_type);
-				mAliasMgr.add(&node);
-			}
-			break;
-		}
-	}
-
-	void mangle(FunctionType& node)
-	{
-		mangleParent(&node);
-		outStream() << "PF"; // RULE/THOR_SPECIFIC: callback begins with "F", and is a pointer, hence "P" in "PF"
-		visit(*node.return_type);
-		mParamDepth++;
-		if(node.parameter_types.empty())
-			mangleVoid(); // RULE: empty param-list equivalent to "void" type
-		else
-		{
-			foreach(i, node.parameter_types)
-				mangleAliasedType(*i);
-		}
-		mParamDepth--;
-		outStream() << "E"; // RULE: callback ends with "E"
-		mAliasMgr.addDummy(__LINE__); // HACK: function type occupies 2 alias slots
-	}
-
 	void mangle(Declaration& node)
 	{
 		mangleParentThenPrintName(&node);
@@ -322,6 +208,120 @@ struct NameManglingVisitor : Visitor<ASTNode, void, VisitorImplementation::recur
 		mModeCallByValue = false;
 	}
 
+	void mangle(FunctionType& node)
+	{
+		mangleParent(&node);
+		outStream() << "PF"; // RULE/THOR_SPECIFIC: callback begins with "F", and is a pointer, hence "P" in "PF"
+		visit(*node.return_type);
+		mParamDepth++;
+		if(node.parameter_types.empty())
+			mangleVoid(); // RULE: empty param-list equivalent to "void" type
+		else
+		{
+			foreach(i, node.parameter_types)
+				mangleAliasedType(*i);
+		}
+		mParamDepth--;
+		outStream() << "E"; // RULE: callback ends with "E"
+		mAliasMgr.addDummy(__LINE__); // HACK: function type occupies 2 alias slots
+	}
+
+	void mangle(TemplatedIdentifier& node)
+	{
+		visit(*node.id);
+
+		bool reserved_construct = isReservedConstructName(node.id);
+		if(!reserved_construct)
+		{
+			mAliasMgr.addDummy(__LINE__); // HACK: template name occupies a slot
+			outStream() << "I"; // RULE: template params begin with "I"
+		}
+
+		{
+			mParamDepth++;
+			foreach(i, node.templated_type_list)
+			{
+				if(node.type == TemplatedIdentifier::Usage::FORMAL_PARAMETER)
+				{
+					ASTNode* resolved_type = findUniqueTypeResolution(*i);
+					if(resolved_type)
+					{
+						if(isa<ClassDecl>(resolved_type))
+						{
+							// HACK: can't do reverse-lookup
+							// * since "findUniqueTypeResolution" jumps directly to "Declaration", skipping
+							//   "TypeSpecifier", we miss a chance to check if we've visited a type.
+							// * a work-around, albeit dirty, is to build a temporary type for the "Declaration",
+							//   and visit that instead.
+							// * one side-effect is that we must remember to delete the temporary type after each
+							//   name mangling.
+							TypeSpecifier* temp_type_specifier = buildResolvableTypeSpecifier(
+									cast<ClassDecl>(resolved_type));
+							mangleAliasedType(temp_type_specifier);
+							mAliasMgr.addManaged(temp_type_specifier);
+						}
+						else
+							visit(*resolved_type);
+					}
+				}
+			}
+			mParamDepth--;
+		}
+
+		if(!reserved_construct)
+			outStream() << "E"; // RULE: template params end with "E"
+	}
+
+	void mangle(TypeSpecifier& node)
+	{
+		switch(node.type)
+		{
+		case TypeSpecifier::ReferredType::FUNCTION_TYPE:
+			visit(*node.referred.function_type);
+			mAliasMgr.add(&node);
+			break;
+		case TypeSpecifier::ReferredType::PRIMITIVE:
+			switch(node.referred.primitive)
+			{
+			case PrimitiveType::VOID:    outStream() << "v"; break;
+			case PrimitiveType::BOOL:    outStream() << "b"; break;
+			case PrimitiveType::INT8:    outStream() << "c"; break;
+			case PrimitiveType::INT16:   outStream() << "s"; break;
+			case PrimitiveType::INT32:   outStream() << "l"; /* or 'i' ? */ break;
+			case PrimitiveType::INT64:   outStream() << "x"; break;
+			case PrimitiveType::FLOAT32: outStream() << "f"; break;
+			case PrimitiveType::FLOAT64: outStream() << "d"; break;
+			default: UNREACHABLE_CODE();
+			}
+			break;
+		case TypeSpecifier::ReferredType::UNSPECIFIED:
+			{
+				ASTNode* resolved_type = findUniqueTypeResolution(&node);
+				BOOST_ASSERT(resolved_type && "failed to resolve type");
+				visit(*resolved_type);
+				mAliasMgr.add(&node);
+			}
+			break;
+		}
+	}
+
+	void mangle(SimpleIdentifier& node)
+	{
+		if(node.name == L"ptr_")        outStream() << "P";
+		else if(node.name == L"ref_")   outStream() << "R";
+		else if(node.name == L"const_") outStream() << "K";
+		else if(node.name == L"void_")  outStream() << "v";
+		else if(node.name == L"new")
+		{
+			outStream() << "C1";
+#if 0 // NOTE: see --> http://stackoverflow.com/questions/6921295/dual-emission-of-constructor-symbols
+			outStream() << "C2"; // base object constructor
+#endif
+		}
+		else if(!node.name.empty())
+			outStream() << node.name.length() << encode(node.name);
+	}
+
 	void reset()
 	{
 #if 0 // NOTE: debug mangler
@@ -368,7 +368,7 @@ private:
 		else if(isa<Package>(node))
 		{
 			TypeSpecifier* temp_type_specifier = buildResolvableTypeSpecifier(cast<Package>(node));
-			mangleAliasedType(temp_type_specifier);
+			mangleAliasedType(temp_type_specifier); // NOTE: check if we need package alias
 			mAliasMgr.addManaged(temp_type_specifier);
 		}
 		else
@@ -389,7 +389,7 @@ private:
 			{
 				ASTNode* resolved_type = findUniqueTypeResolution(type_specifier);
 				BOOST_ASSERT(resolved_type && "failed to resolve type");
-				if(isa<Package>(resolved_type))
+				if(isa<Package>(resolved_type)) // NOTE: must divert from visit(Package&) to avoid infinite recursion
 					visit(*cast<Package>(resolved_type)->id);
 				else
 				{
@@ -566,7 +566,7 @@ private:
     	if(isa<Package>(node))
     	{
     		TypeSpecifier* type_specifier = new TypeSpecifier(cast<SimpleIdentifier>(cast<Package>(node)->id->clone()));
-#if 0 // NOTE: the usual way -- BOOST_ASSERT fail if we enable this
+#if 0 // HACK: disabled to avoid BOOST_ASSERT
     		ResolvedType::set(type_specifier, package);
 #else
     		type_specifier->set<ResolvedType>(new ResolvedType(node));
