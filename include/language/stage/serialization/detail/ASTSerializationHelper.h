@@ -17,6 +17,9 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
+#ifndef ZILLIANS_LANGUAGE_STAGE_ASTSERIALIZATIONHELPER_H_
+#define ZILLIANS_LANGUAGE_STAGE_ASTSERIALIZATIONHELPER_H_
+
 #include "core/Prerequisite.h"
 #include "language/tree/ASTNodeFactory.h"
 #include "language/stage/serialization/detail/ASTSerializationCommon.h"
@@ -34,3 +37,5 @@ private:
 };
 
 } } }
+
+#endif /* ZILLIANS_LANGUAGE_STAGE_ASTSERIALIZATIONHELPER_H_ */

@@ -29,10 +29,108 @@
 #include "language/tree/visitor/NodeInfoVisitor.h"
 #include "language/tree/visitor/ASTGraphvizGenerator.h"
 
+#include <boost/mpl/vector.hpp>
+#include <boost/mpl/size.hpp>
+#include <boost/mpl/at.hpp>
+#include <boost/mpl/int.hpp>
+
 namespace zillians { namespace language { namespace tree {
+
+namespace detail {
+
+template<typename T, bool RecursiveVisit = true, bool IncludeSelf = true>
+struct ForeachVisitor : public visitor::GenericDoubleVisitor
+{
+    CREATE_INVOKER(foreachInvoker, apply);
+
+	ForeachVisitor(std::function<void(T&)> functor) : depth(0), functor(functor)
+	{
+		REGISTER_ALL_VISITABLE_ASTNODE(foreachInvoker)
+    }
+
+	void apply(ASTNode& node)
+	{
+		if(IncludeSelf || depth)
+			functor(node);
+
+		if(RecursiveVisit || (!RecursiveVisit && !depth))
+		{
+			++depth;
+			revisit(node);
+			--depth;
+		}
+	}
+
+	int depth;
+	std::function<void(T&)> functor;
+};
+
+template<int N, typename ContextTypeList>
+struct ContextCloneImpl
+{
+	typedef typename boost::mpl::at<ContextTypeList, boost::mpl::int_<N-1> >::type ContextT;
+	static void clone(ASTNode* from, ASTNode* to)
+	{
+		if(from->get<ContextT>())
+		{
+			ContextT* ctx = new ContextT(*from->get<ContextT>());
+			to->set<ContextT, ContextOwnership::transfer>(ctx);
+		}
+		ContextCloneImpl<N-1, ContextTypeList>::clone(from, to);
+	}
+};
+
+template<typename ContextTypeList>
+struct ContextCloneImpl<0, ContextTypeList>
+{
+	static void clone(ASTNode* from, ASTNode* to)
+	{
+		UNUSED_ARGUMENT(from);
+		UNUSED_ARGUMENT(to);
+	}
+};
+
+}
 
 struct ASTNodeHelper
 {
+	template<typename T = ASTNode, bool RecursiveVisit = true, bool IncludeSelf = true>
+	static void foreachApply(ASTNode& node, std::function<void(T&)> functor)
+	{
+		typename detail::ForeachVisitor<T, RecursiveVisit, IncludeSelf> visitor(functor);
+		visitor.visit(node);
+	}
+
+	template<typename ContextTypeList, bool RecursiveClone = true>
+	static void clone(ASTNode* from, ASTNode* to)
+	{
+		if(RecursiveClone)
+		{
+            // collect from nodes
+            std::vector<ASTNode*> fromNodes;
+            foreachApply<ASTNode>(*from, [&fromNodes](ASTNode& node){
+                fromNodes.push_back(&node);
+            });
+            // collect to nodes
+            std::vector<ASTNode*> toNodes;
+            foreachApply<ASTNode>(*to, [&toNodes](ASTNode& node){
+                toNodes.push_back(&node);
+            });
+            BOOST_ASSERT(fromNodes.size() == toNodes.size());
+            // copy
+            for(size_t i=0; i != fromNodes.size(); ++i)
+            {
+                ASTNode* fromNode = fromNodes[i];
+                ASTNode* toNode   = toNodes[i];
+                detail::ContextCloneImpl<boost::mpl::size<ContextTypeList>::value, ContextTypeList>::clone(fromNode, toNode);
+            }
+		}
+		else
+		{
+			detail::ContextCloneImpl<boost::mpl::size<ContextTypeList>::value, ContextTypeList>::clone(from, to);
+		}
+	}
+
 	static void propogateSourceInfo(ASTNode& to, ASTNode& from)
 	{
 		stage::SourceInfoContext* to_src_info = to.get<stage::SourceInfoContext>();
