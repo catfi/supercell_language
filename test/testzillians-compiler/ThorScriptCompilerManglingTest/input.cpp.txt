@@ -1,4 +1,4 @@
-// g++ main2.cpp && nm a.out | grep func | cut -d" " -f3
+// g++ main.cpp && nm a.out | grep func | cut -d" " -f3
 
 typedef char int8;
 typedef short int16;

@@ -134,7 +134,7 @@ struct NameManglingVisitor : Visitor<ASTNode, void, VisitorImplementation::recur
 		if(isa<TemplatedIdentifier>(node.name) && !cast<TemplatedIdentifier>(node.name)->isFullySpecialized())
 			return;
 
-		mModeCallByValue = ASTNodeHelper::findAnnotation(&node, L"call_by_value");
+		mModeCallByValue = ASTNodeHelper::hasAnnotation(&node, L"call_by_value");
 
 		mAliasMgr.clear();
 		mangleParentThenPrintName(&node);
