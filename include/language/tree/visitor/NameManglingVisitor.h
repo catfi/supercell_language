@@ -40,9 +40,9 @@
 // 1. all names begin with "_Z"
 // 2. simple names have the form: [NAME_LENGTH]<NAME>, EXAMPLE: "aaa" --> "3aaa"
 // 3. nested namespaces translate into "combo names"
-//    combo names have the form: N(*<SIMPLE_NAME>)E,  EXAMPLE: "aaa.bbb.ccc"                  --> "N3aaa3bbb3cccE"
-// 4. templates have the form: <NAME>I(*<NAME>)E,     EXAMPLE: "ddd<aaa.bbb.ccc>"             --> "3dddIN3aaa3bbb3cccEE"
-// 5. functions have the form: <NAME>(+<PARAM_TYPE>), EXAMPLE: "void _eee_(char, char)"       --> "_Z5_eee_cc"
+//    combo names have the form: N(*<SIMPLE_NAME>)E,  EXAMPLE: "aaa.bbb.ccc"            --> "N3aaa3bbb3cccE"
+// 4. templates have the form: <NAME>I(*<NAME>)E,     EXAMPLE: "ddd<aaa.bbb.ccc>"       --> "3dddIN3aaa3bbb3cccEE"
+// 5. functions have the form: <NAME>(+<PARAM_TYPE>), EXAMPLE: "void _eee_(char, char)" --> "_Z5_eee_cc"
 //    an empty parameter list translates into "void"
 // 6. template functions have the form: <NAME><RETURN_TYPE>(+<PARAM_TYPE>)
 //    EXAMPLE: "void _fff_<bool>(char, char)" --> "_Z5_fff_IbEvcc"
@@ -72,6 +72,7 @@
 //     function types occupy an extra substitution slot (not sure why)
 //     EXAMPLE: "aaa::_hhh_(aaa* x, aaa* y, aaa* z)" --> "_ZN3aaa5_hhh_EPS_S0_S0_"
 // 12. enums are mangled just like namespaces/classes
+// 13. enum value mangling is not relevant to ThorScript, since template specialization to integer is not supported
 
 // ThorScript Specific:
 // 1. modifiers require special reserved templates to generate correct AST for mangling
@@ -109,7 +110,7 @@ struct NameManglingVisitor : Visitor<ASTNode, void, VisitorImplementation::recur
 		else
 		{
 			mangleParentThenPrintName(&node);
-			mAliasMgr.addManaged(ASTNodeHelper::buildResolvableTypeSpecifier(&node));
+			mAliasMgr.addManaged(buildResolvableTypeSpecifier(&node));
 		}
 	}
 
@@ -147,7 +148,7 @@ struct NameManglingVisitor : Visitor<ASTNode, void, VisitorImplementation::recur
 			{
 				if(node.type == TemplatedIdentifier::Usage::FORMAL_PARAMETER)
 				{
-					ASTNode* resolved_type = ASTNodeHelper::findUniqueTypeResolution(*i);
+					ASTNode* resolved_type = findUniqueTypeResolution(*i);
 					if(resolved_type)
 					{
 						if(isa<ClassDecl>(resolved_type))
@@ -159,7 +160,7 @@ struct NameManglingVisitor : Visitor<ASTNode, void, VisitorImplementation::recur
 							//   and visit that instead.
 							// * one side-effect is that we must remember to delete the temporary type after each
 							//   name mangling.
-							TypeSpecifier* temp_type_specifier = ASTNodeHelper::buildResolvableTypeSpecifier(
+							TypeSpecifier* temp_type_specifier = buildResolvableTypeSpecifier(
 									cast<ClassDecl>(resolved_type));
 							mangleAliasedType(temp_type_specifier);
 							mAliasMgr.addManaged(temp_type_specifier);
@@ -200,7 +201,7 @@ struct NameManglingVisitor : Visitor<ASTNode, void, VisitorImplementation::recur
 			break;
 		case TypeSpecifier::ReferredType::UNSPECIFIED:
 			{
-				ASTNode* resolved_type = ASTNodeHelper::findUniqueTypeResolution(&node);
+				ASTNode* resolved_type = findUniqueTypeResolution(&node);
 				BOOST_ASSERT(resolved_type && "failed to resolve type");
 				visit(*resolved_type);
 				mAliasMgr.add(&node);
@@ -230,7 +231,7 @@ struct NameManglingVisitor : Visitor<ASTNode, void, VisitorImplementation::recur
 	void mangle(Declaration& node)
 	{
 		mangleParentThenPrintName(&node);
-		mAliasMgr.addManaged(ASTNodeHelper::buildResolvableTypeSpecifier(&node));
+		mAliasMgr.addManaged(buildResolvableTypeSpecifier(&node));
 	}
 
 	void mangle(ClassDecl& node)
@@ -239,7 +240,7 @@ struct NameManglingVisitor : Visitor<ASTNode, void, VisitorImplementation::recur
 			return;
 
 		mangleParentThenPrintName(&node);
-		mAliasMgr.addManaged(ASTNodeHelper::buildResolvableTypeSpecifier(&node));
+		mAliasMgr.addManaged(buildResolvableTypeSpecifier(&node));
 	}
 
 	void mangle(FunctionDecl& node)
@@ -266,7 +267,7 @@ struct NameManglingVisitor : Visitor<ASTNode, void, VisitorImplementation::recur
 				return;
 			BOOST_ASSERT((node.parameters.size() > 0) && "method must have one parameter");
 			auto first_param = node.parameters.begin();
-			ASTNode* resolved_type = ASTNodeHelper::findUniqueTypeResolution((*first_param)->type);
+			ASTNode* resolved_type = findUniqueTypeResolution((*first_param)->type);
 			BOOST_ASSERT(resolved_type && "failed to resolve type");
 			BOOST_ASSERT(resolved_type->isEqual(*node.parent) && "method's first parameter must be \"this\"");
 
@@ -296,8 +297,7 @@ struct NameManglingVisitor : Visitor<ASTNode, void, VisitorImplementation::recur
 				{
 					if(i != node.parameters.begin())
 					{
-						if(!VisitedFirstExplicitThis
-								&& ASTNodeHelper::sameResolvedType((*i)->type, mAliasMgr.typeAt(ThisSlot)))
+						if(!VisitedFirstExplicitThis && sameResolvedType((*i)->type, mAliasMgr.typeAt(ThisSlot)))
 						{
 							if(mModeCallByValue)
 								mangleAliasedType((*i)->type);
@@ -324,7 +324,7 @@ struct NameManglingVisitor : Visitor<ASTNode, void, VisitorImplementation::recur
 
 	void reset()
 	{
-#if 0 // NOTE: for debugging only
+#if 0 // NOTE: debug mangler
 		std::cout << "NameManglingVisitor: " << mCurrentOutStream->str() << std::endl;
 #endif
 		mCurrentOutStream->str("");
@@ -366,7 +366,11 @@ private:
 		if(isa<Declaration>(node))
 			visit(*cast<Declaration>(node)->name);
 		else if(isa<Package>(node))
-			visit(*cast<Package>(node)->id);
+		{
+			TypeSpecifier* temp_type_specifier = buildResolvableTypeSpecifier(cast<Package>(node));
+			mangleAliasedType(temp_type_specifier);
+			mAliasMgr.addManaged(temp_type_specifier);
+		}
 		else
 			UNREACHABLE_CODE();
 		if(end_of_combo_name)
@@ -383,21 +387,26 @@ private:
 			int slot = mAliasMgr.find(type_specifier);
 			if(slot == -1)
 			{
-				ASTNode* resolved_type = ASTNodeHelper::findUniqueTypeResolution(type_specifier);
+				ASTNode* resolved_type = findUniqueTypeResolution(type_specifier);
 				BOOST_ASSERT(resolved_type && "failed to resolve type");
-				if((mParamDepth > 0)
-						&& isa<Declaration>(resolved_type)
-						&& !isa<EnumDecl>(resolved_type)
-						&& !isReservedConstructName(cast<Declaration>(resolved_type)->name)
-						&& !mModeCallByValue)
+				if(isa<Package>(resolved_type))
+					visit(*cast<Package>(resolved_type)->id);
+				else
 				{
-					outStream() << "P"; // THOR_SPECIFIC: object passing is by pointer, hence "P"
-					mAliasMgr.addDummy(__LINE__); // HACK: bump up actual type to account for pointer type
+					if((mParamDepth > 0)
+							&& isa<Declaration>(resolved_type)
+							&& !isa<EnumDecl>(resolved_type)
+							&& !isReservedConstructName(cast<Declaration>(resolved_type)->name)
+							&& !mModeCallByValue)
+					{
+						outStream() << "P"; // THOR_SPECIFIC: object passing is by pointer, hence "P"
+						mAliasMgr.addDummy(__LINE__); // HACK: bump up actual type to account for pointer type
+					}
+					visit(*type_specifier);
 				}
-				visit(*type_specifier);
 			}
 			else
-				outStream() << getSubstitutionSymbol(slot);
+				outStream() << genSubstitutionSymbol(slot);
 		}
 		if(mute) mCurrentOutStream = &mOutStream;
 	}
@@ -414,7 +423,7 @@ private:
 		{
 			auto p = std::find_if(mAliasSlots.begin(), mAliasSlots.end(),
 					[&](TypeSpecifier* other) {
-							return other ? ASTNodeHelper::sameResolvedType(type_specifier, other) : false;
+							return other ? sameResolvedType(type_specifier, other) : false;
 							} );
 			return (p != mAliasSlots.end()) ? std::distance(mAliasSlots.begin(), p) : -1;
 		}
@@ -423,7 +432,7 @@ private:
 		{
 			if(check_if_unique && find(type_specifier) != -1)
 				return;
-#if 0 // NOTE: for debugging only
+#if 0 // NOTE: debug mangler
 			if(check_if_unique)
 			{
 				BOOST_ASSERT(type_specifier && "bad input");
@@ -444,7 +453,7 @@ private:
 		void addDummy(int line_number)
 		{
 			add(NULL, false);
-#if 0 // NOTE: for debugging only
+#if 0 // NOTE: debug mangler
 			std::wcout << L".. from line #" << line_number << std::endl;
 #endif
 		}
@@ -453,7 +462,7 @@ private:
 		{
 			BOOST_ASSERT((slot != -1) && "invalid slot");
 			TypeSpecifier* type_specifier = mAliasSlots[slot];
-#if 0 // NOTE: for debugging only
+#if 0 // NOTE: debug mangler
 			{
 				BOOST_ASSERT(type_specifier && "bad input");
 				std::wcout << mAliasSlots.size() << L": [remove]" << type_specifier->toString() << std::endl;
@@ -480,7 +489,7 @@ private:
 		std::vector<shared_ptr<TypeSpecifier>> mManagedAliasSlots;
 	} mAliasMgr;
 
-	std::string getSubstitutionSymbol(int slot)
+	std::string genSubstitutionSymbol(int slot)
 	{
 		auto ito36a = [](size_t n)
 			{
@@ -524,6 +533,52 @@ private:
 		return (s == L"ptr_" || s == L"ref_" || s == L"const_" || s == L"void_");
 	}
 
+	// HACK: package rejected by "ResolvedType::isValidResolvedType", must avoid "findUniqueTypeResolution"
+	static ASTNode* findUniqueTypeResolution(ASTNode* node)
+	{
+		ASTNode* resolved_type = ResolvedType::get(node);
+		if(resolved_type && isa<Package>(resolved_type))
+			return resolved_type;
+		else
+			return ASTNodeHelper::findUniqueTypeResolution(node);
+	}
+
+	// HACK: package rejected by "ResolvedType::isValidResolvedType", must avoid "findUniqueTypeResolution"
+    static bool sameResolvedType(TypeSpecifier* a, TypeSpecifier* b)
+	{
+        BOOST_ASSERT(a && b && "bad input");
+		if((a->type == b->type) && (a->type == TypeSpecifier::ReferredType::UNSPECIFIED))
+		{
+			ASTNode* resolved_type_a = ResolvedType::get(a);
+			ASTNode* resolved_type_b = ResolvedType::get(b);
+			if((resolved_type_a && isa<Package>(resolved_type_a))
+					|| (resolved_type_b && isa<Package>(resolved_type_b)))
+			{
+				return (resolved_type_a == resolved_type_b);
+			}
+		}
+		return ASTNodeHelper::sameResolvedType(a, b);
+	}
+
+    // HACK: package rejected by "ResolvedType::isValidResolvedType", must avoid "findUniqueTypeResolution"
+    static TypeSpecifier* buildResolvableTypeSpecifier(ASTNode* node)
+	{
+    	if(isa<Package>(node))
+    	{
+    		TypeSpecifier* type_specifier = new TypeSpecifier(cast<SimpleIdentifier>(cast<Package>(node)->id->clone()));
+#if 0 // NOTE: the usual way -- BOOST_ASSERT fail if we enable this
+    		ResolvedType::set(type_specifier, package);
+#else
+    		type_specifier->set<ResolvedType>(new ResolvedType(node));
+#endif
+    		return type_specifier;
+    	}
+    	else if(isa<Declaration>(node))
+    		return ASTNodeHelper::buildResolvableTypeSpecifier(cast<Declaration>(node));
+    	else
+    		UNREACHABLE_CODE();
+	}
+
 public:
 	std::string encode(const std::wstring ucs4)
 	{
@@ -545,7 +600,7 @@ public:
 		for(std::string::const_iterator i = ucs4_to_utf8_temp.begin(), e = ucs4_to_utf8_temp.end(); i != e; ++i)
 		{
 			char c = *i;
-#if 0 // NOTE: for debugging only
+#if 0 // NOTE: debug mangler
 			if(c == '<') break;
 #endif
 			if( ((i == ucs4_to_utf8_temp.begin()) ? false : isdigit(c)) || isalpha(c) || (c == '_') || (c == '.') )

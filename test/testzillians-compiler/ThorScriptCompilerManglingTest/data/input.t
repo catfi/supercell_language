@@ -39,19 +39,13 @@ function _func_43_(x:ptr_<const_<ptr_<void_> > >):void { }
 function _func_44_(x:ptr_<ptr_<void_> >):void          { }
 
 /*
-// namespace member
-namespace _AAA_
+// package member
+package _AAA_
 {
-    namespace _XXX_
-    {
-        function _func_50_():void { }
-        class _ASD_ { };
-    }
+    class _ASD_ { }
 
-    class _ZXC_<T>
-    {
-        void _func_51_() { }
-    };
+    function _func_50_<T>(x:T):void { }
+    function _func_50_<T:_ASD_>(x:_ASD_):void { }
 }
 */
 
@@ -145,16 +139,13 @@ function _func_B1_<T:_FFF_>(x:_FFF_):void { }
 
 function main():void
 {
+    /*
     var qwe:_QWE_;
 
-    /*
-    // namespace member
-    _AAA_._XXX_._func_50_();
-    var zxc:_AAA_._ZXC_<_AAA_._XXX_._ASD_>;
-    zxc._func_51_();
-    */
+    // package member
+    var x:_ASD_;
+    _func_50_<_ASD_>(x);
 
-    /*
     // class member
     var bbb:_BBB_;
     bbb._func_60_();
@@ -192,16 +183,12 @@ function main():void
     _func_90_<_QWE_, _QWE_>();
     _func_91_<_QWE_, _QWE_>(qwe);
     _func_92_<_QWE_, _QWE_>(qwe, qwe, qwe);
-    */
 
-    /*
     // mixing pointer non-pointer
     _func_A0_(qwe, qwe);
     var eee:_EEE_;
     eee._func_A1_(qwe, qwe);
-    */
 
-    /*
     // enums
     _func_B0_(_FFF_._FFF0_);
     _func_B1_<_FFF_>(_FFF_._FFF0_);
