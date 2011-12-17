@@ -129,8 +129,9 @@ std::string ThorScriptMakeStage::genCompileCmd(boost::graph_traits<TangleGraphTy
     for(boost::tie(ei, ei_end) = boost::out_edges(v, g); ei != ei_end; ++ei)
     {
         boost::graph_traits<TangleGraphType>::vertex_descriptor target = boost::target(*ei, g);
-        const std::string& astfile = tangleFileName(target, g);
-        cmd += " '" + astfile + ".ast'";
+        const std::string& astfile = tangleFileName(target, g) + ".ast";
+        boost::filesystem::path loadAstPath = buildPath / astfile;
+        cmd += " '--load-ast=" + loadAstPath.string() + "'";
     }
 
     // output files

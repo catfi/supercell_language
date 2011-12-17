@@ -87,7 +87,7 @@ struct thor_type
 	END_ACTION
 };
 
-struct thor_param_type
+struct template_param_type
 {
 	DEFINE_ATTRIBUTES(TypeSpecifier*)
 	DEFINE_LOCALS(LOCATION_TYPE)
@@ -95,7 +95,7 @@ struct thor_param_type
 	BEGIN_ACTION(init_type)
 	{
 #ifdef DEBUG
-		printf("thor_param_type::init_type param(0) type = %s\n", typeid(_param_t(0)).name());
+		printf("template_param_type::init_type param(0) type = %s\n", typeid(_param_t(0)).name());
 #endif
 		BIND_CACHED_LOCATION(_result = new TypeSpecifier(_param(0)));
 	}

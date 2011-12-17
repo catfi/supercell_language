@@ -23,11 +23,13 @@
 #include "core/Prerequisite.h"
 #include "language/tree/visitor/GenericDoubleVisitor.h"
 #include "language/tree/visitor/NameManglingVisitor.h"
+#include "language/tree/visitor/PrettyPrintVisitor.h"
 #include "language/stage/transformer/context/ManglingStageContext.h"
 
 using namespace zillians::language::tree;
 using zillians::language::tree::visitor::GenericDoubleVisitor;
 using zillians::language::tree::visitor::NameManglingVisitor;
+using zillians::language::tree::visitor::PrettyPrintVisitor;
 
 namespace zillians { namespace language { namespace stage { namespace visitor {
 
@@ -58,7 +60,7 @@ struct ManglingStageVisitor : public GenericDoubleVisitor
 	void apply(ClassDecl& node)
 	{
 		mangler.visit(node);
-		NameManglingContext::set(&node, new NameManglingContext(mangler.stream.str()));
+		NameManglingContext::set(&node, new NameManglingContext(mangler.mOutStream.str()));
 		mangler.reset();
 
 		TypeIdManglingContext::set(&node, new TypeIdManglingContext(next_type_id++));
@@ -69,7 +71,7 @@ struct ManglingStageVisitor : public GenericDoubleVisitor
 	void apply(InterfaceDecl& node)
 	{
 		mangler.visit(node);
-		NameManglingContext::set(&node, new NameManglingContext(mangler.stream.str()));
+		NameManglingContext::set(&node, new NameManglingContext(mangler.mOutStream.str()));
 		mangler.reset();
 
 		TypeIdManglingContext::set(&node, new TypeIdManglingContext(next_type_id++));
@@ -80,7 +82,7 @@ struct ManglingStageVisitor : public GenericDoubleVisitor
 	void apply(EnumDecl& node)
 	{
 		mangler.visit(node);
-		NameManglingContext::set(&node, new NameManglingContext(mangler.stream.str()));
+		NameManglingContext::set(&node, new NameManglingContext(mangler.mOutStream.str()));
 		mangler.reset();
 
 		TypeIdManglingContext::set(&node, new TypeIdManglingContext(next_type_id++));
@@ -90,8 +92,14 @@ struct ManglingStageVisitor : public GenericDoubleVisitor
 
 	void apply(FunctionDecl& node)
 	{
+#if 0 // NOTE: debug mangler
+		std::wcout << L"MANGLING: " << std::wstring(20, L'=') << std::endl;
+		PrettyPrintVisitor v;
+		v.print(node);
+#endif
+
 		mangler.visit(node);
-		NameManglingContext::set(&node, new NameManglingContext(mangler.stream.str()));
+		NameManglingContext::set(&node, new NameManglingContext(mangler.mOutStream.str()));
 		mangler.reset();
 
 		SymbolIdManglingContext::set(&node, new SymbolIdManglingContext(next_symbol_id++));

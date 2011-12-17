@@ -1,0 +1,19 @@
+// g++ main.cpp && nm a.out | grep func | cut -d" " -f3
+
+namespace _AAA_
+{
+    class _ASD_ { };
+
+    /*
+    template<class T>
+    void _func_50_(T x) { } // _ZN5_AAA_9_func_50_IPNS_5_ASD_EEEvT
+    */
+    template<class T>
+    void _func_50_(_ASD_* x) { }
+}
+
+int main()
+{
+    _AAA_::_ASD_ x;
+    _AAA_::_func_50_<_AAA_::_ASD_*>(&x); // _ZN5_AAA_9_func_50_IPNS_5_ASD_EEEvS2_
+}
