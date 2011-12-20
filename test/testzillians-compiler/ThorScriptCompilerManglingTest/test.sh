@@ -6,15 +6,16 @@ TEMP_FILE_B=`mktemp`
 TS_DRIVER=$1
 BUILD_PATH=$2
 INPUT_FILE=$3
-PROJECT_NAME=$4
-KEYWORD=$5
-GOLD_OUTPUT=$6
+INTERMEDIATE_PATH=$4
+PROJECT_NAME=$5
+KEYWORD=$6
+GOLD_OUTPUT=$7
 
 cd $BUILD_PATH
 $TS_DRIVER project create $PROJECT_NAME
 cd $PROJECT_NAME
-mkdir -p src
-cp -f $INPUT_FILE src
+mkdir -p src/$INTERMEDIATE_PATH
+cp -f $INPUT_FILE src/$INTERMEDIATE_PATH
 $TS_DRIVER
 nm build/bin/$PROJECT_NAME.so | xargs -I{} sh -c "echo {} | cut -d\" \" -f3 | grep \"${KEYWORD}\"" > $TEMP_FILE_A
 cat $GOLD_OUTPUT > $TEMP_FILE_B

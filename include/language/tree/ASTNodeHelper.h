@@ -319,6 +319,7 @@ struct ASTNodeHelper
 		return NULL;
 	}
 
+	static bool hasAnnotation(ASTNode* node, std::wstring tag) { return findAnnotation(node, tag); }
 	static Annotation* findAnnotation(ASTNode* node, std::wstring tag)
 	{
 		BOOST_ASSERT(node && "null pointer exception");
@@ -435,6 +436,31 @@ struct ASTNodeHelper
         fout << "}" << std::endl;
     }
 
+    static TypeSpecifier* buildResolvableTypeSpecifier(Declaration* decl)
+	{
+    	TypeSpecifier* type_specifier = new TypeSpecifier(cast<Identifier>(decl->name->clone()));
+    	ResolvedType::set(type_specifier, decl);
+		return type_specifier;
+	}
+
+    static bool sameResolvedType(TypeSpecifier* a, TypeSpecifier* b)
+	{
+        BOOST_ASSERT(a && b && "bad input");
+		if(a->type == b->type)
+		{
+			if(a->type == TypeSpecifier::ReferredType::UNSPECIFIED)
+			{
+				ASTNode* resolved_type_a = findUniqueTypeResolution(a);
+				ASTNode* resolved_type_b = findUniqueTypeResolution(b);
+				BOOST_ASSERT(resolved_type_a && resolved_type_b && "failed to resolve type");
+				return (resolved_type_a == resolved_type_b);
+			}
+			else
+				return a->isEqual(*b);
+		}
+		else
+			return false;
+	}
 
 private:
 	static bool isNamedScope(ASTNode* node)
