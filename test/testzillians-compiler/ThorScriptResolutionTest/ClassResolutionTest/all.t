@@ -25,7 +25,7 @@
 //
 //////////////////////////////////////////////////////////////////////////////
 // full template
-@static_test { resolution="Pair<T,Y>" }       class Pair<X, Y> {}
+@static_test { resolution="Pair<X,Y>" }       class Pair<X, Y> {}
 // one type partial specialization
 @static_test { resolution="Pair<int32,Y>" }   class Pair<X:int32, Y      > {}
 @static_test { resolution="Pair<X,int32>" }   class Pair<X      , Y:int32> {}
@@ -95,8 +95,6 @@ function f() : void
     { @static_test { expect_resolution="Complex<float64>"    } var obj5 : Complex<float64>; }
     // Complex<Foo>
     { @static_test { expect_resolution="Complex<Foo>"        } var obj6 : Complex<Foo>; }
-    // Complex<Complex<int32>>
-    { @static_test { expect_resolution="Complex<Complex<int32>>" } var obj7 : Complex<Foo>; }
 
     // Complex<float64> specialization
     { @static_test { expect_resolution="Complex<float64>"    } var obj8 : Complex<float64>; }
@@ -125,7 +123,6 @@ function f() : void
     { @static_test { expect_resolution="Pair<Foo,Y>" }       var obj18 : Pair<Foo    , Bar            > ; }
     { @static_test { expect_resolution="Pair<Foo,Y>" }       var obj19 : Pair<Foo    , Complex<int32> > ; }
     { @static_test { expect_resolution="Pair<X,Foo>" }       var obj20 : Pair<float64, Foo            > ; }
-    { @static_test { expect_resolution="Pair<Foo, Foo>" }    var obj21 : Pair<Foo    , Foo            > ; }
     // full specialization
     { @static_test { expect_resolution="Pair<int8,int8>" }   var obj22 : Pair<int8   , int8           > ; }
     { @static_test { expect_resolution="Pair<Foo,Foo>" }     var obj23 : Pair<Foo    , Foo            > ; }
