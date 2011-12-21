@@ -27,19 +27,21 @@ INCLUDE_DIRECTORIES(
 zillians_add_complex_test(
     TARGET thorscript-function-resolution-test-none
     DEPENDS ts-compile
-    SHELL ts-compile --enable-static-test --root-dir=${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/none-template.t
+    SHELL ts-compile --mode-resolution-test --keep-going-on-resolution-fail --enable-static-test --root-dir=${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/none-template.t
 )
 
 zillians_add_complex_test(
     TARGET thorscript-function-resolution-test-one
     DEPENDS ts-compile
-    SHELL ts-compile --enable-static-test --root-dir=${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/one-template.t
+    SHELL ts-compile --mode-resolution-test --keep-going-on-resolution-fail --enable-static-test --root-dir=${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/one-template.t
 )
 
 zillians_add_complex_test(
     TARGET thorscript-function-resolution-test-two
     DEPENDS ts-compile
-    SHELL ts-compile --enable-static-test --root-dir=${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/two-template.t
+    SHELL ts-compile --mode-resolution-test --keep-going-on-resolution-fail --enable-static-test --root-dir=${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/two-template.t
 )
 
-zillians_add_test_to_subject(SUBJECT thorscript-resolution-test TARGET thorscript-function-resolution-test)
+zillians_add_test_to_subject(SUBJECT thorscript-resolution-test TARGET thorscript-function-resolution-test-none)
+zillians_add_test_to_subject(SUBJECT thorscript-resolution-test TARGET thorscript-function-resolution-test-one)
+zillians_add_test_to_subject(SUBJECT thorscript-resolution-test TARGET thorscript-function-resolution-test-two)

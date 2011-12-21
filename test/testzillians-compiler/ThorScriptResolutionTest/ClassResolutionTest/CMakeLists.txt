@@ -27,7 +27,7 @@ INCLUDE_DIRECTORIES(
 zillians_add_complex_test(
     TARGET thorscript-class-resolution-test
     DEPENDS ts-compile
-    SHELL ts-compile --enable-static-test --root-dir=${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/all.t
+    SHELL ts-compile --mode-resolution-test --keep-going-on-resolution-fail --enable-static-test --root-dir=${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/all.t
 )
 
 zillians_add_test_to_subject(SUBJECT thorscript-resolution-test TARGET thorscript-class-resolution-test)
