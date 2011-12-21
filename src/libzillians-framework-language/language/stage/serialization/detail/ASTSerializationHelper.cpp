@@ -48,7 +48,7 @@ tree::ASTNode* ASTSerializationHelper::deserialize(const std::string& filename)
 	std::ifstream ifs(filename);
 	if(!ifs.good())
     {
-        std::cerr << "Can not open file `" << filenmae "` to read" << std::endl;
+        std::cerr << "Can not open file `" << filename << "` to read" << std::endl;
         return NULL;
     }
 
