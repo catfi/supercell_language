@@ -69,8 +69,7 @@
 function f() : void
 {
     //// no match
-    // TODO keep going with unresolved while static test
-    //@static_test { expect_resolution=""                } var obj0 : Fooo;
+    @static_test { expect_resolution=""                } var obj0 : Fooo;
 
     //////////////////////////////////////////////////////////////////////////////
     //
@@ -137,39 +136,39 @@ function f() : void
     // three type parameters class template
     //
     //////////////////////////////////////////////////////////////////////////////
-    // TODO keep going with unresolved while static test
     // ambi
-    //{ @static_test { resolution=""                     } var obj26 : Tuple<int8 , int8 , int8 > ; }
-    //{ @static_test { resolution=""                     } var obj27 : Tuple<int16, int16, int16> ; }
-    //{ @static_test { resolution=""                     } var obj28 : Tuple<int16, int16, int8 > ; }
-    //{ @static_test { resolution=""                     } var obj29 : Tuple<int16, int8 , int16> ; }
-    //{ @static_test { resolution=""                     } var obj30 : Tuple<int8 , int16, int16> ; }
+    { @static_test { expect_resolution=""                     } var obj26 : Tuple<int8 , int8 , int8 > ; }
+    { @static_test { expect_resolution=""                     } var obj27 : Tuple<int16, int16, int16> ; }
+    { @static_test { expect_resolution=""                     } var obj28 : Tuple<int16, int16, int8 > ; }
+    { @static_test { expect_resolution=""                     } var obj29 : Tuple<int16, int8 , int16> ; }
+    { @static_test { expect_resolution=""                     } var obj30 : Tuple<int8 , int16, int16> ; }
     // full template
-    { @static_test { resolution="Tuple<X,Y,Z>" } var obj31 : Tuple<float64, float64, float64> ; }
-    { @static_test { resolution="Tuple<X,Y,Z>" } var obj32 : Tuple<float64, float32, Extended> ; }
-    { @static_test { resolution="Tuple<X,Y,Z>" } var obj33 : Tuple<float64, float32, Foo> ; }
-    { @static_test { resolution="Tuple<X,Y,Z>" } var obj34 : Tuple<Bar, Bar, Bar> ; }
-    { @static_test { resolution="Tuple<X,Y,Z>" } var obj35 : Tuple<Bar, Bar, Complex<float64> > ; }
-    { @static_test { resolution="Tuple<X,Y,Z>" } var obj36 : Tuple<Complex<float64>, Bar, Complex<float64> > ; }
+    { @static_test { expect_resolution="Tuple<X,Y,Z>" } var obj31 : Tuple<float64, float64, float64> ; }
+    { @static_test { expect_resolution="Tuple<X,Y,Z>" } var obj32 : Tuple<float64, float32, Extended> ; }
+    { @static_test { expect_resolution="Tuple<X,Y,Z>" } var obj33 : Tuple<float64, float32, Foo> ; }
+    { @static_test { expect_resolution="Tuple<X,Y,Z>" } var obj34 : Tuple<Bar, Bar, Bar> ; }
+    { @static_test { expect_resolution="Tuple<X,Y,Z>" } var obj35 : Tuple<Bar, Bar, Complex<float64> > ; }
+    { @static_test { expect_resolution="Tuple<X,Y,Z>" } var obj36 : Tuple<Complex<float64>, Bar, Complex<float64> > ; }
     // one type partial specialization
-    { @static_test { resolution="Tuple<int8,Y,Z>" } var obj37 : Tuple<int8, float64, float64> ; }
-    { @static_test { resolution="Tuple<X,int8,Z>" } var obj38 : Tuple<float64, int8, float64> ; }
-    { @static_test { resolution="Tuple<X,Y,int8>" } var obj39 : Tuple<float64, float64, int8> ; }
-    { @static_test { resolution="Tuple<X,Y,int8>" } var obj40 : Tuple<Foo, float64, int8> ; }
-    { @static_test { resolution="Tuple<X,Y,int8>" } var obj41 : Tuple<Foo, Bar, int8> ; }
-    { @static_test { resolution="Tuple<X,Y,int8>" } var obj42 : Tuple<Complex<int64>, Bar, int8> ; }
+    { @static_test { expect_resolution="Tuple<int8,Y,Z>" } var obj37 : Tuple<int8, float64, float64> ; }
+    { @static_test { expect_resolution="Tuple<X,int8,Z>" } var obj38 : Tuple<float64, int8, float64> ; }
+    { @static_test { expect_resolution="Tuple<X,Y,int8>" } var obj39 : Tuple<float64, float64, int8> ; }
+    { @static_test { expect_resolution="Tuple<X,Y,int8>" } var obj40 : Tuple<Foo, float64, int8> ; }
+    { @static_test { expect_resolution="Tuple<X,Y,int8>" } var obj41 : Tuple<Foo, Bar, int8> ; }
+    { @static_test { expect_resolution="Tuple<X,Y,int8>" } var obj42 : Tuple<Complex<int64>, Bar, int8> ; }
     // two types partial specialization
-    { @static_test { resolution="Tuple<int16,int16,Z>" } var obj43 : Tuple<int16, int16, float64> ; }
-    { @static_test { resolution="Tuple<int16,Y,int16>" } var obj44 : Tuple<int16, float64, int16> ; }
-    { @static_test { resolution="Tuple<Z,int16,int16>" } var obj45 : Tuple<float64, int16, int16> ; }
-    { @static_test { resolution="Tuple<Z,int16,int16>" } var obj46 : Tuple<Foo, int16, int16> ; }
-    { @static_test { resolution="Tuple<Z,int16,int16>" } var obj47 : Tuple<Complex<int64>, int16, int16> ; }
+    { @static_test { expect_resolution="Tuple<int16,int16,Z>" } var obj43 : Tuple<int16, int16, float64> ; }
+    { @static_test { expect_resolution="Tuple<int16,Y,int16>" } var obj44 : Tuple<int16, float64, int16> ; }
+    { @static_test { expect_resolution="Tuple<Z,int16,int16>" } var obj45 : Tuple<float64, int16, int16> ; }
+    { @static_test { expect_resolution="Tuple<Z,int16,int16>" } var obj46 : Tuple<Foo, int16, int16> ; }
+    { @static_test { expect_resolution="Tuple<Z,int16,int16>" } var obj47 : Tuple<Complex<int64>, int16, int16> ; }
     // TODO no match
     // ambugious
     // full specialization
-    { @static_test { resolution="Tuple<int32,int32,int32>" } var obj48 : Tuple<int32, int32, int32> ; }
+    { @static_test { expect_resolution="Tuple<int32,int32,int32>" } var obj48 : Tuple<int32, int32, int32> ; }
     // one specialization with class template
-    { @static_test { resolution="Tuple<X:Complex<T:int32>,Y,Z>"     } var obj49 : Tuple<Complex<int32>, float64, float64> ; }
-    { @static_test { resolution="Tuple<X:Complex<T:int32>,Y:X,Z>"   } var obj50 : Tuple<Complex<int32>, Complex<int32>, float64> ; }
-    { @static_test { resolution="Tuple<X:Complex<T:int32>,Y:X,Z:Y>" } var obj51 : Tuple<Complex<int32>, Complex<int32>, Complex<int32> > ; }
+    { @static_test { expect_resolution="Tuple<X:Complex<T:int32>,Y,Z>"     } var obj49 : Tuple<Complex<int32>, float64, float64> ; }
+    { @static_test { expect_resolution="Tuple<X:Complex<T:int32>,Y:X,Z>"   } var obj50 : Tuple<Complex<int32>, Complex<int32>, float64> ; }
+    { @static_test { expect_resolution="Tuple<X:Complex<T:int32>,Y:X,Z:Y>" } var obj51 : Tuple<Complex<int32>, Complex<int32>, Complex<int32> > ; }
+
 }

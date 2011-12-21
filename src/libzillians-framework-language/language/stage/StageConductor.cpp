@@ -34,11 +34,13 @@ StageConductor::StageConductor(bool require_input) : mOptionDescGlobal()
 	if(!require_input)
 	{
 		mOptionDescGlobal.add_options()
+            ("keep-going,k", "keep going while stage fail")
 			("help,h", "show this help");
 	}
 	else
 	{
 		mOptionDescGlobal.add_options()
+            ("keep-going,k", "keep going while stage fail")
 			("help,h", "show this help")
 			("input,i", po::value<std::vector<std::string>>(), "input files");
 
@@ -104,6 +106,8 @@ int StageConductor::main(int argc, const char** argv)
 	    	return 0;
 	    }
 
+        bool keepGoing = vm.count("keep-going") > 0;
+
 	    // otherwise, process the given commands through each staged execution
 
 	    // let each stage determine what to do
@@ -122,7 +126,7 @@ int StageConductor::main(int argc, const char** argv)
 		{
 			bool c = true;
 
-			if(!(*stage)->execute(c))
+			if(!(*stage)->execute(c) && !keepGoing)
 			{
 				//std::cerr << "execution failed at stage: " << (*stage)->name() << std::endl;
 				return -1;
