@@ -539,9 +539,18 @@ struct ResolutionStageVisitor : public GenericDoubleVisitor
 		// TODO get synthesized type from true node and false node (which should be compatible and casted to the same type)
 	}
 
+    // There are two kinds of flows:
+    // a) node.node is     a identifier,                   for example: a.b.c();
+    // b) node.node is not a identifier, but a expression, for example: g()(); where g() return a function(lambda)
 	void resolve(CallExpr& node)
 	{
+        // after this revisit, the candidate is alread collected.
 		revisit(node);
+
+        // and now we only have to compare the priority, and find the best candidate
+        // TODO
+
+
 
 		if(!ResolvedType::get(&node))
 		{

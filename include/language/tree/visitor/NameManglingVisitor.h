@@ -89,8 +89,12 @@ struct NameManglingVisitor : Visitor<ASTNode, void, VisitorImplementation::recur
 {
 	CREATE_INVOKER(mangleInvoker, mangle)
 
-	NameManglingVisitor() : mInsideUptrace(false), mInsideComboName(false), mParamDepth(0),
-			mModeCallByValue(false), mCurrentOutStream(&mOutStream)
+	NameManglingVisitor() :
+        mInsideUptrace(false),
+        mInsideComboName(false),
+        mParamDepth(0),
+        mModeCallByValue(false),
+        mCurrentOutStream(&mOutStream)
 	{
 		REGISTER_ALL_VISITABLE_ASTNODE(mangleInvoker)
 	}
@@ -336,7 +340,6 @@ struct NameManglingVisitor : Visitor<ASTNode, void, VisitorImplementation::recur
 	std::stringstream mOutStream;
 
 private:
-	std::stringstream* mCurrentOutStream;
 
 	std::ostream& outStream()
 	{
@@ -415,6 +418,7 @@ private:
 	bool mInsideComboName;
 	int mParamDepth;
 	bool mModeCallByValue;
+	std::stringstream* mCurrentOutStream;
 
 	class AliasMgr
 	{
