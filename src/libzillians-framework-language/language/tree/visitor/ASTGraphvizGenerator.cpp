@@ -50,7 +50,7 @@ void ASTGraphvizNodeGenerator::addNode(ASTNode& node,
 
     if(zillians::language::stage::SourceInfoContext::get(&node) == NULL)
     {
-        fillColor = L"lightgreen";
+        fillColor = L"green";
     }
 
     stream << L"    n" << std::hex << &node << L" [label=\"" << node.instanceName();
