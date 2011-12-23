@@ -64,7 +64,7 @@ struct ThorScriptTreeAction
 	typedef action::init_specifier            init_specifier;
 	typedef action::type_specifier            type_specifier;
 	typedef action::thor_type                 thor_type;
-	typedef action::thor_param_type           thor_param_type;
+	typedef action::template_param_type       template_param_type;
 	typedef action::template_param_identifier template_param_identifier;
 	typedef action::template_arg_identifier   template_arg_identifier;
 	typedef action::type_list                 type_list;

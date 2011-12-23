@@ -46,7 +46,11 @@ bool ASTSerializationHelper::serialize(const std::string& filename, tree::ASTNod
 tree::ASTNode* ASTSerializationHelper::deserialize(const std::string& filename)
 {
 	std::ifstream ifs(filename);
-	if(!ifs.good()) return NULL;
+	if(!ifs.good())
+    {
+        std::cerr << "Can not open file `" << filename << "` to read" << std::endl;
+        return NULL;
+    }
 
 	// de-serialize through boost archive
 	boost::archive::text_iarchive ia(ifs);
