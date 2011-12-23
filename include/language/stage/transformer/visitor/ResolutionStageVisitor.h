@@ -283,8 +283,8 @@ struct ResolutionStageVisitor : public GenericDoubleVisitor
 		// we don't try to resolve types for function template
 		if(isa<TemplatedIdentifier>(node.name))
 		{
-			if(!cast<TemplatedIdentifier>(node.name)->isFullySpecialized())
-				return;
+			//if(!cast<TemplatedIdentifier>(node.name)->isFullySpecialized())
+			//	return;
 
 			resolver.enterScope(*node.name);
 			resolver.enterScope(node);
@@ -315,8 +315,12 @@ struct ResolutionStageVisitor : public GenericDoubleVisitor
 		}
 
 		// visit all statements in the function block, which might contain resolvable type or symbol
-		if(node.block)
-			visit(*node.block);
+        if(!isa<TemplatedIdentifier>(node.name) ||
+           cast<TemplatedIdentifier>(node.name)->isFullySpecialized())
+        {
+            if(node.block)
+                visit(*node.block);
+        }
 
 		// leaving FunctionDecl scope
 		if(isa<TemplatedIdentifier>(node.name))
