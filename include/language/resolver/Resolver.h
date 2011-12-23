@@ -180,6 +180,241 @@ public:
 		}
 	}
 
+    // TODO take default parameter value into consideration
+    void filterViableByParameterNumber(ASTNode* node, std::vector<ASTNode*>& candidates)
+    {
+        CallExpr* call = ASTNodeHelper::getOwner<CallExpr>(node);
+        size_t numberParameters = call->parameters.size();
+
+        auto last = std::remove_if(
+                        candidates.begin(),
+                        candidates.end(),
+                        [numberParameters](ASTNode* node) {
+                            FunctionDecl* funcDecl = cast<FunctionDecl>(node);
+                            return funcDecl->parameters.size() != numberParameters;
+                        });
+        candidates.erase(last, candidates.end());
+    }
+
+    struct ConversionRank
+    {
+        enum type {
+            FullMatch, // 0
+            Promotion, // 1
+            StandardConversion, // 2
+            NotMatch, // 3
+        } ;
+    } ;
+
+    static ConversionRank::type getConversionRank(Expression* from, VariableDecl* to)
+    {
+        //BOOST_ASSERT(isa<ExpressionStmt>(from));
+        //BOOST_ASSERT(isa<VariableDecl>(to));
+        // TODO integer literal need special process!!
+
+        // if identical, return full match
+        TypeSpecifier* fromType = cast<TypeSpecifier>(ResolvedType::get(from));
+        TypeSpecifier* toType   = to->type;
+
+        // primitive, function, unspecified(user_defined) can not be convert to each other
+        if(fromType->type != toType->type)
+        {
+            return ConversionRank::NotMatch;
+        }
+
+        // so... ReferredType must be the same after here
+        BOOST_ASSERT(fromType->type == toType->type);
+
+        switch(fromType->type)
+        {
+        case TypeSpecifier::ReferredType::PRIMITIVE:
+            // full match
+            if(fromType->referred.primitive == toType->referred.primitive)
+            {
+                return ConversionRank::FullMatch;
+            }
+            // promotion
+            if(fromType->referred.primitive >= PrimitiveType::BOOL &&
+                 toType->referred.primitive <= PrimitiveType::FLOAT64 &&
+               fromType->referred.primitive < toType->referred.primitive)
+            {
+                return ConversionRank::Promotion;
+            }
+            // standard conversion
+            if(  toType->referred.primitive >= PrimitiveType::BOOL &&
+               fromType->referred.primitive <= PrimitiveType::FLOAT64 &&
+                 toType->referred.primitive < fromType->referred.primitive)
+            {
+                return ConversionRank::Promotion;
+            }
+            return ConversionRank::NotMatch;
+            break;
+
+        case TypeSpecifier::ReferredType::FUNCTION_TYPE:
+            UNIMPLEMENTED_CODE();
+            return ConversionRank::NotMatch;
+            break;
+
+        case TypeSpecifier::ReferredType::UNSPECIFIED:
+            UNIMPLEMENTED_CODE();
+            return ConversionRank::NotMatch;
+            break;
+
+        default:
+            UNREACHABLE_CODE();
+        }
+
+    }
+
+    FunctionDecl* getFullMatchedNonTemplateCandidate(ASTNode& attach, ASTNode& node, std::vector<ASTNode*>& candidates)
+    {
+        std::vector<FunctionDecl*> fullMatchedCandidate;
+        CallExpr* callExpr = ASTNodeHelper::getOwner<CallExpr>(&node);
+        foreach(c, candidates)
+        {
+            FunctionDecl* func = cast<FunctionDecl>(*c);
+            if(isa<TemplatedIdentifier>(func->name))
+            {
+                continue;
+            }
+
+            // if all parameter full match
+            for(size_t i=0; i != func->parameters.size(); ++i)
+            {
+                VariableDecl* decl = func->parameters[i];
+                Expression* use = callExpr->parameters[i];
+                if(getConversionRank(use, decl) != ConversionRank::FullMatch)
+                {
+                    continue;
+                }
+            }
+            fullMatchedCandidate.push_back(func);
+        }
+        if(fullMatchedCandidate.size() == 1)
+        {
+            ResolvedSymbol::set(&attach, fullMatchedCandidate[0]);
+            ResolvedType::set(&attach, fullMatchedCandidate[0]);
+            return fullMatchedCandidate[0];
+        }
+        else if(fullMatchedCandidate.size() > 1)
+        {
+            // TODO output error message to list all full match functions
+            std::cerr << "More than one full matched non-template function" << std::endl;
+            return NULL;
+        }
+        else
+        {
+            return NULL;
+        }
+    }
+
+    /**
+     * @brief Deduct template types from callee's arguments
+     * @param call CallExpr of callee
+     * @param decl FunctionDecl of the function declaration
+     * @return @c true if deduct success, @c false if @p decl is non-template,
+     * or is template but can not be deduced from arguments.
+     */
+    bool deductTypeFromArgument(CallExpr* call, FunctionDecl* decl)
+    {
+        std::map<TypenameDecl*, TypeSpecifier*> deductedTypes;
+        return false;
+    }
+
+    FunctionDecl* getFullSpecializedTemplateCandidate(ASTNode& attach, ASTNode& node, std::vector<ASTNode*>& candidates)
+    {
+        return NULL;
+    }
+
+    FunctionDecl* getBestViable(ASTNode& attach, ASTNode& node, std::vector<ASTNode*>& candidates)
+    {
+        //if(isTypeParameterQualified(resolution_visitor))
+        {
+            // a) 'FULL MATCHED' non-template version is best
+            if(FunctionDecl* func = getFullMatchedNonTemplateCandidate(attach, node, candidates))
+                return func;
+
+            if(FunctionDecl* func = getFullSpecializedTemplateCandidate(attach, node, candidates))
+                return func;
+
+        //    if(FunctionDecl* func = getTryDeduceToGeneralTemplateCandidate(attach, node, candidates))
+        //        return func;
+
+        //    if(FunctionDecl* func = getConvertToNonTemplateCandidate(attach, node, candidates))
+        //        return func;
+
+        //    if(FunctionDecl* func = getFullMatchNonTemplateCandidate(attach, node, candidates))
+        //        return func;
+
+            return NULL;
+        }
+        //else
+        //{
+        //    if(FunctionDecl* func = getConvertToSpecializedTemplateCandidate(attach, node, candidates) != NULL)
+        //        return func;
+
+        //    if(FunctionDecl* func = getTryInstantiateGeneralTemplateCandidate(attach, node, candidates) != NULL)
+        //        return func;
+
+        //    return NULL;
+        //}
+    }
+
+    bool isAllArgumentsResolved(CallExpr* call)
+    {
+        foreach(i, call->parameters)
+        {
+            if(ResolvedType::get(*i) == NULL)
+            {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    // Three steps:
+    // 1. visiable and the same name
+    // 2. vialble / callable
+    //      a) Number of parameter match. If callee is less, rest parameters must have default values
+    //      b) **NOT** take type match into consideration, which will be considered in step 3
+    // 3. best viable: (4 priorities)
+    //      if callee is not 'type-parameter-qualified'
+    //          a) 'FULL MATCHED' non-template version is best
+    //          b) 'FULL MATCHED' specialized version is better
+    //          c) Try deduction to general template version (because if type deduction success, it full match! without conversion)
+    //          d) Try converse to non-template version (2 priorities)
+    //              i)  Full match is better than promotion
+    //              ii) Promotion is better than standard conversion
+    //          e) **NOT** try to conversion to specialized version
+    //      if callee is 'type-parameter-qualified'
+    //          a) 'FULL MATCHED' specialized version is better (will has only one candidate)
+    //          b) Try instantiate a general template version (will has only one candidate)
+    bool tryInstantiateFunctionTemplate(tree::ASTNode& attach, tree::Identifier& node, bool no_action)
+    {
+        // if not all arguments had been resolved,
+        // don't have resolve this function call, meaningless.
+        CallExpr* call = ASTNodeHelper::getOwner<CallExpr>(&node);
+        if(!isAllArgumentsResolved(call))
+        {
+            return false;
+        }
+
+    	// if there's no candidates, of course we cannot find class template to instantiate
+        if(resolution_visitor.candidates.size() == 0)
+        {
+            return false;
+        }
+
+        // up to here, all candidates are 'visiable' and 'the same name'
+        filterViableByParameterNumber(&node, resolution_visitor.candidates);
+
+        // now the parameter number match
+        FunctionDecl* func = getBestViable(attach, node, resolution_visitor.candidates);
+        if(func != NULL) return true;
+
+        return false;
+    }
+
 private:
 	/**
 	 * Called by resolveSymbol() to check and store collected symbol resolutions
@@ -195,90 +430,100 @@ private:
 	{
 		using namespace zillians::language::tree;
 
-		if(resolution_visitor.candidates.size() == 1)
-		{
-			ASTNode* ref = resolution_visitor.candidates[0];
+        // check if it's function template and need instantiation first
+        //if(tryInstantiateFunctionTemplate(attach, node, no_action))
+        if(false)
+        {
+            return true;
+        }
+        // otherwise, we go for standard resolution
+        else
+        {
+            if(resolution_visitor.candidates.size() == 1)
+            {
+                ASTNode* ref = resolution_visitor.candidates[0];
 
-			tree::visitor::NodeInfoVisitor node_info_visitor;
-			node_info_visitor.visit(*ref);
-			LOG4CXX_DEBUG(LoggerWrapper::Resolver, L"symbol \"" << node.toString() << L"\" is resolved to: \"" << node_info_visitor.stream.str() << L"\"");
-			node_info_visitor.reset();
+                tree::visitor::NodeInfoVisitor node_info_visitor;
+                node_info_visitor.visit(*ref);
+                LOG4CXX_DEBUG(LoggerWrapper::Resolver, L"symbol \"" << node.toString() << L"\" is resolved to: \"" << node_info_visitor.stream.str() << L"\"");
+                node_info_visitor.reset();
 
-			bool valid = true;
-			if(isa<VariableDecl>(ref)) // declared variable (as class member variable or local variable or function parameter)
-			{
-				if(!no_action)
-				{
-					ResolvedSymbol::set(&attach, ref);
-					BOOST_ASSERT(ASTNodeHelper::findUniqueTypeResolution(cast<VariableDecl>(ref)->type) != NULL);
-					ResolvedType::set(&attach, ASTNodeHelper::findUniqueTypeResolution(cast<VariableDecl>(ref)->type));
-				}
-			}
-			else if(isa<FunctionDecl>(ref)) // declared function (as class member function or global function)
-			{
-				if(!no_action)
-				{
-					ResolvedSymbol::set(&attach, ref);
-					ResolvedType::set(&attach, ref);
-				}
-			}
-			else if(isa<EnumDecl>(ref))
-			{
-				if(!no_action)
-				{
-					ResolvedSymbol::set(&attach, ref);
-					ResolvedType::set(&attach, ref);
-				}
-			}
-			else if(isa<ClassDecl>(ref) || isa<InterfaceDecl>(ref)) // declared class/interface
-			{
-				if(!no_action)
-				{
-					ResolvedSymbol::set(&attach, ref);
-					ResolvedType::set(&attach, ref);
-				}
-			}
-			else if(isa<TypedefDecl>(ref))
-			{
-				if(!no_action)
-				{
-					UNREACHABLE_CODE();
-					// TODO will this happen?
-				}
-			}
-			else
-			{
-				LOG4CXX_DEBUG(LoggerWrapper::Resolver, L"resolve symbol \"" << node.toString() << L"\" to unkown symbol");
-				valid = false;
-			}
+                bool valid = true;
+                if(isa<VariableDecl>(ref)) // declared variable (as class member variable or local variable or function parameter)
+                {
+                    if(!no_action)
+                    {
+                        ResolvedSymbol::set(&attach, ref);
+                        BOOST_ASSERT(ASTNodeHelper::findUniqueTypeResolution(cast<VariableDecl>(ref)->type) != NULL);
+                        ResolvedType::set(&attach, ASTNodeHelper::findUniqueTypeResolution(cast<VariableDecl>(ref)->type));
+                    }
+                }
+                else if(isa<FunctionDecl>(ref)) // declared function (as class member function or global function)
+                {
+                    if(!no_action)
+                    {
+                        ResolvedSymbol::set(&attach, ref);
+                        ResolvedType::set(&attach, ref);
+                    }
+                }
+                else if(isa<EnumDecl>(ref))
+                {
+                    if(!no_action)
+                    {
+                        ResolvedSymbol::set(&attach, ref);
+                        ResolvedType::set(&attach, ref);
+                    }
+                }
+                else if(isa<ClassDecl>(ref) || isa<InterfaceDecl>(ref)) // declared class/interface
+                {
+                    if(!no_action)
+                    {
+                        ResolvedSymbol::set(&attach, ref);
+                        ResolvedType::set(&attach, ref);
+                    }
+                }
+                else if(isa<TypedefDecl>(ref))
+                {
+                    if(!no_action)
+                    {
+                        UNREACHABLE_CODE();
+                        // TODO will this happen?
+                    }
+                }
+                else
+                {
+                    LOG4CXX_DEBUG(LoggerWrapper::Resolver, L"resolve symbol \"" << node.toString() << L"\" to unkown symbol");
+                    valid = false;
+                }
 
-			resolution_visitor.reset();
-			return valid;
-		}
-		else
-		{
-			if(resolution_visitor.candidates.size() > 1)
-			{
-				// mode than one candidate
-				LOG4CXX_DEBUG(LoggerWrapper::Resolver, L"ambiguous symbol \"" << node.toString() << L"\"");
+                resolution_visitor.reset();
+                return valid;
+            }
+            else
+            {
+                if(resolution_visitor.candidates.size() > 1)
+                {
+                    // mode than one candidate
+                    LOG4CXX_DEBUG(LoggerWrapper::Resolver, L"ambiguous symbol \"" << node.toString() << L"\"");
 
-				tree::visitor::NodeInfoVisitor node_info_visitor;
-				foreach(i, resolution_visitor.candidates)
-				{
-					node_info_visitor.visit(**i);
-					LOG4CXX_DEBUG(LoggerWrapper::Resolver, L"symbol can be resolved to: \"" << node_info_visitor.stream.str());
-					node_info_visitor.reset();
-				}
-			}
-			else
-			{
-				// no candidate
-				LOG4CXX_DEBUG(LoggerWrapper::Resolver, L"unresolved symbol \"" << node.toString() << L"\"");
-			}
+                    tree::visitor::NodeInfoVisitor node_info_visitor;
+                    foreach(i, resolution_visitor.candidates)
+                    {
+                        node_info_visitor.visit(**i);
+                        LOG4CXX_DEBUG(LoggerWrapper::Resolver, L"symbol can be resolved to: \"" << node_info_visitor.stream.str());
+                        node_info_visitor.reset();
+                    }
+                }
+                else
+                {
+                    // no candidate
+                    LOG4CXX_DEBUG(LoggerWrapper::Resolver, L"unresolved symbol \"" << node.toString() << L"\"");
+                }
 
-			resolution_visitor.reset();
-			return false;
-		}
+                resolution_visitor.reset();
+                return false;
+            }
+        }
 	}
 
 public:

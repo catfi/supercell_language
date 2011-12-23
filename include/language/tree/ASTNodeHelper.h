@@ -382,6 +382,29 @@ struct ASTNodeHelper
 		return false;
 	}
 
+    static bool isCallIdentifier(Identifier* node)
+    {
+        // primary form
+        // f();
+        if(isa<PrimaryExpr>(node->parent) && isa<CallExpr>(node->parent->parent))
+        {
+            return true;
+        }
+
+        // member form
+        // a.b.c.f();
+        ASTNode* n = node;
+        while(isa<MemberExpr>(n->parent))
+        {
+            n = n->parent;
+        }
+        if(isa<CallExpr>(n->parent) && cast<CallExpr>(n->parent)->node == n)
+        {
+            return true;
+        }
+        return false;
+    }
+
 	static std::wstring getNodeName(ASTNode* node, bool FQN = false)
 	{
 		BOOST_ASSERT(node && "null pointer exception");
