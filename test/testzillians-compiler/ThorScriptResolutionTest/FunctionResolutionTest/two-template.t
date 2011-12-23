@@ -10,7 +10,7 @@
     class Complex<T> {}
 
 //////////////////////////////////////////////////////////////////////////////
-// 1 template functions
+// 2 template functions
 //////////////////////////////////////////////////////////////////////////////
 
     // general, general
@@ -28,6 +28,13 @@
 
     // non-template, non-template
     @static_test { resolution="f(int16,int16)"                        } function f(a:int16, b:int16) : void {}
+
+    // g
+    @static_test { resolution="g<T>(T,T)"                             } function g<T>(a:T, b:T) : void {}
+    @static_test { resolution="g<T,U>(T,U)"                           } function g<T>(a:T, b:U) : void {}
+
+    @static_test { resolution="g<int16>(T,T)"                         } function g<T:int16>(a:T, b:T) : void {}
+    @static_test { resolution="g<int16,int16>(T,T)"                   } function g<T:int16, U:int16>(a:T, b:U) : void {}
 
 //////////////////////////////////////////////////////////////////////////////
 // main
@@ -55,6 +62,9 @@
 
         // special is better than general
         @static_test { expect_resolution="f<T,int8>(T,int8)" } f(vBar, vint8);
+
+        // lower degree of freedom is better than higher degree of freedom while full match specialization
+        @static_test { expect_resolution="g<int16>(T,T)" } g(vint16, vint16);
 
         // non-template is better then special
         @static_test { expect_resolution="f<T>(T,int16)" } f(vBar, vint16);

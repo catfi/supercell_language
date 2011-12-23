@@ -24,9 +24,13 @@
 
     // h()
     @static_test { resolution="h(int32)"                          } function h(a:int32) : void {}
+    @static_test { resolution="h(Foo)"                            } function h(a:Foo) : void {}
+    @static_test { resolution="h(int32, int32)"                   } function h(a:int32, b:int32) : void {}
 
     // i()
     @static_test { resolution="i(float32)"                        } function i(a:float32) : void {}
+    @static_test { resolution="i(Foo)"                            } function i(a:Foo) : void {}
+    @static_test { resolution="i(int32, int32)"                   } function i(a:int32, b:int32) : void {}
 
     // j()
     @static_test { resolution="j(int32, int64)"                   } function j(a:int32, b:int64) : void {}
@@ -45,7 +49,7 @@
         var vfloat32   : float32           ;
         var vfloat64   : float64           ;
         var vFoo       : Foo               ;
-        var vFoo       : Bar               ;
+        var vBar       : Bar               ;
         var vBase      : Base              ;
         var vDerived   : Derived           ;
         var vExtended  : Extended          ;

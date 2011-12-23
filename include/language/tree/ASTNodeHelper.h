@@ -386,7 +386,9 @@ struct ASTNodeHelper
     {
         // primary form
         // f();
-        if(isa<PrimaryExpr>(node->parent) && isa<CallExpr>(node->parent->parent))
+        if(isa<PrimaryExpr>(node->parent) &&
+           isa<CallExpr>(node->parent->parent) &&
+           node->parent == cast<CallExpr>(node->parent->parent)->node)
         {
             return true;
         }

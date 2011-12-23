@@ -308,34 +308,146 @@ public:
         }
     }
 
+    struct DeductResult
+    {
+        enum type
+        {
+            Success,
+            Fail,
+            UnknownYet
+        } ;
+    } ;
+
     /**
      * @brief Deduct template types from callee's arguments
      * @param call CallExpr of callee
-     * @param decl FunctionDecl of the function declaration
-     * @return @c true if deduct success, @c false if @p decl is non-template,
-     * or is template but can not be deduced from arguments.
+     * @param funcDecl FunctionDecl of the function declaration
+     * @return @c DeductResult::Success if deduct success,
+     *         @c DeductResult::Fail if @p funcDecl is non-template,
+     *         or is template but can not be deduced from arguments.(conflict)
+     *         @c DeductResult::UnknownYet if some parameter is not resolved.
+     *
      */
-    bool deductTypeFromArgument(CallExpr* call, FunctionDecl* decl)
+    DeductResult::type deduceToSpecializdType(CallExpr* call, FunctionDecl* funcDecl)
     {
-        std::map<TypenameDecl*, TypeSpecifier*> deductedTypes;
+        BOOST_ASSERT(isa<TemplatedIdentifier>(funcDecl->name));
+
+        std::map<TypenameDecl*, TypeSpecifier*> deducedTypes;
+        for(size_t i=0; i != call->parameters.size(); ++i)
+        {
+            Expression* argExpr = call->parameters[i];
+            VariableDecl* paramVarDecl = funcDecl->parameters[i];
+
+            ASTNode* argType   = ResolvedType::get(argExpr);
+            ASTNode* paramType = ASTNodeHelper::findUniqueTypeResolution(paramVarDecl->type);
+            BOOST_ASSERT(argType   != NULL);
+            BOOST_ASSERT(paramType != NULL);
+
+            // if TypenameDecl has not been deduced yet, deducing it!
+            // else, check compatibility with earilier deduced result
+            //auto iterDeduced = deducedTypes.find(paramTypename);
+            //if(iterDeduced == deducedTypes.end())
+            //{
+            //    deducedTypes.insert(std::make_pair(paramTypename, argType));
+            //}
+            //else
+            //{
+            //    TypeSpecifier* prevDeducedType = iterDeduced->second;
+            //    if(!argType->isEqual(*prevDeducedType))
+            //    {
+            //        return DeductResult::Fail;
+            //    }
+            //}
+
+            if(!argType->isEqual(*paramType))
+            {
+                return DeductResult::Fail;
+            }
+        }
+
+        return DeductResult::Success;
+    }
+
+    void filterFullMatchedCandidateByDegreeOfFreedom(std::vector<FunctionDecl*>& fullMatchedCandidate)
+    {
+        if(fullMatchedCandidate.empty())
+        {
+            return;
+        }
+
+        auto iterMax = std::min_element(fullMatchedCandidate.begin(), fullMatchedCandidate.end(), [](FunctionDecl* a, FunctionDecl* b){
+            TemplatedIdentifier* templatedIdA = cast<TemplatedIdentifier>(a->name);
+            TemplatedIdentifier* templatedIdB = cast<TemplatedIdentifier>(b->name);
+            return templatedIdA->templated_type_list.size() < templatedIdB->templated_type_list.size();
+        });
+
+        FunctionDecl* minFunc = cast<FunctionDecl>(*iterMax);
+        TemplatedIdentifier* minTemplate = cast<TemplatedIdentifier>(minFunc->name);
+        size_t minDegreeOfFreedom = minTemplate->templated_type_list.size();
+
+        auto last = std::remove_if(fullMatchedCandidate.begin(), fullMatchedCandidate.end(), [minDegreeOfFreedom](FunctionDecl* a){
+            TemplatedIdentifier* templatedId = cast<TemplatedIdentifier>(a->name);
+            return templatedId->templated_type_list.size() != minDegreeOfFreedom;
+        });
+
+        fullMatchedCandidate.erase(last, fullMatchedCandidate.end());
+    }
+
+    bool getFullSpecializedTemplateCandidate(ASTNode& attach, ASTNode& node, std::vector<ASTNode*>& candidates)
+    {
+        std::vector<FunctionDecl*> fullMatchedCandidate;
+        CallExpr* callExpr = ASTNodeHelper::getOwner<CallExpr>(&node);
+        foreach(c, candidates)
+        {
+            FunctionDecl* func = cast<FunctionDecl>(*c);
+            if(!isFullySpecializedTemplatedIdentifier(func->name))
+            {
+                continue;
+            }
+
+            DeductResult::type deductResult = deduceToSpecializdType(callExpr, func);
+            switch(deductResult)
+            {
+            case DeductResult::Success:
+                fullMatchedCandidate.push_back(func);
+                break;
+            case DeductResult::Fail:
+                break;
+            case DeductResult::UnknownYet:
+                return false;
+                break;
+            }
+        }
+        filterFullMatchedCandidateByDegreeOfFreedom(fullMatchedCandidate);
+        if(fullMatchedCandidate.size() == 1)
+        {
+            ResolvedSymbol::set(&attach, fullMatchedCandidate[0]);
+            ResolvedType::set(&attach, fullMatchedCandidate[0]);
+            return true;
+        }
+        else if(fullMatchedCandidate.size() > 1)
+        {
+            // TODO output error message to list all full match functions
+            std::cerr << "More than one full matched non-template function" << std::endl;
+            return false;
+        }
+        else
+        {
+            return false;
+        }
         return false;
     }
 
-    FunctionDecl* getFullSpecializedTemplateCandidate(ASTNode& attach, ASTNode& node, std::vector<ASTNode*>& candidates)
-    {
-        return NULL;
-    }
-
-    FunctionDecl* getBestViable(ASTNode& attach, ASTNode& node, std::vector<ASTNode*>& candidates)
+    bool getBestViable(ASTNode& attach, ASTNode& node, std::vector<ASTNode*>& candidates)
     {
         //if(isTypeParameterQualified(resolution_visitor))
         {
             // a) 'FULL MATCHED' non-template version is best
-            if(FunctionDecl* func = getFullMatchedNonTemplateCandidate(attach, node, candidates))
-                return func;
+            if(getFullMatchedNonTemplateCandidate(attach, node, candidates))
+                return true;;
 
-            if(FunctionDecl* func = getFullSpecializedTemplateCandidate(attach, node, candidates))
-                return func;
+            if(getFullSpecializedTemplateCandidate(attach, node, candidates))
+                return true;;
 
         //    if(FunctionDecl* func = getTryDeduceToGeneralTemplateCandidate(attach, node, candidates))
         //        return func;
@@ -409,10 +521,7 @@ public:
         filterViableByParameterNumber(&node, resolution_visitor.candidates);
 
         // now the parameter number match
-        FunctionDecl* func = getBestViable(attach, node, resolution_visitor.candidates);
-        if(func != NULL) return true;
-
-        return false;
+        return getBestViable(attach, node, resolution_visitor.candidates);
     }
 
 private:
@@ -431,10 +540,16 @@ private:
 		using namespace zillians::language::tree;
 
         // check if it's function template and need instantiation first
-        //if(tryInstantiateFunctionTemplate(attach, node, no_action))
-        if(false)
+        if(ASTNodeHelper::isCallIdentifier(&node))
         {
-            return true;
+            if(tryInstantiateFunctionTemplate(attach, node, no_action))
+            {
+                return true;
+            }
+            else
+            {
+                return false;
+            }
         }
         // otherwise, we go for standard resolution
         else
