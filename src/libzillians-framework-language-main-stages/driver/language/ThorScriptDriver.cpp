@@ -33,6 +33,9 @@
 #include "language/tree/ASTNodeSerialization.h"
 #include "language/stage/serialization/detail/ASTSerializationHelper.h"
 
+#define AST_EXTENSION 	".ast"
+#define BC_EXTENSION 	".bc"
+
 namespace zillians { namespace language {
 
 //////////////////////////////////////////////////////////////////////////////
@@ -160,13 +163,13 @@ int ThorScriptDriver::shell(const std::string& cmd)
 // private member function
 //////////////////////////////////////////////////////////////////////////////
 
-std::vector<std::string> ThorScriptDriver::getAstUnderBuild()
+std::vector<std::string> ThorScriptDriver::getFilesUnderBuild(std::string extension)
 {
     std::vector<std::string> result;
     namespace fs = boost::filesystem;
     for(auto i = fs::directory_iterator(buildPath); i != fs::directory_iterator(); ++i)
     {
-        if(i->path().extension() == ".ast")
+        if(i->path().extension() == extension)
         {
             result.push_back(i->path().string());
         }
@@ -436,8 +439,11 @@ bool ThorScriptDriver::generateBundle(const ThorScriptDriver::STRIP_TYPE isStrip
 
     std::string cmd("ts-bundle -m manifest.xml");
     cmd += " -o " + (buildPath / "bin" / (pm.name + ".bundle")).string();
-    std::vector<std::string> astFiles = getAstUnderBuild();
-    foreach(i, astFiles)
+    std::vector<std::string> bundledFiles = getFilesUnderBuild(AST_EXTENSION);
+    std::vector<std::string> bcFiles = getFilesUnderBuild(BC_EXTENSION);
+
+    bundledFiles.insert(bundledFiles.end(), bcFiles.begin(), bcFiles.end());
+    foreach(i, bundledFiles)
     {
         cmd += " ";
         cmd += *i;
@@ -456,8 +462,8 @@ bool ThorScriptDriver::generateStub(const std::vector<std::string>& stubTypes)
 {
     boost::filesystem::path stubPath = buildPath / "stub";
     boost::filesystem::create_directories(stubPath);
-    tree::Tangle* tangle = getMergedAST(getAstUnderBuild());
-    boost::filesystem::path stubAstPath = buildPath / ("stub-" + pm.name + ".ast");
+    tree::Tangle* tangle = getMergedAST(getFilesUnderBuild(AST_EXTENSION));
+    boost::filesystem::path stubAstPath = buildPath / ("stub-" + pm.name + AST_EXTENSION);
     stage::ASTSerializationHelper::serialize(stubAstPath.string(), tangle);
 
     foreach(i, stubTypes)
@@ -648,7 +654,7 @@ bool ThorScriptDriver::link()
     std::string cmd = "ts-link -o " + soPath.string();
     for(auto i = fs::directory_iterator(buildPath); i != fs::directory_iterator(); ++i)
     {
-        if(i->path().extension() == ".bc")
+        if(i->path().extension() == BC_EXTENSION)
         {
             cmd += " ";
             cmd += i->path().string();
