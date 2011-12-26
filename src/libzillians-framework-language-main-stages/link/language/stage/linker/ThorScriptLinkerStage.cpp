@@ -169,6 +169,7 @@ bool ThorScriptLinkerStage::buildAssemblyCode(const std::string& bc_file, std::s
 
 	// Initialize all targets
 	llvm::InitializeAllTargets();
+	llvm::InitializeAllTargetMCs();
 	llvm::InitializeAllAsmPrinters();
 	llvm::InitializeAllAsmParsers();
 
