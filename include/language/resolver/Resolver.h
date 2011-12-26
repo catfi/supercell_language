@@ -199,7 +199,7 @@ public:
     struct ConversionRank
     {
         enum type {
-            FullMatch, // 0
+            ExactMatch, // 0
             Promotion, // 1
             StandardConversion, // 2
             NotMatch, // 3
@@ -231,7 +231,7 @@ public:
             // full match
             if(fromType->referred.primitive == toType->referred.primitive)
             {
-                return ConversionRank::FullMatch;
+                return ConversionRank::ExactMatch;
             }
             // promotion
             if(fromType->referred.primitive >= PrimitiveType::BOOL &&
@@ -266,9 +266,9 @@ public:
 
     }
 
-    FunctionDecl* getFullMatchedNonTemplateCandidate(ASTNode& attach, ASTNode& node, std::vector<ASTNode*>& candidates)
+    FunctionDecl* getExactMatchedNonTemplateCandidate(ASTNode& attach, ASTNode& node, std::vector<ASTNode*>& candidates)
     {
-        std::vector<FunctionDecl*> fullMatchedCandidate;
+        std::vector<FunctionDecl*> exactMatchedCandidate;
         CallExpr* callExpr = ASTNodeHelper::getOwner<CallExpr>(&node);
         foreach(c, candidates)
         {
@@ -278,28 +278,28 @@ public:
                 continue;
             }
 
-            // if all parameter full match
+            // if all parameter exact match
             for(size_t i=0; i != func->parameters.size(); ++i)
             {
                 VariableDecl* decl = func->parameters[i];
                 Expression* use = callExpr->parameters[i];
-                if(getConversionRank(use, decl) != ConversionRank::FullMatch)
+                if(getConversionRank(use, decl) != ConversionRank::ExactMatch)
                 {
                     continue;
                 }
             }
-            fullMatchedCandidate.push_back(func);
+            exactMatchedCandidate.push_back(func);
         }
-        if(fullMatchedCandidate.size() == 1)
+        if(exactMatchedCandidate.size() == 1)
         {
-            ResolvedSymbol::set(&attach, fullMatchedCandidate[0]);
-            ResolvedType::set(&attach, fullMatchedCandidate[0]);
-            return fullMatchedCandidate[0];
+            ResolvedSymbol::set(&attach, exactMatchedCandidate[0]);
+            ResolvedType::set(&attach, exactMatchedCandidate[0]);
+            return exactMatchedCandidate[0];
         }
-        else if(fullMatchedCandidate.size() > 1)
+        else if(exactMatchedCandidate.size() > 1)
         {
-            // TODO output error message to list all full match functions
-            std::cerr << "More than one full matched non-template function" << std::endl;
+            // TODO output error message to list all exact match functions
+            std::cerr << "More than one exact matched non-template function" << std::endl;
             return NULL;
         }
         else
@@ -328,7 +328,7 @@ public:
      *         @c DeductResult::UnknownYet if some parameter is not resolved.
      *
      */
-    DeductResult::type deduceToSpecializdType(CallExpr* call, FunctionDecl* funcDecl)
+    DeductResult::type deduceToSpecializdFunction(CallExpr* call, FunctionDecl* funcDecl)
     {
         BOOST_ASSERT(isa<TemplatedIdentifier>(funcDecl->name));
 
@@ -368,14 +368,14 @@ public:
         return DeductResult::Success;
     }
 
-    void filterFullMatchedCandidateByDegreeOfFreedom(std::vector<FunctionDecl*>& fullMatchedCandidate)
+    void filterExactMatchedCandidateByDegreeOfFreedom(std::vector<FunctionDecl*>& exactMatchedCandidate)
     {
-        if(fullMatchedCandidate.empty())
+        if(exactMatchedCandidate.empty())
         {
             return;
         }
 
-        auto iterMax = std::min_element(fullMatchedCandidate.begin(), fullMatchedCandidate.end(), [](FunctionDecl* a, FunctionDecl* b){
+        auto iterMax = std::min_element(exactMatchedCandidate.begin(), exactMatchedCandidate.end(), [](FunctionDecl* a, FunctionDecl* b){
             TemplatedIdentifier* templatedIdA = cast<TemplatedIdentifier>(a->name);
             TemplatedIdentifier* templatedIdB = cast<TemplatedIdentifier>(b->name);
             return templatedIdA->templated_type_list.size() < templatedIdB->templated_type_list.size();
@@ -385,17 +385,17 @@ public:
         TemplatedIdentifier* minTemplate = cast<TemplatedIdentifier>(minFunc->name);
         size_t minDegreeOfFreedom = minTemplate->templated_type_list.size();
 
-        auto last = std::remove_if(fullMatchedCandidate.begin(), fullMatchedCandidate.end(), [minDegreeOfFreedom](FunctionDecl* a){
+        auto last = std::remove_if(exactMatchedCandidate.begin(), exactMatchedCandidate.end(), [minDegreeOfFreedom](FunctionDecl* a){
             TemplatedIdentifier* templatedId = cast<TemplatedIdentifier>(a->name);
             return templatedId->templated_type_list.size() != minDegreeOfFreedom;
         });
 
-        fullMatchedCandidate.erase(last, fullMatchedCandidate.end());
+        exactMatchedCandidate.erase(last, exactMatchedCandidate.end());
     }
 
-    bool getFullSpecializedTemplateCandidate(ASTNode& attach, ASTNode& node, std::vector<ASTNode*>& candidates)
+    bool getExactMatchedSpecializedTemplateCandidate(ASTNode& attach, ASTNode& node, std::vector<ASTNode*>& candidates)
     {
-        std::vector<FunctionDecl*> fullMatchedCandidate;
+        std::vector<FunctionDecl*> exactMatchedCandidate;
         CallExpr* callExpr = ASTNodeHelper::getOwner<CallExpr>(&node);
         foreach(c, candidates)
         {
@@ -405,11 +405,11 @@ public:
                 continue;
             }
 
-            DeductResult::type deductResult = deduceToSpecializdType(callExpr, func);
+            DeductResult::type deductResult = deduceToSpecializdFunction(callExpr, func);
             switch(deductResult)
             {
             case DeductResult::Success:
-                fullMatchedCandidate.push_back(func);
+                exactMatchedCandidate.push_back(func);
                 break;
             case DeductResult::Fail:
                 break;
@@ -418,17 +418,17 @@ public:
                 break;
             }
         }
-        filterFullMatchedCandidateByDegreeOfFreedom(fullMatchedCandidate);
-        if(fullMatchedCandidate.size() == 1)
+        filterExactMatchedCandidateByDegreeOfFreedom(exactMatchedCandidate);
+        if(exactMatchedCandidate.size() == 1)
         {
-            ResolvedSymbol::set(&attach, fullMatchedCandidate[0]);
-            ResolvedType::set(&attach, fullMatchedCandidate[0]);
+            ResolvedSymbol::set(&attach, exactMatchedCandidate[0]);
+            ResolvedType::set(&attach, exactMatchedCandidate[0]);
             return true;
         }
-        else if(fullMatchedCandidate.size() > 1)
+        else if(exactMatchedCandidate.size() > 1)
         {
-            // TODO output error message to list all full match functions
-            std::cerr << "More than one full matched non-template function" << std::endl;
+            // TODO output error message to list all exact match functions
+            std::cerr << "More than one exact matched non-template function" << std::endl;
             return false;
         }
         else
@@ -442,11 +442,11 @@ public:
     {
         //if(isTypeParameterQualified(resolution_visitor))
         {
-            // a) 'FULL MATCHED' non-template version is best
-            if(getFullMatchedNonTemplateCandidate(attach, node, candidates))
+            // a) 'EXACT MATCHED' non-template version is best
+            if(getExactMatchedNonTemplateCandidate(attach, node, candidates))
                 return true;;
 
-            if(getFullSpecializedTemplateCandidate(attach, node, candidates))
+            if(getExactMatchedSpecializedTemplateCandidate(attach, node, candidates))
                 return true;;
 
         //    if(FunctionDecl* func = getTryDeduceToGeneralTemplateCandidate(attach, node, candidates))
@@ -455,7 +455,7 @@ public:
         //    if(FunctionDecl* func = getConvertToNonTemplateCandidate(attach, node, candidates))
         //        return func;
 
-        //    if(FunctionDecl* func = getFullMatchNonTemplateCandidate(attach, node, candidates))
+        //    if(FunctionDecl* func = getExactMatchNonTemplateCandidate(attach, node, candidates))
         //        return func;
 
             return NULL;
@@ -491,15 +491,15 @@ public:
     //      b) **NOT** take type match into consideration, which will be considered in step 3
     // 3. best viable: (4 priorities)
     //      if callee is not 'type-parameter-qualified'
-    //          a) 'FULL MATCHED' non-template version is best
-    //          b) 'FULL MATCHED' specialized version is better
-    //          c) Try deduction to general template version (because if type deduction success, it full match! without conversion)
+    //          a) 'EXACT MATCHED' non-template version is best
+    //          b) 'EXACT MATCHED' specialized version is better
+    //          c) Try deduction to general template version (because if type deduction success, it exact match! without conversion)
     //          d) Try converse to non-template version (2 priorities)
-    //              i)  Full match is better than promotion
+    //              i)  Exact match is better than promotion
     //              ii) Promotion is better than standard conversion
     //          e) **NOT** try to conversion to specialized version
     //      if callee is 'type-parameter-qualified'
-    //          a) 'FULL MATCHED' specialized version is better (will has only one candidate)
+    //          a) 'EXACT MATCHED' specialized version is better (will has only one candidate)
     //          b) Try instantiate a general template version (will has only one candidate)
     bool tryInstantiateFunctionTemplate(tree::ASTNode& attach, tree::Identifier& node, bool no_action)
     {
