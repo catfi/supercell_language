@@ -34,10 +34,8 @@
 #include "llvm/PassManager.h"
 #include "llvm/LLVMContext.h"
 #include "llvm/Linker.h"
-#include "llvm/Target/TargetRegistry.h"
 #include "llvm/Target/TargetData.h"
 #include "llvm/Target/TargetMachine.h"
-#include "llvm/Target/TargetSelect.h"
 #include "llvm/Bitcode/BitstreamWriter.h"
 #include "llvm/Bitcode/ReaderWriter.h"
 #include "llvm/ADT/Triple.h"
@@ -45,6 +43,8 @@
 #include "llvm/Support/ToolOutputFile.h"
 #include "llvm/Support/SourceMgr.h"
 #include "llvm/Support/IRReader.h"
+#include "llvm/Support/TargetRegistry.h"
+#include "llvm/Support/TargetSelect.h"
 #include "llvm/Support/FormattedStream.h"
 #include "llvm/Support/Host.h"
 #include "llvm/Support/Program.h"
@@ -169,6 +169,7 @@ bool ThorScriptLinkerStage::buildAssemblyCode(const std::string& bc_file, std::s
 
 	// Initialize all targets
 	llvm::InitializeAllTargets();
+	llvm::InitializeAllTargetMCs();
 	llvm::InitializeAllAsmPrinters();
 	llvm::InitializeAllAsmParsers();
 
@@ -195,16 +196,16 @@ bool ThorScriptLinkerStage::buildAssemblyCode(const std::string& bc_file, std::s
 		std::cout << "Fail to find the target : " << lookup_error << std::endl;
 	}
 
+	// TODO: cpu type could be more flexible
+	std::string mcpu("x86-64");
 	std::string feature;
-	shared_ptr<llvm::TargetMachine> target_machine(target->createTargetMachine(arch_setting.getTriple(), feature));
+	llvm::Reloc::Model reloc_model = llvm::Reloc::PIC_;	// TODO: other choices?
+	shared_ptr<llvm::TargetMachine> target_machine(target->createTargetMachine(arch_setting.getTriple(), mcpu, feature, reloc_model));
 
 	if (target_machine.get() == NULL)
 	{
 		std::cout << "Fail to create target machine" << std::endl;
 	}
-
-	// Set relocation model to pic
-	target_machine->setRelocationModel(llvm::Reloc::PIC_);
 
 	// Add the target data from the target machine, if it exists, or the module.
 	llvm::PassManager pm;

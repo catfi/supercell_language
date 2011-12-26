@@ -25,6 +25,8 @@ include_directories(
     ${ZILLIANS_DEP_PATH}/linux
     )
 
+add_definitions( ${LLVM_CPPFLAGS} )
+
 add_library(zillians-framework-language-main-stages-vm
     language/stage/vm/ThorScriptVMStage.cpp
 	language/stage/vm/ThorScriptVMMode.cpp
@@ -32,6 +34,8 @@ add_library(zillians-framework-language-main-stages-vm
     )
     
 target_link_libraries(zillians-framework-language-main-stages-vm
+	${LLVM_LDFLAGS}
+    ${LLVM_ALL_LIBS}
     zillians-framework-language-general
     )
     
