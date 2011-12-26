@@ -73,7 +73,7 @@ private:
 private:
     void saveCache(const std::string& s);
     std::string readCache();
-    std::vector<std::string> getAstUnderBuild();
+    std::vector<std::string> getFilesUnderBuild(std::string extension);
     bool setProjectPathAndBuildPath(std::vector<std::string>& argv);
 
 private:
