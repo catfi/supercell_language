@@ -29,6 +29,7 @@
     // g for and not deduceded
     @static_test { resolution="g<T>(T,T)"                             } function g<T>(a:T, b:T) : void {}
     @static_test { resolution="g<int32>(int32,int32)"                 } function g<T:int32>(a:T, b:T) : void {}
+    @static_test { resolution="g<Foo>(Foo,Foo)"                       } function g<T:Foo>(a:T, b:T) : void {}
 
     // no-parameter template function
     @static_test { resolution="h<T>()"                                } function h<T>() : void {}
@@ -61,7 +62,7 @@
         @static_test { expect_resolution="f<T>(T)" } f(vBar);
 
         // specialization is better than generalization
-        @static_test { expect_resolution="f<int8>(T)" } f(vfloat64);
+        @static_test { expect_resolution="f<int8>(T)" } f(vint8);
         @static_test { expect_resolution="f<Foo>(T)" } f(vFoo);
         @static_test { expect_resolution="f<Complex<int32>>(T)" } f(vComplex);
 
@@ -70,16 +71,19 @@
 
         // can not deduced
         // TODO keep going with unresolved while static test
-        //@static_test { expect_resolution="" } g(vint32, vint64);
+        @static_test { expect_resolution="" } g(vint32, vint64);
 
         // fully qualified template instantiation
+        @static_test { expect_resolution="g<T>(T,T)" } g<float64>(vfloat64, vfloat64);
+        @static_test { expect_resolution="g<T>(T,T)" } g<Bar>(vBar, vBar);
         @static_test { expect_resolution="g<int32>(int32,int32)" } g<int32>(vint32, vint64);
+        @static_test { expect_resolution="g<Foo>(Foo,Foo)" } g<Foo>(vFoo, vFoo);
 
         // no-parameter template function
-        @static_test { expect_resolution="h<T>()" } f(vfloat64);
-        @static_test { expect_resolution="h<T>()" } f(vint16);
-        @static_test { expect_resolution="h<int8>()" } f(vint8);
-        @static_test { expect_resolution="h<Foo>()" } f(vFoo);
+        @static_test { expect_resolution="h<T>()" } h(vfloat64);
+        @static_test { expect_resolution="h<T>()" } h(vint16);
+        @static_test { expect_resolution="h<int8>()" } h(vint8);
+        @static_test { expect_resolution="h<Foo>()" } h(vFoo);
 
 
     }

@@ -214,8 +214,8 @@ public:
         // TODO integer literal need special process!!
 
         // if identical, return full match
-        TypeSpecifier* fromType = cast<TypeSpecifier>(ResolvedType::get(from));
-        TypeSpecifier* toType   = to->type;
+        ASTNode* fromType = ResolvedType::get(from);
+        ASTNode* toType   = ASTNodeHelper::findUniqueTypeResolution(to->type);
 
         if(fromType == NULL)
         {
@@ -223,53 +223,59 @@ public:
         }
 
         // primitive, function, unspecified(user_defined) can not be convert to each other
-        if(fromType->type != toType->type)
+        if(fromType->_tag() != toType->_tag())
         {
             return ConversionRank::NotMatch;
         }
 
         // so... ReferredType must be the same after here
-        BOOST_ASSERT(fromType->type == toType->type);
+        BOOST_ASSERT(fromType->_tag() == toType->_tag());
 
-        switch(fromType->type)
+        if(isa<TypeSpecifier>(fromType))
         {
-        case TypeSpecifier::ReferredType::PRIMITIVE:
+            TypeSpecifier* fromTypeSpecifier = cast<TypeSpecifier>(fromType);
+            TypeSpecifier* toTypeSpecifier   = cast<TypeSpecifier>(toType);
+            BOOST_ASSERT(fromTypeSpecifier != NULL);
+            BOOST_ASSERT(toTypeSpecifier != NULL);
+
             // full match
-            if(fromType->referred.primitive == toType->referred.primitive)
+            if(fromTypeSpecifier->referred.primitive == toTypeSpecifier->referred.primitive)
             {
                 return ConversionRank::ExactMatch;
             }
             // promotion
-            if(fromType->referred.primitive >= PrimitiveType::BOOL &&
-                 toType->referred.primitive <= PrimitiveType::FLOAT64 &&
-               fromType->referred.primitive < toType->referred.primitive)
+            if(fromTypeSpecifier->referred.primitive >= PrimitiveType::BOOL &&
+                 toTypeSpecifier->referred.primitive <= PrimitiveType::FLOAT64 &&
+               fromTypeSpecifier->referred.primitive < toTypeSpecifier->referred.primitive)
             {
                 return ConversionRank::Promotion;
             }
             // standard conversion
-            if(  toType->referred.primitive >= PrimitiveType::BOOL &&
-               fromType->referred.primitive <= PrimitiveType::FLOAT64 &&
-                 toType->referred.primitive < fromType->referred.primitive)
+            if(  toTypeSpecifier->referred.primitive >= PrimitiveType::BOOL &&
+               fromTypeSpecifier->referred.primitive <= PrimitiveType::FLOAT64 &&
+                 toTypeSpecifier->referred.primitive < fromTypeSpecifier->referred.primitive)
             {
                 return ConversionRank::StandardConversion;
             }
             return ConversionRank::NotMatch;
-            break;
-
-        case TypeSpecifier::ReferredType::FUNCTION_TYPE:
-            UNIMPLEMENTED_CODE();
-            return ConversionRank::NotMatch;
-            break;
-
-        case TypeSpecifier::ReferredType::UNSPECIFIED:
-            UNIMPLEMENTED_CODE();
-            return ConversionRank::NotMatch;
-            break;
-
-        default:
-            UNREACHABLE_CODE();
         }
-
+        else if(isa<FunctionDecl>(fromType))
+        {
+            UNIMPLEMENTED_CODE();
+            return ConversionRank::NotMatch;
+        }
+        else if(isa<ClassDecl>(fromType) ||
+                isa<EnumDecl>(fromType) ||
+                isa<InterfaceDecl>(fromType))
+        {
+            UNIMPLEMENTED_CODE();
+            return ConversionRank::NotMatch;
+        }
+        else
+        {
+            UNREACHABLE_CODE();
+            return ConversionRank::NotMatch;
+        }
     }
 
     struct DeductResult
@@ -295,6 +301,7 @@ public:
             }
 
             // if all parameter exact match
+            bool exactMatch = true;
             for(size_t i=0; i != func->parameters.size(); ++i)
             {
                 VariableDecl* decl = func->parameters[i];
@@ -306,9 +313,11 @@ public:
                 }
                 if(convRank != ConversionRank::ExactMatch)
                 {
+                    exactMatch = false;
                     continue;
                 }
             }
+            if(!exactMatch) continue;
             exactMatchedCandidate.push_back(func);
         }
         if(exactMatchedCandidate.size() == 1)
