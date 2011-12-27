@@ -788,7 +788,7 @@ struct LLVMGeneratorStageVisitor : public GenericDoubleVisitor
 					false_value = mBuilder.CreateLoad(false_value);
 			}
 
-			llvm::PHINode* phi = mBuilder.CreatePHI(true_value->getType());
+			llvm::PHINode* phi = mBuilder.CreatePHI(true_value->getType(), 2);
 			phi->addIncoming(true_value, true_block);
 			phi->addIncoming(false_value, false_block);
 
@@ -824,7 +824,8 @@ struct LLVMGeneratorStageVisitor : public GenericDoubleVisitor
 			llvm::Function* llvm_function = GET_SYNTHESIZED_LLVM_FUNCTION(resolved);
 			if(llvm_function)
 			{
-				llvm::Value* result = mBuilder.CreateCall(llvm_function, arguments.begin(), arguments.end());
+				llvm::ArrayRef<llvm::Value*> llvm_arguments(arguments);
+				llvm::Value* result = mBuilder.CreateCall(llvm_function, llvm_arguments);
 				SET_SYNTHESIZED_LLVM_VALUE(&node, result);
 			}
 			else

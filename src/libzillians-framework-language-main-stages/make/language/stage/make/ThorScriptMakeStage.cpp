@@ -94,6 +94,13 @@ static bool allSourceAreAst(const std::set<std::string>& sourceFiles)
     return true;
 }
 
+bool isImportBundleTangle(TangleGraphType& g, boost::graph_traits<TangleGraphType>::vertex_descriptor v)
+{
+    if(g[v].size() != 1) return false;
+    std::string filename = *g[v].begin();
+    boost::filesystem::path p(filename);
+    return p.extension() == ".ast";
+}
 //////////////////////////////////////////////////////////////////////////////
 // private member function
 //////////////////////////////////////////////////////////////////////////////
@@ -129,8 +136,16 @@ std::string ThorScriptMakeStage::genCompileCmd(boost::graph_traits<TangleGraphTy
     for(boost::tie(ei, ei_end) = boost::out_edges(v, g); ei != ei_end; ++ei)
     {
         boost::graph_traits<TangleGraphType>::vertex_descriptor target = boost::target(*ei, g);
-        const std::string& astfile = tangleFileName(target, g) + ".ast";
-        boost::filesystem::path loadAstPath = buildPath / astfile;
+        boost::filesystem::path loadAstPath;
+        if(isImportBundleTangle(g, target))
+        {
+            loadAstPath = *g[target].begin();
+        }
+        else
+        {
+            const std::string& astfile = tangleFileName(target, g) + ".ast";
+            loadAstPath = buildPath / astfile;
+        }
         cmd += " '--load-ast=" + loadAstPath.string() + "'";
     }
 

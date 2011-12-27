@@ -19,6 +19,7 @@
 
 
 #include <boost/filesystem.hpp>
+#include "llvm/ADT/StringRef.h"
 #include "llvm/Support/DynamicLibrary.h"
 #include "language/stage/vm/ThorScriptVMMode.h"
 #include "utility/StringUtil.h"
@@ -89,8 +90,8 @@ static std::string getSharedLibraryFromBundle(const std::string& cache_folder, c
     	cmd += " " + *i;
     }
     std::cout << "Command: " << cmd << std::endl;
-    system(cmd.c_str());
-    std::cout << "Generate the file " << generate_so << std::endl;
+    int result = system(cmd.c_str());
+    std::cout << "Generate the file " << generate_so << " : result = " << result << std::endl;
 
     return generate_so.generic_string();
 }
