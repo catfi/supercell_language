@@ -288,7 +288,7 @@ public:
         } ;
     } ;
 
-    DeductResult::type tryExactMatchedNonTemplateCandidate(ASTNode& attach, ASTNode& node, std::vector<ASTNode*>& candidates, bool no_action)
+    DeductResult::type tryExactMatchedNonTemplateCandidate(ASTNode& attach, Identifier& node, std::vector<ASTNode*>& candidates, bool no_action)
     {
         std::vector<FunctionDecl*> exactMatchedCandidate;
         CallExpr* callExpr = ASTNodeHelper::getOwner<CallExpr>(&node);
@@ -405,14 +405,14 @@ public:
         exactMatchedCandidate.erase(last, exactMatchedCandidate.end());
     }
 
-    DeductResult::type tryExactMatchedSpecializedTemplateCandidate(ASTNode& attach, ASTNode& node, std::vector<ASTNode*>& candidates, bool no_action)
+    DeductResult::type tryExactMatchedSpecializedTemplateCandidate(ASTNode& attach, Identifier& node, std::vector<ASTNode*>& candidates, bool no_action)
     {
         std::vector<FunctionDecl*> exactMatchedCandidate;
         CallExpr* callExpr = ASTNodeHelper::getOwner<CallExpr>(&node);
         foreach(c, candidates)
         {
             FunctionDecl* func = cast<FunctionDecl>(*c);
-            if(!isFullySpecializedTemplatedIdentifier(func->name))
+            if(!isa<TemplatedIdentifier>(func->name) || !isFullySpecializedTemplatedIdentifier(func->name))
             {
                 continue;
             }
@@ -543,7 +543,7 @@ public:
         }
     }
 
-    DeductResult::type tryConvertToNonTemplateCandidate(ASTNode& attach, ASTNode& node, std::vector<ASTNode*>& candidates, bool no_action)
+    DeductResult::type tryConvertToNonTemplateCandidate(ASTNode& attach, Identifier& node, std::vector<ASTNode*>& candidates, bool no_action)
     {
         std::vector<FunctionConversionRankList> convertableCandidates;
 
@@ -605,7 +605,7 @@ public:
         }
     }
 
-    DeductResult::type tryDeduceToGeneralTemplateCandidate(ASTNode& attach, ASTNode& node, std::vector<ASTNode*>& candidates, bool no_action)
+    DeductResult::type tryDeduceToGeneralTemplateCandidate(ASTNode& attach, Identifier& node, std::vector<ASTNode*>& candidates, bool no_action)
     {
         std::vector<FunctionDecl*> exactMatchedCandidate;
         std::map<FunctionDecl*, std::map<std::wstring, TypeSpecifier*>> candidatesDeducedTypes;
@@ -678,9 +678,71 @@ public:
         return DeductResult::Fail;
     }
 
-    bool getBestViable(ASTNode& attach, ASTNode& node, std::vector<ASTNode*>& candidates, bool no_action)
+    DeductResult::type tryConvertToSpecializedTemplateCandidate(ASTNode& attach, Identifier& node, std::vector<ASTNode*>& candidates, bool no_action)
     {
-        //if(isTypeParameterQualified(resolution_visitor))
+        std::vector<FunctionDecl*> exactMatchedCandidate;
+        CallExpr* callExpr = ASTNodeHelper::getOwner<CallExpr>(&node);
+        foreach(c, candidates)
+        {
+            FunctionDecl* func = cast<FunctionDecl>(*c);
+            if(!isa<TemplatedIdentifier>(func->name) || !isFullySpecializedTemplatedIdentifier(func->name))
+            {
+                continue;
+            }
+
+            DeductResult::type deductResult = deduceToSpecializdTemplateFunction(callExpr, func);
+            switch(deductResult)
+            {
+            case DeductResult::Success:
+                exactMatchedCandidate.push_back(func);
+                break;
+            case DeductResult::Fail:
+                break;
+            case DeductResult::UnknownYet:
+                return DeductResult::UnknownYet;
+                break;
+            }
+        }
+
+        // filter by conversion rank
+        foreach(c, exactMatchedCandidate)
+        {
+        }
+
+        // filter by dof
+        filterMatchedCandidateByDegreeOfFreedom(exactMatchedCandidate);
+        if(exactMatchedCandidate.size() == 1)
+        {
+            if(!no_action)
+            {
+                ResolvedSymbol::set(&attach, exactMatchedCandidate[0]);
+                ResolvedType::set(&attach, exactMatchedCandidate[0]);
+            }
+            return DeductResult::Success;
+        }
+        else if(exactMatchedCandidate.size() > 1)
+        {
+            // TODO output error message to list all exact match functions
+            std::cerr << "More than one exact specialized template function" << std::endl;
+            return DeductResult::Fail;
+        }
+        else
+        {
+            return DeductResult::Fail;
+        }
+        UNREACHABLE_CODE();
+        return DeductResult::Fail;
+
+    }
+
+    bool isTypeParameterQualified(Identifier& node)
+    {
+        return false;
+    }
+
+    bool getBestViable(ASTNode& attach, Identifier& node, std::vector<ASTNode*>& candidates, bool no_action)
+    {
+        if(!isTypeParameterQualified(node))
         {
             DeductResult::type result = DeductResult::UnknownYet;
 
@@ -702,16 +764,20 @@ public:
 
             return false;
         }
-        //else
-        //{
-        //    if(getConvertToSpecializedTemplateCandidate(attach, node, candidates, no_action))
-        //        return true;
+        else
+        {
+            DeductResult::type result = DeductResult::UnknownYet;
 
-        //    if(getTryInstantiateGeneralTemplateCandidate(attach, node, candidates, no_action))
-        //        return true;
+            result = tryConvertToSpecializedTemplateCandidate(attach, node, candidates, no_action);
+            if(result == DeductResult::UnknownYet) return false;
+            if(result == DeductResult::Success) return true;
 
-        //    return NULL;
-        //}
+            //if(getTryInstantiateGeneralTemplateCandidate(attach, node, candidates, no_action))
+            //if(result == DeductResult::UnknownYet) return false;
+            //if(result == DeductResult::Success) return true;
+
+            return false;;
+        }
     }
 
     bool isAllArgumentsResolved(CallExpr* call)
