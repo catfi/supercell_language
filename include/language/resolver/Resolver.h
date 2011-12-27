@@ -251,7 +251,7 @@ public:
                fromType->referred.primitive <= PrimitiveType::FLOAT64 &&
                  toType->referred.primitive < fromType->referred.primitive)
             {
-                return ConversionRank::Promotion;
+                return ConversionRank::StandardConversion;
             }
             return ConversionRank::NotMatch;
             break;
@@ -299,7 +299,12 @@ public:
             {
                 VariableDecl* decl = func->parameters[i];
                 Expression* use = callExpr->parameters[i];
-                if(getConversionRank(use, decl) != ConversionRank::ExactMatch)
+                ConversionRank::type convRank = getConversionRank(use, decl);
+                if(convRank == ConversionRank::UnknownYet)
+                {
+                    return DeductResult::UnknownYet;
+                }
+                if(convRank != ConversionRank::ExactMatch)
                 {
                     continue;
                 }
@@ -429,7 +434,7 @@ public:
         else if(exactMatchedCandidate.size() > 1)
         {
             // TODO output error message to list all exact match functions
-            std::cerr << "More than one exact matched non-template function" << std::endl;
+            std::cerr << "More than one exact specialized template function" << std::endl;
             return DeductResult::Fail;
         }
         else
@@ -492,6 +497,103 @@ public:
         }
 
         return DeductResult::Success;
+    }
+
+    typedef std::vector<ConversionRank::type> ConversionRankList;
+    typedef std::pair<FunctionDecl*, ConversionRankList> FunctionConversionRankList;
+
+    bool isBetterThan(FunctionConversionRankList& lhs, FunctionConversionRankList& rhs)
+    {
+        ConversionRankList& l = lhs.second;
+        ConversionRankList& r = rhs.second;
+        std::sort(l.begin(), l.end(), std::greater<ConversionRank::type>());
+        std::sort(r.begin(), r.end(), std::greater<ConversionRank::type>());
+        return l < r;
+    }
+
+    void filterBestNonTemplateFunctionByConversionRankList(std::vector<FunctionConversionRankList>& convertableCandidates)
+    {
+        std::set<std::vector<FunctionConversionRankList>::size_type> out;
+        for(std::vector<FunctionConversionRankList>::size_type i=0; i != convertableCandidates.size(); ++i)
+        {
+            for(std::vector<FunctionConversionRankList>::size_type j=0; j != convertableCandidates.size(); ++j)
+            {
+                if(i == j)
+                {
+                    continue;
+                }
+                if(isBetterThan(convertableCandidates[i], convertableCandidates[j]))
+                {
+                    out.insert(j);
+                }
+            }
+        }
+        for(auto i = out.rbegin(); i != out.rend(); ++i)
+        {
+            convertableCandidates.erase(convertableCandidates.begin() + *i);
+        }
+    }
+
+    DeductResult::type tryConvertToNonTemplateCandidate(ASTNode& attach, ASTNode& node, std::vector<ASTNode*>& candidates, bool no_action)
+    {
+        std::vector<FunctionConversionRankList> convertableCandidates;
+
+        CallExpr* callExpr = ASTNodeHelper::getOwner<CallExpr>(&node);
+        // foreach function candidates
+        foreach(c, candidates)
+        {
+            FunctionDecl* func = cast<FunctionDecl>(*c);
+            if(isa<TemplatedIdentifier>(func->name))
+            {
+                continue;
+            }
+
+            // calculate conversion rank for each argument/parameter
+            ConversionRankList convRankList;
+            bool callable = true;
+            for(size_t i=0; i != func->parameters.size(); ++i)
+            {
+                VariableDecl* decl = func->parameters[i];
+                Expression* use = callExpr->parameters[i];
+                ConversionRank::type convRank = getConversionRank(use, decl);
+                if(convRank == ConversionRank::UnknownYet)
+                {
+                    return DeductResult::UnknownYet;
+                }
+                else if(convRank == ConversionRank::NotMatch)
+                {
+                    callable = false;
+                    continue;
+                }
+                convRankList.push_back(convRank);
+            }
+            if(!callable) continue;
+            convertableCandidates.push_back(FunctionConversionRankList(func, convRankList));
+        }
+
+        // up to here, we have all callable/viable cadidates in convertableCandidates
+        // and we have to select the best one
+        filterBestNonTemplateFunctionByConversionRankList(convertableCandidates);
+
+        if(convertableCandidates.size() == 1)
+        {
+            if(!no_action)
+            {
+                ResolvedSymbol::set(&attach, convertableCandidates[0].first);
+                ResolvedType::set(&attach, convertableCandidates[0].first);
+            }
+            return DeductResult::Success;
+        }
+        else if(convertableCandidates.size() > 1)
+        {
+            // TODO output error message to list all exact match functions
+            std::cerr << "More than one convert to non-template function" << std::endl;
+            return DeductResult::Fail;
+        }
+        else
+        {
+            return DeductResult::Fail;
+        }
     }
 
     DeductResult::type tryDeduceToGeneralTemplateCandidate(ASTNode& attach, ASTNode& node, std::vector<ASTNode*>& candidates, bool no_action)
@@ -585,9 +687,9 @@ public:
             if(result == DeductResult::UnknownYet) return false;
             if(result == DeductResult::Success) return true;
 
-            //result = tryConvertToNonTemplateCandidate(attach, node, candidates, no_action);
-            //if(result == DeductResult::UnknownYet) return false;
-            //if(result == DeductResult::Success) return true;
+            result = tryConvertToNonTemplateCandidate(attach, node, candidates, no_action);
+            if(result == DeductResult::UnknownYet) return false;
+            if(result == DeductResult::Success) return true;
 
             return false;
         }
