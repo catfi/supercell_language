@@ -102,7 +102,7 @@ struct ASTNodeHelper
 		visitor.visit(node);
 	}
 
-	static ASTNode* clone(ASTNode* from/*, ASTNode* to*/)
+	static ASTNode* clone(ASTNode* from)
 	{
         ////////////////////////////////////////////////////////////////////// 
         // clone tree
@@ -158,8 +158,17 @@ struct ASTNodeHelper
 		if(!node)
 			return NULL;
 
-		if(isa<TypenameDecl>(node))
-			return findUniqueTypeResolution(cast<TypenameDecl>(node)->specialized_type);
+		if(TypenameDecl* typenameDecl = cast<TypenameDecl>(node))
+        {
+            if(typenameDecl->specialized_type)
+            {
+                return findUniqueTypeResolution(typenameDecl->specialized_type);
+            }
+            else
+            {
+                return node;
+            }
+        }
 
 		if(isa<FunctionType>(node))
 			return node;
@@ -467,6 +476,44 @@ struct ASTNodeHelper
     	ResolvedType::set(type_specifier, decl);
 		return type_specifier;
 	}
+
+    /**
+     * @brief Omni function to create TypeSpecifier
+     * @param node Source of the TypeSpecifier to create.
+     * @return TypeSpecifier according to the input node.
+     *
+     * @li @c TypeSpecifier clone of @p node
+     * @li @c ClassDecl a TypeSpecifier to @p node
+     * @li @c FunctionDecl a TypeSpecifier to @p node
+     */
+    static TypeSpecifier* createTypeSpecifierFrom(ASTNode* node)
+    {
+        BOOST_ASSERT(isa<TypeSpecifier>(node) ||
+                     isa<ClassDecl>(node) ||
+                     isa<FunctionDecl>(node));
+
+        if(isa<TypeSpecifier>(node))
+        {
+            TypeSpecifier* result = cast<TypeSpecifier>(ASTNodeHelper::clone(node));
+            ResolvedType::set(result, ResolvedType::get(node));
+            return result;
+        }
+        else if(ClassDecl* classDecl = cast<ClassDecl>(node))
+        {
+            TypeSpecifier* result = new TypeSpecifier(cast<Identifier>(ASTNodeHelper::clone(classDecl->name)));
+            ResolvedType::set(result, classDecl);
+            return result;
+        }
+        else if(FunctionDecl* functionDecl = cast<FunctionDecl>(node))
+        {
+            TypeSpecifier* result = new TypeSpecifier(cast<Identifier>(ASTNodeHelper::clone(functionDecl->name)));
+            ResolvedType::set(result, functionDecl);
+            return result;
+        }
+
+        UNREACHABLE_CODE();
+        return NULL;
+    }
 
     static bool sameResolvedType(TypeSpecifier* a, TypeSpecifier* b)
 	{

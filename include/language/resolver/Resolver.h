@@ -203,6 +203,7 @@ public:
             Promotion, // 1
             StandardConversion, // 2
             NotMatch, // 3
+            UnknownYet, // 4
         } ;
     } ;
 
@@ -215,6 +216,11 @@ public:
         // if identical, return full match
         TypeSpecifier* fromType = cast<TypeSpecifier>(ResolvedType::get(from));
         TypeSpecifier* toType   = to->type;
+
+        if(fromType == NULL)
+        {
+            return ConversionRank::UnknownYet;
+        }
 
         // primitive, function, unspecified(user_defined) can not be convert to each other
         if(fromType->type != toType->type)
@@ -266,7 +272,17 @@ public:
 
     }
 
-    FunctionDecl* getExactMatchedNonTemplateCandidate(ASTNode& attach, ASTNode& node, std::vector<ASTNode*>& candidates)
+    struct DeductResult
+    {
+        enum type
+        {
+            Success,
+            Fail,
+            UnknownYet
+        } ;
+    } ;
+
+    DeductResult::type tryExactMatchedNonTemplateCandidate(ASTNode& attach, ASTNode& node, std::vector<ASTNode*>& candidates, bool no_action)
     {
         std::vector<FunctionDecl*> exactMatchedCandidate;
         CallExpr* callExpr = ASTNodeHelper::getOwner<CallExpr>(&node);
@@ -292,31 +308,24 @@ public:
         }
         if(exactMatchedCandidate.size() == 1)
         {
-            ResolvedSymbol::set(&attach, exactMatchedCandidate[0]);
-            ResolvedType::set(&attach, exactMatchedCandidate[0]);
-            return exactMatchedCandidate[0];
+            if(!no_action)
+            {
+                ResolvedSymbol::set(&attach, exactMatchedCandidate[0]);
+                ResolvedType::set(&attach, exactMatchedCandidate[0]);
+            }
+            return DeductResult::Success;
         }
         else if(exactMatchedCandidate.size() > 1)
         {
             // TODO output error message to list all exact match functions
             std::cerr << "More than one exact matched non-template function" << std::endl;
-            return NULL;
+            return DeductResult::Fail;
         }
         else
         {
-            return NULL;
+            return DeductResult::Fail;
         }
     }
-
-    struct DeductResult
-    {
-        enum type
-        {
-            Success,
-            Fail,
-            UnknownYet
-        } ;
-    } ;
 
     /**
      * @brief Deduct template types from callee's arguments
@@ -328,7 +337,7 @@ public:
      *         @c DeductResult::UnknownYet if some parameter is not resolved.
      *
      */
-    DeductResult::type deduceToSpecializdFunction(CallExpr* call, FunctionDecl* funcDecl)
+    DeductResult::type deduceToSpecializdTemplateFunction(CallExpr* call, FunctionDecl* funcDecl)
     {
         BOOST_ASSERT(isa<TemplatedIdentifier>(funcDecl->name));
 
@@ -340,24 +349,13 @@ public:
 
             ASTNode* argType   = ResolvedType::get(argExpr);
             ASTNode* paramType = ASTNodeHelper::findUniqueTypeResolution(paramVarDecl->type);
+            if(argType == NULL || paramType == NULL)
+            {
+                return DeductResult::UnknownYet;
+            }
+
             BOOST_ASSERT(argType   != NULL);
             BOOST_ASSERT(paramType != NULL);
-
-            // if TypenameDecl has not been deduced yet, deducing it!
-            // else, check compatibility with earilier deduced result
-            //auto iterDeduced = deducedTypes.find(paramTypename);
-            //if(iterDeduced == deducedTypes.end())
-            //{
-            //    deducedTypes.insert(std::make_pair(paramTypename, argType));
-            //}
-            //else
-            //{
-            //    TypeSpecifier* prevDeducedType = iterDeduced->second;
-            //    if(!argType->isEqual(*prevDeducedType))
-            //    {
-            //        return DeductResult::Fail;
-            //    }
-            //}
 
             if(!argType->isEqual(*paramType))
             {
@@ -368,7 +366,7 @@ public:
         return DeductResult::Success;
     }
 
-    void filterExactMatchedCandidateByDegreeOfFreedom(std::vector<FunctionDecl*>& exactMatchedCandidate)
+    void filterMatchedCandidateByDegreeOfFreedom(std::vector<FunctionDecl*>& exactMatchedCandidate)
     {
         if(exactMatchedCandidate.empty())
         {
@@ -393,7 +391,7 @@ public:
         exactMatchedCandidate.erase(last, exactMatchedCandidate.end());
     }
 
-    bool getExactMatchedSpecializedTemplateCandidate(ASTNode& attach, ASTNode& node, std::vector<ASTNode*>& candidates)
+    DeductResult::type tryExactMatchedSpecializedTemplateCandidate(ASTNode& attach, ASTNode& node, std::vector<ASTNode*>& candidates, bool no_action)
     {
         std::vector<FunctionDecl*> exactMatchedCandidate;
         CallExpr* callExpr = ASTNodeHelper::getOwner<CallExpr>(&node);
@@ -405,7 +403,7 @@ public:
                 continue;
             }
 
-            DeductResult::type deductResult = deduceToSpecializdFunction(callExpr, func);
+            DeductResult::type deductResult = deduceToSpecializdTemplateFunction(callExpr, func);
             switch(deductResult)
             {
             case DeductResult::Success:
@@ -414,59 +412,192 @@ public:
             case DeductResult::Fail:
                 break;
             case DeductResult::UnknownYet:
-                return false;
+                return DeductResult::UnknownYet;
                 break;
             }
         }
-        filterExactMatchedCandidateByDegreeOfFreedom(exactMatchedCandidate);
+        filterMatchedCandidateByDegreeOfFreedom(exactMatchedCandidate);
         if(exactMatchedCandidate.size() == 1)
         {
-            ResolvedSymbol::set(&attach, exactMatchedCandidate[0]);
-            ResolvedType::set(&attach, exactMatchedCandidate[0]);
-            return true;
+            if(!no_action)
+            {
+                ResolvedSymbol::set(&attach, exactMatchedCandidate[0]);
+                ResolvedType::set(&attach, exactMatchedCandidate[0]);
+            }
+            return DeductResult::Success;
         }
         else if(exactMatchedCandidate.size() > 1)
         {
             // TODO output error message to list all exact match functions
             std::cerr << "More than one exact matched non-template function" << std::endl;
-            return false;
+            return DeductResult::Fail;
         }
         else
         {
-            return false;
+            return DeductResult::Fail;
         }
-        return false;
+        UNREACHABLE_CODE();
+        return DeductResult::Fail;
     }
 
-    bool getBestViable(ASTNode& attach, ASTNode& node, std::vector<ASTNode*>& candidates)
+    /**
+     * @brief Deduct template types from callee's arguments
+     * @param call CallExpr of callee
+     * @param funcDecl FunctionDecl of the function declaration
+     * @return @c DeductResult::Success if deduct success,
+     *         @c DeductResult::Fail if @p funcDecl is non-template,
+     *         or is template but can not be deduced from arguments.(conflict)
+     *         @c DeductResult::UnknownYet if some parameter is not resolved.
+     *
+     */
+    DeductResult::type deduceToGeneralTemplateFunction(CallExpr* call, FunctionDecl* funcDecl, std::map<std::wstring, TypeSpecifier*>& deducedTypes)
+    {
+        BOOST_ASSERT(isa<TemplatedIdentifier>(funcDecl->name));
+
+        for(size_t i=0; i != call->parameters.size(); ++i)
+        {
+            Expression* argExpr = call->parameters[i];
+            VariableDecl* paramVarDecl = funcDecl->parameters[i];
+
+            ASTNode* argType   = ResolvedType::get(argExpr);
+            ASTNode* paramType = ASTNodeHelper::findUniqueTypeResolution(paramVarDecl->type);
+            BOOST_ASSERT(argType   != NULL);
+            BOOST_ASSERT(paramType != NULL);
+
+            // if none template type, check equal
+            if(!isa<TypenameDecl>(paramType))
+            {
+                if(!paramType->isEqual(*argType)) return DeductResult::Fail;
+            }
+
+            // if template type, deduce and check equal
+            else
+            {
+                TypenameDecl* paramTypename = cast<TypenameDecl>(paramType);
+                BOOST_ASSERT(paramTypename != NULL);
+                auto iterDeduced = deducedTypes.find(paramTypename->name->toString());
+                if(iterDeduced == deducedTypes.end())
+                {
+                    deducedTypes.insert(std::make_pair(paramTypename->name->toString(), ASTNodeHelper::createTypeSpecifierFrom(argType)));
+                }
+                else
+                {
+                    TypeSpecifier* prevDeducedType = iterDeduced->second;
+                    if(!argType->isEqual(*ASTNodeHelper::findUniqueTypeResolution(prevDeducedType)))
+                    {
+                        return DeductResult::Fail;
+                    }
+                }
+            }
+        }
+
+        return DeductResult::Success;
+    }
+
+    DeductResult::type tryDeduceToGeneralTemplateCandidate(ASTNode& attach, ASTNode& node, std::vector<ASTNode*>& candidates, bool no_action)
+    {
+        std::vector<FunctionDecl*> exactMatchedCandidate;
+        std::map<FunctionDecl*, std::map<std::wstring, TypeSpecifier*>> candidatesDeducedTypes;
+        CallExpr* callExpr = ASTNodeHelper::getOwner<CallExpr>(&node);
+
+        foreach(c, candidates)
+        {
+            FunctionDecl* func = cast<FunctionDecl>(*c);
+            if(!isa<TemplatedIdentifier>(func->name) || isFullySpecializedTemplatedIdentifier(func->name))
+            {
+                continue;
+            }
+
+            std::map<std::wstring, TypeSpecifier*> deducedTypes;
+            DeductResult::type deductResult = deduceToGeneralTemplateFunction(callExpr, func, deducedTypes);
+            switch(deductResult)
+            {
+            case DeductResult::Success:
+                exactMatchedCandidate.push_back(func);
+                candidatesDeducedTypes.insert(std::make_pair(func, deducedTypes));
+                break;
+            case DeductResult::Fail:
+                break;
+            case DeductResult::UnknownYet:
+                return DeductResult::UnknownYet;
+                break;
+            }
+        }
+        filterMatchedCandidateByDegreeOfFreedom(exactMatchedCandidate);
+        if(exactMatchedCandidate.size() == 1)
+        {
+            // instantiate
+            if(!no_action)
+            {
+                // (which is delayed to later applyTrasnform() because we don't want to change the tree while traversing it)
+                auto ranges = function_instantiations.equal_range(exactMatchedCandidate[0]);
+                bool found = false;
+                for(auto i = ranges.first;i != ranges.second; ++i)
+                {
+                    // if there's already function instantiation requested
+                    zillians::language::tree::visitor::ResolutionVisitor v;
+                    if(candidatesDeducedTypes[exactMatchedCandidate[0]] == i->second.deduced_types)
+                    {
+                        // just append the attach node to the attach list
+                        i->second.to_attach.push_back(&attach);
+                        return DeductResult::Success;
+                    }
+                }
+
+                // if there's no function instantiation requested, create one
+                if(!found)
+                {
+                    const std::map<std::wstring, TypeSpecifier*>& deducedTypes = candidatesDeducedTypes[exactMatchedCandidate[0]];
+                    function_instantiations.insert(std::make_pair(exactMatchedCandidate[0], FunctionInstantiationInfo(deducedTypes, &attach)));
+                }
+            }
+
+            return DeductResult::Success;
+        }
+        else if(exactMatchedCandidate.size() > 1)
+        {
+            // TODO output error message to list all exact match functions
+            std::cerr << "More than one exact matched non-template function" << std::endl;
+            return DeductResult::Fail;
+        }
+        else
+        {
+            return DeductResult::Fail;
+        }
+        return DeductResult::Fail;
+    }
+
+    bool getBestViable(ASTNode& attach, ASTNode& node, std::vector<ASTNode*>& candidates, bool no_action)
     {
         //if(isTypeParameterQualified(resolution_visitor))
         {
-            // a) 'EXACT MATCHED' non-template version is best
-            if(getExactMatchedNonTemplateCandidate(attach, node, candidates))
-                return true;;
+            DeductResult::type result = DeductResult::UnknownYet;
 
-            if(getExactMatchedSpecializedTemplateCandidate(attach, node, candidates))
-                return true;;
+            result = tryExactMatchedNonTemplateCandidate(attach, node, candidates, no_action);
+            if(result == DeductResult::UnknownYet) return false;
+            if(result == DeductResult::Success) return true;
 
-        //    if(FunctionDecl* func = getTryDeduceToGeneralTemplateCandidate(attach, node, candidates))
-        //        return func;
+            result = tryExactMatchedSpecializedTemplateCandidate(attach, node, candidates, no_action);
+            if(result == DeductResult::UnknownYet) return false;
+            if(result == DeductResult::Success) return true;
 
-        //    if(FunctionDecl* func = getConvertToNonTemplateCandidate(attach, node, candidates))
-        //        return func;
+            result = tryDeduceToGeneralTemplateCandidate(attach, node, candidates, no_action);
+            if(result == DeductResult::UnknownYet) return false;
+            if(result == DeductResult::Success) return true;
 
-        //    if(FunctionDecl* func = getExactMatchNonTemplateCandidate(attach, node, candidates))
-        //        return func;
+            //result = tryConvertToNonTemplateCandidate(attach, node, candidates, no_action);
+            //if(result == DeductResult::UnknownYet) return false;
+            //if(result == DeductResult::Success) return true;
 
-            return NULL;
+            return false;
         }
         //else
         //{
-        //    if(FunctionDecl* func = getConvertToSpecializedTemplateCandidate(attach, node, candidates) != NULL)
-        //        return func;
+        //    if(getConvertToSpecializedTemplateCandidate(attach, node, candidates, no_action))
+        //        return true;
 
-        //    if(FunctionDecl* func = getTryInstantiateGeneralTemplateCandidate(attach, node, candidates) != NULL)
-        //        return func;
+        //    if(getTryInstantiateGeneralTemplateCandidate(attach, node, candidates, no_action))
+        //        return true;
 
         //    return NULL;
         //}
@@ -521,7 +652,7 @@ public:
         filterViableByParameterNumber(&node, resolution_visitor.candidates);
 
         // now the parameter number match
-        return getBestViable(attach, node, resolution_visitor.candidates);
+        return getBestViable(attach, node, resolution_visitor.candidates, no_action);
     }
 
 private:
@@ -1086,7 +1217,6 @@ private:
     				// if there's already class instantiation requested
                     zillians::language::tree::visitor::ResolutionVisitor v;
                     bool partialmatch;
-    				//if(i->second.specifier->isEqual(node))
     				if(v.compare(i->second.specifier->referred.unspecified, node.referred.unspecified, partialmatch))
     				{
     					// just append the attach node to the attach list
@@ -1098,7 +1228,7 @@ private:
     			// if there's no class instantiation requested, create one
     			if(!found)
     			{
-    				class_instantiations.insert(std::make_pair(most_specialized_class_template, InstantiationInfo(&node, &attach)));
+                    class_instantiations.insert(std::make_pair(most_specialized_class_template, ClassInstantiationInfo(&node, &attach)));
     			}
     		}
     		return true;
@@ -1140,6 +1270,47 @@ private:
     	}
 
 		class_instantiations.clear();
+    }
+
+    FunctionDecl* instantiateFunctionTemplate(const std::map<std::wstring, TypeSpecifier*>& deducedTypes, FunctionDecl* func)
+    {
+        BOOST_ASSERT(!deducedTypes.empty());
+        BOOST_ASSERT(isa<TemplatedIdentifier>(func->name));
+
+        Package* owner_package = ASTNodeHelper::getOwner<Package>(func);
+        BOOST_ASSERT(owner_package != NULL && "can't find owner package for class template");
+        FunctionDecl* result = cast<FunctionDecl>(ASTNodeHelper::clone(func));
+        owner_package->addObject(result);
+
+        TemplatedIdentifier* tid = cast<TemplatedIdentifier>(result->name);
+        for(size_t i=0; i != tid->templated_type_list.size(); ++i)
+        {
+            TypenameDecl* typenameDecl = tid->templated_type_list[i];
+            auto iter = deducedTypes.find(typenameDecl->name->toString());
+            BOOST_ASSERT(iter != deducedTypes.end());
+            TypeSpecifier* const deducedType = cast<TypeSpecifier>(ASTNodeHelper::clone(iter->second));
+            typenameDecl->setSpecializdType(deducedType);
+            BOOST_ASSERT(deducedType != NULL);
+        }
+        return result;
+    }
+
+    void applyFunctionInstantiation()
+    {
+        foreach(i, function_instantiations)
+        {
+            FunctionDecl* funcTemplateDecl = i->first;
+            const std::map<std::wstring, TypeSpecifier*>& deducedTypes = i->second.deduced_types;
+
+            FunctionDecl* instantiated = instantiateFunctionTemplate(deducedTypes, funcTemplateDecl);
+            zillians::language::InstantiatedFrom::set(instantiated, funcTemplateDecl);
+
+            foreach(j, i->second.to_attach)
+            {
+                ResolvedType::set(*j, instantiated);
+                ResolvedSymbol::set(*j, instantiated);
+            }
+        }
     }
 
 private:
@@ -1340,12 +1511,13 @@ private:
 public:
 	bool hasTransforms()
 	{
-		return (class_instantiations.size() > 0);
+        return !class_instantiations.empty() || !function_instantiations.empty();
 	}
 
 	void applyTransforms()
 	{
 		applyClassInstantiation();
+		applyFunctionInstantiation();
 	}
 
 private:
@@ -1353,9 +1525,9 @@ private:
 	tree::visitor::ResolutionVisitor resolution_visitor;
 
 private:
-	struct InstantiationInfo
+	struct ClassInstantiationInfo
 	{
-		InstantiationInfo(tree::TypeSpecifier* _specifier, tree::ASTNode* _attach) {
+		ClassInstantiationInfo(tree::TypeSpecifier* _specifier, tree::ASTNode* _attach) {
 			specifier = _specifier;
 			to_attach.push_back(_attach);
 		}
@@ -1364,7 +1536,18 @@ private:
 		std::vector<tree::ASTNode*> to_attach;
 	};
 
-	std::multimap<tree::ClassDecl*, InstantiationInfo> class_instantiations;
+	struct FunctionInstantiationInfo
+	{
+		FunctionInstantiationInfo(const std::map<std::wstring, TypeSpecifier*>& _deduced_types, tree::ASTNode* _attach) : deduced_types(_deduced_types)
+        {
+			to_attach.push_back(_attach);
+		}
+        std::map<std::wstring, TypeSpecifier*> deduced_types;
+		std::vector<tree::ASTNode*> to_attach;
+	};
+
+	std::multimap<tree::ClassDecl*, ClassInstantiationInfo> class_instantiations;
+	std::multimap<tree::FunctionDecl*, FunctionInstantiationInfo> function_instantiations;
 };
 
 } }
