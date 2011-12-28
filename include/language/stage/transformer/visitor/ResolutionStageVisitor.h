@@ -548,13 +548,7 @@ struct ResolutionStageVisitor : public GenericDoubleVisitor
     // b) node.node is not a identifier, but a expression, for example: g()(); where g() return a function(lambda)
 	void resolve(CallExpr& node)
 	{
-        // after this revisit, the candidate is alread collected.
 		revisit(node);
-
-        // and now we only have to compare the priority, and find the best candidate
-        // TODO
-
-
 
 		if(!ResolvedType::get(&node))
 		{
@@ -613,6 +607,10 @@ struct ResolutionStageVisitor : public GenericDoubleVisitor
 	{
 		if(type == Target::TYPE_RESOLUTION)
 		{
+			if(node.catagory == PrimaryExpr::Catagory::IDENTIFIER)
+            {
+                visit(*node.value.identifier);
+            }
 			// there's no type needed to be resolved inside a primary expression
 			// do nothing
 		}

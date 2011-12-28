@@ -28,8 +28,13 @@
 
     // g for and not deduceded
     @static_test { resolution="g<T>(T,T)"                             } function g<T>(a:T, b:T) : void {}
-    @static_test { resolution="g<int32>(int32,int32)"                 } function g<T:int32>(a:T, b:T) : void {}
-    @static_test { resolution="g<Foo>(Foo,Foo)"                       } function g<T:Foo>(a:T, b:T) : void {}
+    @static_test { resolution="g<int32>(T,T)"                         } function g<T:int32>(a:T, b:T) : void {}
+    @static_test { resolution="g<Foo>(T,T)"                           } function g<T:Foo>(a:T, b:T) : void {}
+
+    // g for and not deduceded
+    @static_test { resolution="g2<T>(T,T,int8)"                       } function g2<T>(a:T, b:T, c:int8) : void {}
+    @static_test { resolution="g2<int32>(T,T,int8)"                   } function g2<T:int32>(a:T, b:T, c:int8) : void {}
+    @static_test { resolution="g2<Foo>(T,T,int8)"                     } function g2<T:Foo>(a:T, b:T, c:int8) : void {}
 
     // no-parameter template function
     @static_test { resolution="h<T>()"                                } function h<T>() : void {}
@@ -70,20 +75,23 @@
         @static_test { expect_resolution="f(int32)" } f(vint32);
 
         // can not deduced
-        // TODO keep going with unresolved while static test
         @static_test { expect_resolution="" } g(vint32, vint64);
 
         // fully qualified template instantiation
         @static_test { expect_resolution="g<T>(T,T)" } g<float64>(vfloat64, vfloat64);
         @static_test { expect_resolution="g<T>(T,T)" } g<Bar>(vBar, vBar);
-        @static_test { expect_resolution="g<int32>(int32,int32)" } g<int32>(vint32, vint64);
-        @static_test { expect_resolution="g<Foo>(Foo,Foo)" } g<Foo>(vFoo, vFoo);
+        @static_test { expect_resolution="g<int32>(T,T)" } g<int32>(vint32, vint64);
+        @static_test { expect_resolution="g<Foo>(T,T)" } g<Foo>(vFoo, vFoo);
+
+        @static_test { expect_resolution="g2<int32>(T,T,int8)" } g2<int32>(vint32, vint64, vint16);
+        @static_test { expect_resolution="g2<Foo>(T,T,int8)" } g2<Foo>(vFoo, vFoo, vint16);
+        @static_test { expect_resolution="" } g2<Foo>(vFoo, vint8, vint8);
 
         // no-parameter template function
-        @static_test { expect_resolution="h<T>()" } h(vfloat64);
-        @static_test { expect_resolution="h<T>()" } h(vint16);
-        @static_test { expect_resolution="h<int8>()" } h(vint8);
-        @static_test { expect_resolution="h<Foo>()" } h(vFoo);
+        @static_test { expect_resolution="h<T>()" } h<float64>();
+        @static_test { expect_resolution="h<T>()" } h<int16>();
+        @static_test { expect_resolution="h<int8>()" } h<int8>();
+        @static_test { expect_resolution="h<Foo>()" } h<Foo>();
 
 
     }

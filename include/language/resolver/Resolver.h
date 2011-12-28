@@ -268,6 +268,10 @@ public:
                 isa<EnumDecl>(fromType) ||
                 isa<InterfaceDecl>(fromType))
         {
+            if(fromType->isEqual(*toType))
+            {
+                return ConversionRank::ExactMatch;
+            }
             UNIMPLEMENTED_CODE();
             return ConversionRank::NotMatch;
         }
@@ -380,26 +384,37 @@ public:
         return DeductResult::Success;
     }
 
-    void filterMatchedCandidateByDegreeOfFreedom(std::vector<FunctionDecl*>& exactMatchedCandidate)
+    size_t getFunctionDegreeOfFreedom(FunctionDecl* func)
     {
+        TemplatedIdentifier* tid = cast<TemplatedIdentifier>(func->name);
+        return tid->templated_type_list.size();
+    }
+
+    typedef std::vector<ConversionRank::type> ConversionRankList;
+    typedef std::pair<FunctionDecl*, ConversionRankList> FunctionConversionRankList;
+
+    size_t getFunctionDegreeOfFreedom(const FunctionConversionRankList& func)
+    {
+        return getFunctionDegreeOfFreedom(func.first);
+    }
+
+    template<typename CandidateListType>
+    void filterMatchedCandidateByDegreeOfFreedom(CandidateListType& exactMatchedCandidate)
+    {
+        typedef typename CandidateListType::value_type ValueType;
         if(exactMatchedCandidate.empty())
         {
             return;
         }
 
-        auto iterMax = std::min_element(exactMatchedCandidate.begin(), exactMatchedCandidate.end(), [](FunctionDecl* a, FunctionDecl* b){
-            TemplatedIdentifier* templatedIdA = cast<TemplatedIdentifier>(a->name);
-            TemplatedIdentifier* templatedIdB = cast<TemplatedIdentifier>(b->name);
-            return templatedIdA->templated_type_list.size() < templatedIdB->templated_type_list.size();
+        auto iterMin = std::min_element(exactMatchedCandidate.begin(), exactMatchedCandidate.end(), [this](ValueType& a, ValueType& b){
+            return getFunctionDegreeOfFreedom(a) < getFunctionDegreeOfFreedom(b);
         });
 
-        FunctionDecl* minFunc = cast<FunctionDecl>(*iterMax);
-        TemplatedIdentifier* minTemplate = cast<TemplatedIdentifier>(minFunc->name);
-        size_t minDegreeOfFreedom = minTemplate->templated_type_list.size();
+        size_t minDegreeOfFreedom = getFunctionDegreeOfFreedom(*iterMin);
 
-        auto last = std::remove_if(exactMatchedCandidate.begin(), exactMatchedCandidate.end(), [minDegreeOfFreedom](FunctionDecl* a){
-            TemplatedIdentifier* templatedId = cast<TemplatedIdentifier>(a->name);
-            return templatedId->templated_type_list.size() != minDegreeOfFreedom;
+        auto last = std::remove_if(exactMatchedCandidate.begin(), exactMatchedCandidate.end(), [this, minDegreeOfFreedom](ValueType& a){
+            return getFunctionDegreeOfFreedom(a) != minDegreeOfFreedom;
         });
 
         exactMatchedCandidate.erase(last, exactMatchedCandidate.end());
@@ -507,9 +522,6 @@ public:
 
         return DeductResult::Success;
     }
-
-    typedef std::vector<ConversionRank::type> ConversionRankList;
-    typedef std::pair<FunctionDecl*, ConversionRankList> FunctionConversionRankList;
 
     bool isBetterThan(FunctionConversionRankList& lhs, FunctionConversionRankList& rhs)
     {
@@ -678,8 +690,33 @@ public:
         return DeductResult::Fail;
     }
 
-    DeductResult::type tryConvertToSpecializedTemplateCandidate(ASTNode& attach, Identifier& node, std::vector<ASTNode*>& candidates, bool no_action)
+    bool typeArgumentExactMatch(TemplatedIdentifier& caller, TemplatedIdentifier& decl)
     {
+        BOOST_ASSERT(decl.isFullySpecialized());
+        if(caller.templated_type_list.size() != decl.templated_type_list.size())
+        {
+            return false;
+        }
+
+        for(std::vector<TypenameDecl>::size_type i=0; i != caller.templated_type_list.size(); ++i)
+        {
+            TypenameDecl* callerTypenameDecl = caller.templated_type_list[i];
+            TypenameDecl*   declTypenameDecl =   decl.templated_type_list[i];
+            ASTNode* callerArgType = ASTNodeHelper::findUniqueTypeResolution(callerTypenameDecl);
+            ASTNode*   declArgType = ASTNodeHelper::findUniqueTypeResolution(  declTypenameDecl);
+            if(!callerArgType->isEqual(*declArgType))
+            {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    DeductResult::type tryConvertToSpecializedTemplateCandidate(ASTNode& attach, TemplatedIdentifier& node, std::vector<ASTNode*>& candidates, bool no_action)
+    {
+        std::vector<FunctionConversionRankList> convertableCandidates;
+
         std::vector<FunctionDecl*> exactMatchedCandidate;
         CallExpr* callExpr = ASTNodeHelper::getOwner<CallExpr>(&node);
         foreach(c, candidates)
@@ -690,37 +727,53 @@ public:
                 continue;
             }
 
-            DeductResult::type deductResult = deduceToSpecializdTemplateFunction(callExpr, func);
-            switch(deductResult)
+            // if template argument is not exact match
+            if(!typeArgumentExactMatch(node, *cast<TemplatedIdentifier>(func->name)))
             {
-            case DeductResult::Success:
-                exactMatchedCandidate.push_back(func);
-                break;
-            case DeductResult::Fail:
-                break;
-            case DeductResult::UnknownYet:
-                return DeductResult::UnknownYet;
-                break;
+                continue;
             }
+
+            // calculate conversion rank for each argument/parameter
+            ConversionRankList convRankList;
+            bool callable = true;
+            for(size_t i=0; i != func->parameters.size(); ++i)
+            {
+                VariableDecl* decl = func->parameters[i];
+                Expression* use = callExpr->parameters[i];
+                ConversionRank::type convRank = getConversionRank(use, decl);
+                if(convRank == ConversionRank::UnknownYet)
+                {
+                    return DeductResult::UnknownYet;
+                }
+                else if(convRank == ConversionRank::NotMatch)
+                {
+                    callable = false;
+                    continue;
+                }
+                convRankList.push_back(convRank);
+            }
+            if(!callable) continue;
+            convertableCandidates.push_back(FunctionConversionRankList(func, convRankList));
         }
 
-        // filter by conversion rank
-        foreach(c, exactMatchedCandidate)
-        {
-        }
+        // up to here, we have all callable/viable cadidates in convertableCandidates
+        // and we have to select the best one
+        filterBestNonTemplateFunctionByConversionRankList(convertableCandidates);
+        // NOTE: We do NOT have filter DOF, because, all DOF are the same here.
+        // The call is Type-Qualified, so the number of type argument is a specified integer,
+        // so, there is no need to filter by DOF
+        //filterMatchedCandidateByDegreeOfFreedom(convertableCandidates);
 
-        // filter by dof
-        filterMatchedCandidateByDegreeOfFreedom(exactMatchedCandidate);
-        if(exactMatchedCandidate.size() == 1)
+        if(convertableCandidates.size() == 1)
         {
             if(!no_action)
             {
-                ResolvedSymbol::set(&attach, exactMatchedCandidate[0]);
-                ResolvedType::set(&attach, exactMatchedCandidate[0]);
+                ResolvedSymbol::set(&attach, convertableCandidates[0].first);
+                ResolvedType::set(&attach, convertableCandidates[0].first);
             }
             return DeductResult::Success;
         }
-        else if(exactMatchedCandidate.size() > 1)
+        else if(convertableCandidates.size() > 1)
         {
             // TODO output error message to list all exact match functions
             std::cerr << "More than one exact specialized template function" << std::endl;
@@ -735,14 +788,9 @@ public:
 
     }
 
-    bool isTypeParameterQualified(Identifier& node)
-    {
-        return false;
-    }
-
     bool getBestViable(ASTNode& attach, Identifier& node, std::vector<ASTNode*>& candidates, bool no_action)
     {
-        if(!isTypeParameterQualified(node))
+        if(!isa<TemplatedIdentifier>(&node))
         {
             DeductResult::type result = DeductResult::UnknownYet;
 
@@ -768,11 +816,11 @@ public:
         {
             DeductResult::type result = DeductResult::UnknownYet;
 
-            result = tryConvertToSpecializedTemplateCandidate(attach, node, candidates, no_action);
+            result = tryConvertToSpecializedTemplateCandidate(attach, *cast<TemplatedIdentifier>(&node), candidates, no_action);
             if(result == DeductResult::UnknownYet) return false;
             if(result == DeductResult::Success) return true;
 
-            //if(getTryInstantiateGeneralTemplateCandidate(attach, node, candidates, no_action))
+            //result = tryInstantiateGeneralTemplateCandidate(attach, node, candidates, no_action))
             //if(result == DeductResult::UnknownYet) return false;
             //if(result == DeductResult::Success) return true;
 
