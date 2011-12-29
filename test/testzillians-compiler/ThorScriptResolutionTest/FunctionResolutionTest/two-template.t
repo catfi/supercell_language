@@ -71,7 +71,7 @@
         @static_test { expect_resolution="", expect_message={level="LEVEL_ERROR", id="UNDEFINED_SYMBOL_INFO", parameters={id="h"}} } h(vint32, vint64);
 
         // fully qualified template instantiation
-        @static_test { expect_resolution="f<T,int8>(T,int8)" } f<int64, int8>(vint32, vint64);
-        @static_test { expect_resolution="f<T,int16>(T,int16)" } f<int64, int16>(vint32, vint64);
+        @static_test { expect_resolution="f<T,U>(T,U)" } f<int64, int8>(vint32, vint64);
+        @static_test { expect_resolution="f<int16,int16>(int16,int16)" } f<int16, int16>(vint32, vint64);
 
     }

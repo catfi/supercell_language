@@ -48,6 +48,9 @@ public:
 	Resolver()
 	{ }
 
+private:
+    typedef std::map<std::wstring, TypeSpecifier*> DeducedTypeMap;
+
 public:
 	/**
 	 * Add a scope for search
@@ -207,7 +210,7 @@ public:
         } ;
     } ;
 
-    static ConversionRank::type getConversionRank(Expression* from, VariableDecl* to)
+    static ConversionRank::type getConversionRank(Expression* from, TypeSpecifier* to)
     {
         //BOOST_ASSERT(isa<ExpressionStmt>(from));
         //BOOST_ASSERT(isa<VariableDecl>(to));
@@ -215,7 +218,7 @@ public:
 
         // if identical, return full match
         ASTNode* fromType = ResolvedType::get(from);
-        ASTNode* toType   = ASTNodeHelper::findUniqueTypeResolution(to->type);
+        ASTNode* toType   = ASTNodeHelper::findUniqueTypeResolution(to);
 
         if(fromType == NULL)
         {
@@ -310,7 +313,7 @@ public:
             {
                 VariableDecl* decl = func->parameters[i];
                 Expression* use = callExpr->parameters[i];
-                ConversionRank::type convRank = getConversionRank(use, decl);
+                ConversionRank::type convRank = getConversionRank(use, decl->type);
                 if(convRank == ConversionRank::UnknownYet)
                 {
                     return DeductResult::UnknownYet;
@@ -479,7 +482,7 @@ public:
      *         @c DeductResult::UnknownYet if some parameter is not resolved.
      *
      */
-    DeductResult::type deduceToGeneralTemplateFunction(CallExpr* call, FunctionDecl* funcDecl, std::map<std::wstring, TypeSpecifier*>& deducedTypes)
+    DeductResult::type deduceToGeneralTemplateFunction(CallExpr* call, FunctionDecl* funcDecl, DeducedTypeMap& deducedTypes)
     {
         BOOST_ASSERT(isa<TemplatedIdentifier>(funcDecl->name));
 
@@ -576,7 +579,7 @@ public:
             {
                 VariableDecl* decl = func->parameters[i];
                 Expression* use = callExpr->parameters[i];
-                ConversionRank::type convRank = getConversionRank(use, decl);
+                ConversionRank::type convRank = getConversionRank(use, decl->type);
                 if(convRank == ConversionRank::UnknownYet)
                 {
                     return DeductResult::UnknownYet;
@@ -620,7 +623,7 @@ public:
     DeductResult::type tryDeduceToGeneralTemplateCandidate(ASTNode& attach, Identifier& node, std::vector<ASTNode*>& candidates, bool no_action)
     {
         std::vector<FunctionDecl*> exactMatchedCandidate;
-        std::map<FunctionDecl*, std::map<std::wstring, TypeSpecifier*>> candidatesDeducedTypes;
+        std::map<FunctionDecl*, DeducedTypeMap> candidatesDeducedTypes;
         CallExpr* callExpr = ASTNodeHelper::getOwner<CallExpr>(&node);
 
         foreach(c, candidates)
@@ -631,7 +634,7 @@ public:
                 continue;
             }
 
-            std::map<std::wstring, TypeSpecifier*> deducedTypes;
+            DeducedTypeMap deducedTypes;
             DeductResult::type deductResult = deduceToGeneralTemplateFunction(callExpr, func, deducedTypes);
             switch(deductResult)
             {
@@ -670,7 +673,7 @@ public:
                 // if there's no function instantiation requested, create one
                 if(!found)
                 {
-                    const std::map<std::wstring, TypeSpecifier*>& deducedTypes = candidatesDeducedTypes[exactMatchedCandidate[0]];
+                    const DeducedTypeMap& deducedTypes = candidatesDeducedTypes[exactMatchedCandidate[0]];
                     function_instantiations.insert(std::make_pair(exactMatchedCandidate[0], FunctionInstantiationInfo(deducedTypes, &attach)));
                 }
             }
@@ -740,7 +743,7 @@ public:
             {
                 VariableDecl* decl = func->parameters[i];
                 Expression* use = callExpr->parameters[i];
-                ConversionRank::type convRank = getConversionRank(use, decl);
+                ConversionRank::type convRank = getConversionRank(use, decl->type);
                 if(convRank == ConversionRank::UnknownYet)
                 {
                     return DeductResult::UnknownYet;
@@ -788,6 +791,119 @@ public:
 
     }
 
+    DeducedTypeMap generateDeducedTypeMapFromCallerId(TemplatedIdentifier& callerId, FunctionDecl& func)
+    {
+        DeducedTypeMap result;
+        TemplatedIdentifier* declId = cast<TemplatedIdentifier>(func.name);
+        BOOST_ASSERT(declId != NULL);
+
+        for(size_t i=0; i != declId->templated_type_list.size(); ++i)
+        {
+            TypenameDecl* declTD   = declId->templated_type_list[i];
+            TypenameDecl* callerTD = callerId.templated_type_list[i];
+            std::wstring typeArguName = declTD->name->toString();
+            TypeSpecifier* typeArguSpecialize = callerTD->specialized_type;
+            result.insert(std::make_pair(typeArguName, typeArguSpecialize));
+        }
+        BOOST_ASSERT(result.size() == declId->templated_type_list.size());
+
+        return result;
+    }
+
+    DeductResult::type tryInstantiateGeneralTemplateCandidate(ASTNode& attach, TemplatedIdentifier& node, std::vector<ASTNode*>& candidates, bool no_action)
+    {
+        std::vector<FunctionConversionRankList> convertableCandidates;
+        std::map<FunctionDecl*, DeducedTypeMap> candidatesDeducedTypes;
+        CallExpr* callExpr = ASTNodeHelper::getOwner<CallExpr>(&node);
+
+        foreach(c, candidates)
+        {
+            FunctionDecl* func = cast<FunctionDecl>(*c);
+            if(!isa<TemplatedIdentifier>(func->name) || isFullySpecializedTemplatedIdentifier(func->name))
+            {
+                continue;
+            }
+
+            DeducedTypeMap qualifiedTypes = generateDeducedTypeMapFromCallerId(node, *func);
+
+            ConversionRankList convRankList;
+            bool callable = true;
+            for(size_t i=0; i != func->parameters.size(); ++i)
+            {
+                VariableDecl* decl = func->parameters[i];
+                Expression* use = callExpr->parameters[i];
+                auto iter = qualifiedTypes.find(decl->type->toString());
+                ConversionRank::type convRank = ConversionRank::UnknownYet;
+                if(iter != qualifiedTypes.end())
+                {
+                    TypeSpecifier* qualifiedDeclType = iter->second;
+                    convRank = getConversionRank(use, qualifiedDeclType);
+                }
+                else
+                {
+                    convRank = getConversionRank(use, decl->type);
+                }
+                if(convRank == ConversionRank::UnknownYet)
+                {
+                    return DeductResult::UnknownYet;
+                }
+                else if(convRank == ConversionRank::NotMatch)
+                {
+                    callable = false;
+                    continue;
+                }
+                convRankList.push_back(convRank);
+            }
+            if(!callable) continue;
+            candidatesDeducedTypes.insert(std::make_pair(func, qualifiedTypes));
+            convertableCandidates.push_back(FunctionConversionRankList(func, convRankList));
+        }
+
+        filterBestNonTemplateFunctionByConversionRankList(convertableCandidates);
+
+        if(convertableCandidates.size() == 1)
+        {
+            // instantiate
+            if(!no_action)
+            {
+                // (which is delayed to later applyTrasnform() because we don't want to change the tree while traversing it)
+                auto ranges = function_instantiations.equal_range(convertableCandidates[0].first);
+                bool found = false;
+                for(auto i = ranges.first;i != ranges.second; ++i)
+                {
+                    // if there's already function instantiation requested
+                    zillians::language::tree::visitor::ResolutionVisitor v;
+                    if(candidatesDeducedTypes[convertableCandidates[0].first] == i->second.deduced_types)
+                    {
+                        // just append the attach node to the attach list
+                        i->second.to_attach.push_back(&attach);
+                        return DeductResult::Success;
+                    }
+                }
+
+                // if there's no function instantiation requested, create one
+                if(!found)
+                {
+                    const DeducedTypeMap& deducedTypes = candidatesDeducedTypes[convertableCandidates[0].first];
+                    function_instantiations.insert(std::make_pair(convertableCandidates[0].first, FunctionInstantiationInfo(deducedTypes, &attach)));
+                }
+            }
+
+            return DeductResult::Success;
+        }
+        else if(convertableCandidates.size() > 1)
+        {
+            // TODO output error message to list all exact match functions
+            std::cerr << "More than one exact matched non-template function" << std::endl;
+            return DeductResult::Fail;
+        }
+        else
+        {
+            return DeductResult::Fail;
+        }
+        return DeductResult::Fail;
+    }
+
     bool getBestViable(ASTNode& attach, Identifier& node, std::vector<ASTNode*>& candidates, bool no_action)
     {
         if(!isa<TemplatedIdentifier>(&node))
@@ -820,9 +936,9 @@ public:
             if(result == DeductResult::UnknownYet) return false;
             if(result == DeductResult::Success) return true;
 
-            //result = tryInstantiateGeneralTemplateCandidate(attach, node, candidates, no_action))
-            //if(result == DeductResult::UnknownYet) return false;
-            //if(result == DeductResult::Success) return true;
+            result = tryInstantiateGeneralTemplateCandidate(attach, *cast<TemplatedIdentifier>(&node), candidates, no_action);
+            if(result == DeductResult::UnknownYet) return false;
+            if(result == DeductResult::Success) return true;
 
             return false;;
         }
@@ -1497,7 +1613,7 @@ private:
 		class_instantiations.clear();
     }
 
-    FunctionDecl* instantiateFunctionTemplate(const std::map<std::wstring, TypeSpecifier*>& deducedTypes, FunctionDecl* func)
+    FunctionDecl* instantiateFunctionTemplate(const DeducedTypeMap& deducedTypes, FunctionDecl* func)
     {
         BOOST_ASSERT(!deducedTypes.empty());
         BOOST_ASSERT(isa<TemplatedIdentifier>(func->name));
@@ -1525,7 +1641,7 @@ private:
         foreach(i, function_instantiations)
         {
             FunctionDecl* funcTemplateDecl = i->first;
-            const std::map<std::wstring, TypeSpecifier*>& deducedTypes = i->second.deduced_types;
+            const DeducedTypeMap& deducedTypes = i->second.deduced_types;
 
             FunctionDecl* instantiated = instantiateFunctionTemplate(deducedTypes, funcTemplateDecl);
             zillians::language::InstantiatedFrom::set(instantiated, funcTemplateDecl);
@@ -1763,11 +1879,11 @@ private:
 
 	struct FunctionInstantiationInfo
 	{
-		FunctionInstantiationInfo(const std::map<std::wstring, TypeSpecifier*>& _deduced_types, tree::ASTNode* _attach) : deduced_types(_deduced_types)
+		FunctionInstantiationInfo(const DeducedTypeMap& _deduced_types, tree::ASTNode* _attach) : deduced_types(_deduced_types)
         {
 			to_attach.push_back(_attach);
 		}
-        std::map<std::wstring, TypeSpecifier*> deduced_types;
+        DeducedTypeMap deduced_types;
 		std::vector<tree::ASTNode*> to_attach;
 	};
 
