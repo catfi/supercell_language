@@ -867,7 +867,7 @@ struct LLVMGeneratorStageVisitor : public GenericDoubleVisitor
 
 				UNUSED_ARGUMENT(bitsize_mismatched);
 
-				const llvm::Type* llvm_cast_type = NULL;
+				llvm::Type* llvm_cast_type = NULL;
 
 				llvm::Attributes llvm_dummy_modifier = llvm::Attribute::None; // dummy
 				mHelper.getType(*node.type, llvm_cast_type, llvm_dummy_modifier);
@@ -978,7 +978,7 @@ private:
 		resetBlockInsertionMask();
 	}
 
-	llvm::AllocaInst* createAlloca(const llvm::Type* type, const llvm::Twine& name = "")
+	llvm::AllocaInst* createAlloca(llvm::Type* type, const llvm::Twine& name = "")
 	{
 		llvm::AllocaInst* llvm_alloca_inst = NULL;
 		if(mBuilder.isNamePreserving())
@@ -994,7 +994,7 @@ private:
 		if(GET_SYNTHESIZED_LLVM_VALUE(&ast_variable))
 			return true;
 
-		const llvm::Type* llvm_variable_type = NULL;
+		llvm::Type* llvm_variable_type = NULL;
 		llvm::Attributes llvm_variable_modifier = llvm::Attribute::None;
 		if(!mHelper.getType(*ast_variable.type, llvm_variable_type, llvm_variable_modifier))
 			return false;
@@ -1045,7 +1045,7 @@ private:
 
 		// allocate return value if necessary
 		{
-			const llvm::Type* type;
+			llvm::Type* type;
 			llvm::Attributes modifier;
 			if(mHelper.getType(*ast_function.type, type, modifier) && type && !type->isVoidTy())
 			{
@@ -1078,7 +1078,7 @@ private:
 		{
 			//Identifier* parameter_identifier = ast_function.parameters[index]->name;
 
-			const llvm::Type* t;
+			llvm::Type* t;
 			llvm::Attributes modifier;
 			if(mHelper.getType(*ast_function.parameters[index]->type, t, modifier) && t && !t->isVoidTy())
 			{
