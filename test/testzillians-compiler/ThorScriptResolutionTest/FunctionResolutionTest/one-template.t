@@ -75,7 +75,7 @@
         @static_test { expect_resolution="f(int32)" } f(vint32);
 
         // can not deduced
-        @static_test { expect_resolution="" } g(vint32, vint64);
+        @static_test { expect_resolution="", expect_message={level="LEVEL_ERROR", id="UNDEFINED_SYMBOL_INFO", parameters={id="g"}} } g(vint32, vint64);
 
         // fully qualified template instantiation
         @static_test { expect_resolution="g<T>(T,T)" } g<float64>(vfloat64, vfloat64);
@@ -85,7 +85,7 @@
 
         @static_test { expect_resolution="g2<int32>(T,T,int8)" } g2<int32>(vint32, vint64, vint16);
         @static_test { expect_resolution="g2<Foo>(T,T,int8)" } g2<Foo>(vFoo, vFoo, vint16);
-        @static_test { expect_resolution="" } g2<Foo>(vFoo, vint8, vint8);
+        @static_test { expect_resolution="", expect_message={level="LEVEL_ERROR", id="UNDEFINED_SYMBOL_INFO", parameters={id="g2"}} } g2<Foo>(vFoo, vint8, vint8);
 
         // no-parameter template function
         @static_test { expect_resolution="h<T>()" } h<float64>();

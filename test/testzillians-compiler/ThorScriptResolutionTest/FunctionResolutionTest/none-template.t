@@ -79,6 +79,6 @@
 
         // ambi
         // TODO keep going with unresolved while static test
-        @static_test { expect_resolution="" } j(vint64, vint64);
-        @static_test { expect_resolution="" } j(vint32, vint32);
+        @static_test { expect_resolution="", expect_message={level="LEVEL_ERROR", id="UNDEFINED_SYMBOL_INFO", parameters={id="j"}} } j(vint64, vint64);
+        @static_test { expect_resolution="", expect_message={level="LEVEL_ERROR", id="UNDEFINED_SYMBOL_INFO", parameters={id="j"}} } j(vint32, vint32);
     }
