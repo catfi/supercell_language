@@ -267,6 +267,13 @@ public:
             UNIMPLEMENTED_CODE();
             return ConversionRank::NotMatch;
         }
+        else if(isa<ClassDecl>(fromType))
+        {
+            if(ASTNodeHelper::isInheritedFrom(cast<ClassDecl>(fromType), cast<ClassDecl>(toType)))
+            {
+                return ConversionRank::StandardConversion;
+            }
+        }
         else if(isa<ClassDecl>(fromType) ||
                 isa<EnumDecl>(fromType) ||
                 isa<InterfaceDecl>(fromType))
@@ -275,7 +282,6 @@ public:
             {
                 return ConversionRank::ExactMatch;
             }
-            UNIMPLEMENTED_CODE();
             return ConversionRank::NotMatch;
         }
         else
@@ -283,6 +289,8 @@ public:
             UNREACHABLE_CODE();
             return ConversionRank::NotMatch;
         }
+        UNREACHABLE_CODE();
+        return ConversionRank::UnknownYet;
     }
 
     struct DeductResult
