@@ -18,10 +18,9 @@
  */
 
 import . = api.system.unmanaged;
- 
-class ImplicitVariable { }
 
-class ThreadId extends ImplicitVariable {
+@implicit
+class ThreadId {
 	function init():void {
 		@register
 		var blockDimX:int32;
