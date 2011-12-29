@@ -92,36 +92,27 @@ struct LLVMDebugInfoGeneratorStageVisitor: public GenericDoubleVisitor
 	void generate(Source& node)
 	{
 		LOG4CXX_DEBUG(LoggerWrapper::DebugInfoGeneratorStage, __PRETTY_FUNCTION__);
-		ModuleSourceInfoContext* module_info = ModuleSourceInfoContext::get(&node);
-
-		DebugInfoProgramContext *program_context = new DebugInfoProgramContext();
 
 		// Create compile units
-		for (int i = 0; i < (int)module_info->source_files.size(); i++)
-		{
-			LOG4CXX_DEBUG(LoggerWrapper::DebugInfoGeneratorStage, "<Program> Ori path: " << module_info->source_files[i]);
-			boost::filesystem::path file_path(module_info->source_files[i]);
-			std::string folder = file_path.parent_path().generic_string();
-			std::string filename = file_path.filename().generic_string();
+		LOG4CXX_DEBUG(LoggerWrapper::DebugInfoGeneratorStage, "<Program> Ori path: " << node.filename);
+		boost::filesystem::path file_path(node.filename);
+		std::string folder = file_path.parent_path().generic_string();
+		std::string filename = file_path.filename().generic_string();
 
-			LOG4CXX_DEBUG(LoggerWrapper::DebugInfoGeneratorStage, "<Program> folder: " << folder);
-			LOG4CXX_DEBUG(LoggerWrapper::DebugInfoGeneratorStage, "<Program> filename: " << filename);
+		LOG4CXX_DEBUG(LoggerWrapper::DebugInfoGeneratorStage, "<Program> folder: " << folder);
+		LOG4CXX_DEBUG(LoggerWrapper::DebugInfoGeneratorStage, "<Program> filename: " << filename);
 
-			factory.createCompileUnit(llvm::dwarf::DW_LANG_C_plus_plus,
-				llvm::StringRef(filename.c_str()), llvm::StringRef(folder.c_str()), llvm::StringRef(COMPANY_INFORMATION),
-				/*optimized*/false, /*flags*/llvm::StringRef(""), /*runtime version*/0);
+		factory.createCompileUnit(llvm::dwarf::DW_LANG_C_plus_plus,
+			llvm::StringRef(filename.c_str()), llvm::StringRef(folder.c_str()), llvm::StringRef(COMPANY_INFORMATION),
+			/*optimized*/false, /*flags*/llvm::StringRef(""), /*runtime version*/0);
 
-			llvm::DIFile file = factory.createFile(llvm::StringRef(filename.c_str()), llvm::StringRef(folder.c_str()));
+		llvm::DIFile file = factory.createFile(llvm::StringRef(filename.c_str()), llvm::StringRef(folder.c_str()));
 
-			llvm::DICompileUnit compile_unit(factory.getCU());
-			LOG4CXX_DEBUG(LoggerWrapper::DebugInfoGeneratorStage, "<Program> compile_unit: " << compile_unit);
-			LOG4CXX_DEBUG(LoggerWrapper::DebugInfoGeneratorStage, "<Program> file: " << file);
+		llvm::DICompileUnit compile_unit(factory.getCU());
+		LOG4CXX_DEBUG(LoggerWrapper::DebugInfoGeneratorStage, "<Program> compile_unit: " << compile_unit);
+		LOG4CXX_DEBUG(LoggerWrapper::DebugInfoGeneratorStage, "<Program> file: " << file);
 
-			// The index of the compile_units corresponds to the index of module_info->source_files
-			program_context->addProgramContext(compile_unit, file);
-		}
-
-		DebugInfoProgramContext::set(&node, program_context);
+		DebugInfoContext::set(&node, new DebugInfoContext(compile_unit, file, file));
 
 		revisit(node);
 	}
@@ -132,8 +123,6 @@ struct LLVMDebugInfoGeneratorStageVisitor: public GenericDoubleVisitor
 		SourceInfoContext* source_info = SourceInfoContext::get(&node);
 		//DebugInfoProgramContext* program_context = DebugInfoProgramContext::get(getParserContext().program);
 
-		int32 source_index = source_info->source_index;
-
 		llvm::DIType type;
 		switch(node.type)
 		{
@@ -141,9 +130,7 @@ struct LLVMDebugInfoGeneratorStageVisitor: public GenericDoubleVisitor
 		case TypeSpecifier::ReferredType::UNSPECIFIED: break;
 		case TypeSpecifier::ReferredType::PRIMITIVE:
 		{
-			type = createPrimitiveType(
-					primitive_type_caches[source_index],
-					node.referred.primitive);
+			type = createPrimitiveType(node.referred.primitive);
 			break;
 		}
 		}
@@ -156,14 +143,10 @@ struct LLVMDebugInfoGeneratorStageVisitor: public GenericDoubleVisitor
 		LOG4CXX_DEBUG(LoggerWrapper::DebugInfoGeneratorStage, __PRETTY_FUNCTION__);
 		LOG4CXX_DEBUG(LoggerWrapper::DebugInfoGeneratorStage, "<Function> function name: " << ws_to_s(node.name->toString()));
 
-		SourceInfoContext* source_info = SourceInfoContext::get(&node);
 		NameManglingContext* mangling = NameManglingContext::get(&node);
-
-		int32 source_index = source_info->source_index;
+		DebugInfoContext* file_context = DebugInfoContext::get(getParserContext().active_source);
 		LOG4CXX_DEBUG(LoggerWrapper::DebugInfoGeneratorStage,"<Function> mangling name: " << mangling->managled_name);
-
-		DebugInfoProgramContext* program_context = DebugInfoProgramContext::get(getParserContext().active_source);
-		LOG4CXX_DEBUG(LoggerWrapper::DebugInfoGeneratorStage, "<Function> file: " << program_context->files[source_index]);
+		LOG4CXX_DEBUG(LoggerWrapper::DebugInfoGeneratorStage, "<Function> file: " << getParserContext().active_source->filename);
 
 		// generate return type debug information
 		generate(*node.type);
@@ -174,11 +157,11 @@ struct LLVMDebugInfoGeneratorStageVisitor: public GenericDoubleVisitor
 		// Create DISubprogram for the function
 		llvm::Function * llvm_function = node.get<llvm::Function>();
 		llvm::DISubprogram subprogram = factory.createFunction(
-				program_context->files[source_index], // TODO: Last context
+				file_context->file,
 				llvm::StringRef(ws_to_s(node.name->toString()).c_str()),
 				llvm::StringRef(mangling->managled_name.c_str()),
-				program_context->files[source_index],
-				source_info->line,
+				file_context->file,
+				SourceInfoContext::get(&node)->line,
 				return_type->type,
 				false, //bool isLocalToUnit,
 				true, //bool isDefinition,
@@ -186,8 +169,7 @@ struct LLVMDebugInfoGeneratorStageVisitor: public GenericDoubleVisitor
 				false, //bool isOptimized = false
 				llvm_function);
 
-		DebugInfoContext::set(&node, new DebugInfoContext(program_context->compile_units[source_index],
-				program_context->files[source_index], subprogram));
+		DebugInfoContext::set(&node, new DebugInfoContext(file_context->compile_unit, file_context->file, subprogram));
 
 		LOG4CXX_DEBUG(LoggerWrapper::DebugInfoGeneratorStage, "<Function> subprogram: " << subprogram << " mdnode: " << (llvm::MDNode*)subprogram);
 
@@ -288,7 +270,7 @@ struct LLVMDebugInfoGeneratorStageVisitor: public GenericDoubleVisitor
 
 
 private:
-	llvm::DIType createPrimitiveType(type_cache_t& primitive_type_cache, PrimitiveType::type type)
+	llvm::DIType createPrimitiveType(PrimitiveType::type type)
 	{
 		int bits = 0;
 		int alignment = 0;
@@ -349,8 +331,7 @@ private:
 
 	llvm::DIBuilder factory;
 
-	// The first key is the source index, each source
-	std::map< unsigned int, type_cache_t > primitive_type_caches;
+	type_cache_t primitive_type_cache;
 };
 
 }}}}
