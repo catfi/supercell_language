@@ -341,16 +341,20 @@ static Declaration* getDecl(ASTNode& node)
     ASTNode*         stmtNode = &node;
     ExpressionStmt*  exprStmt = cast<ExpressionStmt>(stmtNode);
     DeclarativeStmt* declStmt = cast<DeclarativeStmt>(stmtNode);
+    // function call
     if(exprStmt != NULL)
     {
         CallExpr*    callExpr = cast<CallExpr>(exprStmt->expr);
+        if(ResolvedSymbol::get(callExpr->node) == NULL) return NULL;
         Declaration* decl     = cast<Declaration>(ResolvedSymbol::get(callExpr->node));
         return decl;
     }
+    // variable declaration
     else
     {
         VariableDecl*  varDecl = cast<VariableDecl>(declStmt->declaration);
         TypeSpecifier* type    = varDecl->type;
+        if(ResolvedType::get(type) == NULL) return NULL;
         Declaration*   decl    = cast<Declaration>(ResolvedType::get(type));
         return decl;
     }
@@ -439,15 +443,22 @@ bool StaticTestVerificationStageVisitor::checkResolutionTarget(zillians::languag
         return true;
     }
 
-    // And two FAIL:
+    // And three FAIL:
     // 1. Fales positive: should not resolved, but resolved.
-    // 2. Resolved, but not match
+    // 2. Should be resolved, but not.
+    // 3. Resolved, but not match
     else if(useId == L"" && declId != L"__no_ResolvedSymbol__")
     {
         CodePoint usePoint(&node);
         CodePoint declPoint(getDecl(node));
         std::wcerr <<  usePoint.filename << L":" <<  usePoint.line << L": Error: " << callOrDecl << " `" << ASTNodeHelper::getNodeName(&node, true) << L"' should not be resolved, but resolved to:" << std::endl
                    << declPoint.filename << L":" << declPoint.line << L": " << ASTNodeHelper::getNodeName(getDecl(node), true) << std::endl;
+        return false;
+    }
+    else if(useId != L"" && declId == L"__no_ResolvedSymbol__")
+    {
+        CodePoint usePoint(&node);
+        std::wcerr <<  usePoint.filename << L":" <<  usePoint.line << L": Error: " << callOrDecl << " `" << ASTNodeHelper::getNodeName(&node, true) << L"' should be resolved, but not" << std::endl;
         return false;
     }
     else if(useId != declId)

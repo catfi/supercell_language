@@ -57,10 +57,10 @@ struct ASTGraphvizNodeGenerator : public GenericDoubleVisitor
 	void label(Declaration& node);
 
     void addNode(ASTNode& node,
-                 const std::wstring& label = L"",
+                 std::wstring label = L"",
                  const std::wstring& shape = L"",
                  const std::wstring& borderColor = L"",
-                 const std::wstring& fillColor = L"");
+                 std::wstring fillColor = L"");
 private:
     std::wostream& stream;
 } ;

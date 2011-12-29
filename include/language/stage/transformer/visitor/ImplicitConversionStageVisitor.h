@@ -65,7 +65,7 @@ struct PrepandThisStageVisitor : public GenericDoubleVisitor
                 if(isa<MemberExpr>(node.node))
                 {
                     MemberExpr*  memberExpr     = cast<MemberExpr>(node.node);
-                    PrimaryExpr* arguExpr       = cast<PrimaryExpr>(memberExpr->node->clone());
+                    PrimaryExpr* arguExpr       = cast<PrimaryExpr>(ASTNodeHelper::clone(memberExpr->node));
                     ASTNode*     resolvedType   = ResolvedType  ::get(memberExpr->node);
                     ASTNode*     resolvedSymbol = ResolvedSymbol::get(memberExpr->node);
                     ResolvedType::set(arguExpr, resolvedType);

@@ -42,8 +42,6 @@ using namespace zillians::language::tree;
 using namespace zillians::language::tree::visitor;
 using namespace zillians::language::stage;
 
-typedef boost::mpl::vector<SourceInfoContext, NameManglingContext> ContextToCloneT;
-
 BOOST_AUTO_TEST_SUITE( ThorScriptTreeTest_TreeCloneTestSuite )
 
 BOOST_AUTO_TEST_CASE( ThorScriptTreeTest_TreeCloneTestCase1 )
@@ -56,11 +54,9 @@ BOOST_AUTO_TEST_CASE( ThorScriptTreeTest_TreeCloneTestCase1 )
 	NameManglingContext* original_name_ctx = new NameManglingContext("hello");
 	original_id->set<NameManglingContext>(original_name_ctx);
 
-	SimpleIdentifier* cloned_id = cast<SimpleIdentifier>(original_id->clone());
+	SimpleIdentifier* cloned_id = cast<SimpleIdentifier>(ASTNodeHelper::clone(original_id));
 
 	BOOST_CHECK(cloned_id != NULL);
-
-	ASTNodeHelper::clone<ContextToCloneT>(original_id, cloned_id);
 
 	SourceInfoContext* cloned_src_ctx = cloned_id->get<SourceInfoContext>();
 	NameManglingContext* cloned_name_ctx = cloned_id->get<NameManglingContext>();
@@ -104,9 +100,8 @@ BOOST_AUTO_TEST_CASE( ThorScriptTreeTest_TreeCloneTestCaseRecursive )
     NameManglingContext::set(original_nid, original_name_ctx_n);
 
     // clone it!
-	NestedIdentifier* cloned_nid = cast<NestedIdentifier>(original_nid->clone());
+	NestedIdentifier* cloned_nid = cast<NestedIdentifier>(ASTNodeHelper::clone(original_nid));
 	BOOST_CHECK(cloned_nid != NULL);
-	ASTNodeHelper::clone<ContextToCloneT>(original_nid, cloned_nid);
 
     // check nested id context
 	SourceInfoContext* cloned_src_ctx_n = cloned_nid->get<SourceInfoContext>();

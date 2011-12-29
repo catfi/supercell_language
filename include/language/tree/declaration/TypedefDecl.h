@@ -57,9 +57,17 @@ struct TypedefDecl : public Declaration
 
     virtual ASTNode* clone() const
     {
-    	return new TypedefDecl(
+    	TypedefDecl* cloned = new TypedefDecl(
     			(type) ? cast<TypeSpecifier>(type->clone()) : NULL,
     			(name) ? cast<Identifier>(name->clone()) : NULL);
+
+        if(annotations != NULL)
+        {
+            Annotations* anno = cast<Annotations>(annotations->clone());
+            cloned->setAnnotations(anno);
+        }
+
+        return cloned;
     }
 
     template<typename Archive>

@@ -57,6 +57,7 @@ private:
 	__gnu_cxx::hash_set<tree::ASTNode*> unresolved_types;
 	bool dump_graphviz;
     std::string dump_graphviz_dir;
+	bool keep_going;
 };
 
 } } }

@@ -124,6 +124,7 @@ int StageConductor::main(int argc, const char** argv)
 
 			if(!(*stage)->execute(c))
 			{
+                if(strcmp((*stage)->name(), "Resolution Stage") == 0 && vm.count("keep-going-on-resolution-fail")) continue;
 				//std::cerr << "execution failed at stage: " << (*stage)->name() << std::endl;
 				return -1;
 			}

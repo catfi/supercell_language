@@ -92,6 +92,12 @@ struct FunctionDecl : public Declaration
     			is_member, is_static, visibility,
     			(block) ? cast<Block>(block->clone()) : NULL);
 
+        if(annotations != NULL)
+        {
+            Annotations* anno = cast<Annotations>(annotations->clone());
+            cloned->setAnnotations(anno);
+        }
+
     	foreach(i, parameters)
     		cloned->appendParameter(cast<VariableDecl>((*i)->clone()));
 

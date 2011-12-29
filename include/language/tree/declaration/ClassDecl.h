@@ -103,6 +103,12 @@ struct ClassDecl : public Declaration
     {
     	ClassDecl* cloned = new ClassDecl((name) ? cast<Identifier>(name->clone()) : NULL);
 
+        if(annotations != NULL)
+        {
+            Annotations* anno = cast<Annotations>(annotations->clone());
+            cloned->setAnnotations(anno);
+        }
+
     	if(base) cloned->setBase(cast<TypeSpecifier>(base->clone()));
 
     	foreach(i, implements)

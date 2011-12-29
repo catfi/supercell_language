@@ -283,8 +283,8 @@ struct ResolutionStageVisitor : public GenericDoubleVisitor
 		// we don't try to resolve types for function template
 		if(isa<TemplatedIdentifier>(node.name))
 		{
-			if(!cast<TemplatedIdentifier>(node.name)->isFullySpecialized())
-				return;
+			//if(!cast<TemplatedIdentifier>(node.name)->isFullySpecialized())
+			//	return;
 
 			resolver.enterScope(*node.name);
 			resolver.enterScope(node);
@@ -315,8 +315,12 @@ struct ResolutionStageVisitor : public GenericDoubleVisitor
 		}
 
 		// visit all statements in the function block, which might contain resolvable type or symbol
-		if(node.block)
-			visit(*node.block);
+        if(!isa<TemplatedIdentifier>(node.name) ||
+           cast<TemplatedIdentifier>(node.name)->isFullySpecialized())
+        {
+            if(node.block)
+                visit(*node.block);
+        }
 
 		// leaving FunctionDecl scope
 		if(isa<TemplatedIdentifier>(node.name))
@@ -539,6 +543,9 @@ struct ResolutionStageVisitor : public GenericDoubleVisitor
 		// TODO get synthesized type from true node and false node (which should be compatible and casted to the same type)
 	}
 
+    // There are two kinds of flows:
+    // a) node.node is     a identifier,                   for example: a.b.c();
+    // b) node.node is not a identifier, but a expression, for example: g()(); where g() return a function(lambda)
 	void resolve(CallExpr& node)
 	{
 		revisit(node);
@@ -600,6 +607,10 @@ struct ResolutionStageVisitor : public GenericDoubleVisitor
 	{
 		if(type == Target::TYPE_RESOLUTION)
 		{
+			if(node.catagory == PrimaryExpr::Catagory::IDENTIFIER)
+            {
+                visit(*node.value.identifier);
+            }
 			// there's no type needed to be resolved inside a primary expression
 			// do nothing
 		}

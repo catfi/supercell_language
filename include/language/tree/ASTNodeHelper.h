@@ -28,6 +28,7 @@
 #include "language/stage/parser/context/SourceInfoContext.h"
 #include "language/tree/visitor/NodeInfoVisitor.h"
 #include "language/tree/visitor/ASTGraphvizGenerator.h"
+#include "language/stage/transformer/context/ManglingStageContext.h"
 
 #include <boost/mpl/vector.hpp>
 #include <boost/mpl/size.hpp>
@@ -101,42 +102,53 @@ struct ASTNodeHelper
 		visitor.visit(node);
 	}
 
-	template<typename ContextTypeList, bool RecursiveClone = true>
-	static void clone(ASTNode* from, ASTNode* to)
+	static ASTNode* clone(ASTNode* from)
 	{
-		if(RecursiveClone)
-		{
-            // collect from nodes
-            std::vector<ASTNode*> fromNodes;
-            foreachApply<ASTNode>(*from, [&fromNodes](ASTNode& node){
-                fromNodes.push_back(&node);
-            });
-            // collect to nodes
-            std::vector<ASTNode*> toNodes;
-            foreachApply<ASTNode>(*to, [&toNodes](ASTNode& node){
-                toNodes.push_back(&node);
-            });
-            BOOST_ASSERT(fromNodes.size() == toNodes.size());
-            // copy
-            for(size_t i=0; i != fromNodes.size(); ++i)
-            {
-                ASTNode* fromNode = fromNodes[i];
-                ASTNode* toNode   = toNodes[i];
-                detail::ContextCloneImpl<boost::mpl::size<ContextTypeList>::value, ContextTypeList>::clone(fromNode, toNode);
-            }
-		}
-		else
-		{
-			detail::ContextCloneImpl<boost::mpl::size<ContextTypeList>::value, ContextTypeList>::clone(from, to);
-		}
+        ////////////////////////////////////////////////////////////////////// 
+        // clone tree
+        ////////////////////////////////////////////////////////////////////// 
+        ASTNode* to = from->clone();
+
+        ////////////////////////////////////////////////////////////////////// 
+        // clone context
+        ////////////////////////////////////////////////////////////////////// 
+        // list of contexts
+        typedef boost::mpl::vector<
+            zillians::language::stage::SourceInfoContext,
+            zillians::language::stage::NameManglingContext
+        > ContextToCloneTypeList;
+
+        // collect from-nodes
+        std::vector<ASTNode*> fromNodes;
+        foreachApply<ASTNode>(*from, [&fromNodes](ASTNode& node){
+            fromNodes.push_back(&node);
+        });
+
+        // collect to-nodes
+        std::vector<ASTNode*> toNodes;
+        foreachApply<ASTNode>(*to, [&toNodes](ASTNode& node){
+            toNodes.push_back(&node);
+        });
+        BOOST_ASSERT(fromNodes.size() == toNodes.size());
+
+        // copy context for each node
+        for(size_t i=0; i != fromNodes.size(); ++i)
+        {
+            ASTNode* fromNode = fromNodes[i];
+            ASTNode* toNode   = toNodes[i];
+            detail::ContextCloneImpl<boost::mpl::size<ContextToCloneTypeList>::value, ContextToCloneTypeList>::clone(fromNode, toNode);
+        }
+
+        return to;
 	}
 
 	static void propogateSourceInfo(ASTNode& to, ASTNode& from)
 	{
-		stage::SourceInfoContext* to_src_info = to.get<stage::SourceInfoContext>();
+		//stage::SourceInfoContext* to_src_info = to.get<stage::SourceInfoContext>();
 		stage::SourceInfoContext* from_src_info = from.get<stage::SourceInfoContext>();
 
-		BOOST_ASSERT(to_src_info == NULL && "invalid propagating source info propagation");
+        // TBD: no need to check this anymore? since now we clone SourceInfo by default?
+		//BOOST_ASSERT(to_src_info == NULL && "invalid propagating source info propagation");
 
 		to.set<stage::SourceInfoContext>(new stage::SourceInfoContext(*from_src_info));
 	}
@@ -146,8 +158,17 @@ struct ASTNodeHelper
 		if(!node)
 			return NULL;
 
-		if(isa<TypenameDecl>(node))
-			return findUniqueTypeResolution(cast<TypenameDecl>(node)->specialized_type);
+		if(TypenameDecl* typenameDecl = cast<TypenameDecl>(node))
+        {
+            if(typenameDecl->specialized_type)
+            {
+                return findUniqueTypeResolution(typenameDecl->specialized_type);
+            }
+            else
+            {
+                return node;
+            }
+        }
 
 		if(isa<FunctionType>(node))
 			return node;
@@ -370,6 +391,31 @@ struct ASTNodeHelper
 		return false;
 	}
 
+    static bool isCallIdentifier(Identifier* node)
+    {
+        // primary form
+        // f();
+        if(isa<PrimaryExpr>(node->parent) &&
+           isa<CallExpr>(node->parent->parent) &&
+           node->parent == cast<CallExpr>(node->parent->parent)->node)
+        {
+            return true;
+        }
+
+        // member form
+        // a.b.c.f();
+        ASTNode* n = node;
+        while(isa<MemberExpr>(n->parent))
+        {
+            n = n->parent;
+        }
+        if(isa<CallExpr>(n->parent) && cast<CallExpr>(n->parent)->node == n)
+        {
+            return true;
+        }
+        return false;
+    }
+
 	static std::wstring getNodeName(ASTNode* node, bool FQN = false)
 	{
 		BOOST_ASSERT(node && "null pointer exception");
@@ -430,6 +476,44 @@ struct ASTNodeHelper
     	ResolvedType::set(type_specifier, decl);
 		return type_specifier;
 	}
+
+    /**
+     * @brief Omni function to create TypeSpecifier
+     * @param node Source of the TypeSpecifier to create.
+     * @return TypeSpecifier according to the input node.
+     *
+     * @li @c TypeSpecifier clone of @p node
+     * @li @c ClassDecl a TypeSpecifier to @p node
+     * @li @c FunctionDecl a TypeSpecifier to @p node
+     */
+    static TypeSpecifier* createTypeSpecifierFrom(ASTNode* node)
+    {
+        BOOST_ASSERT(isa<TypeSpecifier>(node) ||
+                     isa<ClassDecl>(node) ||
+                     isa<FunctionDecl>(node));
+
+        if(isa<TypeSpecifier>(node))
+        {
+            TypeSpecifier* result = cast<TypeSpecifier>(ASTNodeHelper::clone(node));
+            ResolvedType::set(result, ResolvedType::get(node));
+            return result;
+        }
+        else if(ClassDecl* classDecl = cast<ClassDecl>(node))
+        {
+            TypeSpecifier* result = new TypeSpecifier(cast<Identifier>(ASTNodeHelper::clone(classDecl->name)));
+            ResolvedType::set(result, classDecl);
+            return result;
+        }
+        else if(FunctionDecl* functionDecl = cast<FunctionDecl>(node))
+        {
+            TypeSpecifier* result = new TypeSpecifier(cast<Identifier>(ASTNodeHelper::clone(functionDecl->name)));
+            ResolvedType::set(result, functionDecl);
+            return result;
+        }
+
+        UNREACHABLE_CODE();
+        return NULL;
+    }
 
     static bool sameResolvedType(TypeSpecifier* a, TypeSpecifier* b)
 	{

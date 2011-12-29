@@ -908,6 +908,13 @@ public:
 			BOOST_ASSERT(isa<SimpleIdentifier>(decl));
 			return (use->toString() == decl->toString());
 		}
+		else if(ASTNodeHelper::isCallIdentifier(current) && !isa<TemplatedIdentifier>(use) && isa<TemplatedIdentifier>(decl))
+        {
+			BOOST_ASSERT(isa<SimpleIdentifier>(use));
+			BOOST_ASSERT(!isa<SimpleIdentifier>(decl));
+            TemplatedIdentifier* declTemplatedId = cast<TemplatedIdentifier>(decl);
+            return use->toString() == declTemplatedId->id->toString();
+        }
 		else
 		{
 			return false;

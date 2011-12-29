@@ -33,7 +33,8 @@ ResolutionStage::ResolutionStage() :
 		disable_type_inference(false),
 		total_unresolved_count_type(std::numeric_limits<std::size_t>::max()),
 		total_unresolved_count_symbol(std::numeric_limits<std::size_t>::max()),
-        dump_graphviz(false)
+        dump_graphviz(false),
+        keep_going(false)
 { }
 
 ResolutionStage::~ResolutionStage()
@@ -55,6 +56,7 @@ std::pair<shared_ptr<po::options_description>, shared_ptr<po::options_descriptio
 	foreach(i, option_desc_public->options()) option_desc_private->add(*i);
 
 	option_desc_private->add_options()
+        ("keep-going-on-resolution-fail", "keep going while resolution stage fail")
 		("debug-resolution-stage", "debug type conversion stage")
 		//("dump-graphviz", "dump AST in graphviz format")
 		//("dump-graphviz-dir", po::value<std::string>(), "dump AST in graphviz format")
@@ -71,6 +73,11 @@ bool ResolutionStage::parseOptions(po::variables_map& vm)
     if(vm.count("dump-graphviz-dir") > 0)
     {
         dump_graphviz_dir = vm["dump-graphviz-dir"].as<std::string>();
+    }
+
+    if(vm.count("keep-going-on-resolution-fail") > 0)
+    {
+        keep_going = true;
     }
 
 	return true;
@@ -137,6 +144,7 @@ bool ResolutionStage::execute(bool& continue_execution)
 		printer.visit(*getParserContext().active_source);
 	}
 
+    if (keep_going) return true;
 	return complete_type_resolution && complete_symbol_resolution;
 }
 
