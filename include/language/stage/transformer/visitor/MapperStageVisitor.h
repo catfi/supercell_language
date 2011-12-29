@@ -37,11 +37,11 @@ namespace zillians { namespace language { namespace stage { namespace visitor {
  */
 struct MapperStageVisitor : public GenericDoubleVisitor
 {
-	CREATE_INVOKER(mapInvoker, map)
+	CREATE_INVOKER(applyInvoker, apply)
 
 	MapperStageVisitor()
 	{
-		REGISTER_ALL_VISITABLE_ASTNODE(mapInvoker)
+		REGISTER_ALL_VISITABLE_ASTNODE(applyInvoker)
 	}
 
 	void apply(ASTNode& node)
@@ -134,7 +134,7 @@ public:
 	void addMapper(MemberExprMapper   mapper) { member_expr_mappers.push_back(mapper);   }
 	void addMapper(PrimaryExprMapper  mapper) { primary_expr_mappers.push_back(mapper);  }
 
-private:
+public:
 	std::vector<VariableDeclMapper> variable_decl_mappers;
 	std::vector<FunctionDeclMapper> function_decl_mappers;
 	std::vector<ClassDeclMapper>    class_decl_mappers;

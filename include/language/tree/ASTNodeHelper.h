@@ -28,6 +28,7 @@
 #include "language/stage/parser/context/SourceInfoContext.h"
 #include "language/tree/visitor/NodeInfoVisitor.h"
 #include "language/tree/visitor/ASTGraphvizGenerator.h"
+#include "language/stage/transformer/context/ManglingStageContext.h"
 
 #include <boost/mpl/vector.hpp>
 #include <boost/mpl/size.hpp>
@@ -38,12 +39,17 @@ namespace zillians { namespace language { namespace tree {
 
 namespace detail {
 
+typedef boost::mpl::vector<
+    zillians::language::stage::SourceInfoContext,
+    zillians::language::stage::NameManglingContext
+> ContextToCloneTypeList;
+
 template<typename T, bool RecursiveVisit = true, bool IncludeSelf = true>
 struct ForeachVisitor : public visitor::GenericDoubleVisitor
 {
     CREATE_INVOKER(foreachInvoker, apply);
 
-	ForeachVisitor(std::function<void(T&)> functor) : depth(0), functor(functor)
+	ForeachVisitor(std::function<void(T&)>& functor) : depth(0), functor(functor)
 	{
 		REGISTER_ALL_VISITABLE_ASTNODE(foreachInvoker)
     }
@@ -62,7 +68,7 @@ struct ForeachVisitor : public visitor::GenericDoubleVisitor
 	}
 
 	int depth;
-	std::function<void(T&)> functor;
+	std::function<void(T&)>& functor;
 };
 
 template<int N, typename ContextTypeList>
@@ -101,7 +107,15 @@ struct ASTNodeHelper
 		visitor.visit(node);
 	}
 
-	template<typename ContextTypeList, bool RecursiveClone = true>
+	template<typename ContextTypeList = detail::ContextToCloneTypeList, bool RecursiveClone = true>
+	static ASTNode* clone(ASTNode* from)
+	{
+		ASTNode* to = from->clone();
+		clone<ContextTypeList, RecursiveClone>(from, to);
+		return to;
+	}
+
+	template<typename ContextTypeList = detail::ContextToCloneTypeList, bool RecursiveClone = true>
 	static void clone(ASTNode* from, ASTNode* to)
 	{
 		if(RecursiveClone)
@@ -318,8 +332,8 @@ struct ASTNodeHelper
 		return false;
 	}
 
-	static bool hasAnnotation(ASTNode* node, std::wstring tag) { return findAnnotation(node, tag); }
-	static Annotation* findAnnotation(ASTNode* node, std::wstring tag)
+	static bool hasAnnotation(ASTNode* node, const std::wstring& tag) { return findAnnotation(node, tag); }
+	static Annotation* findAnnotation(ASTNode* node, const std::wstring& tag)
 	{
 		BOOST_ASSERT(node && "null pointer exception");
 		BOOST_ASSERT(!tag.empty() && "empty annotation tag");
@@ -441,6 +455,33 @@ struct ASTNodeHelper
     	ResolvedType::set(type_specifier, decl);
 		return type_specifier;
 	}
+
+    /**
+      * @brief Create type specifier from type declaration (or another type specifier)
+      * @param node given declaration node
+      * @return type specifier pointing to the given declaration node
+      */
+     static TypeSpecifier* createTypeSpecifierFrom(ASTNode* node)
+     {
+    	 // TODO handle FunctionType?
+         BOOST_ASSERT(isa<TypeSpecifier>(node) || isa<Declaration>(node));
+
+         if(isa<TypeSpecifier>(node))
+         {
+             TypeSpecifier* result = cast<TypeSpecifier>(clone(node));
+             ResolvedType::set(result, ResolvedType::get(node));
+             return result;
+         }
+         else if(Declaration* decl = cast<Declaration>(node))
+         {
+             TypeSpecifier* result = new TypeSpecifier(cast<Identifier>(clone(decl->name)));
+             ResolvedType::set(result, decl);
+             return result;
+         }
+
+         UNREACHABLE_CODE();
+         return NULL;
+     }
 
     static bool sameResolvedType(TypeSpecifier* a, TypeSpecifier* b)
 	{
