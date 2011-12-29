@@ -33,7 +33,7 @@ struct LLVMHelper
 	LLVMHelper(llvm::LLVMContext& context) : mContext(context)
 	{ }
 
-	bool getType(PrimitiveType::type type, /*OUT*/ const llvm::Type*& result, /*OUT*/ llvm::Attributes& modifier)
+	bool getType(PrimitiveType::type type, /*OUT*/ llvm::Type*& result, /*OUT*/ llvm::Attributes& modifier)
 	{
 		bool resolved = false;
 
@@ -115,7 +115,7 @@ struct LLVMHelper
 		return resolved;
 	}
 
-	bool getType(TypeSpecifier& specifier, /*OUT*/ const llvm::Type*& result, /*OUT*/ llvm::Attributes& modifier)
+	bool getType(TypeSpecifier& specifier, /*OUT*/ llvm::Type*& result, /*OUT*/ llvm::Attributes& modifier)
 	{
 		bool resolved = false;
 
@@ -171,10 +171,10 @@ struct LLVMHelper
 		return resolved;
 	}
 
-	bool getFunctionType(FunctionType& ast_function_type, /*OUT*/ const llvm::Type*& llvm_function_type)
+	bool getFunctionType(FunctionType& ast_function_type, /*OUT*/ llvm::Type*& llvm_function_type)
 	{
 		// prepare LLVM function return type
-		const llvm::Type* llvm_function_return_type = NULL;
+		llvm::Type* llvm_function_return_type = NULL;
 		{
 			llvm::Attributes attr = llvm::Attribute::None;
 			if(!getType(*ast_function_type.return_type, llvm_function_return_type, attr))
@@ -182,20 +182,21 @@ struct LLVMHelper
 		}
 
 		// prepare LLVM function parameter type list
-		std::vector<const llvm::Type*> llvm_function_parameter_types;
+		std::vector<llvm::Type*> function_parameter_types;
 		{
 			foreach(i, ast_function_type.parameter_types)
 			{
 				llvm::Attributes attr = llvm::Attribute::None;
-				const llvm::Type* t = NULL;
+				llvm::Type* t = NULL;
 
 				if(!getType(**i, t, attr))
 					return false;
 
-				llvm_function_parameter_types.push_back(t);
+				function_parameter_types.push_back(t);
 			}
 		}
 
+		llvm::ArrayRef<llvm::Type*> llvm_function_parameter_types(function_parameter_types);
 		llvm_function_type = llvm::FunctionType::get(llvm_function_return_type, llvm_function_parameter_types, false /*not variadic*/)->getPointerTo();
 
 		return true;
@@ -204,7 +205,7 @@ struct LLVMHelper
 	bool getFunctionType(FunctionDecl& ast_function, /*OUT*/ llvm::FunctionType*& llvm_function_type, /*OUT*/ std::vector<llvm::AttributeWithIndex>& llvm_function_type_attributes)
 	{
 		// prepare LLVM function return type
-		const llvm::Type* llvm_function_return_type = NULL;
+		llvm::Type* llvm_function_return_type = NULL;
 		{
 			llvm::Attributes attr = llvm::Attribute::None;
 			if(!getType(*ast_function.type, llvm_function_return_type, attr))
@@ -215,18 +216,18 @@ struct LLVMHelper
 		}
 
 		// prepare LLVM function parameter type list
-		std::vector<const llvm::Type*> llvm_function_parameter_types;
+		std::vector<llvm::Type*> function_parameter_types;
 		{
 			int index = 1;
 			foreach(i, ast_function.parameters)
 			{
 				llvm::Attributes attr = llvm::Attribute::None;
-				const llvm::Type* t = NULL;
+				llvm::Type* t = NULL;
 
 				if(!getType(*((*i)->type), t, attr))
 					return false;
 
-				llvm_function_parameter_types.push_back(t);
+				function_parameter_types.push_back(t);
 				if(attr != llvm::Attribute::None)
 					llvm_function_type_attributes.push_back(llvm::AttributeWithIndex::get(index, attr));
 
@@ -234,6 +235,7 @@ struct LLVMHelper
 			}
 		}
 
+		llvm::ArrayRef<llvm::Type*> llvm_function_parameter_types(function_parameter_types);
 		llvm_function_type = llvm::FunctionType::get(llvm_function_return_type, llvm_function_parameter_types, false /*not variadic*/);
 
 		return true;

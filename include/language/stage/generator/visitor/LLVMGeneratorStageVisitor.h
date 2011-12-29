@@ -785,7 +785,7 @@ struct LLVMGeneratorStageVisitor : public GenericDoubleVisitor
 					false_value = mBuilder.CreateLoad(false_value);
 			}
 
-			llvm::PHINode* phi = mBuilder.CreatePHI(true_value->getType());
+			llvm::PHINode* phi = mBuilder.CreatePHI(true_value->getType(), 2);
 			phi->addIncoming(true_value, true_block);
 			phi->addIncoming(false_value, false_block);
 
@@ -821,7 +821,8 @@ struct LLVMGeneratorStageVisitor : public GenericDoubleVisitor
 			llvm::Function* llvm_function = GET_SYNTHESIZED_LLVM_FUNCTION(resolved);
 			if(llvm_function)
 			{
-				llvm::Value* result = mBuilder.CreateCall(llvm_function, arguments.begin(), arguments.end());
+				llvm::ArrayRef<llvm::Value*> llvm_arguments(arguments);
+				llvm::Value* result = mBuilder.CreateCall(llvm_function, llvm_arguments);
 				SET_SYNTHESIZED_LLVM_VALUE(&node, result);
 			}
 			else
@@ -866,7 +867,7 @@ struct LLVMGeneratorStageVisitor : public GenericDoubleVisitor
 
 				UNUSED_ARGUMENT(bitsize_mismatched);
 
-				const llvm::Type* llvm_cast_type = NULL;
+				llvm::Type* llvm_cast_type = NULL;
 
 				llvm::Attributes llvm_dummy_modifier = llvm::Attribute::None; // dummy
 				mHelper.getType(*node.type, llvm_cast_type, llvm_dummy_modifier);
@@ -977,7 +978,7 @@ private:
 		resetBlockInsertionMask();
 	}
 
-	llvm::AllocaInst* createAlloca(const llvm::Type* type, const llvm::Twine& name = "")
+	llvm::AllocaInst* createAlloca(llvm::Type* type, const llvm::Twine& name = "")
 	{
 		llvm::AllocaInst* llvm_alloca_inst = NULL;
 		if(mBuilder.isNamePreserving())
@@ -993,7 +994,7 @@ private:
 		if(GET_SYNTHESIZED_LLVM_VALUE(&ast_variable))
 			return true;
 
-		const llvm::Type* llvm_variable_type = NULL;
+		llvm::Type* llvm_variable_type = NULL;
 		llvm::Attributes llvm_variable_modifier = llvm::Attribute::None;
 		if(!mHelper.getType(*ast_variable.type, llvm_variable_type, llvm_variable_modifier))
 			return false;
@@ -1044,7 +1045,7 @@ private:
 
 		// allocate return value if necessary
 		{
-			const llvm::Type* type;
+			llvm::Type* type;
 			llvm::Attributes modifier;
 			if(mHelper.getType(*ast_function.type, type, modifier) && type && !type->isVoidTy())
 			{
@@ -1077,7 +1078,7 @@ private:
 		{
 			//Identifier* parameter_identifier = ast_function.parameters[index]->name;
 
-			const llvm::Type* t;
+			llvm::Type* t;
 			llvm::Attributes modifier;
 			if(mHelper.getType(*ast_function.parameters[index]->type, t, modifier) && t && !t->isVoidTy())
 			{
