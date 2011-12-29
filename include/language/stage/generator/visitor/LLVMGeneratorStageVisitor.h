@@ -154,6 +154,7 @@ struct LLVMGeneratorStageVisitor : public GenericDoubleVisitor
 		if(ASTNodeHelper::hasNativeLinkage(&node))
 			return;
 
+
 		if(isFunctionVisited(node))
 			return;
 
@@ -842,7 +843,7 @@ struct LLVMGeneratorStageVisitor : public GenericDoubleVisitor
 		// TODO if it's a class member function and it's virtual, we have different calling convention here
 	}
 
-	void apply(CastExpr& node)
+	void generate(CastExpr& node)
 	{
 		if(hasValue(node)) return;
 		if(isBlockInsertionMasked() || isBlockTerminated(currentBlock()))	return;
@@ -951,7 +952,7 @@ struct LLVMGeneratorStageVisitor : public GenericDoubleVisitor
 		}
 	}
 
-	void apply(MemberExpr& node)
+	void generate(MemberExpr& node)
 	{
 		if(hasValue(node)) return;
 		if(isBlockInsertionMasked() || isBlockTerminated(currentBlock()))	return;
