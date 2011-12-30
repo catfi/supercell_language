@@ -54,7 +54,7 @@ struct EnumDecl : public Declaration
 		tag->parent = this;
 		if(value) value->parent = this;
 
-		VariableDecl* decl = new VariableDecl(tag, new TypeSpecifier(PrimitiveType::INT32), true, true, true, Declaration::VisibilitySpecifier::DEFAULT, value);
+		VariableDecl* decl = new VariableDecl(tag, new TypeSpecifier(PrimitiveType::INT32_TYPE), true, true, true, Declaration::VisibilitySpecifier::DEFAULT, value);
 		decl->parent = this;
 
 		values.push_back(decl);

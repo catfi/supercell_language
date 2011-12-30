@@ -27,18 +27,6 @@
 #include "utility/Foreach.h"
 #include "language/context/ResolverContext.h"
 
-namespace __gnu_cxx {
-
-template<typename T>
-struct hash<T*>
-{
-	std::size_t operator() (T* value)
-	{
-		return reinterpret_cast<std::size_t>(value);
-	}
-};
-
-}
 
 namespace zillians { namespace language {
 
@@ -60,6 +48,7 @@ public:
 		tree::visitor::NodeInfoVisitor node_info_visitor;
 		node_info_visitor.visit(node);
 		//LOG4CXX_DEBUG(LoggerWrapper::Resolver, L"entering scope: \"" << node_info_visitor.stream.str() << L"\"");
+
 
 		//__gnu_cxx::hash_set<tree::ASTNode*>::iterator scope = current_scopes.find(&node);
 		//if(scope == current_scopes.end())
@@ -166,6 +155,7 @@ public:
 			resolution_visitor.candidate(&node);
 			resolution_visitor.filter(visitor::ResolutionVisitor::Filter::SYMBOL);
 
+
 			for(auto scope = current_scopes.rbegin(); scope != current_scopes.rend(); ++scope)
 			{
 				tree::visitor::NodeInfoVisitor node_info_visitor;
@@ -247,15 +237,15 @@ public:
                 return ConversionRank::ExactMatch;
             }
             // promotion
-            if(fromTypeSpecifier->referred.primitive >= PrimitiveType::BOOL &&
-                 toTypeSpecifier->referred.primitive <= PrimitiveType::FLOAT64 &&
+            if(fromTypeSpecifier->referred.primitive >= PrimitiveType::BOOL_TYPE &&
+                 toTypeSpecifier->referred.primitive <= PrimitiveType::FLOAT64_TYPE &&
                fromTypeSpecifier->referred.primitive < toTypeSpecifier->referred.primitive)
             {
                 return ConversionRank::Promotion;
             }
             // standard conversion
-            if(  toTypeSpecifier->referred.primitive >= PrimitiveType::BOOL &&
-               fromTypeSpecifier->referred.primitive <= PrimitiveType::FLOAT64 &&
+            if(  toTypeSpecifier->referred.primitive >= PrimitiveType::BOOL_TYPE &&
+               fromTypeSpecifier->referred.primitive <= PrimitiveType::FLOAT64_TYPE &&
                  toTypeSpecifier->referred.primitive < fromTypeSpecifier->referred.primitive)
             {
                 return ConversionRank::StandardConversion;
@@ -1871,6 +1861,7 @@ public:
 
 private:
 	std::vector<tree::ASTNode*> current_scopes;
+
 	tree::visitor::ResolutionVisitor resolution_visitor;
 
 private:
