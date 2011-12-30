@@ -318,7 +318,7 @@ struct enum_decl
 			SimpleIdentifier*             tag             = boost::fusion::at_c<0>(i);
 			boost::optional<Expression*>& optional_result = boost::fusion::at_c<1>(i);
 			Expression*                   value           = optional_result.is_initialized() ? *optional_result : NULL;
-			VariableDecl* decl = new VariableDecl(tag, new TypeSpecifier(PrimitiveType::INT32), true, true, true, Declaration::VisibilitySpecifier::DEFAULT, value);
+			VariableDecl* decl = new VariableDecl(tag, new TypeSpecifier(PrimitiveType::INT32_TYPE), true, true, true, Declaration::VisibilitySpecifier::DEFAULT, value);
 			BIND_CACHED_LOCATION(decl);
 			cast<EnumDecl>(_result)->addEnumeration(decl);
 		}

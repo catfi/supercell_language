@@ -80,19 +80,19 @@ struct LLVMGeneratorStageVisitor : public GenericDoubleVisitor
 		llvm::Value* result = NULL;
 		switch(node.type)
 		{
-		case PrimitiveType::BOOL:
+		case PrimitiveType::BOOL_TYPE:
 			result = llvm::ConstantInt::get(llvm::IntegerType::getInt1Ty(mContext), node.value.b, false); break;
-		case PrimitiveType::INT8:
+		case PrimitiveType::INT8_TYPE:
 			result = llvm::ConstantInt::get(llvm::IntegerType::getInt8Ty(mContext), node.value.i8, false); break;
-		case PrimitiveType::INT16:
+		case PrimitiveType::INT16_TYPE:
 			result = llvm::ConstantInt::get(llvm::IntegerType::getInt16Ty(mContext), node.value.i16, false); break;
-		case PrimitiveType::INT32:
+		case PrimitiveType::INT32_TYPE:
 			result = llvm::ConstantInt::get(llvm::IntegerType::getInt32Ty(mContext), node.value.i32, false); break;
-		case PrimitiveType::INT64:
+		case PrimitiveType::INT64_TYPE:
 			result = llvm::ConstantInt::get(llvm::IntegerType::getInt64Ty(mContext), node.value.i64, false); break;
-		case PrimitiveType::FLOAT32:
+		case PrimitiveType::FLOAT32_TYPE:
 			result = llvm::ConstantFP::get(llvm::Type::getFloatTy(mContext), node.value.f32); break;
-		case PrimitiveType::FLOAT64:
+		case PrimitiveType::FLOAT64_TYPE:
 			result = llvm::ConstantFP::get(llvm::Type::getDoubleTy(mContext), node.value.f64); break;
 		default:
 			break;
@@ -871,7 +871,7 @@ struct LLVMGeneratorStageVisitor : public GenericDoubleVisitor
 
 				UNUSED_ARGUMENT(bitsize_mismatched);
 
-				const llvm::Type* llvm_cast_type = NULL;
+				llvm::Type* llvm_cast_type = NULL;
 
 				llvm::Attributes llvm_dummy_modifier = llvm::Attribute::None; // dummy
 				mHelper.getType(*node.type, llvm_cast_type, llvm_dummy_modifier);
@@ -921,10 +921,10 @@ struct LLVMGeneratorStageVisitor : public GenericDoubleVisitor
 				else
 				{
 					// the rest of types can be both object types or function types or void type, no casting required
-					if(	(node.type->referred.primitive == PrimitiveType::VOID && node_specifier->referred.primitive == PrimitiveType::VOID) ||
-						(node.type->referred.primitive == PrimitiveType::OBJECT && node_specifier->referred.primitive == PrimitiveType::OBJECT) ||
-						(node.type->referred.primitive == PrimitiveType::FUNCTION && node_specifier->referred.primitive == PrimitiveType::FUNCTION) ||
-						(node.type->referred.primitive == PrimitiveType::STRING && node_specifier->referred.primitive == PrimitiveType::STRING) )
+					if(	(node.type->referred.primitive == PrimitiveType::VOID_TYPE && node_specifier->referred.primitive == PrimitiveType::VOID_TYPE) ||
+						(node.type->referred.primitive == PrimitiveType::OBJECT_TYPE && node_specifier->referred.primitive == PrimitiveType::OBJECT_TYPE) ||
+						(node.type->referred.primitive == PrimitiveType::FUNCTION_TYPE && node_specifier->referred.primitive == PrimitiveType::FUNCTION_TYPE) ||
+						(node.type->referred.primitive == PrimitiveType::STRING_TYPE && node_specifier->referred.primitive == PrimitiveType::STRING_TYPE) )
 					{
 						llvm_result = llvm_value_for_read;
 					}
@@ -982,7 +982,7 @@ private:
 		resetBlockInsertionMask();
 	}
 
-	llvm::AllocaInst* createAlloca(const llvm::Type* type, const llvm::Twine& name = "")
+	llvm::AllocaInst* createAlloca(llvm::Type* type, const llvm::Twine& name = "")
 	{
 		llvm::AllocaInst* llvm_alloca_inst = NULL;
 		if(mBuilder.isNamePreserving())
@@ -998,7 +998,7 @@ private:
 		if(GET_SYNTHESIZED_LLVM_VALUE(&ast_variable))
 			return true;
 
-		const llvm::Type* llvm_variable_type = NULL;
+		llvm::Type* llvm_variable_type = NULL;
 		llvm::Attributes llvm_variable_modifier = llvm::Attribute::None;
 		if(!mHelper.getType(*ast_variable.type, llvm_variable_type, llvm_variable_modifier))
 			return false;
@@ -1049,7 +1049,7 @@ private:
 
 		// allocate return value if necessary
 		{
-			const llvm::Type* type;
+			llvm::Type* type;
 			llvm::Attributes modifier;
 			if(mHelper.getType(*ast_function.type, type, modifier) && type && !type->isVoidTy())
 			{
@@ -1082,7 +1082,7 @@ private:
 		{
 			//Identifier* parameter_identifier = ast_function.parameters[index]->name;
 
-			const llvm::Type* t;
+			llvm::Type* t;
 			llvm::Attributes modifier;
 			if(mHelper.getType(*ast_function.parameters[index]->type, t, modifier) && t && !t->isVoidTy())
 			{

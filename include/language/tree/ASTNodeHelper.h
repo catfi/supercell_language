@@ -147,11 +147,7 @@ struct ASTNodeHelper
 
 	static void propogateSourceInfo(ASTNode& to, ASTNode& from)
 	{
-		stage::SourceInfoContext* to_src_info = to.get<stage::SourceInfoContext>();
 		stage::SourceInfoContext* from_src_info = from.get<stage::SourceInfoContext>();
-
-		BOOST_ASSERT(to_src_info == NULL && "invalid propagating source info propagation");
-
 		to.set<stage::SourceInfoContext>(new stage::SourceInfoContext(*from_src_info));
 	}
 
@@ -160,8 +156,17 @@ struct ASTNodeHelper
 		if(!node)
 			return NULL;
 
-		if(isa<TypenameDecl>(node))
-			return findUniqueTypeResolution(cast<TypenameDecl>(node)->specialized_type);
+		if(TypenameDecl* typenameDecl = cast<TypenameDecl>(node))
+        {
+            if(typenameDecl->specialized_type)
+            {
+                return findUniqueTypeResolution(typenameDecl->specialized_type);
+            }
+            else
+            {
+                return node;
+            }
+        }
 
 		if(isa<FunctionType>(node))
 			return node;
@@ -394,6 +399,31 @@ struct ASTNodeHelper
 		}
 		return false;
 	}
+
+    static bool isCallIdentifier(Identifier* node)
+    {
+        // primary form
+        // f();
+        if(isa<PrimaryExpr>(node->parent) &&
+           isa<CallExpr>(node->parent->parent) &&
+           node->parent == cast<CallExpr>(node->parent->parent)->node)
+        {
+            return true;
+        }
+
+        // member form
+        // a.b.c.f();
+        ASTNode* n = node;
+        while(isa<MemberExpr>(n->parent))
+        {
+            n = n->parent;
+        }
+        if(isa<CallExpr>(n->parent) && cast<CallExpr>(n->parent)->node == n)
+        {
+            return true;
+        }
+        return false;
+    }
 
 	static std::wstring getNodeName(ASTNode* node, bool FQN = false)
 	{

@@ -64,12 +64,12 @@ Tangle* createPassSample()
 						Block* block = some_member_function->block;
 
 						{
-							DeclarativeStmt* stmt = new DeclarativeStmt(new VariableDecl(new SimpleIdentifier(L"a"), new TypeSpecifier(PrimitiveType::INT32), false, false, false, Declaration::VisibilitySpecifier::DEFAULT));
+							DeclarativeStmt* stmt = new DeclarativeStmt(new VariableDecl(new SimpleIdentifier(L"a"), new TypeSpecifier(PrimitiveType::INT32_TYPE), false, false, false, Declaration::VisibilitySpecifier::DEFAULT));
 							block->appendObject(stmt);
 						}
 
 						{
-							DeclarativeStmt* stmt = new DeclarativeStmt(new VariableDecl(new SimpleIdentifier(L"b"), new TypeSpecifier(PrimitiveType::INT32), false, false, false, Declaration::VisibilitySpecifier::DEFAULT));
+							DeclarativeStmt* stmt = new DeclarativeStmt(new VariableDecl(new SimpleIdentifier(L"b"), new TypeSpecifier(PrimitiveType::INT32_TYPE), false, false, false, Declaration::VisibilitySpecifier::DEFAULT));
 							block->appendObject(stmt);
 						}
 
@@ -135,12 +135,12 @@ Tangle* createFailSample()
 						Block* block = some_member_function->block;
 
 						{
-							DeclarativeStmt* stmt = new DeclarativeStmt(new VariableDecl(new SimpleIdentifier(L"a"), new TypeSpecifier(PrimitiveType::INT32), false, false, false, Declaration::VisibilitySpecifier::DEFAULT));
+							DeclarativeStmt* stmt = new DeclarativeStmt(new VariableDecl(new SimpleIdentifier(L"a"), new TypeSpecifier(PrimitiveType::INT32_TYPE), false, false, false, Declaration::VisibilitySpecifier::DEFAULT));
 							block->appendObject(stmt);
 						}
 
 						{
-							DeclarativeStmt* stmt = new DeclarativeStmt(new VariableDecl(new SimpleIdentifier(L"b"), new TypeSpecifier(PrimitiveType::INT32), false, false, false, Declaration::VisibilitySpecifier::DEFAULT));
+							DeclarativeStmt* stmt = new DeclarativeStmt(new VariableDecl(new SimpleIdentifier(L"b"), new TypeSpecifier(PrimitiveType::INT32_TYPE), false, false, false, Declaration::VisibilitySpecifier::DEFAULT));
 							block->appendObject(stmt);
 						}
 

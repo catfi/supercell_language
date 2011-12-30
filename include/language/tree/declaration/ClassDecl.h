@@ -71,12 +71,12 @@ struct ClassDecl : public Declaration
 		base = extends_from;
 	}
 
-	void addInterface(TypeSpecifier* interface)
+	void addInterface(TypeSpecifier* interface_)
 	{
-		BOOST_ASSERT(interface && "null interface is not allowed");
+		BOOST_ASSERT(interface_ && "null interface is not allowed");
 
-		interface->parent = this;
-		implements.push_back(interface);
+		interface_->parent = this;
+		implements.push_back(interface_);
 	}
 
     virtual bool isEqualImpl(const ASTNode& rhs, ASTNodeSet& visited) const
@@ -102,6 +102,12 @@ struct ClassDecl : public Declaration
     virtual ASTNode* clone() const
     {
     	ClassDecl* cloned = new ClassDecl((name) ? cast<Identifier>(name->clone()) : NULL);
+
+        if(annotations != NULL)
+        {
+            Annotations* anno = cast<Annotations>(annotations->clone());
+            cloned->setAnnotations(anno);
+        }
 
     	if(base) cloned->setBase(cast<TypeSpecifier>(base->clone()));
 

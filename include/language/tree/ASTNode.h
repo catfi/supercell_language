@@ -74,24 +74,13 @@
 namespace zillians { namespace language { namespace tree {
 
 // forward declaration of ASTNode
-class ASTNode;
+struct ASTNode;
 
 } } }
 
-namespace __gnu_cxx {
-	template<>
-	struct hash<const zillians::language::tree::ASTNode*>
-	{
-		size_t operator() (const zillians::language::tree::ASTNode* p) const
-		{
-			return reinterpret_cast<size_t>(p);
-		}
-	} ;
-}
-
 namespace zillians { namespace language { namespace tree {
 
-typedef __gnu_cxx::hash_set<const ASTNode*> ASTNodeSet;
+typedef unordered_set<const ASTNode*> ASTNodeSet;
 
 /**
  * Helper template function to implement static type checking system
@@ -135,58 +124,61 @@ inline shared_ptr<Derived> cast(shared_ptr<Base>& ptr)
 		return shared_ptr<Derived>();
 }
 
-enum class ASTNodeType : int
+struct ASTNodeType
 {
-	ASTNode,
+	enum type 
+	{
+		ASTNode,
 
-	Annotation,
-	Annotations,
-	Internal,
-	Tangle,
-	Source,
-	Package,
-	Import,
-	Block,
-	Identifier,
-		SimpleIdentifier,
-		NestedIdentifier,
-		TemplatedIdentifier,
-	Literal,
-		NumericLiteral,
-		StringLiteral,
-		ObjectLiteral,
-	TypeSpecifier,
-	FunctionType,
+		Annotation,
+		Annotations,
+		Internal,
+		Tangle,
+		Source,
+		Package,
+		Import,
+		Block,
+		Identifier,
+			SimpleIdentifier,
+			NestedIdentifier,
+			TemplatedIdentifier,
+		Literal,
+			NumericLiteral,
+			StringLiteral,
+			ObjectLiteral,
+		TypeSpecifier,
+		FunctionType,
 
-	Declaration,
-		ClassDecl,
-		EnumDecl,
-		InterfaceDecl,
-		TypedefDecl,
-		FunctionDecl,
-		VariableDecl,
-		TypenameDecl,
+		Declaration,
+			ClassDecl,
+			EnumDecl,
+			InterfaceDecl,
+			TypedefDecl,
+			FunctionDecl,
+			VariableDecl,
+			TypenameDecl,
 
-	Statement,
-		DeclarativeStmt,
-		ExpressionStmt,
-		IterativeStmt,
-			ForStmt,
-			ForeachStmt,
-			WhileStmt,
-		SelectionStmt,
-			IfElseStmt,
-			SwitchStmt,
-		BranchStmt,
+		Statement,
+			DeclarativeStmt,
+			ExpressionStmt,
+			IterativeStmt,
+				ForStmt,
+				ForeachStmt,
+				WhileStmt,
+			SelectionStmt,
+				IfElseStmt,
+				SwitchStmt,
+			BranchStmt,
 
-	Expression,
-		PrimaryExpr,
-		UnaryExpr,
-		BinaryExpr,
-		TernaryExpr,
-		MemberExpr,
-		CallExpr,
-		CastExpr,
+		Expression,
+			PrimaryExpr,
+			UnaryExpr,
+			BinaryExpr,
+			TernaryExpr,
+			MemberExpr,
+			CallExpr,
+			CastExpr,
+	};
 };
 
 // forward declarations of all ASTNode implementations
@@ -716,7 +708,7 @@ inline bool replaceUseWithDispatchImpl(
 } // internal
 
 #define BEGIN_COMPARE() \
-		typedef boost::remove_const<boost::remove_reference<decltype(*this)>::type>::type self_type; \
+		typedef boost::remove_const<boost::remove_pointer<decltype(this)>::type>::type self_type; \
 		if(!boost::mpl::contains<internal::ASTNodeInternalTypeVector, self_type>::value) \
 		{ \
 			if(visited.count(this)) \
@@ -729,7 +721,7 @@ inline bool replaceUseWithDispatchImpl(
 			return false;
 
 #define BEGIN_COMPARE_WITH_BASE(base_class_name) \
-		typedef boost::remove_const<boost::remove_reference<decltype(*this)>::type>::type self_type; \
+		typedef boost::remove_const<boost::remove_pointer<decltype(this)>::type>::type self_type; \
 		const self_type* __p = cast<const self_type>(&rhs); \
 		if(__p == NULL) \
 			return false; \

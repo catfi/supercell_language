@@ -77,10 +77,18 @@ struct TypenameDecl : public Declaration
 
     virtual ASTNode* clone() const
     {
-    	return new TypenameDecl(
+    	TypenameDecl* cloned = new TypenameDecl(
     			(name) ? cast<Identifier>(name->clone()) : NULL,
     			(specialized_type) ? cast<TypeSpecifier>(specialized_type->clone()) : NULL,
     			(default_type) ? cast<Expression>(default_type->clone()) : NULL);
+
+        if(annotations != NULL)
+        {
+            Annotations* anno = cast<Annotations>(annotations->clone());
+            cloned->setAnnotations(anno);
+        }
+
+        return cloned;
     }
 
     template<typename Archive>

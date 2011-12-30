@@ -89,8 +89,12 @@ struct NameManglingVisitor : Visitor<ASTNode, void, VisitorImplementation::recur
 {
 	CREATE_INVOKER(mangleInvoker, mangle)
 
-	NameManglingVisitor() : mInsideUptrace(false), mInsideComboName(false), mParamDepth(0),
-			mModeCallByValue(false), mCurrentOutStream(&mOutStream)
+	NameManglingVisitor() :
+        mInsideUptrace(false),
+        mInsideComboName(false),
+        mParamDepth(0),
+        mModeCallByValue(false),
+        mCurrentOutStream(&mOutStream)
 	{
 		REGISTER_ALL_VISITABLE_ASTNODE(mangleInvoker)
 	}
@@ -283,14 +287,14 @@ struct NameManglingVisitor : Visitor<ASTNode, void, VisitorImplementation::recur
 		case TypeSpecifier::ReferredType::PRIMITIVE:
 			switch(node.referred.primitive)
 			{
-			case PrimitiveType::VOID:    outStream() << "v"; break;
-			case PrimitiveType::BOOL:    outStream() << "b"; break;
-			case PrimitiveType::INT8:    outStream() << "c"; break;
-			case PrimitiveType::INT16:   outStream() << "s"; break;
-			case PrimitiveType::INT32:   outStream() << "l"; /* or 'i' ? */ break;
-			case PrimitiveType::INT64:   outStream() << "x"; break;
-			case PrimitiveType::FLOAT32: outStream() << "f"; break;
-			case PrimitiveType::FLOAT64: outStream() << "d"; break;
+			case PrimitiveType::VOID_TYPE:    outStream() << "v"; break;
+			case PrimitiveType::BOOL_TYPE:    outStream() << "b"; break;
+			case PrimitiveType::INT8_TYPE:    outStream() << "c"; break;
+			case PrimitiveType::INT16_TYPE:   outStream() << "s"; break;
+			case PrimitiveType::INT32_TYPE:   outStream() << "l"; /* or 'i' ? */ break;
+			case PrimitiveType::INT64_TYPE:   outStream() << "x"; break;
+			case PrimitiveType::FLOAT32_TYPE: outStream() << "f"; break;
+			case PrimitiveType::FLOAT64_TYPE: outStream() << "d"; break;
 			default: UNREACHABLE_CODE();
 			}
 			break;
@@ -336,7 +340,6 @@ struct NameManglingVisitor : Visitor<ASTNode, void, VisitorImplementation::recur
 	std::stringstream mOutStream;
 
 private:
-	std::stringstream* mCurrentOutStream;
 
 	std::ostream& outStream()
 	{
@@ -415,6 +418,7 @@ private:
 	bool mInsideComboName;
 	int mParamDepth;
 	bool mModeCallByValue;
+	std::stringstream* mCurrentOutStream;
 
 	class AliasMgr
 	{
@@ -505,7 +509,7 @@ private:
 
 	void mangleVoid()
 	{
-		TypeSpecifier type_specifier(PrimitiveType::VOID);
+		TypeSpecifier type_specifier(PrimitiveType::VOID_TYPE);
 		visit(type_specifier);
 	}
 

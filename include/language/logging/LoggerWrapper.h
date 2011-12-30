@@ -27,7 +27,7 @@
 
 namespace zillians { namespace language {
 
-class StringTable;
+struct StringTable;
 class Logger;
 
 /**
@@ -53,7 +53,7 @@ class LoggerWrapper : public Singleton<LoggerWrapper, SingletonInitialization::a
 	// and we tried to avoid exposing log() to the external users except generated implementations (Logger and StringTable),
 	// so that's why we use evil "friend" here
 	friend class Logger;
-	friend class StringTable;
+	friend struct StringTable;
 
 public:
 	LoggerWrapper();

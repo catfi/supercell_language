@@ -34,6 +34,7 @@
 #include "language/tree/ASTNodeSerialization.h"
 #include "language/stage/serialization/detail/ASTSerializationHelper.h"
 
+#define SO_EXTENSION	".so"
 #define AST_EXTENSION 	".ast"
 #define BC_EXTENSION 	".bc"
 
@@ -445,14 +446,19 @@ bool ThorScriptDriver::build()
 
 bool ThorScriptDriver::generateBundle(const ThorScriptDriver::STRIP_TYPE isStrip)
 {
+    namespace fs = boost::filesystem;
     UNUSED_ARGUMENT(isStrip);
 
     std::string cmd(getStageExecutable("ts-bundle") + " -m manifest.xml");
     cmd += " -o " + (buildPath / "bin" / (pm.name + ".bundle")).string();
     std::vector<std::string> bundledFiles = getFilesUnderBuild(AST_EXTENSION);
     std::vector<std::string> bcFiles = getFilesUnderBuild(BC_EXTENSION);
+    fs::path soPath = buildPath / "bin" / (pm.name + SO_EXTENSION);
 
     bundledFiles.insert(bundledFiles.end(), bcFiles.begin(), bcFiles.end());
+    if (fs::exists(soPath))
+    	bundledFiles.push_back(soPath.generic_string());
+
     foreach(i, bundledFiles)
     {
         cmd += " ";

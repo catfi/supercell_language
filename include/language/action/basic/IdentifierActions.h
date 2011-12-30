@@ -114,7 +114,8 @@ struct template_param_identifier
 					case 1: default_type     = boost::get<Expression*>(optional_variant); break;
 					}
 				}
-				cast<TemplatedIdentifier>(_result)->append(new TypenameDecl(ident, specialized_type, default_type));
+                TypenameDecl* typename_decl = new TypenameDecl(ident, specialized_type, default_type); BIND_CACHED_LOCATION(typename_decl);
+				cast<TemplatedIdentifier>(_result)->append(typename_decl);
 			}
 		}
 		else

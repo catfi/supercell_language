@@ -33,73 +33,73 @@ struct LLVMHelper
 	LLVMHelper(llvm::LLVMContext& context) : mContext(context)
 	{ }
 
-	bool getType(PrimitiveType::type type, /*OUT*/ const llvm::Type*& result, /*OUT*/ llvm::Attributes& modifier)
+	bool getType(PrimitiveType::type type, /*OUT*/ llvm::Type*& result, /*OUT*/ llvm::Attributes& modifier)
 	{
 		bool resolved = false;
 
 		switch(type)
 		{
-		case PrimitiveType::OBJECT:
+		case PrimitiveType::OBJECT_TYPE:
 		{
 			// return generic object type, which is an signed int32
 			modifier |= llvm::Attribute::SExt;
 			result = llvm::IntegerType::getInt32Ty(mContext);
 			resolved = true; break;
 		}
-		case PrimitiveType::FUNCTION:
+		case PrimitiveType::FUNCTION_TYPE:
 		{
 			// TODO return pointer to function type
 			result = NULL;
 			resolved = true; break;
 		}
-		case PrimitiveType::STRING:
+		case PrimitiveType::STRING_TYPE:
 		{
 			// TODO return pointer to function type
 			modifier |= llvm::Attribute::SExt;
 			result = llvm::IntegerType::getInt32Ty(mContext);
 			resolved = true; break;
 		}
-		case PrimitiveType::VOID:
+		case PrimitiveType::VOID_TYPE:
 		{
 			result = llvm::Type::getVoidTy(mContext);
 			resolved = true; break;
 		}
-		case PrimitiveType::BOOL:
+		case PrimitiveType::BOOL_TYPE:
 		{
 			modifier |= llvm::Attribute::ZExt;
 			result = llvm::IntegerType::getInt8Ty(mContext);
 			resolved = true; break;
 		}
-		case PrimitiveType::INT8:
+		case PrimitiveType::INT8_TYPE:
 		{
 			modifier |= llvm::Attribute::SExt;
 			result = llvm::IntegerType::getInt8Ty(mContext);
 			resolved = true; break;
 		}
-		case PrimitiveType::INT16:
+		case PrimitiveType::INT16_TYPE:
 		{
 			modifier |= llvm::Attribute::SExt;
 			result = llvm::IntegerType::getInt16Ty(mContext);
 			resolved = true; break;
 		}
-		case PrimitiveType::INT32:
+		case PrimitiveType::INT32_TYPE:
 		{
 			modifier |= llvm::Attribute::SExt;
 			result = llvm::IntegerType::getInt32Ty(mContext);
 			resolved = true; break;
 		}
-		case PrimitiveType::INT64:
+		case PrimitiveType::INT64_TYPE:
 		{
 			//modifier |= llvm::Attribute::SExt;
 			result = llvm::IntegerType::getInt64Ty(mContext);
 			resolved = true; break;
 		}
-		case PrimitiveType::FLOAT32:
+		case PrimitiveType::FLOAT32_TYPE:
 		{
 			result = llvm::Type::getFloatTy(mContext);
 			resolved = true; break;
 		}
-		case PrimitiveType::FLOAT64:
+		case PrimitiveType::FLOAT64_TYPE:
 		{
 			result = llvm::Type::getDoubleTy(mContext);
 			resolved = true; break;
@@ -115,7 +115,7 @@ struct LLVMHelper
 		return resolved;
 	}
 
-	bool getType(TypeSpecifier& specifier, /*OUT*/ const llvm::Type*& result, /*OUT*/ llvm::Attributes& modifier)
+	bool getType(TypeSpecifier& specifier, /*OUT*/ llvm::Type*& result, /*OUT*/ llvm::Attributes& modifier)
 	{
 		bool resolved = false;
 
@@ -171,10 +171,10 @@ struct LLVMHelper
 		return resolved;
 	}
 
-	bool getFunctionType(FunctionType& ast_function_type, /*OUT*/ const llvm::Type*& llvm_function_type)
+	bool getFunctionType(FunctionType& ast_function_type, /*OUT*/ llvm::Type*& llvm_function_type)
 	{
 		// prepare LLVM function return type
-		const llvm::Type* llvm_function_return_type = NULL;
+		llvm::Type* llvm_function_return_type = NULL;
 		{
 			llvm::Attributes attr = llvm::Attribute::None;
 			if(!getType(*ast_function_type.return_type, llvm_function_return_type, attr))
@@ -187,12 +187,12 @@ struct LLVMHelper
 			foreach(i, ast_function_type.parameter_types)
 			{
 				llvm::Attributes attr = llvm::Attribute::None;
-				const llvm::Type* t = NULL;
+				llvm::Type* t = NULL;
 
 				if(!getType(**i, t, attr))
 					return false;
 
-				function_parameter_types.push_back( const_cast<llvm::Type*>(t) );
+				function_parameter_types.push_back(t);
 			}
 		}
 
@@ -205,7 +205,7 @@ struct LLVMHelper
 	bool getFunctionType(FunctionDecl& ast_function, /*OUT*/ llvm::FunctionType*& llvm_function_type, /*OUT*/ std::vector<llvm::AttributeWithIndex>& llvm_function_type_attributes)
 	{
 		// prepare LLVM function return type
-		const llvm::Type* llvm_function_return_type = NULL;
+		llvm::Type* llvm_function_return_type = NULL;
 		{
 			llvm::Attributes attr = llvm::Attribute::None;
 			if(!getType(*ast_function.type, llvm_function_return_type, attr))
@@ -222,12 +222,12 @@ struct LLVMHelper
 			foreach(i, ast_function.parameters)
 			{
 				llvm::Attributes attr = llvm::Attribute::None;
-				const llvm::Type* t = NULL;
+				llvm::Type* t = NULL;
 
 				if(!getType(*((*i)->type), t, attr))
 					return false;
 
-				function_parameter_types.push_back(const_cast<llvm::Type*>(t));
+				function_parameter_types.push_back(t);
 				if(attr != llvm::Attribute::None)
 					llvm_function_type_attributes.push_back(llvm::AttributeWithIndex::get(index, attr));
 

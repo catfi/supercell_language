@@ -25,6 +25,7 @@
 #include "language/tree/visitor/ASTGraphvizGenerator.h"
 #include "language/context/TransformerContext.h"
 #include "language/context/ResolverContext.h"
+#include "language/stage/parser/context/SourceInfoContext.h"
 
 namespace zillians { namespace language { namespace stage { namespace visitor {
 
@@ -33,10 +34,10 @@ namespace zillians { namespace language { namespace stage { namespace visitor {
 //////////////////////////////////////////////////////////////////////////////
 
 void ASTGraphvizNodeGenerator::addNode(ASTNode& node,
-             const std::wstring& label,
+             std::wstring label,
              const std::wstring& shape,
              const std::wstring& borderColor,
-             const std::wstring& fillColor)
+             std::wstring fillColor)
 {
     std::wstring color = borderColor;
     int penwidth = 1;
@@ -47,8 +48,16 @@ void ASTGraphvizNodeGenerator::addNode(ASTNode& node,
         penwidth = 4;
     }
 
+    if(zillians::language::stage::SourceInfoContext::get(&node) == NULL)
+    {
+        fillColor = L"green";
+    }
+
     stream << L"    n" << std::hex << &node << L" [label=\"" << node.instanceName();
-    if(label != L"") stream << L" : " << label ;
+    if(label != L"") {
+        boost::algorithm::replace_all(label, "\"", "\\\"");
+        stream << L" : " << label ;
+    }
     stream << L"\"";
 
     if(shape       != L"") stream << L", shape=\""                       << shape       << "\"";

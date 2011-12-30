@@ -322,14 +322,14 @@ private:
 	{
 		BOOST_ASSERT(node && "null pointer exception");
 		return node->type == TypeSpecifier::ReferredType::PRIMITIVE
-				&& node->referred.primitive == PrimitiveType::VOID;
+				&& node->referred.primitive == PrimitiveType::VOID_TYPE;
 	}
 
 	static bool isEllipsis(TypeSpecifier* node)
 	{
 		BOOST_ASSERT(node && "null pointer exception");
 		return node->type == TypeSpecifier::ReferredType::PRIMITIVE
-				&& node->referred.primitive == PrimitiveType::VARIADIC_ELLIPSIS;
+				&& node->referred.primitive == PrimitiveType::VARIADIC_ELLIPSIS_TYPE;
 	}
 
 	template<class T>

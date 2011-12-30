@@ -309,7 +309,7 @@ private:
 	{
 		BOOST_ASSERT(node && "null pointer exception");
 		return node->type == TypeSpecifier::ReferredType::PRIMITIVE
-				&& node->referred.primitive == PrimitiveType::VARIADIC_ELLIPSIS;
+				&& node->referred.primitive == PrimitiveType::VARIADIC_ELLIPSIS_TYPE;
 	}
 
 	static void verifyDupeName(ASTNode* node)

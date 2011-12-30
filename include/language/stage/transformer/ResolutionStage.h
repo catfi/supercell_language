@@ -53,10 +53,12 @@ private:
 	bool disable_type_inference;
 	std::size_t total_unresolved_count_type;
 	std::size_t total_unresolved_count_symbol;
-	__gnu_cxx::hash_set<tree::ASTNode*> unresolved_symbols;
-	__gnu_cxx::hash_set<tree::ASTNode*> unresolved_types;
+
+	unordered_set<tree::ASTNode*> unresolved_symbols;
+	unordered_set<tree::ASTNode*> unresolved_types;
 	bool dump_graphviz;
-    std::string dump_graphviz_dir;
+	std::string dump_graphviz_dir;
+	bool keep_going;
 };
 
 } } }

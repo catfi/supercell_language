@@ -84,7 +84,10 @@ struct Annotation : public ASTNode
     }
 
 	SimpleIdentifier* name;
-	std::vector<std::pair<SimpleIdentifier*/*key*/, ASTNode*/*value*/>> attribute_list;
+	std::vector<std::pair<SimpleIdentifier* /*key*/, 
+		                  ASTNode* /*value*/
+	                     >
+	           > attribute_list;
 
 protected:
 	Annotation() { }

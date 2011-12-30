@@ -45,6 +45,7 @@ namespace zillians { namespace language { namespace stage {
 
 #define THORSCRIPT_BITCODE_EXTENSION	".bc"
 #define THORSCRIPT_AST_EXTENSION		".ast"
+#define THORSCRIPT_SO_EXTENSION			".so"
 #define THORSCRIPT_DEFAULT_BUNDLE_NAME	"output.bundle"
 #define THORSCRIPT_AST_TEMP_MERGED_FILE "ast_merged_tmp"
 #define THORSCRIPT_BC_TMP_MERGED_FILE	"bc_merged_tmp"
@@ -226,7 +227,7 @@ bool ThorScriptBundleStage::compress(bool& continue_execution)
 	{
 		ArchiveItem_t other_item;
 
-		other_item.filename = *i;
+		other_item.filename = getRandomFileName(THORSCRIPT_SO_EXTENSION);
 		initializeZipInfo(other_item.zip_info);
 		getFileBuffer(*i, other_item.buffer);
 		if (other_item.buffer.size() > 0)

@@ -33,4 +33,4 @@ configure_file(include/vw/services/api/logger/LoggerApi.zs ${ZILLIANS_INC}/Logge
 configure_file(include/vw/services/api/database/DatabaseApi.zs ${ZILLIANS_INC}/DatabaseApi.zs)
 
 ADD_SUBDIRECTORY(src)
-ADD_SUBDIRECTORY(test)
+#ADD_SUBDIRECTORY(test)

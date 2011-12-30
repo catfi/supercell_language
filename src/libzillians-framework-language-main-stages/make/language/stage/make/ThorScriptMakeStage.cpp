@@ -110,14 +110,14 @@ std::string ThorScriptMakeStage::genCompileCmd(boost::graph_traits<TangleGraphTy
     std::string cmd = (executablePath / "ts-compile").string();
 
     // TODO pass the buildType to ts-compile
-    //if(buildType == BUILD_TYPE::DEBUG)
-    //{
-    //    cmd += "--debug ";
-    //}
-    //else
-    //{
-    //    cmd += "--release ";
-    //}
+    if(buildType == BUILD_TYPE::DEBUG)
+    {
+        cmd += " --debug ";
+    }
+    else
+    {
+        cmd += " --release ";
+    }
 
     // source files
     std::set<std::string>& sourceFiles = g[v];

@@ -55,7 +55,7 @@ ThorScriptCompiler::ThorScriptCompiler() : stage::StageBuilder(true)
 			StaticTestVerificationStage,
 			ManglingStage,
 			LLVMGeneratorStage,
-//			LLVMDebugInfoGeneratorStage,
+			LLVMDebugInfoGeneratorStage,
 			LLVMBitCodeGeneratorStage,
 			ASTSerializationStage>>();
 
@@ -110,6 +110,18 @@ ThorScriptCompiler::ThorScriptCompiler() : stage::StageBuilder(true)
             ImplicitConversionStage,
 			SemanticVerificationStage1,
 			StaticTestVerificationStage>>("mode-semantic-verify-1", "for semantic verification stage 1");
+
+	addMode<
+		boost::mpl::vector<
+			ThorScriptParserStage,
+			ASTDeserializationStage,
+			SemanticVerificationStage0,
+			LiteralCompactionStage,
+			RestructureStage,
+			ResolutionStage,
+            //ImplicitConversionStage,
+			//SemanticVerificationStage1,
+			StaticTestVerificationStage>>("mode-resolution-test", "for resolution test");
 }
 
 ThorScriptCompiler::~ThorScriptCompiler()

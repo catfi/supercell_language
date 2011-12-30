@@ -28,6 +28,8 @@
 #include <boost/filesystem.hpp>
 #include <boost/algorithm/string.hpp>
 
+#include <cwchar>
+
 namespace classic = boost::spirit::classic;
 namespace qi = boost::spirit::qi;
 
@@ -190,7 +192,11 @@ bool ThorScriptParserStage::execute(bool& continue_execution)
 	foreach(i, inputs)
 	{
 		boost::filesystem::path p(*i);
+#if defined(_WIN32)
+		if(wcscmp(p.extension().c_str(), L".t") == 0)
+#else
 		if(strcmp(p.extension().c_str(), ".t") == 0)
+#endif
 			if(!parse(p))
 				return false;
 	}

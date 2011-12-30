@@ -81,7 +81,7 @@ struct ResolutionStageVisitor : public GenericDoubleVisitor
 
 		if(!ResolvedType::get(&node))
 		{
-			ResolvedType::set(&node, getInternalPrimitiveType(PrimitiveType::OBJECT));
+			ResolvedType::set(&node, getInternalPrimitiveType(PrimitiveType::OBJECT_TYPE));
 			++resolved_count;
 		}
 	}
@@ -92,7 +92,7 @@ struct ResolutionStageVisitor : public GenericDoubleVisitor
 
 		if(!ResolvedType::get(&node))
 		{
-			ResolvedType::set(&node, getInternalPrimitiveType(PrimitiveType::STRING));
+			ResolvedType::set(&node, getInternalPrimitiveType(PrimitiveType::STRING_TYPE));
 			++resolved_count;
 		}
 	}
@@ -283,8 +283,8 @@ struct ResolutionStageVisitor : public GenericDoubleVisitor
 		// we don't try to resolve types for function template
 		if(isa<TemplatedIdentifier>(node.name))
 		{
-			if(!cast<TemplatedIdentifier>(node.name)->isFullySpecialized())
-				return;
+			//if(!cast<TemplatedIdentifier>(node.name)->isFullySpecialized())
+			//	return;
 
 			resolver.enterScope(*node.name);
 			resolver.enterScope(node);
@@ -315,8 +315,12 @@ struct ResolutionStageVisitor : public GenericDoubleVisitor
 		}
 
 		// visit all statements in the function block, which might contain resolvable type or symbol
-		if(node.block)
-			visit(*node.block);
+        if(!isa<TemplatedIdentifier>(node.name) ||
+           cast<TemplatedIdentifier>(node.name)->isFullySpecialized())
+        {
+            if(node.block)
+                visit(*node.block);
+        }
 
 		// leaving FunctionDecl scope
 		if(isa<TemplatedIdentifier>(node.name))
@@ -389,9 +393,9 @@ struct ResolutionStageVisitor : public GenericDoubleVisitor
 			if(!node.result)
 			{
 				// if the result node is invalid, we should check if the function's return type is also void, otherwise it's invalid
-				if(function_return_type->isPrimitiveType() && function_return_type->referred.primitive == PrimitiveType::VOID)
+				if(function_return_type->isPrimitiveType() && function_return_type->referred.primitive == PrimitiveType::VOID_TYPE)
 				{
-					propogateType(node, *getInternalPrimitiveType(PrimitiveType::VOID));
+					propogateType(node, *getInternalPrimitiveType(PrimitiveType::VOID_TYPE));
 				}
 				else
 				{
@@ -464,7 +468,7 @@ struct ResolutionStageVisitor : public GenericDoubleVisitor
 		}
 		else if(node.opcode == UnaryExpr::OpCode::LOGICAL_NOT)
 		{
-			propogateType(node, *getInternalPrimitiveType(PrimitiveType::BOOL));
+			propogateType(node, *getInternalPrimitiveType(PrimitiveType::BOOL_TYPE));
 		}
 		else
 		{
@@ -523,7 +527,7 @@ struct ResolutionStageVisitor : public GenericDoubleVisitor
 		else if(node.isComparison() || node.isLogical())
 		{
 			// comparison should always yield boolean type
-			propogateType(node, *getInternalPrimitiveType(PrimitiveType::BOOL));
+			propogateType(node, *getInternalPrimitiveType(PrimitiveType::BOOL_TYPE));
 		}
 		else
 		{
@@ -539,6 +543,9 @@ struct ResolutionStageVisitor : public GenericDoubleVisitor
 		// TODO get synthesized type from true node and false node (which should be compatible and casted to the same type)
 	}
 
+    // There are two kinds of flows:
+    // a) node.node is     a identifier,                   for example: a.b.c();
+    // b) node.node is not a identifier, but a expression, for example: g()(); where g() return a function(lambda)
 	void resolve(CallExpr& node)
 	{
 		revisit(node);
@@ -600,6 +607,10 @@ struct ResolutionStageVisitor : public GenericDoubleVisitor
 	{
 		if(type == Target::TYPE_RESOLUTION)
 		{
+			if(node.catagory == PrimaryExpr::Catagory::IDENTIFIER)
+            {
+                visit(*node.value.identifier);
+            }
 			// there's no type needed to be resolved inside a primary expression
 			// do nothing
 		}
@@ -1111,7 +1122,7 @@ private:
 			return;
 		}
 
-		if(specifier->referred.primitive != PrimitiveType::BOOL)
+		if(specifier->referred.primitive != PrimitiveType::BOOL_TYPE)
 		{
 			transforms.push_back([=]{
 				ASTNode* parent = node->parent; // save the parent pointer for later use
@@ -1130,7 +1141,7 @@ public:
 	Target::type type;
 	Resolver& resolver;
 
-	__gnu_cxx::hash_set<ASTNode*> unresolved_nodes;
+	unordered_set<ASTNode*> unresolved_nodes;
 	std::size_t resolved_count;
 	std::size_t unresolved_count;
 

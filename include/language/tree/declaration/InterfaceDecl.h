@@ -64,6 +64,12 @@ struct InterfaceDecl : public Declaration
     {
     	InterfaceDecl* cloned = new InterfaceDecl((name) ? cast<Identifier>(name->clone()) : NULL);
 
+        if(annotations != NULL)
+        {
+            Annotations* anno = cast<Annotations>(annotations->clone());
+            cloned->setAnnotations(anno);
+        }
+
     	foreach(i, member_functions)
     		cloned->addFunction((*i) ? cast<FunctionDecl>((*i)->clone()) : NULL);
 
