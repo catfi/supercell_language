@@ -1,6 +1,0 @@
-A stage represents a specific state of the AST tree. During each stage, we have different level of completeness of the AST tree and as we apply transformation/visitor/pass to the tree, we increase the level of completeness every time. 
-
-So for stage0, the state of AST tree is just created by the parser directly, so there's minimal semantic check we can do because the program itself is still quite incomplete. For example, we don't have complete type information since there's type inference system in ThorScript.  
-In order to advance to stage1, we have to deduce all types and replace all member access with correct references to either namespace or type or member variable/function.
-
-Also we have to create specializations for templates, so that there's no unspecified types in stage1.

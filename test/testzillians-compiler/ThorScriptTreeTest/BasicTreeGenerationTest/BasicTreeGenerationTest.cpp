@@ -17,14 +17,25 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
+#include <iostream>
+#include <string>
 #include "core/Prerequisite.h"
+#include "utility/UnicodeUtil.h"
 #include "language/tree/ASTNode.h"
 #include "language/tree/ASTNodeFactory.h"
-#include "language/tree/visitor/general/GarbageCollectionVisitor.h"
+#include "language/tree/visitor/GarbageCollectionVisitor.h"
 #include "../ASTNodeSamples.h"
 #include <iostream>
 #include <string>
 #include <limits>
+
+// boost test don't support wstring
+// see https://svn.boost.org/trac/boost/ticket/1136
+namespace std {
+    inline std::ostream& operator<<(std::ostream& os, const std::wstring& s) {
+        return os << zillians::ws_to_s(s) ;
+    }
+}
 
 #define BOOST_TEST_MODULE ThorScriptTreeTest_BasicTreeGenerationTest
 #define BOOST_TEST_MAIN
@@ -39,13 +50,13 @@ BOOST_AUTO_TEST_SUITE( ThorScriptTreeTest_BasicTreeGenerationTestSuite )
 BOOST_AUTO_TEST_CASE( ThorScriptTreeTest_BasicTreeGenerationTestCase1_IsA )
 {
 	{
-		ASTNode *node = new Program(new Package(new SimpleIdentifier(L"")));
-		BOOST_CHECK(isa<Program>(node));
+		ASTNode *node = new Source("test-source.t", new Package(new SimpleIdentifier(L"")));
+		BOOST_CHECK(isa<Source>(node));
 		BOOST_CHECK(!isa<Literal>(node));
 	}
 
 	{
-		ASTNode *node = new BinaryExpr(BinaryExpr::OpCode::ASSIGN, new PrimaryExpr(new SimpleIdentifier(L"abc")), new PrimaryExpr(new NumericLiteral((uint64)123L)));
+		ASTNode *node = new BinaryExpr(BinaryExpr::OpCode::ASSIGN, new PrimaryExpr(new SimpleIdentifier(L"abc")), new PrimaryExpr(new NumericLiteral((int64)123L)));
 		BOOST_CHECK(isa<Expression>(node));
 		BOOST_CHECK(isa<BinaryExpr>(node));
 	}
@@ -56,7 +67,7 @@ BOOST_AUTO_TEST_CASE( ThorScriptTreeTest_BasicTreeGenerationTestCase1_IsA )
 	}
 
 	{
-		VariableDecl* node = new VariableDecl(new SimpleIdentifier(L"test"), new TypeSpecifier(PrimitiveType::FLOAT32), false, false, true, Declaration::VisibilitySpecifier::DEFAULT);
+		VariableDecl* node = new VariableDecl(new SimpleIdentifier(L"test"), new TypeSpecifier(PrimitiveType::FLOAT32_TYPE), false, false, true, Declaration::VisibilitySpecifier::DEFAULT);
 		BOOST_CHECK(isa<VariableDecl>(node));
 		BOOST_CHECK(isa<Declaration>(node));
 	}
@@ -65,13 +76,13 @@ BOOST_AUTO_TEST_CASE( ThorScriptTreeTest_BasicTreeGenerationTestCase1_IsA )
 BOOST_AUTO_TEST_CASE( ThorScriptTreeTest_BasicTreeGenerationTestCase2 )
 {
 	{
-		Program* program = new Program(new Package(new SimpleIdentifier(L"")));
-		BOOST_CHECK(program->root->id->toString() == L"<empty>");
+		Source* program = new Source("test-source.t", new Package(new SimpleIdentifier(L"")));
+		BOOST_CHECK_EQUAL(program->root->id->toString(), L"");
 	}
 
 	{
-		Program* program = new Program();
-		BOOST_CHECK(program->root->id->toString() == L"<empty>"); // the default package name is "<empty>"
+		Source* program = new Source("test-source.t");
+		BOOST_CHECK_EQUAL(program->root->id->toString(), L""); // the default package name is ""
 	}
 }
 
@@ -80,48 +91,48 @@ BOOST_AUTO_TEST_CASE( ThorScriptTreeTest_BasicTreeGenerationTestCase3 )
 	// test arithmetic promotion
 	{
 		bool precision_loss = false;
-		PrimitiveType::type promoted = PrimitiveType::promote(PrimitiveType::INT8, PrimitiveType::INT8, precision_loss);
-		BOOST_CHECK(promoted == PrimitiveType::INT8);
+		PrimitiveType::type promoted = PrimitiveType::promote(PrimitiveType::INT8_TYPE, PrimitiveType::INT8_TYPE, precision_loss);
+		BOOST_CHECK(promoted == PrimitiveType::INT8_TYPE);
 		BOOST_CHECK(precision_loss == false);
 	}
 
 	{
 		bool precision_loss = false;
-		PrimitiveType::type promoted = PrimitiveType::promote(PrimitiveType::INT16, PrimitiveType::INT16, precision_loss);
-		BOOST_CHECK(promoted == PrimitiveType::INT16);
+		PrimitiveType::type promoted = PrimitiveType::promote(PrimitiveType::INT16_TYPE, PrimitiveType::INT16_TYPE, precision_loss);
+		BOOST_CHECK(promoted == PrimitiveType::INT16_TYPE);
 		BOOST_CHECK(precision_loss == false);
 	}
 
 	{
 		bool precision_loss = false;
-		PrimitiveType::type promoted = PrimitiveType::promote(PrimitiveType::INT32, PrimitiveType::INT32, precision_loss);
-		BOOST_CHECK(promoted == PrimitiveType::INT32);
+		PrimitiveType::type promoted = PrimitiveType::promote(PrimitiveType::INT32_TYPE, PrimitiveType::INT32_TYPE, precision_loss);
+		BOOST_CHECK(promoted == PrimitiveType::INT32_TYPE);
 		BOOST_CHECK(precision_loss == false);
 	}
 
 	{
 		bool precision_loss = false;
-		PrimitiveType::type promoted = PrimitiveType::promote(PrimitiveType::INT64, PrimitiveType::INT64, precision_loss);
-		BOOST_CHECK(promoted == PrimitiveType::INT64);
+		PrimitiveType::type promoted = PrimitiveType::promote(PrimitiveType::INT64_TYPE, PrimitiveType::INT64_TYPE, precision_loss);
+		BOOST_CHECK(promoted == PrimitiveType::INT64_TYPE);
 		BOOST_CHECK(precision_loss == false);
 	}
 
 	{
 		bool precision_loss = false;
-		PrimitiveType::type promoted = PrimitiveType::promote(PrimitiveType::INT8, PrimitiveType::INT16, precision_loss);
-		BOOST_CHECK(promoted == PrimitiveType::INT16);
+		PrimitiveType::type promoted = PrimitiveType::promote(PrimitiveType::INT8_TYPE, PrimitiveType::INT16_TYPE, precision_loss);
+		BOOST_CHECK(promoted == PrimitiveType::INT16_TYPE);
 		BOOST_CHECK(precision_loss == false);
 	}
 	{
 		bool precision_loss = false;
-		PrimitiveType::type promoted = PrimitiveType::promote(PrimitiveType::INT8, PrimitiveType::INT32, precision_loss);
-		BOOST_CHECK(promoted == PrimitiveType::INT32);
+		PrimitiveType::type promoted = PrimitiveType::promote(PrimitiveType::INT8_TYPE, PrimitiveType::INT32_TYPE, precision_loss);
+		BOOST_CHECK(promoted == PrimitiveType::INT32_TYPE);
 		BOOST_CHECK(precision_loss == false);
 	}
 	{
 		bool precision_loss = false;
-		PrimitiveType::type promoted = PrimitiveType::promote(PrimitiveType::INT8, PrimitiveType::INT64, precision_loss);
-		BOOST_CHECK(promoted == PrimitiveType::INT64);
+		PrimitiveType::type promoted = PrimitiveType::promote(PrimitiveType::INT8_TYPE, PrimitiveType::INT64_TYPE, precision_loss);
+		BOOST_CHECK(promoted == PrimitiveType::INT64_TYPE);
 		BOOST_CHECK(precision_loss == false);
 	}
 }

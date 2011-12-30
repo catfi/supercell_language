@@ -92,6 +92,12 @@ struct FunctionDecl : public Declaration
     			is_member, is_static, visibility,
     			(block) ? cast<Block>(block->clone()) : NULL);
 
+        if(annotations != NULL)
+        {
+            Annotations* anno = cast<Annotations>(annotations->clone());
+            cloned->setAnnotations(anno);
+        }
+
     	foreach(i, parameters)
     		cloned->appendParameter(cast<VariableDecl>((*i)->clone()));
 
@@ -101,6 +107,8 @@ struct FunctionDecl : public Declaration
     template<typename Archive>
     void serialize(Archive& ar, const unsigned int version)
     {
+    	UNUSED_ARGUMENT(version);
+
     	ar & boost::serialization::base_object<Declaration>(*this);
     	ar & parameters;
     	ar & type;

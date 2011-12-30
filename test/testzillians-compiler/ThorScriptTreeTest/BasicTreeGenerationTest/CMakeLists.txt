@@ -21,13 +21,14 @@
 
 INCLUDE_DIRECTORIES(
     ${PROJECT_COMMON_SOURCE_DIR}/include/
-    ${PROJECT_FRAMEWORK_SOURCE_DIR}/include/
+    ${PROJECT_LANGUAGE_SOURCE_DIR}/include/
     )
 
 ADD_EXECUTABLE(ThorScriptTreeTest_BasicTreeGenerationTest BasicTreeGenerationTest.cpp)
 
 TARGET_LINK_LIBRARIES(ThorScriptTreeTest_BasicTreeGenerationTest
     zillians-common-core
+    zillians-framework-language-tree
     )
 
 zillians_add_simple_test(TARGET ThorScriptTreeTest_BasicTreeGenerationTest)

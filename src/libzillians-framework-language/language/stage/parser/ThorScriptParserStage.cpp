@@ -21,17 +21,19 @@
 #include "language/context/ParserContext.h"
 #include "language/grammar/ThorScript.h"
 #include "language/action/SemanticActions.h"
-#include "language/tree/visitor/general/PrettyPrintVisitor.h"
+#include "language/tree/visitor/PrettyPrintVisitor.h"
 #include "language/ThorScriptCompiler.h"
 #include "utility/Foreach.h"
 #include "utility/UnicodeUtil.h"
 #include <boost/filesystem.hpp>
+#include <boost/algorithm/string.hpp>
+
+#include <cwchar>
 
 namespace classic = boost::spirit::classic;
 namespace qi = boost::spirit::qi;
 
 namespace zillians { namespace language { namespace stage {
-
 
 namespace {
 
@@ -49,9 +51,72 @@ static void expand_tabs(const std::wstring& input, std::wstring& output, int num
 	}
 }
 
+// see: http://stackoverflow.com/questions/1746136/how-do-i-normalize-a-pathname-using-boostfilesystem/1750710#1750710
+static boost::filesystem::path resolve(const boost::filesystem::path& p)
+{
+    //p = boost::filesystem::absolute(p);
+    boost::filesystem::path result;
+    for(boost::filesystem::path::iterator it=p.begin();
+        it!=p.end();
+        ++it)
+    {
+        if(*it == "..")
+        {
+            // /a/b/.. is not necessarily /a if b is a symbolic link
+            if(boost::filesystem::is_symlink(result) )
+                result /= *it;
+            // /a/b/../.. is not /a/b/.. under most circumstances
+            // We can end up with ..s in our result because of symbolic links
+            else if(result.filename() == "..")
+                result /= *it;
+            // Otherwise it should be safe to resolve the parent
+            else
+                result = result.parent_path();
+        }
+        else if(*it == ".")
+        {
+            // Ignore
+        }
+        else
+        {
+            // Just cat other path entries
+            result /= *it;
+        }
+    }
+    return result;
 }
 
-ThorScriptParserStage::ThorScriptParserStage() : debug_parser(false), debug_ast(false), debug_ast_with_loc(false), use_relative_path(false)
+static bool enumerate_package(const boost::filesystem::path& root, const boost::filesystem::path& p, std::deque<std::wstring>& sequence)
+{
+	boost::filesystem::path t = p.parent_path();
+
+	while (true)
+	{
+		if (t.empty())
+			return false;
+
+		if (t == root)
+			break;
+		else
+			sequence.push_front(t.stem().wstring());
+
+		t = t.parent_path();
+	}
+
+	return true;
+}
+
+static boost::filesystem::path normalize_path(boost::filesystem::path p)
+{
+	if(p.is_absolute())
+		return resolve(p);
+	else
+		return resolve(boost::filesystem::absolute(p));
+}
+
+}
+
+ThorScriptParserStage::ThorScriptParserStage() : debug_parser(false), debug_ast(false), debug_ast_with_loc(false), use_relative_path(false), dump_graphviz(false)
 { }
 
 ThorScriptParserStage::~ThorScriptParserStage()
@@ -67,13 +132,20 @@ std::pair<shared_ptr<po::options_description>, shared_ptr<po::options_descriptio
 	shared_ptr<po::options_description> option_desc_public(new po::options_description());
 	shared_ptr<po::options_description> option_desc_private(new po::options_description());
 
+	option_desc_public->add_options()
+		("root-dir", po::value<std::string>(), "root source directory");
+
 	foreach(i, option_desc_public->options()) option_desc_private->add(*i);
 
 	option_desc_private->add_options()
 		("debug-parser", "dump parsing tree for debugging purpose")
 		("debug-parser-ast", "dump parsed abstract syntax tree for debugging purpose")
 		("debug-parser-ast-with-loc", "dump parsed abstract syntax tree with location for debugging purpose")
-		("use-relative-path", "use relative file path instead of absolute path (for debugging info generation)");
+		("use-relative-path", "use relative file path instead of absolute path (for debugging info generation)")
+		("dump-graphviz", "dump AST in graphviz format")
+		("dump-graphviz-dir", po::value<std::string>(), "dump AST in graphviz format")
+		("prepand-package", po::value<std::string>(), "prepand package to all sources")
+    ;
 
 	return std::make_pair(option_desc_public, option_desc_private);
 }
@@ -84,6 +156,23 @@ bool ThorScriptParserStage::parseOptions(po::variables_map& vm)
 	debug_ast = (vm.count("debug-parser-ast") > 0);
 	debug_ast_with_loc = (vm.count("debug-parser-ast-with-loc") > 0);
 	use_relative_path = (vm.count("use-relative-path") > 0);
+	dump_graphviz = (vm.count("dump-graphviz") > 0);
+    if(vm.count("dump-graphviz-dir") > 0)
+    {
+        dump_graphviz_dir = vm["dump-graphviz-dir"].as<std::string>();
+    }
+    if(vm.count("prepand-package"))
+    {
+        prepand_package = vm["prepand-package"].as<std::string>();
+    }
+
+	if(vm.count("root-dir") == 0)
+		root_dir = boost::filesystem::current_path() / "src";
+	else
+	{
+		root_dir = vm["root-dir"].as<std::string>();
+		root_dir = normalize_path(root_dir);
+	}
 
 	if(vm.count("input") == 0)
 		return false;
@@ -94,27 +183,88 @@ bool ThorScriptParserStage::parseOptions(po::variables_map& vm)
 
 bool ThorScriptParserStage::execute(bool& continue_execution)
 {
+	UNUSED_ARGUMENT(continue_execution);
+
 	// prepare the global parser context
 	if(!hasParserContext())
 		setParserContext(new ParserContext());
 
-	// prepare the module source info context for the root program node
-   	ModuleSourceInfoContext::set(getParserContext().program, new ModuleSourceInfoContext());
-
-	if(inputs.size() > 0)
-		foreach(i, inputs)
-			if(!parse(*i))
+	foreach(i, inputs)
+	{
+		boost::filesystem::path p(*i);
+#if defined(_WIN32)
+		if(wcscmp(p.extension().c_str(), L".t") == 0)
+#else
+		if(strcmp(p.extension().c_str(), ".t") == 0)
+#endif
+			if(!parse(p))
 				return false;
+	}
+
+
+	if(getParserContext().tangle && (debug_ast || debug_ast_with_loc))
+	{
+		tree::visitor::PrettyPrintVisitor printer(debug_ast_with_loc);
+		printer.visit(*getParserContext().tangle);
+	}
+
 	return true;
 }
 
-bool ThorScriptParserStage::parse(std::string filename)
+bool ThorScriptParserStage::parse(const boost::filesystem::path& p)
 {
-	std::ifstream in(filename, std::ios_base::in);
+	std::deque<std::wstring> parent_sequence;
+	if (!enumerate_package(root_dir, normalize_path(p), parent_sequence))
+	{
+		LOG4CXX_ERROR(LoggerWrapper::ParserStage, "failed to enumerate package for file: " << p.string());
+		return false;
+	}
+
+    if(!prepand_package.empty())
+    {
+        std::vector<std::wstring> v;
+        std::wstring ws = s_to_ws(prepand_package);
+        // boost::split take string as an l-value
+        // can't boost::split(v, s_to_ws(...), ...);
+        boost::split(v, ws, [](const wchar_t c){ return c == L'.'; });
+        parent_sequence.insert(parent_sequence.end(), v.begin(), v.end());
+    }
+
+	getParserContext().active_source = new Source(p.string());
+	SourceInfoContext::set(getParserContext().active_source, new SourceInfoContext(0, 0)); // for logger, just in case
+	getParserContext().active_package = getParserContext().active_source->root;
+
+	// create identifier for later use
+	Identifier* containing_package_id = NULL;
+
+	if(parent_sequence.size() > 0)
+	{
+		NestedIdentifier* id = new NestedIdentifier();
+		foreach(i, parent_sequence)
+		{
+			id->appendIdentifier(new SimpleIdentifier(*i));
+
+			Package* new_package = new Package(new SimpleIdentifier(*i));
+			SourceInfoContext::set(new_package, new SourceInfoContext(0, 0)); // for logger, just in case
+			getParserContext().active_package->addPackage(new_package);
+			getParserContext().active_package = new_package;
+		}
+		containing_package_id = id;
+	}
+	else
+	{
+		containing_package_id = new SimpleIdentifier(L"");
+	}
+
+	// map the created program by the nested identifier as its key
+	getParserContext().tangle->addSource(containing_package_id, getParserContext().active_source);
+
+	std::ifstream in(p.string(), std::ios_base::in);
+
 
 	if(!in.good())
 	{
-		LOG4CXX_ERROR(LoggerWrapper::ParserStage, "failed to open file: " << filename);
+		LOG4CXX_ERROR(LoggerWrapper::ParserStage, "failed to open file: " << p.string());
 		return false;
 	}
 
@@ -126,16 +276,9 @@ bool ThorScriptParserStage::parse(std::string filename)
         s[3] = '\0';
         if (s != std::string("\xef\xbb\xbf"))
         {
-            std::cerr << "parser error: unexpected characters from input file: " << filename << std::endl;
+            std::cerr << "parser error: unexpected characters from input file: " << p.string() << std::endl;
             return false;
         }
-    }
-
-    if(!use_relative_path)
-    {
-    	boost::filesystem::path f(filename);
-    	boost::filesystem::path f_complete = boost::filesystem::absolute(f);
-    	filename = f_complete.string();
     }
 
     std::string source_code_raw;
@@ -151,7 +294,6 @@ bool ThorScriptParserStage::parse(std::string filename)
 
     getParserContext().dump_rule_debug = debug_parser;
     getParserContext().enable_semantic_action = !debug_parser;
-    getParserContext().debug.source_index = ModuleSourceInfoContext::get(getParserContext().program)->addSource(filename);
     getParserContext().debug.line = 1;
     getParserContext().debug.column = 1;
 
@@ -159,7 +301,7 @@ bool ThorScriptParserStage::parse(std::string filename)
 	typedef classic::position_iterator2<std::wstring::iterator> pos_iterator_type;
 	try
 	{
-		pos_iterator_type begin(source_code.begin(), source_code.end(), s_to_ws(filename));
+		pos_iterator_type begin(source_code.begin(), source_code.end(), p.wstring());
 		pos_iterator_type end;
 
 		grammar::ThorScript<pos_iterator_type, action::ThorScriptTreeAction> parser;
@@ -188,11 +330,11 @@ bool ThorScriptParserStage::parse(std::string filename)
 		return false;
 	}
 
-	if(getParserContext().program && (debug_ast || debug_ast_with_loc))
-	{
-		tree::visitor::PrettyPrintVisitor printer(debug_ast_with_loc);
-		printer.visit(*getParserContext().program);
-	}
+    if(dump_graphviz)
+    {
+        boost::filesystem::path p(dump_graphviz_dir);
+        ASTNodeHelper::visualize(getParserContext().tangle, p / "post-parse.dot");
+    }
 
 	return true;
 }

@@ -38,41 +38,36 @@ struct Expression : public ASTNode
 	DEFINE_VISITABLE()
 	DEFINE_HIERARCHY(Expression, (Expression)(ASTNode))
 
-	Expression() : annotations(NULL)
+	Expression()
 	{ }
-
-	void setAnnotation(Annotations* anns)
-	{
-		if(annotations) annotations->parent = NULL;
-		anns->parent = this;
-		annotations = anns;
-	}
 
 	bool isLValue() const { return !isRValue(); }
 	virtual bool isRValue() const = 0;
 
     virtual bool isEqualImpl(const ASTNode& rhs, ASTNodeSet& visited) const
     {
-    	BEGIN_COMPARE()
-		COMPARE_MEMBER(annotations)
-		END_COMPARE()
+    	UNUSED_ARGUMENT(rhs);
+    	UNUSED_ARGUMENT(visited);
+
+    	return true;
     }
 
     virtual bool replaceUseWith(const ASTNode& from, const ASTNode& to, bool update_parent = true)
     {
-    	BEGIN_REPLACE()
-		REPLACE_USE_WITH(annotations)
-    	END_REPLACE()
+    	UNUSED_ARGUMENT(from);
+    	UNUSED_ARGUMENT(to);
+    	UNUSED_ARGUMENT(update_parent);
+
+    	return false;
     }
 
     template<typename Archive>
     void serialize(Archive& ar, const unsigned int version)
     {
-    	ar & boost::serialization::base_object<ASTNode>(*this);
-    	ar & annotations;
-    }
+    	UNUSED_ARGUMENT(version);
 
-	Annotations* annotations;
+    	ar & boost::serialization::base_object<ASTNode>(*this);
+    }
 };
 
 } } }

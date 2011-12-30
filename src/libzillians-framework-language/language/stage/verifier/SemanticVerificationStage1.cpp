@@ -19,7 +19,7 @@
 
 #include "language/stage/verifier/SemanticVerificationStage1.h"
 #include "language/stage/verifier/visitor/SemanticVerificationStageVisitor1.h"
-#include "language/tree/visitor/general/PrettyPrintVisitor.h"
+#include "language/tree/visitor/PrettyPrintVisitor.h"
 #include "language/context/ParserContext.h"
 
 namespace zillians { namespace language { namespace stage {
@@ -51,20 +51,24 @@ std::pair<shared_ptr<po::options_description>, shared_ptr<po::options_descriptio
 
 bool SemanticVerificationStage1::parseOptions(po::variables_map& vm)
 {
+	UNUSED_ARGUMENT(vm);
 	return true;
 }
 
 bool SemanticVerificationStage1::execute(bool& continue_execution)
 {
+	UNUSED_ARGUMENT(continue_execution);
+
 	if(!hasParserContext())
 		return false;
 
 	ParserContext& parser_context = getParserContext();
 
-	if(parser_context.program)
+	if(parser_context.tangle)
 	{
 		visitor::SemanticVerificationStageVisitor1 verifier;
-		verifier.visit(*parser_context.program);
+		verifier.visit(*parser_context.tangle);
+		verifier.applyCleanup();
 		return true;
 	}
 	else

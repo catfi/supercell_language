@@ -25,17 +25,25 @@
 
 namespace zillians { namespace language { namespace stage {
 
-StageConductor::StageConductor() : mOptionDescGlobal()
+StageConductor::StageConductor(bool require_input) : mOptionDescGlobal()
 {
 	// make sure logger is initialized;
 	LoggerWrapper::instance();
 
 	// initialize basic program options
-	mOptionDescGlobal.add_options()
-		("help,h", "show this help")
-		("input,i", po::value<std::vector<std::string>>(), "input files");
+	if(!require_input)
+	{
+		mOptionDescGlobal.add_options()
+			("help,h", "show this help");
+	}
+	else
+	{
+		mOptionDescGlobal.add_options()
+			("help,h", "show this help")
+			("input,i", po::value<std::vector<std::string>>(), "input files");
 
-	mPositionalOptionDesc.add("input", -1);
+		mPositionalOptionDesc.add("input", -1);
+	}
 }
 
 StageConductor::~StageConductor()
@@ -89,7 +97,7 @@ int StageConductor::main(int argc, const char** argv)
 	    }
 
 	    // if help option is specified, print the options and exit
-	    if(vm.count("help") > 0 || argc < 2)
+	    if(vm.count("help") > 0)
 	    {
 	    	std::cout << "command line options: " << std::endl << std::endl;
 	    	std::cout << options_desc_pub << std::endl;
@@ -116,7 +124,8 @@ int StageConductor::main(int argc, const char** argv)
 
 			if(!(*stage)->execute(c))
 			{
-				std::cerr << "execution failed at stage: " << (*stage)->name() << std::endl;
+                if(strcmp((*stage)->name(), "Resolution Stage") == 0 && vm.count("keep-going-on-resolution-fail")) continue;
+				//std::cerr << "execution failed at stage: " << (*stage)->name() << std::endl;
 				return -1;
 			}
 

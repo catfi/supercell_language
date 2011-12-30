@@ -76,12 +76,18 @@ struct Annotation : public ASTNode
     template<typename Archive>
     void serialize(Archive& ar, const unsigned int version)
     {
+    	UNUSED_ARGUMENT(version);
+
+    	ar & boost::serialization::base_object<ASTNode>(*this);
     	ar & name;
     	ar & attribute_list;
     }
 
 	SimpleIdentifier* name;
-	std::vector<std::pair<SimpleIdentifier*/*key*/, ASTNode*/*value*/>> attribute_list;
+	std::vector<std::pair<SimpleIdentifier* /*key*/, 
+		                  ASTNode* /*value*/
+	                     >
+	           > attribute_list;
 
 protected:
 	Annotation() { }
@@ -124,9 +130,22 @@ struct Annotations : public ASTNode
     	return cloned;
     }
 
+    bool merge(Annotations& rhs)
+    {
+    	foreach(i, rhs.annotation_list)
+		{
+    		annotation_list.push_back(*i);
+		}
+
+    	return true;
+    }
+
     template<typename Archive>
     void serialize(Archive& ar, const unsigned int version)
     {
+    	UNUSED_ARGUMENT(version);
+
+    	ar & boost::serialization::base_object<ASTNode>(*this);
     	ar & annotation_list;
     }
 

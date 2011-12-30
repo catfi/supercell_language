@@ -59,10 +59,8 @@ struct UnaryExpr : public Expression
 			case NEW: return L"new";
 			case NOOP: return L"no-op";
 			case INVALID: return L"invalid";
-			default: break;
+			default: UNREACHABLE_CODE(); return NULL;
 			}
-			BOOST_ASSERT(false && "reaching unreachable code");
-			return NULL;
 		}
 	};
 
@@ -89,10 +87,8 @@ struct UnaryExpr : public Expression
 		case OpCode::NOOP:
 		case OpCode::INVALID:
 			return true;
-		default: break;
+		default: UNREACHABLE_CODE(); return false;
 		}
-		BOOST_ASSERT(false && "reaching unreachable code");
-		return false;
 	}
 
     virtual bool isEqualImpl(const ASTNode& rhs, ASTNodeSet& visited) const
@@ -118,6 +114,8 @@ struct UnaryExpr : public Expression
     template<typename Archive>
     void serialize(Archive& ar, const unsigned int version)
     {
+    	UNUSED_ARGUMENT(version);
+
     	ar & boost::serialization::base_object<Expression>(*this);
     	ar & (int&)opcode;
     	ar & node;

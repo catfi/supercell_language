@@ -64,6 +64,27 @@ struct block
 	END_ACTION
 };
 
+struct optional_brace_block
+{
+	DEFINE_ATTRIBUTES(ASTNode*)
+	DEFINE_LOCALS(LOCATION_TYPE)
+
+	BEGIN_ACTION(init)
+	{
+#ifdef DEBUG
+		printf("optional_brace_block param(0) type = %s\n", typeid(_param_t(0)).name());
+#endif
+		if(isa<Block>(_param(0)))
+			_result = _param(0);
+		else if(isa<Statement>(_param(0)))
+		{
+			BIND_CACHED_LOCATION(_result = new Block());
+			cast<Block>(_result)->appendObject(_param(0));
+		}
+	}
+	END_ACTION
+};
+
 struct variable_decl_list
 {
 	DEFINE_ATTRIBUTES(std::vector<VariableDecl*>)

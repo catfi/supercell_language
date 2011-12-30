@@ -33,7 +33,6 @@
 #include <boost/archive/text_oarchive.hpp>
 #include <boost/archive/text_iarchive.hpp>
 #include <boost/serialization/base_object.hpp>
-#include <boost/serialization/export.hpp>
 #include <boost/serialization/vector.hpp>
 #include <boost/serialization/list.hpp>
 #include <boost/serialization/utility.hpp>
@@ -59,6 +58,10 @@
 	(type == (int)ASTNodeType::elem)
 
 #define DEFINE_HIERARCHY(self, hierarchy)	\
+	virtual const char* instanceName() const \
+	{ \
+		return #self; \
+	} \
 	static int stype() \
 	{ \
 		return (int)ASTNodeType::self; \
@@ -71,24 +74,13 @@
 namespace zillians { namespace language { namespace tree {
 
 // forward declaration of ASTNode
-class ASTNode;
+struct ASTNode;
 
 } } }
 
-namespace __gnu_cxx {
-	template<>
-	struct hash<const zillians::language::tree::ASTNode*>
-	{
-		size_t operator() (const zillians::language::tree::ASTNode* p) const
-		{
-			return reinterpret_cast<size_t>(p);
-		}
-	} ;
-}
-
 namespace zillians { namespace language { namespace tree {
 
-typedef __gnu_cxx::hash_set<const ASTNode*> ASTNodeSet;
+typedef unordered_set<const ASTNode*> ASTNodeSet;
 
 /**
  * Helper template function to implement static type checking system
@@ -132,56 +124,61 @@ inline shared_ptr<Derived> cast(shared_ptr<Base>& ptr)
 		return shared_ptr<Derived>();
 }
 
-enum class ASTNodeType : int
+struct ASTNodeType
 {
-	ASTNode,
+	enum type 
+	{
+		ASTNode,
 
-	Annotation,
-	Annotations,
-	Internal,
-	Program,
-	Package,
-	Import,
-	Block,
-	Identifier,
-		SimpleIdentifier,
-		NestedIdentifier,
-		TemplatedIdentifier,
-	Literal,
-		NumericLiteral,
-		StringLiteral,
-		ObjectLiteral,
-	TypeSpecifier,
-	FunctionType,
+		Annotation,
+		Annotations,
+		Internal,
+		Tangle,
+		Source,
+		Package,
+		Import,
+		Block,
+		Identifier,
+			SimpleIdentifier,
+			NestedIdentifier,
+			TemplatedIdentifier,
+		Literal,
+			NumericLiteral,
+			StringLiteral,
+			ObjectLiteral,
+		TypeSpecifier,
+		FunctionType,
 
-	Declaration,
-		ClassDecl,
-		EnumDecl,
-		InterfaceDecl,
-		TypedefDecl,
-		FunctionDecl,
-		VariableDecl,
+		Declaration,
+			ClassDecl,
+			EnumDecl,
+			InterfaceDecl,
+			TypedefDecl,
+			FunctionDecl,
+			VariableDecl,
+			TypenameDecl,
 
-	Statement,
-		DeclarativeStmt,
-		ExpressionStmt,
-		IterativeStmt,
-			ForStmt,
-			ForeachStmt,
-			WhileStmt,
-		SelectionStmt,
-			IfElseStmt,
-			SwitchStmt,
-		BranchStmt,
+		Statement,
+			DeclarativeStmt,
+			ExpressionStmt,
+			IterativeStmt,
+				ForStmt,
+				ForeachStmt,
+				WhileStmt,
+			SelectionStmt,
+				IfElseStmt,
+				SwitchStmt,
+			BranchStmt,
 
-	Expression,
-		PrimaryExpr,
-		UnaryExpr,
-		BinaryExpr,
-		TernaryExpr,
-		MemberExpr,
-		CallExpr,
-		CastExpr,
+		Expression,
+			PrimaryExpr,
+			UnaryExpr,
+			BinaryExpr,
+			TernaryExpr,
+			MemberExpr,
+			CallExpr,
+			CastExpr,
+	};
 };
 
 // forward declarations of all ASTNode implementations
@@ -189,7 +186,8 @@ struct ASTNode;
 struct Annotation;
 struct Annotations;
 struct Internal;
-struct Program;
+struct Tangle;
+struct Source;
 struct Package;
 struct Import;
 struct Block;
@@ -210,6 +208,7 @@ struct InterfaceDecl;
 struct TypedefDecl;
 struct FunctionDecl;
 struct VariableDecl;
+struct TypenameDecl;
 struct Statement;
 struct DeclarativeStmt;
 struct ExpressionStmt;
@@ -278,10 +277,18 @@ public:
 	 */
 	virtual ASTNode* clone() const = 0;
 
+	/**
+	 * Print the actual instance name, primary used for debugging
+	 * @return the actual instance name
+	 */
+	virtual const char* instanceName() const = 0;
+
 public:
     template<typename Archive>
     void serialize(Archive& ar, const unsigned int version)
     {
+    	UNUSED_ARGUMENT(version);
+
     	ar & parent;
     }
 
@@ -315,6 +322,14 @@ struct is_std_list<std::list<_Tp, _Alloc>> : boost::mpl::true_
 { };
 
 template<typename T>
+struct is_std_multimap : boost::mpl::false_
+{ };
+
+template<typename _Key, typename _Tp, typename _Compare, typename _Alloc>
+struct is_std_multimap<std::multimap<_Key, _Tp, _Compare, _Alloc>> : boost::mpl::true_
+{ };
+
+template<typename T>
 struct is_boost_tuple : boost::mpl::false_
 { };
 
@@ -331,11 +346,11 @@ template<typename T0, typename T1>
 struct is_std_pair<std::pair<T0, T1>> : boost::mpl::true_
 { };
 
-typedef boost::mpl::vector<ASTNode, Annotation, Annotations, Internal, Program,
+typedef boost::mpl::vector<ASTNode, Annotation, Annotations, Internal, Tangle, Source,
 		Package, Import, Block, Identifier, SimpleIdentifier, NestedIdentifier,
 		TemplatedIdentifier, Literal, NumericLiteral, StringLiteral,
 		ObjectLiteral, TypeSpecifier, FunctionType, Declaration, ClassDecl,
-		EnumDecl, InterfaceDecl, TypedefDecl, FunctionDecl, VariableDecl,
+		EnumDecl, InterfaceDecl, TypedefDecl, FunctionDecl, VariableDecl, TypenameDecl,
 		Statement, DeclarativeStmt, ExpressionStmt, IterativeStmt, ForStmt,
 		ForeachStmt, WhileStmt, Selection, SelectionStmt, IfElseStmt,
 		SwitchStmt, BranchStmt, Expression, PrimaryExpr, UnaryExpr, BinaryExpr,
@@ -347,11 +362,7 @@ typedef boost::mpl::vector<ASTNode, Identifier, Identifier, Declaration,
 #define REPORT_COMPARE_MATCHED()	\
 		return true;
 
-//#define REPORT_COMPARE_MISMATCHED()	\
-//		return false;
-
 #define REPORT_COMPARE_MISMATCHED()	\
-		BOOST_ASSERT(false && "node mismatched"); \
 		return false;
 
 template<typename T>
@@ -362,7 +373,8 @@ inline bool compareDispatch(T& a, T& b, ASTNodeSet& visited)
 	typedef is_std_pair<typename boost::remove_const<T>::type> is_std_pair_t;
 	typedef is_std_vector<typename boost::remove_const<T>::type> is_std_vector_t;
 	typedef is_std_list<typename boost::remove_const<T>::type> is_std_list_t;
-	typedef boost::mpl::or_<is_std_vector_t, is_std_list_t> is_iterative_type_t;
+	typedef is_std_multimap<typename boost::remove_const<T>::type> is_std_multimap_t;
+	typedef boost::mpl::or_<is_std_vector_t, is_std_list_t, is_std_multimap_t> is_iterative_type_t;
 	typedef is_boost_tuple<typename boost::remove_const<T>::type> is_boost_tuple_t;
 
 	typedef boost::mpl::not_<
@@ -513,6 +525,7 @@ inline bool compareDispatchImpl(
 		boost::mpl::false_ /*is_tuple*/,
 		boost::mpl::true_ /*is_other*/)
 {
+	UNUSED_ARGUMENT(visited);
 	return (a == b);
 }
 
@@ -525,18 +538,20 @@ inline bool replaceUseWithDispatch(T& a, const ASTNode& from, const ASTNode& to,
 	typedef is_std_pair<typename boost::remove_const<T>::type> is_std_pair_t;
 	typedef is_std_vector<typename boost::remove_const<T>::type> is_std_vector_t;
 	typedef is_std_list<typename boost::remove_const<T>::type> is_std_list_t;
+	typedef is_std_multimap<typename boost::remove_const<T>::type> is_std_multimap_t;
 	typedef boost::mpl::or_<is_std_vector_t, is_std_list_t> is_iterative_type_t;
 	typedef is_boost_tuple<typename boost::remove_const<T>::type> is_boost_tuple_t;
 
 	typedef boost::mpl::not_<
 			boost::mpl::or_<
-				is_pointer_t,
-				is_ast_t,
-				is_std_pair_t,
-				is_iterative_type_t,
-				is_boost_tuple_t>> is_other_t;
+				boost::mpl::or_<
+					is_pointer_t,
+					is_ast_t,
+					is_std_pair_t,
+					is_iterative_type_t,
+					is_boost_tuple_t>, is_std_multimap_t>> is_other_t;
 
-	return replaceUseWithDispatchImpl(a, from, to, update_parent, is_pointer_t(), is_ast_t(), is_std_pair_t(), is_iterative_type_t(), is_boost_tuple_t(), is_other_t());
+	return replaceUseWithDispatchImpl(a, from, to, update_parent, is_pointer_t(), is_ast_t(), is_std_pair_t(), is_std_multimap_t(), is_iterative_type_t(), is_boost_tuple_t(), is_other_t());
 };
 
 template<typename T>
@@ -545,6 +560,7 @@ inline bool replaceUseWithDispatchImpl(
 		boost::mpl::true_ /*is_pointer*/,
 		boost::mpl::false_ /*is_ast*/,
 		boost::mpl::false_ /*is_pair*/,
+		boost::mpl::false_ /*is_std_multimap*/,
 		boost::mpl::false_ /*is_iterative_type*/,
 		boost::mpl::false_ /*is_tuple*/,
 		boost::mpl::false_ /*is_other*/)
@@ -567,6 +583,7 @@ inline bool replaceUseWithDispatchImpl(
 		boost::mpl::false_ /*is_pointer*/,
 		boost::mpl::true_ /*is_ast*/,
 		boost::mpl::false_ /*is_pair*/,
+		boost::mpl::false_ /*is_std_multimap*/,
 		boost::mpl::false_ /*is_iterative_type*/,
 		boost::mpl::false_ /*is_tuple*/,
 		boost::mpl::false_ /*is_other*/)
@@ -580,6 +597,7 @@ inline bool replaceUseWithDispatchImpl(
 		boost::mpl::false_ /*is_pointer*/,
 		boost::mpl::false_ /*is_ast*/,
 		boost::mpl::true_ /*is_pair*/,
+		boost::mpl::false_ /*is_std_multimap*/,
 		boost::mpl::false_ /*is_iterative_type*/,
 		boost::mpl::false_ /*is_tuple*/,
 		boost::mpl::false_ /*is_other*/)
@@ -596,6 +614,28 @@ inline bool replaceUseWithDispatchImpl(
 		boost::mpl::false_ /*is_pointer*/,
 		boost::mpl::false_ /*is_ast*/,
 		boost::mpl::false_ /*is_pair*/,
+		boost::mpl::true_ /*is_std_multimap*/,
+		boost::mpl::false_ /*is_iterative_type*/,
+		boost::mpl::false_ /*is_tuple*/,
+		boost::mpl::false_ /*is_other*/)
+{
+	bool result = false;
+
+	auto iterator_a = a.begin(); auto iterator_end_a = a.end();
+	while(iterator_a != iterator_end_a )
+	{
+		result |= replaceUseWithDispatch(iterator_a->second, from, to, update_parent);
+	}
+	return result;
+}
+
+template<typename T>
+inline bool replaceUseWithDispatchImpl(
+		T& a, const ASTNode& from, const ASTNode& to, bool update_parent,
+		boost::mpl::false_ /*is_pointer*/,
+		boost::mpl::false_ /*is_ast*/,
+		boost::mpl::false_ /*is_pair*/,
+		boost::mpl::false_ /*is_std_multimap*/,
 		boost::mpl::true_ /*is_iterative_type*/,
 		boost::mpl::false_ /*is_tuple*/,
 		boost::mpl::false_ /*is_other*/)
@@ -639,6 +679,7 @@ inline bool replaceUseWithDispatchImpl(
 		boost::mpl::false_ /*is_pointer*/,
 		boost::mpl::false_ /*is_ast*/,
 		boost::mpl::false_ /*is_pair*/,
+		boost::mpl::false_ /*is_std_multimap*/,
 		boost::mpl::false_ /*is_iterative_type*/,
 		boost::mpl::true_ /*is_tuple*/,
 		boost::mpl::false_ /*is_other*/)
@@ -652,17 +693,22 @@ inline bool replaceUseWithDispatchImpl(
 		boost::mpl::false_ /*is_pointer*/,
 		boost::mpl::false_ /*is_ast*/,
 		boost::mpl::false_ /*is_pair*/,
+		boost::mpl::false_ /*is_std_multimap*/,
 		boost::mpl::false_ /*is_iterative_type*/,
 		boost::mpl::false_ /*is_tuple*/,
 		boost::mpl::true_ /*is_other*/)
 {
+	UNUSED_ARGUMENT(a);
+	UNUSED_ARGUMENT(from);
+	UNUSED_ARGUMENT(to);
+	UNUSED_ARGUMENT(update_parent);
 	return false;
 }
 
 } // internal
 
 #define BEGIN_COMPARE() \
-		typedef boost::remove_const<boost::remove_reference<decltype(*this)>::type>::type self_type; \
+		typedef boost::remove_const<boost::remove_pointer<decltype(this)>::type>::type self_type; \
 		if(!boost::mpl::contains<internal::ASTNodeInternalTypeVector, self_type>::value) \
 		{ \
 			if(visited.count(this)) \
@@ -670,40 +716,92 @@ inline bool replaceUseWithDispatchImpl(
 			else \
 				visited.insert(this); \
 		} \
-		const self_type* p = cast<const self_type>(&rhs); \
-		if(p == NULL) \
+		const self_type* __p = cast<const self_type>(&rhs); \
+		if(__p == NULL) \
 			return false;
 
 #define BEGIN_COMPARE_WITH_BASE(base_class_name) \
-		typedef boost::remove_const<boost::remove_reference<decltype(*this)>::type>::type self_type; \
-		const self_type* p = cast<const self_type>(&rhs); \
-		if(p == NULL) \
+		typedef boost::remove_const<boost::remove_pointer<decltype(this)>::type>::type self_type; \
+		const self_type* __p = cast<const self_type>(&rhs); \
+		if(__p == NULL) \
 			return false; \
-		if(!base_class_name::isEqualImpl(*p, visited)) \
+		if(!base_class_name::isEqualImpl(*__p, visited)) \
 			return false;
 
 #define COMPARE_MEMBER(member) \
-		if(!internal::compareDispatch(member, p->member, visited)) return false;
+		if(!internal::compareDispatch(member, __p->member, visited)) return false;
 
 #define END_COMPARE()	\
 		return true;
 
 #define BEGIN_REPLACE() \
-		bool result = false;
+		bool __result = false;
 
 #define BEGIN_REPLACE_WITH_BASE(base_class_name) \
-		bool result = false; \
-		result |= base_class_name::replaceUseWith(from, to, update_parent);
+		bool __result = false; \
+		__result |= base_class_name::replaceUseWith(from, to, update_parent);
 
 #define REPLACE_USE_WITH(member) \
-		result |= internal::replaceUseWithDispatch(member, from, to, update_parent);
+		__result |= internal::replaceUseWithDispatch(member, from, to, update_parent);
 
 #define END_REPLACE()	\
-		return result;
+		return __result;
 
 typedef GarbageCollector<const ASTNode> ASTNodeGC;
 
 } } }
+
+// export serialization declaration
+// see http://www.boost.org/doc/libs/1_47_0/libs/serialization/doc/special.html#export
+#include <boost/serialization/export.hpp>
+
+BOOST_CLASS_EXPORT_KEY2(zillians::language::tree::ASTNode               , "ASTNode")
+BOOST_CLASS_EXPORT_KEY2(zillians::language::tree::Annotation            , "Annotation")
+BOOST_CLASS_EXPORT_KEY2(zillians::language::tree::Annotations           , "Annotations")
+BOOST_CLASS_EXPORT_KEY2(zillians::language::tree::Internal              , "Internal")
+BOOST_CLASS_EXPORT_KEY2(zillians::language::tree::Tangle                , "Tangle")
+BOOST_CLASS_EXPORT_KEY2(zillians::language::tree::Source                , "Source")
+BOOST_CLASS_EXPORT_KEY2(zillians::language::tree::Package               , "Package")
+BOOST_CLASS_EXPORT_KEY2(zillians::language::tree::Import                , "Import")
+BOOST_CLASS_EXPORT_KEY2(zillians::language::tree::Block                 , "Block")
+BOOST_CLASS_EXPORT_KEY2(zillians::language::tree::Identifier            , "Identifier")
+BOOST_CLASS_EXPORT_KEY2(zillians::language::tree::SimpleIdentifier      , "SimpleIdentifier")
+BOOST_CLASS_EXPORT_KEY2(zillians::language::tree::NestedIdentifier      , "NestedIdentifier")
+BOOST_CLASS_EXPORT_KEY2(zillians::language::tree::TemplatedIdentifier   , "TemplatedIdent")
+BOOST_CLASS_EXPORT_KEY2(zillians::language::tree::Literal               , "Literal")
+BOOST_CLASS_EXPORT_KEY2(zillians::language::tree::NumericLiteral        , "NumericLiteral")
+BOOST_CLASS_EXPORT_KEY2(zillians::language::tree::StringLiteral         , "StringLiteral")
+BOOST_CLASS_EXPORT_KEY2(zillians::language::tree::ObjectLiteral         , "ObjectLiteral")
+BOOST_CLASS_EXPORT_KEY2(zillians::language::tree::TypeSpecifier         , "TypeSpecifier")
+BOOST_CLASS_EXPORT_KEY2(zillians::language::tree::FunctionType          , "FunctionType")
+BOOST_CLASS_EXPORT_KEY2(zillians::language::tree::Declaration           , "Declaration")
+BOOST_CLASS_EXPORT_KEY2(zillians::language::tree::ClassDecl             , "ClassDecl")
+BOOST_CLASS_EXPORT_KEY2(zillians::language::tree::EnumDecl              , "EnumDecl")
+BOOST_CLASS_EXPORT_KEY2(zillians::language::tree::InterfaceDecl         , "InterfaceDecl")
+BOOST_CLASS_EXPORT_KEY2(zillians::language::tree::TypedefDecl           , "TypedefDecl")
+BOOST_CLASS_EXPORT_KEY2(zillians::language::tree::FunctionDecl          , "FunctionDecl")
+BOOST_CLASS_EXPORT_KEY2(zillians::language::tree::VariableDecl          , "VariableDecl")
+BOOST_CLASS_EXPORT_KEY2(zillians::language::tree::TypenameDecl          , "TypenameDecl")
+BOOST_CLASS_EXPORT_KEY2(zillians::language::tree::Statement             , "Statement")
+BOOST_CLASS_EXPORT_KEY2(zillians::language::tree::DeclarativeStmt       , "DeclarativeStm")
+BOOST_CLASS_EXPORT_KEY2(zillians::language::tree::ExpressionStmt        , "ExpressionStmt")
+BOOST_CLASS_EXPORT_KEY2(zillians::language::tree::IterativeStmt         , "IterativeStmt")
+BOOST_CLASS_EXPORT_KEY2(zillians::language::tree::ForStmt               , "ForStmt")
+BOOST_CLASS_EXPORT_KEY2(zillians::language::tree::ForeachStmt           , "ForeachStmt")
+BOOST_CLASS_EXPORT_KEY2(zillians::language::tree::WhileStmt             , "WhileStmt")
+BOOST_CLASS_EXPORT_KEY2(zillians::language::tree::Selection             , "Selection")
+BOOST_CLASS_EXPORT_KEY2(zillians::language::tree::SelectionStmt         , "SelectionStmt")
+BOOST_CLASS_EXPORT_KEY2(zillians::language::tree::IfElseStmt            , "IfElseStmt")
+BOOST_CLASS_EXPORT_KEY2(zillians::language::tree::SwitchStmt            , "SwitchStmt")
+BOOST_CLASS_EXPORT_KEY2(zillians::language::tree::BranchStmt            , "BranchStmt")
+BOOST_CLASS_EXPORT_KEY2(zillians::language::tree::Expression            , "Expression")
+BOOST_CLASS_EXPORT_KEY2(zillians::language::tree::PrimaryExpr           , "PrimaryExpr")
+BOOST_CLASS_EXPORT_KEY2(zillians::language::tree::UnaryExpr             , "UnaryExpr")
+BOOST_CLASS_EXPORT_KEY2(zillians::language::tree::BinaryExpr            , "BinaryExpr")
+BOOST_CLASS_EXPORT_KEY2(zillians::language::tree::TernaryExpr           , "TernaryExpr")
+BOOST_CLASS_EXPORT_KEY2(zillians::language::tree::MemberExpr            , "MemberExpr")
+BOOST_CLASS_EXPORT_KEY2(zillians::language::tree::CallExpr              , "CallExpr")
+BOOST_CLASS_EXPORT_KEY2(zillians::language::tree::CastExpr              , "CastExpr")
 
 #endif /* ZILLIANS_LANGUAGE_TREE_ASTNODE_H_ */
 

@@ -65,6 +65,8 @@ struct DeclarativeStmt : public Statement
     template<typename Archive>
     void serialize(Archive& ar, const unsigned int version)
     {
+    	UNUSED_ARGUMENT(version);
+
     	ar & boost::serialization::base_object<Statement>(*this);
     	ar & declaration;
     }

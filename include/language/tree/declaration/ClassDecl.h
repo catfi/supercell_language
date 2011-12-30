@@ -46,6 +46,7 @@ struct ClassDecl : public Declaration
 		BOOST_ASSERT(name && "null member function declaration is not allowed");
 
 		func->parent = this;
+		func->is_member = true;
 		member_functions.push_back(func);
 	}
 
@@ -54,6 +55,7 @@ struct ClassDecl : public Declaration
 		BOOST_ASSERT(name && "null member variable declaration is not allowed");
 
 		var->parent = this;
+		var->is_member = true;
 		member_variables.push_back(var);
 	}
 
@@ -69,12 +71,12 @@ struct ClassDecl : public Declaration
 		base = extends_from;
 	}
 
-	void addInterface(TypeSpecifier* interface)
+	void addInterface(TypeSpecifier* interface_)
 	{
-		BOOST_ASSERT(interface && "null interface is not allowed");
+		BOOST_ASSERT(interface_ && "null interface is not allowed");
 
-		interface->parent = this;
-		implements.push_back(interface);
+		interface_->parent = this;
+		implements.push_back(interface_);
 	}
 
     virtual bool isEqualImpl(const ASTNode& rhs, ASTNodeSet& visited) const
@@ -101,16 +103,22 @@ struct ClassDecl : public Declaration
     {
     	ClassDecl* cloned = new ClassDecl((name) ? cast<Identifier>(name->clone()) : NULL);
 
-    	if(base) cloned->base = cast<TypeSpecifier>(base->clone());
+        if(annotations != NULL)
+        {
+            Annotations* anno = cast<Annotations>(annotations->clone());
+            cloned->setAnnotations(anno);
+        }
+
+    	if(base) cloned->setBase(cast<TypeSpecifier>(base->clone()));
 
     	foreach(i, implements)
-    		cloned->implements.push_back((*i) ? cast<TypeSpecifier>((*i)->clone()) : NULL);
+    		cloned->addInterface((*i) ? cast<TypeSpecifier>((*i)->clone()) : NULL);
 
     	foreach(i, member_functions)
-    		cloned->member_functions.push_back((*i) ? cast<FunctionDecl>((*i)->clone()) : NULL);
+    		cloned->addFunction((*i) ? cast<FunctionDecl>((*i)->clone()) : NULL);
 
     	foreach(i, member_variables)
-    		cloned->member_variables.push_back((*i) ? cast<VariableDecl>((*i)->clone()) : NULL);
+    		cloned->addVariable((*i) ? cast<VariableDecl>((*i)->clone()) : NULL);
 
     	return cloned;
     }
@@ -118,6 +126,8 @@ struct ClassDecl : public Declaration
     template<typename Archive>
     void serialize(Archive& ar, const unsigned int version)
     {
+    	UNUSED_ARGUMENT(version);
+
     	ar & boost::serialization::base_object<Declaration>(*this);
     	ar & base;
     	ar & implements;

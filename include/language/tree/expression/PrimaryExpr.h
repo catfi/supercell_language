@@ -46,10 +46,8 @@ struct PrimaryExpr : public Expression
 			case IDENTIFIER: return L"identifier";
 			case LITERAL: return L"literal";
 			case LAMBDA: return L"lambda";
-			default: break;
+			default: UNREACHABLE_CODE(); return NULL;
 			}
-			BOOST_ASSERT(false && "reaching unreachable code");
-			return NULL;
 		}
 	};
 
@@ -84,10 +82,8 @@ struct PrimaryExpr : public Expression
 		case Catagory::IDENTIFIER: return false;
 		case Catagory::LITERAL: return true;
 		case Catagory::LAMBDA: return true;
-		default: break;
+		default: UNREACHABLE_CODE(); return false;
 		}
-		BOOST_ASSERT(false && "reaching unreachable code");
-		return false;
 	}
 
     virtual bool isEqualImpl(const ASTNode& rhs, ASTNodeSet& visited) const
@@ -99,7 +95,7 @@ struct PrimaryExpr : public Expression
         case Catagory::IDENTIFIER: COMPARE_MEMBER(value.identifier); break;
         case Catagory::LITERAL   : COMPARE_MEMBER(value.literal   ); break;
 		case Catagory::LAMBDA    : COMPARE_MEMBER(value.lambda    ); break;
-		default: break;
+		default: UNREACHABLE_CODE(); break;
         }
     	END_COMPARE()
     }
@@ -112,7 +108,7 @@ struct PrimaryExpr : public Expression
 		case Catagory::IDENTIFIER: REPLACE_USE_WITH(value.identifier); break;
 		case Catagory::LITERAL: REPLACE_USE_WITH(value.literal); break;
 		case Catagory::LAMBDA: REPLACE_USE_WITH(value.lambda); break;
-		default: break;
+		default: UNREACHABLE_CODE(); break;
 		}
     	END_REPLACE()
     }
@@ -124,7 +120,7 @@ struct PrimaryExpr : public Expression
         case Catagory::IDENTIFIER: return new PrimaryExpr(cast<Identifier>(value.identifier->clone()));
         case Catagory::LITERAL   : return new PrimaryExpr(cast<Literal>(value.literal->clone()));
 		case Catagory::LAMBDA    : return new PrimaryExpr(cast<FunctionDecl>(value.lambda->clone()));
-		default: break;
+		default: UNREACHABLE_CODE(); break;
         }
         return NULL;
     }
@@ -132,6 +128,8 @@ struct PrimaryExpr : public Expression
     template<typename Archive>
     void serialize(Archive& ar, const unsigned int version)
     {
+    	UNUSED_ARGUMENT(version);
+
     	ar & boost::serialization::base_object<Expression>(*this);
     	ar & (int&)catagory;
         switch (catagory)
@@ -139,7 +137,7 @@ struct PrimaryExpr : public Expression
         case Catagory::IDENTIFIER: ar & value.identifier; break;
         case Catagory::LITERAL   : ar & value.literal; break;
 		case Catagory::LAMBDA    : ar & value.lambda; break;
-		default: break;
+		default: UNREACHABLE_CODE(); break;
         }
     }
 

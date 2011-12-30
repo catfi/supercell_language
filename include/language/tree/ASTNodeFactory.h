@@ -35,7 +35,8 @@
 #include "language/tree/basic/FunctionType.h"
 
 #include "language/tree/module/Internal.h"
-#include "language/tree/module/Program.h"
+#include "language/tree/module/Tangle.h"
+#include "language/tree/module/Source.h"
 #include "language/tree/module/Package.h"
 #include "language/tree/module/Import.h"
 
@@ -46,6 +47,7 @@
 #include "language/tree/declaration/TypedefDecl.h"
 #include "language/tree/declaration/FunctionDecl.h"
 #include "language/tree/declaration/VariableDecl.h"
+#include "language/tree/declaration/TypenameDecl.h"
 
 #include "language/tree/statement/Statement.h"
 #include "language/tree/statement/DeclarativeStmt.h"

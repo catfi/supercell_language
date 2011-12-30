@@ -20,21 +20,83 @@
 #ifndef ZILLIANS_LANGUAGE_THORSCRIPTDRIVER_H_
 #define ZILLIANS_LANGUAGE_THORSCRIPTDRIVER_H_
 
-#include "core/Prerequisite.h"
-#include "language/tree/ASTNode.h"
-#include "language/stage/StageConductor.h"
+#include "language/tree/ASTNodeFactory.h"
+#include <string>
+#include <vector>
+#include <boost/filesystem.hpp>
+#define BOOST_MPL_CFG_NO_PREPROCESSED_HEADERS
+#include "language/ThorScriptManifest.h"
 
 namespace zillians { namespace language {
 
-class ThorScriptDriver : public stage::StageConductor
+class ThorScriptDriver
 {
 public:
-	ThorScriptDriver();
-	virtual ~ThorScriptDriver();
+    ThorScriptDriver();
+    ~ThorScriptDriver();
+    bool main(std::vector<std::string> argv) ;
 
-public:
-	virtual void initialize();
-	virtual void finalize();
+private:
+    enum class BUILD_TYPE {
+        DEBUG,
+        RELEASE
+    } ;
+    enum class STRIP_TYPE {
+        STRIP,
+        NO_STRIP
+    } ;
+    enum class STUB_LANG {
+        CPP,
+        JAVA
+    };
+
+private:
+    bool createProjectSkeleton(const std::string& projectName);
+    tree::Tangle* getMergedAST(const std::vector<std::string>& ast_files);
+
+    bool buildDebug();
+    bool buildRelease();
+    bool build();
+    bool generateBundle(const STRIP_TYPE isStrip);
+    bool generateStub(const std::vector<std::string>& stubTypes);
+    bool generateClientStub(const STUB_LANG);
+    bool generateServerStub();
+
+private:
+    bool unbundle();
+    bool dep();
+    bool make(const BUILD_TYPE type);
+    bool bundle();
+    bool strip();
+    bool link();
+
+private:
+    std::string getStageExecutable(const std::string& executable);
+
+private:
+    void saveCache(const std::string& s);
+    std::string readCache();
+    std::vector<std::string> getFilesUnderBuild(std::string extension);
+    bool setProjectPathAndBuildPath(std::vector<std::string>& argv);
+
+private:
+    bool generateDocument();
+    bool configDoxyfile();
+
+protected:
+    virtual int shell(const std::string& cmd);
+
+private:
+    boost::filesystem::path executablePath;
+    boost::filesystem::path originalPath;
+    zillians::language::ProjectManifest pm;
+    boost::filesystem::path projectPath;
+    boost::filesystem::path buildPath;
+    std::string argv;
+    bool dumpCommand;
+    bool dumpGraphviz;
+    std::string dumpGraphvizDir;
+    std::string prepandPackage;
 };
 
 } }

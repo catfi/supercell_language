@@ -21,20 +21,15 @@
 #define ZILLIANS_LANGUAGE_THORSCRIPTSTUBGENERATOR_H_
 
 #include "core/Prerequisite.h"
-#include "language/tree/ASTNode.h"
-#include "language/stage/StageConductor.h"
+#include "language/stage/StageBuilder.h"
 
 namespace zillians { namespace language {
 
-class ThorScriptStubGenerator : public stage::StageConductor
+class ThorScriptStubGenerator : public stage::StageBuilder
 {
 public:
 	ThorScriptStubGenerator();
 	virtual ~ThorScriptStubGenerator();
-
-public:
-	virtual void initialize();
-	virtual void finalize();
 };
 
 } }

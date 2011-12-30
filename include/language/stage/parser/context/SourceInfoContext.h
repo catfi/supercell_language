@@ -26,43 +26,15 @@
 
 namespace zillians { namespace language { namespace stage {
 
-/// ModuleDebuggingContext will be only stored at Program node
-struct ModuleSourceInfoContext
-{
-	int32 addSource(const std::string& filename)
-	{
-		source_files.push_back(filename);
-		return (int32)source_files.size() - 1;
-	}
-
-	static ModuleSourceInfoContext* get(tree::ASTNode* node)
-	{
-		return node->get<ModuleSourceInfoContext>();
-	}
-
-	static void set(tree::ASTNode* node, ModuleSourceInfoContext* ctx)
-	{
-		node->set<ModuleSourceInfoContext>(ctx);
-	}
-
-    template<typename Archive>
-    void serialize(Archive& ar, unsigned int version)
-    {
-    	ar & source_files;
-    }
-
-	std::vector<std::string> source_files;
-};
-
 /// SourceInfoContext will be stored in every AST Identifier, Statement, Expression, and Declaration
 struct SourceInfoContext
 {
 	friend class boost::serialization::access;
 
-	SourceInfoContext(int32 i, uint32 l, uint32 c) : source_index(i), line(l), column(c)
+	SourceInfoContext(uint32 l, uint32 c) : line(l), column(c)
 	{ }
 
-	SourceInfoContext(const SourceInfoContext& ref) : source_index(ref.source_index), line(ref.line), column(ref.column)
+	SourceInfoContext(const SourceInfoContext& ref) : line(ref.line), column(ref.column)
 	{ }
 
 	static SourceInfoContext* get(tree::ASTNode* node)
@@ -78,12 +50,12 @@ struct SourceInfoContext
     template<typename Archive>
     void serialize(Archive& ar, unsigned int version)
     {
-    	ar & source_index;
+    	UNUSED_ARGUMENT(version);
+
     	ar & line;
     	ar & column;
     }
 
-	int32 source_index;
 	uint32 line;
 	uint32 column;
 

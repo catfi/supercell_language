@@ -64,8 +64,14 @@ struct InterfaceDecl : public Declaration
     {
     	InterfaceDecl* cloned = new InterfaceDecl((name) ? cast<Identifier>(name->clone()) : NULL);
 
+        if(annotations != NULL)
+        {
+            Annotations* anno = cast<Annotations>(annotations->clone());
+            cloned->setAnnotations(anno);
+        }
+
     	foreach(i, member_functions)
-    		cloned->member_functions.push_back((*i) ? cast<FunctionDecl>((*i)->clone()) : NULL);
+    		cloned->addFunction((*i) ? cast<FunctionDecl>((*i)->clone()) : NULL);
 
     	return cloned;
     }
@@ -73,6 +79,8 @@ struct InterfaceDecl : public Declaration
     template<typename Archive>
     void serialize(Archive& ar, const unsigned int version)
     {
+    	UNUSED_ARGUMENT(version);
+
     	ar & boost::serialization::base_object<Declaration>(*this);
     	ar & member_functions;
     }

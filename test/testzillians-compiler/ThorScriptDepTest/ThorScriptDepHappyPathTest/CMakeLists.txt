@@ -21,18 +21,16 @@
 
 INCLUDE_DIRECTORIES(
     ${PROJECT_COMMON_SOURCE_DIR}/include/
-    ${PROJECT_FRAMEWORK_SOURCE_DIR}/include/
+    ${PROJECT_LANGUAGE_SOURCE_DIR}/include/
     )
 
 ADD_EXECUTABLE(
     ThorScriptDepTest_ThorScriptDepHappyPathTest
     ThorScriptDepHappyPathTest.cpp
-    ../../../../src/zillians-thorscript-dep/language/ThorScriptDep.cpp
     )
 
 TARGET_LINK_LIBRARIES(ThorScriptDepTest_ThorScriptDepHappyPathTest
-    zillians-common-core
-    zillians-framework-language
+    zillians-framework-language-main-stages-dep
     )
 
 zillians_add_simple_test(TARGET ThorScriptDepTest_ThorScriptDepHappyPathTest)

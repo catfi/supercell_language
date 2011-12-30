@@ -32,16 +32,20 @@ using namespace zillians::language::tree;
 
 ASTNode* createSample1()
 {
-	Program* program = new Program();
-	return program;
+    Tangle* tangle = new Tangle();
+	Source* source = new Source("test-program-1", false);
+    tangle->addSource(new SimpleIdentifier(L"package-id"), source);
+	return tangle;
 }
 
 ASTNode* createSample2()
 {
-	Program* program = new Program();
+    Tangle* tangle = new Tangle();
+	Source* source = new Source("test-program-2", false);
+    tangle->addSource(new SimpleIdentifier(L"package-id"), source);
 	{
 		Package* com_package = new Package(new SimpleIdentifier(L"com"));
-		program->root->addPackage(com_package);
+		source->root->addPackage(com_package);
 		{
 			Package* supercell_package = new Package(new SimpleIdentifier(L"supercell"));
 			com_package->addPackage(supercell_package);
@@ -50,15 +54,17 @@ ASTNode* createSample2()
 			com_package->addPackage(zillians_package);
 		}
 	}
-	return program;
+	return tangle;
 }
 
 ASTNode* createSample3()
 {
-	Program* program = new Program();
+    Tangle* tangle = new Tangle();
+	Source* source = new Source("test-program-3", false);
+    tangle->addSource(new SimpleIdentifier(L"package-id"), source);
 	{
 		Package* com_package = new Package(new SimpleIdentifier(L"com"));
-		program->root->addPackage(com_package);
+		source->root->addPackage(com_package);
 		{
 			Package* zillians_package = new Package(new SimpleIdentifier(L"zillians"));
 			com_package->addPackage(zillians_package);
@@ -78,12 +84,12 @@ ASTNode* createSample3()
 						Block* block = some_member_function->block;
 
 						{
-							DeclarativeStmt* stmt = new DeclarativeStmt(new VariableDecl(new SimpleIdentifier(L"a"), new TypeSpecifier(PrimitiveType::INT32), false, false, false, Declaration::VisibilitySpecifier::DEFAULT));
+							DeclarativeStmt* stmt = new DeclarativeStmt(new VariableDecl(new SimpleIdentifier(L"a"), new TypeSpecifier(PrimitiveType::INT32_TYPE), false, false, false, Declaration::VisibilitySpecifier::DEFAULT));
 							block->appendObject(stmt);
 						}
 
 						{
-							DeclarativeStmt* stmt = new DeclarativeStmt(new VariableDecl(new SimpleIdentifier(L"b"), new TypeSpecifier(PrimitiveType::INT32), false, false, false, Declaration::VisibilitySpecifier::DEFAULT));
+							DeclarativeStmt* stmt = new DeclarativeStmt(new VariableDecl(new SimpleIdentifier(L"b"), new TypeSpecifier(PrimitiveType::INT32_TYPE), false, false, false, Declaration::VisibilitySpecifier::DEFAULT));
 							block->appendObject(stmt);
 						}
 
@@ -95,14 +101,14 @@ ASTNode* createSample3()
 
 					VariableDecl* some_member_variable1 = new VariableDecl(
 							new SimpleIdentifier(L"some_member_variable1"),
-							new TypeSpecifier(PrimitiveType::FLOAT64),
+							new TypeSpecifier(PrimitiveType::FLOAT64_TYPE),
 							true, false, false,
 							Declaration::VisibilitySpecifier::PUBLIC);
 					class_decl->addVariable(some_member_variable1);
 
 					VariableDecl* some_member_variable2 = new VariableDecl(
 							new SimpleIdentifier(L"some_member_variable2"),
-							new TypeSpecifier(PrimitiveType::FLOAT32),
+							new TypeSpecifier(PrimitiveType::FLOAT32_TYPE),
 							true, false, false,
 							Declaration::VisibilitySpecifier::PUBLIC);
 					class_decl->addVariable(some_member_variable2);
@@ -111,15 +117,17 @@ ASTNode* createSample3()
 		}
 	}
 
-	return program;
+    return tangle;
 }
 
 ASTNode* createSample4()
 {
-	Program* program = new Program();
+    Tangle* tangle = new Tangle();
+	Source* source = new Source("test-program-4", false);
+    tangle->addSource(new SimpleIdentifier(L"package-id"), source);
 	{
 		Package* com_package = new Package(new SimpleIdentifier(L"com"));
-		program->root->addPackage(com_package);
+		source->root->addPackage(com_package);
 		{
 			Package* zillians_package = new Package(new SimpleIdentifier(L"zillians"));
 			com_package->addPackage(zillians_package);
@@ -171,7 +179,64 @@ ASTNode* createSample4()
 		}
 	}
 
-	return program;
+	return tangle;
+}
+
+// class with member function template
+ASTNode* createSample5()
+{
+    Tangle* tangle = new Tangle();
+	Source* source = new Source("test-program-5", false);
+    tangle->addSource(new SimpleIdentifier(L"package-id"), source);
+	{
+		Package* com_package = new Package(new SimpleIdentifier(L"com"));
+		source->root->addPackage(com_package);
+		{
+			Package* zillians_package = new Package(new SimpleIdentifier(L"zillians"));
+			com_package->addPackage(zillians_package);
+			{
+				ClassDecl* class_decl = new ClassDecl(new SimpleIdentifier(L"some_class"));
+				zillians_package->addObject(class_decl);
+				{
+                    // create annotations
+                    Annotations* annotations = new Annotations();
+                    annotations->appendAnnotation(new Annotation(new SimpleIdentifier(L"server")));
+                    // normal function
+					FunctionDecl* some_member_function = new FunctionDecl(
+							new SimpleIdentifier(L"some_member_function"),
+							NULL,
+							true,
+							false,
+							Declaration::VisibilitySpecifier::PUBLIC,
+							new Block());
+					class_decl->addFunction(some_member_function);
+                    some_member_function->setAnnotations(annotations);
+
+                    // formal function template
+					FunctionDecl* template_function = new FunctionDecl(
+                            new TemplatedIdentifier(TemplatedIdentifier::Usage::FORMAL_PARAMETER, new SimpleIdentifier(L"some_member_function")),
+                            NULL,
+                            true,
+                            false,
+                            Declaration::VisibilitySpecifier::PUBLIC,
+                            new Block());
+					class_decl->addFunction(template_function);
+
+                    // specialized function template
+					FunctionDecl* specialized_function = new FunctionDecl(
+                            new TemplatedIdentifier(TemplatedIdentifier::Usage::ACTUAL_ARGUMENT, new SimpleIdentifier(L"some_member_function")),
+                            NULL,
+                            true,
+                            false,
+                            Declaration::VisibilitySpecifier::PUBLIC,
+                            new Block());
+					class_decl->addFunction(specialized_function);
+				}
+			}
+		}
+	}
+
+	return tangle;
 }
 
 #endif /* ASTNODESAMPLES_H_ */

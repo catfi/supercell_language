@@ -20,8 +20,8 @@
 #include "core/Prerequisite.h"
 #include "language/tree/ASTNode.h"
 #include "language/tree/ASTNodeFactory.h"
-#include "language/tree/visitor/general/GarbageCollectionVisitor.h"
-#include "language/tree/visitor/general/ObjectCountVisitor.h"
+#include "language/tree/visitor/GarbageCollectionVisitor.h"
+#include "language/tree/visitor/ObjectCountVisitor.h"
 #include "../ASTNodeSamples.h"
 #include <iostream>
 #include <string>
@@ -39,9 +39,9 @@ BOOST_AUTO_TEST_SUITE( ThorScriptTreeTest_GarbageCollectionVisitorSuite )
 
 BOOST_AUTO_TEST_CASE( ThorScriptTreeTest_GarbageCollectionVisitorTestCase1 )
 {
-	Program* node = new Program();
+	Source* node = new Source("test-source");
 
-	int count_before_gc = 0;
+	std::size_t count_before_gc = 0;
 	{
 		ObjectCountVisitor<> counter;
 		counter.visit(*node);
@@ -54,7 +54,7 @@ BOOST_AUTO_TEST_CASE( ThorScriptTreeTest_GarbageCollectionVisitorTestCase1 )
 		BOOST_CHECK(marker.get_sweep_count() == 0);
 	}
 
-	int count_after_gc = 0;
+	std::size_t count_after_gc = 0;
 	{
 		ObjectCountVisitor<> counter;
 		counter.visit(*node);
@@ -68,9 +68,9 @@ BOOST_AUTO_TEST_CASE( ThorScriptTreeTest_GarbageCollectionVisitorTestCase1 )
 
 BOOST_AUTO_TEST_CASE( ThorScriptTreeTest_GarbageCollectionVisitorTestCase2 )
 {
-	Program* node = new Program(new Package(new SimpleIdentifier(L"test")));
+	Source* node = new Source("test-source", new Package(new SimpleIdentifier(L"test")));
 
-	int count_before_gc = 0;
+	std::size_t count_before_gc = 0;
 	{
 		ObjectCountVisitor<> counter;
 		counter.visit(*node);
@@ -83,7 +83,7 @@ BOOST_AUTO_TEST_CASE( ThorScriptTreeTest_GarbageCollectionVisitorTestCase2 )
 		BOOST_CHECK(marker.get_sweep_count() == 0);
 	}
 
-	int count_after_gc = 0;
+	std::size_t count_after_gc = 0;
 	{
 		ObjectCountVisitor<> counter;
 		counter.visit(*node);
@@ -98,7 +98,7 @@ BOOST_AUTO_TEST_CASE( ThorScriptTreeTest_GarbageCollectionVisitorTestCase2 )
 BOOST_AUTO_TEST_CASE( ThorScriptTreeTest_GarbageCollectionVisitorTestCase3 )
 {
 	ASTNode* node = createSample1();
-	int count_before_gc = 0;
+	std::size_t count_before_gc = 0;
 	{
 		ObjectCountVisitor<> counter;
 		counter.visit(*node);
@@ -111,7 +111,7 @@ BOOST_AUTO_TEST_CASE( ThorScriptTreeTest_GarbageCollectionVisitorTestCase3 )
 		BOOST_CHECK(marker.get_sweep_count() == 0);
 	}
 
-	int count_after_gc = 0;
+	std::size_t count_after_gc = 0;
 	{
 		ObjectCountVisitor<> counter;
 		counter.visit(*node);

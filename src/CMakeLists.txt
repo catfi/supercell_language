@@ -30,3 +30,4 @@ ADD_SUBDIRECTORY(zillians-thorscript-stripper)
 ADD_SUBDIRECTORY(zillians-thorscript-stub-generator)
 ADD_SUBDIRECTORY(zillians-thorscript-vm)
 ADD_SUBDIRECTORY(zillians-thorscript-dep)
+

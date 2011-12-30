@@ -19,12 +19,12 @@
 
 #include "language/stage/transformer/LiteralCompactionStage.h"
 #include "language/stage/transformer/visitor/LiteralCompactionStageVisitor.h"
-#include "language/tree/visitor/general/PrettyPrintVisitor.h"
+#include "language/tree/visitor/PrettyPrintVisitor.h"
 #include "language/context/ParserContext.h"
 
 namespace zillians { namespace language { namespace stage {
 
-LiteralCompactionStage::LiteralCompactionStage()
+LiteralCompactionStage::LiteralCompactionStage() : dump_graphviz(false)
 { }
 
 LiteralCompactionStage::~LiteralCompactionStage()
@@ -40,7 +40,11 @@ std::pair<shared_ptr<po::options_description>, shared_ptr<po::options_descriptio
 	shared_ptr<po::options_description> option_desc_public(new po::options_description());
 	shared_ptr<po::options_description> option_desc_private(new po::options_description());
 
-	option_desc_private->add_options()("debug-literal-compaction-stage", "debug literal compaction stage");
+	option_desc_private->add_options()
+        ("debug-literal-compaction-stage", "debug literal compaction stage")
+		//("dump-graphviz", "dump AST in graphviz format")
+		//("dump-graphviz-dir", po::value<std::string>(), "dump AST in graphviz format")
+    ;
 
 	return std::make_pair(option_desc_public, option_desc_private);
 }
@@ -48,27 +52,40 @@ std::pair<shared_ptr<po::options_description>, shared_ptr<po::options_descriptio
 bool LiteralCompactionStage::parseOptions(po::variables_map& vm)
 {
 	debug = (vm.count("debug-literal-compaction-stage") > 0);
+	dump_graphviz = (vm.count("dump-graphviz") > 0);
+    if(vm.count("dump-graphviz-dir") > 0)
+    {
+        dump_graphviz_dir = vm["dump-graphviz-dir"].as<std::string>();
+    }
 
 	return true;
 }
 
 bool LiteralCompactionStage::execute(bool& continue_execution)
 {
+	UNUSED_ARGUMENT(continue_execution);
+
 	if(!hasParserContext())
 		return false;
 
 	ParserContext& parser_context = getParserContext();
 
-	if(parser_context.program)
+	if(parser_context.active_source)
 	{
 		visitor::LiteralCompactionStageVisitor compactor;
-		compactor.visit(*parser_context.program);
+		compactor.visit(*parser_context.active_source);
 
 		if(debug)
 		{
 			tree::visitor::PrettyPrintVisitor printer;
-			printer.visit(*parser_context.program);
+			printer.visit(*parser_context.active_source);
 		}
+
+        if(dump_graphviz)
+        {
+            boost::filesystem::path p(dump_graphviz_dir);
+            ASTNodeHelper::visualize(getParserContext().tangle, p / "post-literal-compaction.dot");
+        }
 
 		return true;
 	}

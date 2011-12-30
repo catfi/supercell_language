@@ -19,4 +19,12 @@
 # Contact Information: info@zillians.com
 #
 
-#ADD_SUBDIRECTORY()
+SET(compile_options_resolution "--mode-resolution")
+
+add_subdirectory(00_root_symbol_resolution)
+add_subdirectory(01_scoped_symbol_resolution)
+add_subdirectory(02_global_variable_resolution)
+add_subdirectory(03_argument_symbol_resolution)
+add_subdirectory(04_local_variable_resolution)
+add_subdirectory(05_class_member_function_resolution)
+add_subdirectory(07_variable_in_annotation_resolution)

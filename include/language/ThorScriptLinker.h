@@ -21,20 +21,16 @@
 #define ZILLIANS_LANGUAGE_THORSCRIPTLINKER_H_
 
 #include "core/Prerequisite.h"
-#include "language/tree/ASTNode.h"
-#include "language/stage/StageConductor.h"
+#include "language/stage/linker/ThorScriptLinkerStage.h"
+#include "language/stage/StageBuilder.h"
 
 namespace zillians { namespace language {
 
-class ThorScriptLinker : public stage::StageConductor
+class ThorScriptLinker : public stage::StageBuilder
 {
 public:
 	ThorScriptLinker();
 	virtual ~ThorScriptLinker();
-
-public:
-	virtual void initialize();
-	virtual void finalize();
 };
 
 } }

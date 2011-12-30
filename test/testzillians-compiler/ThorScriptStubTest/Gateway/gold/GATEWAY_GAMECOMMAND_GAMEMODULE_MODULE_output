@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<module id="com.zillians.module.DummyGameNameGameModule"
+name="DummyGameNameGameModule" 
+classid=DummyModuleUUID
+version="0.2">
+<require id="com.zillians.module.world-gateway" version="0.1"/>
+<component id="DummyGameName_GameCommandTranslator" name="DummyGameName_GameCommandTranslator" classid="DummyTranslatorUUID" lazy="false"/>
+<extension point="com.zillians.module.world-gateway.network-translator" component="DummyGameName_GameCommandTranslator"/>
+</module>

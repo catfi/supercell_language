@@ -32,9 +32,8 @@
 
 namespace zillians { namespace language { namespace stage {
 
-class StageBuilder : public StageConductor
-{
-private:
+namespace detail {
+
 	template<int N, typename Types>
 	struct BuilderAppenderImpl : public BuilderAppenderImpl<N-1, Types>
 	{
@@ -65,7 +64,7 @@ private:
 		}
 	};
 
-private:
+
 	template<int N, typename Types>
 	struct AllStageAppenderImpl : public AllStageAppenderImpl<N-1, Types>
 	{
@@ -109,26 +108,33 @@ private:
 			AllStageAppenderImpl< boost::mpl::size<Types>::value - 1, Types>::append(m, conductor);
 		}
 	};
+} // end namespace detail
 
+class StageBuilder : public StageConductor
+{
 public:
+	StageBuilder(bool require_input = false) : StageConductor(require_input)
+	{ }
+
 	template<typename TypeVector>
 	void addDefaultMode()
 	{
 		mDefaultMode = [=]{
-			BuilderAppender<TypeVector>::build(this);
+			detail::BuilderAppender<TypeVector>::build(this); 
 		};
 
-		AllStageAppender<TypeVector>::append(mAllStages, this);
+		detail::AllStageAppender<TypeVector>::append(mAllStages, this);
 	}
 
 	template<typename TypeVector>
 	void addMode(const std::string& key, const std::string& description)
 	{
 		std::function<void()> f = [=]{
-			BuilderAppender<TypeVector>::build(this);
+			detail::BuilderAppender<TypeVector>::build(this);
 		};
+		
 		mModes[key] = std::make_pair(description, f);
-		AllStageAppender<TypeVector>::append(mAllStages, this);
+		detail::AllStageAppender<TypeVector>::append(mAllStages, this);
 	}
 
 	virtual int main(int argc, const char** argv)
@@ -162,7 +168,7 @@ public:
 	    }
 
 	    // if help option is specified, print the options and exit
-	    if(vm.count("help") > 0 || argc < 2)
+	    if(vm.count("help") > 0)
 	    {
 	    	appendAllStages();
 	    	appendOptionsFromAllStages(options_desc, dummy);

@@ -64,6 +64,7 @@ struct ThorScriptTreeAction
 	typedef action::init_specifier            init_specifier;
 	typedef action::type_specifier            type_specifier;
 	typedef action::thor_type                 thor_type;
+	typedef action::template_param_type       template_param_type;
 	typedef action::template_param_identifier template_param_identifier;
 	typedef action::template_arg_identifier   template_arg_identifier;
 	typedef action::type_list                 type_list;
@@ -110,6 +111,7 @@ struct ThorScriptTreeAction
 	typedef action::statement            statement;
 	typedef action::decl_statement       decl_statement;
 	typedef action::block                block;
+	typedef action::optional_brace_block optional_brace_block;
 	typedef action::expression_statement expression_statement;
 	typedef action::selection_statement  selection_statement;
 	typedef action::iteration_statement  iteration_statement;
@@ -128,8 +130,8 @@ struct ThorScriptTreeAction
 #ifdef DEBUG
 			printf("start::reset param(0) type = %s\n", typeid(_param_t(0)).name());
 #endif
-			BIND_CACHED_LOCATION(getParserContext().program);
-			getParserContext().active_package = getParserContext().program->root;
+			BIND_CACHED_LOCATION(getParserContext().active_source);
+			//getParserContext().active_package = getParserContext().active_source->root;
 		}
 		END_ACTION
 	};

@@ -23,7 +23,7 @@
 #include "core/Prerequisite.h"
 
 #include "language/tree/ASTNodeFactory.h"
-#include "language/tree/visitor/general/GenericDoubleVisitor.h"
+#include "language/tree/visitor/GenericDoubleVisitor.h"
 #include "language/context/ParserContext.h"
 #include "language/stage/generator/context/SynthesizedFunctionContext.h"
 #include "language/stage/parser/context/SourceInfoContext.h"
@@ -40,21 +40,21 @@ using zillians::language::tree::visitor::GenericDoubleVisitor;
 
 namespace zillians { namespace language { namespace stage { namespace visitor {
 
-struct LLVMGlobalDispatchGeneratorStageVisitor : GenericDoubleVisitor
+struct LLVMGlobalDispatchGeneratorStageVisitor : public GenericDoubleVisitor
 {
-    CREATE_INVOKER(generateInvoker, collect)
+    CREATE_INVOKER(generateInvoker, apply)
 
     LLVMGlobalDispatchGeneratorStageVisitor()
     {
         REGISTER_ALL_VISITABLE_ASTNODE(generateInvoker)
     }
 
-    void collect(ASTNode& node)
+    void apply(ASTNode& node)
     {
         revisit(node);
     }
 
-    void collect(Annotation& node)
+    void apply(Annotation& node)
     {
         if(isServerFunctionAnnotaion(node))
         {

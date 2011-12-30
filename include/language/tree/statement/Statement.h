@@ -36,10 +36,10 @@ struct Statement : public ASTNode
 	Statement() : annotations(NULL)
 	{ }
 
-	void setAnnotation(Annotations* anns)
+	void setAnnotations(Annotations* anns)
 	{
 		if(annotations) annotations->parent = NULL;
-		anns->parent = this;
+		if(anns) anns->parent = this;
 		annotations = anns;
 	}
 
@@ -60,6 +60,8 @@ struct Statement : public ASTNode
     template<typename Archive>
     void serialize(Archive& ar, const unsigned int version)
     {
+    	UNUSED_ARGUMENT(version);
+
     	ar & boost::serialization::base_object<ASTNode>(*this);
     	ar & annotations;
     }

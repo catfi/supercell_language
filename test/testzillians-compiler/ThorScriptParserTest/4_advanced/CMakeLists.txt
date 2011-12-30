@@ -20,6 +20,22 @@
 #
 
 zillians_add_complex_test(
+    TARGET thorscript-parser-test-auto-advanced
+    SHELL ${CMAKE_CURRENT_SOURCE_DIR}/../test.sh ${ThorScriptCompiler} ${ThorScriptLogFilter} 3
+            ${CMAKE_CURRENT_SOURCE_DIR}/0_modifier.t
+            ${CMAKE_CURRENT_SOURCE_DIR}/1_constructor.t
+            ${CMAKE_CURRENT_SOURCE_DIR}/2_annotation.t
+            ${CMAKE_CURRENT_SOURCE_DIR}/3_instanceof.t
+            ${CMAKE_CURRENT_SOURCE_DIR}/4_typedef.t
+            ${CMAKE_CURRENT_SOURCE_DIR}/5_lambda.t
+            ${CMAKE_CURRENT_SOURCE_DIR}/6_template.t
+            ${CMAKE_CURRENT_SOURCE_DIR}/7_container.t
+#            ${CMAKE_CURRENT_SOURCE_DIR}/8_va_arg.t
+            ${CMAKE_CURRENT_SOURCE_DIR}/9_interface.t
+    DEPENDS ${ThorScriptCompiler} ${ThorScriptLogFilter}
+    )
+
+zillians_add_complex_test(
     TARGET thorscript-parser-test-advanced
     SHELL ${CMAKE_CURRENT_SOURCE_DIR}/../test.sh ${ThorScriptCompiler} ${ThorScriptLogFilter} 0
             ${CMAKE_CURRENT_SOURCE_DIR}/0_modifier.t
@@ -30,7 +46,7 @@ zillians_add_complex_test(
             ${CMAKE_CURRENT_SOURCE_DIR}/5_lambda.t
             ${CMAKE_CURRENT_SOURCE_DIR}/6_template.t
             ${CMAKE_CURRENT_SOURCE_DIR}/7_container.t
-            ${CMAKE_CURRENT_SOURCE_DIR}/8_va_arg.t
+#            ${CMAKE_CURRENT_SOURCE_DIR}/8_va_arg.t
             ${CMAKE_CURRENT_SOURCE_DIR}/9_interface.t
     DEPENDS ${ThorScriptCompiler} ${ThorScriptLogFilter}
     )
@@ -46,7 +62,7 @@ zillians_add_complex_test(
             ${CMAKE_CURRENT_SOURCE_DIR}/5_lambda.t
             ${CMAKE_CURRENT_SOURCE_DIR}/6_template.t
             ${CMAKE_CURRENT_SOURCE_DIR}/7_container.t
-            ${CMAKE_CURRENT_SOURCE_DIR}/8_va_arg.t
+#            ${CMAKE_CURRENT_SOURCE_DIR}/8_va_arg.t
             ${CMAKE_CURRENT_SOURCE_DIR}/9_interface.t
     DEPENDS ${ThorScriptCompiler} ${ThorScriptLogFilter}
     )
@@ -62,10 +78,11 @@ zillians_add_complex_test(
             ${CMAKE_CURRENT_SOURCE_DIR}/5_lambda.t
             ${CMAKE_CURRENT_SOURCE_DIR}/6_template.t
             ${CMAKE_CURRENT_SOURCE_DIR}/7_container.t
-            ${CMAKE_CURRENT_SOURCE_DIR}/8_va_arg.t
+#            ${CMAKE_CURRENT_SOURCE_DIR}/8_va_arg.t
             ${CMAKE_CURRENT_SOURCE_DIR}/9_interface.t
     DEPENDS ${ThorScriptCompiler} ${ThorScriptLogFilter}
     )
 
+zillians_add_test_to_subject(SUBJECT thorscript-parser-test-auto-all TARGET thorscript-parser-test-auto-advanced)
 zillians_add_test_to_subject(SUBJECT thorscript-parser-test-all TARGET thorscript-parser-test-advanced)
 zillians_add_test_to_subject(SUBJECT thorscript-parser-test-ast-all TARGET thorscript-parser-test-ast-advanced)

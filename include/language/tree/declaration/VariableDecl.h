@@ -74,16 +74,26 @@ struct VariableDecl : public Declaration
 
     virtual ASTNode* clone() const
     {
-    	return new VariableDecl(
+    	VariableDecl* cloned = new VariableDecl(
     			(name) ? cast<Identifier>(name->clone()) : NULL,
     			(type) ? cast<TypeSpecifier>(type->clone()) : NULL,
     			is_member, is_static, is_const, visibility,
     			(initializer) ? cast<Expression>(initializer->clone()) : NULL);
+
+        if(annotations != NULL)
+        {
+            Annotations* anno = cast<Annotations>(annotations->clone());
+            cloned->setAnnotations(anno);
+        }
+
+        return cloned;
     }
 
     template<typename Archive>
     void serialize(Archive& ar, const unsigned int version)
     {
+    	UNUSED_ARGUMENT(version);
+
     	ar & boost::serialization::base_object<Declaration>(*this);
     	ar & type;
     	ar & is_member;

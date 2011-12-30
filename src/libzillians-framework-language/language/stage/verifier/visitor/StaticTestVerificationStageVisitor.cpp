@@ -21,6 +21,7 @@
 
 #include <iostream>
 #include <vector>
+#include <map>
 #include "language/tree/ASTNodeFactory.h"
 #include "language/stage/verifier/visitor/StaticTestVerificationStageVisitor.h"
 #include "language/context/LogInfoContext.h"
@@ -38,13 +39,19 @@ static void printLogInfoVec(const std::vector<LogInfo>& logInfoVec)
         std::wcout << L"    log_level : " << logInfoVec[i].log_level << std::endl ;
         std::wcout << L"    log_id    : " << logInfoVec[i].log_id << std::endl ;
         std::wcout << L"    parameters: " ;
-        foreach(j ,logInfoVec[i].parameters)
+        if(logInfoVec[i].parameters.empty())
         {
-            if(j != logInfoVec[i].parameters.begin())
+            std::wcout << L"(NONE)" << std::endl ;
+        }
+        else {
+            foreach(j ,logInfoVec[i].parameters)
             {
-                std::wcout << "                " ;
+                if(j != logInfoVec[i].parameters.begin())
+                {
+                    std::wcout << "                " ;
+                }
+                std::wcout << j->first << ": " << j->second << std::endl ;
             }
-            std::wcout << j->first << ": " << j->second << std::endl ;
         }
     }
 }
@@ -107,54 +114,43 @@ static std::wstring getLiteralString(Literal* literal)
         std::wostringstream oss;
         switch(numericLiteral->type)
         {
-        case PrimitiveType::type::BOOL    : oss << numericLiteral->value.b  ; break;
-        case PrimitiveType::type::INT8    : oss << numericLiteral->value.i8 ; break;
-        case PrimitiveType::type::INT16   : oss << numericLiteral->value.i16; break;
-        case PrimitiveType::type::INT32   : oss << numericLiteral->value.i32; break;
-        case PrimitiveType::type::INT64   : oss << numericLiteral->value.i64; break;
-        case PrimitiveType::type::FLOAT32 : oss << numericLiteral->value.f32; break;
-        case PrimitiveType::type::FLOAT64 : oss << numericLiteral->value.f64; break;
+        case PrimitiveType::type::BOOL_TYPE    : oss << numericLiteral->value.b  ; break;
+        case PrimitiveType::type::INT8_TYPE    : oss << numericLiteral->value.i8 ; break;
+        case PrimitiveType::type::INT16_TYPE   : oss << numericLiteral->value.i16; break;
+        case PrimitiveType::type::INT32_TYPE   : oss << numericLiteral->value.i32; break;
+        case PrimitiveType::type::INT64_TYPE   : oss << numericLiteral->value.i64; break;
+        case PrimitiveType::type::FLOAT32_TYPE : oss << numericLiteral->value.f32; break;
+        case PrimitiveType::type::FLOAT64_TYPE : oss << numericLiteral->value.f64; break;
         default: break;
         }
         return oss.str();
     }
 }
 
-static LogInfo constructErrorContextFromAnnotation(zillians::language::tree::Annotation& node)
+static LogInfo constructExpectMessageFromAnnotation(zillians::language::tree::ASTNode& node)
 {
     using namespace zillians::language::tree;
     using zillians::language::tree::cast;
 
-    BOOST_ASSERT(node.attribute_list.size() == 1);
-    if (node.attribute_list.size() != 1 )
-    {
-        LOG_MESSAGE(WRONG_STATIC_TEST_ANNOTATION_FORMAT, &node, _detail = L"number of attribute list should be 1");
-    }
+    ASTNode* expectMessageAnno = &node;
 
-    std::pair<SimpleIdentifier*, ASTNode*>& expectMessage = node.attribute_list[0];
-    BOOST_ASSERT(cast<SimpleIdentifier>(expectMessage.first)->name == L"expect_message");
-    if (cast<SimpleIdentifier>(expectMessage.first) == NULL)
-    {
-        LOG_MESSAGE(WRONG_STATIC_TEST_ANNOTATION_FORMAT, &node, _detail = L"key should be \"expect_message\"");
-    }
-
-    BOOST_ASSERT(cast<Annotation>(expectMessage.second) != NULL);
-    if (cast<Annotation>(expectMessage.second) == NULL)
+    BOOST_ASSERT(cast<Annotation>(expectMessageAnno) != NULL);
+    if (cast<Annotation>(expectMessageAnno) == NULL)
     {
         LOG_MESSAGE(WRONG_STATIC_TEST_ANNOTATION_FORMAT, &node, _detail = L"child of Annotations should be Annotation");
     }
 
-    Annotation* anno = cast<Annotation>(expectMessage.second);
-    BOOST_ASSERT(cast<Annotation>(expectMessage.second)->attribute_list.size() == 3 ||
-                 cast<Annotation>(expectMessage.second)->attribute_list.size() == 2);
-    if (cast<Annotation>(expectMessage.second)->attribute_list.size() < 2 ||
-        cast<Annotation>(expectMessage.second)->attribute_list.size() > 3)
+    Annotation* anno = cast<Annotation>(expectMessageAnno);
+    BOOST_ASSERT(cast<Annotation>(expectMessageAnno)->attribute_list.size() == 3 ||
+                 cast<Annotation>(expectMessageAnno)->attribute_list.size() == 2);
+    if (cast<Annotation>(expectMessageAnno)->attribute_list.size() < 2 ||
+        cast<Annotation>(expectMessageAnno)->attribute_list.size() > 3)
     {
         LOG_MESSAGE(WRONG_STATIC_TEST_ANNOTATION_FORMAT, &node, _detail = L"number of attribute list should be 3 or 2");
     }
 
     // log level
-    std::pair<SimpleIdentifier*, ASTNode*> logLevel = cast<Annotation>(expectMessage.second)->attribute_list[0];
+    std::pair<SimpleIdentifier*, ASTNode*> logLevel = cast<Annotation>(expectMessageAnno)->attribute_list[0];
     BOOST_ASSERT(cast<SimpleIdentifier>(logLevel.first) != NULL);
     if (cast<SimpleIdentifier>(logLevel.first) == NULL)
     {
@@ -177,7 +173,7 @@ static LogInfo constructErrorContextFromAnnotation(zillians::language::tree::Ann
     std::wstring levelString = cast<StringLiteral>(cast<PrimaryExpr>(logLevel.second)->value.literal)->value;
 
     // log id
-    std::pair<SimpleIdentifier*, ASTNode*> logId = cast<Annotation>(expectMessage.second)->attribute_list[1];
+    std::pair<SimpleIdentifier*, ASTNode*> logId = cast<Annotation>(expectMessageAnno)->attribute_list[1];
     BOOST_ASSERT(cast<SimpleIdentifier>(logId.first) != NULL);
     if (cast<SimpleIdentifier>(logId.first) == NULL)
     {
@@ -205,7 +201,7 @@ static LogInfo constructErrorContextFromAnnotation(zillians::language::tree::Ann
     }
 
     // parameter pairs
-    std::pair<SimpleIdentifier*, ASTNode*> paramPairs = cast<Annotation>(expectMessage.second)->attribute_list[2];
+    std::pair<SimpleIdentifier*, ASTNode*> paramPairs = cast<Annotation>(expectMessageAnno)->attribute_list[2];
     BOOST_ASSERT(cast<SimpleIdentifier>(paramPairs.first) != NULL);
     if (cast<SimpleIdentifier>(paramPairs.first) == NULL)
     {
@@ -267,8 +263,16 @@ std::vector<LogInfo> StaticTestVerificationStageVisitor::constructLogInfoVecFrom
     {
         if((*i)->name->name == L"static_test")
         {
-            LogInfo logInfo = constructErrorContextFromAnnotation(**i);
-            annotatedLogInfoVec.push_back(logInfo);
+            Annotation& anno = **i;
+            foreach(j, anno.attribute_list)
+            {
+                std::pair<SimpleIdentifier*, ASTNode*>& attr = *j;
+                if(attr.first->name == L"expect_message")
+                {
+                    LogInfo logInfo = constructExpectMessageFromAnnotation(*attr.second);
+                    annotatedLogInfoVec.push_back(logInfo);
+                }
+            }
         }
     }
     return annotatedLogInfoVec;
@@ -301,6 +305,172 @@ bool StaticTestVerificationStageVisitor::compareLogInfoVec(ASTNode* errorNode, s
         dumpMultipleMismatchLogInfoError(errorNode, annotatedLogInfoVec, hookedLogInfoVec);
         return false;
     }
+}
+
+/**
+ * @brief Get the expect_resolution id of the function call
+ * @param node The ExpressionStmt node of the function call
+ * @return @p __no_annotation__ if there is no expect_resolution annotation on this node.
+ *         @p (EmptyString) if the function call is not resolved
+ *         @p SomeId if the function is resolved
+ */
+static std::wstring getUseId(ASTNode& node)
+{
+    Annotation* useAnno = ASTNodeHelper::findAnnotation(&node, L"static_test");
+    if(useAnno == NULL)
+    {
+        return L"__no_annotation__";
+    }
+
+    foreach(i, useAnno->attribute_list)
+    {
+        SimpleIdentifier* useAnnoKey = cast<SimpleIdentifier>(i->first);
+        if(useAnnoKey->name == L"expect_resolution")
+        {
+            PrimaryExpr* useAnnoValue = cast<PrimaryExpr>(i->second);
+            const std::wstring& useId = cast<StringLiteral>(useAnnoValue->value.literal)->value;
+            return useId;
+        }
+    }
+    return L"__no_annotation__";
+}
+
+
+static Declaration* getDecl(ASTNode& node)
+{
+    ASTNode*         stmtNode = &node;
+    ExpressionStmt*  exprStmt = cast<ExpressionStmt>(stmtNode);
+    DeclarativeStmt* declStmt = cast<DeclarativeStmt>(stmtNode);
+    // function call
+    if(exprStmt != NULL)
+    {
+        CallExpr*    callExpr = cast<CallExpr>(exprStmt->expr);
+        if(ResolvedSymbol::get(callExpr->node) == NULL) return NULL;
+        Declaration* decl     = cast<Declaration>(ResolvedSymbol::get(callExpr->node));
+        return decl;
+    }
+    // variable declaration
+    else
+    {
+        VariableDecl*  varDecl = cast<VariableDecl>(declStmt->declaration);
+        TypeSpecifier* type    = varDecl->type;
+        if(ResolvedType::get(type) == NULL) return NULL;
+        Declaration*   decl    = cast<Declaration>(ResolvedType::get(type));
+        return decl;
+    }
+}
+
+/**
+ * @brief Get the resolution id of the function declaration
+ * @param node The ExpressionStmt node of the function call
+ * @return @p __no_ResolvedSymbol__ if the function call is not resolved
+ *         @p _no_StaticTestAnnotation_ if the declaration has no static_test annotation
+ *         @p SomeId The declaration id if the function is resolved
+ */
+static std::wstring getDeclId(ASTNode& node)
+{
+    Declaration* decl = getDecl(node);
+    if(decl == NULL)
+    {
+        return L"__no_ResolvedSymbol__";
+    }
+
+    Annotation*         declAnno      = ASTNodeHelper::findAnnotation(decl, L"static_test");
+    if(declAnno == NULL)
+    {
+        return L"__no_annotation__";
+    }
+
+    PrimaryExpr*        declAnnoValue = cast<PrimaryExpr>(declAnno->attribute_list.begin()->second);
+    const std::wstring& declId        = cast<StringLiteral>(declAnnoValue->value.literal)->value;
+    return declId;
+}
+
+struct CodePoint
+{
+    CodePoint(ASTNode* node)
+    {
+        Source* sourceNode = ASTNodeHelper::getOwner<Source>(node);
+        filename = s_to_ws(sourceNode->filename);
+        stage::SourceInfoContext* source_info = stage::SourceInfoContext::get(node);
+        line = source_info->line;
+        column = source_info->column;
+    }
+
+    std::wstring filename;
+    uint32 line;
+    uint32 column;
+} ;
+
+/**
+ * @brief Check function resolution
+ * @param node function call stmt to be resolved
+ * @return @p true if all match, @p false is not
+ *
+ * There are 3 OK:
+ *   1. No annotation
+ *   2. Can not be resolved && no ResolvedSymbol
+ *   3. Can be resolved && has match ResolvedSymbol
+ *
+ * and 2 Fail:
+ *   1. Fales positive: should not resolved, but resolved.
+ *   2. Resolved, but not match
+ */
+bool StaticTestVerificationStageVisitor::checkResolutionTarget(zillians::language::tree::ASTNode& node)
+{
+    std::wstring useId = getUseId(node);
+
+    // There are three OK:
+    // 1. no annotation
+    // 2. Can not be resolved && no ResolvedSymbol
+    // 3. Can be resolved && has match ResolvedSymbol
+    if(useId == L"__no_annotation__")
+    {
+        return true;
+    }
+
+    std::wstring callOrDecl = isa<ExpressionStmt>(&node) ? L"Function call" : L"Variable declaration";
+    std::wstring declId = getDeclId(node);
+
+    if(useId == L"" && declId == L"__no_ResolvedSymbol__")
+    {
+        std::cout << "Resolution OK" << std::endl;
+        return true;
+    }
+    else if(useId == declId)
+    {
+        std::cout << "Resolution OK" << std::endl;
+        return true;
+    }
+
+    // And three FAIL:
+    // 1. Fales positive: should not resolved, but resolved.
+    // 2. Should be resolved, but not.
+    // 3. Resolved, but not match
+    else if(useId == L"" && declId != L"__no_ResolvedSymbol__")
+    {
+        CodePoint usePoint(&node);
+        CodePoint declPoint(getDecl(node));
+        std::wcerr <<  usePoint.filename << L":" <<  usePoint.line << L": Error: " << callOrDecl << " `" << ASTNodeHelper::getNodeName(&node, true) << L"' should not be resolved, but resolved to:" << std::endl
+                   << declPoint.filename << L":" << declPoint.line << L": " << ASTNodeHelper::getNodeName(getDecl(node), true) << std::endl;
+        return false;
+    }
+    else if(useId != L"" && declId == L"__no_ResolvedSymbol__")
+    {
+        CodePoint usePoint(&node);
+        std::wcerr <<  usePoint.filename << L":" <<  usePoint.line << L": Error: " << callOrDecl << " `" << ASTNodeHelper::getNodeName(&node, true) << L"' should be resolved, but not" << std::endl;
+        return false;
+    }
+    else if(useId != declId)
+    {
+        CodePoint usePoint(&node);
+        CodePoint declPoint(getDecl(node));
+        std::wcerr <<  usePoint.filename << L":" <<  usePoint.line << L": Error: " << callOrDecl << " `" << ASTNodeHelper::getNodeName(&node, true) << L"' resolved to wrong declaration:" << std::endl
+                   << declPoint.filename << L":" << declPoint.line << L": " << ASTNodeHelper::getNodeName(getDecl(node), true) << std::endl;
+        return false;
+    }
+
+    UNREACHABLE_CODE();
 }
 
 } } } } // namespace zillians::language::tree::visitor

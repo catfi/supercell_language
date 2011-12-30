@@ -58,6 +58,8 @@ bool ManglingStage::parseOptions(po::variables_map& vm)
 
 bool ManglingStage::execute(bool& continue_execution)
 {
+	UNUSED_ARGUMENT(continue_execution);
+
 	if(disable_mangling)
 		return true;
 
@@ -66,10 +68,10 @@ bool ManglingStage::execute(bool& continue_execution)
 
 	ParserContext& parser_context = getParserContext();
 
-	if(parser_context.program)
+	if(parser_context.active_source)
 	{
 		visitor::ManglingStageVisitor mangler;
-		mangler.visit(*parser_context.program);
+		mangler.visit(*parser_context.tangle);
 		return true;
 	}
 	else

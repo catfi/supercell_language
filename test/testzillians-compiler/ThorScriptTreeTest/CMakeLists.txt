@@ -21,7 +21,7 @@
 
 zillians_create_test_subject(SUBJECT thorscript-tree-test)
 
-zillians_add_subject_to_subject(PARENT framework-compiler-critical CHILD thorscript-tree-test)
+zillians_add_subject_to_subject(PARENT language-compiler-critical CHILD thorscript-tree-test)
 
 ADD_SUBDIRECTORY(GenericVisitorTest)
 ADD_SUBDIRECTORY(GarbageCollectionVisitorTest)
@@ -29,5 +29,4 @@ ADD_SUBDIRECTORY(BasicTreeGenerationTest)
 ADD_SUBDIRECTORY(PrettyPrintVisitorTest)
 ADD_SUBDIRECTORY(SerializationTest)
 ADD_SUBDIRECTORY(StaticTestVerificationStageVisitorTest)
-ADD_SUBDIRECTORY(StructureVerificationVisitorTest)
-#ADD_SUBDIRECTORY(GlobalDispatchGeneratorTest)
+ADD_SUBDIRECTORY(TreeCloneTest)

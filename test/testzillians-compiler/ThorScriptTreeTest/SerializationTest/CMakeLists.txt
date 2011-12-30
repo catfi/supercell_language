@@ -21,14 +21,14 @@
 
 INCLUDE_DIRECTORIES(
     ${PROJECT_COMMON_SOURCE_DIR}/include/
-    ${PROJECT_FRAMEWORK_SOURCE_DIR}/include/
+    ${PROJECT_LANGUAGE_SOURCE_DIR}/include/
     )
 
 ADD_EXECUTABLE(ThorScriptTreeTest_SerializationTest SerializationTest.cpp)
 
 TARGET_LINK_LIBRARIES(ThorScriptTreeTest_SerializationTest
     zillians-common-core
-    zillians-framework-language
+    zillians-framework-language-tree
     )
 
 zillians_add_simple_test(TARGET ThorScriptTreeTest_SerializationTest)

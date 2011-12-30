@@ -51,8 +51,7 @@ struct FunctionType: public ASTNode
     virtual bool isEqualImpl(const ASTNode& rhs, ASTNodeSet& visited) const
     {
     	BEGIN_COMPARE()
-		COMPARE_MEMBER(templated_parameters)
-		COMPARE_MEMBER(argument_types)
+		COMPARE_MEMBER(parameter_types)
 		COMPARE_MEMBER(return_type)
 		END_COMPARE()
     }
@@ -60,8 +59,7 @@ struct FunctionType: public ASTNode
     virtual bool replaceUseWith(const ASTNode& from, const ASTNode& to, bool update_parent = true)
     {
     	BEGIN_REPLACE()
-		REPLACE_USE_WITH(templated_parameters)
-		REPLACE_USE_WITH(argument_types)
+		REPLACE_USE_WITH(parameter_types)
 		REPLACE_USE_WITH(return_type)
     	END_REPLACE()
     }
@@ -71,14 +69,14 @@ struct FunctionType: public ASTNode
     template<typename Archive>
     void serialize(Archive& ar, const unsigned int version)
     {
+    	UNUSED_ARGUMENT(version);
+
     	ar & boost::serialization::base_object<ASTNode>(*this);
-    	ar & templated_parameters;
-    	ar & argument_types;
+    	ar & parameter_types;
     	ar & return_type;
     }
 
-	std::vector<Identifier*> templated_parameters;
-	std::vector<TypeSpecifier*> argument_types;
+	std::vector<TypeSpecifier*> parameter_types;
 	TypeSpecifier* return_type;
 };
 

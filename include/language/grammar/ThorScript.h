@@ -71,6 +71,7 @@ namespace zillians { namespace language { namespace grammar {
 /// detail
 /////////////////////////////////////////////////////////////////////
 
+
 namespace detail {
 
 template <typename Iterator, typename SA>
@@ -96,7 +97,7 @@ struct Identifier : qi::grammar<Iterator, typename SA::identifier::attribute_typ
 			L"while", L"do", L"foreach", L"in", L"for",
 			L"break", L"continue", L"return",
 			L"new", L"as", L"instanceof",
-			L"package", L"import",
+			L"module", L"import",
 			L"extends", L"implements";
 		keyword = DISTINCT_IDENTIFIER(keyword_sym);
 
@@ -332,10 +333,10 @@ struct ThorScript : qi::grammar<Iterator, typename SA::start::attribute_type, de
 			DECL_TOKEN(_FALSE, L"false");
 			DECL_TOKEN(_NULL, L"null");
 			DECL_TOKEN(SELF, L"self");
-			DECL_TOKEN(THIS, L"this");
+			DECL_TOKEN(_THIS, L"this");
 			DECL_TOKEN(SUPER, L"super");
 
-			DECL_TOKEN(CONST, L"const");
+			DECL_TOKEN(_CONST, L"const");
 			DECL_TOKEN(STATIC, L"static");
 
 			DECL_TOKEN(INT8, L"int8");
@@ -344,7 +345,7 @@ struct ThorScript : qi::grammar<Iterator, typename SA::start::attribute_type, de
 			DECL_TOKEN(INT64, L"int64");
 			DECL_TOKEN(FLOAT32, L"float32");
 			DECL_TOKEN(FLOAT64, L"float64");
-			DECL_TOKEN(VOID, L"void");
+			DECL_TOKEN(_VOID, L"void");
 
 			DECL_TOKEN(TYPEDEF, L"typedef");
 			DECL_TOKEN(CLASS, L"class");
@@ -369,7 +370,7 @@ struct ThorScript : qi::grammar<Iterator, typename SA::start::attribute_type, de
 			DECL_TOKEN(WHILE, L"while");
 			DECL_TOKEN(DO, L"do");
 			DECL_TOKEN(FOREACH, L"foreach");
-			DECL_TOKEN(IN, L"in");
+			DECL_TOKEN(_IN, L"in");
 			DECL_TOKEN(FOR, L"for");
 
 			DECL_TOKEN(RETURN, L"return");
@@ -380,7 +381,7 @@ struct ThorScript : qi::grammar<Iterator, typename SA::start::attribute_type, de
 			DECL_TOKEN(AS, L"as");
 			DECL_TOKEN(INSTANCEOF, L"instanceof");
 
-			DECL_TOKEN(PACKAGE, L"package");
+			DECL_TOKEN(MODULE, L"module");
 			DECL_TOKEN(IMPORT, L"import");
 
 			DECL_TOKEN(EXTENDS, L"extends");
@@ -394,7 +395,7 @@ struct ThorScript : qi::grammar<Iterator, typename SA::start::attribute_type, de
 		/////////////////////////////////////////////////////////////////////
 		/// BEGIN BASIC
 		///
-
+#if 0
 		location
 			= omit[ iter_pos[ typename SA::location::init() ] ]
 			;
@@ -417,24 +418,72 @@ struct ThorScript : qi::grammar<Iterator, typename SA::start::attribute_type, de
 
 		thor_type
 			= qi::eps [ typename SA::location::cache_loc() ]
-				>>	( qi::lit(L"void")                                                     [ typename SA::thor_type::template init_primitive_type<tree::PrimitiveType::VOID>() ]
-					| qi::lit(L"int8")                                                     [ typename SA::thor_type::template init_primitive_type<tree::PrimitiveType::INT8>() ]
-					| qi::lit(L"int16")                                                    [ typename SA::thor_type::template init_primitive_type<tree::PrimitiveType::INT16>() ]
-					| qi::lit(L"int32")                                                    [ typename SA::thor_type::template init_primitive_type<tree::PrimitiveType::INT32>() ]
-					| qi::lit(L"int64")                                                    [ typename SA::thor_type::template init_primitive_type<tree::PrimitiveType::INT64>() ]
-					| qi::lit(L"float32")                                                  [ typename SA::thor_type::template init_primitive_type<tree::PrimitiveType::FLOAT32>() ]
-					| qi::lit(L"float64")                                                  [ typename SA::thor_type::template init_primitive_type<tree::PrimitiveType::FLOAT64>() ]
+				>>	( DISTINCT_IDENTIFIER(qi::lit(L"void"))                                [ typename SA::thor_type::template init_primitive_type<tree::PrimitiveType::VOID_TYPE>() ]
+					| qi::lit(L"int8")                                                     [ typename SA::thor_type::template init_primitive_type<tree::PrimitiveType::INT8_TYPE>() ]
+					| qi::lit(L"int16")                                                    [ typename SA::thor_type::template init_primitive_type<tree::PrimitiveType::INT16_TYPE>() ]
+					| qi::lit(L"int32")                                                    [ typename SA::thor_type::template init_primitive_type<tree::PrimitiveType::INT32_TYPE>() ]
+					| qi::lit(L"int64")                                                    [ typename SA::thor_type::template init_primitive_type<tree::PrimitiveType::INT64_TYPE>() ]
+					| qi::lit(L"float32")                                                  [ typename SA::thor_type::template init_primitive_type<tree::PrimitiveType::FLOAT32_TYPE>() ]
+					| qi::lit(L"float64")                                                  [ typename SA::thor_type::template init_primitive_type<tree::PrimitiveType::FLOAT64_TYPE>() ]
 					| (nested_identifier > -type_specialize_specifier)                     [ typename SA::thor_type::init_type() ]
 					| (FUNCTION > LEFT_PAREN > -type_list > RIGHT_PAREN > -type_specifier) [ typename SA::thor_type::init_function_type() ]
-					| ELLIPSIS                                                             [ typename SA::thor_type::init_ellipsis() ]
+					)
+			;
+
+		// NOTE: lax implementation
+		// ACCEPTS: function f<T:int8, T2:QWE<T> >():void { }
+		// ACCEPTS: function f<T:int8, T2:a.b.c.QWE<T> >():void { }
+		// ACCEPTS: function a.b.c.f<T:int8, T2:QWE<T> >():void { }
+		template_param_type
+			= qi::eps [ typename SA::location::cache_loc() ]
+				>>	( DISTINCT_IDENTIFIER(qi::lit(L"void"))                                [ typename SA::thor_type::template init_primitive_type<tree::PrimitiveType::VOID_TYPE>() ]
+					| qi::lit(L"int8")                                                     [ typename SA::thor_type::template init_primitive_type<tree::PrimitiveType::INT8_TYPE>() ]
+					| qi::lit(L"int16")                                                    [ typename SA::thor_type::template init_primitive_type<tree::PrimitiveType::INT16_TYPE>() ]
+					| qi::lit(L"int32")                                                    [ typename SA::thor_type::template init_primitive_type<tree::PrimitiveType::INT32_TYPE>() ]
+					| qi::lit(L"int64")                                                    [ typename SA::thor_type::template init_primitive_type<tree::PrimitiveType::INT64_TYPE>() ]
+					| qi::lit(L"float32")                                                  [ typename SA::thor_type::template init_primitive_type<tree::PrimitiveType::FLOAT32_TYPE>() ]
+					| qi::lit(L"float64")                                                  [ typename SA::thor_type::template init_primitive_type<tree::PrimitiveType::FLOAT64_TYPE>() ]
+#if 0 // NOTE: strict implementation -- unnecessarily complicates grammar
+					| template_inner_param_identifier                                      [ typename SA::template_param_type::init_type() ]
+#else
+					| template_param_identifier                                            [ typename SA::template_param_type::init_type() ]
+#endif
+
+					| (FUNCTION > LEFT_PAREN > -type_list > RIGHT_PAREN > -type_specifier) [ typename SA::thor_type::init_function_type() ]
 					)
 			;
 
 		template_param_identifier
 			= qi::eps [ typename SA::location::cache_loc() ]
-				>>	(IDENTIFIER > -(COMPARE_LT >> ((IDENTIFIER | EMIT_BOOL(ELLIPSIS)) % COMMA) >> COMPARE_GT)
+			    >>	(nested_identifier > -(COMPARE_LT >> ((IDENTIFIER > -((COLON > template_param_type) | init_specifier)) % COMMA) >> COMPARE_GT)
 					) [ typename SA::template_param_identifier::init() ]
 			;
+
+#if 0
+		// NOTE: strict implementation -- unnecessarily complicates grammar
+		// ACCEPTS: function f<T:int8, T2:QWE<T> >():void { }
+		// ACCEPTS: function f<T:int8, T2:a.b.c.QWE<T> >():void { }
+		// REJECTS: function a.b.c.f<T:int8, T2:QWE<T> >():void { }
+		template_inner_param_type
+			= qi::eps [ typename SA::location::cache_loc() ]
+				>>	( DISTINCT_IDENTIFIER(qi::lit(L"void"))                                [ typename SA::thor_type::template init_primitive_type<tree::PrimitiveType::VOID_TYPE>() ]
+					| qi::lit(L"int8")                                                     [ typename SA::thor_type::template init_primitive_type<tree::PrimitiveType::INT8_TYPE>() ]
+					| qi::lit(L"int16")                                                    [ typename SA::thor_type::template init_primitive_type<tree::PrimitiveType::INT16_TYPE>() ]
+					| qi::lit(L"int32")                                                    [ typename SA::thor_type::template init_primitive_type<tree::PrimitiveType::INT32_TYPE>() ]
+					| qi::lit(L"int64")                                                    [ typename SA::thor_type::template init_primitive_type<tree::PrimitiveType::INT64_TYPE>() ]
+					| qi::lit(L"float32")                                                  [ typename SA::thor_type::template init_primitive_type<tree::PrimitiveType::FLOAT32_TYPE>() ]
+					| qi::lit(L"float64")                                                  [ typename SA::thor_type::template init_primitive_type<tree::PrimitiveType::FLOAT64_TYPE>() ]
+					| template_inner_param_identifier                                      [ typename SA::template_param_type::init_type() ]
+					| (FUNCTION > LEFT_PAREN > -type_list > RIGHT_PAREN > -type_specifier) [ typename SA::thor_type::init_function_type() ]
+					)
+			;
+
+		template_inner_param_identifier
+			= qi::eps [ typename SA::location::cache_loc() ]
+			    >>	(nested_identifier > -(COMPARE_LT >> ((IDENTIFIER > -((COLON > template_inner_param_type) | init_specifier)) % COMMA) >> COMPARE_GT)
+					) [ typename SA::template_param_identifier::init() ]
+			;
+#endif
 
 		template_arg_identifier
 			= qi::eps [ typename SA::location::cache_loc() ]
@@ -462,7 +511,7 @@ struct ThorScript : qi::grammar<Iterator, typename SA::start::attribute_type, de
 
 		annotation_list
 			= qi::eps [ typename SA::location::cache_loc() ]
-				>> (*annotation) [ typename SA::annotation_list::init() ]
+				>> (+annotation) [ typename SA::annotation_list::init() ]
 			;
 
 		annotation
@@ -518,7 +567,7 @@ struct ThorScript : qi::grammar<Iterator, typename SA::start::attribute_type, de
 					| _FALSE                                  [ typename SA::primary_expression::template init_bool<false>() ]
 					| _NULL                                   [ typename SA::primary_expression::template init_object_literal<tree::ObjectLiteral::LiteralType::NULL_OBJECT>() ]
 					| SELF                                    [ typename SA::primary_expression::template init_object_literal<tree::ObjectLiteral::LiteralType::SELF_OBJECT>() ]
-					| THIS                                    [ typename SA::primary_expression::template init_object_literal<tree::ObjectLiteral::LiteralType::THIS_OBJECT>() ]
+					| _THIS                                    [ typename SA::primary_expression::template init_object_literal<tree::ObjectLiteral::LiteralType::THIS_OBJECT>() ]
 					| SUPER                                   [ typename SA::primary_expression::template init_object_literal<tree::ObjectLiteral::LiteralType::SUPER_OBJECT>() ]
 					| (LEFT_PAREN > expression > RIGHT_PAREN) [ typename SA::primary_expression::init_paren_expression() ]
 					|	(FUNCTION > LEFT_PAREN > -param_decl_list > RIGHT_PAREN > -type_specifier > block
@@ -546,13 +595,12 @@ struct ThorScript : qi::grammar<Iterator, typename SA::start::attribute_type, de
 		// rank: 1
 		prefix_expression
 			= qi::eps [ typename SA::location::cache_loc() ]
-				>>	(postfix_expression
+				>>	(	( -( NEW > qi::attr(tree::UnaryExpr::OpCode::NEW) ) >> postfix_expression )
 					|	(	( ( INCREMENT        > qi::attr(tree::UnaryExpr::OpCode::PREFIX_INCREMENT) )
 							| ( DECREMENT        > qi::attr(tree::UnaryExpr::OpCode::PREFIX_DECREMENT) )
 							| ( BINARY_NOT       > qi::attr(tree::UnaryExpr::OpCode::BINARY_NOT) )
 							| ( LOGICAL_NOT      > qi::attr(tree::UnaryExpr::OpCode::LOGICAL_NOT) )
 							| ( ARITHMETIC_MINUS > qi::attr(tree::UnaryExpr::OpCode::ARITHMETIC_NEGATE) )
-							| ( NEW              > qi::attr(tree::UnaryExpr::OpCode::NEW) )
 							) > prefix_expression
 						)
 					) [ typename SA::prefix_expression::init() ]
@@ -743,14 +791,14 @@ struct ThorScript : qi::grammar<Iterator, typename SA::start::attribute_type, de
 
 		selection_statement
 			= qi::eps [ typename SA::location::cache_loc() ]
-				>>	(	(IF > LEFT_PAREN > expression > RIGHT_PAREN > statement
-							> *(ELIF > LEFT_PAREN > expression > RIGHT_PAREN > statement)
-							> -(ELSE > statement)
+				>>	(	(IF > LEFT_PAREN > expression > RIGHT_PAREN > optional_brace_block
+							> *(ELIF > LEFT_PAREN > expression > RIGHT_PAREN > optional_brace_block)
+							> -(ELSE > optional_brace_block)
 						) [ typename SA::selection_statement::init_if_statement() ]
 					|	(SWITCH > LEFT_PAREN > expression > RIGHT_PAREN
 							> LEFT_BRACE
-							>	*( ( CASE > expression > COLON > *statement )
-								 | ( DEFAULT > COLON > *statement )
+							>	*( ( CASE > expression > COLON > braceless_block )
+								 | ( DEFAULT > COLON > braceless_block )
 								 )
 							> RIGHT_BRACE
 						) [ typename SA::selection_statement::init_switch_statement() ]
@@ -759,13 +807,13 @@ struct ThorScript : qi::grammar<Iterator, typename SA::start::attribute_type, de
 
 		iteration_statement
 			= qi::eps [ typename SA::location::cache_loc() ]
-				>>	(	(WHILE > LEFT_PAREN > expression > RIGHT_PAREN > -statement
+				>>	(	(WHILE > LEFT_PAREN > expression > RIGHT_PAREN > -optional_brace_block
 						) [ typename SA::iteration_statement::init_while_loop() ]
-					|	(DO > statement > WHILE > LEFT_PAREN > expression > RIGHT_PAREN > SEMICOLON
+					|	(DO > optional_brace_block > WHILE > LEFT_PAREN > expression > RIGHT_PAREN > SEMICOLON
 						) [ typename SA::iteration_statement::init_do_while_loop() ]
-					|	(FOREACH > LEFT_PAREN > ((VAR > variable_decl_stem) | postfix_expression) > IN > expression > RIGHT_PAREN > -statement
+					|	(FOREACH > LEFT_PAREN > ((VAR > variable_decl_stem) | postfix_expression) > _IN > expression > RIGHT_PAREN > -optional_brace_block
 						) [ typename SA::iteration_statement::init_foreach() ]
-					|	(FOR > LEFT_PAREN > (variable_decl | (expression > SEMICOLON)) > expression > SEMICOLON > expression > RIGHT_PAREN > -statement
+					|	(FOR > LEFT_PAREN > (variable_decl | (expression > SEMICOLON)) > expression > SEMICOLON > expression > RIGHT_PAREN > -optional_brace_block
 						) [ typename SA::iteration_statement::init_for() ]
 					)
 			;
@@ -784,6 +832,16 @@ struct ThorScript : qi::grammar<Iterator, typename SA::start::attribute_type, de
 						> *statement
 						> RIGHT_BRACE
 					) [ typename SA::block::init() ]
+			;
+
+		optional_brace_block
+			= qi::eps [ typename SA::location::cache_loc() ]
+				>> statement [ typename SA::optional_brace_block::init() ]
+			;
+
+		braceless_block
+			= qi::eps [ typename SA::location::cache_loc() ]
+				>> (*statement) [ typename SA::block::init() ]
 			;
 
 		///
@@ -821,7 +879,7 @@ struct ThorScript : qi::grammar<Iterator, typename SA::start::attribute_type, de
 			;
 
 		const_decl
-			= (CONST > variable_decl_stem > init_specifier > SEMICOLON) [ typename SA::const_decl::init() ]
+			= (_CONST > variable_decl_stem > init_specifier > SEMICOLON) [ typename SA::const_decl::init() ]
 			;
 
 		function_decl
@@ -887,13 +945,11 @@ struct ThorScript : qi::grammar<Iterator, typename SA::start::attribute_type, de
 		/////////////////////////////////////////////////////////////////////
 		/// BEGIN MODULE
 		///
-
+#endif 
 		program
-			= qi::eps [ typename SA::location::cache_loc() ]
-				>>	(-( (PACKAGE > nested_identifier > SEMICOLON)     [ typename SA::program::append_package() ] )
-						> *( (IMPORT > nested_identifier > SEMICOLON) [ typename SA::program::append_import() ] )
-						> *( global_decl                              [ typename SA::program::append_global_decl() ] )
-					)
+			=	*(	(IMPORT >> -((IDENTIFIER | EMIT_BOOL(DOT)) >> ASSIGN) > nested_identifier > SEMICOLON
+					) [ typename SA::program::append_import() ] )
+			>	*( global_decl [ typename SA::program::append_global_decl() ] )
 			;
 
 		///
@@ -980,6 +1036,8 @@ struct ThorScript : qi::grammar<Iterator, typename SA::start::attribute_type, de
 		INIT_RULE(iteration_statement);
 		INIT_RULE(branch_statement);
 		INIT_RULE(block);
+		INIT_RULE(optional_brace_block);
+		INIT_RULE(braceless_block);
 
 		// global_decl
 		INIT_RULE(global_decl);
@@ -1020,18 +1078,22 @@ struct ThorScript : qi::grammar<Iterator, typename SA::start::attribute_type, de
 
 	// keywords
 	qi::rule<Iterator, detail::WhiteSpace<Iterator> >
-		_TRUE, _FALSE, _NULL, SELF, THIS, SUPER,
-		CONST, STATIC,
-		INT8, INT16, INT32, INT64, FLOAT32, FLOAT64, VOID,
+		_TRUE, _FALSE, _NULL, SELF, _THIS, SUPER,
+		_CONST, STATIC,
+		INT8, INT16, INT32, INT64, FLOAT32, FLOAT64, _VOID,
 		TYPEDEF, CLASS, INTERFACE, ENUM,
 		PUBLIC, PROTECTED, PRIVATE,
 		VAR, FUNCTION,
 		IF, ELIF, ELSE,
 		SWITCH, CASE, DEFAULT,
-		WHILE, DO, FOREACH, IN, FOR,
+		WHILE, 
+		DO, 
+		FOREACH, 
+		_IN, 
+		FOR,
 		RETURN, BREAK, CONTINUE,
 		NEW, AS, INSTANCEOF,
-		PACKAGE, IMPORT,
+		MODULE, IMPORT,
 		EXTENDS, IMPLEMENTS;
 
 	// terminals
@@ -1049,6 +1111,7 @@ struct ThorScript : qi::grammar<Iterator, typename SA::start::attribute_type, de
 	DECL_RULE(           init_specifier);
 	DECL_RULE(           type_specifier);
 	DECL_RULE(           thor_type);
+	DECL_RULE(           template_param_type);
 	DECL_RULE(           template_param_identifier);
 	DECL_RULE(           template_arg_identifier);
 	DECL_RULE_CUSTOM_SA( type_specialize_specifier, type_list);
@@ -1086,6 +1149,8 @@ struct ThorScript : qi::grammar<Iterator, typename SA::start::attribute_type, de
 	DECL_RULE(iteration_statement);
 	DECL_RULE(branch_statement);
 	DECL_RULE(block);
+	DECL_RULE(optional_brace_block);
+	DECL_RULE_CUSTOM_SA(braceless_block, block);
 
 	// global_decl
 	DECL_RULE(global_decl);

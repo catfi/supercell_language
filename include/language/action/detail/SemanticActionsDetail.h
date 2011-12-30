@@ -28,6 +28,7 @@
 #include "language/tree/ASTNodeFactory.h"
 
 #include <boost/mpl/bool.hpp>
+#include <boost/mpl/assert.hpp>
 #include <boost/fusion/container/vector.hpp>
 #include <boost/type_traits/is_base_of.hpp>
 #include <boost/type_traits/add_reference.hpp>
@@ -47,6 +48,9 @@
 			template<typename ParserAttribute, typename ParserContext> \
 			void operator()(ParserAttribute& parser_attribute, ParserContext& context, bool& passed) const \
 			{ \
+				UNUSED_ARGUMENT(parser_attribute); \
+				UNUSED_ARGUMENT(context); \
+				UNUSED_ARGUMENT(passed); \
 				if(!getParserContext().enable_semantic_action) \
 					return;
 
@@ -57,6 +61,9 @@
 			template<typename ParserAttribute, typename ParserContext> \
 			void operator()(ParserAttribute& parser_attribute, ParserContext& context, bool& passed) const \
 			{ \
+				UNUSED_ARGUMENT(parser_attribute); \
+				UNUSED_ARGUMENT(context); \
+				UNUSED_ARGUMENT(passed); \
 				if(!getParserContext().enable_semantic_action) \
 					return;
 
@@ -90,14 +97,13 @@
 			BOOST_MPL_ASSERT(( boost::is_same<_local_t(0), LOCATION_TYPE&> )); \
 			if(!_local(0)) \
 				_local(0).reset(new stage::SourceInfoContext( \
-						getParserContext().debug.source_index, \
 						getParserContext().debug.line, \
 						getParserContext().debug.column)); \
 		}
 #define BIND_CACHED_LOCATION(x) \
 		{ \
 			BOOST_MPL_ASSERT(( boost::is_same<_local_t(0), LOCATION_TYPE&> )); \
-			if(!!_local(0)) \
+			if(_local(0)) \
 				stage::SourceInfoContext::set((x), new stage::SourceInfoContext(*(_local(0).get()))); \
 		}
 

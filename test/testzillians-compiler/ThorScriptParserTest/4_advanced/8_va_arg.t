@@ -1,5 +1,3 @@
-import system;
-
 function print<T, ...>(arg:T, rest:...)
 {
     system.print(arg);

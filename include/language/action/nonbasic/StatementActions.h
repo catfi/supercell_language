@@ -21,6 +21,8 @@
 #define ZILLIANS_LANGUAGE_ACTION_STATEMENT_STATEMENTACTIONS_H_
 
 #include "language/action/detail/SemanticActionsDetail.h"
+#include "language/logging/StringTable.h"
+#include "language/logging/LoggerWrapper.h"
 
 namespace zillians { namespace language { namespace action {
 
@@ -36,8 +38,8 @@ struct statement
 		printf("statement param(1) type = %s\n", typeid(_param_t(1)).name());
 #endif
 		_result = _param(1);
-		if(_param(0).is_initialized())
-			cast<Statement>(_result)->setAnnotation(*_param(0));
+		if(_result && _param(0).is_initialized())
+			cast<Statement>(_result)->setAnnotations(*_param(0));
 	}
 	END_ACTION
 
@@ -80,7 +82,9 @@ struct expression_statement
 		printf("expression_statement param(0) type = %s\n", typeid(_param_t(0)).name());
 #endif
 		if(_param(0).is_initialized())
-			BIND_CACHED_LOCATION(_result = new ExpressionStmt(*_param(0)));
+			BIND_CACHED_LOCATION(_result = new ExpressionStmt(*_param(0))) // NOTE: omit SEMICOLON
+		else
+			_result = NULL;
 	}
 	END_ACTION
 };
@@ -98,8 +102,8 @@ struct selection_statement
 		printf("selection_statement::init_if_statement param(2) type = %s\n", typeid(_param_t(2)).name());
 		printf("selection_statement::init_if_statement param(3) type = %s\n", typeid(_param_t(3)).name());
 #endif
-		Expression* cond = _param(0);
-		ASTNode* block = _param(1);
+		Expression* cond  = _param(0);
+		ASTNode*    block = _param(1);
 		BIND_CACHED_LOCATION(_result = new IfElseStmt(Selection(cond, block)));
 		deduced_foreach_value(i, _param(2))
 		{
@@ -118,30 +122,30 @@ struct selection_statement
 		printf("selection_statement::init_switch_statement param(0) type = %s\n", typeid(_param_t(0)).name());
 		printf("selection_statement::init_switch_statement param(1) type = %s\n", typeid(_param_t(1)).name());
 #endif
+		bool has_visited_default_label = false;
 		BIND_CACHED_LOCATION(_result = new SwitchStmt(_param(0)));
 		deduced_foreach_value(i, _param(1))
+		{
 			switch(i.which())
 			{
 			case 0:
 				{
-					typedef boost::fusion::vector2<Expression*, std::vector<ASTNode*>> fusion_vec_t;
-					fusion_vec_t &vec = boost::get<fusion_vec_t>(i);
-					Expression*            cond      = boost::fusion::at_c<0>(vec);
-					std::vector<ASTNode*> &block_vec = boost::fusion::at_c<1>(vec);
-					Block* block = new Block(); BIND_CACHED_LOCATION(block);
-					block->appendObjects(block_vec);
+					typedef boost::fusion::vector2<Expression*, Block*> fusion_vec_t;
+					fusion_vec_t& vec   = boost::get<fusion_vec_t>(i);
+					Expression*   cond  = boost::fusion::at_c<0>(vec);
+					Block*        block = boost::fusion::at_c<1>(vec);
 					cast<SwitchStmt>(_result)->addCase(Selection(cond, block));
 				}
 				break;
 			case 1:
-				{
-					std::vector<ASTNode*> &block_vec = boost::get<std::vector<ASTNode*>>(i);
-					Block* block = new Block(); BIND_CACHED_LOCATION(block);
-					block->appendObjects(block_vec);
-					cast<SwitchStmt>(_result)->setDefaultCase(block);
-				}
+				if(!has_visited_default_label)
+					has_visited_default_label = true;
+				else
+					LOG_MESSAGE(MULTIPLE_DEFAULT_LABELS, _result);
+				cast<SwitchStmt>(_result)->setDefaultCase(boost::get<Block*>(i));
 				break;
 			}
+		}
 	}
 	END_ACTION
 };

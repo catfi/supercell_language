@@ -41,26 +41,36 @@ struct EnumDecl : public Declaration
 		BOOST_ASSERT(name && "null enumeration name is not allowed");
 	}
 
+	void addEnumeration(VariableDecl* decl)
+	{
+		decl->parent = this;
+		values.push_back(decl);
+	}
+
 	void addEnumeration(SimpleIdentifier* tag, Expression* value = NULL)
 	{
 		BOOST_ASSERT(tag && "null tag for enumeration is not allowed");
 
 		tag->parent = this;
 		if(value) value->parent = this;
-		enumeration_list.push_back(std::make_pair(tag, value));
+
+		VariableDecl* decl = new VariableDecl(tag, new TypeSpecifier(PrimitiveType::INT32_TYPE), true, true, true, Declaration::VisibilitySpecifier::DEFAULT, value);
+		decl->parent = this;
+
+		values.push_back(decl);
 	}
 
     virtual bool isEqualImpl(const ASTNode& rhs, ASTNodeSet& visited) const
     {
     	BEGIN_COMPARE_WITH_BASE(Declaration)
-		COMPARE_MEMBER(enumeration_list)
+		COMPARE_MEMBER(values)
 		END_COMPARE()
     }
 
     virtual bool replaceUseWith(const ASTNode& from, const ASTNode& to, bool update_parent = true)
     {
     	BEGIN_REPLACE_WITH_BASE(Declaration)
-		REPLACE_USE_WITH(enumeration_list)
+		REPLACE_USE_WITH(values)
     	END_REPLACE()
     }
 
@@ -68,10 +78,14 @@ struct EnumDecl : public Declaration
     {
     	EnumDecl* cloned = new EnumDecl((name) ? cast<Identifier>(name->clone()) : NULL);
 
-    	foreach(i, enumeration_list)
-    		cloned->addEnumeration(
-    				(i->first) ? cast<SimpleIdentifier>(i->first->clone()) : NULL,
-    				(i->second) ? cast<Expression>(i->second->clone()) : NULL);
+        if(annotations != NULL)
+        {
+            Annotations* anno = cast<Annotations>(annotations->clone());
+            cloned->setAnnotations(anno);
+        }
+
+    	foreach(i, values)
+    		cloned->addEnumeration(cast<VariableDecl>((*i)->clone()));
 
     	return cloned;
     }
@@ -79,11 +93,13 @@ struct EnumDecl : public Declaration
     template<typename Archive>
     void serialize(Archive& ar, const unsigned int version)
     {
+    	UNUSED_ARGUMENT(version);
+
     	ar & boost::serialization::base_object<Declaration>(*this);
-    	ar & enumeration_list;
+    	ar & values;
     }
 
-	std::vector<std::pair<SimpleIdentifier*, Expression*>> enumeration_list;
+    std::vector<VariableDecl*> values;
 
 protected:
 	EnumDecl() { }

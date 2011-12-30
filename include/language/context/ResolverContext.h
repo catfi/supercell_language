@@ -31,6 +31,28 @@ struct ResolvedType
 	explicit ResolvedType(tree::ASTNode* ref) : ref(ref)
 	{ }
 
+	static bool isValidResolvedType(tree::ASTNode* node)
+	{
+		using namespace zillians::language::tree;
+
+		if(!isa<ClassDecl>(node) &&
+		   !isa<InterfaceDecl>(node) &&
+		   !isa<EnumDecl>(node) &&
+		   !isa<TypenameDecl>(node) &&
+		   !isa<TypedefDecl>(node) &&
+		   !isa<FunctionDecl>(node) &&
+		   !isa<FunctionType>(node) &&
+		   !(isa<TypeSpecifier>(node) && cast<TypeSpecifier>(node)->type != TypeSpecifier::ReferredType::UNSPECIFIED)
+		   )
+		{
+			return false;
+		}
+		else
+		{
+			return true;
+		}
+	}
+
 	static tree::ASTNode* get(tree::ASTNode* node)
 	{
 		ResolvedType* resolved = node->get<ResolvedType>();
@@ -42,12 +64,19 @@ struct ResolvedType
 
 	static void set(tree::ASTNode* node, tree::ASTNode* ref)
 	{
+		if(ref)
+		{
+			BOOST_ASSERT(isValidResolvedType(ref) && "invalid resolved type");
+		}
+
 		return node->set<ResolvedType>(new ResolvedType(ref));
 	}
 
     template<typename Archive>
     void serialize(Archive& ar, unsigned int version)
     {
+    	UNUSED_ARGUMENT(version);
+
     	ar & ref;
     }
 
@@ -55,6 +84,122 @@ struct ResolvedType
 
 private:
 	ResolvedType() { }
+};
+
+struct InstantiatedFrom
+{
+	friend class boost::serialization::access;
+
+	explicit InstantiatedFrom(tree::ASTNode* ref) : ref(ref)
+	{ }
+
+	static bool isValid(tree::ASTNode* node)
+	{
+		using namespace zillians::language::tree;
+
+        if (!isa<ClassDecl>(node) &&
+            !isa<InterfaceDecl>(node) &&
+            !isa<FunctionDecl>(node))
+        {
+            return false;
+        }
+
+        TemplatedIdentifier* tid = cast<TemplatedIdentifier>(cast<Declaration>(node)->name);
+        if (tid == NULL) return false;
+        if (tid->isFullySpecialized()) return false;
+
+        return true;
+	}
+
+	static tree::ASTNode* get(tree::ASTNode* node)
+	{
+		InstantiatedFrom* resolved = node->get<InstantiatedFrom>();
+		if(resolved)
+			return resolved->ref;
+		else
+			return NULL;
+	}
+
+	static void set(tree::ASTNode* node, tree::ASTNode* ref)
+	{
+		if(ref)
+		{
+			BOOST_ASSERT(isValid(ref) && "invalid resolved type");
+		}
+
+		return node->set<InstantiatedFrom>(new InstantiatedFrom(ref));
+	}
+
+    template<typename Archive>
+    void serialize(Archive& ar, unsigned int version)
+    {
+    	UNUSED_ARGUMENT(version);
+
+    	ar & ref;
+    }
+
+	tree::ASTNode* ref;
+
+private:
+	InstantiatedFrom() { }
+};
+
+struct SpecializationOf
+{
+	friend class boost::serialization::access;
+
+	explicit SpecializationOf(tree::ASTNode* ref) : ref(ref)
+	{ }
+
+	static bool isValid(tree::ASTNode* node)
+	{
+		using namespace zillians::language::tree;
+
+        if (!isa<ClassDecl>(node) &&
+            !isa<InterfaceDecl>(node) &&
+            !isa<FunctionDecl>(node))
+        {
+            return false;
+        }
+
+        TemplatedIdentifier* tid = cast<TemplatedIdentifier>(cast<Declaration>(node)->name);
+        if (tid == NULL) return false;
+        if (tid->isFullySpecialized()) return false;
+
+        return true;
+	}
+
+	static tree::ASTNode* get(tree::ASTNode* node)
+	{
+		SpecializationOf* resolved = node->get<SpecializationOf>();
+		if(resolved)
+			return resolved->ref;
+		else
+			return NULL;
+	}
+
+	static void set(tree::ASTNode* node, tree::ASTNode* ref)
+	{
+		if(ref)
+		{
+			BOOST_ASSERT(isValid(ref) && "invalid resolved type");
+		}
+
+		return node->set<SpecializationOf>(new SpecializationOf(ref));
+	}
+
+    template<typename Archive>
+    void serialize(Archive& ar, unsigned int version)
+    {
+        UNUSED_ARGUMENT(version);
+
+        ar & ref;
+    }
+
+	tree::ASTNode* ref;
+
+private:
+	SpecializationOf() { }
 };
 
 struct AmbiguousResolvedType
@@ -74,6 +219,8 @@ struct AmbiguousResolvedType
     template<typename Archive>
     void serialize(Archive& ar, unsigned int version)
     {
+    	UNUSED_ARGUMENT(version);
+
     	ar & refs;
     }
 
@@ -87,6 +234,24 @@ struct ResolvedSymbol
 	explicit ResolvedSymbol(tree::ASTNode* ref) : ref(ref)
 	{ }
 
+	static bool isValidResolvedSymbol(tree::ASTNode* node)
+	{
+		using namespace zillians::language::tree;
+
+		if(!isa<ClassDecl>(node) &&
+		   !isa<EnumDecl>(node) &&
+		   !isa<FunctionDecl>(node) &&
+		   !isa<VariableDecl>(node)
+		   )
+		{
+			return false;
+		}
+		else
+		{
+			return true;
+		}
+	}
+
 	static tree::ASTNode* get(tree::ASTNode* node)
 	{
 		ResolvedSymbol* resolved = node->get<ResolvedSymbol>();
@@ -98,12 +263,19 @@ struct ResolvedSymbol
 
 	static void set(tree::ASTNode* node, tree::ASTNode* ref)
 	{
+		if(ref)
+		{
+			BOOST_ASSERT(isValidResolvedSymbol(ref) && "invalid resolved symbol");
+		}
+
 		return node->set<ResolvedSymbol>(new ResolvedSymbol(ref));
 	}
 
     template<typename Archive>
     void serialize(Archive& ar, unsigned int version)
     {
+    	UNUSED_ARGUMENT(version);
+
     	ar & ref;
     }
 
@@ -130,6 +302,8 @@ struct AmbiguousResolvedSymbol
     template<typename Archive>
     void serialize(Archive& ar, unsigned int version)
     {
+    	UNUSED_ARGUMENT(version);
+
     	ar & refs;
     }
 
@@ -160,6 +334,8 @@ struct ResolvedPackage
     template<typename Archive>
     void serialize(Archive& ar, unsigned int version)
     {
+    	UNUSED_ARGUMENT(version);
+
     	ar & ref;
     }
 
@@ -186,6 +362,8 @@ struct AmbiguousResolvedPackage
     template<typename Archive>
     void serialize(Archive& ar, unsigned int version)
     {
+    	UNUSED_ARGUMENT(version);
+
     	ar & refs;
     }
 

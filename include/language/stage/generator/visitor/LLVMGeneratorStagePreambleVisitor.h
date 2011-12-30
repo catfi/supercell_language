@@ -21,7 +21,7 @@
 #define ZILLIANS_LANGUAGE_STAGE_VISITOR_LLVMGENERATORPREAMBLESTAGEVISITOR_H_
 
 #include "core/Prerequisite.h"
-#include "language/tree/visitor/general/GenericDoubleVisitor.h"
+#include "language/tree/visitor/GenericDoubleVisitor.h"
 #include "language/stage/generator/detail/LLVMHelper.h"
 #include "language/stage/transformer/context/ManglingStageContext.h"
 #include "language/stage/generator/context/SynthesizedFunctionContext.h"
@@ -39,7 +39,7 @@ namespace zillians { namespace language { namespace stage { namespace visitor {
  *
  * @see LLVMGeneratorStageVisitor
  */
-struct LLVMGeneratorStagePreambleVisitor : GenericDoubleVisitor
+struct LLVMGeneratorStagePreambleVisitor : public GenericDoubleVisitor
 {
 	CREATE_INVOKER(generateInvoker, generate)
 
@@ -54,6 +54,28 @@ struct LLVMGeneratorStagePreambleVisitor : GenericDoubleVisitor
 		revisit(node);
 	}
 
+	void generate(InterfaceDecl& node)
+	{
+		UNUSED_ARGUMENT(node);
+		// we don't generate code for interface
+	}
+
+	void generate(ClassDecl& node)
+	{
+		visit(*node.name);
+
+		// we don't generate code for non-fully-specialized classes
+		if(isa<TemplatedIdentifier>(node.name))
+		{
+			// if the class itself is a class template, which has non-specialized version in its templated identifier
+			// we don't try to resolve types for class template
+			if(!cast<TemplatedIdentifier>(node.name)->isFullySpecialized())
+				return;
+		}
+
+		revisit(node);
+	}
+
 	void generate(FunctionDecl& node)
 	{
 		if(!GET_SYNTHESIZED_LLVM_FUNCTION(&node))
@@ -61,11 +83,10 @@ struct LLVMGeneratorStagePreambleVisitor : GenericDoubleVisitor
 			llvm::Function* llvm_function = NULL;
 
 			llvm::FunctionType* llvm_function_type = NULL;
-			std::vector<llvm::AttributeWithIndex> llvm_function_parameter_type_attributes;
-			llvm::Attributes llvm_function_return_type_attribute = llvm::Attribute::None;
+			std::vector<llvm::AttributeWithIndex> llvm_function_type_attributes;
 
 			// try to resolve function type
-			if(!mHelper.getFunctionType(node, llvm_function_type, llvm_function_parameter_type_attributes, llvm_function_return_type_attribute))
+			if(!mHelper.getFunctionType(node, llvm_function_type, llvm_function_type_attributes))
 			{
 				BOOST_ASSERT(false && "failed to generate LLVM function object");
 				terminateRevisit();
@@ -83,8 +104,8 @@ struct LLVMGeneratorStagePreambleVisitor : GenericDoubleVisitor
 			}
 
 			// set function attributes (modifiers)
-			if(llvm_function_parameter_type_attributes.size() > 0)
-				llvm_function->setAttributes(llvm::AttrListPtr::get(llvm_function_parameter_type_attributes.begin(), llvm_function_parameter_type_attributes.end()));
+			if(llvm_function_type_attributes.size() > 0)
+				llvm_function->setAttributes(llvm::AttrListPtr::get(llvm_function_type_attributes.begin(), llvm_function_type_attributes.end()));
 
 			// set function parameter names
 			int index = 0;

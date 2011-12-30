@@ -29,36 +29,30 @@ struct program
 	DEFINE_ATTRIBUTES(void)
 	DEFINE_LOCALS(LOCATION_TYPE)
 
-	BEGIN_ACTION(append_package)
-	{
-#ifdef DEBUG
-		printf("program::append_package_decl param(0) type = %s\n", typeid(_param_t(0)).name());
-#endif
-		NestedIdentifier *nested_ident = cast<NestedIdentifier>(_param(0));
-		Package* prev_package = getParserContext().program->root;
-		deduced_foreach_value(i, nested_ident->identifier_list)
-		{
-			Package *package = prev_package->findPackage(i->toString());
-			if(!package)
-			{
-				BIND_CACHED_LOCATION(package = new Package(cast<SimpleIdentifier>(i)));
-				prev_package->addPackage(package);
-			}
-			prev_package = package;
-		}
-		getParserContext().active_package = prev_package;
-	}
-	END_ACTION
-
 	BEGIN_ACTION(append_import)
 	{
 #ifdef DEBUG
-		printf("program::append_import_decl param(0) type = %s\n", typeid(_param_t(0)).name());
+		printf("program::append_import param(0) type = %s\n", typeid(_param_t(0)).name());
+		printf("program::append_import param(1) type = %s\n", typeid(_param_t(1)).name());
 #endif
-		if(!!getParserContext().program)
+		if(getParserContext().active_source)
 		{
-			Import* import = new Import(_param(0)); BIND_CACHED_LOCATION(import);
-			getParserContext().program->addImport(import);
+			Import* import = NULL;
+			if(_param(0).is_initialized())
+			{
+				Identifier* ident = NULL;
+				switch((*_param(0)).which())
+				{
+				case 0: ident = boost::get<SimpleIdentifier*>(*_param(0)); break;
+				case 1: ident = new SimpleIdentifier(L""); break;
+				}
+				import = new Import(ident, _param(1)); BIND_CACHED_LOCATION(import);
+			}
+			else
+			{
+				import = new Import(_param(1)); BIND_CACHED_LOCATION(import);
+			}
+			getParserContext().active_source->addImport(import);
 		}
 	}
 	END_ACTION
@@ -68,7 +62,7 @@ struct program
 #ifdef DEBUG
 		printf("program::append_global_decl param(0) type = %s\n", typeid(_param_t(0)).name());
 #endif
-		if(!!getParserContext().active_package)
+		if(getParserContext().active_package)
 			getParserContext().active_package->addObject(_param(0));
 	}
 	END_ACTION

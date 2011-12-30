@@ -81,6 +81,8 @@ struct TernaryExpr : public Expression
     template<typename Archive>
     void serialize(Archive& ar, const unsigned int version)
     {
+    	UNUSED_ARGUMENT(version);
+
     	ar & boost::serialization::base_object<Expression>(*this);
     	ar & cond;
     	ar & true_node;

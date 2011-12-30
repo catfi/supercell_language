@@ -1,5 +1,3 @@
-package com.zillians.tutorials.tutorial1;
-
 class HelloWorld {
 	@server // this is executed on server domain
 	@export // export keywords allows other domain (eg. client) to call this function

@@ -33,65 +33,78 @@
 
 BOOST_AUTO_TEST_SUITE( ThorScriptDepTest_ThorScriptDepHappyPathTestSuite )
 
+static void createManifest()
+{
+    std::ofstream fout("manifest.xml");
+    fout << "<project name=\"" << "test-dep-project" << "\" author=\"author\" version=\"0.0.0.1\">\n"
+         << "    <dependency>\n"
+         << "        <!-- bundle         path=\"./in_bundle/a.bundle\" -->\n"
+         << "        <!-- native_object  path=\"./native/b.o\"         -->\n"
+         << "        <!-- native_library path=\"./native/c.a\"         -->\n"
+         << "    </dependency>\n"
+         << "</project>\n" ;
+    fout.close();
+}
+
 BOOST_AUTO_TEST_CASE( ThorScriptDepTest_ThorScriptDepHappyPathTestCase1 )
 {
     // Construct file system and file content
-    boost::filesystem::create_directories(boost::filesystem::path("c"));
-    boost::filesystem::create_directories(boost::filesystem::path("d"));
-    boost::filesystem::create_directories(boost::filesystem::path("e"));
-    boost::filesystem::create_directories(boost::filesystem::path("e/e1"));
+    createManifest();
+
+    boost::filesystem::create_directories(boost::filesystem::path("src"));
+    boost::filesystem::create_directories(boost::filesystem::path("src/c"));
+    boost::filesystem::create_directories(boost::filesystem::path("src/d"));
+    boost::filesystem::create_directories(boost::filesystem::path("src/e"));
+    boost::filesystem::create_directories(boost::filesystem::path("src/e/e1"));
 
     system("echo 'import b; \
                   import c; \
                   import d.d1; \
-                  import e.e1;' >> a.t");
+                  import e.e1;' >> src/a.t");
 
-    system("echo 'package b;' > b.t");
+    system("echo ' ' > src/b.t");
 
-    system("echo 'import c.c2;' > c/c1.t");
-    system("echo 'import c.c1;' > c/c2.t");
-    system("echo 'package c.c3;' > c/c3.t");
+    system("echo 'import c.c2;' > src/c/c1.t");
+    system("echo 'import c.c1;' > src/c/c2.t");
+    system("echo ' ' > src/c/c3.t");
 
-    system("echo 'import e.e1;' > d/d1.t");
+    system("echo 'import e.e1;' > src/d/d1.t");
 
-    system("echo 'import e.e1.e12;' > e/e1/e11.t");
-    system("echo 'import e.e1.e11;' > e/e1/e12.t");
-    system("echo 'package e.e1.e13;' > e/e1/e13.t");
+    system("echo 'import e.e1.e12;' > src/e/e1/e11.t");
+    system("echo 'import e.e1.e11;' > src/e/e1/e12.t");
+    system("echo ' ' > src/e/e1/e13.t");
 
-    const char* argv[] = {"testbin", "a.t"};
+    //const char* argv[] = {"testbin"};
+    const char* argv[] = {};
 
     // parse and output graph, and unserilaize graph
     zillians::language::ThorScriptDep dep;
-    dep.main(2, argv);
+    dep.main(1, argv);
 
     // remove tmp files
-    boost::filesystem::remove_all(boost::filesystem::path("a.t"));
-    boost::filesystem::remove_all(boost::filesystem::path("b.t"));
-    boost::filesystem::remove_all(boost::filesystem::path("c"));
-    boost::filesystem::remove_all(boost::filesystem::path("d"));
-    boost::filesystem::remove_all(boost::filesystem::path("e"));
+    boost::filesystem::remove_all(boost::filesystem::path("src"));
 
     // unserialize graph
-    std::ifstream fin("ts.dep");
+    std::ifstream fin("build/ts.dep");
     boost::archive::text_iarchive ia(fin);
     zillians::language::stage::TangleGraphType g;
     ia >> g;
     fin.close();
 
     // check
-    BOOST_CHECK(boost::num_vertices(g) == 7);
-    BOOST_CHECK(boost::num_edges(g) == 8);
+    BOOST_CHECK_EQUAL(boost::num_vertices(g), 7);
+    BOOST_CHECK_EQUAL(boost::num_edges(g), 8);
     for(auto vp = boost::vertices(g); vp.first != vp.second; ++vp.first)
     {
         if(boost::out_degree(*vp.first, g) == 6)
         {
-            BOOST_CHECK(g[*vp.first].size() == 1);
-            BOOST_CHECK(*(g[*vp.first].begin()) == "a.t");
+            BOOST_CHECK_EQUAL(g[*vp.first].size(), 1);
+            BOOST_CHECK_EQUAL(*(g[*vp.first].begin()), "src/a.t");
         }
         if(boost::out_degree(*vp.first, g) == 2)
         {
-            BOOST_CHECK(g[*vp.first].size() == 1);
-            BOOST_CHECK(*(g[*vp.first].begin()) == "d/d1.t");
+            BOOST_CHECK_EQUAL(g[*vp.first].size(), 1);
+            BOOST_CHECK_EQUAL(*(g[*vp.first].begin()), "src/d/d1.t");
         }
     }
 
@@ -127,41 +140,38 @@ BOOST_AUTO_TEST_CASE( ThorScriptDepTest_ThorScriptDepHappyPathTestCase1 )
 BOOST_AUTO_TEST_CASE( ThorScriptDepTest_ThorScriptDepHappyPathTestCase2 )
 {
     // Construct file system and file content
+    createManifest();
 
-    boost::filesystem::create_directories(boost::filesystem::path("c"));
-    system("echo 'package a; import b;' > a.t");
-    system("echo 'package b; import c;' > b.t");
-    system("echo 'package c; import a;' > c.t");
+    boost::filesystem::create_directories(boost::filesystem::path("src"));
+    system("echo 'import b;' > src/a.t");
+    system("echo 'import c;' > src/b.t");
+    system("echo 'import a;' > src/c.t");
 
-    const char* argv[] = {"testbin", "a.t"};
+    const char* argv[] = {"testbin"};
 
     // parse and output graph, and unserilaize graph
     zillians::language::ThorScriptDep dep;
-    dep.main(2, argv);
+    dep.main(1, argv);
 
     // remove tmp files
-    boost::filesystem::remove_all(boost::filesystem::path("a.t"));
-    boost::filesystem::remove_all(boost::filesystem::path("b.t"));
-    boost::filesystem::remove_all(boost::filesystem::path("c.t"));
-    boost::filesystem::remove_all(boost::filesystem::path("c"));
-
+    boost::filesystem::remove_all(boost::filesystem::path("src"));
     // unserialize graph
-    std::ifstream fin("ts.dep");
+    std::ifstream fin("build/ts.dep");
     boost::archive::text_iarchive ia(fin);
     zillians::language::stage::TangleGraphType g;
     ia >> g;
     fin.close();
 
     // check
-    BOOST_CHECK(boost::num_vertices(g) == 1);
-    BOOST_CHECK(boost::num_edges(g) == 0);
+    BOOST_CHECK_EQUAL(boost::num_vertices(g), 1);
+    BOOST_CHECK_EQUAL(boost::num_edges(g), 0);
     for(auto vp = boost::vertices(g); vp.first != vp.second; ++vp.first)
     {
-        BOOST_CHECK(g[*vp.first].size() == 3);
+        BOOST_CHECK_EQUAL(g[*vp.first].size(), 3);
         std::set<std::string> files = g[*vp.first];
-        BOOST_CHECK(files.count("a.t"));
-        BOOST_CHECK(files.count("b.t"));
-        BOOST_CHECK(files.count("c.t"));
+        BOOST_CHECK(files.count("src/a.t"));
+        BOOST_CHECK(files.count("src/b.t"));
+        BOOST_CHECK(files.count("src/c.t"));
     }
 }
 
@@ -171,34 +181,35 @@ BOOST_AUTO_TEST_CASE( ThorScriptDepTest_ThorScriptDepHappyPathTestCase2 )
 BOOST_AUTO_TEST_CASE( ThorScriptDepTest_ThorScriptDepHappyPathTestCase3 )
 {
     // Construct file system and file content
+    createManifest();
 
-    boost::filesystem::create_directories(boost::filesystem::path("c"));
-    system("echo 'package a;' > a.t");
+    boost::filesystem::create_directories(boost::filesystem::path("src"));
+    system("echo ' ' > src/a.t");
 
-    const char* argv[] = {"testbin", "a.t"};
+    const char* argv[] = {"testbin"};
 
     // parse and output graph, and unserilaize graph
     zillians::language::ThorScriptDep dep;
-    dep.main(2, argv);
+    dep.main(1, argv);
 
     // remove tmp files
-    boost::filesystem::remove_all(boost::filesystem::path("a.t"));
+    boost::filesystem::remove_all(boost::filesystem::path("src"));
 
     // unserialize graph
-    std::ifstream fin("ts.dep");
+    std::ifstream fin("build/ts.dep");
     boost::archive::text_iarchive ia(fin);
     zillians::language::stage::TangleGraphType g;
     ia >> g;
     fin.close();
 
     // check
-    BOOST_CHECK(boost::num_vertices(g) == 1);
-    BOOST_CHECK(boost::num_edges(g) == 0);
+    BOOST_CHECK_EQUAL(boost::num_vertices(g), 1);
+    BOOST_CHECK_EQUAL(boost::num_edges(g), 0);
     for(auto vp = boost::vertices(g); vp.first != vp.second; ++vp.first)
     {
-        BOOST_CHECK(g[*vp.first].size() == 1);
+        BOOST_CHECK_EQUAL(g[*vp.first].size(), 1);
         std::set<std::string> files = g[*vp.first];
-        BOOST_CHECK(files.count("a.t"));
+        BOOST_CHECK(files.count("src/a.t"));
     }
 }
 
@@ -209,39 +220,40 @@ BOOST_AUTO_TEST_CASE( ThorScriptDepTest_ThorScriptDepHappyPathTestCase3 )
 BOOST_AUTO_TEST_CASE( ThorScriptDepTest_ThorScriptDepAmbiguousTestCase1 )
 {
     // Construct file system and file content
+    createManifest();
 
-    system("echo 'package a; import b;' > a.t");
-    system("echo 'package b; import c;' > b.t");
-    system("echo 'package c; import a;' > c.t");
+    boost::filesystem::create_directories(boost::filesystem::path("src"));
+    system("echo 'import b;' > src/a.t");
+    system("echo 'import c;' > src/b.t");
+    system("echo 'import a;' > src/c.t");
 
-    const char* argv[] = {"testbin", "a.t"};
+    //const char* argv[] = {"testbin", "src/a.t"};
+    const char* argv[] = {"testbin"};
 
     // parse and output graph, and unserilaize graph
     zillians::language::ThorScriptDep dep;
-    dep.main(2, argv);
+    dep.main(1, argv);
 
     // remove tmp files
-    boost::filesystem::remove_all(boost::filesystem::path("a.t"));
-    boost::filesystem::remove_all(boost::filesystem::path("b.t"));
-    boost::filesystem::remove_all(boost::filesystem::path("c.t"));
+    boost::filesystem::remove_all(boost::filesystem::path("src"));
 
     // unserialize graph
-    std::ifstream fin("ts.dep");
+    std::ifstream fin("build/ts.dep");
     boost::archive::text_iarchive ia(fin);
     zillians::language::stage::TangleGraphType g;
     ia >> g;
     fin.close();
 
     // check
-    BOOST_CHECK(boost::num_vertices(g) == 1);
-    BOOST_CHECK(boost::num_edges(g) == 0);
+    BOOST_CHECK_EQUAL(boost::num_vertices(g), 1);
+    BOOST_CHECK_EQUAL(boost::num_edges(g), 0);
     for(auto vp = boost::vertices(g); vp.first != vp.second; ++vp.first)
     {
-        BOOST_CHECK(g[*vp.first].size() == 3);
+        BOOST_CHECK_EQUAL(g[*vp.first].size(), 3);
         std::set<std::string> files = g[*vp.first];
-        BOOST_CHECK(files.count("a.t"));
-        BOOST_CHECK(files.count("b.t"));
-        BOOST_CHECK(files.count("c.t"));
+        BOOST_CHECK(files.count("src/a.t"));
+        BOOST_CHECK(files.count("src/b.t"));
+        BOOST_CHECK(files.count("src/c.t"));
     }
 }
 

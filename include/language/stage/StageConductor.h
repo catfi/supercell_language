@@ -28,7 +28,7 @@ namespace zillians { namespace language { namespace stage {
 class StageConductor
 {
 public:
-	StageConductor();
+	StageConductor(bool require_input);
 	virtual ~StageConductor();
 
 public:

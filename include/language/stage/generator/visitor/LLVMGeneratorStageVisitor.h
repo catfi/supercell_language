@@ -22,8 +22,8 @@
 
 #include "core/Prerequisite.h"
 #include "language/tree/ASTNodeHelper.h"
-#include "language/tree/visitor/general/GenericDoubleVisitor.h"
-#include "language/tree/visitor/general/NodeInfoVisitor.h"
+#include "language/tree/visitor/GenericDoubleVisitor.h"
+#include "language/tree/visitor/NodeInfoVisitor.h"
 #include "language/stage/generator/detail/LLVMForeach.h"
 #include "language/stage/generator/detail/LLVMHelper.h"
 #include "language/context/ResolverContext.h"
@@ -45,7 +45,7 @@ namespace zillians { namespace language { namespace stage { namespace visitor {
  *
  * @see LLVMGeneratorPreambleVisitor
  */
-struct LLVMGeneratorStageVisitor : GenericDoubleVisitor
+struct LLVMGeneratorStageVisitor : public GenericDoubleVisitor
 {
 	CREATE_INVOKER(generateInvoker, generate)
 
@@ -80,19 +80,19 @@ struct LLVMGeneratorStageVisitor : GenericDoubleVisitor
 		llvm::Value* result = NULL;
 		switch(node.type)
 		{
-		case PrimitiveType::BOOL:
+		case PrimitiveType::BOOL_TYPE:
 			result = llvm::ConstantInt::get(llvm::IntegerType::getInt1Ty(mContext), node.value.b, false); break;
-		case PrimitiveType::INT8:
+		case PrimitiveType::INT8_TYPE:
 			result = llvm::ConstantInt::get(llvm::IntegerType::getInt8Ty(mContext), node.value.i8, false); break;
-		case PrimitiveType::INT16:
+		case PrimitiveType::INT16_TYPE:
 			result = llvm::ConstantInt::get(llvm::IntegerType::getInt16Ty(mContext), node.value.i16, false); break;
-		case PrimitiveType::INT32:
+		case PrimitiveType::INT32_TYPE:
 			result = llvm::ConstantInt::get(llvm::IntegerType::getInt32Ty(mContext), node.value.i32, false); break;
-		case PrimitiveType::INT64:
+		case PrimitiveType::INT64_TYPE:
 			result = llvm::ConstantInt::get(llvm::IntegerType::getInt64Ty(mContext), node.value.i64, false); break;
-		case PrimitiveType::FLOAT32:
+		case PrimitiveType::FLOAT32_TYPE:
 			result = llvm::ConstantFP::get(llvm::Type::getFloatTy(mContext), node.value.f32); break;
-		case PrimitiveType::FLOAT64:
+		case PrimitiveType::FLOAT64_TYPE:
 			result = llvm::ConstantFP::get(llvm::Type::getDoubleTy(mContext), node.value.f64); break;
 		default:
 			break;
@@ -121,28 +121,54 @@ struct LLVMGeneratorStageVisitor : GenericDoubleVisitor
 		revisit(node);
 	}
 
-	void generate(Program& node)
+	void generate(Source& node)
 	{
 		// create LLVM global variables to store VTT and other global variables in thorscript
 		revisit(node);
 	}
 
+	void generate(InterfaceDecl& node)
+	{
+		UNUSED_ARGUMENT(node);
+		// we don't generate code for interface
+	}
+
+	void generate(ClassDecl& node)
+	{
+		visit(*node.name);
+
+		// we don't generate code for non-fully-specialized classes
+		if(isa<TemplatedIdentifier>(node.name))
+		{
+			// if the class itself is a class template, which has non-specialized version in its templated identifier
+			// we don't try to resolve types for class template
+			if(!cast<TemplatedIdentifier>(node.name)->isFullySpecialized())
+				return;
+		}
+
+		revisit(node);
+	}
+
 	void generate(FunctionDecl& node)
 	{
+		if(ASTNodeHelper::hasNativeLinkage(&node))
+			return;
+
+
 		if(isFunctionVisited(node))
 			return;
 
 		// create function signature (if necessary) and emit prologue of function
 		if(!startFunction(node))
 		{
-			terminateRevisit();
+			terminate();
 			return;
 		}
 
 		// create alloca for all parameters
 		if(!allocateParameters(node))
 		{
-			terminateRevisit();
+			terminate();
 			return;
 		}
 
@@ -152,7 +178,7 @@ struct LLVMGeneratorStageVisitor : GenericDoubleVisitor
 		// emit epilogue of function
 		if(!finishFunction(node))
 		{
-			terminateRevisit();
+			terminate();
 			return;
 		}
 	}
@@ -168,7 +194,7 @@ struct LLVMGeneratorStageVisitor : GenericDoubleVisitor
 		// here we only generate AllocaInst for AST variables within function
 		// those sit in global scope or class member scope will be stored in some other object and access through game object API
 		// (all global variables are stored in a single game object, which is assembled by compiler)
-		if(ASTNodeHelper::hasOwner<FunctionDecl>(node))
+		if(ASTNodeHelper::hasOwner<FunctionDecl>(&node))
 		{
 			if(hasValue(node)) return;
 			if(isBlockInsertionMasked() || isBlockTerminated(currentBlock()))	return;
@@ -596,7 +622,7 @@ struct LLVMGeneratorStageVisitor : GenericDoubleVisitor
 		}
 
 		llvm::Value* result = NULL;
-		llvm::Value* temporary = NULL;
+//		llvm::Value* temporary = NULL;
 
 		switch(node.opcode)
 		{
@@ -763,7 +789,7 @@ struct LLVMGeneratorStageVisitor : GenericDoubleVisitor
 					false_value = mBuilder.CreateLoad(false_value);
 			}
 
-			llvm::PHINode* phi = mBuilder.CreatePHI(true_value->getType());
+			llvm::PHINode* phi = mBuilder.CreatePHI(true_value->getType(), 2);
 			phi->addIncoming(true_value, true_block);
 			phi->addIncoming(false_value, false_block);
 
@@ -799,7 +825,8 @@ struct LLVMGeneratorStageVisitor : GenericDoubleVisitor
 			llvm::Function* llvm_function = GET_SYNTHESIZED_LLVM_FUNCTION(resolved);
 			if(llvm_function)
 			{
-				llvm::Value* result = mBuilder.CreateCall(llvm_function, arguments.begin(), arguments.end());
+				llvm::ArrayRef<llvm::Value*> llvm_arguments(arguments);
+				llvm::Value* result = mBuilder.CreateCall(llvm_function, llvm_arguments);
 				SET_SYNTHESIZED_LLVM_VALUE(&node, result);
 			}
 			else
@@ -830,7 +857,7 @@ struct LLVMGeneratorStageVisitor : GenericDoubleVisitor
 		if(!getValue(*node.node, node_resolved, llvm_value_for_read, llvm_value_for_write, true, false))
 		{
 			BOOST_ASSERT(false && "invalid LLVM parameter value for type conversion");
-			terminateRevisit();
+			terminate();
 		}
 
 		if(node.type->type == TypeSpecifier::ReferredType::PRIMITIVE)
@@ -838,11 +865,13 @@ struct LLVMGeneratorStageVisitor : GenericDoubleVisitor
 			TypeSpecifier* node_specifier = cast<TypeSpecifier>(ResolvedType::get(node.node));
 			if(node_specifier && node_specifier->type == TypeSpecifier::ReferredType::PRIMITIVE)
 			{
-				bool need_ext = (PrimitiveType::bitSize(node.type->referred.primitive) > PrimitiveType::bitSize(node_specifier->referred.primitive));
-				bool need_truc = (PrimitiveType::bitSize(node.type->referred.primitive) < PrimitiveType::bitSize(node_specifier->referred.primitive));
-				bool bitsize_mismatched = (PrimitiveType::bitSize(node.type->referred.primitive) != PrimitiveType::bitSize(node_specifier->referred.primitive));
+				bool need_ext = (PrimitiveType::byteSize(node.type->referred.primitive) > PrimitiveType::byteSize(node_specifier->referred.primitive));
+				bool need_truc = (PrimitiveType::byteSize(node.type->referred.primitive) < PrimitiveType::byteSize(node_specifier->referred.primitive));
+				bool bitsize_mismatched = (PrimitiveType::byteSize(node.type->referred.primitive) != PrimitiveType::byteSize(node_specifier->referred.primitive));
 
-				const llvm::Type* llvm_cast_type = NULL;
+				UNUSED_ARGUMENT(bitsize_mismatched);
+
+				llvm::Type* llvm_cast_type = NULL;
 
 				llvm::Attributes llvm_dummy_modifier = llvm::Attribute::None; // dummy
 				mHelper.getType(*node.type, llvm_cast_type, llvm_dummy_modifier);
@@ -892,10 +921,10 @@ struct LLVMGeneratorStageVisitor : GenericDoubleVisitor
 				else
 				{
 					// the rest of types can be both object types or function types or void type, no casting required
-					if(	(node.type->referred.primitive == PrimitiveType::VOID && node_specifier->referred.primitive == PrimitiveType::VOID) ||
-						(node.type->referred.primitive == PrimitiveType::OBJECT && node_specifier->referred.primitive == PrimitiveType::OBJECT) ||
-						(node.type->referred.primitive == PrimitiveType::FUNCTION && node_specifier->referred.primitive == PrimitiveType::FUNCTION) ||
-						(node.type->referred.primitive == PrimitiveType::STRING && node_specifier->referred.primitive == PrimitiveType::STRING) )
+					if(	(node.type->referred.primitive == PrimitiveType::VOID_TYPE && node_specifier->referred.primitive == PrimitiveType::VOID_TYPE) ||
+						(node.type->referred.primitive == PrimitiveType::OBJECT_TYPE && node_specifier->referred.primitive == PrimitiveType::OBJECT_TYPE) ||
+						(node.type->referred.primitive == PrimitiveType::FUNCTION_TYPE && node_specifier->referred.primitive == PrimitiveType::FUNCTION_TYPE) ||
+						(node.type->referred.primitive == PrimitiveType::STRING_TYPE && node_specifier->referred.primitive == PrimitiveType::STRING_TYPE) )
 					{
 						llvm_result = llvm_value_for_read;
 					}
@@ -953,7 +982,7 @@ private:
 		resetBlockInsertionMask();
 	}
 
-	llvm::AllocaInst* createAlloca(const llvm::Type* type, const llvm::Twine& name = "")
+	llvm::AllocaInst* createAlloca(llvm::Type* type, const llvm::Twine& name = "")
 	{
 		llvm::AllocaInst* llvm_alloca_inst = NULL;
 		if(mBuilder.isNamePreserving())
@@ -969,7 +998,7 @@ private:
 		if(GET_SYNTHESIZED_LLVM_VALUE(&ast_variable))
 			return true;
 
-		const llvm::Type* llvm_variable_type = NULL;
+		llvm::Type* llvm_variable_type = NULL;
 		llvm::Attributes llvm_variable_modifier = llvm::Attribute::None;
 		if(!mHelper.getType(*ast_variable.type, llvm_variable_type, llvm_variable_modifier))
 			return false;
@@ -1020,7 +1049,7 @@ private:
 
 		// allocate return value if necessary
 		{
-			const llvm::Type* type;
+			llvm::Type* type;
 			llvm::Attributes modifier;
 			if(mHelper.getType(*ast_function.type, type, modifier) && type && !type->isVoidTy())
 			{
@@ -1053,7 +1082,7 @@ private:
 		{
 			//Identifier* parameter_identifier = ast_function.parameters[index]->name;
 
-			const llvm::Type* t;
+			llvm::Type* t;
 			llvm::Attributes modifier;
 			if(mHelper.getType(*ast_function.parameters[index]->type, t, modifier) && t && !t->isVoidTy())
 			{
@@ -1075,6 +1104,8 @@ private:
 
 	bool finishFunction(FunctionDecl& ast_function)
 	{
+		UNUSED_ARGUMENT(ast_function);
+
 		enterBasicBlock(mFunctionContext.return_block);
 
 		if(!mFunctionContext.return_value)
@@ -1312,13 +1343,16 @@ private:
 			}
 			else
 			{
-				NodeInfoVisitor node_info_visitor;
-				node_info_visitor.visit(*from);
-				std::wstring from_info = node_info_visitor.stream.str();
-				node_info_visitor.visit(*to);
-				std::wstring to_info = node_info_visitor.stream.str();
+				if(isa<VariableDecl>(from))
+				{
+					NodeInfoVisitor node_info_visitor;
+					node_info_visitor.visit(*from);
+					std::wstring from_info = node_info_visitor.stream.str();
+					node_info_visitor.visit(*to);
+					std::wstring to_info = node_info_visitor.stream.str();
 
-				LOG4CXX_ERROR(LoggerWrapper::GeneratorStage, L"failed to propagate NULL value from \"" << from_info << "\" to \"" << to_info << L"\"");
+					LOG4CXX_ERROR(LoggerWrapper::GeneratorStage, L"failed to propagate NULL value from \"" << from_info << "\" to \"" << to_info << L"\"");
+				}
 			}
 		}
 

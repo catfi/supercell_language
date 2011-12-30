@@ -19,7 +19,7 @@
 
 #include "language/stage/verifier/StaticTestVerificationStage.h"
 #include "language/stage/verifier/visitor/StaticTestVerificationStageVisitor.h"
-#include "language/tree/visitor/general/PrettyPrintVisitor.h"
+#include "language/tree/visitor/PrettyPrintVisitor.h"
 #include "language/context/ParserContext.h"
 
 namespace zillians { namespace language { namespace stage {
@@ -44,36 +44,42 @@ std::pair<shared_ptr<po::options_description>, shared_ptr<po::options_descriptio
 
 	foreach(i, option_desc_public->options()) option_desc_private->add(*i);
 
-	option_desc_private->add_options();
+	option_desc_private->add_options()
+        ("enable-static-test", "enable static test stage");
 
 	return std::make_pair(option_desc_public, option_desc_private);
 }
 
 bool StaticTestVerificationStage::parseOptions(po::variables_map& vm)
 {
+    if(vm.count("enable-static-test"))
+    {
+        enabled = true;
+    }
 	return true;
 }
 
 bool StaticTestVerificationStage::execute(bool& continue_execution)
 {
+	UNUSED_ARGUMENT(continue_execution);
+
+    if(!enabled)
+        return true;
+
 	if(!hasParserContext())
 		return false;
 
 	ParserContext& parser_context = getParserContext();
 
-	if(parser_context.program)
+	if(parser_context.tangle)
 	{
 		visitor::StaticTestVerificationStageVisitor verifier;
-		verifier.programNode = parser_context.program;
-		verifier.visit(*parser_context.program);
+		verifier.visit(*parser_context.tangle);
+
 		if(verifier.isAllMatch())
-		{
 			return true;
-		}
 		else
-		{
 			return false;
-		}
 	}
 	else
 	{

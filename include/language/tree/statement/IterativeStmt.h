@@ -39,14 +39,33 @@ struct IterativeStmt : public Statement
     virtual bool isEqualImpl(const ASTNode& rhs, ASTNodeSet& visited) const
     {
     	BEGIN_COMPARE_WITH_BASE(Statement)
+		COMPARE_MEMBER(block)
     	END_COMPARE()
+    }
+
+    virtual bool replaceUseWith(const ASTNode& from, const ASTNode& to, bool update_parent = true)
+    {
+    	BEGIN_REPLACE_WITH_BASE(Statement)
+		REPLACE_USE_WITH(block)
+    	END_REPLACE()
     }
 
     template<typename Archive>
     void serialize(Archive& ar, const unsigned int version)
     {
+    	UNUSED_ARGUMENT(version);
+
     	ar & boost::serialization::base_object<Statement>(*this);
+    	ar & block;
     }
+
+	ASTNode* block;
+
+protected:
+	IterativeStmt(ASTNode* block = NULL) : block(block)
+	{
+		if(block) block->parent = this;
+	}
 };
 
 struct ForStmt : public IterativeStmt
@@ -56,7 +75,7 @@ struct ForStmt : public IterativeStmt
 	DEFINE_VISITABLE();
 	DEFINE_HIERARCHY(ForStmt, (ForStmt)(IterativeStmt)(Statement)(ASTNode));
 
-	explicit ForStmt(ASTNode* init, ASTNode* cond, ASTNode* step, ASTNode* block = NULL) : init(init), cond(cond), step(step), block(block)
+	explicit ForStmt(ASTNode* init, ASTNode* cond, ASTNode* step, ASTNode* block = NULL) : IterativeStmt(block), init(init), cond(cond), step(step)
 	{
 		BOOST_ASSERT(init && "null init for for statement is not allowed");
 		BOOST_ASSERT(cond && "null cond for for  statement is not allowed");
@@ -65,7 +84,6 @@ struct ForStmt : public IterativeStmt
 		init->parent = this;
 		cond->parent = this;
 		step->parent = this;
-		if(block) block->parent = this;
 	}
 
     virtual bool isEqualImpl(const ASTNode& rhs, ASTNodeSet& visited) const
@@ -74,7 +92,6 @@ struct ForStmt : public IterativeStmt
 		COMPARE_MEMBER(init)
 		COMPARE_MEMBER(cond)
 		COMPARE_MEMBER(step)
-		COMPARE_MEMBER(block)
 		END_COMPARE()
     }
 
@@ -84,7 +101,6 @@ struct ForStmt : public IterativeStmt
 		REPLACE_USE_WITH(init)
 		REPLACE_USE_WITH(cond)
 		REPLACE_USE_WITH(step)
-		REPLACE_USE_WITH(block)
     	END_REPLACE()
     }
 
@@ -100,17 +116,17 @@ struct ForStmt : public IterativeStmt
     template<typename Archive>
     void serialize(Archive& ar, const unsigned int version)
     {
+    	UNUSED_ARGUMENT(version);
+
     	ar & boost::serialization::base_object<IterativeStmt>(*this);
     	ar & init;
     	ar & cond;
     	ar & step;
-    	ar & block;
     }
 
 	ASTNode* init;
 	ASTNode* cond;
 	ASTNode* step;
-	ASTNode* block;
 
 protected:
 	ForStmt() { }
@@ -123,14 +139,13 @@ struct ForeachStmt : public IterativeStmt
 	DEFINE_VISITABLE();
 	DEFINE_HIERARCHY(ForeachStmt, (ForeachStmt)(IterativeStmt)(Statement)(ASTNode));
 
-	explicit ForeachStmt(ASTNode* iterator, Expression* range, ASTNode* block = NULL) : iterator(iterator), range(range), block(block)
+	explicit ForeachStmt(ASTNode* iterator, Expression* range, ASTNode* block = NULL) : IterativeStmt(block), iterator(iterator), range(range)
 	{
 		BOOST_ASSERT(iterator && "null iterator for foreach statement is not allowed");
 		BOOST_ASSERT(range && "null range for foreach statement is not allowed");
 
 		iterator->parent = this;
 		range->parent = this;
-		if(block) block->parent = this;
 	}
 
     virtual bool isEqualImpl(const ASTNode& rhs, ASTNodeSet& visited) const
@@ -138,7 +153,6 @@ struct ForeachStmt : public IterativeStmt
     	BEGIN_COMPARE_WITH_BASE(IterativeStmt)
 		COMPARE_MEMBER(iterator)
 		COMPARE_MEMBER(range)
-		COMPARE_MEMBER(block)
 		END_COMPARE()
     }
 
@@ -147,7 +161,6 @@ struct ForeachStmt : public IterativeStmt
     	BEGIN_REPLACE_WITH_BASE(IterativeStmt)
 		REPLACE_USE_WITH(iterator)
 		REPLACE_USE_WITH(range)
-		REPLACE_USE_WITH(block)
     	END_REPLACE()
     }
 
@@ -162,15 +175,15 @@ struct ForeachStmt : public IterativeStmt
     template<typename Archive>
     void serialize(Archive& ar, const unsigned int version)
     {
+    	UNUSED_ARGUMENT(version);
+
     	ar & boost::serialization::base_object<IterativeStmt>(*this);
     	ar & iterator;
     	ar & range;
-    	ar & block;
     }
 
 	ASTNode* iterator; // TODO semantic-check: it must be L-value expression or declarative statement
 	Expression* range;
-	ASTNode* block;
 
 protected:
 	ForeachStmt() { }
@@ -200,12 +213,11 @@ struct WhileStmt : public IterativeStmt
 		}
 	};
 
-	explicit WhileStmt(Style::type style, Expression* cond, ASTNode* block = NULL) : style(style), cond(cond), block(block)
+	explicit WhileStmt(Style::type style, Expression* cond, ASTNode* block = NULL) : IterativeStmt(block), style(style), cond(cond)
 	{
 		BOOST_ASSERT(cond && "null condition for while statement is not allowed");
 
 		cond->parent = this;
-		if(block) block->parent = this;
 	}
 
     virtual bool isEqualImpl(const ASTNode& rhs, ASTNodeSet& visited) const
@@ -213,7 +225,6 @@ struct WhileStmt : public IterativeStmt
     	BEGIN_COMPARE_WITH_BASE(IterativeStmt)
 		COMPARE_MEMBER(style)
 		COMPARE_MEMBER(cond)
-		COMPARE_MEMBER(block)
 		END_COMPARE()
     }
 
@@ -221,7 +232,6 @@ struct WhileStmt : public IterativeStmt
     {
     	BEGIN_REPLACE_WITH_BASE(IterativeStmt)
 		REPLACE_USE_WITH(cond)
-		REPLACE_USE_WITH(block)
     	END_REPLACE()
     }
 
@@ -236,15 +246,15 @@ struct WhileStmt : public IterativeStmt
     template<typename Archive>
     void serialize(Archive& ar, const unsigned int version)
     {
+    	UNUSED_ARGUMENT(version);
+
     	ar & boost::serialization::base_object<IterativeStmt>(*this);
     	ar & (int&)style;
     	ar & cond;
-    	ar & block;
     }
 
 	Style::type style;
 	Expression* cond;
-	ASTNode* block;
 
 protected:
 	WhileStmt() { }

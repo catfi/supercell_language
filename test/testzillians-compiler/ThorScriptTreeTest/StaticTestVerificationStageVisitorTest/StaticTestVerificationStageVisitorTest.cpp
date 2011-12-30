@@ -37,12 +37,14 @@ using namespace zillians::language::tree::visitor;
 
 BOOST_AUTO_TEST_SUITE( ThorScriptTreeTest_StaticTestVerificationStageVisitorTestTestSuite )
 
-Program* createPassSample()
+Tangle* createPassSample()
 {
-	Program* program = new Program();
+    Tangle* tangle = new Tangle();
+	Source* source = new Source("pass-source");
+    tangle->addSource(new SimpleIdentifier(L"pass-package"), source);
 	{
 		Package* com_package = new Package(new SimpleIdentifier(L"com"));
-		program->root->addPackage(com_package);
+		source->root->addPackage(com_package);
 		{
 			Package* zillians_package = new Package(new SimpleIdentifier(L"zillians"));
 			com_package->addPackage(zillians_package);
@@ -62,12 +64,12 @@ Program* createPassSample()
 						Block* block = some_member_function->block;
 
 						{
-							DeclarativeStmt* stmt = new DeclarativeStmt(new VariableDecl(new SimpleIdentifier(L"a"), new TypeSpecifier(PrimitiveType::INT32), false, false, false, Declaration::VisibilitySpecifier::DEFAULT));
+							DeclarativeStmt* stmt = new DeclarativeStmt(new VariableDecl(new SimpleIdentifier(L"a"), new TypeSpecifier(PrimitiveType::INT32_TYPE), false, false, false, Declaration::VisibilitySpecifier::DEFAULT));
 							block->appendObject(stmt);
 						}
 
 						{
-							DeclarativeStmt* stmt = new DeclarativeStmt(new VariableDecl(new SimpleIdentifier(L"b"), new TypeSpecifier(PrimitiveType::INT32), false, false, false, Declaration::VisibilitySpecifier::DEFAULT));
+							DeclarativeStmt* stmt = new DeclarativeStmt(new VariableDecl(new SimpleIdentifier(L"b"), new TypeSpecifier(PrimitiveType::INT32_TYPE), false, false, false, Declaration::VisibilitySpecifier::DEFAULT));
 							block->appendObject(stmt);
 						}
 
@@ -93,7 +95,7 @@ Program* createPassSample()
 							zillians::language::LogInfo errorContext(L"LEVEL_WARNING", L"EXAMPLE_UNDECLARED_VARIABLE", m);
 
 							ExpressionStmt* stmt = new ExpressionStmt(new BinaryExpr(BinaryExpr::OpCode::ASSIGN, new PrimaryExpr(new SimpleIdentifier(L"EXAMPLE_UNDECLARED_VARIABLE")), new PrimaryExpr(new SimpleIdentifier(L"b"))));
-							stmt->setAnnotation(annos);
+							stmt->setAnnotations(annos);
                             zillians::language::LogInfoContext::push_back(stmt, errorContext);
 
 							block->appendObject(stmt);
@@ -103,15 +105,17 @@ Program* createPassSample()
 			}
 		}
 	}
-	return program;
+	return tangle;
 }
 
-Program* createFailSample()
+Tangle* createFailSample()
 {
-	Program* program = new Program();
+    Tangle* tangle = new Tangle();
+	Source* source = new Source("fail-source");
+    tangle->addSource(new SimpleIdentifier(L"fail-package"), source);
 	{
 		Package* com_package = new Package(new SimpleIdentifier(L"com"));
-		program->root->addPackage(com_package);
+		source->root->addPackage(com_package);
 		{
 			Package* zillians_package = new Package(new SimpleIdentifier(L"zillians"));
 			com_package->addPackage(zillians_package);
@@ -131,12 +135,12 @@ Program* createFailSample()
 						Block* block = some_member_function->block;
 
 						{
-							DeclarativeStmt* stmt = new DeclarativeStmt(new VariableDecl(new SimpleIdentifier(L"a"), new TypeSpecifier(PrimitiveType::INT32), false, false, false, Declaration::VisibilitySpecifier::DEFAULT));
+							DeclarativeStmt* stmt = new DeclarativeStmt(new VariableDecl(new SimpleIdentifier(L"a"), new TypeSpecifier(PrimitiveType::INT32_TYPE), false, false, false, Declaration::VisibilitySpecifier::DEFAULT));
 							block->appendObject(stmt);
 						}
 
 						{
-							DeclarativeStmt* stmt = new DeclarativeStmt(new VariableDecl(new SimpleIdentifier(L"b"), new TypeSpecifier(PrimitiveType::INT32), false, false, false, Declaration::VisibilitySpecifier::DEFAULT));
+							DeclarativeStmt* stmt = new DeclarativeStmt(new VariableDecl(new SimpleIdentifier(L"b"), new TypeSpecifier(PrimitiveType::INT32_TYPE), false, false, false, Declaration::VisibilitySpecifier::DEFAULT));
 							block->appendObject(stmt);
 						}
 
@@ -163,16 +167,11 @@ Program* createFailSample()
                             zillians::language::LogInfo errorContext(L"LEVEL_WARNING", L"EXAMPLE_UNDECLARED_VARIABLE", m);
 
 							ExpressionStmt* stmt = new ExpressionStmt(new BinaryExpr(BinaryExpr::OpCode::ASSIGN, new PrimaryExpr(new SimpleIdentifier(L"EXAMPLE_UNDECLARED_VARIABLE")), new PrimaryExpr(new SimpleIdentifier(L"b"))));
-							stmt->setAnnotation(annos);
+							stmt->setAnnotations(annos);
                             zillians::language::LogInfoContext::push_back(stmt, errorContext);
 
 							// set source info context
-							int source_index = 0;
-							zillians::language::stage::ModuleSourceInfoContext* module_info = new zillians::language::stage::ModuleSourceInfoContext();
-							source_index = module_info->addSource("test.cpp");
-							source_index = module_info->addSource("hello.cpp");
-							zillians::language::stage::ModuleSourceInfoContext::set(program, module_info);
-							zillians::language::stage::SourceInfoContext::set(stmt, new zillians::language::stage::SourceInfoContext(source_index, 32, 10) );
+							zillians::language::stage::SourceInfoContext::set(stmt, new zillians::language::stage::SourceInfoContext(32, 10) );
 
 							block->appendObject(stmt);
 						}
@@ -181,7 +180,7 @@ Program* createFailSample()
 			}
 		}
 	}
-	return program;
+	return tangle;
 }
 
 BOOST_AUTO_TEST_CASE( ThorScriptTreeTest_StaticTestVerificationStageVisitorTestCase1 )
@@ -190,25 +189,18 @@ BOOST_AUTO_TEST_CASE( ThorScriptTreeTest_StaticTestVerificationStageVisitorTestC
 	using namespace zillians::language;
     setParserContext(new ParserContext());
 
-	stage::ModuleSourceInfoContext* module_info = new stage::ModuleSourceInfoContext();
-	int source_index = 0;
-	source_index = module_info->addSource("test.cpp");
-	source_index = module_info->addSource("hello.cpp");
-
 	zillians::language::stage::visitor::StaticTestVerificationStageVisitor checker;
 
-	Program* okProgram = createPassSample();
-	checker.programNode = okProgram;
-    getParserContext().program = okProgram;
-	stage::ModuleSourceInfoContext::set(okProgram, module_info);
-	checker.check(*okProgram);
+	Tangle* okTangle = createPassSample();
+	//checker.programNode = okProgram;
+    getParserContext().active_source = okTangle->sources.begin()->second;
+	checker.visit(*okTangle);
 	BOOST_CHECK(checker.isAllMatch());
 
-	Program* failProgram = createFailSample();
-	checker.programNode = failProgram;
-    getParserContext().program = okProgram;
-	stage::ModuleSourceInfoContext::set(failProgram, module_info);
-	checker.check(*failProgram);
+	Tangle* failTangle = createFailSample();
+	//checker.programNode = failTangle;
+    getParserContext().active_source = okTangle->sources.begin()->second;;
+	checker.visit(*failTangle);
 	BOOST_CHECK(!checker.isAllMatch());
 }
 

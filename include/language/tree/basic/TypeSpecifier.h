@@ -22,8 +22,6 @@
 
 #include "language/tree/ASTNode.h"
 #include "language/tree/basic/PrimitiveType.h"
-#include "language/tree/basic/Identifier.h"
-#include "language/tree/basic/FunctionType.h"
 
 namespace zillians { namespace language { namespace tree {
 
@@ -55,97 +53,34 @@ struct TypeSpecifier : public ASTNode
 			case FUNCTION_TYPE:		return L"function_type";
 			case PRIMITIVE:			return L"primitive";
 			case UNSPECIFIED: 		return L"unspecified";
-			default: break;
+			default: UNREACHABLE_CODE(); return NULL;
 			}
-			BOOST_ASSERT(false && "reaching unreachable code");
-			return NULL;
 		}
 	};
 
-	explicit TypeSpecifier(FunctionType* function_proto)
-	{
-		update(function_proto);
-	}
+	explicit TypeSpecifier(FunctionType* function_proto);
+	explicit TypeSpecifier(PrimitiveType::type primitive);
+	explicit TypeSpecifier(Identifier* unspecified);
+	std::wstring toString() const;
 
-	explicit TypeSpecifier(PrimitiveType::type primitive)
-	{
-		update(primitive);
-	}
+	void update(FunctionType* function_type);
+	void update(PrimitiveType::type primitive);
+	void update(Identifier* unspecified);
 
-	explicit TypeSpecifier(Identifier* unspecified)
-	{
-		update(unspecified);
-	}
+	bool isFunctionType() const;
+	bool isPrimitiveType() const;
+	bool isUnspecified() const;
 
-	std::wstring toString() const
-	{
-		switch(type)
-		{
-		case TypeSpecifier::ReferredType::FUNCTION_TYPE: return referred.function_type->toString();
-		case TypeSpecifier::ReferredType::PRIMITIVE: return PrimitiveType::toString(referred.primitive);
-		case TypeSpecifier::ReferredType::UNSPECIFIED: return referred.unspecified->toString();
-		}
-	}
+    virtual bool isEqualImpl(const ASTNode& rhs, ASTNodeSet& visited) const;
+    virtual bool replaceUseWith(const ASTNode& from, const ASTNode& to, bool update_parent = true);
 
-	void update(FunctionType* function_type)
-	{
-		type = ReferredType::FUNCTION_TYPE;
-		referred.function_type = function_type;
-	}
-
-	void update(PrimitiveType::type primitive)
-	{
-		type = ReferredType::PRIMITIVE;
-		referred.primitive = primitive;
-	}
-
-	void update(Identifier* unspecified)
-	{
-		type = ReferredType::UNSPECIFIED;
-		referred.unspecified = unspecified;
-	}
-
-    virtual bool isEqualImpl(const ASTNode& rhs, ASTNodeSet& visited) const
-    {
-    	BEGIN_COMPARE()
-		COMPARE_MEMBER(type)
-        switch(type)
-        {
-        case TypeSpecifier::ReferredType::FUNCTION_TYPE  : COMPARE_MEMBER(referred.function_type )             ; break;
-        case TypeSpecifier::ReferredType::PRIMITIVE      : if(referred.primitive != p->referred.primitive) return false; break;
-        case TypeSpecifier::ReferredType::UNSPECIFIED    : COMPARE_MEMBER(referred.unspecified   )             ; break;
-        default: break;
-        }
-        END_COMPARE()
-    }
-
-    virtual bool replaceUseWith(const ASTNode& from, const ASTNode& to, bool update_parent = true)
-    {
-    	BEGIN_REPLACE()
-		switch(type)
-		{
-		case TypeSpecifier::ReferredType::FUNCTION_TYPE: REPLACE_USE_WITH(referred.function_type); break;
-		case TypeSpecifier::ReferredType::UNSPECIFIED: REPLACE_USE_WITH(referred.unspecified); break;
-		default: break;
-		}
-    	END_REPLACE()
-    }
-
-    virtual ASTNode* clone() const
-    {
-        switch(type)
-        {
-        case TypeSpecifier::ReferredType::FUNCTION_TYPE  : return new TypeSpecifier(cast<FunctionType>(referred.function_type->clone()));
-        case TypeSpecifier::ReferredType::PRIMITIVE      : return new TypeSpecifier(referred.primitive);
-        case TypeSpecifier::ReferredType::UNSPECIFIED    : return new TypeSpecifier(cast<Identifier>(referred.unspecified->clone()));
-        default: break;
-        }
-        return NULL;
-    }
+    virtual ASTNode* clone() const;
 
     template<typename Archive>
     void serialize(Archive& ar, const unsigned int version)
     {
+    	UNUSED_ARGUMENT(version);
+
     	ar & boost::serialization::base_object<ASTNode>(*this);
     	ar & (int&)type;
         switch(type)
@@ -153,7 +88,7 @@ struct TypeSpecifier : public ASTNode
         case TypeSpecifier::ReferredType::FUNCTION_TYPE  : ar & referred.function_type; break;
         case TypeSpecifier::ReferredType::PRIMITIVE      : ar & (int&)referred.primitive; break;
         case TypeSpecifier::ReferredType::UNSPECIFIED    : ar & referred.unspecified; break;
-        default: break;
+        default: UNREACHABLE_CODE(); break;
         }
     }
 
@@ -167,7 +102,7 @@ struct TypeSpecifier : public ASTNode
 	} referred;
 
 protected:
-	TypeSpecifier() { }
+	TypeSpecifier();
 };
 
 } } }

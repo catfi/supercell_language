@@ -78,7 +78,7 @@ struct template_arg_identifier
 		{
 			BIND_CACHED_LOCATION(_result = new TemplatedIdentifier(TemplatedIdentifier::Usage::ACTUAL_ARGUMENT, _param(0)));
 			deduced_foreach_value(i, *_param(1))
-				cast<TemplatedIdentifier>(_result)->appendArgument(i);
+				cast<TemplatedIdentifier>(_result)->append(new TypenameDecl(new SimpleIdentifier(L"_"), i, NULL));
 		}
 		else
 			_result = _param(0);
@@ -102,22 +102,26 @@ struct template_param_identifier
 			BIND_CACHED_LOCATION(_result = new TemplatedIdentifier(TemplatedIdentifier::Usage::FORMAL_PARAMETER, _param(0)));
 			deduced_foreach_value(i, *(_param(1)))
 			{
-				switch(i.which())
+				Identifier*       ident            = boost::fusion::at_c<0>(i);
+				TypeSpecifier*    specialized_type = NULL;
+				Expression*       default_type     = NULL;
+				if(boost::fusion::at_c<1>(i).is_initialized())
 				{
-				case 0:
-					cast<TemplatedIdentifier>(_result)->appendParameter(boost::get<SimpleIdentifier*>(i));
-					break;
-				case 1:
+					auto& optional_variant = *boost::fusion::at_c<1>(i);
+					switch(optional_variant.which())
 					{
-						Identifier* ident = new SimpleIdentifier(L"..."); BIND_CACHED_LOCATION(ident);
-						cast<TemplatedIdentifier>(_result)->appendParameter(ident);
+					case 0: specialized_type = boost::get<TypeSpecifier*>(optional_variant); break;
+					case 1: default_type     = boost::get<Expression*>(optional_variant); break;
 					}
-					break;
 				}
+                TypenameDecl* typename_decl = new TypenameDecl(ident, specialized_type, default_type); BIND_CACHED_LOCATION(typename_decl);
+				cast<TemplatedIdentifier>(_result)->append(typename_decl);
 			}
 		}
 		else
+		{
 			_result = _param(0);
+		}
 	}
 	END_ACTION
 };

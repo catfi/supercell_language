@@ -1,0 +1,7 @@
+<project name="happy1" author="yoco" version="0.0.0.1">
+    <dependency>
+        <bundle         path="inbundle/lib1.bundle"/>
+        <native_object  path="native/native1.o"/>
+        <native_library path="native/native2.so"/>
+    </dependency>
+</project>

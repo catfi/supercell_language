@@ -19,21 +19,32 @@
 # Contact Information: info@zillians.com
 #
 
-zillians_create_test_subject(SUBJECT framework-compiler-critical)
-zillians_create_test_subject(SUBJECT framework-compiler-misc)
+zillians_create_test_subject(SUBJECT language-compiler-critical)
+zillians_create_test_subject(SUBJECT language-compiler-misc)
 
-zillians_add_subject_to_subject(PARENT framework-critical CHILD framework-compiler-critical)
-zillians_add_subject_to_subject(PARENT framework-misc CHILD framework-compiler-misc)
+zillians_add_subject_to_subject(PARENT language-critical CHILD language-compiler-critical)
+zillians_add_subject_to_subject(PARENT language-misc CHILD language-compiler-misc)
 
-ADD_SUBDIRECTORY(LLVM_IR_Test)
-ADD_SUBDIRECTORY(RuntimeApiTest)
+# in case we might need them later
+get_target_property(ThorScriptBundler ts-bundle LOCATION)
+get_target_property(ThorScriptCompiler ts-compile LOCATION)
+get_target_property(ThorScriptDep ts-dep LOCATION)
+get_target_property(ThorScriptDriver tsc LOCATION)
+get_target_property(ThorScriptLinker ts-link LOCATION)
+get_target_property(ThorScriptMake ts-make LOCATION)
+get_target_property(ThorScriptManifestBuilder ts-manifest LOCATION)
+get_target_property(ThorScriptStrip ts-strip LOCATION)
+#get_target_property(ThorScriptStubGenerator ts-stub LOCATION)
+get_target_property(ThorScriptVM ts-vm LOCATION)
 
-ADD_SUBDIRECTORY(SemanticCheckTest)
-ADD_SUBDIRECTORY(StubCodeGenTest)
-
+ADD_SUBDIRECTORY(ThorScriptCompilerManglingTest)
 ADD_SUBDIRECTORY(ThorScriptCompilerStaticTest)
+ADD_SUBDIRECTORY(ThorScriptDepTest)
+ADD_SUBDIRECTORY(ThorScriptDriverTest)
+ADD_SUBDIRECTORY(ThorScriptMakeTest)
 ADD_SUBDIRECTORY(ThorScriptParserTest)
+ADD_SUBDIRECTORY(ThorScriptStripTest)
+#ADD_SUBDIRECTORY(ThorScriptStubTest)
 ADD_SUBDIRECTORY(ThorScriptTransformerTest)
 ADD_SUBDIRECTORY(ThorScriptTreeTest)
-ADD_SUBDIRECTORY(ThorScriptLoggerTest)
-ADD_SUBDIRECTORY(ThorScriptDepTest)
+ADD_SUBDIRECTORY(ThorScriptResolutionTest)

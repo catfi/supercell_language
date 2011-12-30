@@ -19,72 +19,68 @@
 # Contact Information: info@zillians.com
 #
 
+add_custom_target(zillians-framework-language)
+
 INCLUDE(UsingCog)
 
 include_directories( ${PROJECT_COMMON_SOURCE_DIR}/include/
-    ${PROJECT_FRAMEWORK_SOURCE_DIR}/include/
+    ${PROJECT_LANGUAGE_SOURCE_DIR}/include/
+    )
+
+set(out_files "")
+set(StringTablePath ${PROJECT_LANGUAGE_SOURCE_DIR}/include/language/logging)
+zillians_add_cog_gen(
+    OUTPUT_VARIABLE out_files
+    INPUT ${StringTablePath}/StringTable.cog
+    )
+add_custom_target(generate-string-table
+    DEPENDS ${out_files}
     )
 
 add_library(zillians-framework-language-spirit
     language/stage/parser/ThorScriptParserStage.cpp
     )
-
-#ADD_PRECOMPILED_HEADER(zillians-framework-language-spirit
-#    ${PROJECT_FRAMEWORK_SOURCE_DIR}/include/language/_PreCompiledHeaders.h
-#    )
-
-get_target_property(__lib_location zillians-framework-language-spirit LOCATION)
-
-add_custom_command(TARGET zillians-framework-language-spirit POST_BUILD
-    COMMAND /usr/bin/strip --strip-debug ${__lib_location}
-    COMMENT "Stripping boost spirit debug symbols"
-    )
-
+    
 target_link_libraries(zillians-framework-language-spirit
     zillians-common-utility
     zillians-common-core
     )
 
-add_library(zillians-framework-language
+add_dependencies(zillians-framework-language-spirit generate-string-table)
+
+add_library(zillians-framework-language-tree SHARED
+	language/tree/basic/FunctionType.cpp
+	language/tree/basic/Identifier.cpp    
+	language/tree/basic/TypeSpecifier.cpp
+	language/tree/ASTNodeSerialization.cpp
+	language/tree/visitor/ASTGraphvizGenerator.cpp
+    )
+
+add_library(zillians-framework-language-general
     language/context/ConfigurationContext.cpp
     language/context/ParserContext.cpp
     language/logging/LoggerWrapper.cpp
     language/stage/StageConductor.cpp
-    language/stage/parser/ASTDeserializationStage.cpp
+    )
+        
+add_library(zillians-framework-language-general-stages
     language/stage/transformer/LiteralCompactionStage.cpp
     language/stage/transformer/ResolutionStage.cpp
     language/stage/transformer/ManglingStage.cpp
+    language/stage/transformer/MapperStage.cpp
     language/stage/transformer/RestructureStage.cpp
+    language/stage/transformer/ImplicitConversionStage.cpp
     language/stage/verifier/SemanticVerificationStage0.cpp
     language/stage/verifier/SemanticVerificationStage1.cpp
 	language/stage/verifier/StaticTestVerificationStage.cpp    
 	language/stage/verifier/visitor/StaticTestVerificationStageVisitor.cpp
-	language/stage/generator/ASTSerializationStage.cpp    
-	language/tree/basic/FunctionType.cpp  
-	language/stage/dep/ThorScriptDepStage.cpp
-    language/stage/dep/ThorScriptPackageDependencyGrammar.cpp
-	)
-
-set(StringTablePath ${PROJECT_FRAMEWORK_SOURCE_DIR}/include/language/logging)
-
-# Generate StringTable.h
-#add_custom_command(OUTPUT ${StringTablePath}/StringTable.h
-#	COMMAND cog.py -d -o ${StringTablePath}/StringTable.h ${StringTablePath}/StringTable.cog
-#	DEPENDS ${StringTablePath}/StringTable.cog
-#	COMMENT "Generate StringTable.h by using cog.py"
-#	)
-
-SET(out_files "")
-COG_GEN(
-    OUTPUT out_files
-    COG_FILE ${StringTablePath}/StringTable.cog
-    COMMENT "cog.py -- Generating StringTable.h from StringTable.cog .."
+	language/stage/serialization/ASTSerializationStage.cpp
+	language/stage/serialization/ASTDeserializationStage.cpp    
+	language/stage/serialization/detail/ASTSerializationHelper.cpp
     )
 
-add_custom_target(generate-string-table ALL echo DEPENDS ${out_files} COMMENT "Generate Compiler String Table")
-add_dependencies(zillians-framework-language generate-string-table)
-
 if(LLVM_FOUND)
+
     add_definitions( ${LLVM_CPPFLAGS} )
     
     add_library(zillians-framework-language-llvm
@@ -92,30 +88,54 @@ if(LLVM_FOUND)
         language/stage/generator/LLVMGeneratorStage.cpp
         language/stage/generator/LLVMDebugInfoGeneratorStage.cpp
         language/stage/generator/LLVMBitCodeGeneratorStage.cpp
-        language/stage/generator/LLVMGlobalDispatchGeneratorStage.cpp
+        #language/stage/generator/LLVMGlobalDispatchGeneratorStage.cpp
         )
-endif()
-
-if(LLVM_FOUND)
-    target_link_libraries(zillians-framework-language
-        zillians-framework-language-spirit
-        zillians-framework-language-llvm
-        zillians-common-utility
-        zillians-common-core
-        )
-    
     target_link_libraries(zillians-framework-language-llvm
 		${LLVM_LDFLAGS}
         ${LLVM_ALL_LIBS}
         zillians-common-utility
         zillians-common-core
         )
-else()
-    target_link_libraries(zillians-framework-language
+
+    target_link_libraries(zillians-framework-language-tree
         zillians-framework-language-spirit
         zillians-common-utility
         zillians-common-core
+        zillians-common-utility-archive
+        zillians-framework-language-llvm
+        )
+else()
+    target_link_libraries(zillians-framework-language-tree
+        zillians-framework-language-spirit
+        zillians-common-utility
+        zillians-common-core
+        zillians-common-utility-archive
         )
 endif()
 
+target_link_libraries(zillians-framework-language-general
+    zillians-framework-language-tree
+    )
 
+target_link_libraries(zillians-framework-language-general-stages
+    zillians-framework-language-general
+    )
+    
+add_dependencies(zillians-framework-language-general generate-string-table)
+
+
+add_dependencies(zillians-framework-language zillians-framework-language-spirit)
+add_dependencies(zillians-framework-language zillians-framework-language-llvm)
+add_dependencies(zillians-framework-language zillians-framework-language-tree)
+add_dependencies(zillians-framework-language zillians-framework-language-general)
+add_dependencies(zillians-framework-language zillians-framework-language-general-stages)
+
+#get_target_property(__lib_location zillians-framework-language-spirit LOCATION)
+#add_custom_command(TARGET zillians-framework-language-spirit POST_BUILD
+#    COMMAND /usr/bin/strip --strip-debug ${__lib_location}
+#    COMMENT "Stripping boost spirit debug symbols"
+#    )
+
+#ADD_PRECOMPILED_HEADER(zillians-framework-language-spirit
+#    ${PROJECT_LANGUAGE_SOURCE_DIR}/include/language/_PreCompiledHeaders.h
+#    )

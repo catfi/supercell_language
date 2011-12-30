@@ -19,12 +19,12 @@
 
 #include "language/stage/transformer/RestructureStage.h"
 #include "language/stage/transformer/visitor/RestructureStageVisitor.h"
-#include "language/tree/visitor/general/PrettyPrintVisitor.h"
+#include "language/tree/visitor/PrettyPrintVisitor.h"
 #include "language/context/ParserContext.h"
 
 namespace zillians { namespace language { namespace stage {
 
-RestructureStage::RestructureStage()
+RestructureStage::RestructureStage() : dump_graphviz(false)
 { }
 
 RestructureStage::~RestructureStage()
@@ -40,7 +40,11 @@ std::pair<shared_ptr<po::options_description>, shared_ptr<po::options_descriptio
 	shared_ptr<po::options_description> option_desc_public(new po::options_description());
 	shared_ptr<po::options_description> option_desc_private(new po::options_description());
 
-	option_desc_private->add_options()("debug-restructure-stage", "debug restructure stage");
+	option_desc_private->add_options()
+        ("debug-restructure-stage", "debug restructure stage")
+		//("dump-graphviz", "dump AST in graphviz format")
+		//("dump-graphviz-dir", po::value<std::string>(), "dump AST in graphviz format")
+    ;
 
 	return std::make_pair(option_desc_public, option_desc_private);
 }
@@ -48,24 +52,31 @@ std::pair<shared_ptr<po::options_description>, shared_ptr<po::options_descriptio
 bool RestructureStage::parseOptions(po::variables_map& vm)
 {
 	debug = (vm.count("debug-restructure-stage") > 0);
+	dump_graphviz = (vm.count("dump-graphviz") > 0);
+    if(vm.count("dump-graphviz-dir") > 0)
+    {
+        dump_graphviz_dir = vm["dump-graphviz-dir"].as<std::string>();
+    }
 
 	return true;
 }
 
 bool RestructureStage::execute(bool& continue_execution)
 {
+	UNUSED_ARGUMENT(continue_execution);
+
 	if(!hasParserContext())
 		return false;
 
 	ParserContext& parser_context = getParserContext();
 
-	if(parser_context.program)
+	if(parser_context.active_source)
 	{
 		// restructure the entire tree in multiple passes
 		while(true)
 		{
 			visitor::RestructureStageVisitor restruct;
-			restruct.visit(*parser_context.program);
+			restruct.visit(*parser_context.tangle);
 			if(restruct.hasTransforms())
 				restruct.applyTransforms();
 			else
@@ -75,8 +86,14 @@ bool RestructureStage::execute(bool& continue_execution)
 		if(debug)
 		{
 			tree::visitor::PrettyPrintVisitor printer;
-			printer.visit(*parser_context.program);
+			printer.visit(*parser_context.tangle);
 		}
+
+        if(dump_graphviz)
+        {
+            boost::filesystem::path p(dump_graphviz_dir);
+            ASTNodeHelper::visualize(getParserContext().tangle, p / "post-restructure.dot");
+        }
 
 		return true;
 	}

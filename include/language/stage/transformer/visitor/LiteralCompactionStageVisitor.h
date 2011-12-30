@@ -21,10 +21,12 @@
 #define ZILLIANS_LANGUAGE_STAGE_VISITOR_LITERALCOMPACTIONSTAGEVISITOR_H_
 
 #include "core/Prerequisite.h"
-#include "language/tree/visitor/general/GenericDoubleVisitor.h"
-#include "language/tree/visitor/general/NameManglingVisitor.h"
+#include "language/tree/visitor/GenericDoubleVisitor.h"
+#include "language/tree/visitor/NameManglingVisitor.h"
 #include "language/stage/transformer/context/ManglingStageContext.h"
 #include "language/logging/StringTable.h"
+
+#include <limits>
 
 using namespace zillians::language::tree;
 using zillians::language::tree::visitor::GenericDoubleVisitor;
@@ -37,46 +39,46 @@ namespace zillians { namespace language { namespace stage { namespace visitor {
  *
  * @see LiteralCompactionStage
  */
-struct LiteralCompactionStageVisitor : GenericDoubleVisitor
+struct LiteralCompactionStageVisitor : public GenericDoubleVisitor
 {
-	CREATE_INVOKER(compactInvoker, compact)
+    CREATE_INVOKER(compactInvoker, apply)
 
 	LiteralCompactionStageVisitor() : program(NULL)
 	{
 		REGISTER_ALL_VISITABLE_ASTNODE(compactInvoker)
 	}
 
-	void compact(ASTNode& node)
+	void apply(ASTNode& node)
 	{
 		revisit(node);
 	}
 
-	void compact(Program& node)
+	void apply(Source& node)
 	{
 		program = &node;
 		revisit(node);
 	}
 
-	void compact(NumericLiteral& node)
+	void apply(NumericLiteral& node)
 	{
 		if(PrimitiveType::isIntegerType(node.type))
 		{
 			if(node.value.i64 <= std::numeric_limits<int8>::max())
 			{
-				node.type = PrimitiveType::INT8;
+				node.type = PrimitiveType::INT8_TYPE;
 			}
 			else if(node.value.i64 <= std::numeric_limits<int16>::max())
 			{
-				node.type = PrimitiveType::INT16;
+				node.type = PrimitiveType::INT16_TYPE;
 			}
 			else if(node.value.i64 <= std::numeric_limits<int32>::max())
 			{
-				node.type = PrimitiveType::INT32;
+				node.type = PrimitiveType::INT32_TYPE;
 			}
 			else if(node.value.i64 <= std::numeric_limits<int64>::max())
 			{
 				// TODO this will always matched
-				node.type = PrimitiveType::INT64;
+				node.type = PrimitiveType::INT64_TYPE;
 			}
 			else
 			{
@@ -88,12 +90,12 @@ struct LiteralCompactionStageVisitor : GenericDoubleVisitor
 		{
 			if(node.value.f64 <= std::numeric_limits<float>::max())
 			{
-				node.type = PrimitiveType::FLOAT32;
+				node.type = PrimitiveType::FLOAT32_TYPE;
 				node.value.f32 = (float)(node.value.f64);
 			}
 			else if(node.value.f64 <= std::numeric_limits<double>::max())
 			{
-				node.type = PrimitiveType::FLOAT64;
+				node.type = PrimitiveType::FLOAT64_TYPE;
 			}
 			else
 			{
@@ -102,7 +104,7 @@ struct LiteralCompactionStageVisitor : GenericDoubleVisitor
 		}
 	}
 
-	Program* program;
+	Source* program;
 };
 
 } } } }
