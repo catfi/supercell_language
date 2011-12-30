@@ -34,17 +34,17 @@ struct Internal : public ASTNode
 
 	Internal()
 	{
-		VoidTy     = new TypeSpecifier(PrimitiveType::VOID);
-		BooleanTy  = new TypeSpecifier(PrimitiveType::BOOL);
-		Int8Ty     = new TypeSpecifier(PrimitiveType::INT8);
-		Int16Ty    = new TypeSpecifier(PrimitiveType::INT16);
-		Int32Ty    = new TypeSpecifier(PrimitiveType::INT32);
-		Int64Ty    = new TypeSpecifier(PrimitiveType::INT64);
-		Float32Ty  = new TypeSpecifier(PrimitiveType::FLOAT32);
-		Float64Ty  = new TypeSpecifier(PrimitiveType::FLOAT64);
-		ObjectTy   = new TypeSpecifier(PrimitiveType::OBJECT);
-		FunctionTy = new TypeSpecifier(PrimitiveType::FUNCTION);
-		StringTy   = new TypeSpecifier(PrimitiveType::STRING);
+		VoidTy     = new TypeSpecifier(PrimitiveType::VOID_TYPE);
+		BooleanTy  = new TypeSpecifier(PrimitiveType::BOOL_TYPE);
+		Int8Ty     = new TypeSpecifier(PrimitiveType::INT8_TYPE);
+		Int16Ty    = new TypeSpecifier(PrimitiveType::INT16_TYPE);
+		Int32Ty    = new TypeSpecifier(PrimitiveType::INT32_TYPE);
+		Int64Ty    = new TypeSpecifier(PrimitiveType::INT64_TYPE);
+		Float32Ty  = new TypeSpecifier(PrimitiveType::FLOAT32_TYPE);
+		Float64Ty  = new TypeSpecifier(PrimitiveType::FLOAT64_TYPE);
+		ObjectTy   = new TypeSpecifier(PrimitiveType::OBJECT_TYPE);
+		FunctionTy = new TypeSpecifier(PrimitiveType::FUNCTION_TYPE);
+		StringTy   = new TypeSpecifier(PrimitiveType::STRING_TYPE);
 
 		VoidTy->parent     = this;
 		BooleanTy->parent  = this;
@@ -63,17 +63,17 @@ struct Internal : public ASTNode
 	{
 		switch(t)
 		{
-		case PrimitiveType::VOID: return VoidTy;
-		case PrimitiveType::BOOL: return BooleanTy;
-		case PrimitiveType::INT8: return Int8Ty;
-		case PrimitiveType::INT16: return Int16Ty;
-		case PrimitiveType::INT32: return Int32Ty;
-		case PrimitiveType::INT64: return Int64Ty;
-		case PrimitiveType::FLOAT32: return Float32Ty;
-		case PrimitiveType::FLOAT64: return Float64Ty;
-		case PrimitiveType::OBJECT: return ObjectTy;
-		case PrimitiveType::FUNCTION: return FunctionTy;
-		case PrimitiveType::STRING: return StringTy;
+		case PrimitiveType::VOID_TYPE: return VoidTy;
+		case PrimitiveType::BOOL_TYPE: return BooleanTy;
+		case PrimitiveType::INT8_TYPE: return Int8Ty;
+		case PrimitiveType::INT16_TYPE: return Int16Ty;
+		case PrimitiveType::INT32_TYPE: return Int32Ty;
+		case PrimitiveType::INT64_TYPE: return Int64Ty;
+		case PrimitiveType::FLOAT32_TYPE: return Float32Ty;
+		case PrimitiveType::FLOAT64_TYPE: return Float64Ty;
+		case PrimitiveType::OBJECT_TYPE: return ObjectTy;
+		case PrimitiveType::FUNCTION_TYPE: return FunctionTy;
+		case PrimitiveType::STRING_TYPE: return StringTy;
 		default: UNREACHABLE_CODE(); return NULL;
 		}
 	}

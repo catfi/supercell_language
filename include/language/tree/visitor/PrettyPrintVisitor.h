@@ -139,13 +139,13 @@ struct PrettyPrintVisitor : Visitor<const ASTNode, void>
 		std::wstringstream ss;
 		switch(node.type)
 		{
-		case PrimitiveType::BOOL: ss << node.value.b; break;
-		case PrimitiveType::INT8: ss << (int32)node.value.i8; break;
-		case PrimitiveType::INT16: ss << (int32)node.value.i16; break;
-		case PrimitiveType::INT32: ss << node.value.i32; break;
-		case PrimitiveType::INT64: ss << node.value.i64; break;
-		case PrimitiveType::FLOAT32: ss << node.value.f32; break;
-		case PrimitiveType::FLOAT64: ss << node.value.f64; break;
+		case PrimitiveType::BOOL_TYPE: ss << node.value.b; break;
+		case PrimitiveType::INT8_TYPE: ss << (int32)node.value.i8; break;
+		case PrimitiveType::INT16_TYPE: ss << (int32)node.value.i16; break;
+		case PrimitiveType::INT32_TYPE: ss << node.value.i32; break;
+		case PrimitiveType::INT64_TYPE: ss << node.value.i64; break;
+		case PrimitiveType::FLOAT32_TYPE: ss << node.value.f32; break;
+		case PrimitiveType::FLOAT64_TYPE: ss << node.value.f64; break;
 		default: break;
 		}
 

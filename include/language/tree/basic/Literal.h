@@ -130,27 +130,27 @@ struct NumericLiteral : public Literal
 	DEFINE_VISITABLE();
 	DEFINE_HIERARCHY(NumericLiteral, (NumericLiteral)(Literal)(ASTNode));
 
-	explicit NumericLiteral(bool v)	 { type = PrimitiveType::BOOL;  value.b = v;  }
-	explicit NumericLiteral(int8 v)	 { type = PrimitiveType::INT8;  value.i8 = v;  }
-	explicit NumericLiteral(int16 v) { type = PrimitiveType::INT16; value.i16 = v; }
-	explicit NumericLiteral(int32 v) { type = PrimitiveType::INT32; value.i32 = v; }
-	explicit NumericLiteral(int64 v) { type = PrimitiveType::INT64; value.i64 = v; }
+	explicit NumericLiteral(bool v)	 { type = PrimitiveType::BOOL_TYPE;  value.b = v;  }
+	explicit NumericLiteral(int8 v)	 { type = PrimitiveType::INT8_TYPE;  value.i8 = v;  }
+	explicit NumericLiteral(int16 v) { type = PrimitiveType::INT16_TYPE; value.i16 = v; }
+	explicit NumericLiteral(int32 v) { type = PrimitiveType::INT32_TYPE; value.i32 = v; }
+	explicit NumericLiteral(int64 v) { type = PrimitiveType::INT64_TYPE; value.i64 = v; }
 
-	explicit NumericLiteral(float v)  { type = PrimitiveType::FLOAT32; value.f32 = v; }
-	explicit NumericLiteral(double v) { type = PrimitiveType::FLOAT64; value.f64 = v; }
+	explicit NumericLiteral(float v)  { type = PrimitiveType::FLOAT32_TYPE; value.f32 = v; }
+	explicit NumericLiteral(double v) { type = PrimitiveType::FLOAT64_TYPE; value.f64 = v; }
 
 	template<typename T>
 	explicit NumericLiteral(PrimitiveType::type t, T v)
 	{
         switch(t)
         {
-        case PrimitiveType::type::BOOL: value.b = (bool)v; break;
-        case PrimitiveType::type::INT8: value.i8 = (int8)v; break;
-        case PrimitiveType::type::INT16: value.i16 = (int16)v; break;
-        case PrimitiveType::type::INT32: value.i32 = (int32)v; break;
-        case PrimitiveType::type::INT64: value.i64 = (int64)v; break;
-        case PrimitiveType::type::FLOAT32: value.f32 = (float)v; break;
-        case PrimitiveType::type::FLOAT64: value.f64 = (double)v; break;
+        case PrimitiveType::type::BOOL_TYPE: value.b = (bool)v; break;
+        case PrimitiveType::type::INT8_TYPE: value.i8 = (int8)v; break;
+        case PrimitiveType::type::INT16_TYPE: value.i16 = (int16)v; break;
+        case PrimitiveType::type::INT32_TYPE: value.i32 = (int32)v; break;
+        case PrimitiveType::type::INT64_TYPE: value.i64 = (int64)v; break;
+        case PrimitiveType::type::FLOAT32_TYPE: value.f32 = (float)v; break;
+        case PrimitiveType::type::FLOAT64_TYPE: value.f64 = (double)v; break;
         default: break;
         }
         type = t;
@@ -162,13 +162,13 @@ struct NumericLiteral : public Literal
 		COMPARE_MEMBER(type)
         switch(type)
         {
-        case PrimitiveType::type::BOOL    : COMPARE_MEMBER(value.b  ); break;
-        case PrimitiveType::type::INT8    : COMPARE_MEMBER(value.i8 ); break;
-        case PrimitiveType::type::INT16   : COMPARE_MEMBER(value.i16); break;
-        case PrimitiveType::type::INT32   : COMPARE_MEMBER(value.i32); break;
-        case PrimitiveType::type::INT64   : COMPARE_MEMBER(value.i64); break;
-        case PrimitiveType::type::FLOAT32 : COMPARE_MEMBER(value.f32); break;
-        case PrimitiveType::type::FLOAT64 : COMPARE_MEMBER(value.f64); break;
+        case PrimitiveType::type::BOOL_TYPE    : COMPARE_MEMBER(value.b  ); break;
+        case PrimitiveType::type::INT8_TYPE    : COMPARE_MEMBER(value.i8 ); break;
+        case PrimitiveType::type::INT16_TYPE   : COMPARE_MEMBER(value.i16); break;
+        case PrimitiveType::type::INT32_TYPE   : COMPARE_MEMBER(value.i32); break;
+        case PrimitiveType::type::INT64_TYPE   : COMPARE_MEMBER(value.i64); break;
+        case PrimitiveType::type::FLOAT32_TYPE : COMPARE_MEMBER(value.f32); break;
+        case PrimitiveType::type::FLOAT64_TYPE : COMPARE_MEMBER(value.f64); break;
         default: break;
         }
     	END_COMPARE()
@@ -187,13 +187,13 @@ struct NumericLiteral : public Literal
     {
         switch(type)
         {
-        case PrimitiveType::type::BOOL    : return new NumericLiteral(value.b);
-        case PrimitiveType::type::INT8    : return new NumericLiteral(value.i8);
-        case PrimitiveType::type::INT16   : return new NumericLiteral(value.i16);
-        case PrimitiveType::type::INT32   : return new NumericLiteral(value.i32);
-        case PrimitiveType::type::INT64   : return new NumericLiteral(value.i64);
-        case PrimitiveType::type::FLOAT32 : return new NumericLiteral(value.f32);
-        case PrimitiveType::type::FLOAT64 : return new NumericLiteral(value.f64);
+        case PrimitiveType::type::BOOL_TYPE    : return new NumericLiteral(value.b);
+        case PrimitiveType::type::INT8_TYPE    : return new NumericLiteral(value.i8);
+        case PrimitiveType::type::INT16_TYPE   : return new NumericLiteral(value.i16);
+        case PrimitiveType::type::INT32_TYPE   : return new NumericLiteral(value.i32);
+        case PrimitiveType::type::INT64_TYPE   : return new NumericLiteral(value.i64);
+        case PrimitiveType::type::FLOAT32_TYPE : return new NumericLiteral(value.f32);
+        case PrimitiveType::type::FLOAT64_TYPE : return new NumericLiteral(value.f64);
         default: break;
         }
         return NULL;
@@ -204,13 +204,13 @@ struct NumericLiteral : public Literal
         std::wostringstream oss;
 		switch(type)
 		{
-		case PrimitiveType::BOOL   : oss <<        value.b  ; break;
-		case PrimitiveType::INT8   : oss << (int32)value.i8 ; break;
-		case PrimitiveType::INT16  : oss << (int32)value.i16; break;
-		case PrimitiveType::INT32  : oss <<        value.i32; break;
-		case PrimitiveType::INT64  : oss <<        value.i64; break;
-		case PrimitiveType::FLOAT32: oss <<        value.f32; break;
-		case PrimitiveType::FLOAT64: oss <<        value.f64; break;
+		case PrimitiveType::BOOL_TYPE   : oss <<        value.b  ; break;
+		case PrimitiveType::INT8_TYPE   : oss << (int32)value.i8 ; break;
+		case PrimitiveType::INT16_TYPE  : oss << (int32)value.i16; break;
+		case PrimitiveType::INT32_TYPE  : oss <<        value.i32; break;
+		case PrimitiveType::INT64_TYPE  : oss <<        value.i64; break;
+		case PrimitiveType::FLOAT32_TYPE: oss <<        value.f32; break;
+		case PrimitiveType::FLOAT64_TYPE: oss <<        value.f64; break;
 		default                    :                          break;
 		}
         return oss.str();
@@ -225,13 +225,13 @@ struct NumericLiteral : public Literal
     	ar & (int&)type;
     	switch(type)
     	{
-        case PrimitiveType::type::BOOL    : ar & value.b; break;
-        case PrimitiveType::type::INT8    : ar & value.i8; break;
-        case PrimitiveType::type::INT16   : ar & value.i16; break;
-        case PrimitiveType::type::INT32   : ar & value.i32; break;
-        case PrimitiveType::type::INT64   : ar & value.i64; break;
-        case PrimitiveType::type::FLOAT32 : ar & value.f32; break;
-        case PrimitiveType::type::FLOAT64 : ar & value.f64; break;
+        case PrimitiveType::type::BOOL_TYPE    : ar & value.b; break;
+        case PrimitiveType::type::INT8_TYPE    : ar & value.i8; break;
+        case PrimitiveType::type::INT16_TYPE   : ar & value.i16; break;
+        case PrimitiveType::type::INT32_TYPE   : ar & value.i32; break;
+        case PrimitiveType::type::INT64_TYPE   : ar & value.i64; break;
+        case PrimitiveType::type::FLOAT32_TYPE : ar & value.f32; break;
+        case PrimitiveType::type::FLOAT64_TYPE : ar & value.f64; break;
         default: break;
     	}
     }

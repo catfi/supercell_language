@@ -287,14 +287,14 @@ struct NameManglingVisitor : Visitor<ASTNode, void, VisitorImplementation::recur
 		case TypeSpecifier::ReferredType::PRIMITIVE:
 			switch(node.referred.primitive)
 			{
-			case PrimitiveType::VOID:    outStream() << "v"; break;
-			case PrimitiveType::BOOL:    outStream() << "b"; break;
-			case PrimitiveType::INT8:    outStream() << "c"; break;
-			case PrimitiveType::INT16:   outStream() << "s"; break;
-			case PrimitiveType::INT32:   outStream() << "l"; /* or 'i' ? */ break;
-			case PrimitiveType::INT64:   outStream() << "x"; break;
-			case PrimitiveType::FLOAT32: outStream() << "f"; break;
-			case PrimitiveType::FLOAT64: outStream() << "d"; break;
+			case PrimitiveType::VOID_TYPE:    outStream() << "v"; break;
+			case PrimitiveType::BOOL_TYPE:    outStream() << "b"; break;
+			case PrimitiveType::INT8_TYPE:    outStream() << "c"; break;
+			case PrimitiveType::INT16_TYPE:   outStream() << "s"; break;
+			case PrimitiveType::INT32_TYPE:   outStream() << "l"; /* or 'i' ? */ break;
+			case PrimitiveType::INT64_TYPE:   outStream() << "x"; break;
+			case PrimitiveType::FLOAT32_TYPE: outStream() << "f"; break;
+			case PrimitiveType::FLOAT64_TYPE: outStream() << "d"; break;
 			default: UNREACHABLE_CODE();
 			}
 			break;
