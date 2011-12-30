@@ -509,7 +509,7 @@ private:
 
 	void mangleVoid()
 	{
-		TypeSpecifier type_specifier(PrimitiveType::VOID);
+		TypeSpecifier type_specifier(PrimitiveType::VOID_TYPE);
 		visit(type_specifier);
 	}
 

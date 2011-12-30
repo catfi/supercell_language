@@ -84,12 +84,12 @@ ASTNode* createSample3()
 						Block* block = some_member_function->block;
 
 						{
-							DeclarativeStmt* stmt = new DeclarativeStmt(new VariableDecl(new SimpleIdentifier(L"a"), new TypeSpecifier(PrimitiveType::INT32), false, false, false, Declaration::VisibilitySpecifier::DEFAULT));
+							DeclarativeStmt* stmt = new DeclarativeStmt(new VariableDecl(new SimpleIdentifier(L"a"), new TypeSpecifier(PrimitiveType::INT32_TYPE), false, false, false, Declaration::VisibilitySpecifier::DEFAULT));
 							block->appendObject(stmt);
 						}
 
 						{
-							DeclarativeStmt* stmt = new DeclarativeStmt(new VariableDecl(new SimpleIdentifier(L"b"), new TypeSpecifier(PrimitiveType::INT32), false, false, false, Declaration::VisibilitySpecifier::DEFAULT));
+							DeclarativeStmt* stmt = new DeclarativeStmt(new VariableDecl(new SimpleIdentifier(L"b"), new TypeSpecifier(PrimitiveType::INT32_TYPE), false, false, false, Declaration::VisibilitySpecifier::DEFAULT));
 							block->appendObject(stmt);
 						}
 
@@ -101,14 +101,14 @@ ASTNode* createSample3()
 
 					VariableDecl* some_member_variable1 = new VariableDecl(
 							new SimpleIdentifier(L"some_member_variable1"),
-							new TypeSpecifier(PrimitiveType::FLOAT64),
+							new TypeSpecifier(PrimitiveType::FLOAT64_TYPE),
 							true, false, false,
 							Declaration::VisibilitySpecifier::PUBLIC);
 					class_decl->addVariable(some_member_variable1);
 
 					VariableDecl* some_member_variable2 = new VariableDecl(
 							new SimpleIdentifier(L"some_member_variable2"),
-							new TypeSpecifier(PrimitiveType::FLOAT32),
+							new TypeSpecifier(PrimitiveType::FLOAT32_TYPE),
 							true, false, false,
 							Declaration::VisibilitySpecifier::PUBLIC);
 					class_decl->addVariable(some_member_variable2);

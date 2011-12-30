@@ -81,7 +81,7 @@ struct ResolutionStageVisitor : public GenericDoubleVisitor
 
 		if(!ResolvedType::get(&node))
 		{
-			ResolvedType::set(&node, getInternalPrimitiveType(PrimitiveType::OBJECT));
+			ResolvedType::set(&node, getInternalPrimitiveType(PrimitiveType::OBJECT_TYPE));
 			++resolved_count;
 		}
 	}
@@ -92,7 +92,7 @@ struct ResolutionStageVisitor : public GenericDoubleVisitor
 
 		if(!ResolvedType::get(&node))
 		{
-			ResolvedType::set(&node, getInternalPrimitiveType(PrimitiveType::STRING));
+			ResolvedType::set(&node, getInternalPrimitiveType(PrimitiveType::STRING_TYPE));
 			++resolved_count;
 		}
 	}
@@ -393,9 +393,9 @@ struct ResolutionStageVisitor : public GenericDoubleVisitor
 			if(!node.result)
 			{
 				// if the result node is invalid, we should check if the function's return type is also void, otherwise it's invalid
-				if(function_return_type->isPrimitiveType() && function_return_type->referred.primitive == PrimitiveType::VOID)
+				if(function_return_type->isPrimitiveType() && function_return_type->referred.primitive == PrimitiveType::VOID_TYPE)
 				{
-					propogateType(node, *getInternalPrimitiveType(PrimitiveType::VOID));
+					propogateType(node, *getInternalPrimitiveType(PrimitiveType::VOID_TYPE));
 				}
 				else
 				{
@@ -468,7 +468,7 @@ struct ResolutionStageVisitor : public GenericDoubleVisitor
 		}
 		else if(node.opcode == UnaryExpr::OpCode::LOGICAL_NOT)
 		{
-			propogateType(node, *getInternalPrimitiveType(PrimitiveType::BOOL));
+			propogateType(node, *getInternalPrimitiveType(PrimitiveType::BOOL_TYPE));
 		}
 		else
 		{
@@ -527,7 +527,7 @@ struct ResolutionStageVisitor : public GenericDoubleVisitor
 		else if(node.isComparison() || node.isLogical())
 		{
 			// comparison should always yield boolean type
-			propogateType(node, *getInternalPrimitiveType(PrimitiveType::BOOL));
+			propogateType(node, *getInternalPrimitiveType(PrimitiveType::BOOL_TYPE));
 		}
 		else
 		{
@@ -1122,7 +1122,7 @@ private:
 			return;
 		}
 
-		if(specifier->referred.primitive != PrimitiveType::BOOL)
+		if(specifier->referred.primitive != PrimitiveType::BOOL_TYPE)
 		{
 			transforms.push_back([=]{
 				ASTNode* parent = node->parent; // save the parent pointer for later use
@@ -1141,7 +1141,7 @@ public:
 	Target::type type;
 	Resolver& resolver;
 
-	__gnu_cxx::hash_set<ASTNode*> unresolved_nodes;
+	unordered_set<ASTNode*> unresolved_nodes;
 	std::size_t resolved_count;
 	std::size_t unresolved_count;
 

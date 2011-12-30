@@ -65,20 +65,20 @@ struct LiteralCompactionStageVisitor : public GenericDoubleVisitor
 		{
 			if(node.value.i64 <= std::numeric_limits<int8>::max())
 			{
-				node.type = PrimitiveType::INT8;
+				node.type = PrimitiveType::INT8_TYPE;
 			}
 			else if(node.value.i64 <= std::numeric_limits<int16>::max())
 			{
-				node.type = PrimitiveType::INT16;
+				node.type = PrimitiveType::INT16_TYPE;
 			}
 			else if(node.value.i64 <= std::numeric_limits<int32>::max())
 			{
-				node.type = PrimitiveType::INT32;
+				node.type = PrimitiveType::INT32_TYPE;
 			}
 			else if(node.value.i64 <= std::numeric_limits<int64>::max())
 			{
 				// TODO this will always matched
-				node.type = PrimitiveType::INT64;
+				node.type = PrimitiveType::INT64_TYPE;
 			}
 			else
 			{
@@ -90,12 +90,12 @@ struct LiteralCompactionStageVisitor : public GenericDoubleVisitor
 		{
 			if(node.value.f64 <= std::numeric_limits<float>::max())
 			{
-				node.type = PrimitiveType::FLOAT32;
+				node.type = PrimitiveType::FLOAT32_TYPE;
 				node.value.f32 = (float)(node.value.f64);
 			}
 			else if(node.value.f64 <= std::numeric_limits<double>::max())
 			{
-				node.type = PrimitiveType::FLOAT64;
+				node.type = PrimitiveType::FLOAT64_TYPE;
 			}
 			else
 			{

@@ -32,7 +32,5 @@ target_link_libraries(ts-stub
     zillians-framework-language-main-stages-stub
     )
 
-get_target_property(ThorScriptStubGenerator ts-stub LOCATION)
-message(STATUS "Using ThorScript Stub Generator: \"${ThorScriptStubGenerator}\"")
-
+set_target_properties(ts-stub PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${TSC_BINARY_PATH})
 add_dependencies(zillians-framework-language-compiler-collection ts-stub)

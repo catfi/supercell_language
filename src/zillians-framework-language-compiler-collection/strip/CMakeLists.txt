@@ -32,7 +32,5 @@ target_link_libraries(ts-strip
     zillians-framework-language-main-stages-strip
     )
     
-get_target_property(ThorScriptStrip ts-strip LOCATION)
-message(STATUS "Using ThorScript Strip: \"${ThorScriptStrip}\"")
-
+set_target_properties(ts-strip PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${TSC_BINARY_PATH})
 add_dependencies(zillians-framework-language-compiler-collection ts-strip)

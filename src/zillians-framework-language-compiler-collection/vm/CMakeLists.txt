@@ -32,7 +32,5 @@ target_link_libraries(ts-vm
     zillians-framework-language-main-stages-vm
     )
 
-get_target_property(ThorScriptVM ts-vm LOCATION)
-message(STATUS "Using ThorScript VM: \"${ThorScriptVM}\"")
-
+set_target_properties(ts-vm PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${TSC_BINARY_PATH})
 add_dependencies(zillians-framework-language-compiler-collection ts-vm)

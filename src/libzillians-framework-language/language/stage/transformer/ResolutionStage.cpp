@@ -190,9 +190,9 @@ bool ResolutionStage::resolveTypes(bool report_error_summary, bool& making_progr
 	{
 		if(report_error_summary)
 		{
-			for(__gnu_cxx::hash_set<ASTNode*>::iterator it = visitor.unresolved_nodes.begin(); it != visitor.unresolved_nodes.end(); ++it)
+			foreach(i, visitor.unresolved_nodes)
 			{
-				unresolved_types.insert(*it);
+				unresolved_types.insert(*i);
 			}
 		}
 		return false;
@@ -243,9 +243,9 @@ bool ResolutionStage::resolveSymbols(bool report_error_summary, bool& making_pro
 	{
 		if(report_error_summary)
 		{
-			for(__gnu_cxx::hash_set<ASTNode*>::iterator it = visitor.unresolved_nodes.begin(); it != visitor.unresolved_nodes.end(); ++it)
+			foreach(i, visitor.unresolved_nodes)
 			{
-				unresolved_symbols.insert(*it);
+				unresolved_symbols.insert(*i);
 			}
 		}
 		return false;
@@ -260,13 +260,13 @@ void ResolutionStage::removeTrivialErrors()
 {
 	if(unresolved_symbols.size() > 0 || unresolved_types.size() > 0)
 	{
-		__gnu_cxx::hash_set<ASTNode*>::iterator it = unresolved_symbols.begin();
+		auto it = unresolved_symbols.begin();
 		std::vector<std::function<void()>> cleanup;
 
 		while(it != unresolved_symbols.end())
 		{
 			// search for any ancestor of it in unresolved_symbols
-			for(__gnu_cxx::hash_set<ASTNode*>::iterator i = unresolved_symbols.begin(); i != unresolved_symbols.end(); ++i)
+			foreach(i, unresolved_symbols)
 			{
 				ASTNode* parent = (*it)->parent;
 				while(parent)
@@ -282,7 +282,7 @@ void ResolutionStage::removeTrivialErrors()
 			}
 
 			// search for any ancestor of it in unresolved_types
-			for(__gnu_cxx::hash_set<ASTNode*>::iterator i = unresolved_types.begin(); i != unresolved_types.end(); ++i)
+			foreach(i, unresolved_types)
 			{
 				ASTNode* parent = (*it)->parent;
 				while(parent)
@@ -316,7 +316,7 @@ void ResolutionStage::removeTrivialErrors()
 		while(it != unresolved_types.end())
 		{
 			// search for any ancestor of it in unresolved_symbols
-			for(__gnu_cxx::hash_set<ASTNode*>::iterator i = unresolved_symbols.begin(); i != unresolved_symbols.end(); ++i)
+			foreach(i, unresolved_symbols)
 			{
 				ASTNode* parent = (*it)->parent;
 				while(parent)
@@ -332,7 +332,7 @@ void ResolutionStage::removeTrivialErrors()
 			}
 
 			// search for any ancestor of it in unresolved_types
-			for(__gnu_cxx::hash_set<ASTNode*>::iterator i = unresolved_types.begin(); i != unresolved_types.end(); ++i)
+			foreach(i, unresolved_types)
 			{
 				ASTNode* parent = (*it)->parent;
 				while(parent)
@@ -367,21 +367,21 @@ void ResolutionStage::reportErrors()
 {
 	if(unresolved_symbols.size() > 0)
 	{
-		for(__gnu_cxx::hash_set<ASTNode*>::iterator it = unresolved_symbols.begin(); it != unresolved_symbols.end(); ++it)
+		foreach(i, unresolved_symbols)
 		{
 			// avoid duplicate error message if a symbol is not resolved
-			if(unresolved_types.count(*it) > 0)
-				unresolved_types.erase(*it);
+			if(unresolved_types.count(*i) > 0)
+				unresolved_types.erase(*i);
 
-			LOG_MESSAGE(UNDEFINED_SYMBOL_INFO, *it, _id = ASTNodeHelper::getNodeName(*it));
+			LOG_MESSAGE(UNDEFINED_SYMBOL_INFO, *i, _id = ASTNodeHelper::getNodeName(*i));
 		}
 	}
 
 	if(unresolved_types.size() > 0)
 	{
-		for(__gnu_cxx::hash_set<ASTNode*>::iterator it = unresolved_symbols.begin(); it != unresolved_symbols.end(); ++it)
+		foreach(i, unresolved_symbols)
 		{
-			LOG_MESSAGE(UNDEFINED_TYPE_INFO, *it, _id = ASTNodeHelper::getNodeName(*it));
+			LOG_MESSAGE(UNDEFINED_TYPE_INFO, *i, _id = ASTNodeHelper::getNodeName(*i));
 		}
 	}
 }

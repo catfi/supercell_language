@@ -283,37 +283,37 @@ private:
 
 		switch (type)
 		{
-		case PrimitiveType::VOID: break;
-		case PrimitiveType::INT8:
+		case PrimitiveType::VOID_TYPE: break;
+		case PrimitiveType::INT8_TYPE:
 		{
 			bits = 8; alignment = 8;
 			encoding = llvm::dwarf::DW_ATE_signed;
 			break;
 		}
-		case PrimitiveType::INT16:
+		case PrimitiveType::INT16_TYPE:
 		{
 			bits = 16; alignment = 16;
 			encoding = llvm::dwarf::DW_ATE_signed;
 			break;
 		}
-		case PrimitiveType::INT32:
+		case PrimitiveType::INT32_TYPE:
 		{
 			bits = 32; alignment = 32;
 			encoding = llvm::dwarf::DW_ATE_signed;
 			break;
 		}
-		case PrimitiveType::INT64:
+		case PrimitiveType::INT64_TYPE:
 		{
 			bits = 64; alignment = 64;
 			encoding = llvm::dwarf::DW_ATE_signed;
 			break;
 		}
-		case PrimitiveType::FLOAT32: break;
-		case PrimitiveType::FLOAT64: break;
-		case PrimitiveType::OBJECT: break;
-		case PrimitiveType::FUNCTION: break;
-		case PrimitiveType::STRING: break;
-		case PrimitiveType::VARIADIC_ELLIPSIS: break;
+		case PrimitiveType::FLOAT32_TYPE: break;
+		case PrimitiveType::FLOAT64_TYPE: break;
+		case PrimitiveType::OBJECT_TYPE: break;
+		case PrimitiveType::FUNCTION_TYPE: break;
+		case PrimitiveType::STRING_TYPE: break;
+		case PrimitiveType::VARIADIC_ELLIPSIS_TYPE: break;
 		default:
 			BOOST_ASSERT(false && "Unknown basic type");
 		}

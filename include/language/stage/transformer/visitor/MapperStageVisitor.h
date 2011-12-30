@@ -23,10 +23,10 @@
 #include "core/Prerequisite.h"
 #include "language/tree/ASTNodeHelper.h"
 #include "language/context/TransformerContext.h"
-#include "language/tree/visitor/GenericVisitor.h"
+#include "language/tree/visitor/GenericDoubleVisitor.h"
 
 using namespace zillians::language::tree;
-using zillians::language::tree::visitor::GenericVisitor;
+using zillians::language::tree::visitor::GenericDoubleVisitor;
 
 namespace zillians { namespace language { namespace stage { namespace visitor {
 
@@ -35,66 +35,66 @@ namespace zillians { namespace language { namespace stage { namespace visitor {
  *
  * @see MapperStage
  */
-struct MapperStageVisitor : public GenericVisitor
+struct MapperStageVisitor : public GenericDoubleVisitor
 {
-	CREATE_GENERIC_INVOKER(genericInvoker)
+	CREATE_INVOKER(applyInvoker, apply)
 
 	MapperStageVisitor()
 	{
-		REGISTER_ALL_VISITABLE_ASTNODE(genericInvoker)
+		REGISTER_ALL_VISITABLE_ASTNODE(applyInvoker)
 	}
 
 	void apply(ASTNode& node)
 	{
-		GenericVisitor::visit(node);
+		revisit(node);
 	}
 
 	void apply(VariableDecl& node)
 	{
 		foreach(i, variable_decl_mappers) (*i)(node, transforms);
-		GenericVisitor::visit(node);
+		revisit(node);
 	}
 
 	void apply(FunctionDecl& node)
 	{
 		foreach(i, function_decl_mappers) (*i)(node, transforms);
-		GenericVisitor::visit(node);
+		revisit(node);
 	}
 
 	void apply(ClassDecl& node)
 	{
 		foreach(i, class_decl_mappers) (*i)(node, transforms);
-		GenericVisitor::visit(node);
+		revisit(node);
 	}
 
 	void apply(ForStmt& node)
 	{
 		foreach(i, for_stmt_mappers) (*i)(node, transforms);
-		GenericVisitor::visit(node);
+		revisit(node);
 	}
 
 	void apply(ForeachStmt& node)
 	{
 		foreach(i, foreach_stmt_mappers) (*i)(node, transforms);
-		GenericVisitor::visit(node);
+		revisit(node);
 	}
 
 	void apply(WhileStmt& node)
 	{
 		foreach(i, while_stmt_mappers) (*i)(node, transforms);
-		GenericVisitor::visit(node);
+		revisit(node);
 	}
 
 	void apply(MemberExpr& node)
 	{
 		foreach(i, member_expr_mappers) (*i)(node, transforms);
-		GenericVisitor::visit(node);
+		revisit(node);
 	}
 
 	void apply(PrimaryExpr& node)
 	{
 		foreach(i, primary_expr_mappers) (*i)(node, transforms);
-		GenericVisitor::visit(node);
+		revisit(node);
 	}
 
 public:
@@ -134,7 +134,7 @@ public:
 	void addMapper(MemberExprMapper   mapper) { member_expr_mappers.push_back(mapper);   }
 	void addMapper(PrimaryExprMapper  mapper) { primary_expr_mappers.push_back(mapper);  }
 
-private:
+public:
 	std::vector<VariableDeclMapper> variable_decl_mappers;
 	std::vector<FunctionDeclMapper> function_decl_mappers;
 	std::vector<ClassDeclMapper>    class_decl_mappers;

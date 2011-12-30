@@ -53,6 +53,7 @@ private:
 
 public:
     bool dumpCompileCommand;
+    boost::filesystem::path executablePath;
     boost::filesystem::path projectPath;
     boost::filesystem::path buildPath;
     log4cxx::LoggerPtr logger;

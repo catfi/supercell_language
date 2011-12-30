@@ -75,7 +75,7 @@ struct RestructureStageVisitor : public GenericDoubleVisitor
 		{
 			transforms.push_back([&](){
 				SimpleIdentifier* name = new SimpleIdentifier(L"new");
-				TypeSpecifier* type = getParserContext().tangle->internal->getPrimitiveTy(PrimitiveType::VOID);
+				TypeSpecifier* type = getParserContext().tangle->internal->getPrimitiveTy(PrimitiveType::VOID_TYPE);
 				Block* block = new Block();
 
 				FunctionDecl* default_constructor = new FunctionDecl(

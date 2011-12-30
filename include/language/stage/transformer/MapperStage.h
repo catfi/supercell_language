@@ -20,6 +20,7 @@
 #ifndef ZILLIANS_LANGUAGE_STAGE_TRANSFORMER_MAPPERSTAGE_H_
 #define ZILLIANS_LANGUAGE_STAGE_TRANSFORMER_MAPPERSTAGE_H_
 
+#include "core/Containers.h"
 #include "language/stage/Stage.h"
 #include "language/tree/ASTNodeFactory.h"
 #include "language/stage/transformer/visitor/MapperStageVisitor.h"
@@ -39,7 +40,12 @@ public:
 	virtual bool execute(bool& continue_execution);
 
 public:
+	std::vector<std::string> mapper_ast_to_load;
+	std::vector<ASTNode*> mapper_ast;
+	std::vector<ClassDecl*> implicit_variables;
+	unordered_map<std::string, FunctionDecl*> hashed_system_functions;
 	visitor::MapperStageVisitor visitor;
+	bool enabled;
 };
 
 } } }

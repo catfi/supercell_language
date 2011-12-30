@@ -267,7 +267,7 @@ struct SemanticVerificationStageVisitor0 : public GenericDoubleVisitor
 		std::wstring name = node.name->toString();
 
 		// INCOMPLETE_FUNC
-		if(!node.block && !ASTNodeHelper::findAnnotation(&node, L"native"))
+		if(!node.block && !ASTNodeHelper::hasNativeLinkage(&node))
 			LOG_MESSAGE(INCOMPLETE_FUNC, &node, _func_id = name);
 
 		bool has_visited_optional_param = false;
@@ -309,7 +309,7 @@ private:
 	{
 		BOOST_ASSERT(node && "null pointer exception");
 		return node->type == TypeSpecifier::ReferredType::PRIMITIVE
-				&& node->referred.primitive == PrimitiveType::VARIADIC_ELLIPSIS;
+				&& node->referred.primitive == PrimitiveType::VARIADIC_ELLIPSIS_TYPE;
 	}
 
 	static void verifyDupeName(ASTNode* node)

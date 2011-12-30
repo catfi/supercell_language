@@ -33,7 +33,5 @@ target_link_libraries(ts-link
     zillians-framework-language-main-stages-link
     )
     
-get_target_property(ThorScriptLinker ts-link LOCATION)
-message(STATUS "Using ThorScript Linker: \"${ThorScriptLinker}\"")
-
+set_target_properties(ts-link PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${TSC_BINARY_PATH})
 add_dependencies(zillians-framework-language-compiler-collection ts-link)

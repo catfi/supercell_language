@@ -32,7 +32,5 @@ target_link_libraries(ts-make
     zillians-framework-language-main-stages-make
     )
     
-get_target_property(ThorScriptMake ts-make LOCATION)
-message(STATUS "Using ThorScript Make: \"${ThorScriptMake}\"")
-
+set_target_properties(ts-make PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${TSC_BINARY_PATH})
 add_dependencies(zillians-framework-language-compiler-collection ts-make)

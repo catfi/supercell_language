@@ -67,7 +67,7 @@ BOOST_AUTO_TEST_CASE( ThorScriptTreeTest_BasicTreeGenerationTestCase1_IsA )
 	}
 
 	{
-		VariableDecl* node = new VariableDecl(new SimpleIdentifier(L"test"), new TypeSpecifier(PrimitiveType::FLOAT32), false, false, true, Declaration::VisibilitySpecifier::DEFAULT);
+		VariableDecl* node = new VariableDecl(new SimpleIdentifier(L"test"), new TypeSpecifier(PrimitiveType::FLOAT32_TYPE), false, false, true, Declaration::VisibilitySpecifier::DEFAULT);
 		BOOST_CHECK(isa<VariableDecl>(node));
 		BOOST_CHECK(isa<Declaration>(node));
 	}
@@ -91,48 +91,48 @@ BOOST_AUTO_TEST_CASE( ThorScriptTreeTest_BasicTreeGenerationTestCase3 )
 	// test arithmetic promotion
 	{
 		bool precision_loss = false;
-		PrimitiveType::type promoted = PrimitiveType::promote(PrimitiveType::INT8, PrimitiveType::INT8, precision_loss);
-		BOOST_CHECK(promoted == PrimitiveType::INT8);
+		PrimitiveType::type promoted = PrimitiveType::promote(PrimitiveType::INT8_TYPE, PrimitiveType::INT8_TYPE, precision_loss);
+		BOOST_CHECK(promoted == PrimitiveType::INT8_TYPE);
 		BOOST_CHECK(precision_loss == false);
 	}
 
 	{
 		bool precision_loss = false;
-		PrimitiveType::type promoted = PrimitiveType::promote(PrimitiveType::INT16, PrimitiveType::INT16, precision_loss);
-		BOOST_CHECK(promoted == PrimitiveType::INT16);
+		PrimitiveType::type promoted = PrimitiveType::promote(PrimitiveType::INT16_TYPE, PrimitiveType::INT16_TYPE, precision_loss);
+		BOOST_CHECK(promoted == PrimitiveType::INT16_TYPE);
 		BOOST_CHECK(precision_loss == false);
 	}
 
 	{
 		bool precision_loss = false;
-		PrimitiveType::type promoted = PrimitiveType::promote(PrimitiveType::INT32, PrimitiveType::INT32, precision_loss);
-		BOOST_CHECK(promoted == PrimitiveType::INT32);
+		PrimitiveType::type promoted = PrimitiveType::promote(PrimitiveType::INT32_TYPE, PrimitiveType::INT32_TYPE, precision_loss);
+		BOOST_CHECK(promoted == PrimitiveType::INT32_TYPE);
 		BOOST_CHECK(precision_loss == false);
 	}
 
 	{
 		bool precision_loss = false;
-		PrimitiveType::type promoted = PrimitiveType::promote(PrimitiveType::INT64, PrimitiveType::INT64, precision_loss);
-		BOOST_CHECK(promoted == PrimitiveType::INT64);
+		PrimitiveType::type promoted = PrimitiveType::promote(PrimitiveType::INT64_TYPE, PrimitiveType::INT64_TYPE, precision_loss);
+		BOOST_CHECK(promoted == PrimitiveType::INT64_TYPE);
 		BOOST_CHECK(precision_loss == false);
 	}
 
 	{
 		bool precision_loss = false;
 		PrimitiveType::type promoted = PrimitiveType::promote(PrimitiveType::INT8, PrimitiveType::INT16, precision_loss);
-		BOOST_CHECK(promoted == PrimitiveType::INT16);
+		BOOST_CHECK(promoted == PrimitiveType::INT16_TYPE);
 		BOOST_CHECK(precision_loss == false);
 	}
 	{
 		bool precision_loss = false;
 		PrimitiveType::type promoted = PrimitiveType::promote(PrimitiveType::INT8, PrimitiveType::INT32, precision_loss);
-		BOOST_CHECK(promoted == PrimitiveType::INT32);
+		BOOST_CHECK(promoted == PrimitiveType::INT32_TYPE);
 		BOOST_CHECK(precision_loss == false);
 	}
 	{
 		bool precision_loss = false;
 		PrimitiveType::type promoted = PrimitiveType::promote(PrimitiveType::INT8, PrimitiveType::INT64, precision_loss);
-		BOOST_CHECK(promoted == PrimitiveType::INT64);
+		BOOST_CHECK(promoted == PrimitiveType::INT64_TYPE);
 		BOOST_CHECK(precision_loss == false);
 	}
 }

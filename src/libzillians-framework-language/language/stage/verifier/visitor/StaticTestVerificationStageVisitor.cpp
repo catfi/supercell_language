@@ -114,13 +114,13 @@ static std::wstring getLiteralString(Literal* literal)
         std::wostringstream oss;
         switch(numericLiteral->type)
         {
-        case PrimitiveType::type::BOOL    : oss << numericLiteral->value.b  ; break;
-        case PrimitiveType::type::INT8    : oss << numericLiteral->value.i8 ; break;
-        case PrimitiveType::type::INT16   : oss << numericLiteral->value.i16; break;
-        case PrimitiveType::type::INT32   : oss << numericLiteral->value.i32; break;
-        case PrimitiveType::type::INT64   : oss << numericLiteral->value.i64; break;
-        case PrimitiveType::type::FLOAT32 : oss << numericLiteral->value.f32; break;
-        case PrimitiveType::type::FLOAT64 : oss << numericLiteral->value.f64; break;
+        case PrimitiveType::type::BOOL_TYPE    : oss << numericLiteral->value.b  ; break;
+        case PrimitiveType::type::INT8_TYPE    : oss << numericLiteral->value.i8 ; break;
+        case PrimitiveType::type::INT16_TYPE   : oss << numericLiteral->value.i16; break;
+        case PrimitiveType::type::INT32_TYPE   : oss << numericLiteral->value.i32; break;
+        case PrimitiveType::type::INT64_TYPE   : oss << numericLiteral->value.i64; break;
+        case PrimitiveType::type::FLOAT32_TYPE : oss << numericLiteral->value.f32; break;
+        case PrimitiveType::type::FLOAT64_TYPE : oss << numericLiteral->value.f64; break;
         default: break;
         }
         return oss.str();

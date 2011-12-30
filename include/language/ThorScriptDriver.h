@@ -48,7 +48,7 @@ private:
     enum class STUB_LANG {
         CPP,
         JAVA
-    } ;
+    };
 
 private:
     bool createProjectSkeleton(const std::string& projectName);
@@ -71,6 +71,9 @@ private:
     bool link();
 
 private:
+    std::string getStageExecutable(const std::string& executable);
+
+private:
     void saveCache(const std::string& s);
     std::string readCache();
     std::vector<std::string> getFilesUnderBuild(std::string extension);
@@ -84,6 +87,7 @@ protected:
     virtual int shell(const std::string& cmd);
 
 private:
+    boost::filesystem::path executablePath;
     boost::filesystem::path originalPath;
     zillians::language::ProjectManifest pm;
     boost::filesystem::path projectPath;

@@ -33,7 +33,5 @@ target_link_libraries(ts-bundle
     zillians-framework-language-main-stages-bundle
     )
     
-get_target_property(ThorScriptBundler ts-bundle LOCATION)
-message(STATUS "Using ThorScript Bundler: \"${ThorScriptBundler}\"")
-
+set_target_properties(ts-bundle PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${TSC_BINARY_PATH})
 add_dependencies(zillians-framework-language-compiler-collection ts-bundle)

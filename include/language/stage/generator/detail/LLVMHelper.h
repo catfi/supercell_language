@@ -39,67 +39,67 @@ struct LLVMHelper
 
 		switch(type)
 		{
-		case PrimitiveType::OBJECT:
+		case PrimitiveType::OBJECT_TYPE:
 		{
 			// return generic object type, which is an signed int32
 			modifier |= llvm::Attribute::SExt;
 			result = llvm::IntegerType::getInt32Ty(mContext);
 			resolved = true; break;
 		}
-		case PrimitiveType::FUNCTION:
+		case PrimitiveType::FUNCTION_TYPE:
 		{
 			// TODO return pointer to function type
 			result = NULL;
 			resolved = true; break;
 		}
-		case PrimitiveType::STRING:
+		case PrimitiveType::STRING_TYPE:
 		{
 			// TODO return pointer to function type
 			modifier |= llvm::Attribute::SExt;
 			result = llvm::IntegerType::getInt32Ty(mContext);
 			resolved = true; break;
 		}
-		case PrimitiveType::VOID:
+		case PrimitiveType::VOID_TYPE:
 		{
 			result = llvm::Type::getVoidTy(mContext);
 			resolved = true; break;
 		}
-		case PrimitiveType::BOOL:
+		case PrimitiveType::BOOL_TYPE:
 		{
 			modifier |= llvm::Attribute::ZExt;
 			result = llvm::IntegerType::getInt8Ty(mContext);
 			resolved = true; break;
 		}
-		case PrimitiveType::INT8:
+		case PrimitiveType::INT8_TYPE:
 		{
 			modifier |= llvm::Attribute::SExt;
 			result = llvm::IntegerType::getInt8Ty(mContext);
 			resolved = true; break;
 		}
-		case PrimitiveType::INT16:
+		case PrimitiveType::INT16_TYPE:
 		{
 			modifier |= llvm::Attribute::SExt;
 			result = llvm::IntegerType::getInt16Ty(mContext);
 			resolved = true; break;
 		}
-		case PrimitiveType::INT32:
+		case PrimitiveType::INT32_TYPE:
 		{
 			modifier |= llvm::Attribute::SExt;
 			result = llvm::IntegerType::getInt32Ty(mContext);
 			resolved = true; break;
 		}
-		case PrimitiveType::INT64:
+		case PrimitiveType::INT64_TYPE:
 		{
 			//modifier |= llvm::Attribute::SExt;
 			result = llvm::IntegerType::getInt64Ty(mContext);
 			resolved = true; break;
 		}
-		case PrimitiveType::FLOAT32:
+		case PrimitiveType::FLOAT32_TYPE:
 		{
 			result = llvm::Type::getFloatTy(mContext);
 			resolved = true; break;
 		}
-		case PrimitiveType::FLOAT64:
+		case PrimitiveType::FLOAT64_TYPE:
 		{
 			result = llvm::Type::getDoubleTy(mContext);
 			resolved = true; break;

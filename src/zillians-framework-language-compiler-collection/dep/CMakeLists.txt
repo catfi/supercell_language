@@ -32,7 +32,5 @@ target_link_libraries(ts-dep
     zillians-framework-language-main-stages-dep
     )
     
-get_target_property(ThorScriptDep ts-dep LOCATION)
-message(STATUS "Using ThorScript Dep: \"${ThorScriptDep}\"")
-
+set_target_properties(ts-dep PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${TSC_BINARY_PATH})
 add_dependencies(zillians-framework-language-compiler-collection ts-bundle)
