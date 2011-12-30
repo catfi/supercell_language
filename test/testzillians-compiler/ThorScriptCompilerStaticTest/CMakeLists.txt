@@ -21,7 +21,7 @@
 
 zillians_create_test_subject(SUBJECT thorscript-compiler-static-test-all)
 
-zillians_add_subject_to_subject(PARENT framework-compiler-critical CHILD thorscript-compiler-static-test-all)
+zillians_add_subject_to_subject(PARENT language-compiler-critical CHILD thorscript-compiler-static-test-all)
 
 zillians_create_test_subject(SUBJECT thorscript-compiler-static-test-parse)
 zillians_create_test_subject(SUBJECT thorscript-compiler-static-test-s0)

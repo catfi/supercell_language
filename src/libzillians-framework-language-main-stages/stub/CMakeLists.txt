@@ -23,7 +23,7 @@ INCLUDE(UsingThorPP)
 
 include_directories(
     ${PROJECT_COMMON_SOURCE_DIR}/include/
-    ${PROJECT_FRAMEWORK_SOURCE_DIR}/include/
+    ${PROJECT_LANGUAGE_SOURCE_DIR}/include/
     )
 
 set(out_files "")
@@ -31,10 +31,10 @@ zillians_add_thorpp_gen(
 #    TARGET stub-client # NOTE: disable if using out_files to trigger build
     OUTPUT_VARIABLE out_files
     INPUT
-        ${PROJECT_FRAMEWORK_SOURCE_DIR}/include/language/stage/stub/templates/Client/ClientStub_h.lp
-#        ${PROJECT_FRAMEWORK_SOURCE_DIR}/include/language/stage/stub/templates/Client/GameObjects_h.lp
-        ${PROJECT_FRAMEWORK_SOURCE_DIR}/include/language/stage/stub/templates/Client/GameService_cpp.lp
-        ${PROJECT_FRAMEWORK_SOURCE_DIR}/include/language/stage/stub/templates/Client/GameService_h.lp
+        ${PROJECT_LANGUAGE_SOURCE_DIR}/include/language/stage/stub/templates/Client/ClientStub_h.lp
+#        ${PROJECT_LANGUAGE_SOURCE_DIR}/include/language/stage/stub/templates/Client/GameObjects_h.lp
+        ${PROJECT_LANGUAGE_SOURCE_DIR}/include/language/stage/stub/templates/Client/GameService_cpp.lp
+        ${PROJECT_LANGUAGE_SOURCE_DIR}/include/language/stage/stub/templates/Client/GameService_h.lp
     OUTPUT_PATH ${CMAKE_CURRENT_SOURCE_DIR}/generators/Client
     OUTPUT_EXT ".cpp"
     )
@@ -42,13 +42,13 @@ zillians_add_thorpp_gen(
 #    TARGET stub-gateway-gamecommand-clientcommandobject # NOTE: disable if using out_files to trigger build
     OUTPUT_VARIABLE out_files
     INPUT
-        ${PROJECT_FRAMEWORK_SOURCE_DIR}/include/language/stage/stub/templates/Gateway/GameCommand/ClientCommandObject_h.lp
-        ${PROJECT_FRAMEWORK_SOURCE_DIR}/include/language/stage/stub/templates/Gateway/GameCommand/CloudCommandObject_h.lp
-        ${PROJECT_FRAMEWORK_SOURCE_DIR}/include/language/stage/stub/templates/Gateway/GameCommand/GameCommandTranslator_cpp.lp
-        ${PROJECT_FRAMEWORK_SOURCE_DIR}/include/language/stage/stub/templates/Gateway/GameCommand/GameModule_module.lp
-#        ${PROJECT_FRAMEWORK_SOURCE_DIR}/include/language/stage/stub/templates/Gateway/GameObject/ClientGameObject_h.lp
-#        ${PROJECT_FRAMEWORK_SOURCE_DIR}/include/language/stage/stub/templates/Gateway/GameObject/CloudGameObject_h.lp
-#        ${PROJECT_FRAMEWORK_SOURCE_DIR}/include/language/stage/stub/templates/Gateway/GameObject/GameGameTranslator_cpp.lp
+        ${PROJECT_LANGUAGE_SOURCE_DIR}/include/language/stage/stub/templates/Gateway/GameCommand/ClientCommandObject_h.lp
+        ${PROJECT_LANGUAGE_SOURCE_DIR}/include/language/stage/stub/templates/Gateway/GameCommand/CloudCommandObject_h.lp
+        ${PROJECT_LANGUAGE_SOURCE_DIR}/include/language/stage/stub/templates/Gateway/GameCommand/GameCommandTranslator_cpp.lp
+        ${PROJECT_LANGUAGE_SOURCE_DIR}/include/language/stage/stub/templates/Gateway/GameCommand/GameModule_module.lp
+#        ${PROJECT_LANGUAGE_SOURCE_DIR}/include/language/stage/stub/templates/Gateway/GameObject/ClientGameObject_h.lp
+#        ${PROJECT_LANGUAGE_SOURCE_DIR}/include/language/stage/stub/templates/Gateway/GameObject/CloudGameObject_h.lp
+#        ${PROJECT_LANGUAGE_SOURCE_DIR}/include/language/stage/stub/templates/Gateway/GameObject/GameGameTranslator_cpp.lp
     OUTPUT_PATH ${CMAKE_CURRENT_SOURCE_DIR}/generators/Gateway
     OUTPUT_EXT ".cpp"
     )

@@ -119,19 +119,19 @@ BOOST_AUTO_TEST_CASE( ThorScriptTreeTest_BasicTreeGenerationTestCase3 )
 
 	{
 		bool precision_loss = false;
-		PrimitiveType::type promoted = PrimitiveType::promote(PrimitiveType::INT8, PrimitiveType::INT16, precision_loss);
+		PrimitiveType::type promoted = PrimitiveType::promote(PrimitiveType::INT8_TYPE, PrimitiveType::INT16_TYPE, precision_loss);
 		BOOST_CHECK(promoted == PrimitiveType::INT16_TYPE);
 		BOOST_CHECK(precision_loss == false);
 	}
 	{
 		bool precision_loss = false;
-		PrimitiveType::type promoted = PrimitiveType::promote(PrimitiveType::INT8, PrimitiveType::INT32, precision_loss);
+		PrimitiveType::type promoted = PrimitiveType::promote(PrimitiveType::INT8_TYPE, PrimitiveType::INT32_TYPE, precision_loss);
 		BOOST_CHECK(promoted == PrimitiveType::INT32_TYPE);
 		BOOST_CHECK(precision_loss == false);
 	}
 	{
 		bool precision_loss = false;
-		PrimitiveType::type promoted = PrimitiveType::promote(PrimitiveType::INT8, PrimitiveType::INT64, precision_loss);
+		PrimitiveType::type promoted = PrimitiveType::promote(PrimitiveType::INT8_TYPE, PrimitiveType::INT64_TYPE, precision_loss);
 		BOOST_CHECK(promoted == PrimitiveType::INT64_TYPE);
 		BOOST_CHECK(precision_loss == false);
 	}

@@ -24,11 +24,11 @@ add_custom_target(zillians-framework-language)
 INCLUDE(UsingCog)
 
 include_directories( ${PROJECT_COMMON_SOURCE_DIR}/include/
-    ${PROJECT_FRAMEWORK_SOURCE_DIR}/include/
+    ${PROJECT_LANGUAGE_SOURCE_DIR}/include/
     )
 
 set(out_files "")
-set(StringTablePath ${PROJECT_FRAMEWORK_SOURCE_DIR}/include/language/logging)
+set(StringTablePath ${PROJECT_LANGUAGE_SOURCE_DIR}/include/language/logging)
 zillians_add_cog_gen(
     OUTPUT_VARIABLE out_files
     INPUT ${StringTablePath}/StringTable.cog
@@ -137,5 +137,5 @@ add_dependencies(zillians-framework-language zillians-framework-language-general
 #    )
 
 #ADD_PRECOMPILED_HEADER(zillians-framework-language-spirit
-#    ${PROJECT_FRAMEWORK_SOURCE_DIR}/include/language/_PreCompiledHeaders.h
+#    ${PROJECT_LANGUAGE_SOURCE_DIR}/include/language/_PreCompiledHeaders.h
 #    )

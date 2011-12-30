@@ -22,7 +22,7 @@
 zillians_create_test_subject(SUBJECT thorscript-parser-test-auto-all)
 zillians_create_test_subject(SUBJECT thorscript-parser-test-all)
 zillians_create_test_subject(SUBJECT thorscript-parser-test-ast-all)
-zillians_add_subject_to_subject(PARENT framework-compiler-critical CHILD thorscript-parser-test-auto-all)
+zillians_add_subject_to_subject(PARENT language-compiler-critical CHILD thorscript-parser-test-auto-all)
 
 get_target_property(ThorScriptCompiler ts-compile LOCATION)
 get_target_property(ThorScriptLogFilter ts-log-filter LOCATION)

@@ -21,6 +21,6 @@
 
 zillians_create_test_subject(SUBJECT thorscript-dep-test)
 
-zillians_add_subject_to_subject(PARENT framework-compiler-critical CHILD thorscript-dep-test)
+zillians_add_subject_to_subject(PARENT language-compiler-critical CHILD thorscript-dep-test)
 
 ADD_SUBDIRECTORY(ThorScriptDepHappyPathTest)

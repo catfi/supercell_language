@@ -21,7 +21,7 @@
 
 INCLUDE_DIRECTORIES(
     ${PROJECT_COMMON_SOURCE_DIR}/include/
-    ${PROJECT_FRAMEWORK_SOURCE_DIR}/include/
+    ${PROJECT_LANGUAGE_SOURCE_DIR}/include/
 )
 
 zillians_add_complex_test(

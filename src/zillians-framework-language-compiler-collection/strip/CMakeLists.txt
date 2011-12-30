@@ -21,7 +21,7 @@
 
 include_directories(
     ${PROJECT_COMMON_SOURCE_DIR}/include/
-    ${PROJECT_FRAMEWORK_SOURCE_DIR}/include/
+    ${PROJECT_LANGUAGE_SOURCE_DIR}/include/
     )
 
 add_executable(ts-strip

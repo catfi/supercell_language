@@ -19,14 +19,12 @@
 # Contact Information: info@zillians.com
 #
 
-zillians_create_test_subject(SUBJECT framework)
+zillians_create_test_subject(SUBJECT language)
 
-zillians_create_test_subject(SUBJECT framework-critical)
-zillians_add_subject_to_subject(PARENT framework CHILD framework-critical)
+zillians_create_test_subject(SUBJECT language-critical)
+zillians_add_subject_to_subject(PARENT language CHILD language-critical)
 
-zillians_create_test_subject(SUBJECT framework-misc)
-zillians_add_subject_to_subject(PARENT framework CHILD framework-misc)
+zillians_create_test_subject(SUBJECT language-misc)
+zillians_add_subject_to_subject(PARENT language CHILD language-misc)
 
-ADD_SUBDIRECTORY(testzillians-3rd-party)
 ADD_SUBDIRECTORY(testzillians-compiler)
-ADD_SUBDIRECTORY(testzillians-framework-vw)

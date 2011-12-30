@@ -21,6 +21,6 @@
 
 zillians_create_test_subject(SUBJECT thorscript-strip-test)
 
-zillians_add_subject_to_subject(PARENT framework-compiler-critical CHILD thorscript-strip-test)
+zillians_add_subject_to_subject(PARENT language-compiler-critical CHILD thorscript-strip-test)
 
 ADD_SUBDIRECTORY(ThorScriptStripHappyPathTest)

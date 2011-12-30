@@ -21,7 +21,7 @@
 
 INCLUDE_DIRECTORIES(
     ${PROJECT_COMMON_SOURCE_DIR}/include/
-    ${PROJECT_FRAMEWORK_SOURCE_DIR}/include/
+    ${PROJECT_LANGUAGE_SOURCE_DIR}/include/
     )
 
 ADD_EXECUTABLE(ThorScriptTreeTest_GenericVisitorTest GenericVisitorTest.cpp)
