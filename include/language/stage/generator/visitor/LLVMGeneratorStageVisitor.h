@@ -1107,16 +1107,18 @@ private:
 		UNUSED_ARGUMENT(ast_function);
 
 		enterBasicBlock(mFunctionContext.return_block);
-
+ 
+		llvm::ReturnInst* ret_inst = NULL;
 		if(!mFunctionContext.return_value)
 		{
-			mBuilder.CreateRetVoid();
+			ret_inst = mBuilder.CreateRetVoid();
 		}
 		else
 		{
 			BOOST_ASSERT(!mFunctionContext.return_value->getType()->isVoidTy());
-			mBuilder.CreateRet(mBuilder.CreateLoad(mFunctionContext.return_value));
+			ret_inst = mBuilder.CreateRet(mBuilder.CreateLoad(mFunctionContext.return_value));
 		}
+		SET_SYNTHESIZED_LLVM_VALUE(&ast_function, ret_inst);
 
 		mFunctionContext.alloca_insert_point->eraseFromParent();
 		mFunctionContext.alloca_insert_point = NULL;

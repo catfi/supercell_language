@@ -23,11 +23,14 @@
 #include "core/Prerequisite.h"
 #include <boost/filesystem.hpp>
 
+#include "utility/Filesystem.h"
 #include "language/tree/visitor/GenericDoubleVisitor.h"
 #include "language/context/ParserContext.h"
 #include "language/stage/parser/context/SourceInfoContext.h"
 #include "language/stage/transformer/context/ManglingStageContext.h"
 #include "language/stage/generator/context/DebugInfoContext.h"
+#include "language/stage/generator/context/SynthesizedFunctionContext.h"
+#include "language/stage/generator/context/SynthesizedValueContext.h"
 #include "language/stage/generator/detail/LLVMForeach.h"
 #include "utility/UnicodeUtil.h"
 
@@ -48,6 +51,12 @@ struct LLVMDebugInfoGeneratorStageVisitor: public GenericDoubleVisitor
 		context(context), current_module(current_module), factory(current_module)
 	{
 		REGISTER_ALL_VISITABLE_ASTNODE(generateInvoker)
+	}
+
+	~LLVMDebugInfoGeneratorStageVisitor()
+	{
+		// Call this function to generated all deferred debug information
+		factory.finalize();
 	}
 
 	void generate(ASTNode& node)
@@ -74,7 +83,7 @@ struct LLVMDebugInfoGeneratorStageVisitor: public GenericDoubleVisitor
 				DebugInfoContext::set(&node, new DebugInfoContext(*parent_debug_info));
 
 				SourceInfoContext* source_info = SourceInfoContext::get(&node);
-				llvm::Value* llvm_value = node.get<llvm::Value>();
+				llvm::Value* llvm_value = GET_SYNTHESIZED_LLVM_VALUE(&node);
 
 				if (llvm_value)
 				{
@@ -95,18 +104,20 @@ struct LLVMDebugInfoGeneratorStageVisitor: public GenericDoubleVisitor
 
 		// Create compile units
 		LOG4CXX_DEBUG(LoggerWrapper::DebugInfoGeneratorStage, "<Program> Ori path: " << node.filename);
-		boost::filesystem::path file_path(node.filename);
-		std::string folder = file_path.parent_path().generic_string();
-		std::string filename = file_path.filename().generic_string();
+		boost::filesystem::path absolute_filepath = Filesystem::normalize_path(node.filename);
+		std::string absolute_folder = absolute_filepath.parent_path().generic_string();
+		std::string absolute_filename = absolute_filepath.generic_string();
+		std::string filename = absolute_filepath.filename().generic_string();
 
-		LOG4CXX_DEBUG(LoggerWrapper::DebugInfoGeneratorStage, "<Program> folder: " << folder);
+		LOG4CXX_DEBUG(LoggerWrapper::DebugInfoGeneratorStage, "<Program> absolute folder: " << absolute_folder);
+		LOG4CXX_DEBUG(LoggerWrapper::DebugInfoGeneratorStage, "<Program> absolute filename: " << absolute_filename);
 		LOG4CXX_DEBUG(LoggerWrapper::DebugInfoGeneratorStage, "<Program> filename: " << filename);
 
 		factory.createCompileUnit(llvm::dwarf::DW_LANG_C_plus_plus,
-			llvm::StringRef(filename.c_str()), llvm::StringRef(folder.c_str()), llvm::StringRef(COMPANY_INFORMATION),
+			llvm::StringRef(absolute_filename.c_str()), llvm::StringRef(absolute_folder.c_str()), llvm::StringRef(COMPANY_INFORMATION),
 			/*optimized*/false, /*flags*/llvm::StringRef(""), /*runtime version*/0);
 
-		llvm::DIFile file = factory.createFile(llvm::StringRef(filename.c_str()), llvm::StringRef(folder.c_str()));
+		llvm::DIFile file = factory.createFile(llvm::StringRef(filename.c_str()), llvm::StringRef(absolute_folder.c_str()));
 
 		llvm::DICompileUnit compile_unit(factory.getCU());
 		LOG4CXX_DEBUG(LoggerWrapper::DebugInfoGeneratorStage, "<Program> compile_unit: " << compile_unit);
@@ -155,9 +166,11 @@ struct LLVMDebugInfoGeneratorStageVisitor: public GenericDoubleVisitor
 		// TODO: generate debug information of parameters' type
 
 		// Create DISubprogram for the function
-		llvm::Function * llvm_function = node.get<llvm::Function>();
+		llvm::Function* llvm_function = GET_SYNTHESIZED_LLVM_FUNCTION(&node);
+		BOOST_ASSERT(llvm_function && "Well, the llvm function is NULL");
+
 		llvm::DISubprogram subprogram = factory.createFunction(
-				file_context->file,
+				DebugInfoContext::get(node.parent)->context,
 				llvm::StringRef(ws_to_s(node.name->toString()).c_str()),
 				llvm::StringRef(mangling->managled_name.c_str()),
 				file_context->file,
@@ -170,7 +183,6 @@ struct LLVMDebugInfoGeneratorStageVisitor: public GenericDoubleVisitor
 				llvm_function);
 
 		DebugInfoContext::set(&node, new DebugInfoContext(file_context->compile_unit, file_context->file, subprogram));
-
 		LOG4CXX_DEBUG(LoggerWrapper::DebugInfoGeneratorStage, "<Function> subprogram: " << subprogram << " mdnode: " << (llvm::MDNode*)subprogram);
 
 		// Visit other attributes
@@ -183,6 +195,16 @@ struct LLVMDebugInfoGeneratorStageVisitor: public GenericDoubleVisitor
 		}
 		if(node.block) generate(*node.block);
 		if(node.annotations) generate(*node.annotations);
+
+		// Insert llvm.dbg.declare for return value
+		llvm::ReturnInst* ret_inst = llvm::cast<llvm::ReturnInst>(GET_SYNTHESIZED_LLVM_VALUE(&node));
+		BOOST_ASSERT(ret_inst && "return instance is NULL");
+
+		DebugInfoContext* block_debug_info = DebugInfoContext::get(node.block);
+		SourceInfoContext* block_source_info = SourceInfoContext::get(node.block);
+		BOOST_ASSERT(block_debug_info && block_source_info && "No debug info or source info for block");
+
+		ret_inst->setDebugLoc(llvm::DebugLoc::get(block_source_info->line, block_source_info->column, block_debug_info->context));
 	}
 
 	void generate(Block& node)
@@ -232,7 +254,7 @@ struct LLVMDebugInfoGeneratorStageVisitor: public GenericDoubleVisitor
 				variable));
 
 		// TODO:: not sure the llvm value and llvm instruction
-		llvm::Value* value = node.get<llvm::Value>();
+		llvm::Value* value = GET_SYNTHESIZED_LLVM_VALUE(&node);
 		llvm::BasicBlock* block = llvm::cast<llvm::Instruction>(value)->getParent();
 
 		LOG4CXX_DEBUG(LoggerWrapper::DebugInfoGeneratorStage, "<Variable> value: " << value);
@@ -244,10 +266,14 @@ struct LLVMDebugInfoGeneratorStageVisitor: public GenericDoubleVisitor
 		variable_inst->setDebugLoc(llvm::DebugLoc::get(source_info->line, source_info->column, scope));
 
 		// Check if the variable has initialization
-		llvm::StoreInst* store_inst = node.get<llvm::StoreInst>();
-		if (store_inst)
+		if(node.initializer)
 		{
-			store_inst->setDebugLoc(llvm::DebugLoc::get(source_info->line, source_info->column, scope));
+			llvm::Value* llvm_init = GET_SYNTHESIZED_LLVM_VALUE(node.initializer);
+			if(llvm_init)
+			{
+				llvm::StoreInst* store_inst = llvm::cast<llvm::StoreInst>(GET_SYNTHESIZED_LLVM_VALUE(&node));
+				store_inst->setDebugLoc(llvm::DebugLoc::get(source_info->line, source_info->column, scope));
+			}
 		}
 
 		revisit(node);
