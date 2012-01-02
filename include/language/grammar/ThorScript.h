@@ -395,7 +395,6 @@ struct ThorScript : qi::grammar<Iterator, typename SA::start::attribute_type, de
 		/////////////////////////////////////////////////////////////////////
 		/// BEGIN BASIC
 		///
-#if 0
 		location
 			= omit[ iter_pos[ typename SA::location::init() ] ]
 			;
@@ -945,7 +944,6 @@ struct ThorScript : qi::grammar<Iterator, typename SA::start::attribute_type, de
 		/////////////////////////////////////////////////////////////////////
 		/// BEGIN MODULE
 		///
-#endif 
 		program
 			=	*(	(IMPORT >> -((IDENTIFIER | EMIT_BOOL(DOT)) >> ASSIGN) > nested_identifier > SEMICOLON
 					) [ typename SA::program::append_import() ] )
