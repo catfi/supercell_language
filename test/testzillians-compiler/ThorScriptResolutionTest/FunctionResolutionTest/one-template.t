@@ -17,12 +17,18 @@
     @static_test { resolution="f<T>(T)"                               } function f<T>(a:T) : void {}
     @static_test { resolution="f<T>(T,T)"                             } function f<T>(a:T, b:T) : void {}
     @static_test { resolution="f<T>(T,T,T)"                           } function f<T>(a:T, b:T, c:T) : void {}
+    @static_test { resolution="f2<T>(T,int8)"                         } function f2<T>(a:T, b:int8) : void {}
+    @static_test { resolution="f2<T>(T,int32)"                        } function f2<T>(a:T, b:int32) : void {}
+
     // specilaized
     @static_test { resolution="f<int8>(T)"                            } function f<T:int8>(a:T) : void {}
     @static_test { resolution="f<Foo>(T)"                             } function f<T:Foo>(a:T) : void {}
     @static_test { resolution="f<Base>(T)"                            } function f<T:Base>(a:T) : void {}
     @static_test { resolution="f<Complex<int32>>(T)"                  } function f<T:Complex<T:int32> >(a:T) : void {}
     @static_test { resolution="f<Complex<int64>>(T)"                  } function f<T:Complex<T:int64> >(a:T) : void {}
+    @static_test { resolution="f2<int32>(T,int8)"                     } function f2<T:int32>(a:T, b:int8) : void {}
+    @static_test { resolution="f2<int32>(T,int32)"                    } function f2<T:int32>(a:T, b:int32) : void {}
+
     // non-template
     @static_test { resolution="f(int32)"                              } function f(a:int32) : void {}
 
@@ -70,6 +76,11 @@
         @static_test { expect_resolution="f<int8>(T)" } f(vint8);
         @static_test { expect_resolution="f<Foo>(T)" } f(vFoo);
         @static_test { expect_resolution="f<Complex<int32>>(T)" } f(vComplex);
+
+        // specialization is better than generalization & exact is better thean promotion
+        @static_test { expect_resolution="f2<int32>(T,int8)" } f2(vint32, vint8);
+        // specialization is better than generalization & promotion is better than standard conversion
+        @static_test { expect_resolution="f2<int32>(T,int32)" } f2(vint32, vint16);
 
         // non-template is better than template
         @static_test { expect_resolution="f(int32)" } f(vint32);
