@@ -26,7 +26,7 @@
 #include "language/tree/visitor/NodeInfoVisitor.h"
 #include "utility/Foreach.h"
 #include "language/context/ResolverContext.h"
-
+#include "language/logging/StringTable.h"
 
 namespace zillians { namespace language {
 
@@ -35,9 +35,6 @@ class Resolver
 public:
 	Resolver()
 	{ }
-
-private:
-    typedef std::map<std::wstring, TypeSpecifier*> DeducedTypeMap;
 
 public:
 	/**
@@ -49,12 +46,6 @@ public:
 		node_info_visitor.visit(node);
 		//LOG4CXX_DEBUG(LoggerWrapper::Resolver, L"entering scope: \"" << node_info_visitor.stream.str() << L"\"");
 
-
-		//__gnu_cxx::hash_set<tree::ASTNode*>::iterator scope = current_scopes.find(&node);
-		//if(scope == current_scopes.end())
-		//{
-		//	current_scopes.insert(&node);
-		//}
         if(std::find(current_scopes.begin(), current_scopes.end(), &node) == current_scopes.end())
         {
             current_scopes.push_back(&node);
@@ -74,11 +65,6 @@ public:
 		node_info_visitor.visit(node);
 		//LOG4CXX_DEBUG(LoggerWrapper::Resolver, L"leaving scope: \"" << node_info_visitor.stream.str() << L"\"");
 
-		//__gnu_cxx::hash_set<tree::ASTNode*>::iterator scope = current_scopes.find(&node);
-		//if(scope != current_scopes.end())
-		//{
-		//	current_scopes.erase(scope);
-		//}
         if(*current_scopes.rbegin() == &node)
         {
             current_scopes.pop_back();
@@ -155,7 +141,6 @@ public:
 			resolution_visitor.candidate(&node);
 			resolution_visitor.filter(visitor::ResolutionVisitor::Filter::SYMBOL);
 
-
 			for(auto scope = current_scopes.rbegin(); scope != current_scopes.rend(); ++scope)
 			{
 				tree::visitor::NodeInfoVisitor node_info_visitor;
@@ -173,6 +158,75 @@ public:
 		}
 	}
 
+private:
+
+//////////////////////////////////////////////////////////////////////////////
+// Function resuoltuion
+//////////////////////////////////////////////////////////////////////////////
+
+    //////////////////////////////////////////////////////////////////////////////
+    // types
+    //////////////////////////////////////////////////////////////////////////////
+
+    /**
+     * Ranks of Conversion.
+     *
+     * The order of enums IS CRITICAL! The integer number of the enums is used
+     * for sorting and comparing the priority of function candidates. Be
+     * careful while changing or adding new member to this enum, and make sure
+     * all the test cases pass.
+     */
+    struct ConversionRank
+    {
+        enum type {
+            ExactMatch,
+            Promotion,
+            StandardConversion,
+            NotMatch,
+            UnknownYet,
+        } ;
+    } ;
+
+    /**
+     * Result of Deduction.
+     */
+    struct DeductResult
+    {
+        enum type
+        {
+            Success,
+            Fail,
+            UnknownYet
+        } ;
+    } ;
+
+    struct ResolveAction
+    {
+        enum type
+        {
+            BindDirectly,
+            Instantiation,
+        } ;
+    } ;
+
+    typedef std::map<std::wstring, TypeSpecifier*> DeducedTypeMap;
+    typedef std::vector<ConversionRank::type> ConversionRankList;
+    typedef std::pair<FunctionDecl*, ConversionRankList> FunctionConversionRankList;
+
+    struct FuncDeductConversion
+    {
+        FuncDeductConversion(FunctionDecl* f, const DeducedTypeMap& d, const ConversionRankList& c)
+            : funcDecl(f), deductMap(d), convRankList(c)
+        { }
+        FunctionDecl* funcDecl;
+        DeducedTypeMap deductMap;
+        ConversionRankList convRankList;
+    } ;
+
+    //////////////////////////////////////////////////////////////////////////////
+    // helpers
+    //////////////////////////////////////////////////////////////////////////////
+
     // TODO take default parameter value into consideration
     void filterViableByParameterNumber(ASTNode* node, std::vector<ASTNode*>& candidates)
     {
@@ -189,89 +243,88 @@ public:
         candidates.erase(last, candidates.end());
     }
 
-    struct ConversionRank
-    {
-        enum type {
-            ExactMatch, // 0
-            Promotion, // 1
-            StandardConversion, // 2
-            NotMatch, // 3
-            UnknownYet, // 4
-        } ;
-    } ;
-
+    /**
+     * @brief Calculate the conversion rank from an Expression to a TypeSpecifier.
+     * @param from Source Expression
+     * @param to Target TypeSpecifier
+     * @return 
+     * 
+     * @li @c ConversionRank::ExactMatch if two type is exactly same
+     * @li @c ConversionRank::Promotion if @p from can be promote to @p to.
+     *
+     * Smaller numeric types can be promote to larger numeric types, for example,
+     * @c int8 to @c int16 or @c int64 or @c float32 is promotion.
+     *
+     * @li @c ConversionRank::StandardConversion if @p from can be standard to @p to.
+     *
+     * Larger numeric types can be standard converse to smaller numeric types, for example,
+     * @c float32 to @c int16 or @c int64 is standard conversion.
+     *
+     * @note Derived class to Base class is standard conversion, too.
+     *
+     * @li @c ConversionRank::NotMatch if @p from can **NOT** be convert to @p to.
+     *
+     * @li @c ConversionRank::UnknownYet if the result can not be determined yet.
+     *
+     */
     static ConversionRank::type getConversionRank(Expression* from, TypeSpecifier* to)
     {
-        //BOOST_ASSERT(isa<ExpressionStmt>(from));
-        //BOOST_ASSERT(isa<VariableDecl>(to));
-        // TODO integer literal need special process!!
-
-        // if identical, return full match
         ASTNode* fromType = ResolvedType::get(from);
         ASTNode* toType   = ASTNodeHelper::findUniqueTypeResolution(to);
 
         if(fromType == NULL)
-        {
             return ConversionRank::UnknownYet;
-        }
 
         // primitive, function, unspecified(user_defined) can not be convert to each other
         if(fromType->_tag() != toType->_tag())
-        {
             return ConversionRank::NotMatch;
-        }
 
         // so... ReferredType must be the same after here
         BOOST_ASSERT(fromType->_tag() == toType->_tag());
 
+        ////////////////////
+        // A. promitive type
+        ////////////////////
         if(isa<TypeSpecifier>(fromType))
         {
             TypeSpecifier* fromTypeSpecifier = cast<TypeSpecifier>(fromType);
             TypeSpecifier* toTypeSpecifier   = cast<TypeSpecifier>(toType);
-            BOOST_ASSERT(fromTypeSpecifier != NULL);
-            BOOST_ASSERT(toTypeSpecifier != NULL);
-
-            // full match
+            // exact match
             if(fromTypeSpecifier->referred.primitive == toTypeSpecifier->referred.primitive)
-            {
                 return ConversionRank::ExactMatch;
-            }
             // promotion
-            if(fromTypeSpecifier->referred.primitive >= PrimitiveType::BOOL_TYPE &&
-                 toTypeSpecifier->referred.primitive <= PrimitiveType::FLOAT64_TYPE &&
-               fromTypeSpecifier->referred.primitive < toTypeSpecifier->referred.primitive)
-            {
+            if(PrimitiveType::BOOL_TYPE <= fromTypeSpecifier->referred.primitive &&
+                                           fromTypeSpecifier->referred.primitive < toTypeSpecifier->referred.primitive &&
+                                                                                   toTypeSpecifier->referred.primitive <= PrimitiveType::FLOAT64_TYPE)
                 return ConversionRank::Promotion;
-            }
             // standard conversion
-            if(  toTypeSpecifier->referred.primitive >= PrimitiveType::BOOL_TYPE &&
-               fromTypeSpecifier->referred.primitive <= PrimitiveType::FLOAT64_TYPE &&
-                 toTypeSpecifier->referred.primitive < fromTypeSpecifier->referred.primitive)
-            {
+            if(PrimitiveType::BOOL_TYPE <= toTypeSpecifier->referred.primitive &&
+                                           toTypeSpecifier->referred.primitive < fromTypeSpecifier->referred.primitive &&
+                                                                                 fromTypeSpecifier->referred.primitive <= PrimitiveType::FLOAT64_TYPE)
                 return ConversionRank::StandardConversion;
-            }
+
             return ConversionRank::NotMatch;
         }
-        else if(isa<FunctionDecl>(fromType))
+        ////////////////////////////////
+        // B. class/enum/interface types
+        ////////////////////////////////
+        if(isa<ClassDecl>(fromType) || isa<EnumDecl>(fromType) || isa<InterfaceDecl>(fromType))
+        {
+            // exact match
+            if(fromType->isEqual(*toType))
+                return ConversionRank::ExactMatch;
+            // derived class to base class is standard conversion
+            if(isa<ClassDecl>(fromType) && ASTNodeHelper::isInheritedFrom(cast<ClassDecl>(fromType), cast<ClassDecl>(toType)))
+                return ConversionRank::StandardConversion;
+            // not match
+            return ConversionRank::NotMatch;
+        }
+        //////////////////////////////////
+        // C. function type TODO implement
+        //////////////////////////////////
+        if(isa<FunctionDecl>(fromType))
         {
             UNIMPLEMENTED_CODE();
-            return ConversionRank::NotMatch;
-        }
-        else if(isa<ClassDecl>(fromType))
-        {
-            if(ASTNodeHelper::isInheritedFrom(cast<ClassDecl>(fromType), cast<ClassDecl>(toType)))
-            {
-                return ConversionRank::StandardConversion;
-            }
-        }
-        else if(isa<ClassDecl>(fromType) ||
-                isa<EnumDecl>(fromType) ||
-                isa<InterfaceDecl>(fromType))
-        {
-            if(fromType->isEqual(*toType))
-            {
-                return ConversionRank::ExactMatch;
-            }
             return ConversionRank::NotMatch;
         }
         else
@@ -283,513 +336,67 @@ public:
         return ConversionRank::UnknownYet;
     }
 
-    struct DeductResult
+    ConversionRank::type convertArugments(CallExpr& callExpr, FunctionDecl& funcDecl, DeducedTypeMap* deductedTypes, ConversionRankList& convRankList)
     {
-        enum type
-        {
-            Success,
-            Fail,
-            UnknownYet
-        } ;
-    } ;
+        if(callExpr.parameters.empty())
+            return ConversionRank::ExactMatch;
 
-    DeductResult::type tryExactMatchedNonTemplateCandidate(ASTNode& attach, Identifier& node, std::vector<ASTNode*>& candidates, bool no_action)
-    {
-        std::vector<FunctionDecl*> exactMatchedCandidate;
-        CallExpr* callExpr = ASTNodeHelper::getOwner<CallExpr>(&node);
-        foreach(c, candidates)
+        for(size_t i=0; i != callExpr.parameters.size(); ++i)
         {
-            FunctionDecl* func = cast<FunctionDecl>(*c);
-            if(isa<TemplatedIdentifier>(func->name))
-            {
-                continue;
-            }
+            VariableDecl* varDecl = funcDecl.parameters[i];
+            Expression* useExpr = callExpr.parameters[i];
 
-            // if all parameter exact match
-            bool exactMatch = true;
-            for(size_t i=0; i != func->parameters.size(); ++i)
-            {
-                VariableDecl* decl = func->parameters[i];
-                Expression* use = callExpr->parameters[i];
-                ConversionRank::type convRank = getConversionRank(use, decl->type);
-                if(convRank == ConversionRank::UnknownYet)
-                {
-                    return DeductResult::UnknownYet;
-                }
-                if(convRank != ConversionRank::ExactMatch)
-                {
-                    exactMatch = false;
-                    continue;
-                }
-            }
-            if(!exactMatch) continue;
-            exactMatchedCandidate.push_back(func);
+            TypeSpecifier* declType = deductedTypes != NULL && deductedTypes->find(varDecl->type->toString()) != deductedTypes->end() ?
+                                      deductedTypes->find(varDecl->type->toString())->second :
+                                      varDecl->type;
+            ConversionRank::type convRank = getConversionRank(useExpr, declType);
+
+            if(convRank == ConversionRank::UnknownYet)  return ConversionRank::UnknownYet;
+            if(convRank == ConversionRank::NotMatch)    return ConversionRank::NotMatch;
+
+            convRankList.push_back(convRank);
         }
-        if(exactMatchedCandidate.size() == 1)
-        {
-            if(!no_action)
-            {
-                ResolvedSymbol::set(&attach, exactMatchedCandidate[0]);
-                ResolvedType::set(&attach, exactMatchedCandidate[0]);
-            }
-            return DeductResult::Success;
-        }
-        else if(exactMatchedCandidate.size() > 1)
-        {
-            // TODO output error message to list all exact match functions
-            std::cerr << "More than one exact matched non-template function" << std::endl;
-            return DeductResult::Fail;
-        }
-        else
-        {
-            return DeductResult::Fail;
-        }
+        return *std::max_element(convRankList.begin(), convRankList.end());
     }
 
-    /**
-     * @brief Deduct template types from callee's arguments
-     * @param call CallExpr of callee
-     * @param funcDecl FunctionDecl of the function declaration
-     * @return @c DeductResult::Success if deduct success,
-     *         @c DeductResult::Fail if @p funcDecl is non-template,
-     *         or is template but can not be deduced from arguments.(conflict)
-     *         @c DeductResult::UnknownYet if some parameter is not resolved.
-     *
-     */
-    DeductResult::type deduceToSpecializdTemplateFunction(CallExpr* call, FunctionDecl* funcDecl)
+    DeductResult::type deductTypeByNormalArgs(Identifier& id, FunctionDecl& funcDecl, DeducedTypeMap& deducedTypes)
     {
-        BOOST_ASSERT(isa<TemplatedIdentifier>(funcDecl->name));
-
-        std::map<TypenameDecl*, TypeSpecifier*> deducedTypes;
-        for(size_t i=0; i != call->parameters.size(); ++i)
-        {
-            Expression* argExpr = call->parameters[i];
-            VariableDecl* paramVarDecl = funcDecl->parameters[i];
-
-            ASTNode* argType   = ResolvedType::get(argExpr);
-            ASTNode* paramType = ASTNodeHelper::findUniqueTypeResolution(paramVarDecl->type);
-            if(argType == NULL || paramType == NULL)
-            {
-                return DeductResult::UnknownYet;
-            }
-
-            BOOST_ASSERT(argType   != NULL);
-            BOOST_ASSERT(paramType != NULL);
-
-            if(!argType->isEqual(*paramType))
-            {
-                return DeductResult::Fail;
-            }
-        }
-
-        return DeductResult::Success;
-    }
-
-    size_t getFunctionDegreeOfFreedom(FunctionDecl* func)
-    {
-        TemplatedIdentifier* tid = cast<TemplatedIdentifier>(func->name);
-        return tid->templated_type_list.size();
-    }
-
-    typedef std::vector<ConversionRank::type> ConversionRankList;
-    typedef std::pair<FunctionDecl*, ConversionRankList> FunctionConversionRankList;
-
-    size_t getFunctionDegreeOfFreedom(const FunctionConversionRankList& func)
-    {
-        return getFunctionDegreeOfFreedom(func.first);
-    }
-
-    template<typename CandidateListType>
-    void filterMatchedCandidateByDegreeOfFreedom(CandidateListType& exactMatchedCandidate)
-    {
-        typedef typename CandidateListType::value_type ValueType;
-        if(exactMatchedCandidate.empty())
-        {
-            return;
-        }
-
-        auto iterMin = std::min_element(exactMatchedCandidate.begin(), exactMatchedCandidate.end(), [this](ValueType& a, ValueType& b){
-            return getFunctionDegreeOfFreedom(a) < getFunctionDegreeOfFreedom(b);
-        });
-
-        size_t minDegreeOfFreedom = getFunctionDegreeOfFreedom(*iterMin);
-
-        auto last = std::remove_if(exactMatchedCandidate.begin(), exactMatchedCandidate.end(), [this, minDegreeOfFreedom](ValueType& a){
-            return getFunctionDegreeOfFreedom(a) != minDegreeOfFreedom;
-        });
-
-        exactMatchedCandidate.erase(last, exactMatchedCandidate.end());
-    }
-
-    DeductResult::type tryExactMatchedSpecializedTemplateCandidate(ASTNode& attach, Identifier& node, std::vector<ASTNode*>& candidates, bool no_action)
-    {
-        std::vector<FunctionDecl*> exactMatchedCandidate;
-        CallExpr* callExpr = ASTNodeHelper::getOwner<CallExpr>(&node);
-        foreach(c, candidates)
-        {
-            FunctionDecl* func = cast<FunctionDecl>(*c);
-            if(!isa<TemplatedIdentifier>(func->name) || !isFullySpecializedTemplatedIdentifier(func->name))
-            {
-                continue;
-            }
-
-            DeductResult::type deductResult = deduceToSpecializdTemplateFunction(callExpr, func);
-            switch(deductResult)
-            {
-            case DeductResult::Success:
-                exactMatchedCandidate.push_back(func);
-                break;
-            case DeductResult::Fail:
-                break;
-            case DeductResult::UnknownYet:
-                return DeductResult::UnknownYet;
-                break;
-            }
-        }
-        filterMatchedCandidateByDegreeOfFreedom(exactMatchedCandidate);
-        if(exactMatchedCandidate.size() == 1)
-        {
-            if(!no_action)
-            {
-                ResolvedSymbol::set(&attach, exactMatchedCandidate[0]);
-                ResolvedType::set(&attach, exactMatchedCandidate[0]);
-            }
-            return DeductResult::Success;
-        }
-        else if(exactMatchedCandidate.size() > 1)
-        {
-            // TODO output error message to list all exact match functions
-            std::cerr << "More than one exact specialized template function" << std::endl;
-            return DeductResult::Fail;
-        }
-        else
-        {
-            return DeductResult::Fail;
-        }
-        UNREACHABLE_CODE();
-        return DeductResult::Fail;
-    }
-
-    /**
-     * @brief Deduct template types from callee's arguments
-     * @param call CallExpr of callee
-     * @param funcDecl FunctionDecl of the function declaration
-     * @return @c DeductResult::Success if deduct success,
-     *         @c DeductResult::Fail if @p funcDecl is non-template,
-     *         or is template but can not be deduced from arguments.(conflict)
-     *         @c DeductResult::UnknownYet if some parameter is not resolved.
-     *
-     */
-    DeductResult::type deduceToGeneralTemplateFunction(CallExpr* call, FunctionDecl* funcDecl, DeducedTypeMap& deducedTypes)
-    {
-        BOOST_ASSERT(isa<TemplatedIdentifier>(funcDecl->name));
+        CallExpr* call = ASTNodeHelper::getOwner<CallExpr>(&id);
+        BOOST_ASSERT(call != NULL);
+        BOOST_ASSERT(isa<TemplatedIdentifier>(funcDecl.name));
 
         for(size_t i=0; i != call->parameters.size(); ++i)
         {
             Expression* argExpr = call->parameters[i];
-            VariableDecl* paramVarDecl = funcDecl->parameters[i];
+            VariableDecl* paramVarDecl = funcDecl.parameters[i];
 
             ASTNode* argType   = ResolvedType::get(argExpr);
-            ASTNode* paramType = ASTNodeHelper::findUniqueTypeResolution(paramVarDecl->type);
-            BOOST_ASSERT(argType   != NULL);
-            BOOST_ASSERT(paramType != NULL);
+            ASTNode* paramType = ResolvedType::get(paramVarDecl->type);
+            ASTNode* paramUniqResolution = ASTNodeHelper::findUniqueTypeResolution(paramVarDecl->type);
+            if(argType == NULL || paramUniqResolution == NULL) return DeductResult::UnknownYet;
 
-            // if none template type, check equal
-            if(!isa<TypenameDecl>(paramType))
+            // if paramType == NULL, the type is not a templated type
+            if(paramType == NULL) continue;
+            TypenameDecl* paramTypename = cast<TypenameDecl>(paramType);
+            BOOST_ASSERT(paramTypename != NULL);
+            auto iterDeduced = deducedTypes.find(paramTypename->name->toString());
+            if(iterDeduced == deducedTypes.end())
             {
-                if(!paramType->isEqual(*argType)) return DeductResult::Fail;
+                deducedTypes.insert(std::make_pair(paramTypename->name->toString(), ASTNodeHelper::createTypeSpecifierFrom(argType)));
             }
-
-            // if template type, deduce and check equal
             else
             {
-                TypenameDecl* paramTypename = cast<TypenameDecl>(paramType);
-                BOOST_ASSERT(paramTypename != NULL);
-                auto iterDeduced = deducedTypes.find(paramTypename->name->toString());
-                if(iterDeduced == deducedTypes.end())
+                TypeSpecifier* prevDeducedType = iterDeduced->second;
+                if(!argType->isEqual(*ASTNodeHelper::findUniqueTypeResolution(prevDeducedType)))
                 {
-                    deducedTypes.insert(std::make_pair(paramTypename->name->toString(), ASTNodeHelper::createTypeSpecifierFrom(argType)));
-                }
-                else
-                {
-                    TypeSpecifier* prevDeducedType = iterDeduced->second;
-                    if(!argType->isEqual(*ASTNodeHelper::findUniqueTypeResolution(prevDeducedType)))
-                    {
-                        return DeductResult::Fail;
-                    }
+                    return DeductResult::Fail;
                 }
             }
         }
-
         return DeductResult::Success;
     }
 
-    bool isBetterThan(FunctionConversionRankList& lhs, FunctionConversionRankList& rhs)
-    {
-        ConversionRankList& l = lhs.second;
-        ConversionRankList& r = rhs.second;
-        std::sort(l.begin(), l.end(), std::greater<ConversionRank::type>());
-        std::sort(r.begin(), r.end(), std::greater<ConversionRank::type>());
-        return l < r;
-    }
-
-    void filterBestNonTemplateFunctionByConversionRankList(std::vector<FunctionConversionRankList>& convertableCandidates)
-    {
-        std::set<std::vector<FunctionConversionRankList>::size_type> out;
-        for(std::vector<FunctionConversionRankList>::size_type i=0; i != convertableCandidates.size(); ++i)
-        {
-            for(std::vector<FunctionConversionRankList>::size_type j=0; j != convertableCandidates.size(); ++j)
-            {
-                if(i == j)
-                {
-                    continue;
-                }
-                if(isBetterThan(convertableCandidates[i], convertableCandidates[j]))
-                {
-                    out.insert(j);
-                }
-            }
-        }
-        for(auto i = out.rbegin(); i != out.rend(); ++i)
-        {
-            convertableCandidates.erase(convertableCandidates.begin() + *i);
-        }
-    }
-
-    DeductResult::type tryConvertToNonTemplateCandidate(ASTNode& attach, Identifier& node, std::vector<ASTNode*>& candidates, bool no_action)
-    {
-        std::vector<FunctionConversionRankList> convertableCandidates;
-
-        CallExpr* callExpr = ASTNodeHelper::getOwner<CallExpr>(&node);
-        // foreach function candidates
-        foreach(c, candidates)
-        {
-            FunctionDecl* func = cast<FunctionDecl>(*c);
-            if(isa<TemplatedIdentifier>(func->name))
-            {
-                continue;
-            }
-
-            // calculate conversion rank for each argument/parameter
-            ConversionRankList convRankList;
-            bool callable = true;
-            for(size_t i=0; i != func->parameters.size(); ++i)
-            {
-                VariableDecl* decl = func->parameters[i];
-                Expression* use = callExpr->parameters[i];
-                ConversionRank::type convRank = getConversionRank(use, decl->type);
-                if(convRank == ConversionRank::UnknownYet)
-                {
-                    return DeductResult::UnknownYet;
-                }
-                else if(convRank == ConversionRank::NotMatch)
-                {
-                    callable = false;
-                    continue;
-                }
-                convRankList.push_back(convRank);
-            }
-            if(!callable) continue;
-            convertableCandidates.push_back(FunctionConversionRankList(func, convRankList));
-        }
-
-        // up to here, we have all callable/viable cadidates in convertableCandidates
-        // and we have to select the best one
-        filterBestNonTemplateFunctionByConversionRankList(convertableCandidates);
-
-        if(convertableCandidates.size() == 1)
-        {
-            if(!no_action)
-            {
-                ResolvedSymbol::set(&attach, convertableCandidates[0].first);
-                ResolvedType::set(&attach, convertableCandidates[0].first);
-            }
-            return DeductResult::Success;
-        }
-        else if(convertableCandidates.size() > 1)
-        {
-            // TODO output error message to list all exact match functions
-            std::cerr << "More than one convert to non-template function" << std::endl;
-            return DeductResult::Fail;
-        }
-        else
-        {
-            return DeductResult::Fail;
-        }
-    }
-
-    DeductResult::type tryDeduceToGeneralTemplateCandidate(ASTNode& attach, Identifier& node, std::vector<ASTNode*>& candidates, bool no_action)
-    {
-        std::vector<FunctionDecl*> exactMatchedCandidate;
-        std::map<FunctionDecl*, DeducedTypeMap> candidatesDeducedTypes;
-        CallExpr* callExpr = ASTNodeHelper::getOwner<CallExpr>(&node);
-
-        foreach(c, candidates)
-        {
-            FunctionDecl* func = cast<FunctionDecl>(*c);
-            if(!isa<TemplatedIdentifier>(func->name) || isFullySpecializedTemplatedIdentifier(func->name))
-            {
-                continue;
-            }
-
-            DeducedTypeMap deducedTypes;
-            DeductResult::type deductResult = deduceToGeneralTemplateFunction(callExpr, func, deducedTypes);
-            switch(deductResult)
-            {
-            case DeductResult::Success:
-                exactMatchedCandidate.push_back(func);
-                candidatesDeducedTypes.insert(std::make_pair(func, deducedTypes));
-                break;
-            case DeductResult::Fail:
-                break;
-            case DeductResult::UnknownYet:
-                return DeductResult::UnknownYet;
-                break;
-            }
-        }
-        filterMatchedCandidateByDegreeOfFreedom(exactMatchedCandidate);
-        if(exactMatchedCandidate.size() == 1)
-        {
-            // instantiate
-            if(!no_action)
-            {
-                // (which is delayed to later applyTrasnform() because we don't want to change the tree while traversing it)
-                auto ranges = function_instantiations.equal_range(exactMatchedCandidate[0]);
-                bool found = false;
-                for(auto i = ranges.first;i != ranges.second; ++i)
-                {
-                    // if there's already function instantiation requested
-                    zillians::language::tree::visitor::ResolutionVisitor v;
-                    if(candidatesDeducedTypes[exactMatchedCandidate[0]] == i->second.deduced_types)
-                    {
-                        // just append the attach node to the attach list
-                        i->second.to_attach.push_back(&attach);
-                        return DeductResult::Success;
-                    }
-                }
-
-                // if there's no function instantiation requested, create one
-                if(!found)
-                {
-                    const DeducedTypeMap& deducedTypes = candidatesDeducedTypes[exactMatchedCandidate[0]];
-                    function_instantiations.insert(std::make_pair(exactMatchedCandidate[0], FunctionInstantiationInfo(deducedTypes, &attach)));
-                }
-            }
-
-            return DeductResult::Success;
-        }
-        else if(exactMatchedCandidate.size() > 1)
-        {
-            // TODO output error message to list all exact match functions
-            std::cerr << "More than one exact matched non-template function" << std::endl;
-            return DeductResult::Fail;
-        }
-        else
-        {
-            return DeductResult::Fail;
-        }
-        return DeductResult::Fail;
-    }
-
-    bool typeArgumentExactMatch(TemplatedIdentifier& caller, TemplatedIdentifier& decl)
-    {
-        BOOST_ASSERT(decl.isFullySpecialized());
-        if(caller.templated_type_list.size() != decl.templated_type_list.size())
-        {
-            return false;
-        }
-
-        for(std::vector<TypenameDecl>::size_type i=0; i != caller.templated_type_list.size(); ++i)
-        {
-            TypenameDecl* callerTypenameDecl = caller.templated_type_list[i];
-            TypenameDecl*   declTypenameDecl =   decl.templated_type_list[i];
-            ASTNode* callerArgType = ASTNodeHelper::findUniqueTypeResolution(callerTypenameDecl);
-            ASTNode*   declArgType = ASTNodeHelper::findUniqueTypeResolution(  declTypenameDecl);
-            if(!callerArgType->isEqual(*declArgType))
-            {
-                return false;
-            }
-        }
-
-        return true;
-    }
-
-    DeductResult::type tryConvertToSpecializedTemplateCandidate(ASTNode& attach, TemplatedIdentifier& node, std::vector<ASTNode*>& candidates, bool no_action)
-    {
-        std::vector<FunctionConversionRankList> convertableCandidates;
-
-        std::vector<FunctionDecl*> exactMatchedCandidate;
-        CallExpr* callExpr = ASTNodeHelper::getOwner<CallExpr>(&node);
-        foreach(c, candidates)
-        {
-            FunctionDecl* func = cast<FunctionDecl>(*c);
-            if(!isa<TemplatedIdentifier>(func->name) || !isFullySpecializedTemplatedIdentifier(func->name))
-            {
-                continue;
-            }
-
-            // if template argument is not exact match
-            if(!typeArgumentExactMatch(node, *cast<TemplatedIdentifier>(func->name)))
-            {
-                continue;
-            }
-
-            // calculate conversion rank for each argument/parameter
-            ConversionRankList convRankList;
-            bool callable = true;
-            for(size_t i=0; i != func->parameters.size(); ++i)
-            {
-                VariableDecl* decl = func->parameters[i];
-                Expression* use = callExpr->parameters[i];
-                ConversionRank::type convRank = getConversionRank(use, decl->type);
-                if(convRank == ConversionRank::UnknownYet)
-                {
-                    return DeductResult::UnknownYet;
-                }
-                else if(convRank == ConversionRank::NotMatch)
-                {
-                    callable = false;
-                    continue;
-                }
-                convRankList.push_back(convRank);
-            }
-            if(!callable) continue;
-            convertableCandidates.push_back(FunctionConversionRankList(func, convRankList));
-        }
-
-        // up to here, we have all callable/viable cadidates in convertableCandidates
-        // and we have to select the best one
-        filterBestNonTemplateFunctionByConversionRankList(convertableCandidates);
-        // NOTE: We do NOT have filter DOF, because, all DOF are the same here.
-        // The call is Type-Qualified, so the number of type argument is a specified integer,
-        // so, there is no need to filter by DOF
-        //filterMatchedCandidateByDegreeOfFreedom(convertableCandidates);
-
-        if(convertableCandidates.size() == 1)
-        {
-            if(!no_action)
-            {
-                ResolvedSymbol::set(&attach, convertableCandidates[0].first);
-                ResolvedType::set(&attach, convertableCandidates[0].first);
-            }
-            return DeductResult::Success;
-        }
-        else if(convertableCandidates.size() > 1)
-        {
-            // TODO output error message to list all exact match functions
-            std::cerr << "More than one exact specialized template function" << std::endl;
-            return DeductResult::Fail;
-        }
-        else
-        {
-            return DeductResult::Fail;
-        }
-        UNREACHABLE_CODE();
-        return DeductResult::Fail;
-
-    }
-
-    DeducedTypeMap generateDeducedTypeMapFromCallerId(TemplatedIdentifier& callerId, FunctionDecl& func)
+    DeducedTypeMap deductTypeByQualifiedTypeArgs(TemplatedIdentifier& callerId, FunctionDecl& func)
     {
         DeducedTypeMap result;
         TemplatedIdentifier* declId = cast<TemplatedIdentifier>(func.name);
@@ -808,145 +415,33 @@ public:
         return result;
     }
 
-    DeductResult::type tryInstantiateGeneralTemplateCandidate(ASTNode& attach, TemplatedIdentifier& node, std::vector<ASTNode*>& candidates, bool no_action)
+    DeductResult::type deductTypeArgs(Identifier& id, FunctionDecl& funcDecl, DeducedTypeMap& deducedTypes)
     {
-        std::vector<FunctionConversionRankList> convertableCandidates;
-        std::map<FunctionDecl*, DeducedTypeMap> candidatesDeducedTypes;
-        CallExpr* callExpr = ASTNodeHelper::getOwner<CallExpr>(&node);
-
-        foreach(c, candidates)
+        if(TemplatedIdentifier* tid = cast<TemplatedIdentifier>(&id))
         {
-            FunctionDecl* func = cast<FunctionDecl>(*c);
-            if(!isa<TemplatedIdentifier>(func->name) || isFullySpecializedTemplatedIdentifier(func->name))
-            {
-                continue;
-            }
-
-            DeducedTypeMap qualifiedTypes = generateDeducedTypeMapFromCallerId(node, *func);
-
-            ConversionRankList convRankList;
-            bool callable = true;
-            for(size_t i=0; i != func->parameters.size(); ++i)
-            {
-                VariableDecl* decl = func->parameters[i];
-                Expression* use = callExpr->parameters[i];
-                auto iter = qualifiedTypes.find(decl->type->toString());
-                ConversionRank::type convRank = ConversionRank::UnknownYet;
-                if(iter != qualifiedTypes.end())
-                {
-                    TypeSpecifier* qualifiedDeclType = iter->second;
-                    convRank = getConversionRank(use, qualifiedDeclType);
-                }
-                else
-                {
-                    convRank = getConversionRank(use, decl->type);
-                }
-                if(convRank == ConversionRank::UnknownYet)
-                {
-                    return DeductResult::UnknownYet;
-                }
-                else if(convRank == ConversionRank::NotMatch)
-                {
-                    callable = false;
-                    continue;
-                }
-                convRankList.push_back(convRank);
-            }
-            if(!callable) continue;
-            candidatesDeducedTypes.insert(std::make_pair(func, qualifiedTypes));
-            convertableCandidates.push_back(FunctionConversionRankList(func, convRankList));
-        }
-
-        filterBestNonTemplateFunctionByConversionRankList(convertableCandidates);
-
-        if(convertableCandidates.size() == 1)
-        {
-            // instantiate
-            if(!no_action)
-            {
-                // (which is delayed to later applyTrasnform() because we don't want to change the tree while traversing it)
-                auto ranges = function_instantiations.equal_range(convertableCandidates[0].first);
-                bool found = false;
-                for(auto i = ranges.first;i != ranges.second; ++i)
-                {
-                    // if there's already function instantiation requested
-                    zillians::language::tree::visitor::ResolutionVisitor v;
-                    if(candidatesDeducedTypes[convertableCandidates[0].first] == i->second.deduced_types)
-                    {
-                        // just append the attach node to the attach list
-                        i->second.to_attach.push_back(&attach);
-                        return DeductResult::Success;
-                    }
-                }
-
-                // if there's no function instantiation requested, create one
-                if(!found)
-                {
-                    const DeducedTypeMap& deducedTypes = candidatesDeducedTypes[convertableCandidates[0].first];
-                    function_instantiations.insert(std::make_pair(convertableCandidates[0].first, FunctionInstantiationInfo(deducedTypes, &attach)));
-                }
-            }
-
+            deducedTypes = deductTypeByQualifiedTypeArgs(*tid, funcDecl);
             return DeductResult::Success;
         }
-        else if(convertableCandidates.size() > 1)
-        {
-            // TODO output error message to list all exact match functions
-            std::cerr << "More than one exact matched non-template function" << std::endl;
-            return DeductResult::Fail;
-        }
         else
         {
-            return DeductResult::Fail;
-        }
-        return DeductResult::Fail;
-    }
-
-    bool getBestViable(ASTNode& attach, Identifier& node, std::vector<ASTNode*>& candidates, bool no_action)
-    {
-        if(!isa<TemplatedIdentifier>(&node))
-        {
-            DeductResult::type result = DeductResult::UnknownYet;
-
-            result = tryExactMatchedNonTemplateCandidate(attach, node, candidates, no_action);
-            if(result == DeductResult::UnknownYet) return false;
-            if(result == DeductResult::Success) return true;
-
-            result = tryExactMatchedSpecializedTemplateCandidate(attach, node, candidates, no_action);
-            if(result == DeductResult::UnknownYet) return false;
-            if(result == DeductResult::Success) return true;
-
-            result = tryDeduceToGeneralTemplateCandidate(attach, node, candidates, no_action);
-            if(result == DeductResult::UnknownYet) return false;
-            if(result == DeductResult::Success) return true;
-
-            result = tryConvertToNonTemplateCandidate(attach, node, candidates, no_action);
-            if(result == DeductResult::UnknownYet) return false;
-            if(result == DeductResult::Success) return true;
-
-            return false;
-        }
-        else
-        {
-            DeductResult::type result = DeductResult::UnknownYet;
-
-            result = tryConvertToSpecializedTemplateCandidate(attach, *cast<TemplatedIdentifier>(&node), candidates, no_action);
-            if(result == DeductResult::UnknownYet) return false;
-            if(result == DeductResult::Success) return true;
-
-            result = tryInstantiateGeneralTemplateCandidate(attach, *cast<TemplatedIdentifier>(&node), candidates, no_action);
-            if(result == DeductResult::UnknownYet) return false;
-            if(result == DeductResult::Success) return true;
-
-            return false;;
+            return deductTypeByNormalArgs(id, funcDecl, deducedTypes);
         }
     }
 
-    bool isAllArgumentsResolved(CallExpr* call)
+    bool isDeductedTypeMatchSpecialization(DeducedTypeMap& deductedTypes, TemplatedIdentifier& id)
     {
-        foreach(i, call->parameters)
+        BOOST_ASSERT(deductedTypes.size() == id.templated_type_list.size());
+
+        for(size_t i = 0; i != id.templated_type_list.size(); ++i)
         {
-            if(ResolvedType::get(*i) == NULL)
+            TypenameDecl* typenameDecl = id.templated_type_list[i];
+            std::wstring typeArgName = typenameDecl->name->toString();
+            TypeSpecifier* specializedType = typenameDecl->specialized_type;
+
+            auto iter = deductedTypes.find(typeArgName);
+            BOOST_ASSERT(iter != deductedTypes.end());
+            TypeSpecifier* dedcutedType = iter->second;
+            if(!dedcutedType->isEqual(*specializedType))
             {
                 return false;
             }
@@ -954,23 +449,222 @@ public:
         return true;
     }
 
-    // Three steps:
-    // 1. visiable and the same name
-    // 2. vialble / callable
-    //      a) Number of parameter match. If callee is less, rest parameters must have default values
-    //      b) **NOT** take type match into consideration, which will be considered in step 3
-    // 3. best viable: (4 priorities)
-    //      if callee is not 'type-parameter-qualified'
-    //          a) 'EXACT MATCHED' non-template version is best
-    //          b) 'EXACT MATCHED' specialized version is better
-    //          c) Try deduction to general template version (because if type deduction success, it exact match! without conversion)
-    //          d) Try converse to non-template version (2 priorities)
-    //              i)  Exact match is better than promotion
-    //              ii) Promotion is better than standard conversion
-    //          e) **NOT** try to conversion to specialized version
-    //      if callee is 'type-parameter-qualified'
-    //          a) 'EXACT MATCHED' specialized version is better (will has only one candidate)
-    //          b) Try instantiate a general template version (will has only one candidate)
+    size_t getFunctionNumberOfTypeParameters(const FunctionConversionRankList& func)
+    {
+        TemplatedIdentifier* tid = cast<TemplatedIdentifier>(func.first->name);
+        return tid->templated_type_list.size();
+    }
+
+    size_t getFunctionNumberOfTypeParameters(const FuncDeductConversion& func)
+    {
+        TemplatedIdentifier* tid = cast<TemplatedIdentifier>(func.funcDecl->name);
+        if(tid == NULL) return 0;
+        return tid->templated_type_list.size();
+    }
+
+    /**
+     * @brief Filter function candidates by the number of type parameters
+     * @param functionCandidates Candidates to filter.
+     *
+     * Only the candidates with minimal number of type parameters will pass.
+     */
+    template<typename CandidateListType>
+    void filterMatchedCandidateByNumberOfTypeParameters(CandidateListType& functionCandidates)
+    {
+        typedef typename CandidateListType::value_type ValueType;
+        if(functionCandidates.empty())
+            return;
+
+        auto iterMin = std::min_element(functionCandidates.begin(), functionCandidates.end(), [this](ValueType& a, ValueType& b){
+            return getFunctionNumberOfTypeParameters(a) < getFunctionNumberOfTypeParameters(b);
+        });
+
+        size_t minNumberOfTypeParameters = getFunctionNumberOfTypeParameters(*iterMin);
+
+        auto last = std::remove_if(functionCandidates.begin(), functionCandidates.end(), [this, minNumberOfTypeParameters](ValueType& a){
+            return getFunctionNumberOfTypeParameters(a) != minNumberOfTypeParameters;
+        });
+
+        functionCandidates.erase(last, functionCandidates.end());
+    }
+
+    bool isBetterThan(FunctionConversionRankList& lhs, FunctionConversionRankList& rhs)
+    {
+        ConversionRankList& l = lhs.second;
+        ConversionRankList& r = rhs.second;
+        std::sort(l.begin(), l.end(), std::greater<ConversionRank::type>());
+        std::sort(r.begin(), r.end(), std::greater<ConversionRank::type>());
+        return l < r;
+    }
+
+    void filterByConversionRankList(std::vector<FunctionConversionRankList>& convertableCandidates)
+    {
+        std::set<std::vector<FunctionConversionRankList>::size_type> out;
+        for(std::vector<FunctionConversionRankList>::size_type i=0; i != convertableCandidates.size(); ++i)
+        {
+            for(std::vector<FunctionConversionRankList>::size_type j=0; j != convertableCandidates.size(); ++j)
+            {
+                if(i == j)
+                    continue;
+                if(isBetterThan(convertableCandidates[i], convertableCandidates[j]))
+                    out.insert(j);
+            }
+        }
+
+        for(auto i = out.rbegin(); i != out.rend(); ++i)
+            convertableCandidates.erase(convertableCandidates.begin() + *i);
+    }
+
+    size_t funcTemplateType(FunctionDecl* funcDecl)
+    {
+        TemplatedIdentifier* tid = cast<TemplatedIdentifier>(funcDecl->name);
+        if     (tid == NULL)                return 0;
+        else if(tid->isFullySpecialized())  return 1;
+        else                                return 2;
+    }
+
+    bool isBetterThan(FuncDeductConversion lhs, FuncDeductConversion& rhs)
+    {
+        ConversionRankList& l = lhs.convRankList;
+        ConversionRankList& r = rhs.convRankList;
+        std::sort(l.begin(), l.end(), std::greater<ConversionRank::type>());
+        std::sort(r.begin(), r.end(), std::greater<ConversionRank::type>());
+        //return l < r;
+        if(l < r) return true;
+        if(r < l) return false;
+        return funcTemplateType(lhs.funcDecl) < funcTemplateType(rhs.funcDecl);
+    }
+
+    void filterByFuncDeductConv(std::vector<FuncDeductConversion>& convertableCandidates)
+    {
+        typedef std::vector<FuncDeductConversion>::size_type SizeType;
+        std::set<SizeType> out;
+        for(SizeType i=0; i != convertableCandidates.size(); ++i)
+        {
+            for(SizeType j=0; j != convertableCandidates.size(); ++j)
+            {
+                if(i == j)
+                    continue;
+                if(isBetterThan(convertableCandidates[i], convertableCandidates[j]))
+                    out.insert(j);
+            }
+        }
+
+        for(auto i = out.rbegin(); i != out.rend(); ++i)
+            convertableCandidates.erase(convertableCandidates.begin() + *i);
+    }
+
+    bool isAllArgumentsResolved(CallExpr* call)
+    {
+        foreach(i, call->parameters)
+        {
+            if(ResolvedType::get(*i) == NULL)
+                return false;
+        }
+        return true;
+    }
+
+    //////////////////////////////////////////////////////////////////////////////
+    // resolve flows
+    //////////////////////////////////////////////////////////////////////////////
+
+    DeductResult::type evalAllFuncCandidates(Identifier& node, std::vector<ASTNode*>& candidates,  std::vector<FuncDeductConversion>& convertableCandidates)
+    {
+        CallExpr* callExpr = ASTNodeHelper::getOwner<CallExpr>(&node);
+
+        foreach(c, candidates)
+        {
+            FunctionDecl* funcDecl = cast<FunctionDecl>(*c);
+
+            // if funcDecl is template, deduct type
+            DeducedTypeMap deductedTypes;
+            if(isa<TemplatedIdentifier>(funcDecl->name))
+            {
+                DeductResult::type deductResult = deductTypeArgs(node, *funcDecl, deductedTypes);
+                if(deductResult == DeductResult::UnknownYet) return DeductResult::UnknownYet;
+                if(deductResult == DeductResult::Fail)       continue;
+                if(isFullySpecializedTemplatedIdentifier(funcDecl->name) &&
+                   !isDeductedTypeMatchSpecialization(deductedTypes, *cast<TemplatedIdentifier>(funcDecl->name)))
+                {
+                    continue;
+                }
+            }
+
+            // converse
+            ConversionRankList convRankList;
+            ConversionRank::type worstConvertResult = convertArugments(*callExpr, *funcDecl, &deductedTypes, convRankList);
+            if(worstConvertResult == ConversionRank::UnknownYet) return DeductResult::UnknownYet;
+            if(worstConvertResult == ConversionRank::NotMatch)   continue;
+
+            convertableCandidates.push_back(FuncDeductConversion(funcDecl, deductedTypes, convRankList));
+        }
+        return DeductResult::Success;
+    }
+
+    void applyResolveAction(ASTNode& attach, FuncDeductConversion& v)
+    {
+        FunctionDecl* funcDecl = v.funcDecl;
+        TemplatedIdentifier* tid = cast<TemplatedIdentifier>(v.funcDecl->name);
+        // just set ResolvedType
+        if(tid == NULL || tid->isFullySpecialized())
+        {
+            ResolvedSymbol::set(&attach, v.funcDecl);
+            ResolvedType::set(&attach, v.funcDecl);
+        }
+        // instantiat
+        else
+        {
+            // (which is delayed to later applyTrasnform() because we don't want to change the tree while traversing it)
+            auto ranges = function_instantiations.equal_range(funcDecl);
+            bool found = false;
+            for(auto i = ranges.first;i != ranges.second; ++i)
+            {
+                // if there's already function instantiation requested
+                if(v.deductMap == i->second.deduced_types)
+                {
+                    // just append the attach node to the attach list
+                    i->second.to_attach.push_back(&attach);
+                }
+            }
+
+            // if there's no function instantiation requested, create one
+            if(!found)
+            {
+                const DeducedTypeMap& deducedTypes = v.deductMap;
+                function_instantiations.insert(std::make_pair(funcDecl, FunctionInstantiationInfo(deducedTypes, &attach)));
+            }
+        }
+    }
+
+    bool getBestViable(ASTNode& attach, Identifier& node, std::vector<ASTNode*>& candidates, bool no_action)
+    {
+        std::vector<FuncDeductConversion> convertableCandidates;
+        if (evalAllFuncCandidates(node, candidates, convertableCandidates) == DeductResult::UnknownYet)
+        {
+            return false;
+        }
+
+        filterByFuncDeductConv(convertableCandidates);
+        filterMatchedCandidateByNumberOfTypeParameters(convertableCandidates);
+
+        if(convertableCandidates.size() == 0)
+            return false;
+        if(convertableCandidates.size() > 1)
+        {
+            //LOG_MESSAGE(AMBIGUOUS_SYMBOL, &node, _id = node.toString());
+            //foreach(i, convertableCandidates)
+            //{
+            //    LOG_MESSAGE(CANDIDATES_ARE, i->funcDecl, _id = i->funcDecl->name->toString());
+            //}
+            return false;
+        }
+
+        if(!no_action)
+            applyResolveAction(attach, *convertableCandidates.begin());
+
+        return true;
+    }
+
     bool tryInstantiateFunctionTemplate(tree::ASTNode& attach, tree::Identifier& node, bool no_action)
     {
         // if not all arguments had been resolved,
@@ -994,7 +688,6 @@ public:
         return getBestViable(attach, node, resolution_visitor.candidates, no_action);
     }
 
-private:
 	/**
 	 * Called by resolveSymbol() to check and store collected symbol resolutions
 	 *
@@ -1861,7 +1554,6 @@ public:
 
 private:
 	std::vector<tree::ASTNode*> current_scopes;
-
 	tree::visitor::ResolutionVisitor resolution_visitor;
 
 private:
