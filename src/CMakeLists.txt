@@ -1,6 +1,6 @@
 #
 # Zillians MMO
-# Copyright (C) 2007-2012 Zillians.com, Inc.
+# Copyright (C) 2007-2010 Zillians.com, Inc.
 # For more information see http:#www.zillians.com
 #
 # Zillians MMO is the library and runtime for massive multiplayer online game
@@ -20,10 +20,14 @@
 #
 
 ADD_SUBDIRECTORY(zillians-spirit-log-filter)
+ADD_SUBDIRECTORY(libzillians-framework-language)
+ADD_SUBDIRECTORY(zillians-thorscript-bundler)
+ADD_SUBDIRECTORY(zillians-thorscript-compiler)
+ADD_SUBDIRECTORY(zillians-thorscript-driver)
+ADD_SUBDIRECTORY(zillians-thorscript-linker)
+ADD_SUBDIRECTORY(zillians-thorscript-manifest-builder)
+ADD_SUBDIRECTORY(zillians-thorscript-stripper)
+ADD_SUBDIRECTORY(zillians-thorscript-stub-generator)
+ADD_SUBDIRECTORY(zillians-thorscript-vm)
+ADD_SUBDIRECTORY(zillians-thorscript-dep)
 
-# TODO consider to remove COG since we have ThorPP
-IF(COG_FOUND)
-    ADD_SUBDIRECTORY(libzillians-framework-language)
-    ADD_SUBDIRECTORY(libzillians-framework-language-main-stages)
-    ADD_SUBDIRECTORY(zillians-framework-language-compiler-collection)
-ENDIF()
