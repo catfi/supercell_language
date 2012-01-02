@@ -142,11 +142,10 @@ struct LLVMDebugInfoGeneratorStageVisitor: public GenericDoubleVisitor
 		case TypeSpecifier::ReferredType::PRIMITIVE:
 		{
 			type = createPrimitiveType(node.referred.primitive);
+			DebugInfoTypeContext::set(&node, new DebugInfoTypeContext(type));
 			break;
 		}
 		}
-
-		DebugInfoTypeContext::set(&node, new DebugInfoTypeContext(type));
 	}
 
 	void generate(FunctionDecl& node)
@@ -189,6 +188,7 @@ struct LLVMDebugInfoGeneratorStageVisitor: public GenericDoubleVisitor
 		if(node.name) generate(*node.name);
 		foreach(i, node.parameters)
 		{
+			generateVariableDebugInfo(**i, llvm::dwarf::DW_TAG_arg_variable);
 			if((*i)->name) generate(*((*i)->name));
 			if((*i)->type) generate(*((*i)->type));
 			if((*i)->initializer) generate(*((*i)->initializer));
@@ -229,6 +229,28 @@ struct LLVMDebugInfoGeneratorStageVisitor: public GenericDoubleVisitor
 
 	void generate(VariableDecl& node)
 	{
+		generateVariableDebugInfo(node, llvm::dwarf::DW_TAG_auto_variable);
+	}
+
+	void generate(IfElseStmt& node)
+	{
+		LOG4CXX_DEBUG(LoggerWrapper::DebugInfoGeneratorStage, __PRETTY_FUNCTION__);
+
+		DebugInfoContext* parent_debug_info = DebugInfoContext::get(node.parent);
+		DebugInfoContext::set(&node, new DebugInfoContext(*parent_debug_info));
+
+		SourceInfoContext* source_info = SourceInfoContext::get(&node);
+
+		revisit(node);
+
+		llvm::Instruction* inst = llvm::cast<llvm::Instruction>(node.if_branch.cond->get<llvm::Value>());
+		inst->setDebugLoc(llvm::DebugLoc::get(source_info->line, source_info->column, parent_debug_info->context));
+	}
+
+
+private:
+	void generateVariableDebugInfo(VariableDecl& node, llvm::dwarf::llvm_dwarf_constants variable_type)
+	{
 		LOG4CXX_DEBUG(LoggerWrapper::DebugInfoGeneratorStage, __PRETTY_FUNCTION__);
 		BOOST_ASSERT(node.parent && "Variable declaration has no parent!");
 
@@ -241,9 +263,16 @@ struct LLVMDebugInfoGeneratorStageVisitor: public GenericDoubleVisitor
 		generate(*node.type);
 		DebugInfoTypeContext* type_info = DebugInfoTypeContext::get(node.type);
 
+		// Well, it should be "this", or there will be some other issue
+		if (type_info == NULL)
+		{
+			LOG4CXX_DEBUG(LoggerWrapper::DebugInfoGeneratorStage, "<Variable> var: " << ws_to_s(node.name->toString()).c_str() << " has no type info");
+			return;
+		}
+
 		// TODO: Need to decide the type
 		llvm::DIVariable variable = factory.createLocalVariable(
-				llvm::dwarf::DW_TAG_auto_variable,
+				variable_type,
 				parent_debug_info->context, llvm::StringRef(ws_to_s(node.name->toString()).c_str()),
 				parent_debug_info->file, source_info->line,
 				type_info->type
@@ -279,23 +308,6 @@ struct LLVMDebugInfoGeneratorStageVisitor: public GenericDoubleVisitor
 		revisit(node);
 	}
 
-	void generate(IfElseStmt& node)
-	{
-		LOG4CXX_DEBUG(LoggerWrapper::DebugInfoGeneratorStage, __PRETTY_FUNCTION__);
-
-		DebugInfoContext* parent_debug_info = DebugInfoContext::get(node.parent);
-		DebugInfoContext::set(&node, new DebugInfoContext(*parent_debug_info));
-
-		SourceInfoContext* source_info = SourceInfoContext::get(&node);
-
-		revisit(node);
-
-		llvm::Instruction* inst = llvm::cast<llvm::Instruction>(node.if_branch.cond->get<llvm::Value>());
-		inst->setDebugLoc(llvm::DebugLoc::get(source_info->line, source_info->column, parent_debug_info->context));
-	}
-
-
-private:
 	llvm::DIType createPrimitiveType(PrimitiveType::type type)
 	{
 		int bits = 0;
