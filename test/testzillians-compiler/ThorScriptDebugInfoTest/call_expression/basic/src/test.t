@@ -1,12 +1,12 @@
-function test_function():uint32 
+function test_function():int32 
 {
 	test_function2(1, 3);
 }
 
-function test_function2(a:uint64, b:uint64):uint64
+function test_function2(a:int64, b:int64):int64
 {
-	var x:uint64 = 32;
-	var y:uint64 = 33;
+	var x:int64 = 32;
+	var y:int64 = 33;
 
 	x = x + y;	// x = 65
 	
