@@ -12,7 +12,4 @@ function test_function2(a:uint64, b:uint64):uint64
 	
 	y = y * b;	// y = 99
 	x = x + a;	// x = 66
-
-	x = x + 0;
-	y = y + 0;
 }

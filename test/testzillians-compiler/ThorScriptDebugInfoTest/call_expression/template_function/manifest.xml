@@ -1,0 +1,7 @@
+<project name="template_function" author="author" version="0.0.0.1">
+    <dependency>
+        <!-- bundle         path="./in_bundle/a.bundle" -->
+        <!-- native_object  path="./native/b.o"         -->
+        <!-- native_library path="./native/c.a"         -->
+    </dependency>
+</project>
