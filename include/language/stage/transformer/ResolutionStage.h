@@ -41,8 +41,8 @@ public:
 	virtual bool execute(bool& continue_execution);
 
 private:
-	bool resolveTypes(bool report_error_summary, bool& making_progress);
-	bool resolveSymbols(bool report_error_summary, bool& making_progress);
+	void resolveTypes(bool report_error_summary, bool& making_progress, bool& complete_type_resolution, bool& complete_symbol_resolution);
+	void resolveSymbols(bool report_error_summary, bool& making_progress, bool& complete_type_resolution, bool& complete_symbol_resolution);
 
 private:
 	void removeTrivialErrors();
