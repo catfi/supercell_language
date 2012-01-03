@@ -1,6 +1,6 @@
 # 
 # Zillians MMO
-# Copyright (C) 2007-2010 Zillians.com, Inc.
+# Copyright (C) 2007-2009 Zillians.com, Inc.
 # For more information see http:#www.zillians.com
 #
 # Zillians MMO is the library and runtime for massive multiplayer online game
@@ -19,17 +19,31 @@
 # Contact Information: info@zillians.com
 #
 
-INCLUDE_DIRECTORIES(
+include_directories(
     ${PROJECT_COMMON_SOURCE_DIR}/include/
     ${PROJECT_LANGUAGE_SOURCE_DIR}/include/
     )
 
-ADD_EXECUTABLE(ThorScriptTreeTest_StaticTestVerificationStageVisitorTest StaticTestVerificationStageVisitorTest.cpp)
+add_executable(tsc
+    main.cpp
+    )
+    
+target_link_libraries(tsc
+    zillians-language-main-stages-driver
+    )
+    
+set_target_properties(tsc PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${TSC_BINARY_PATH})
 
-TARGET_LINK_LIBRARIES(ThorScriptTreeTest_StaticTestVerificationStageVisitorTest
-    zillians-common-core
-	zillians-language-general-stages
+add_dependencies(tsc
+    ts-bundle
+    ts-compile
+    ts-dep
+    ts-link
+    ts-make
+    ts-strip
+    ts-stub
+    ts-doc
     )
 
-zillians_add_simple_test(TARGET ThorScriptTreeTest_StaticTestVerificationStageVisitorTest)
-zillians_add_test_to_subject(SUBJECT thorscript-tree-test TARGET ThorScriptTreeTest_StaticTestVerificationStageVisitorTest)
+add_dependencies(zillians-language-compiler-collection tsc)
+

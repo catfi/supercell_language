@@ -21,8 +21,8 @@
 
 #zillians_create_test_subject(SUBJECT thorscript-debug-info-test-all)
 #zillians_create_test_subject(SUBJECT thorscript-debug-info-test-ast-all)
-#zillians_add_subject_to_subject(PARENT framework-compiler-critical CHILD thorscript-debug-info-test-all)
-#zillians_add_subject_to_subject(PARENT framework-compiler-critical CHILD thorscript-debug-info-test-ast-all)
+#zillians_add_subject_to_subject(PARENT language-compiler-critical CHILD thorscript-debug-info-test-all)
+#zillians_add_subject_to_subject(PARENT language-compiler-critical CHILD thorscript-debug-info-test-ast-all)
 
 ADD_SUBDIRECTORY(0_basic_function)
 ADD_SUBDIRECTORY(1_basic_variable_declare)

@@ -29,7 +29,7 @@ ADD_EXECUTABLE( ThorScriptDriverTest_HappyPathTest
 )
 
 TARGET_LINK_LIBRARIES(ThorScriptDriverTest_HappyPathTest
-    zillians-framework-language-main-stages-driver
+    zillians-language-main-stages-driver
 )
 
 zillians_add_complex_test(

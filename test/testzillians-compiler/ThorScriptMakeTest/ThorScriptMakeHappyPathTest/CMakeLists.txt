@@ -31,7 +31,7 @@ ADD_EXECUTABLE(
 
 TARGET_LINK_LIBRARIES(ThorScriptMakeTest_ThorScriptMakeHappyPathTest
     zillians-common-core
-    zillians-framework-language-main-stages-make
+    zillians-language-main-stages-make
     )
 
 zillians_add_simple_test(TARGET ThorScriptMakeTest_ThorScriptMakeHappyPathTest)
