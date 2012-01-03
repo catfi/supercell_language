@@ -19,7 +19,7 @@
 # Contact Information: info@zillians.com
 #
 
-PROJECT(zillians-framework)
+PROJECT(zillians-language)
 
 ADD_SUBDIRECTORY(src)
 ADD_SUBDIRECTORY(test)

@@ -249,9 +249,17 @@ struct LLVMGeneratorStageVisitor : public GenericDoubleVisitor
 		{
 			if(node.result)
 			{
-				llvm::Value* return_value = GET_SYNTHESIZED_LLVM_VALUE(node.result);
-				BOOST_ASSERT(return_value && "invalid LLVM value for return instruction");
-				mBuilder.CreateStore(return_value, mFunctionContext.return_value);
+				ASTNode* operand_resolved;
+				llvm::Value* operand_value_for_read;
+				llvm::Value* operand_value_for_write;
+				if(!getValue(*node.result, operand_resolved, operand_value_for_read, operand_value_for_write, true, false))
+				{
+					BOOST_ASSERT(false && "failed to resolve LLVM value for operand");
+					terminateRevisit();
+				}
+
+				BOOST_ASSERT(operand_value_for_read && "invalid LLVM value for return instruction");
+				mBuilder.CreateStore(operand_value_for_read, mFunctionContext.return_value);
 				result = mBuilder.CreateBr(mFunctionContext.return_block);
 			}
 			else
