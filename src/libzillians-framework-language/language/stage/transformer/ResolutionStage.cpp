@@ -107,11 +107,14 @@ bool ResolutionStage::execute(bool& continue_execution)
 
 		bool making_progress_on_type_resolution = false;
 		if(!complete_type_resolution)
-			complete_type_resolution = resolveTypes(false, making_progress_on_type_resolution);
+			resolveTypes(false, making_progress_on_type_resolution, complete_type_resolution, complete_symbol_resolution);
 
 		bool making_progress_on_symbol_resolution = false;
 		if(!complete_symbol_resolution)
-			complete_symbol_resolution = resolveSymbols(false, making_progress_on_symbol_resolution);
+			resolveSymbols(false, making_progress_on_symbol_resolution, complete_type_resolution, complete_symbol_resolution);
+
+        if(!complete_type_resolution) complete_symbol_resolution = false;
+        if(!complete_symbol_resolution) complete_type_resolution = false;
 
         if(dump_graphviz)
         {
@@ -128,9 +131,9 @@ bool ResolutionStage::execute(bool& continue_execution)
 
 	bool dummy = false;
 	if(!complete_type_resolution)
-		resolveTypes(true, dummy);
+		resolveTypes(true, dummy, dummy, dummy);
 	if(!complete_symbol_resolution)
-		resolveSymbols(true, dummy);
+		resolveSymbols(true, dummy, dummy, dummy);
 
 	// remove trivial and redundant errors
 	removeTrivialErrors();
@@ -148,12 +151,15 @@ bool ResolutionStage::execute(bool& continue_execution)
 	return complete_type_resolution && complete_symbol_resolution;
 }
 
-bool ResolutionStage::resolveTypes(bool report_error_summary, bool& making_progress)
+void ResolutionStage::resolveTypes(bool report_error_summary, bool& making_progress, bool& complete_type_resolution, bool& complete_symbol_resolution)
 {
 	ParserContext& parser_context = getParserContext();
 
 	if(!parser_context.active_source)
-		return false;
+    {
+        complete_type_resolution = false;
+		return;
+    }
 
 	LOG4CXX_DEBUG(LoggerWrapper::TransformerStage, L"resolution stage trying to resolve types");
 
@@ -170,7 +176,8 @@ bool ResolutionStage::resolveTypes(bool report_error_summary, bool& making_progr
 	{
 		resolver.applyTransforms();
 		making_progress = true;
-        ++unresolved_count; // since we have instantiated new classes, there might be unresolved types within the class, so we have to assume there's at lease one unresolved types (though there can be none)
+        complete_type_resolution = false;
+        complete_symbol_resolution = false;
 	}
 
 	if(visitor.hasTransforms())
@@ -195,20 +202,25 @@ bool ResolutionStage::resolveTypes(bool report_error_summary, bool& making_progr
 				unresolved_types.insert(*i);
 			}
 		}
-		return false;
+        complete_type_resolution = false;
+        return;
 	}
 	else
 	{
-		return true;
+        complete_type_resolution = true;
+		return;
 	}
 }
 
-bool ResolutionStage::resolveSymbols(bool report_error_summary, bool& making_progress)
+void ResolutionStage::resolveSymbols(bool report_error_summary, bool& making_progress, bool& complete_type_resolution, bool& complete_symbol_resolution)
 {
 	ParserContext& parser_context = getParserContext();
 
 	if(!parser_context.active_source)
-		return false;
+    {
+        complete_symbol_resolution = false;
+        return;
+    }
 
 	LOG4CXX_DEBUG(LoggerWrapper::TransformerStage, "resolution stage trying to resolve symbols");
 
@@ -220,10 +232,13 @@ bool ResolutionStage::resolveSymbols(bool report_error_summary, bool& making_pro
 	visitor.reset();
 	visitor.visit(*parser_context.tangle);
 
+	std::size_t unresolved_count = visitor.getUnresolvedCount();
 	if(resolver.hasTransforms())
 	{
 		resolver.applyTransforms();
 		making_progress = true;
+        complete_type_resolution = false;
+        complete_symbol_resolution = false;
 	}
 
 	if(visitor.hasTransforms())
@@ -232,7 +247,6 @@ bool ResolutionStage::resolveSymbols(bool report_error_summary, bool& making_pro
 		making_progress = true;
 	}
 
-	std::size_t unresolved_count = visitor.getUnresolvedCount();
 	if(unresolved_count < total_unresolved_count_type)
 	{
 		total_unresolved_count_type = unresolved_count;
@@ -248,11 +262,13 @@ bool ResolutionStage::resolveSymbols(bool report_error_summary, bool& making_pro
 				unresolved_symbols.insert(*i);
 			}
 		}
-		return false;
+        complete_symbol_resolution = false;
+		return;
 	}
 	else
 	{
-		return true;
+        complete_symbol_resolution = true;
+		return;
 	}
 }
 
