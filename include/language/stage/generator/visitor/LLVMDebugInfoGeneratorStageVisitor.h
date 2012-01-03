@@ -150,6 +150,9 @@ struct LLVMDebugInfoGeneratorStageVisitor: public GenericDoubleVisitor
 
 	void generate(FunctionDecl& node)
 	{
+		if(ASTNodeHelper::hasNativeLinkage(&node))
+			return;
+
 		LOG4CXX_DEBUG(LoggerWrapper::DebugInfoGeneratorStage, __PRETTY_FUNCTION__);
 		LOG4CXX_DEBUG(LoggerWrapper::DebugInfoGeneratorStage, "<Function> function name: " << ws_to_s(node.name->toString()));
 
@@ -161,8 +164,6 @@ struct LLVMDebugInfoGeneratorStageVisitor: public GenericDoubleVisitor
 		// generate return type debug information
 		generate(*node.type);
 		DebugInfoTypeContext* return_type = DebugInfoTypeContext::get(node.type);
-
-		// TODO: generate debug information of parameters' type
 
 		// Create DISubprogram for the function
 		llvm::Function* llvm_function = GET_SYNTHESIZED_LLVM_FUNCTION(&node);
@@ -188,6 +189,7 @@ struct LLVMDebugInfoGeneratorStageVisitor: public GenericDoubleVisitor
 		if(node.name) generate(*node.name);
 		foreach(i, node.parameters)
 		{
+			// generate debug information of parameters' type
 			generateVariableDebugInfo(**i, llvm::dwarf::DW_TAG_arg_variable);
 			if((*i)->name) generate(*((*i)->name));
 			if((*i)->type) generate(*((*i)->type));
