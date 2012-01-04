@@ -1,10 +1,10 @@
-function test_function():uint32 
+function test_function():int32 
 {
-	var x:uint64 = 32;
-	var y:uint64 = 42;
-	var a:uint64;
-	var b:uint64;
-	var c:uint64;
+	var x:int64 = 32;
+	var y:int64 = 42;
+	var a:int64;
+	var b:int64;
+	var c:int64;
 
 	if (x > y)
 	{
