@@ -69,33 +69,15 @@ struct LLVMDebugInfoGeneratorStageVisitor: public GenericDoubleVisitor
 		 *
 		 * Usually, this function is good for the leaf nodes. If the node is not leaf, we need to specify the context manually, like function, block.
 		 */
-		LOG4CXX_DEBUG(LoggerWrapper::DebugInfoGeneratorStage, __PRETTY_FUNCTION__);
+		LOG4CXX_DEBUG(LoggerWrapper::DebugInfoGeneratorStage,"Handle General Node: " << node.instanceName());
 
-		if (node.parent)
-		{
-			// By pass the debug information from parent to the child.
-			DebugInfoContext* parent_debug_info = DebugInfoContext::get(node.parent);
-
-			// Only Program and Package has no debug info context. So we could safely skip them
-			if (parent_debug_info)
-			{
-				// Propagate the debug info to the current node
-				DebugInfoContext::set(&node, new DebugInfoContext(*parent_debug_info));
-
-				SourceInfoContext* source_info = SourceInfoContext::get(&node);
-				llvm::Value* llvm_value = GET_SYNTHESIZED_LLVM_VALUE(&node);
-
-				if (llvm_value)
-				{
-					llvm::Instruction* llvm_inst = llvm::dyn_cast<llvm::Instruction>(llvm_value);
-					if (llvm_inst)
-						llvm_inst->setDebugLoc(llvm::DebugLoc::get(source_info->line, source_info->column, parent_debug_info->context));
-				}
-
-			}
-		}
-
+		insertDebugLocation(node);
 		revisit(node);
+	}
+
+	void generate(CallExpr& node)
+	{
+		insertDebugLocation(node);
 	}
 
 	void generate(Source& node)
@@ -186,27 +168,21 @@ struct LLVMDebugInfoGeneratorStageVisitor: public GenericDoubleVisitor
 		LOG4CXX_DEBUG(LoggerWrapper::DebugInfoGeneratorStage, "<Function> subprogram: " << subprogram << " mdnode: " << (llvm::MDNode*)subprogram);
 
 		// Visit other attributes
-		if(node.name) generate(*node.name);
 		foreach(i, node.parameters)
 		{
 			// generate debug information of parameters' type
 			generateVariableDebugInfo(**i, llvm::dwarf::DW_TAG_arg_variable);
-			if((*i)->name) generate(*((*i)->name));
-			if((*i)->type) generate(*((*i)->type));
-			if((*i)->initializer) generate(*((*i)->initializer));
 		}
 		if(node.block) generate(*node.block);
-		if(node.annotations) generate(*node.annotations);
 
-		// Insert llvm.dbg.declare for return value
-		llvm::ReturnInst* ret_inst = llvm::cast<llvm::ReturnInst>(GET_SYNTHESIZED_LLVM_VALUE(&node));
-		BOOST_ASSERT(ret_inst && "return instance is NULL");
-
+		// If the function is empty, we still need to insert a debug info
+		LOG4CXX_DEBUG(LoggerWrapper::DebugInfoGeneratorStage, "<Function> block count: " << llvm_function->size());
+		auto last_block = llvm_function->getBasicBlockList().rbegin();
+		llvm::TerminatorInst* terminate_inst = last_block->getTerminator();
 		DebugInfoContext* block_debug_info = DebugInfoContext::get(node.block);
 		SourceInfoContext* block_source_info = SourceInfoContext::get(node.block);
 		BOOST_ASSERT(block_debug_info && block_source_info && "No debug info or source info for block");
-
-		ret_inst->setDebugLoc(llvm::DebugLoc::get(block_source_info->line, block_source_info->column, block_debug_info->context));
+		terminate_inst->setDebugLoc(llvm::DebugLoc::get(block_source_info->line, block_source_info->column, block_debug_info->context));
 	}
 
 	void generate(Block& node)
@@ -245,7 +221,7 @@ struct LLVMDebugInfoGeneratorStageVisitor: public GenericDoubleVisitor
 
 		revisit(node);
 
-		llvm::Instruction* inst = llvm::cast<llvm::Instruction>(node.if_branch.cond->get<llvm::Value>());
+		llvm::Instruction* inst = llvm::cast<llvm::Instruction>(GET_SYNTHESIZED_LLVM_VALUE(node.if_branch.cond));
 		inst->setDebugLoc(llvm::DebugLoc::get(source_info->line, source_info->column, parent_debug_info->context));
 	}
 
@@ -306,8 +282,6 @@ private:
 				store_inst->setDebugLoc(llvm::DebugLoc::get(source_info->line, source_info->column, scope));
 			}
 		}
-
-		revisit(node);
 	}
 
 	llvm::DIType createPrimitiveType(PrimitiveType::type type)
@@ -356,6 +330,7 @@ private:
 		case PrimitiveType::VARIADIC_ELLIPSIS_TYPE: break;
 		default:
 			BOOST_ASSERT(false && "Unknown basic type");
+			break;
 		}
 
 		llvm::DIType basic_type = factory.createBasicType(
@@ -363,6 +338,35 @@ private:
 				bits, alignment, encoding);
 
 		return (primitive_type_cache[type] = basic_type);
+	}
+
+	void insertDebugLocation(ASTNode& node)
+	{
+		if (node.parent)
+		{
+			// By pass the debug information from parent to the child.
+			DebugInfoContext* parent_debug_info = DebugInfoContext::get(node.parent);
+
+			// Only Program and Package has no debug info context. So we could safely skip them
+			if (parent_debug_info)
+			{
+				// Propagate the debug info to the current node
+				DebugInfoContext::set(&node, new DebugInfoContext(*parent_debug_info));
+
+				SourceInfoContext* source_info = SourceInfoContext::get(&node);
+				llvm::Value* llvm_value = GET_SYNTHESIZED_LLVM_VALUE(&node);
+
+				if (llvm_value)
+				{
+					llvm::Instruction* llvm_inst = llvm::dyn_cast<llvm::Instruction>(llvm_value);
+					if (llvm_inst)
+					{
+						LOG4CXX_DEBUG(LoggerWrapper::DebugInfoGeneratorStage, __FUNCTION__ << ": insert debug info at: " << llvm_inst << "(" << source_info->line << ", " << source_info->column << ") with scope: " << (llvm::MDNode*)parent_debug_info->context);
+						llvm_inst->setDebugLoc(llvm::DebugLoc::get(source_info->line, source_info->column, parent_debug_info->context));
+					}
+				}
+			}
+		}
 	}
 
 private:
