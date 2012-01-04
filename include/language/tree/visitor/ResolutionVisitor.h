@@ -483,6 +483,9 @@ struct ResolutionVisitor : Visitor<ASTNode, void, VisitorImplementation::recursi
 				{
 					foreach(i, node.member_functions)
 						tryMatch(**i);
+
+					foreach(i, node.extend_interfaces)
+						tryVisit(**i);
 				}
 			}
 		}

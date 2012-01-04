@@ -488,33 +488,6 @@ private:
         functionCandidates.erase(last, functionCandidates.end());
     }
 
-    bool isBetterThan(FunctionConversionRankList& lhs, FunctionConversionRankList& rhs)
-    {
-        ConversionRankList& l = lhs.second;
-        ConversionRankList& r = rhs.second;
-        std::sort(l.begin(), l.end(), std::greater<ConversionRank::type>());
-        std::sort(r.begin(), r.end(), std::greater<ConversionRank::type>());
-        return l < r;
-    }
-
-    void filterByConversionRankList(std::vector<FunctionConversionRankList>& convertableCandidates)
-    {
-        std::set<std::vector<FunctionConversionRankList>::size_type> out;
-        for(std::vector<FunctionConversionRankList>::size_type i=0; i != convertableCandidates.size(); ++i)
-        {
-            for(std::vector<FunctionConversionRankList>::size_type j=0; j != convertableCandidates.size(); ++j)
-            {
-                if(i == j)
-                    continue;
-                if(isBetterThan(convertableCandidates[i], convertableCandidates[j]))
-                    out.insert(j);
-            }
-        }
-
-        for(auto i = out.rbegin(); i != out.rend(); ++i)
-            convertableCandidates.erase(convertableCandidates.begin() + *i);
-    }
-
     size_t funcTemplateType(FunctionDecl* funcDecl)
     {
         TemplatedIdentifier* tid = cast<TemplatedIdentifier>(funcDecl->name);
@@ -523,7 +496,7 @@ private:
         else                                return 2;
     }
 
-    bool isBetterThan(FuncDeductConversion lhs, FuncDeductConversion& rhs)
+    bool isConversionBetterThan(FuncDeductConversion lhs, FuncDeductConversion& rhs)
     {
         ConversionRankList& l = lhs.convRankList;
         ConversionRankList& r = rhs.convRankList;
@@ -545,7 +518,7 @@ private:
             {
                 if(i == j)
                     continue;
-                if(isBetterThan(convertableCandidates[i], convertableCandidates[j]))
+                if(isConversionBetterThan(convertableCandidates[i], convertableCandidates[j]))
                     out.insert(j);
             }
         }
@@ -636,6 +609,51 @@ private:
         }
     }
 
+    bool isScopeBetterThan(FuncDeductConversion lhs, FuncDeductConversion& rhs)
+    {
+        FunctionDecl* l = lhs.funcDecl;
+        FunctionDecl* r = rhs.funcDecl;
+
+        // non member if better than member,
+        // non member is function local variable(lambda obj)
+        if(!l->is_member && !r->is_member) return false;
+        if(!l->is_member && r->is_member) return true;
+        if(l->is_member && !r->is_member) return false;
+        // when both are member, compare the hier location
+        Declaration* lDecl = cast<Declaration>(l->parent);
+        Declaration* rDecl = cast<Declaration>(r->parent);
+        return ASTNodeHelper::isInheritedFrom(lDecl, rDecl);
+    }
+
+    void filterByHierarchy(std::vector<FuncDeductConversion>& convertableCandidates)
+    {
+        typedef std::vector<FuncDeductConversion>::size_type SizeType;
+        std::set<SizeType> out;
+        for(SizeType i=0; i != convertableCandidates.size(); ++i)
+        {
+            for(SizeType j=0; j != convertableCandidates.size(); ++j)
+            {
+                if(i == j)
+                    continue;
+
+                if(!convertableCandidates[i].funcDecl->is_member && convertableCandidates[j].funcDecl->is_member)
+                {
+                    out.insert(j);
+                    continue;
+                }
+
+                if(isScopeBetterThan(convertableCandidates[i], convertableCandidates[j]))
+                {
+                    out.insert(j);
+                    continue;
+                }
+            }
+        }
+
+        for(auto i = out.rbegin(); i != out.rend(); ++i)
+            convertableCandidates.erase(convertableCandidates.begin() + *i);
+    }
+
     bool getBestViable(ASTNode& attach, Identifier& node, std::vector<ASTNode*>& candidates, bool no_action)
     {
         std::vector<FuncDeductConversion> convertableCandidates;
@@ -645,6 +663,7 @@ private:
         }
 
         filterByFuncDeductConv(convertableCandidates);
+        filterByHierarchy(convertableCandidates);
         filterMatchedCandidateByNumberOfTypeParameters(convertableCandidates);
 
         if(convertableCandidates.size() == 0)

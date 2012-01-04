@@ -267,7 +267,7 @@ struct SemanticVerificationStageVisitor0 : public GenericDoubleVisitor
 		std::wstring name = node.name->toString();
 
 		// INCOMPLETE_FUNC
-		if(!node.block && !ASTNodeHelper::hasNativeLinkage(&node))
+		if(!node.block && !ASTNodeHelper::hasNativeLinkage(&node) && !isa<InterfaceDecl>(node.parent))
 			LOG_MESSAGE(INCOMPLETE_FUNC, &node, _func_id = name);
 
 		bool has_visited_optional_param = false;

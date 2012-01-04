@@ -40,6 +40,14 @@ struct InterfaceDecl : public Declaration
 		BOOST_ASSERT(name && "null interface name is not allowed");
 	}
 
+	void addExtendInterface(TypeSpecifier* interface_)
+	{
+		BOOST_ASSERT(interface_ && "null interface is not allowed");
+
+		interface_->parent = this;
+		extend_interfaces.push_back(interface_);
+	}
+
 	void addFunction(FunctionDecl* func)
 	{
 		func->parent = this;
@@ -86,6 +94,7 @@ struct InterfaceDecl : public Declaration
     }
 
 	std::vector<FunctionDecl*> member_functions;
+    std::vector<TypeSpecifier*> extend_interfaces;
 
 protected:
 	InterfaceDecl() { }

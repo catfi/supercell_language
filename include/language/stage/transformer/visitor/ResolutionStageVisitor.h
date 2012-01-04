@@ -252,6 +252,9 @@ struct ResolutionStageVisitor : public GenericDoubleVisitor
 			if(node.annotations) visit(*node.annotations);
 			if(node.name) visit(*node.name);
 
+            foreach(i, node.extend_interfaces)
+                visit(**i);
+
 			resolver.enterScope(*node.name);
 			resolver.enterScope(node);
 			{
@@ -265,6 +268,9 @@ struct ResolutionStageVisitor : public GenericDoubleVisitor
 		{
 			if(node.annotations) visit(*node.annotations);
 			if(node.name) visit(*node.name);
+
+            foreach(i, node.extend_interfaces)
+                visit(**i);
 
 			resolver.enterScope(node);
 			{

@@ -915,6 +915,7 @@ struct ThorScript : qi::grammar<Iterator, typename SA::start::attribute_type, de
 		interface_decl
 			= qi::eps [ typename SA::location::cache_loc() ]
 				>>	(INTERFACE > IDENTIFIER
+						> -((EXTENDS > nested_identifier) % COMMA)
 						> LEFT_BRACE
 						> *interface_member_function_decl
 						> RIGHT_BRACE
