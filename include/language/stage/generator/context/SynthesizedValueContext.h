@@ -45,6 +45,37 @@ struct SynthesizedValueContext
 	llvm::Value* v;
 };
 
+struct IntermediateValueContext
+{
+	IntermediateValueContext()
+	{ }
+
+	static IntermediateValueContext* get(tree::ASTNode* node)
+	{
+		IntermediateValueContext* ctx = node->get<IntermediateValueContext>();
+		if(!ctx)
+		{
+			ctx = new IntermediateValueContext();
+			node->set<IntermediateValueContext>(ctx);
+		}
+		return ctx;
+	}
+
+	static void push(tree::ASTNode* node, llvm::Value* val)
+	{
+		get(node)->values.push_back(val);
+	}
+
+	std::vector<llvm::Value*> values;
+};
+
+
+#define PUSH_INTERMEDIATE_LLVM_VALUE(x, val) \
+	IntermediateValueContext::push(x, val)
+
+#define GET_INTERMEDIATE_LLVM_VALUES(x, val) \
+	IntermediateValueContext::get(x)->values
+
 #define GET_SYNTHESIZED_LLVM_VALUE(x) \
 	((SynthesizedValueContext::get(x)) ? SynthesizedValueContext::get(x)->v : NULL)
 
