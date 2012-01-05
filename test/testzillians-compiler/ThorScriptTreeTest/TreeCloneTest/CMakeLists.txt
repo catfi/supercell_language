@@ -28,7 +28,7 @@ ADD_EXECUTABLE(ThorScriptTreeTest_TreeCloneTest TreeCloneTest.cpp)
 
 TARGET_LINK_LIBRARIES(ThorScriptTreeTest_TreeCloneTest
     zillians-common-core
-    zillians-framework-language-tree
+    zillians-language-tree
     )
 
 zillians_add_simple_test(TARGET ThorScriptTreeTest_TreeCloneTest)
