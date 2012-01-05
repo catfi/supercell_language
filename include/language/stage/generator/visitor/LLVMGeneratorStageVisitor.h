@@ -104,7 +104,6 @@ struct LLVMGeneratorStageVisitor : public GenericDoubleVisitor
 			terminateRevisit();
 		}
 
-		PUSH_INTERMEDIATE_LLVM_VALUE(&node, result);
 		SET_SYNTHESIZED_LLVM_VALUE(&node, result);
 	}
 
@@ -205,20 +204,7 @@ struct LLVMGeneratorStageVisitor : public GenericDoubleVisitor
 			if(node.initializer)
 			{
 				llvm::Value* llvm_alloca_inst = GET_SYNTHESIZED_LLVM_VALUE(&node);
-				llvm::Value* llvm_init = GET_SYNTHESIZED_LLVM_VALUE(node.initializer);
-
-				if(llvm_init)
-				{
-//					llvm::cast<llvm::AllocaInst>(llvm_alloca_inst)->getAllocatedType()->dump();
-//					llvm::cast<llvm::PointerType>(llvm_alloca_inst->getType())->getElementType()->dump();
-//					llvm_init->getType()->dump();
-					BOOST_ASSERT(llvm::cast<llvm::AllocaInst>(llvm_alloca_inst)->getAllocatedType() == llvm_init->getType());
-					BOOST_ASSERT(llvm::cast<llvm::PointerType>(llvm_alloca_inst->getType())->getElementType() == llvm_init->getType());
-					llvm::StoreInst* store_inst = mBuilder.CreateStore(llvm_init, llvm_alloca_inst);
-
-					PUSH_INTERMEDIATE_LLVM_VALUE(&node, store_inst);
-					SET_SYNTHESIZED_LLVM_VALUE(&node, store_inst);
-				}
+				BOOST_ASSERT(!node.initializer && "the initializer should be null because we have restructure stage applied");
 			}
 		}
 	}
@@ -266,7 +252,7 @@ struct LLVMGeneratorStageVisitor : public GenericDoubleVisitor
 				BOOST_ASSERT(operand_value_for_read && "invalid LLVM value for return instruction");
 
 				llvm::StoreInst* inst = mBuilder.CreateStore(operand_value_for_read, mFunctionContext.return_value);
-				PUSH_INTERMEDIATE_LLVM_VALUE(&node, inst);
+				ADD_INTERMEDIATE_LLVM_VALUE(&node, inst);
 
 				result = mBuilder.CreateBr(mFunctionContext.return_block);
 			}
@@ -285,7 +271,6 @@ struct LLVMGeneratorStageVisitor : public GenericDoubleVisitor
 			terminateRevisit();
 		}
 
-		PUSH_INTERMEDIATE_LLVM_VALUE(&node, result);
 		SET_SYNTHESIZED_LLVM_VALUE(&node, result);
 	}
 
@@ -596,6 +581,10 @@ struct LLVMGeneratorStageVisitor : public GenericDoubleVisitor
 		case UnaryExpr::OpCode::NEW:
 			break;
 		case UnaryExpr::OpCode::NOOP:
+			// since the getValue() may add the llvm value to the intermediate set and for noop unary expression there's no "intermediate value"
+			// we should remove the intermediate value from intermediate set explicitly
+			// TODO should be refactored somehow?
+			REMOVE_INTERMEDIATE_LLVM_VALUE(&node, operand_value_for_read);
 			result = operand_value_for_read;
 			break;
 		default:
@@ -609,7 +598,6 @@ struct LLVMGeneratorStageVisitor : public GenericDoubleVisitor
 			terminateRevisit();
 		}
 
-		PUSH_INTERMEDIATE_LLVM_VALUE(&node, result);
 		SET_SYNTHESIZED_LLVM_VALUE(&node, result);
 	}
 
@@ -754,7 +742,6 @@ struct LLVMGeneratorStageVisitor : public GenericDoubleVisitor
 			terminateRevisit();
 		}
 
-		PUSH_INTERMEDIATE_LLVM_VALUE(&node, result);
 		SET_SYNTHESIZED_LLVM_VALUE(&node, result);
 	}
 
@@ -776,7 +763,7 @@ struct LLVMGeneratorStageVisitor : public GenericDoubleVisitor
 			// conditional branch to either action block or finalized block
 			llvm::Value* llvm_cond = GET_SYNTHESIZED_LLVM_VALUE(node.cond);
 			llvm::BranchInst* inst = mBuilder.CreateCondBr(llvm_cond, true_block, false_block);
-			PUSH_INTERMEDIATE_LLVM_VALUE(&node, inst);
+			ADD_INTERMEDIATE_LLVM_VALUE(&node, inst);
 		}
 
 		// try entering true block and get the value
@@ -785,7 +772,7 @@ struct LLVMGeneratorStageVisitor : public GenericDoubleVisitor
 		{
 			visit(*node.true_node);
 			llvm::BranchInst* inst = mBuilder.CreateBr(final_block);
-			PUSH_INTERMEDIATE_LLVM_VALUE(&node, inst);
+			ADD_INTERMEDIATE_LLVM_VALUE(&node, inst);
 		}
 
 		// try entering true block and get the value
@@ -794,7 +781,7 @@ struct LLVMGeneratorStageVisitor : public GenericDoubleVisitor
 		{
 			visit(*node.false_node);
 			llvm::BranchInst* inst = mBuilder.CreateBr(final_block);
-			PUSH_INTERMEDIATE_LLVM_VALUE(&node, inst);
+			ADD_INTERMEDIATE_LLVM_VALUE(&node, inst);
 		}
 
 		// try enter finalized block and create branch from true block
@@ -807,13 +794,13 @@ struct LLVMGeneratorStageVisitor : public GenericDoubleVisitor
 				if(true_value->getType()->isPointerTy())
 				{
 					true_value = mBuilder.CreateLoad(true_value);
-					PUSH_INTERMEDIATE_LLVM_VALUE(&node, true_value);
+					ADD_INTERMEDIATE_LLVM_VALUE(&node, true_value);
 				}
 
 				if(false_value->getType()->isPointerTy())
 				{
 					false_value = mBuilder.CreateLoad(false_value);
-					PUSH_INTERMEDIATE_LLVM_VALUE(&node, false_value);
+					ADD_INTERMEDIATE_LLVM_VALUE(&node, false_value);
 				}
 			}
 
@@ -821,7 +808,6 @@ struct LLVMGeneratorStageVisitor : public GenericDoubleVisitor
 			phi->addIncoming(true_value, true_block);
 			phi->addIncoming(false_value, false_block);
 
-			PUSH_INTERMEDIATE_LLVM_VALUE(&node, phi);
 			SET_SYNTHESIZED_LLVM_VALUE(&node, phi);
 		}
 	}
@@ -857,7 +843,6 @@ struct LLVMGeneratorStageVisitor : public GenericDoubleVisitor
 				llvm::ArrayRef<llvm::Value*> llvm_arguments(arguments);
 				llvm::Value* result = mBuilder.CreateCall(llvm_function, llvm_arguments);
 
-				PUSH_INTERMEDIATE_LLVM_VALUE(&node, result);
 				SET_SYNTHESIZED_LLVM_VALUE(&node, result);
 			}
 			else
@@ -975,7 +960,6 @@ struct LLVMGeneratorStageVisitor : public GenericDoubleVisitor
 
 		if(llvm_result)
 		{
-			PUSH_INTERMEDIATE_LLVM_VALUE(&node, llvm_result);
 			SET_SYNTHESIZED_LLVM_VALUE(&node, llvm_result);
 		}
 		else
@@ -1043,7 +1027,6 @@ private:
 		else
 			llvm_alloca_inst = new llvm::AllocaInst(llvm_variable_type, 0, "", mFunctionContext.alloca_insert_point);
 
-		PUSH_INTERMEDIATE_LLVM_VALUE(&ast_variable, llvm_alloca_inst);
 		SET_SYNTHESIZED_LLVM_VALUE(&ast_variable, llvm_alloca_inst);
 
 		return true;
@@ -1123,7 +1106,6 @@ private:
 				mBuilder.CreateStore(&(*it_arg), parameter_alloc);
 
 				// store the alloca in the parameter identifier
-				PUSH_INTERMEDIATE_LLVM_VALUE(ast_function.parameters[index], parameter_alloc);
 				SET_SYNTHESIZED_LLVM_VALUE(ast_function.parameters[index], parameter_alloc);
 			}
 			else
@@ -1179,7 +1161,7 @@ private:
 				if(require_read_access)
 				{
 					llvm_value_for_read = mBuilder.CreateLoad(llvm_value_for_read);
-					PUSH_INTERMEDIATE_LLVM_VALUE(&attach, llvm_value_for_read);
+					ADD_INTERMEDIATE_LLVM_VALUE(&attach, llvm_value_for_read);
 				}
 				else
 				{
@@ -1213,7 +1195,7 @@ private:
 					if(require_read_access)
 					{
 						llvm_value_for_read = mBuilder.CreateLoad(llvm_value_for_read);
-						PUSH_INTERMEDIATE_LLVM_VALUE(&attach, llvm_value_for_read);
+						ADD_INTERMEDIATE_LLVM_VALUE(&attach, llvm_value_for_read);
 					}
 					else
 					{
