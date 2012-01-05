@@ -1,6 +1,6 @@
 #
 # Zillians MMO
-# Copyright (C) 2007-2012 Zillians.com, Inc.
+# Copyright (C) 2007-2010 Zillians.com, Inc.
 # For more information see http:#www.zillians.com
 #
 # Zillians MMO is the library and runtime for massive multiplayer online game
@@ -19,11 +19,7 @@
 # Contact Information: info@zillians.com
 #
 
+ADD_SUBDIRECTORY(libzillians-language)
+ADD_SUBDIRECTORY(libzillians-language-stages)
 ADD_SUBDIRECTORY(zillians-spirit-log-filter)
-
-# TODO consider to remove COG since we have ThorPP
-IF(COG_FOUND)
-    ADD_SUBDIRECTORY(libzillians-framework-language)
-    ADD_SUBDIRECTORY(libzillians-framework-language-main-stages)
-    ADD_SUBDIRECTORY(zillians-framework-language-compiler-collection)
-ENDIF()
+ADD_SUBDIRECTORY(zillians-language-compiler-collection)

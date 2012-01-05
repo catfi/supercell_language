@@ -35,7 +35,7 @@ namespace zillians { namespace language { namespace grammar {
 typedef boost::spirit::classic::position_iterator2<std::wstring::iterator> pos_iterator_type;
 
 /// @note In order to reduce compile time, we expose only a non-template function here.
-/// The implementation is in '../../../src/libzillians-framework-language/language/stage/dep/ThorScriptPackageDependencyGrammar.cpp'
+/// The implementation is in '../../../src/libzillians-language/language/stage/dep/ThorScriptPackageDependencyGrammar.cpp'
 bool getImportedPackages(pos_iterator_type begin, pos_iterator_type end, std::vector<std::wstring>& v);
 
 } } }

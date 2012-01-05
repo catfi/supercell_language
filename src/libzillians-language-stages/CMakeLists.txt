@@ -1,37 +1,31 @@
-# 
+#
 # Zillians MMO
-# Copyright (C) 2007-2010 Zillians.com, Inc.
+# Copyright (C) 2007-2012 Zillians.com, Inc.
 # For more information see http:#www.zillians.com
 #
 # Zillians MMO is the library and runtime for massive multiplayer online game
-# development in utility computing model, which runs as a service for every 
+# development in utility computing model, which runs as a service for every
 # developer to build their virtual world running on our GPU-assisted machines
 #
 # This is a close source library intended to be used solely within Zillians.com
-# 
+#
 # THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 # IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
 # FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
 # COPYRIGHT HOLDER(S) BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN
 # AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
-# CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. 
+# CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #
 # Contact Information: info@zillians.com
 #
+add_custom_target(zillians-language-main-stages)
 
-INCLUDE_DIRECTORIES(
-    ${PROJECT_COMMON_SOURCE_DIR}/include/
-    ${PROJECT_LANGUAGE_SOURCE_DIR}/include/
-    )
-
-ADD_EXECUTABLE(
-    ThorScriptDepTest_ThorScriptDepHappyPathTest
-    ThorScriptDepHappyPathTest.cpp
-    )
-
-TARGET_LINK_LIBRARIES(ThorScriptDepTest_ThorScriptDepHappyPathTest
-    zillians-language-main-stages-dep
-    )
-
-zillians_add_simple_test(TARGET ThorScriptDepTest_ThorScriptDepHappyPathTest)
-zillians_add_test_to_subject(SUBJECT thorscript-dep-test TARGET ThorScriptDepTest_ThorScriptDepHappyPathTest)
+ADD_SUBDIRECTORY(bundle)
+ADD_SUBDIRECTORY(compile)
+ADD_SUBDIRECTORY(dep)
+ADD_SUBDIRECTORY(driver)
+ADD_SUBDIRECTORY(link)
+ADD_SUBDIRECTORY(make)
+ADD_SUBDIRECTORY(strip)
+ADD_SUBDIRECTORY(stub)
+ADD_SUBDIRECTORY(vm)

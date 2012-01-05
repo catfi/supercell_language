@@ -28,7 +28,7 @@ ADD_EXECUTABLE(ThorScriptTreeTest_BasicTreeGenerationTest BasicTreeGenerationTes
 
 TARGET_LINK_LIBRARIES(ThorScriptTreeTest_BasicTreeGenerationTest
     zillians-common-core
-    zillians-framework-language-tree
+    zillians-language-tree
     )
 
 zillians_add_simple_test(TARGET ThorScriptTreeTest_BasicTreeGenerationTest)
