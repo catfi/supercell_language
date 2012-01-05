@@ -168,10 +168,10 @@ struct LLVMDebugInfoGeneratorStageVisitor: public GenericDoubleVisitor
 		LOG4CXX_DEBUG(LoggerWrapper::DebugInfoGeneratorStage, "<Function> subprogram: " << subprogram << " mdnode: " << (llvm::MDNode*)subprogram);
 
 		// Visit other attributes
-		foreach(i, node.parameters)
+		for (int i = 0; i < node.parameters.size(); i++)
 		{
 			// generate debug information of parameters' type
-			generateVariableDebugInfo(**i, llvm::dwarf::DW_TAG_arg_variable);
+			generateVariableDebugInfo(*node.parameters[i], llvm::dwarf::DW_TAG_arg_variable, i+1);
 		}
 		if(node.block) generate(*node.block);
 
@@ -211,7 +211,7 @@ struct LLVMDebugInfoGeneratorStageVisitor: public GenericDoubleVisitor
 	}
 
 private:
-	void generateVariableDebugInfo(VariableDecl& node, llvm::dwarf::llvm_dwarf_constants variable_type)
+	void generateVariableDebugInfo(VariableDecl& node, llvm::dwarf::llvm_dwarf_constants variable_type, int argument_position = 0)
 	{
 		LOG4CXX_DEBUG(LoggerWrapper::DebugInfoGeneratorStage, __PRETTY_FUNCTION__);
 		BOOST_ASSERT(node.parent && "Variable declaration has no parent!");
@@ -233,10 +233,12 @@ private:
 		}
 
 		// TODO: Need to decide the type
+		BOOST_ASSERT( (source_info->line >> 24) == 0 && "To much lines!! Only allowed 16777215 lines");
+		uint32 offset = (argument_position << 24) + source_info->line;
 		llvm::DIVariable variable = factory.createLocalVariable(
 				variable_type,
 				parent_debug_info->context, llvm::StringRef(ws_to_s(node.name->toString()).c_str()),
-				parent_debug_info->file, source_info->line,
+				parent_debug_info->file, offset,
 				type_info->type
 				);
 
