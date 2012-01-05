@@ -50,7 +50,7 @@ ThorScriptCompiler::ThorScriptCompiler() : stage::StageBuilder(true)
 			LiteralCompactionStage,
 			RestructureStage,
 			ResolutionStage,
-            ImplicitConversionStage,
+            //ImplicitConversionStage,
 			SemanticVerificationStage1,
 			StaticTestVerificationStage,
 			ManglingStage,
@@ -107,7 +107,7 @@ ThorScriptCompiler::ThorScriptCompiler() : stage::StageBuilder(true)
 			LiteralCompactionStage,
 			RestructureStage,
 			ResolutionStage,
-            ImplicitConversionStage,
+            //ImplicitConversionStage,
 			SemanticVerificationStage1,
 			StaticTestVerificationStage>>("mode-semantic-verify-1", "for semantic verification stage 1");
 

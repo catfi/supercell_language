@@ -97,62 +97,7 @@ struct RestructureStageVisitor : public GenericDoubleVisitor
 	void restruct(FunctionDecl& node)
 	{
 		revisit(node);
-
-		// for all class member function
-		bool need_to_prepend_this_argument = false;
-		ClassDecl* owner_class = ASTNodeHelper::getOwner<ClassDecl>(&node);
-		if(owner_class && node.is_member && !node.is_static)
-		{
-			if(node.parameters.size() == 0)
-			{
-				// if member function has zero argument, which means we've never prepended "this" argument to it
-				need_to_prepend_this_argument = true;
-			}
-			else
-			{
-				// otherwise, check the very first argument's name and type
-				if(node.parameters[0]->name->toString() != L"this")
-				{
-					need_to_prepend_this_argument = true;
-				}
-			}
-		}
-
-		// prepend "this" argument to the function declaration if we haven't done so
-		if(need_to_prepend_this_argument)
-		{
-			transforms.push_back([&, owner_class](){
-				SimpleIdentifier* name = new SimpleIdentifier(L"this");
-
-				Identifier* type_name = NULL;
-				if(isa<TemplatedIdentifier>(owner_class->name))
-				{
-					// create a specialization from the general form
-					TemplatedIdentifier* templated_type_name = cast<TemplatedIdentifier>(ASTNodeHelper::clone(owner_class->name));
-					templated_type_name->specialize();
-					type_name = templated_type_name;
-				}
-				else
-				{
-					type_name = cast<Identifier>(ASTNodeHelper::clone(owner_class->name));
-				}
-
-				TypeSpecifier* type_specifier = new TypeSpecifier(type_name);
-
-				VariableDecl* this_parameter = new VariableDecl(
-						name,
-						type_specifier,
-						true, false, false,
-						Declaration::VisibilitySpecifier::DEFAULT);
-
-				node.prependParameter(this_parameter);
-
-				ASTNodeHelper::propogateSourceInfo(*name, node);
-				ASTNodeHelper::propogateSourceInfo(*type_name, node);
-				ASTNodeHelper::propogateSourceInfo(*type_specifier, node);
-				ASTNodeHelper::propogateSourceInfo(*this_parameter, node);
-			});
-		}
+		// 'prepand this' will be done at code gen stage
 	}
 
 	void restruct(VariableDecl& node)

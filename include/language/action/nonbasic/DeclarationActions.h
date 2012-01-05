@@ -260,9 +260,18 @@ struct interface_decl
 #ifdef DEBUG
 		printf("interface_decl param(0) type = %s\n", typeid(_param_t(0)).name());
 		printf("interface_decl param(1) type = %s\n", typeid(_param_t(1)).name());
+		printf("interface_decl param(2) type = %s\n", typeid(_param_t(2)).name());
 #endif
 		BIND_CACHED_LOCATION(_result = new InterfaceDecl(_param(0)));
-		deduced_foreach_value(i, _param(1))
+		if(_param(1).is_initialized())
+		{
+			deduced_foreach_value(i, *_param(1))
+			{
+				TypeSpecifier* type = new TypeSpecifier(i); BIND_CACHED_LOCATION(type);
+				cast<InterfaceDecl>(_result)->addExtendInterface(type);
+			}
+		}
+		deduced_foreach_value(i, _param(2))
 		{
 			cast<InterfaceDecl>(_result)->addFunction(cast<FunctionDecl>(i));
 			cast<FunctionDecl>(i)->is_member = true;

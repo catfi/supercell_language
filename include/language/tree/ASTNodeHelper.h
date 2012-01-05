@@ -305,6 +305,73 @@ struct ASTNodeHelper
 		return false;
 	}
 
+	static bool isInheritedFrom(InterfaceDecl* node_derived, InterfaceDecl* node_base)
+	{
+        foreach(i, node_derived->extend_interfaces)
+        {
+            ASTNode* resolvedNode = ResolvedType::get(*i);
+            InterfaceDecl* resolvedInterface = cast<InterfaceDecl>(resolvedNode);
+            BOOST_ASSERT(resolvedInterface != NULL);
+
+            if(resolvedInterface == node_base) return true;
+            if(isInheritedFrom(resolvedInterface, node_base)) return true;
+        }
+        return false;
+	}
+
+	static bool isInheritedFrom(ClassDecl* node_derived, InterfaceDecl* node_base)
+	{
+        // recursive check base class
+        if(node_derived->base)
+        {
+            ASTNode* resolvedNode = ResolvedType::get(node_derived->base);
+            ClassDecl* resolvedBaseClass = cast<ClassDecl>(resolvedNode);
+            BOOST_ASSERT(resolvedBaseClass != NULL);
+            if(isInheritedFrom(resolvedBaseClass, node_base)) return true;
+        }
+        else
+        {
+            // check all interface
+            foreach(i, node_derived->implements)
+            {
+                ASTNode* resolvedNode = ResolvedType::get(*i);
+                InterfaceDecl* resolvedInterface = cast<InterfaceDecl>(resolvedNode);
+                BOOST_ASSERT(resolvedInterface != NULL);
+
+                if(resolvedInterface == node_base) return true;
+                if(isInheritedFrom(resolvedInterface, node_base)) return true;
+            }
+        }
+        return false;
+	}
+
+	static bool isInheritedFrom(Declaration* node_derived, Declaration* node_base)
+	{
+		BOOST_ASSERT(node_derived && node_base && "null pointer exception");
+        BOOST_ASSERT((isa<ClassDecl    >(node_derived) && isa<ClassDecl    >(node_base)) ||
+                     (isa<ClassDecl    >(node_derived) && isa<InterfaceDecl>(node_base)) ||
+                     (isa<InterfaceDecl>(node_derived) && isa<InterfaceDecl>(node_base)));
+
+        if(ClassDecl* derived_class = cast<ClassDecl>(node_derived))
+        {
+            if(ClassDecl* base_class = cast<ClassDecl>(node_base))
+            {
+                return isInheritedFrom(derived_class, base_class);
+            }
+            else
+            {
+                InterfaceDecl* base_interface = cast<InterfaceDecl>(node_base);
+                return isInheritedFrom(derived_class, base_interface);
+            }
+        }
+        else
+        {
+            InterfaceDecl* derived_interface = cast<InterfaceDecl>(node_derived);
+            InterfaceDecl* base_interface    = cast<InterfaceDecl>(node_base);
+            return isInheritedFrom(derived_interface, base_interface); 
+        }
+	}
+
 	template<class T> static bool hasOwner(ASTNode* node) { return getOwner<T>(node); }
 	template<class T>
 	static T* getOwner(ASTNode* node)
