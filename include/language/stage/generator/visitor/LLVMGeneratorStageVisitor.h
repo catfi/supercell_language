@@ -104,6 +104,7 @@ struct LLVMGeneratorStageVisitor : public GenericDoubleVisitor
 			terminateRevisit();
 		}
 
+		PUSH_INTERMEDIATE_LLVM_VALUE(&node, result);
 		SET_SYNTHESIZED_LLVM_VALUE(&node, result);
 	}
 
@@ -214,6 +215,8 @@ struct LLVMGeneratorStageVisitor : public GenericDoubleVisitor
 					BOOST_ASSERT(llvm::cast<llvm::AllocaInst>(llvm_alloca_inst)->getAllocatedType() == llvm_init->getType());
 					BOOST_ASSERT(llvm::cast<llvm::PointerType>(llvm_alloca_inst->getType())->getElementType() == llvm_init->getType());
 					llvm::StoreInst* store_inst = mBuilder.CreateStore(llvm_init, llvm_alloca_inst);
+
+					PUSH_INTERMEDIATE_LLVM_VALUE(&node, store_inst);
 					SET_SYNTHESIZED_LLVM_VALUE(&node, store_inst);
 				}
 			}
@@ -242,8 +245,10 @@ struct LLVMGeneratorStageVisitor : public GenericDoubleVisitor
 		switch(node.opcode)
 		{
 		case BranchStmt::OpCode::BREAK:
+			// TODO implement break instruction
 			break;
 		case BranchStmt::OpCode::CONTINUE:
+			// TODO implement continue instruction
 			break;
 		case BranchStmt::OpCode::RETURN:
 		{
@@ -252,14 +257,17 @@ struct LLVMGeneratorStageVisitor : public GenericDoubleVisitor
 				ASTNode* operand_resolved;
 				llvm::Value* operand_value_for_read;
 				llvm::Value* operand_value_for_write;
-				if(!getValue(*node.result, operand_resolved, operand_value_for_read, operand_value_for_write, true, false))
+				if(!getValue(node, *node.result, operand_resolved, operand_value_for_read, operand_value_for_write, true, false))
 				{
 					BOOST_ASSERT(false && "failed to resolve LLVM value for operand");
 					terminateRevisit();
 				}
 
 				BOOST_ASSERT(operand_value_for_read && "invalid LLVM value for return instruction");
-				mBuilder.CreateStore(operand_value_for_read, mFunctionContext.return_value);
+
+				llvm::StoreInst* inst = mBuilder.CreateStore(operand_value_for_read, mFunctionContext.return_value);
+				PUSH_INTERMEDIATE_LLVM_VALUE(&node, inst);
+
 				result = mBuilder.CreateBr(mFunctionContext.return_block);
 			}
 			else
@@ -277,6 +285,7 @@ struct LLVMGeneratorStageVisitor : public GenericDoubleVisitor
 			terminateRevisit();
 		}
 
+		PUSH_INTERMEDIATE_LLVM_VALUE(&node, result);
 		SET_SYNTHESIZED_LLVM_VALUE(&node, result);
 	}
 
@@ -552,7 +561,7 @@ struct LLVMGeneratorStageVisitor : public GenericDoubleVisitor
 		ASTNode* operand_resolved;
 		llvm::Value* operand_value_for_read;
 		llvm::Value* operand_value_for_write;
-		if(!getValue(*node.node, operand_resolved, operand_value_for_read, operand_value_for_write, true, (node.opcode >= UnaryExpr::OpCode::POSTFIX_INCREMENT && node.opcode <= UnaryExpr::OpCode::PREFIX_DECREMENT)))
+		if(!getValue(node, *node.node, operand_resolved, operand_value_for_read, operand_value_for_write, true, (node.opcode >= UnaryExpr::OpCode::POSTFIX_INCREMENT && node.opcode <= UnaryExpr::OpCode::PREFIX_DECREMENT)))
 		{
 			BOOST_ASSERT(false && "failed to resolve LLVM value for operand");
 			terminateRevisit();
@@ -600,6 +609,7 @@ struct LLVMGeneratorStageVisitor : public GenericDoubleVisitor
 			terminateRevisit();
 		}
 
+		PUSH_INTERMEDIATE_LLVM_VALUE(&node, result);
 		SET_SYNTHESIZED_LLVM_VALUE(&node, result);
 	}
 
@@ -614,7 +624,7 @@ struct LLVMGeneratorStageVisitor : public GenericDoubleVisitor
 		llvm::Value* lhs_value_for_read;
 		llvm::Value* lhs_value_for_write;
 		bool is_assignment = node.isAssignment();
-		if(!getValue(*node.left, lhs_resolved, lhs_value_for_read, lhs_value_for_write, !is_assignment, is_assignment))
+		if(!getValue(node, *node.left, lhs_resolved, lhs_value_for_read, lhs_value_for_write, !is_assignment, is_assignment))
 		{
 			BOOST_ASSERT(false && "failed to resolve LLVM value for LHS");
 			terminateRevisit();
@@ -623,7 +633,7 @@ struct LLVMGeneratorStageVisitor : public GenericDoubleVisitor
 		ASTNode* rhs_resolved;
 		llvm::Value* rhs_value_for_read;
 		llvm::Value* rhs_value_for_write;
-		if(!getValue(*node.right, rhs_resolved, rhs_value_for_read, rhs_value_for_write, true, false))
+		if(!getValue(node, *node.right, rhs_resolved, rhs_value_for_read, rhs_value_for_write, true, false))
 		{
 			BOOST_ASSERT(false && "failed to resolve LLVM value for RHS");
 			terminateRevisit();
@@ -744,6 +754,7 @@ struct LLVMGeneratorStageVisitor : public GenericDoubleVisitor
 			terminateRevisit();
 		}
 
+		PUSH_INTERMEDIATE_LLVM_VALUE(&node, result);
 		SET_SYNTHESIZED_LLVM_VALUE(&node, result);
 	}
 
@@ -764,7 +775,8 @@ struct LLVMGeneratorStageVisitor : public GenericDoubleVisitor
 
 			// conditional branch to either action block or finalized block
 			llvm::Value* llvm_cond = GET_SYNTHESIZED_LLVM_VALUE(node.cond);
-			mBuilder.CreateCondBr(llvm_cond, true_block, false_block);
+			llvm::BranchInst* inst = mBuilder.CreateCondBr(llvm_cond, true_block, false_block);
+			PUSH_INTERMEDIATE_LLVM_VALUE(&node, inst);
 		}
 
 		// try entering true block and get the value
@@ -772,7 +784,8 @@ struct LLVMGeneratorStageVisitor : public GenericDoubleVisitor
 		if(node.true_node)
 		{
 			visit(*node.true_node);
-			mBuilder.CreateBr(final_block);
+			llvm::BranchInst* inst = mBuilder.CreateBr(final_block);
+			PUSH_INTERMEDIATE_LLVM_VALUE(&node, inst);
 		}
 
 		// try entering true block and get the value
@@ -780,7 +793,8 @@ struct LLVMGeneratorStageVisitor : public GenericDoubleVisitor
 		if(node.false_node)
 		{
 			visit(*node.false_node);
-			mBuilder.CreateBr(final_block);
+			llvm::BranchInst* inst = mBuilder.CreateBr(final_block);
+			PUSH_INTERMEDIATE_LLVM_VALUE(&node, inst);
 		}
 
 		// try enter finalized block and create branch from true block
@@ -791,16 +805,23 @@ struct LLVMGeneratorStageVisitor : public GenericDoubleVisitor
 			if(node.isRValue())
 			{
 				if(true_value->getType()->isPointerTy())
+				{
 					true_value = mBuilder.CreateLoad(true_value);
+					PUSH_INTERMEDIATE_LLVM_VALUE(&node, true_value);
+				}
 
 				if(false_value->getType()->isPointerTy())
+				{
 					false_value = mBuilder.CreateLoad(false_value);
+					PUSH_INTERMEDIATE_LLVM_VALUE(&node, false_value);
+				}
 			}
 
 			llvm::PHINode* phi = mBuilder.CreatePHI(true_value->getType(), 2);
 			phi->addIncoming(true_value, true_block);
 			phi->addIncoming(false_value, false_block);
 
+			PUSH_INTERMEDIATE_LLVM_VALUE(&node, phi);
 			SET_SYNTHESIZED_LLVM_VALUE(&node, phi);
 		}
 	}
@@ -818,7 +839,7 @@ struct LLVMGeneratorStageVisitor : public GenericDoubleVisitor
 			ASTNode* parameter_resolved;
 			llvm::Value* parameter_value_for_read;
 			llvm::Value* parameter_value_for_write;
-			if(!getValue(**i, parameter_resolved, parameter_value_for_read, parameter_value_for_write, true, false))
+			if(!getValue(node, **i, parameter_resolved, parameter_value_for_read, parameter_value_for_write, true, false))
 			{
 				BOOST_ASSERT(false && "invalid LLVM parameter value for function call");
 				terminateRevisit();
@@ -835,6 +856,8 @@ struct LLVMGeneratorStageVisitor : public GenericDoubleVisitor
 			{
 				llvm::ArrayRef<llvm::Value*> llvm_arguments(arguments);
 				llvm::Value* result = mBuilder.CreateCall(llvm_function, llvm_arguments);
+
+				PUSH_INTERMEDIATE_LLVM_VALUE(&node, result);
 				SET_SYNTHESIZED_LLVM_VALUE(&node, result);
 			}
 			else
@@ -862,7 +885,7 @@ struct LLVMGeneratorStageVisitor : public GenericDoubleVisitor
 		llvm::Value* llvm_result = NULL;
 		llvm::Value* llvm_value_for_read = NULL;
 		llvm::Value* llvm_value_for_write = NULL;
-		if(!getValue(*node.node, node_resolved, llvm_value_for_read, llvm_value_for_write, true, false))
+		if(!getValue(node, *node.node, node_resolved, llvm_value_for_read, llvm_value_for_write, true, false))
 		{
 			BOOST_ASSERT(false && "invalid LLVM parameter value for type conversion");
 			terminate();
@@ -952,6 +975,7 @@ struct LLVMGeneratorStageVisitor : public GenericDoubleVisitor
 
 		if(llvm_result)
 		{
+			PUSH_INTERMEDIATE_LLVM_VALUE(&node, llvm_result);
 			SET_SYNTHESIZED_LLVM_VALUE(&node, llvm_result);
 		}
 		else
@@ -1019,6 +1043,7 @@ private:
 		else
 			llvm_alloca_inst = new llvm::AllocaInst(llvm_variable_type, 0, "", mFunctionContext.alloca_insert_point);
 
+		PUSH_INTERMEDIATE_LLVM_VALUE(&ast_variable, llvm_alloca_inst);
 		SET_SYNTHESIZED_LLVM_VALUE(&ast_variable, llvm_alloca_inst);
 
 		return true;
@@ -1098,6 +1123,7 @@ private:
 				mBuilder.CreateStore(&(*it_arg), parameter_alloc);
 
 				// store the alloca in the parameter identifier
+				PUSH_INTERMEDIATE_LLVM_VALUE(ast_function.parameters[index], parameter_alloc);
 				SET_SYNTHESIZED_LLVM_VALUE(ast_function.parameters[index], parameter_alloc);
 			}
 			else
@@ -1142,7 +1168,7 @@ private:
 	}
 
 private:
-	bool getValue(ASTNode& node, /*OUT*/ ASTNode*& resolved_symbol, /*OUT*/ llvm::Value*& llvm_value_for_read, /*OUT*/ llvm::Value*& llvm_value_for_write, bool require_read_access, bool require_write_access)
+	bool getValue(ASTNode& attach, ASTNode& node, /*OUT*/ ASTNode*& resolved_symbol, /*OUT*/ llvm::Value*& llvm_value_for_read, /*OUT*/ llvm::Value*& llvm_value_for_write, bool require_read_access, bool require_write_access)
 	{
 		llvm_value_for_read = GET_SYNTHESIZED_LLVM_VALUE(&node);
 		if(llvm_value_for_read && !llvm::isa<llvm::StoreInst>(llvm_value_for_read))
@@ -1153,6 +1179,7 @@ private:
 				if(require_read_access)
 				{
 					llvm_value_for_read = mBuilder.CreateLoad(llvm_value_for_read);
+					PUSH_INTERMEDIATE_LLVM_VALUE(&attach, llvm_value_for_read);
 				}
 				else
 				{
@@ -1186,6 +1213,7 @@ private:
 					if(require_read_access)
 					{
 						llvm_value_for_read = mBuilder.CreateLoad(llvm_value_for_read);
+						PUSH_INTERMEDIATE_LLVM_VALUE(&attach, llvm_value_for_read);
 					}
 					else
 					{
@@ -1204,7 +1232,7 @@ private:
 			else
 			{
 				// nested value resolve
-				return getValue(*resolved_symbol, resolved_symbol, llvm_value_for_read, llvm_value_for_write, require_read_access, require_write_access);
+				return getValue(attach, *resolved_symbol, resolved_symbol, llvm_value_for_read, llvm_value_for_write, require_read_access, require_write_access);
 			}
 		}
 

@@ -829,7 +829,7 @@ struct ThorScript : qi::grammar<Iterator, typename SA::start::attribute_type, de
 			= qi::eps [ typename SA::location::cache_loc() ]
 				>>	(LEFT_BRACE
 						> *statement
-						> RIGHT_BRACE
+						> RIGHT_BRACE [ typename SA::location::cache_loc() ]
 					) [ typename SA::block::init() ]
 			;
 
