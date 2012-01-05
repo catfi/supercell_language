@@ -18,34 +18,21 @@ function test_function():int32
 		a = a - 2;
 	}
 
-	if (x > y + 100)
+	if 
+	(x < y)
+	{ a = y; }
+	else
 	{
-		b = 1000;
-		b = a - 100;
 	}
-	elif (x == y - 10)
+
+	if (x == y)
 	{
-		// should enter here
-		b = y - x;
-		b = b * 2;
+	}
+	elif(x < y)
+	{
+		y = 3;
 	}
 	else
 	{
-		b = 100; 
-		b = 3;
-	}
-	
-	if (x < y)
-	{
-		// should enter here
-		c = 3;
-	}
-	elif (x > y)
-	{
-		c = 333;
-	}
-	else
-	{
-		c = 0;
 	}
 }
