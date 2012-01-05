@@ -111,13 +111,7 @@ std::string ThorScriptMakeStage::genCompileCmd(boost::graph_traits<TangleGraphTy
 
     // TODO pass the buildType to ts-compile
     if(buildType == BUILD_TYPE::DEBUG)
-    {
         cmd += " --debug ";
-    }
-    else
-    {
-        cmd += " --release ";
-    }
 
     // source files
     std::set<std::string>& sourceFiles = g[v];
