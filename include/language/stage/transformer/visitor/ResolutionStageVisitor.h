@@ -81,8 +81,50 @@ struct ResolutionStageVisitor : public GenericDoubleVisitor
 
 		if(!ResolvedType::get(&node))
 		{
-			ResolvedType::set(&node, getInternalPrimitiveType(PrimitiveType::OBJECT_TYPE));
-			++resolved_count;
+            // this
+            if(node.type == ObjectLiteral::LiteralType::THIS_OBJECT)
+            {
+                FunctionDecl* funcDecl = ASTNodeHelper::getOwner<FunctionDecl>(&node);
+                bool parentIsClass= isa<ClassDecl>(funcDecl->parent);
+                if(funcDecl == NULL || !parentIsClass)
+                {
+                    std::cerr << "Error: `this' can noly be used within member function." << std::endl;
+                }
+                else
+                {
+                    ResolvedType::set(&node, funcDecl->parent);
+                    ++resolved_count;
+                }
+            }
+            // super
+            else if(node.type == ObjectLiteral::LiteralType::SUPER_OBJECT)
+            {
+                FunctionDecl* funcDecl = ASTNodeHelper::getOwner<FunctionDecl>(&node);
+                bool parentIsClass= isa<ClassDecl>(funcDecl->parent);
+                if(funcDecl == NULL || !parentIsClass)
+                {
+                    std::cerr << "Error: `super' can noly be used within member function." << std::endl;
+                }
+                else
+                {
+                    ClassDecl* thisClass = cast<ClassDecl>(funcDecl->parent);
+                    TypeSpecifier* thisBase = thisClass->base;
+                    if(thisBase == NULL)
+                    {
+                        std::wcerr << L"Error: class `" << thisClass->name->toString() << "' has not base class." << std::endl;
+                        return;
+                    }
+                    ASTNode* thisBaseResolved = ResolvedType::get(thisBase);
+                    ClassDecl* superClass = cast<ClassDecl>(thisBaseResolved);
+                    ResolvedType::set(&node, superClass);
+                    ++resolved_count;
+                }
+            }
+            else
+            {
+                ResolvedType::set(&node, getInternalPrimitiveType(PrimitiveType::OBJECT_TYPE));
+                ++resolved_count;
+            }
 		}
 	}
 

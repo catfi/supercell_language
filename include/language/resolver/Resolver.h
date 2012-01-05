@@ -614,10 +614,8 @@ private:
         FunctionDecl* l = lhs.funcDecl;
         FunctionDecl* r = rhs.funcDecl;
 
-        // non member if better than member,
-        // non member is function local variable(lambda obj)
         if(!l->is_member && !r->is_member) return false;
-        if(!l->is_member && r->is_member) return true;
+        if(!l->is_member && r->is_member) return false;
         if(l->is_member && !r->is_member) return false;
         // when both are member, compare the hier location
         Declaration* lDecl = cast<Declaration>(l->parent);
@@ -625,7 +623,7 @@ private:
         return ASTNodeHelper::isInheritedFrom(lDecl, rDecl);
     }
 
-    void filterByHierarchy(std::vector<FuncDeductConversion>& convertableCandidates)
+    void filterByScope(std::vector<FuncDeductConversion>& convertableCandidates)
     {
         typedef std::vector<FuncDeductConversion>::size_type SizeType;
         std::set<SizeType> out;
@@ -635,12 +633,6 @@ private:
             {
                 if(i == j)
                     continue;
-
-                if(!convertableCandidates[i].funcDecl->is_member && convertableCandidates[j].funcDecl->is_member)
-                {
-                    out.insert(j);
-                    continue;
-                }
 
                 if(isScopeBetterThan(convertableCandidates[i], convertableCandidates[j]))
                 {
@@ -663,7 +655,7 @@ private:
         }
 
         filterByFuncDeductConv(convertableCandidates);
-        filterByHierarchy(convertableCandidates);
+        filterByScope(convertableCandidates);
         filterMatchedCandidateByNumberOfTypeParameters(convertableCandidates);
 
         if(convertableCandidates.size() == 0)
