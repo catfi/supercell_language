@@ -69,9 +69,9 @@ struct LLVMDebugInfoGeneratorStageVisitor: public GenericDoubleVisitor
 		 *
 		 * Usually, this function is good for the leaf nodes. If the node is not leaf, we need to specify the context manually, like function, block.
 		 */
-		LOG4CXX_DEBUG(LoggerWrapper::DebugInfoGeneratorStage,"Handle General Node: " << node.instanceName());
-
+		LOG4CXX_DEBUG(LoggerWrapper::DebugInfoGeneratorStage, "Handle General Node");
 		insertDebugLocation(node);
+		insertDebugLocationForIntermediateValues(node);
 		revisit(node);
 	}
 
@@ -210,22 +210,6 @@ struct LLVMDebugInfoGeneratorStageVisitor: public GenericDoubleVisitor
 		generateVariableDebugInfo(node, llvm::dwarf::DW_TAG_auto_variable);
 	}
 
-	void generate(IfElseStmt& node)
-	{
-		LOG4CXX_DEBUG(LoggerWrapper::DebugInfoGeneratorStage, __PRETTY_FUNCTION__);
-
-		DebugInfoContext* parent_debug_info = DebugInfoContext::get(node.parent);
-		DebugInfoContext::set(&node, new DebugInfoContext(*parent_debug_info));
-
-		SourceInfoContext* source_info = SourceInfoContext::get(&node);
-
-		revisit(node);
-
-		llvm::Instruction* inst = llvm::cast<llvm::Instruction>(GET_SYNTHESIZED_LLVM_VALUE(node.if_branch.cond));
-		inst->setDebugLoc(llvm::DebugLoc::get(source_info->line, source_info->column, parent_debug_info->context));
-	}
-
-
 private:
 	void generateVariableDebugInfo(VariableDecl& node, llvm::dwarf::llvm_dwarf_constants variable_type)
 	{
@@ -273,15 +257,7 @@ private:
 		variable_inst->setDebugLoc(llvm::DebugLoc::get(source_info->line, source_info->column, scope));
 
 		// Check if the variable has initialization
-		if(node.initializer)
-		{
-			llvm::Value* llvm_init = GET_SYNTHESIZED_LLVM_VALUE(node.initializer);
-			if(llvm_init)
-			{
-				llvm::StoreInst* store_inst = llvm::cast<llvm::StoreInst>(GET_SYNTHESIZED_LLVM_VALUE(&node));
-				store_inst->setDebugLoc(llvm::DebugLoc::get(source_info->line, source_info->column, scope));
-			}
-		}
+		insertDebugLocationForIntermediateValues(node);
 	}
 
 	llvm::DIType createPrimitiveType(PrimitiveType::type type)
@@ -361,11 +337,30 @@ private:
 					llvm::Instruction* llvm_inst = llvm::dyn_cast<llvm::Instruction>(llvm_value);
 					if (llvm_inst)
 					{
-						LOG4CXX_DEBUG(LoggerWrapper::DebugInfoGeneratorStage, __FUNCTION__ << ": insert debug info at: " << llvm_inst << "(" << source_info->line << ", " << source_info->column << ") with scope: " << (llvm::MDNode*)parent_debug_info->context);
+						LOG4CXX_DEBUG(LoggerWrapper::DebugInfoGeneratorStage, __FUNCTION__ << ": " << node.instanceName() << " @" << llvm_inst << "(" << source_info->line << ", " << source_info->column << ") with scope: " << (llvm::MDNode*)parent_debug_info->context);
 						llvm_inst->setDebugLoc(llvm::DebugLoc::get(source_info->line, source_info->column, parent_debug_info->context));
 					}
 				}
 			}
+		}
+	}
+
+	void insertDebugLocationForIntermediateValues(ASTNode& node)
+	{
+		if (node.parent == NULL)
+		{
+			LOG4CXX_DEBUG(LoggerWrapper::DebugInfoGeneratorStage, __FUNCTION__ << ": " << node.instanceName() << " has no parent");
+			BOOST_ASSERT(false);
+		}
+
+		unordered_set<llvm::Value*> values = GET_INTERMEDIATE_LLVM_VALUES(&node);
+		SourceInfoContext* source_info = SourceInfoContext::get(&node);
+		DebugInfoContext* parent_debug_info = DebugInfoContext::get(node.parent);
+
+		foreach(i, values)
+		{
+			llvm::Instruction* inst = llvm::dyn_cast<llvm::Instruction>(*i);
+			inst->setDebugLoc(llvm::DebugLoc::get(source_info->line, source_info->column, parent_debug_info->context));
 		}
 	}
 
