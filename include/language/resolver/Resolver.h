@@ -226,6 +226,23 @@ private:
     //////////////////////////////////////////////////////////////////////////////
     // helpers
     //////////////////////////////////////////////////////////////////////////////
+    bool isDeducedTypeMapEquivalent(DeducedTypeMap& lhs, DeducedTypeMap& rhs)
+    {
+        if(lhs.size() != rhs.size())
+            return false;
+
+        zillians::language::tree::visitor::ResolutionVisitor v;
+        bool partialmatch;
+        for(DeducedTypeMap::iterator l = lhs.begin(), r = rhs.begin(); l != lhs.end(); ++l, ++r)
+        {
+            if(l->first != r->first) return false;
+            //if(!v.compare(l->second, r->second, partialmatch)) return false;
+            ASTNode* ltype = ASTNodeHelper::findUniqueTypeResolution(l->second);
+            ASTNode* rtype = ASTNodeHelper::findUniqueTypeResolution(r->second);
+            if(!ltype->isEqual(*rtype)) return false;
+        }
+        return true;
+    }
 
     // TODO take default parameter value into consideration
     void filterViableByParameterNumber(ASTNode* node, std::vector<ASTNode*>& candidates)
@@ -574,15 +591,15 @@ private:
         return DeductResult::Success;
     }
 
-    void applyResolveAction(ASTNode& attach, FuncDeductConversion& v)
+    void applyResolveAction(ASTNode& attach, FuncDeductConversion& resolveInfo)
     {
-        FunctionDecl* funcDecl = v.funcDecl;
-        TemplatedIdentifier* tid = cast<TemplatedIdentifier>(v.funcDecl->name);
+        FunctionDecl* funcDecl = resolveInfo.funcDecl;
+        TemplatedIdentifier* tid = cast<TemplatedIdentifier>(resolveInfo.funcDecl->name);
         // just set ResolvedType
         if(tid == NULL || tid->isFullySpecialized())
         {
-            ResolvedSymbol::set(&attach, v.funcDecl);
-            ResolvedType::set(&attach, v.funcDecl);
+            ResolvedSymbol::set(&attach, resolveInfo.funcDecl);
+            ResolvedType::set(&attach, resolveInfo.funcDecl);
         }
         // instantiat
         else
@@ -592,18 +609,21 @@ private:
             bool found = false;
             for(auto i = ranges.first;i != ranges.second; ++i)
             {
+                DeducedTypeMap& lhs = i->second.deduced_types;
+                DeducedTypeMap& rhs = resolveInfo.deductMap;
                 // if there's already function instantiation requested
-                if(v.deductMap == i->second.deduced_types)
+                if(isDeducedTypeMapEquivalent(lhs, rhs))
                 {
                     // just append the attach node to the attach list
                     i->second.to_attach.push_back(&attach);
+                    return;
                 }
             }
 
             // if there's no function instantiation requested, create one
             if(!found)
             {
-                const DeducedTypeMap& deducedTypes = v.deductMap;
+                const DeducedTypeMap& deducedTypes = resolveInfo.deductMap;
                 function_instantiations.insert(std::make_pair(funcDecl, FunctionInstantiationInfo(deducedTypes, &attach)));
             }
         }
