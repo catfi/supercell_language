@@ -21,6 +21,7 @@
 #define ZILLIANS_LANGUAGE_STAGE_SYNTHESIZEDVALUECONTEXT_H_
 
 #include "core/Prerequisite.h"
+#include "core/Containers.h"
 #include "language/tree/ASTNodeFactory.h"
 #include "language/GlobalContext.h"
 #include "language/stage/generator/detail/LLVMHeaders.h"
@@ -61,19 +62,27 @@ struct IntermediateValueContext
 		return ctx;
 	}
 
-	static void push(tree::ASTNode* node, llvm::Value* val)
+	static void add(tree::ASTNode* node, llvm::Value* val)
 	{
-		get(node)->values.push_back(val);
+		get(node)->values.insert(val);
 	}
 
-	std::vector<llvm::Value*> values;
+	static void remove(tree::ASTNode* node, llvm::Value* val)
+	{
+		get(node)->values.erase(val);
+	}
+
+	unordered_set<llvm::Value*> values;
 };
 
 
-#define PUSH_INTERMEDIATE_LLVM_VALUE(x, val) \
-	IntermediateValueContext::push(x, val)
+#define ADD_INTERMEDIATE_LLVM_VALUE(x, val) \
+	IntermediateValueContext::add(x, val)
 
-#define GET_INTERMEDIATE_LLVM_VALUES(x, val) \
+#define REMOVE_INTERMEDIATE_LLVM_VALUE(x, val) \
+	IntermediateValueContext::remove(x, val)
+
+#define GET_INTERMEDIATE_LLVM_VALUES(x) \
 	IntermediateValueContext::get(x)->values
 
 #define GET_SYNTHESIZED_LLVM_VALUE(x) \
