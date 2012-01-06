@@ -1,4 +1,4 @@
-function test_function():int32 
+function test1():int32 
 {
 	var x:int64 = 32;
 	var y:int64 = 42;

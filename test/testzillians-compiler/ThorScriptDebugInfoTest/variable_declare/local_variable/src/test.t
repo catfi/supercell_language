@@ -1,6 +1,6 @@
-function test_function():uint32 
+function test1():int32 
 {
-	var x:uint64 = 34;
-	var y:uint64 = 3;
-	var z:uint64 = 11;
+	var x:int64 = 34;
+	var y:int64 = 3;
+	var z:int64 = 11;
 }
