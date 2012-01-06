@@ -6,6 +6,6 @@ function eval<T>(x : T) : void
 
 function test() : void
 {
-	var x : int32 = 4;
+	var x : int32 = 4000;
 	eval(x);
 }
