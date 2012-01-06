@@ -1,15 +1,11 @@
-function test_function():int32 
+function sum(a:int32, b:int32): int32 
 {
-	test_function2(1, 3);
+	var x : int32 = 0;
+	x = a + b;
+	return x;
 }
 
-function test_function2(a:int64, b:int64):int64
+function test1(): void
 {
-	var x:int64 = 32;
-	var y:int64 = 33;
-
-	x = x + y;	// x = 65
-	
-	y = y * b;	// y = 99
-	x = x + a;	// x = 66
+	var x : int32 =	sum(100, 200);
 }
