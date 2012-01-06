@@ -1133,7 +1133,7 @@ private:
 				transforms.push_back([=]{
 					ASTNode* parent = node->parent; // save the parent pointer for later use
 
-					CastExpr* cast_expr = new CastExpr(cast<Expression>(node), specifier_left);
+					CastExpr* cast_expr = new CastExpr(cast<Expression>(node), cast<TypeSpecifier>(ASTNodeHelper::clone(specifier_left)));
 					// replace the node with update_parent = false because we will update it manually
 					parent->replaceUseWith(*node, *cast_expr, false);
 					cast_expr->parent = parent;
