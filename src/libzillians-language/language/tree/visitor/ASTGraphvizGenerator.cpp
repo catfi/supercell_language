@@ -39,6 +39,8 @@ void ASTGraphvizNodeGenerator::addNode(ASTNode& node,
              const std::wstring& borderColor,
              std::wstring fillColor)
 {
+	using namespace zillians::language::stage;
+
     std::wstring color = borderColor;
     int penwidth = 1;
     // error aware??
@@ -48,15 +50,20 @@ void ASTGraphvizNodeGenerator::addNode(ASTNode& node,
         penwidth = 4;
     }
 
-    if(zillians::language::stage::SourceInfoContext::get(&node) == NULL)
-    {
-        fillColor = L"green";
-    }
-
     stream << L"    n" << std::hex << &node << L" [label=\"" << node.instanceName();
     if(label != L"") {
         boost::algorithm::replace_all(label, "\"", "\\\"");
         stream << L" : " << label ;
+    }
+
+	SourceInfoContext* source_info = SourceInfoContext::get(&node);
+    if(source_info == NULL)
+	{
+        fillColor = L"green";
+	}
+	else
+    {
+        stream << L"(" << std::dec << source_info->line << L":" << source_info->column << L")";
     }
     stream << L"\"";
 
@@ -121,7 +128,15 @@ void ASTGraphvizNodeGenerator::label(Package& node)
 
 void ASTGraphvizNodeGenerator::label(Block& node)
 {
+	SourceInfoContext* source_info = SourceInfoContext::get(&node);
+
     stream << "    n" << std::hex << &node << " [label=\"" << node.instanceName();
+
+	if (source_info)
+	{
+        stream << L"(" << std::dec << source_info->line << L":" << source_info->column << L")";
+	}
+
     if(node.is_pipelined_block)
         stream << L"[pipeline_blocl]";
     else if(node.is_async_block)
