@@ -184,14 +184,13 @@ struct LLVMDebugInfoGeneratorStageVisitor: public GenericDoubleVisitor
 		DebugInfoContext* parent_debug_info = DebugInfoContext::get(node.parent);
 		SourceInfoContext* source_info = SourceInfoContext::get(&node);
 
-		LOG4CXX_DEBUG(LoggerWrapper::DebugInfoGeneratorStage, "<Block> parent: " << parent_debug_info->context << " mdnode: " << (llvm::MDNode*)parent_debug_info->context);
+		LOG4CXX_DEBUG(LoggerWrapper::DebugInfoGeneratorStage, "<Block> line: " << source_info->line << " column: " << source_info->column);
 		llvm::DILexicalBlock function_block = factory.createLexicalBlock(
 				parent_debug_info->context, parent_debug_info->file, source_info->line, source_info->column);
 
 		DebugInfoContext::set(&node, new DebugInfoContext(
 				parent_debug_info->compile_unit, parent_debug_info->file,	// inherit from parent node
 				function_block));
-		LOG4CXX_DEBUG(LoggerWrapper::DebugInfoGeneratorStage, "<Block> context: " << function_block);
 		revisit(node);
 	}
 
