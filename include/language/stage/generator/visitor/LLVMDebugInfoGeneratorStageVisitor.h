@@ -135,17 +135,13 @@ struct LLVMDebugInfoGeneratorStageVisitor: public GenericDoubleVisitor
 		if(ASTNodeHelper::hasNativeLinkage(&node))
 			return;
 
-		LOG4CXX_DEBUG(LoggerWrapper::DebugInfoGeneratorStage, __PRETTY_FUNCTION__);
-		LOG4CXX_DEBUG(LoggerWrapper::DebugInfoGeneratorStage, "<Function> function name: " << ws_to_s(node.name->toString()));
-
 		NameManglingContext* mangling = NameManglingContext::get(&node);
 		DebugInfoContext* file_context = DebugInfoContext::get(getParserContext().active_source);
-		LOG4CXX_DEBUG(LoggerWrapper::DebugInfoGeneratorStage,"<Function> mangling name: " << mangling->managled_name);
-		LOG4CXX_DEBUG(LoggerWrapper::DebugInfoGeneratorStage, "<Function> file: " << getParserContext().active_source->filename);
+		LOG4CXX_DEBUG(LoggerWrapper::DebugInfoGeneratorStage,"<Function> (" << getParserContext().active_source->filename << ") " << ws_to_s(node.name->toString()) << ", " << mangling->managled_name);
 
 		// generate return type debug information
 		generate(*node.type);
-		DebugInfoTypeContext* return_type = DebugInfoTypeContext::get(node.type);
+		llvm::DIType subroutine_type = createSubroutineType(node, file_context->file);
 
 		// Create DISubprogram for the function
 		llvm::Function* llvm_function = GET_SYNTHESIZED_LLVM_FUNCTION(&node);
@@ -157,17 +153,17 @@ struct LLVMDebugInfoGeneratorStageVisitor: public GenericDoubleVisitor
 				llvm::StringRef(mangling->managled_name.c_str()),
 				file_context->file,
 				SourceInfoContext::get(&node)->line,
-				return_type->type,
+				subroutine_type,
 				false, //bool isLocalToUnit,
 				true, //bool isDefinition,
-				false, // unsigned flags: is this function prototyped or not
+				llvm::DIDescriptor::FlagPrototyped, // TODO: Decide the flag
 				false, //bool isOptimized = false
 				llvm_function);
 
 		DebugInfoContext::set(&node, new DebugInfoContext(file_context->compile_unit, file_context->file, subprogram));
-		LOG4CXX_DEBUG(LoggerWrapper::DebugInfoGeneratorStage, "<Function> subprogram: " << subprogram << " mdnode: " << (llvm::MDNode*)subprogram);
+//		LOG4CXX_DEBUG(LoggerWrapper::DebugInfoGeneratorStage, "<Function> subprogram: " << subprogram << " mdnode: " << (llvm::MDNode*)subprogram);
 
-		// Visit other attributes
+		// Generate block and parameters debug info
 		for (int i = 0; i < node.parameters.size(); i++)
 		{
 			// generate debug information of parameters' type
@@ -175,14 +171,8 @@ struct LLVMDebugInfoGeneratorStageVisitor: public GenericDoubleVisitor
 		}
 		if(node.block) generate(*node.block);
 
-		// If the function is empty, we still need to insert a debug info
-		LOG4CXX_DEBUG(LoggerWrapper::DebugInfoGeneratorStage, "<Function> block count: " << llvm_function->size());
-		auto last_block = llvm_function->getBasicBlockList().rbegin();
-		llvm::TerminatorInst* terminate_inst = last_block->getTerminator();
-		DebugInfoContext* block_debug_info = DebugInfoContext::get(node.block);
-		SourceInfoContext* block_source_info = SourceInfoContext::get(node.block);
-		BOOST_ASSERT(block_debug_info && block_source_info && "No debug info or source info for block");
-		terminate_inst->setDebugLoc(llvm::DebugLoc::get(block_source_info->line, block_source_info->column, block_debug_info->context));
+		// Generate function epilog
+		createFunctionEpilog(node);
 	}
 
 	void generate(Block& node)
@@ -211,6 +201,36 @@ struct LLVMDebugInfoGeneratorStageVisitor: public GenericDoubleVisitor
 	}
 
 private:
+	llvm::DIType createSubroutineType(FunctionDecl& node, llvm::DIFile file)
+	{
+		DebugInfoTypeContext* return_type = DebugInfoTypeContext::get(node.type);
+
+		// Create subrountine type
+		std::vector<llvm::Value*> elements;
+		elements.push_back(return_type->type);
+
+		// TODO: By observing clang, I found that even I give lots of parameters, it only generates return type. Parameters seem to lose.
+		// So, temporarily we only put the return type.
+//		foreach(i, node.parameters)
+//		{
+//			elements.push_back( GET_SYNTHESIZED_LLVM_FUNCTION(*i) );
+//		}
+		llvm::DIArray parameter_types = factory.getOrCreateArray(llvm::ArrayRef<llvm::Value*>(elements));
+		return factory.createSubroutineType(file, parameter_types);
+	}
+
+	void createFunctionEpilog(FunctionDecl& node)
+	{
+		llvm::Function* llvm_function = GET_SYNTHESIZED_LLVM_FUNCTION(&node);
+
+		auto last_block = llvm_function->getBasicBlockList().rbegin();
+		llvm::TerminatorInst* terminate_inst = last_block->getTerminator();
+		DebugInfoContext* block_debug_info = DebugInfoContext::get(node.block);
+		SourceInfoContext* block_source_info = SourceInfoContext::get(node.block);
+		BOOST_ASSERT(block_debug_info && block_source_info && "No debug info or source info for block");
+		terminate_inst->setDebugLoc(llvm::DebugLoc::get(block_source_info->line, block_source_info->column, block_debug_info->context));
+	}
+
 	void generateVariableDebugInfo(VariableDecl& node, llvm::dwarf::llvm_dwarf_constants variable_type, int argument_position = 0)
 	{
 		LOG4CXX_DEBUG(LoggerWrapper::DebugInfoGeneratorStage, __PRETTY_FUNCTION__);
