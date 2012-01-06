@@ -95,10 +95,9 @@
 #define CACHE_LOCATION \
 		{ \
 			BOOST_MPL_ASSERT(( boost::is_same<_local_t(0), LOCATION_TYPE&> )); \
-			if(!_local(0)) \
-				_local(0).reset(new stage::SourceInfoContext( \
-						getParserContext().debug.line, \
-						getParserContext().debug.column)); \
+			_local(0).reset(new stage::SourceInfoContext( \
+					getParserContext().debug.line, \
+					getParserContext().debug.column)); \
 		}
 #define BIND_CACHED_LOCATION(x) \
 		{ \
