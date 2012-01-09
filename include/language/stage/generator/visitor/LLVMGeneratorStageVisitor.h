@@ -69,6 +69,7 @@ struct LLVMGeneratorStageVisitor : public GenericDoubleVisitor
 	void generate(Block& node)
 	{
 		revisit(node);
+		SET_SYNTHESIZED_LLVM_BLOCK(&node, mBuilder.GetInsertBlock())
 	}
 
 	void generate(NumericLiteral& node)
@@ -307,6 +308,7 @@ struct LLVMGeneratorStageVisitor : public GenericDoubleVisitor
 				// because we create linkage among blocks on our own in this if/else structure, so we don't emit branch instruction automatically
 				enterBasicBlock(block, false);
 				visit(*node.if_branch.block);
+				block = GET_SYNTHESIZED_LLVM_BLOCK(node.if_branch.block);
 
 				llvm_blocks.push_back(cond);
 				llvm_blocks.push_back(block);
@@ -327,6 +329,7 @@ struct LLVMGeneratorStageVisitor : public GenericDoubleVisitor
 
 					enterBasicBlock(block, false);
 					visit(*i->block);
+					block = GET_SYNTHESIZED_LLVM_BLOCK(i->block);
 
 					llvm_blocks.push_back(cond);
 					llvm_blocks.push_back(block);
