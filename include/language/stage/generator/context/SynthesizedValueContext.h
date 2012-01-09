@@ -46,6 +46,24 @@ struct SynthesizedValueContext
 	llvm::Value* v;
 };
 
+struct SynthesizedBlockContext
+{
+	SynthesizedBlockContext(llvm::BasicBlock* bb) : bb(bb)
+	{ }
+
+	static SynthesizedBlockContext* get(tree::ASTNode* node)
+	{
+		return node->get<SynthesizedBlockContext>();
+	}
+
+	static void set(tree::ASTNode* node, SynthesizedBlockContext* ctx)
+	{
+		node->set<SynthesizedBlockContext>(ctx);
+	}
+
+	llvm::BasicBlock* bb;
+};
+
 struct IntermediateValueContext
 {
 	IntermediateValueContext()
@@ -94,6 +112,17 @@ struct IntermediateValueContext
 			SynthesizedValueContext::get((x))->v = val; \
 		else \
 			SynthesizedValueContext::set(x, new SynthesizedValueContext(val)); \
+	}
+
+#define GET_SYNTHESIZED_LLVM_BLOCK(x) \
+	((SynthesizedBlockContext::get(x)) ? SynthesizedBlockContext::get(x)->bb : NULL)
+
+#define SET_SYNTHESIZED_LLVM_BLOCK(x, val)  \
+	{ \
+		if(SynthesizedBlockContext::get(x)) \
+			SynthesizedBlockContext::get((x))->bb = val; \
+		else \
+			SynthesizedBlockContext::set(x, new SynthesizedBlockContext(val)); \
 	}
 
 } } }
