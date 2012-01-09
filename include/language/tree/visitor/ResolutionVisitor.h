@@ -102,6 +102,10 @@ struct ResolutionVisitor : Visitor<ASTNode, void, VisitorImplementation::recursi
 			if(resolved_package)
 				tryFollow(*resolved_package);
 
+            // note: for object-literal 'this', there is no resolved symbol or package, but resolved type
+            ASTNode* resolved_type = ResolvedType::get(&node);
+            if(resolved_type)
+                tryFollow(*resolved_type);
 		}
 
 		if(isSearchForPackage())
@@ -483,6 +487,9 @@ struct ResolutionVisitor : Visitor<ASTNode, void, VisitorImplementation::recursi
 				{
 					foreach(i, node.member_functions)
 						tryMatch(**i);
+
+					foreach(i, node.extend_interfaces)
+						tryVisit(**i);
 				}
 			}
 		}

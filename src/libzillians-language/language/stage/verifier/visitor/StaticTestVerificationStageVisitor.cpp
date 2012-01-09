@@ -341,6 +341,7 @@ static Declaration* getDecl(ASTNode& node)
     ASTNode*         stmtNode = &node;
     ExpressionStmt*  exprStmt = cast<ExpressionStmt>(stmtNode);
     DeclarativeStmt* declStmt = cast<DeclarativeStmt>(stmtNode);
+    Declaration*     decl     = cast<Declaration>(stmtNode);
     // function call
     if(exprStmt != NULL)
     {
@@ -350,7 +351,7 @@ static Declaration* getDecl(ASTNode& node)
         return decl;
     }
     // variable declaration
-    else
+    else if(declStmt != NULL)
     {
         VariableDecl*  varDecl = cast<VariableDecl>(declStmt->declaration);
         TypeSpecifier* type    = varDecl->type;
@@ -358,6 +359,12 @@ static Declaration* getDecl(ASTNode& node)
         Declaration*   decl    = cast<Declaration>(ResolvedType::get(type));
         return decl;
     }
+    else if(decl != NULL)
+    {
+        return decl;
+    }
+    UNREACHABLE_CODE();
+    return NULL;
 }
 
 /**

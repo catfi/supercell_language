@@ -302,7 +302,7 @@ struct LLVMGeneratorStageVisitor : public GenericDoubleVisitor
 				visit(*node.if_branch.cond);
 
 				llvm::BasicBlock* block = createBasicBlock("if.then", mFunctionContext.function);
-
+				
 				// because we create linkage among blocks on our own in this if/else structure, so we don't emit branch instruction automatically
 				enterBasicBlock(block, false);
 				visit(*node.if_branch.block);
@@ -443,9 +443,17 @@ struct LLVMGeneratorStageVisitor : public GenericDoubleVisitor
 
 		// create the finalized block beforehand
 		llvm::BasicBlock* init_block = createBasicBlock("for.init", mFunctionContext.function);
+		SET_SYNTHESIZED_LLVM_BLOCK(node.init, init_block);
+
 		llvm::BasicBlock* cond_block = createBasicBlock("for.cond", mFunctionContext.function);
+		SET_SYNTHESIZED_LLVM_BLOCK(node.cond, cond_block);
+
 		llvm::BasicBlock* step_block = createBasicBlock("for.step", mFunctionContext.function);
+		SET_SYNTHESIZED_LLVM_BLOCK(node.step, step_block);
+
 		llvm::BasicBlock* action_block = createBasicBlock("for.action", mFunctionContext.function);
+		SET_SYNTHESIZED_LLVM_BLOCK(node.block, action_block);
+
 		llvm::BasicBlock* finalized_block = createBasicBlock("for.finalized", mFunctionContext.function);
 
 		// jump from current block to the condition evaluation block
@@ -514,7 +522,11 @@ struct LLVMGeneratorStageVisitor : public GenericDoubleVisitor
 		if(node.style == WhileStmt::Style::WHILE)
 		{
 			llvm::BasicBlock* cond_block = createBasicBlock("while.eval", mFunctionContext.function);
+			SET_SYNTHESIZED_LLVM_BLOCK(node.cond, cond_block);
+
 			llvm::BasicBlock* action_block = createBasicBlock("while.action", mFunctionContext.function);
+			SET_SYNTHESIZED_LLVM_BLOCK(node.block, action_block);
+
 			llvm::BasicBlock* finalized_block = createBasicBlock("while.finalized", mFunctionContext.function);
 
 			// jump from current block to the condition evaluation block
@@ -543,7 +555,11 @@ struct LLVMGeneratorStageVisitor : public GenericDoubleVisitor
 		else if(node.style == WhileStmt::Style::DO_WHILE)
 		{
 			llvm::BasicBlock* action_block = createBasicBlock("while.action", mFunctionContext.function);
+			SET_SYNTHESIZED_LLVM_BLOCK(node.block, action_block);
+
 			llvm::BasicBlock* cond_block = createBasicBlock("while.eval", mFunctionContext.function);
+			SET_SYNTHESIZED_LLVM_BLOCK(node.cond, cond_block);
+
 			llvm::BasicBlock* finalized_block = createBasicBlock("while.finalized", mFunctionContext.function);
 
 			// jump from current block to the condition evaluation block

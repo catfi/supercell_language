@@ -81,8 +81,50 @@ struct ResolutionStageVisitor : public GenericDoubleVisitor
 
 		if(!ResolvedType::get(&node))
 		{
-			ResolvedType::set(&node, getInternalPrimitiveType(PrimitiveType::OBJECT_TYPE));
-			++resolved_count;
+            // this
+            if(node.type == ObjectLiteral::LiteralType::THIS_OBJECT)
+            {
+                FunctionDecl* funcDecl = ASTNodeHelper::getOwner<FunctionDecl>(&node);
+                bool parentIsClass= isa<ClassDecl>(funcDecl->parent);
+                if(funcDecl == NULL || !parentIsClass)
+                {
+                    std::cerr << "Error: `this' can noly be used within member function." << std::endl;
+                }
+                else
+                {
+                    ResolvedType::set(&node, funcDecl->parent);
+                    ++resolved_count;
+                }
+            }
+            // super
+            else if(node.type == ObjectLiteral::LiteralType::SUPER_OBJECT)
+            {
+                FunctionDecl* funcDecl = ASTNodeHelper::getOwner<FunctionDecl>(&node);
+                bool parentIsClass= isa<ClassDecl>(funcDecl->parent);
+                if(funcDecl == NULL || !parentIsClass)
+                {
+                    std::cerr << "Error: `super' can noly be used within member function." << std::endl;
+                }
+                else
+                {
+                    ClassDecl* thisClass = cast<ClassDecl>(funcDecl->parent);
+                    TypeSpecifier* thisBase = thisClass->base;
+                    if(thisBase == NULL)
+                    {
+                        std::wcerr << L"Error: class `" << thisClass->name->toString() << "' has not base class." << std::endl;
+                        return;
+                    }
+                    ASTNode* thisBaseResolved = ResolvedType::get(thisBase);
+                    ClassDecl* superClass = cast<ClassDecl>(thisBaseResolved);
+                    ResolvedType::set(&node, superClass);
+                    ++resolved_count;
+                }
+            }
+            else
+            {
+                ResolvedType::set(&node, getInternalPrimitiveType(PrimitiveType::OBJECT_TYPE));
+                ++resolved_count;
+            }
 		}
 	}
 
@@ -252,6 +294,9 @@ struct ResolutionStageVisitor : public GenericDoubleVisitor
 			if(node.annotations) visit(*node.annotations);
 			if(node.name) visit(*node.name);
 
+            foreach(i, node.extend_interfaces)
+                visit(**i);
+
 			resolver.enterScope(*node.name);
 			resolver.enterScope(node);
 			{
@@ -265,6 +310,9 @@ struct ResolutionStageVisitor : public GenericDoubleVisitor
 		{
 			if(node.annotations) visit(*node.annotations);
 			if(node.name) visit(*node.name);
+
+            foreach(i, node.extend_interfaces)
+                visit(**i);
 
 			resolver.enterScope(node);
 			{
@@ -1085,7 +1133,7 @@ private:
 				transforms.push_back([=]{
 					ASTNode* parent = node->parent; // save the parent pointer for later use
 
-					CastExpr* cast_expr = new CastExpr(cast<Expression>(node), specifier_left);
+					CastExpr* cast_expr = new CastExpr(cast<Expression>(node), cast<TypeSpecifier>(ASTNodeHelper::clone(specifier_left)));
 					// replace the node with update_parent = false because we will update it manually
 					parent->replaceUseWith(*node, *cast_expr, false);
 					cast_expr->parent = parent;

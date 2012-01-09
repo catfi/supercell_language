@@ -626,10 +626,6 @@ bool ThorScriptDriver::make(const ThorScriptDriver::BUILD_TYPE type)
     {
         cmd += " --debug";
     }
-    else
-    {
-        cmd += " --release";
-    }
     if(shell(cmd) != 0)
     {
         std::cerr << "ERROR make step fail: " << cmd << std::endl;

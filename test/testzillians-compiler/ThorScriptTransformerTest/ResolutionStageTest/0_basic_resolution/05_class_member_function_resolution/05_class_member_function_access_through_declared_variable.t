@@ -9,6 +9,7 @@ class test_me
 function test():void
 {
 	var c:test_me;// = new test_me();
-	c.f0();
-	test_me.f0();
+    var v:int64;
+	c.f0(v, v);
+	test_me.f0(v, v);
 }
