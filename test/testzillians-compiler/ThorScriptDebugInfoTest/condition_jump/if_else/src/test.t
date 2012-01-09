@@ -36,3 +36,35 @@ function test1():int32
 	{
 	}
 }
+
+function test2(): void
+{
+	var x : int32 = 10;
+
+
+	if (x > 10)
+	{
+		x = x + 3;
+	}
+	else
+	{
+		x = 4;
+	}
+}
+
+function test3() : void
+{
+	var x : int32 = 10;
+	var y : int32 = 10;
+
+	if (x > 3)
+	{
+		x = 5;
+		if ( y < 100)
+		{
+			y = x + y;
+		}
+	}
+
+	var z : int32 = x + y;
+}
