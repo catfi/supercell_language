@@ -6,7 +6,10 @@ function test1() : void
 
 	while (i > zero)
 	{
-		i--;
 		x++;
+		if (x != zero) 
+		{
+			i--;
+		}
 	}
 }
