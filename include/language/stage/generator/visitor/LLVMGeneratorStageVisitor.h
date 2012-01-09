@@ -68,7 +68,6 @@ struct LLVMGeneratorStageVisitor : public GenericDoubleVisitor
 
 	void generate(Block& node)
 	{
-		SET_SYNTHESIZED_LLVM_BLOCK(&node, mBuilder.GetInsertBlock())
 		revisit(node);
 	}
 
@@ -303,13 +302,13 @@ struct LLVMGeneratorStageVisitor : public GenericDoubleVisitor
 				visit(*node.if_branch.cond);
 
 				llvm::BasicBlock* block = createBasicBlock("if.then", mFunctionContext.function);
-				SET_SYNTHESIZED_LLVM_BLOCK(node.if_branch.block, block);
 
 				// because we create linkage among blocks on our own in this if/else structure, so we don't emit branch instruction automatically
 				enterBasicBlock(block, false);
 				visit(*node.if_branch.block);
 
 				llvm::BasicBlock* last_active_block = mBuilder.GetInsertBlock();
+				SET_SYNTHESIZED_LLVM_BLOCK(node.if_branch.block, last_active_block);
 
 				llvm_blocks.push_back(cond);
 				llvm_blocks.push_back(block);
@@ -327,12 +326,12 @@ struct LLVMGeneratorStageVisitor : public GenericDoubleVisitor
 					visit(*i->cond);
 
 					llvm::BasicBlock* block = createBasicBlock("elif.then", mFunctionContext.function);
-					SET_SYNTHESIZED_LLVM_BLOCK(i->block, block);
 
 					enterBasicBlock(block, false);
 					visit(*i->block);
 
 					llvm::BasicBlock* last_active_block = mBuilder.GetInsertBlock();
+					SET_SYNTHESIZED_LLVM_BLOCK(i->block, last_active_block);
 
 					llvm_blocks.push_back(cond);
 					llvm_blocks.push_back(block);
@@ -344,12 +343,12 @@ struct LLVMGeneratorStageVisitor : public GenericDoubleVisitor
 			if(node.else_block)
 			{
 				llvm::BasicBlock* block = createBasicBlock("else.then", mFunctionContext.function);
-				SET_SYNTHESIZED_LLVM_BLOCK(node.else_block, block);
 
 				enterBasicBlock(block, false);
 				visit(*node.else_block);
 
 				llvm::BasicBlock* last_active_block = mBuilder.GetInsertBlock();
+				SET_SYNTHESIZED_LLVM_BLOCK(node.else_block, last_active_block);
 
 				llvm_blocks.push_back(block);
 				llvm_blocks.push_back(last_active_block);
