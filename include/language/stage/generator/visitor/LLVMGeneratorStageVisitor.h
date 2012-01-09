@@ -68,8 +68,8 @@ struct LLVMGeneratorStageVisitor : public GenericDoubleVisitor
 
 	void generate(Block& node)
 	{
-		revisit(node);
 		SET_SYNTHESIZED_LLVM_BLOCK(&node, mBuilder.GetInsertBlock())
+		revisit(node);
 	}
 
 	void generate(NumericLiteral& node)
@@ -308,10 +308,12 @@ struct LLVMGeneratorStageVisitor : public GenericDoubleVisitor
 				// because we create linkage among blocks on our own in this if/else structure, so we don't emit branch instruction automatically
 				enterBasicBlock(block, false);
 				visit(*node.if_branch.block);
-				block = GET_SYNTHESIZED_LLVM_BLOCK(node.if_branch.block);
+
+				llvm::BasicBlock* last_active_block = mBuilder.GetInsertBlock();
 
 				llvm_blocks.push_back(cond);
 				llvm_blocks.push_back(block);
+				llvm_blocks.push_back(last_active_block);
 			}
 
 			// for elif branch
@@ -329,10 +331,12 @@ struct LLVMGeneratorStageVisitor : public GenericDoubleVisitor
 
 					enterBasicBlock(block, false);
 					visit(*i->block);
-					block = GET_SYNTHESIZED_LLVM_BLOCK(i->block);
+
+					llvm::BasicBlock* last_active_block = mBuilder.GetInsertBlock();
 
 					llvm_blocks.push_back(cond);
 					llvm_blocks.push_back(block);
+					llvm_blocks.push_back(last_active_block);
 				}
 			}
 
@@ -344,7 +348,11 @@ struct LLVMGeneratorStageVisitor : public GenericDoubleVisitor
 
 				enterBasicBlock(block, false);
 				visit(*node.else_block);
+
+				llvm::BasicBlock* last_active_block = mBuilder.GetInsertBlock();
+
 				llvm_blocks.push_back(block);
+				llvm_blocks.push_back(last_active_block);
 			}
 
 			// for the last block
@@ -363,18 +371,24 @@ struct LLVMGeneratorStageVisitor : public GenericDoubleVisitor
 				if(!isBlockTerminated(llvm_blocks[0]))
 				{
 					mBuilder.SetInsertPoint(llvm_blocks[0]); // [0] is the 'condition evaluation block for if branch'
-					mBuilder.CreateCondBr(llvm_if_cond, llvm_blocks[1], llvm_blocks[2]); // [1] is the 'then block for if branch', [2] could be the 'condition evaluation block for first elif branch', or the 'else block', or the 'end block'
+					mBuilder.CreateCondBr(llvm_if_cond, llvm_blocks[1], llvm_blocks[3]); // [1] is the 'then block for if branch', [2] could be the 'condition evaluation block for first elif branch', or the 'else block', or the 'end block'
 				}
 
 				if(!isBlockTerminated(llvm_blocks[1]))
 				{
-					mBuilder.SetInsertPoint(llvm_blocks[1]); // [1] is the 'then block for if branch'
+					mBuilder.SetInsertPoint(llvm_blocks[1]); // [1] is the first block of 'then block for if branch'
+					mBuilder.CreateBr(llvm_blocks.back()); // [back()] is the 'end block'
+				}
+
+				if(!isBlockTerminated(llvm_blocks[2]))
+				{
+					mBuilder.SetInsertPoint(llvm_blocks[2]); // [2] is the last block of 'then block for if branch'
 					mBuilder.CreateBr(llvm_blocks.back()); // [back()] is the 'end block'
 				}
 			}
 
 			// for all elif branch
-			int index = 2;
+			int index = 3;
 			{
 				foreach(i, node.elseif_branches)
 				{
@@ -383,7 +397,7 @@ struct LLVMGeneratorStageVisitor : public GenericDoubleVisitor
 					if(!isBlockTerminated(llvm_blocks[index]))
 					{
 						mBuilder.SetInsertPoint(llvm_blocks[index]);
-						mBuilder.CreateCondBr(llvm_elif_cond, llvm_blocks[index+1], llvm_blocks[index+2]);
+						mBuilder.CreateCondBr(llvm_elif_cond, llvm_blocks[index+1], llvm_blocks[index+3]);
 					}
 
 					if(!isBlockTerminated(llvm_blocks[index+1]))
@@ -392,19 +406,25 @@ struct LLVMGeneratorStageVisitor : public GenericDoubleVisitor
 						mBuilder.CreateBr(llvm_blocks.back());
 					}
 
-					index += 2;
+					if(!isBlockTerminated(llvm_blocks[index+2]))
+					{
+						mBuilder.SetInsertPoint(llvm_blocks[index+2]);
+						mBuilder.CreateBr(llvm_blocks.back());
+					}
+
+					index += 3;
 				}
 			}
 
 			// for else branch
 			if(node.else_block)
 			{
-				if(!isBlockTerminated(llvm_blocks[index]))
+				if(!isBlockTerminated(llvm_blocks[index+1]))
 				{
-					mBuilder.SetInsertPoint(llvm_blocks[index]);
+					mBuilder.SetInsertPoint(llvm_blocks[index+1]);
 					mBuilder.CreateBr(llvm_blocks.back());
 				}
-				index += 1;
+				index += 2;
 			}
 
 			// for the last block
