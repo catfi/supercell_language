@@ -888,6 +888,7 @@ struct LLVMGeneratorStageVisitor : public GenericDoubleVisitor
 			phi->addIncoming(false_value, false_block);
 
 			SET_SYNTHESIZED_LLVM_VALUE(&node, phi);
+			SET_SYNTHESIZED_LLVM_BLOCK(&node, final_block);
 		}
 	}
 
