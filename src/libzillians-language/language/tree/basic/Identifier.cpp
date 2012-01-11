@@ -20,6 +20,7 @@
 #include "language/tree/basic/Identifier.h"
 #include "language/tree/basic/TypeSpecifier.h"
 #include "language/tree/declaration/TypenameDecl.h"
+#include "language/tree/ASTNodeHelper.h"
 
 namespace zillians { namespace language { namespace tree {
 
@@ -201,7 +202,7 @@ void TemplatedIdentifier::specialize()
 				}
 				else
 				{
-					specialized_type = new TypeSpecifier((*i)->name->clone());
+					specialized_type = new TypeSpecifier(cast<Identifier>(ASTNodeHelper::clone((*i)->name)));
 					specialized_type->parent = *i;
 				}
 

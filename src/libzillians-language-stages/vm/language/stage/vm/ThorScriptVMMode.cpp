@@ -186,7 +186,7 @@ bool ThorScriptClientVM::execute()
 		return false;
 	}
 
-	function_handle_t entry_function = llvm::sys::DynamicLibrary::SearchForAddressOfSymbol(entry_symbol);
+	function_handle_t entry_function = (function_handle_t)llvm::sys::DynamicLibrary::SearchForAddressOfSymbol(entry_symbol);
 	if (entry_function)
 		entry_function();
 	else
