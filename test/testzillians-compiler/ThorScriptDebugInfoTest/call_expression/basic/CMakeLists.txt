@@ -23,7 +23,7 @@ thorscript_add_debuginfo_test_target(
 		TARGET thorscript-compiler-debug-test_call_expression_basic
 		BUNDLE fib.bundle
 		ENTRY  test1
-		SCRIPT command.gdb
+		SCRIPT test.py
 		)
 
 zillians_add_test_to_subject(SUBJECT thorscript-compiler-debug-test TARGET thorscript-compiler-debug-test_call_expression_basic)

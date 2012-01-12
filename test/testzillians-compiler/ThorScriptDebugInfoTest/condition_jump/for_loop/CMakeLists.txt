@@ -23,13 +23,13 @@ thorscript_add_debuginfo_test_target(
 		TARGET thorscript-compiler-debug-test_for_loop1
 		BUNDLE for_loop.bundle
 		ENTRY  test1
-		SCRIPT command1.gdb)
+		SCRIPT test1.py)
 
 thorscript_add_debuginfo_test_target(
 		TARGET thorscript-compiler-debug-test_for_loop2
 		BUNDLE for_loop.bundle
 		ENTRY  test2
-		SCRIPT command2.gdb)
+		SCRIPT test2.py)
 
 zillians_add_test_to_subject(SUBJECT thorscript-compiler-debug-test TARGET thorscript-compiler-debug-test_for_loop1)
 zillians_add_test_to_subject(SUBJECT thorscript-compiler-debug-test TARGET thorscript-compiler-debug-test_for_loop2)

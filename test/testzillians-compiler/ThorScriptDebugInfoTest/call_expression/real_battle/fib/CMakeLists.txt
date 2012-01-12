@@ -23,6 +23,7 @@ thorscript_add_debuginfo_test_target(
 		TARGET thorscript-compiler-debug-test_Realbattle_fib
 		BUNDLE fib.bundle
 		ENTRY  test1
-		SCRIPT command.gdb)
+		SCRIPT test.py
+		)
 
 zillians_add_test_to_subject(SUBJECT thorscript-compiler-debug-test TARGET thorscript-compiler-debug-test_Realbattle_fib)

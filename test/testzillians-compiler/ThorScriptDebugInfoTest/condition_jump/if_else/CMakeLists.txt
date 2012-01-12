@@ -23,19 +23,19 @@ thorscript_add_debuginfo_test_target(
 		TARGET thorscript-compiler-debug-test_if_else1
 		BUNDLE if_else.bundle
 		ENTRY  test1
-		SCRIPT command1.gdb)
+		SCRIPT test1.py)
 
 thorscript_add_debuginfo_test_target(
 		TARGET thorscript-compiler-debug-test_if_else2
 		BUNDLE if_else.bundle
 		ENTRY  test2
-		SCRIPT command2.gdb)
+		SCRIPT test2.py)
 
 thorscript_add_debuginfo_test_target(
 		TARGET thorscript-compiler-debug-test_if_else3
 		BUNDLE if_else.bundle
 		ENTRY  test3
-		SCRIPT command3.gdb)
+		SCRIPT test3.py)
 
 zillians_add_test_to_subject(SUBJECT thorscript-compiler-debug-test TARGET thorscript-compiler-debug-test_if_else1)
 zillians_add_test_to_subject(SUBJECT thorscript-compiler-debug-test TARGET thorscript-compiler-debug-test_if_else2)
