@@ -50,7 +50,7 @@ ThorScriptCompiler::ThorScriptCompiler() : stage::StageBuilder(true)
 			LiteralCompactionStage,
 			RestructureStage,
 			ResolutionStage,
-            //ImplicitConversionStage,
+            ImplicitConversionStage,
 			SemanticVerificationStage1,
 			StaticTestVerificationStage,
 			ManglingStage,
