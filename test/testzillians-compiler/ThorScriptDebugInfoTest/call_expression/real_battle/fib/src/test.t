@@ -40,4 +40,5 @@ function test1() : void
 	{
 		result = 0;
 	}
+	result = result;
 }

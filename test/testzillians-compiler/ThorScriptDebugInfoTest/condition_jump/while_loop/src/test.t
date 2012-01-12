@@ -2,14 +2,14 @@ function test1() : void
 {
 	var i : int32 = 5;
 	var x : int32 = 0;
-	var zero : int32 = 0;
 
-	while (i > zero)
+	while (i > 0)
 	{
 		x++;
-		if (x != zero) 
+		if (x != 0) 
 		{
 			i--;
 		}
 	}
+	x = x;
 }

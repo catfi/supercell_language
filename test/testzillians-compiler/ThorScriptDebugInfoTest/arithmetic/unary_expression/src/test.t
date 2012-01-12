@@ -12,4 +12,5 @@ function test_function():int32
 
 	var b:int64;
 	b = ~x;		// b = -4
+	b = b;
 }
