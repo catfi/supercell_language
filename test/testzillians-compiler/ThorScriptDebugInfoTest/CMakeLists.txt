@@ -28,7 +28,7 @@ IF (GDB)
 	# Define a useful macro for each debug project to use
 	MACRO(thorscript_add_debuginfo_test_target)
 	    # parse the argument options
-	    SET(__option_catalogries "TARGET;BUNDLE;ENTRY;SCRIPT")
+	    SET(__option_catalogries "TARGET;BUNDLE;ENTRY;SCRIPT;BASELIB")
 	    SET(__temporary_options_variable ${ARGN})
 	    split_options(__temporary_options_variable "default" __option_catalogries __options_set)
 	
@@ -36,6 +36,7 @@ IF (GDB)
 	    hashmap(GET __options_set "TARGET" __debug_target_name)
 	    hashmap(GET __options_set "BUNDLE" __debug_bundle_name)
 	    hashmap(GET __options_set "ENTRY" __debug_entry_name)
+	    hashmap(GET __options_set "BASELIB" __debug_baselib_path)
 	    hashmap(GET __options_set "SCRIPT" __debug_script_name)
 
 		# NOTE: Force append "runtest-" to avoid add to simple test
@@ -48,7 +49,7 @@ IF (GDB)
 		#
 		ADD_CUSTOM_COMMAND(OUTPUT dummy_output 
 		    COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_CURRENT_SOURCE_DIR}/script ${CMAKE_CURRENT_BINARY_DIR}/script
-		    COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_CURRENT_SOURCE_DIR}/../../lib ${CMAKE_CURRENT_BINARY_DIR}/script/lib
+		    COMMAND ${CMAKE_COMMAND} -E copy_directory ${__debug_baselib_path} ${CMAKE_CURRENT_BINARY_DIR}/script/lib
 			COMMENT "${__debug_target_name} copy scrips"
 			)
 

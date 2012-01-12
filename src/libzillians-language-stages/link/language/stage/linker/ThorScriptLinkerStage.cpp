@@ -149,14 +149,13 @@ bool ThorScriptLinkerStage::execute(bool& continue_execution)
     foreach(i, bc_files)
     {
         std::string asm_file;
-        buildAssemblyCode(*i, asm_file);
+        if (buildAssemblyCode(*i, asm_file) == false)
+        	return false;
         asm_files.push_back(asm_file);
     }
 
 	// Use native compiler to generate native code
-	buildNativeCode(asm_files);
-
-	return true;
+	return buildNativeCode(asm_files);
 }
 
 bool ThorScriptLinkerStage::buildAssemblyCode(const std::string& bc_file, std::string& asm_file)
@@ -221,9 +220,7 @@ bool ThorScriptLinkerStage::buildAssemblyCode(const std::string& bc_file, std::s
 
 	llvm::formatted_raw_ostream fos(out_file->os());
 	target_machine->addPassesToEmitFile(pm, fos, llvm::TargetMachine::CGFT_AssemblyFile, llvm::CodeGenOpt::None, true);
-	pm.run(*module);
-
-	return true;
+	return pm.run(*module);
 }
 
 bool ThorScriptLinkerStage::buildNativeCode(const std::vector<std::string>& asm_files)
@@ -263,7 +260,7 @@ bool ThorScriptLinkerStage::buildNativeCode(const std::vector<std::string>& asm_
 	int return_code = std::system(args.c_str());
 	std::cout << "return code from " << NATIVE_COMPILER << ": " << return_code << std::endl;
 
-	return true;
+	return (return_code == 0);
 }
 
 } } }

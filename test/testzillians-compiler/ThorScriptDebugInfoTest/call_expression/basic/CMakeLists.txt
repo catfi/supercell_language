@@ -21,9 +21,10 @@
 
 thorscript_add_debuginfo_test_target(
 		TARGET thorscript-compiler-debug-test_call_expression_basic
-		BUNDLE fib.bundle
+		BUNDLE basic.bundle
 		ENTRY  test1
 		SCRIPT test.py
+		BASELIB ${CMAKE_CURRENT_SOURCE_DIR}/../../lib
 		)
 
 zillians_add_test_to_subject(SUBJECT thorscript-compiler-debug-test TARGET thorscript-compiler-debug-test_call_expression_basic)

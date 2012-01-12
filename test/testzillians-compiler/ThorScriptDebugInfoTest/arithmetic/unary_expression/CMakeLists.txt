@@ -24,6 +24,7 @@ thorscript_add_debuginfo_test_target(
 		BUNDLE unary_expression.bundle
 		ENTRY  test_function
 		SCRIPT test.py
+		BASELIB ${CMAKE_CURRENT_SOURCE_DIR}/../../lib
 		)
 
 zillians_add_test_to_subject(SUBJECT thorscript-compiler-debug-test TARGET thorscript-compiler-debug-test_arithmatic_unary_expression)

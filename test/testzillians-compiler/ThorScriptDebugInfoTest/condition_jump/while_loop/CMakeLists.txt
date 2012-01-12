@@ -21,8 +21,9 @@
 
 thorscript_add_debuginfo_test_target(
 		TARGET thorscript-compiler-debug-test_while_loop
-		BUNDLE basic.bundle
+		BUNDLE while_loop.bundle
 		ENTRY  test1
+		BASELIB ${CMAKE_CURRENT_SOURCE_DIR}/../../lib
 		SCRIPT test.py)
 
 zillians_add_test_to_subject(SUBJECT thorscript-compiler-debug-test TARGET thorscript-compiler-debug-test_while_loop)

@@ -23,6 +23,7 @@ thorscript_add_debuginfo_test_target(
 		TARGET thorscript-compiler-debug-test_local_variable
 		BUNDLE local_variable.bundle
 		ENTRY  test1
+		BASELIB ${CMAKE_CURRENT_SOURCE_DIR}/../../lib
 		SCRIPT test.py
 		)
 
