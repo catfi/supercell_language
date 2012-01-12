@@ -1,4 +1,5 @@
 import gdb
+import os 
 
 
 #########################################################
@@ -23,6 +24,13 @@ def get_current_line():
 	except:
 		return None
 
+def get_current_file():
+	try:
+		frame = gdb.selected_frame()
+		sym = frame.find_sal()
+		return os.path.basename(sym.symtab.filename)
+	except:
+		return None
 
 #########################################################
 #
@@ -46,7 +54,7 @@ def lazy_generate_mode(*vars, **flags):
 	step = 0
 	while step < max_steps:
 		gdb.execute("s")
-		buf = 'execute_check("s", ' + str(get_current_line())
+		buf = 'execute_check("s", ' + str(get_current_line()) + ', EXPECT_FILE = "' + str(get_current_file()) +'"'
 		for var in vars:
 			try:
 				value = gdb.parse_and_eval(var)
@@ -58,9 +66,7 @@ def lazy_generate_mode(*vars, **flags):
 		print buf
 		step += 1
 
-#
-# 
-#
+
 def execute_check(command, *args, **eval_expr):
 	"""
 		FORMAT: eval_expr = {'expr': expect value}
@@ -76,18 +82,24 @@ def execute_check(command, *args, **eval_expr):
 	if args:
 		expect_line = args[0]
 
+	# Check expected line
 	current_line = get_current_line()
 	result = True 
 	if expect_line and current_line != expect_line:
 		result = False
 		print 'Line mismatched : ', current_line, ' expected: ', expect_line
 
+	# Check evaluation of expression
 	if eval_expr and result:
 		for expr, expected in eval_expr.items():
-			value = gdb.parse_and_eval(expr)
-			if (value != expected):
+			if expr == 'EXPECT_FILE':
+				value = get_current_file()
+			else:
+				value = gdb.parse_and_eval(expr)
+
+			if value != expected:
 				result = False
-				print current_line, ': Expr mismatched: ', expr, ' = ', value, ' expected: ', expected
+				print current_line, ': Mismatched: ', expr, ' = ', value, ' expected: ', expected
 				break
 
 	if not result:

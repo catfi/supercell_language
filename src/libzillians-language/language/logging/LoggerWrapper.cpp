@@ -95,6 +95,7 @@ void LoggerWrapper::initialize()
 //	TransformerStage->setLevel(log4cxx::Level::getError());
 //	GeneratorStage->setLevel(log4cxx::Level::getError());
 //	CompilerLogger->setLevel(log4cxx::Level::getError());
+	DebugInfoGeneratorStage->setLevel(log4cxx::Level::getError());
 
 }
 

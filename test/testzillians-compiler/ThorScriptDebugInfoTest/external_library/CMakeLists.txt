@@ -19,4 +19,4 @@
 # Contact Information: info@zillians.com
 #
 
-#ADD_SUBDIRECTORY(collaborate_external)
+ADD_SUBDIRECTORY(collaborate_external)
