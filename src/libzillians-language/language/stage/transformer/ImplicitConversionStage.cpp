@@ -72,19 +72,19 @@ bool ImplicitConversionStage::execute(bool& continue_execution)
 	{
         // prepand this
         boost::filesystem::path graphviz_path(dump_graphviz_dir);
-        if(dump_graphviz)
-        {
-            ASTNodeHelper::visualize(parser_context.tangle, graphviz_path / "pre-prepand.dot");
-        }
-
-        visitor::PrepandThisStageVisitor prepand;
-        prepand.visit(*parser_context.tangle);
-        prepand.applyTransforms();
-
-        if(dump_graphviz)
-        {
-            ASTNodeHelper::visualize(parser_context.tangle, graphviz_path / "post-prepand.dot");
-        }
+//        if(dump_graphviz)
+//        {
+//            ASTNodeHelper::visualize(parser_context.tangle, graphviz_path / "pre-prepand.dot");
+//        }
+//
+//        visitor::PrepandThisStageVisitor prepand;
+//        prepand.visit(*parser_context.tangle);
+//        prepand.applyTransforms();
+//
+//        if(dump_graphviz)
+//        {
+//            ASTNodeHelper::visualize(parser_context.tangle, graphviz_path / "post-prepand.dot");
+//        }
 
 		// restructure the entire tree in multiple passes
         if(dump_graphviz)

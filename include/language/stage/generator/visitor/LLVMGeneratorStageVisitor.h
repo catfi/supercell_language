@@ -302,14 +302,17 @@ struct LLVMGeneratorStageVisitor : public GenericDoubleVisitor
 				visit(*node.if_branch.cond);
 
 				llvm::BasicBlock* block = createBasicBlock("if.then", mFunctionContext.function);
-				SET_SYNTHESIZED_LLVM_BLOCK(node.if_branch.block, block);
-
+				
 				// because we create linkage among blocks on our own in this if/else structure, so we don't emit branch instruction automatically
 				enterBasicBlock(block, false);
 				visit(*node.if_branch.block);
 
+				llvm::BasicBlock* last_active_block = mBuilder.GetInsertBlock();
+				SET_SYNTHESIZED_LLVM_BLOCK(node.if_branch.block, last_active_block);
+
 				llvm_blocks.push_back(cond);
 				llvm_blocks.push_back(block);
+				llvm_blocks.push_back(last_active_block);
 			}
 
 			// for elif branch
@@ -323,13 +326,16 @@ struct LLVMGeneratorStageVisitor : public GenericDoubleVisitor
 					visit(*i->cond);
 
 					llvm::BasicBlock* block = createBasicBlock("elif.then", mFunctionContext.function);
-					SET_SYNTHESIZED_LLVM_BLOCK(i->block, block);
 
 					enterBasicBlock(block, false);
 					visit(*i->block);
 
+					llvm::BasicBlock* last_active_block = mBuilder.GetInsertBlock();
+					SET_SYNTHESIZED_LLVM_BLOCK(i->block, last_active_block);
+
 					llvm_blocks.push_back(cond);
 					llvm_blocks.push_back(block);
+					llvm_blocks.push_back(last_active_block);
 				}
 			}
 
@@ -337,11 +343,15 @@ struct LLVMGeneratorStageVisitor : public GenericDoubleVisitor
 			if(node.else_block)
 			{
 				llvm::BasicBlock* block = createBasicBlock("else.then", mFunctionContext.function);
-				SET_SYNTHESIZED_LLVM_BLOCK(node.else_block, block);
 
 				enterBasicBlock(block, false);
 				visit(*node.else_block);
+
+				llvm::BasicBlock* last_active_block = mBuilder.GetInsertBlock();
+				SET_SYNTHESIZED_LLVM_BLOCK(node.else_block, last_active_block);
+
 				llvm_blocks.push_back(block);
+				llvm_blocks.push_back(last_active_block);
 			}
 
 			// for the last block
@@ -360,18 +370,24 @@ struct LLVMGeneratorStageVisitor : public GenericDoubleVisitor
 				if(!isBlockTerminated(llvm_blocks[0]))
 				{
 					mBuilder.SetInsertPoint(llvm_blocks[0]); // [0] is the 'condition evaluation block for if branch'
-					mBuilder.CreateCondBr(llvm_if_cond, llvm_blocks[1], llvm_blocks[2]); // [1] is the 'then block for if branch', [2] could be the 'condition evaluation block for first elif branch', or the 'else block', or the 'end block'
+					mBuilder.CreateCondBr(llvm_if_cond, llvm_blocks[1], llvm_blocks[3]); // [1] is the 'then block for if branch', [2] could be the 'condition evaluation block for first elif branch', or the 'else block', or the 'end block'
 				}
 
 				if(!isBlockTerminated(llvm_blocks[1]))
 				{
-					mBuilder.SetInsertPoint(llvm_blocks[1]); // [1] is the 'then block for if branch'
+					mBuilder.SetInsertPoint(llvm_blocks[1]); // [1] is the first block of 'then block for if branch'
+					mBuilder.CreateBr(llvm_blocks.back()); // [back()] is the 'end block'
+				}
+
+				if(!isBlockTerminated(llvm_blocks[2]))
+				{
+					mBuilder.SetInsertPoint(llvm_blocks[2]); // [2] is the last block of 'then block for if branch'
 					mBuilder.CreateBr(llvm_blocks.back()); // [back()] is the 'end block'
 				}
 			}
 
 			// for all elif branch
-			int index = 2;
+			int index = 3;
 			{
 				foreach(i, node.elseif_branches)
 				{
@@ -380,7 +396,7 @@ struct LLVMGeneratorStageVisitor : public GenericDoubleVisitor
 					if(!isBlockTerminated(llvm_blocks[index]))
 					{
 						mBuilder.SetInsertPoint(llvm_blocks[index]);
-						mBuilder.CreateCondBr(llvm_elif_cond, llvm_blocks[index+1], llvm_blocks[index+2]);
+						mBuilder.CreateCondBr(llvm_elif_cond, llvm_blocks[index+1], llvm_blocks[index+3]);
 					}
 
 					if(!isBlockTerminated(llvm_blocks[index+1]))
@@ -389,19 +405,25 @@ struct LLVMGeneratorStageVisitor : public GenericDoubleVisitor
 						mBuilder.CreateBr(llvm_blocks.back());
 					}
 
-					index += 2;
+					if(!isBlockTerminated(llvm_blocks[index+2]))
+					{
+						mBuilder.SetInsertPoint(llvm_blocks[index+2]);
+						mBuilder.CreateBr(llvm_blocks.back());
+					}
+
+					index += 3;
 				}
 			}
 
 			// for else branch
 			if(node.else_block)
 			{
-				if(!isBlockTerminated(llvm_blocks[index]))
+				if(!isBlockTerminated(llvm_blocks[index+1]))
 				{
-					mBuilder.SetInsertPoint(llvm_blocks[index]);
+					mBuilder.SetInsertPoint(llvm_blocks[index+1]);
 					mBuilder.CreateBr(llvm_blocks.back());
 				}
-				index += 1;
+				index += 2;
 			}
 
 			// for the last block
@@ -419,6 +441,7 @@ struct LLVMGeneratorStageVisitor : public GenericDoubleVisitor
 		if(hasValue(node)) return;
 		if(isBlockInsertionMasked() || isBlockTerminated(currentBlock()))	return;
 
+		// create the finalized block beforehand
 		llvm::BasicBlock* init_block = createBasicBlock("for.init", mFunctionContext.function);
 		SET_SYNTHESIZED_LLVM_BLOCK(node.init, init_block);
 
@@ -437,8 +460,15 @@ struct LLVMGeneratorStageVisitor : public GenericDoubleVisitor
 		enterBasicBlock(init_block);
 		if(node.init) visit(*node.init);
 
+		llvm::BasicBlock* init_last_active_block = mBuilder.GetInsertBlock(); // as new basic block can be created last visitation, we need to store the last active basic block
+		SET_SYNTHESIZED_LLVM_BLOCK(node.init, init_last_active_block);
+
+		// after the init block, the next block is condition block
 		enterBasicBlock(cond_block);
 		visit(*node.cond);
+
+		llvm::BasicBlock* cond_last_active_block = mBuilder.GetInsertBlock(); // as new basic block can be created last visitation, we need to store the last active basic block
+		SET_SYNTHESIZED_LLVM_BLOCK(node.cond, cond_last_active_block);
 
 		// conditional branch to either action block or finalized block
 		llvm::Value* llvm_cond = GET_SYNTHESIZED_LLVM_VALUE(node.cond);
@@ -447,8 +477,17 @@ struct LLVMGeneratorStageVisitor : public GenericDoubleVisitor
 		enterBasicBlock(action_block);
 		if(node.block) visit(*node.block);
 
+		llvm::BasicBlock* action_last_active_block = mBuilder.GetInsertBlock(); // as new basic block can be created last visitation, we need to store the last active basic block
+		SET_SYNTHESIZED_LLVM_BLOCK(node.block, action_last_active_block);
+
+		// after the action block, the next block is step block
 		enterBasicBlock(step_block);
 		if(node.step) visit(*node.step);
+
+		llvm::BasicBlock* step_last_active_block = mBuilder.GetInsertBlock(); // as new basic block can be created last visitation, we need to store the last active basic block
+		SET_SYNTHESIZED_LLVM_BLOCK(node.step, step_last_active_block);
+
+		// after the step block, the next block is the condition block (since we've completed the code generation for condition block, here we just simply make a branch to it)
 		mBuilder.CreateBr(cond_block);
 
 		// enter finalized block
@@ -494,12 +533,20 @@ struct LLVMGeneratorStageVisitor : public GenericDoubleVisitor
 			enterBasicBlock(cond_block);
 			visit(*node.cond);
 
+			llvm::BasicBlock* cond_last_active_block = mBuilder.GetInsertBlock(); // as new basic block can be created last visitation, we need to store the last active basic block
+			SET_SYNTHESIZED_LLVM_BLOCK(node.cond, cond_last_active_block);
+
 			// conditional branch to either action block or finalized block
 			llvm::Value* llvm_cond = GET_SYNTHESIZED_LLVM_VALUE(node.cond);
 			mBuilder.CreateCondBr(llvm_cond, action_block, finalized_block);
 
 			enterBasicBlock(action_block);
 			if(node.block) visit(*node.block);
+
+			llvm::BasicBlock* action_last_active_block = mBuilder.GetInsertBlock(); // as new basic block can be created last visitation, we need to store the last active basic block
+			SET_SYNTHESIZED_LLVM_BLOCK(node.block, action_last_active_block);
+
+			// after the action block, the next block is the conditional block (since we've completed the code generation for condition block, here we just simply make a branch to it)
 			mBuilder.CreateBr(cond_block);
 
 			// enter finalized block
@@ -519,9 +566,15 @@ struct LLVMGeneratorStageVisitor : public GenericDoubleVisitor
 			enterBasicBlock(action_block);
 			if(node.block) visit(*node.block);
 
+			llvm::BasicBlock* action_last_active_block = mBuilder.GetInsertBlock(); // as new basic block can be created last visitation, we need to store the last active basic block
+			SET_SYNTHESIZED_LLVM_BLOCK(node.block, action_last_active_block);
+
 			// conditional branch to either action block or finalized block
 			enterBasicBlock(cond_block);
 			visit(*node.cond);
+
+			llvm::BasicBlock* cond_last_active_block = mBuilder.GetInsertBlock(); // as new basic block can be created last visitation, we need to store the last active basic block
+			SET_SYNTHESIZED_LLVM_BLOCK(node.cond, cond_last_active_block);
 
 			llvm::Value* llvm_cond = GET_SYNTHESIZED_LLVM_VALUE(node.cond);
 			mBuilder.CreateCondBr(llvm_cond, action_block, finalized_block);
@@ -835,6 +888,7 @@ struct LLVMGeneratorStageVisitor : public GenericDoubleVisitor
 			phi->addIncoming(false_value, false_block);
 
 			SET_SYNTHESIZED_LLVM_VALUE(&node, phi);
+			SET_SYNTHESIZED_LLVM_BLOCK(&node, final_block);
 		}
 	}
 
@@ -1150,7 +1204,7 @@ private:
 		UNUSED_ARGUMENT(ast_function);
 
 		enterBasicBlock(mFunctionContext.return_block);
-
+ 
 		if(!mFunctionContext.return_value)
 		{
 			mBuilder.CreateRetVoid();
