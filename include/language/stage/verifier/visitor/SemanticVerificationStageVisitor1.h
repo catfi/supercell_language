@@ -168,8 +168,7 @@ struct SemanticVerificationStageVisitor1 : public GenericDoubleVisitor
 					LOG_MESSAGE(WRITE_CONST, &node, _var_id = var_decl->name->toString());
 
 				// UNINIT_REF
-				if(node.right->isRValue() || (node.right->isLValue()
-						&& SemanticVerificationVariableDeclContext_HasBeenInit::is_bound(ResolvedSymbol::get(node.right))))
+				if(ResolvedSymbol::get(node.right) && SemanticVerificationVariableDeclContext_HasBeenInit::is_bound(ResolvedSymbol::get(node.right)))
 				{
 					SemanticVerificationVariableDeclContext_HasBeenInit::bind(var_decl);
 				}
